@@ -17,7 +17,6 @@ use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
 
 class MenuBar is Item2D
-    
     Layout defaultLayout = undefined
     MenuItemView defaultMenuAppearance = undefined
     MenuItemView defaultItemAppearance = undefined
@@ -46,6 +45,7 @@ class MenuBar is Item2D
         SetFocusable(true)
 
         selection:Initialize(me)
+        SetAccessibilityCode(parent:Item:MENU_BAR)
     end
 
     action Initialize

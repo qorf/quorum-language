@@ -2,30 +2,27 @@
 #include <windows.h>
 #include <UIAutomation.h>
 
-#include "ToggleButtonProvider.h"
-#include "ToggleButtonControl.h"
+#include "ButtonProvider.h"
+#include "ButtonControl.h"
 
-#include <iostream>
-#include <string>
-
-ToggleButtonProvider::ToggleButtonProvider(HWND hwnd, ToggleButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
+ButtonProvider::ButtonProvider(HWND hwnd, ButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
 {
 	// Nothing to do.
 }
 
-ToggleButtonProvider::~ToggleButtonProvider()
+ButtonProvider::~ButtonProvider()
 {
 	// Nothing to do.
 }
 
 // =========== IUnknown implementation.
 
-IFACEMETHODIMP_(ULONG) ToggleButtonProvider::AddRef()
+IFACEMETHODIMP_(ULONG) ButtonProvider::AddRef()
 {
 	return InterlockedIncrement(&m_refCount);
 }
 
-IFACEMETHODIMP_(ULONG) ToggleButtonProvider::Release()
+IFACEMETHODIMP_(ULONG) ButtonProvider::Release()
 {
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
@@ -35,7 +32,7 @@ IFACEMETHODIMP_(ULONG) ToggleButtonProvider::Release()
 	return val;
 }
 
-IFACEMETHODIMP ToggleButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
+IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
 {
 	if (riid == __uuidof(IUnknown))
 	{
@@ -45,9 +42,9 @@ IFACEMETHODIMP ToggleButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ v
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
 	}
-	else if (riid == __uuidof(IToggleProvider))
+	else if (riid == __uuidof(IInvokeProvider))
 	{
-		*ppInterface = static_cast<IToggleProvider*>(this);
+		*ppInterface = static_cast<IInvokeProvider*>(this);
 	}
 	else
 	{
@@ -63,16 +60,16 @@ IFACEMETHODIMP ToggleButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ v
 // =========== IRawElementProviderSimple implementation
 
 // Get provider options.
-IFACEMETHODIMP ToggleButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
+IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 
-// Get the object that supports ISelectionItemPattern.
-IFACEMETHODIMP ToggleButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
+// Get the object that supports IInvokePattern.
+IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (patternId == UIA_TogglePatternId)
+	if (patternId == UIA_InvokePatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
@@ -85,24 +82,19 @@ IFACEMETHODIMP ToggleButtonProvider::GetPatternProvider(PATTERNID patternId, _Ou
 }
 
 // Gets custom properties.
-IFACEMETHODIMP ToggleButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
+IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Toggle Button");
-	}
-	else if (propertyId == UIA_HelpTextPropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Help text here");
+		pRetVal->bstrVal = SysAllocString(L"Button");
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_CheckBoxControlTypeId;
+		pRetVal->lVal = UIA_ButtonControlTypeId;
 	}
-	else if (propertyId == UIA_IsTogglePatternAvailablePropertyId)
+	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
@@ -131,7 +123,6 @@ IFACEMETHODIMP ToggleButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Ou
 		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = m_pButtonControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
-
 	}
 	else
 	{
@@ -140,60 +131,30 @@ IFACEMETHODIMP ToggleButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Ou
 		// If the property is found then it will have the UI Automation defaults listed in the Microsoft Developer's Network documentation.
 		// More often than not the default values are responsible for a control not functioning properly with a screen reader.
 	}
-
 	return S_OK;
 }
 
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
-IFACEMETHODIMP ToggleButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
+IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	return UiaHostProviderFromHwnd(m_buttonControlHWnd, pRetVal);
 }
 
 
-// =========== ISelectionItemProvider implementation.
+// =========== IInvokeProvider implementation.
 
-// Toggle: Cycles through the toggle states of a control. 
-IFACEMETHODIMP ToggleButtonProvider::Toggle()
+// Invoke
+IFACEMETHODIMP ButtonProvider::Invoke()
 {
-
-	if (m_pButtonControl->GetState() == ToggleState_On)
-	{
-		// Change state to off
-		m_pButtonControl->SetState(ToggleState_Off);
-	}
-	else if (m_pButtonControl->GetState() == ToggleState_Off)
-	{
-		// Change state to off
-		m_pButtonControl->SetState(ToggleState_On);
-	}
-	else
-	{
-		// State is ToggleState_Indeterminate. This state hasn't been implemented but it could be.
-	}
-
-	// Raise a UI Automation Event
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
-	}
-
-	return S_OK;
-}
-
-// get_ToggleState: Specifies the toggle state of the control.
-IFACEMETHODIMP ToggleButtonProvider::get_ToggleState(_Out_ ToggleState * pRetVal)
-{
-	*pRetVal = m_pButtonControl->GetState();
+	PostMessage(m_buttonControlHWnd, QUORUM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }
 
 // =========== Other Methods
-
-void ToggleButtonProvider::NotifyFocusGained()
+void ButtonProvider::NotifyFocusGained()
 {
 	if (UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		//UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
 }

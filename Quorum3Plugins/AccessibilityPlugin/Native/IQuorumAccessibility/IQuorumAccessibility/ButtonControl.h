@@ -2,17 +2,17 @@
 #include <UIAutomation.h>
 #include "CustomMessages.h"
 
-class PushButtonProvider;
+class ButtonProvider;
 
-class PushButtonControl
+class ButtonControl
 {
 public:
-	PushButtonControl();
-	virtual ~PushButtonControl();
+	ButtonControl();
+	virtual ~ButtonControl();
 
 	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
-	PushButtonProvider* GetButtonProvider(_In_ HWND hwnd);
+	ButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
 
 
@@ -36,6 +36,6 @@ private:
 	bool m_focused;
 	WCHAR* m_buttonName;
 	HWND m_buttonControlHWND;
-	PushButtonProvider* m_buttonProvider;
+	ButtonProvider* m_buttonProvider;
 
 };

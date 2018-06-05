@@ -28,13 +28,21 @@ use Libraries.Compute.Math
     Attribute: Author William Allee
 */
 class Item 
-
     public constant integer ITEM = 0
     public constant integer CUSTOM = 1
-    public constant integer TOGGLE_BUTTON = 2
+    public constant integer CHECKBOX = 2
     public constant integer RADIO_BUTTON = 3
-    public constant integer PUSH_BUTTON = 4
-    public constant integer TEXTBOX = 5
+    public constant integer BUTTON = 4
+    public constant integer TOGGLE_BUTTON = 5
+    public constant integer TEXTBOX = 6
+    public constant integer MENU_BAR = 7
+    public constant integer MENU_ITEM = 8
+    public constant integer PANE = 9
+    public constant integer TREE = 10
+    public constant integer TREE_ITEM = 11
+    public constant integer TOOLBAR = 12
+    public constant integer TAB = 13
+    public constant integer TABPANE = 14
 
     private integer accessibilityCode = 0
 
@@ -743,26 +751,6 @@ class Item
         GameStateManager manager
         return manager:GetGame():GetInputTable(GetInputGroup())
     end
-    
-//    action GetItemAt(number x, number y, number z) returns Item
-//        integer counter = children:GetSize()
-//        Item temp = undefined
-//        boolean found = false
-//        repeat while counter > 0 and not found
-//            counter = counter - 1
-//            temp = children:Get(counter)
-//            temp = temp:GetItemAt(x, y, z)
-//            if temp not= undefined
-//                found = true
-//            end
-//        end
-//
-//        if not found and Contains(x, y, z)
-//            return me
-//        else
-//            return temp
-//        end
-//    end
 
     /*
     This action is used to free up any additional memory that is being used by
@@ -937,7 +925,7 @@ class Item
                                                   
     */
     action SetAccessibilityCode(integer newAccessibilityCode)
-        if ( newAccessibilityCode < 6 and newAccessibilityCode >= 0)
+        if ( newAccessibilityCode < TABPANE + 1 and newAccessibilityCode >= 0)
             accessibilityCode = newAccessibilityCode
         end
     end
@@ -946,18 +934,36 @@ class Item
         This action returns the name of the accessiblity code for this Item as Text
     */
     action GetAccessibilityType() returns text
-        if (accessibilityCode = 0)
+        if (accessibilityCode = ITEM)
             return "ITEM"
-        elseif (accessibilityCode = 1)
+        elseif (accessibilityCode = CUSTOM)
             return "CUSTOM"
-        elseif (accessibilityCode = 2)
-            return "TOGGLE_BUTTON"
-        elseif (accessibilityCode = 3)
+        elseif (accessibilityCode = CHECKBOX)
+            return "CHECKBOX"
+        elseif (accessibilityCode = RADIO_BUTTON)
             return "RADIO_BUTTON"
-        elseif (accessibilityCode = 4)
-            return "PUSH_BUTTON"
-        elseif (accessibilityCode = 5)
+        elseif (accessibilityCode = BUTTON)
+            return "BUTTON"
+        elseif (accessibilityCode = TOGGLE_BUTTON)
+            return "TOGGLE_BUTTON"
+        elseif (accessibilityCode = TEXTBOX)
             return "TEXTBOX"
+        elseif (accessibilityCode = MENU_BAR)
+            return "MENU"
+        elseif (accessibilityCode = MENU_ITEM)
+            return "MENU_ITEM"
+        elseif (accessibilityCode = PANE)
+            return "PANE"
+        elseif (accessibilityCode = TREE)
+            return "TREE"
+        elseif (accessibilityCode = TREE_ITEM)
+            return "TREE_ITEM"
+        elseif (accessibilityCode = TOOLBAR)
+            return "TOOLBAR"
+        elseif (accessibilityCode = TAB)
+            return "TAB"
+        elseif (accessibilityCode = TABPANE)
+            return "TABPANE"
         else
             return "ITEM"
         end
@@ -1011,13 +1017,13 @@ class Item
     end
 
     /*
-
+        This action is fired if the item received the focus.
     */
     action GainedFocus(FocusEvent event)
     end
 
     /*
-
+        This action is fired if the item lost the focus.
     */
     action LostFocus(FocusEvent event)
     end
