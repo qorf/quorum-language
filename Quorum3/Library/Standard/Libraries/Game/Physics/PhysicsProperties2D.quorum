@@ -8,12 +8,13 @@ use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.PhysicsPosition2D
 
 /*
-This class is a property holder for a 2D mass.
+This class is a property holder for a 2D mass. This class is used internally 
+by Item2D class.
 */
 class PhysicsProperties2D 
     public constant integer UNMOVABLE = 0       //static object
-    public constant integer NON_RESPONSIVE = 1  //object governed by kinematics
-    public constant integer RESPONSIVE = 2      //object governed by dynamics
+    public constant integer NON_RESPONSIVE = 1  //object governed by kinematics (meaning, the object is affected by linear velocity and angular velocity settings)
+    public constant integer RESPONSIVE = 2      //object governed by dynamics (meaning, the object is affect by force and torque applied to it)
 
     Vector2 linearVelocity      //linear velocity of the center of mass of the 2D object [Units: m]
     number angularVelocity = 0  //angular velocity of the 2D object about the COM [Units: rad/s]
@@ -54,6 +55,10 @@ class PhysicsProperties2D
     This action attaches a 2D item, which includes the shape, friction, 
     restitution, positions, and others of a 2D object as a part of the properties
     that this 2D item has.
+    This action is used internally in the Item2D class when you enable
+    physics on the item when a "PhysicsProperties2D" property holder will be 
+    created so that Item2D will be attached to that property holder and the
+    property holder will be attached to the Item2D.
     */
     action SetItem(Item2D item)
         me:item = item
@@ -404,19 +409,32 @@ class PhysicsProperties2D
         end
     end
 
+    /*
+    This action changes the mass of this property holder, this will not
+    change the density of this property holder.
+    */
     action AssignMass(number mass)
         me:mass = mass
     end
 
+    /*
+    This action returns the reciprocal of the mass (1/mass) inside this 
+    property holder. 
+    */
     action GetInverseMass returns number
         return inverseMass
     end
 
+
+    /*
+    This action sets the reciprocal of the mass (1/mass) inside this 
+    property holder without changing mass and density.
+    */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
     end
 
-    /*  //CHANGE THIS
+    /*
     This action returns the mass moment of inertia about the object's local
     origin (NOTE: not the mass moment of inertia about the object's center of
     mass).
@@ -426,6 +444,11 @@ class PhysicsProperties2D
         return inertia + mass * (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY())
     end
 
+
+    /*
+    This action sets the mass moment of inertia about the about the center 
+    of mass of the 2D object.
+    */
     action SetInertia(number inertia)
         me:inertia = inertia
     end
@@ -438,34 +461,74 @@ class PhysicsProperties2D
         return inertia
     end
 
+    /*
+    This action returns the reciprocal of the mass moment of inertia about
+    the object's center of mass.
+    */
     action GetInverseInertia returns number
         return inverseInertia
     end
 
+    /*
+    This action sets the reciprocal of the mass moment of inertia about
+    the object's center of mass.
+    */
     action SetInverseInertia(number inverseInertia)
         me:inverseInertia = inverseInertia
     end
 
+    /*
+    This action gets the linear damping inside this property holder.
+    */
     action GetLinearDamping returns number
         return linearDamping
     end
 
+    /*
+    This action sets the linear damping inside this property holder.
+    */
     action SetLinearDamping(number linearDamping)
         me:linearDamping = linearDamping
     end
 
+    /*
+    This action gets the angular damping inside this property holder.
+    */
     action GetAngularDamping returns number
         return angularDamping
     end
 
+    /*
+    This action sets the angular damping inside this property holder.
+    */
     action SetAngularDamping(number angularDamping)
         me:angularDamping = angularDamping
     end
 
+    /*
+    This action returns how physics (linear velocity, angular velocity, force, 
+    torque) will affect the object.
+    There are three possible values to be returned:
+        0 indicates that the object is UNMOVABLE, which means no matter 
+            what forces or torques is applied to the object, the object 
+            will not move.
+        1 indicates that the object is NON_RESPONSIVE, which means that only
+            setting the angular velocity and linear velocity of this object
+            will affect how the object behaves.
+        2 indicates that the object is REPONSIVE, which means that this object
+            will behave differently when you apply forces and torques to 
+            this object.
+    
+    Attribute: Returns Returns how physics will affect the object. 
+    */
     action GetResponsiveness returns integer
         return type
     end
 
+    /*
+    This action sets how physics (linear velocity, angular velocity, force, 
+    torque) will affect the object.
+    */
     action SetResponsiveness(integer type)
         if me:type = type
             return now
@@ -475,28 +538,35 @@ class PhysicsProperties2D
 
         simulated = true
 
-        if me:type = RESPONSIVE
+        if me:type = RESPONSIVE //if the object is governed by dynamics
             if not massSet
-                mass = 1
+                mass = 1    //have an unit mass
                 inverseMass = 1
             end
             if me:item not= undefined
-                density = mass / item:GetShape():ComputeArea()
-                me:item:ResetMass()
+                density = mass / item:GetShape():ComputeArea()    //sets the density, which will be used in the "item:ResetMass()" function
+                me:item:ResetMass() //resets mass, moment of inertia, and update the objects linear velocity
             end
-        else
-            mass = 0
+        else    //if the 2D object is supposed to be static or kinematic
+            mass = 0    //no physics should act on this 2D object
             inverseMass = 0
             density = 0
             if me:item not= undefined
-                me:item:ResetMass()
+                me:item:ResetMass()   //resets mass, moment of inertia, and update the objects linear velocity
             end
         end
 
+        //set the force and torque to 0
         force:SetZero()
         torque = 0
     end
 
+    /*
+    This action changes the density that is stored inside this property 
+    holder. With the density changed, if there is a mass attached to this
+    property holder, then the mass of the 2D object will also change based 
+    on the object's shape.
+    */
     action SetDensity(number density)
         if density >= 0
             me:density = density
@@ -506,50 +576,96 @@ class PhysicsProperties2D
         end
     end
 
+    /*
+    This action returns the density that is stored inside this property holder.
+    */
     action GetDensity returns number
         return density
     end
 
+    /*
+    This action sets the friction that is stored inside this property holder.
+    */
     action SetFriction(number friction)
         me:friction = friction
     end
 
+    /*
+    This action gets the friction that is stored inside this property holder.
+    */
     action GetFriction returns number
         return friction
     end
 
+    /*
+    This action sets the restitutiton that is stored inside this property holder.
+    */
     action SetRestitution(number restitution)
         me:restitution = restitution
     end
 
+
+    /*
+    This action gets the restitutiton that is stored inside this property holder.
+    */
     action GetRestitution returns number
         return restitution
     end
 
+
+    /*
+    This action sets whether the object attached to this property holder will
+    be inside a collision group.
+    */
     action SetCollisionGroupFlag(boolean flag)
         collisionGroupFlag = flag
     end
 
+    /*
+    This action gets whether the object attached to this property holder will
+    be inside a collision group.
+    */
     action GetCollisionGroupFlag returns boolean
         return collisionGroupFlag
     end
 
+    /*
+    This action sets which collision group that this object will be in.
+    */
     action SetCollisionGroupIndex(integer index)
         collisionGroupIndex = index
     end
 
+
+    /*
+    This action gets which collision group that this object will be in.
+    */
     action GetCollisionGroupIndex returns integer
         return collisionGroupIndex
     end
 
+    
+    /*
+    This action tells you whether if this object will be moving fast.
+    */
     action IsFastMoving returns boolean
         return fastMoving
     end
 
+
+    /*
+    This action sets whether if the object attached to this property holder
+    will be moving fast. If the object will be moving fast, then there 
+    will be more intensity collision resolution process for this object.
+    */
     action FastMoving(boolean flag)
         fastMoving = flag
     end
 
+    /*
+    This action sets whether if the object attached to this property holder
+    will require simulation.
+    */
     action RequireSimulation(boolean flag)
         simulationRequired = flag
         if simulationRequired
@@ -557,17 +673,28 @@ class PhysicsProperties2D
         end
     end
 
+
+    /*
+    This action tells you whether simulation is required of the object that is 
+    attached to this property holder.
+    */
     action IsSimulationRequired returns boolean
         return simulationRequired
     end
 
+    /*
+    This action will change the variables in this property holder based on whether
+    simulation is required of the object that is attached to this property holder.
+    If simulation is not required, then this means that the object's position will
+    not change.
+    */
     action Simulate(boolean flag)
-        if flag
+        if flag //"awake"
             if not simulated
                 simulated = true
-                sleepTime = 0
+                sleepTime = 0   //no sleep time
             end
-        else
+        else    //"asleep"
             simulated = false
             sleepTime = 0
             linearVelocity:SetZero()
@@ -577,22 +704,44 @@ class PhysicsProperties2D
         end
     end
 
+    /*
+    This action tells you if the object attached to this property holder
+    is being simulated.
+    */
     action IsSimulated returns boolean
         return simulated
     end
 
+
+
+    /*
+    This action sets whether the 2D object attached to this property holder
+    will be able to rotate or not.
+    */
     action CanRotate(boolean flag)
         canRotate = flag
     end
 
+    /*
+    This action tells you if the 2D object attached to this property holder
+    will be able to rotate. 
+    */
     action IsRotationAllowed returns boolean
         return canRotate
     end
 
+    /*
+    This action sets how much time that the 2D object attached to this 
+    property holder will remain unsimulated.
+    */
     action SetSleepTime(number time)
         sleepTime = time
     end
 
+    /*
+    This action gets how much time that the 2D object attached to this 
+    property holder will remain unsimulated.
+    */
     action GetSleepTime returns number
         return sleepTime
     end

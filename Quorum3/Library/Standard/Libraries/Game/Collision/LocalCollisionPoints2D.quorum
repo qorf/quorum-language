@@ -4,6 +4,13 @@ use Libraries.Game.Collision.CollisionPoint2D
 
 package Libraries.Game.Collision
 
+
+/*
+This class records the collision points between collisions. 
+Collision points will be evaluated when a CollisionEvent2D occurs, where the 
+CollisionEvent2D uses the narrow phase evaluation to calculate where the
+collision points are.
+*/
 class LocalCollisionPoints2D
     public constant integer MAX_COLLISION_POINTS = 2
 

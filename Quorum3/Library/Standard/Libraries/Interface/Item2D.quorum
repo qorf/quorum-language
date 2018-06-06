@@ -136,7 +136,12 @@ class Item2D is Item
     */
     PhysicsPosition2D transform0
 
+    /*
+    The property holder for this item. You will only have a property holder
+    if the physics is enabled.
+    */
     PhysicsProperties2D properties = undefined
+
     /*
     A flag that remembers whether the physics is enabled for this item.
     If physics is enabled, then this item will be able to collide with other items.
@@ -3171,7 +3176,7 @@ class Item2D is Item
                 physicsEnabled = false
                 PhysicsProperties2D properties
                 me:properties = properties
-            else
+            else       
                 SetCollidable(true)
                 sweep:GetLocalCenter():SetZero()
                 sweep:GetCenter0():Set(transform:GetPosition())
@@ -3181,9 +3186,9 @@ class Item2D is Item
                 sweep:SetAlpha0(0)
                 if me:properties = undefined
                     PhysicsProperties2D properties
-                    me:properties = properties
+                    me:properties = properties  //connect the property holder to this item
                 end
-                properties:SetItem(me)
+                properties:SetItem(me)  //connect this item to the property holder
             end
             return now
         end
@@ -3197,8 +3202,8 @@ class Item2D is Item
             sweep:SetAngle(transform:GetAngle())
             sweep:SetAlpha0(0)
             PhysicsProperties2D properties
-            me:properties = properties
-            properties:SetItem(me)
+            me:properties = properties  //connect the property holder to this item
+            properties:SetItem(me)      //connect this item to the property holder
         end
     end
 
@@ -4272,17 +4277,24 @@ class Item2D is Item
         properties:GetLinearVelocity():Add(temp)
     end
 
+
+    /*
+    This action sets the mass, mass moment of inertia, and how the 2D item should 
+    move (via linear velocity) to be at the desired location.
+    */
     action ResetMass
         Mass2D massData
+        //make sure there is a "property holder" attached to this item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
+        //if this item is not governed by dynamics
         if properties:GetResponsiveness() = properties:UNMOVABLE or properties:GetResponsiveness() = properties:NON_RESPONSIVE
-            sweep:GetCenter0():Set(transform:GetPosition())
-            sweep:GetCenter():Set(transform:GetPosition())
-            sweep:SetAngle0(sweep:GetAngle())
-            properties:AssignMass(0)
+            sweep:GetCenter0():Set(transform:GetPosition())  //the postition at which the item will be drawn will be the current physics position of this item
+            sweep:GetCenter():Set(transform:GetPosition())   //the target postition at which the item will be drawn will be the current physics position of this item
+            sweep:SetAngle0(sweep:GetAngle())                //the tilt at which the item will be drawn will be the current physics tilt of this item
+            properties:AssignMass(0)                         //set this object as having no mass
             properties:SetInverseMass(0)
             properties:SetInertia(0)
             properties:SetInverseInertia(0)
@@ -4292,20 +4304,28 @@ class Item2D is Item
 
         Vector2 localCenter
         localCenter:SetZero()
+
         Vector2 temp
-        shape:ComputeMass(massData, properties:GetDensity())
+
+        shape:ComputeMass(massData, properties:GetDensity())    //this will compute the mass based on the shape of the object and density such that the shape's center of mass will also be updated
         properties:AssignMass(massData:GetMass())
-        localCenter:Add(massData:GetCenter())
-        properties:SetInertia(massData:GetInertia())
+        localCenter:Add(massData:GetCenter())                   //obtain the center of mass of the object relative to the object's local coordinate's origin
+        properties:SetInertia(massData:GetInertia())            //obtain the mass moment of inertia of the object and put it in the "property holder"
+                                                                //however, this mass moment of inertia is about the object's local origin (the inertia in Mass2D class)
+                                                                //but, we want the mass moment of inertia about the object's center of mass stored inside the "property holder"
+                                                                //so, we will do calculations later 
 
         if properties:GetMass() > 0
             properties:SetInverseMass(1.0 / properties:GetMass())
-        else
+        else    //if this is a massless object, just assign unit mass to this object
             properties:AssignMass(1)
             properties:SetInverseMass(1)
         end
 
-        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()
+        
+        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()   
+                //if there is an inertia that is physically possible inside the "properties holder" and the object is allowed to rotate
+                //we have to change the inertia that is inside the "properties holder" to the mass moment of inertia about the object's center of mass
             properties:SetInertia(properties:GetRawInertia() - (properties:GetMass() * localCenter:DotProduct(localCenter)))
             properties:SetInverseInertia(1.0 / properties:GetRawInertia())
         else
@@ -4313,16 +4333,25 @@ class Item2D is Item
             properties:SetInverseInertia(0)
         end
 
+        //get the old target global center of the object 
         Vector2 oldCenter
         oldCenter:Set(sweep:GetCenter())
+
+        //change the target local center of the object 
         sweep:GetLocalCenter():Set(localCenter)
+
+        //change the global center of the object of the frame drawn and the target global center of the object
         sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
         sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
         sweep:GetCenter():Set(sweep:GetCenter0())
 
+        //"temp" is the vector whose head is at the current center, whose tail is at the old center 
         temp:Set(sweep:GetCenter()):Subtract(oldCenter)
 
         Vector2 temp2 = oldCenter
+
+        //tangential velocity is the cross product of angular velocity and displacement vector 
+        //this is an approximation
         temp2:SetX(-properties:GetAngularVelocity() * temp:GetY())
         temp2:SetY(properties:GetAngularVelocity() * temp:GetX())
         properties:GetLinearVelocity():Add(temp2)

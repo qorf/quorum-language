@@ -516,8 +516,10 @@ class Polygon is CollisionShape2D
         center:Scale(1.0 / area)
         mass:GetCenter():Set(center):Add(s)
 
+        //find the inertia of the mass about its own center of mass
         mass:SetInertia(I * density)
 
+        //find the inertia of the mass about its local origin
         mass:SetInertia(mass:GetInertia() + (mass:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter())))
     end
 

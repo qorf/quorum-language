@@ -130,7 +130,8 @@ class Circle is CollisionShape2D
 
     /*
     This action calculates the mass of the circle. The action assumes that the 
-    density of the circle is constant at every point on the circle.
+    density of the circle is constant at every point on the circle, therefore,
+    the center of mass of the circle is just at the center of the circle.
     */
     action ComputeMass(Mass2D mass, number density)
         mass:SetMass(density * math:pi * GetRadius() * GetRadius())

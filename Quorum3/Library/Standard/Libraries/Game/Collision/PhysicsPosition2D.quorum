@@ -5,7 +5,10 @@ package Libraries.Game.Collision
 
 
 /*
-This class stores coordinate systems in 2D space.
+This class stores coordinate systems in 2D space, where the coordinate system
+represent the position of the 2D item and the tilt of the 2D item with 
+respect to your screen.
+NOTE: this class can be seen as the class that stores a rotational matrix.
 */
 class PhysicsPosition2D
     Vector2 position  //the local coordinate's origin (doesn't have to be the center of the item) relative to the global coordinates
@@ -122,11 +125,15 @@ class PhysicsPosition2D
     end
 
 
-    /* transform relative to the local coordinates,  THIS CODE WILL NOT WORK 
+    /* 
+    This transforms "PhysicsPosition2D transformB" relative to the local coordinates
+    described by "PhysicsPosition2D transformA."
+
+    Currently, this action is not used in any other classes
     */
     action MultiplyAndTranslate(PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns PhysicsPosition2D
         PhysicsPosition2D result
-        result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine
+        result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine //this might be the wrong formula
         result:cosine = transformA:cosine * transformB:cosine + transformA:sine * transformB:sine
         Vector2 pool
         pool:Set(transformB:position):Subtract(transformA:position)

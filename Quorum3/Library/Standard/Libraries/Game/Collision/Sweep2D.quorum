@@ -91,6 +91,11 @@ class Sweep2D
 
     /*
     This action returns the center of the object relative to the local coordinates of the object.
+    You can change the local center of the object from the vector that is returned.
+
+    Attribute: Example
+    
+    sweep:GetLocalCenter():SetLocalCenter(center)
     */
     action GetLocalCenter returns Vector2
         return localCenter

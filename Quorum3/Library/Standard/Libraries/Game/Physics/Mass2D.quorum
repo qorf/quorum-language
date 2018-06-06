@@ -27,7 +27,7 @@ output "The new mass has a mass of " + newMass + ", inertia of: " + newInertia +
 class Mass2D 
     number mass = 0    //the mass of the 2D object [Units: kg]
     Vector2 center     //the point that the 2D object's centroid is located at relative to the 2D object's local coordinate's origin
-    number inertia = 0 //mass rotational intertia of the 2D object about the object's local coordinate's origin
+    number inertia = 0 //mass rotational intertia of the 2D object about the object's local coordinate's origin [Units: kgm^2]
 
 
     /*
