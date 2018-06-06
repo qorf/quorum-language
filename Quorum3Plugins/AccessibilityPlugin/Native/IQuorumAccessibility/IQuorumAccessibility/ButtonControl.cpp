@@ -1,21 +1,22 @@
 #include <string>
+#include <windows.h>
 #include <iostream>
 
-#include "ToggleButtonControl.h"
-#include "ToggleButtonProvider.h"
+#include "ButtonControl.h"
+#include "ButtonProvider.h"
 
-bool ToggleButtonControl::Initialized = false;
+bool ButtonControl::Initialized = false;
 
 /**** Button methods ***/
 
-// ToggleButtonControl: Constructor. Sets the default values for the button.
-ToggleButtonControl::ToggleButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Toggle Button"), m_toggleState(ToggleState_Off)
+// ButtonControl: Constructor. Sets the default values for the button.
+ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button"), m_buttonControlHWND(0), m_focused(false)
 {
 	// Nothing to do here.
 }
 
-// ~ToggleButtonControl: Release the reference to the ToggleButtonProvider if there is one.
-ToggleButtonControl::~ToggleButtonControl()
+// ~ButtonControl: Release the reference to the ButtonProvider if there is one.
+ButtonControl::~ButtonControl()
 {
 	if (m_buttonProvider != NULL)
 	{
@@ -25,53 +26,46 @@ ToggleButtonControl::~ToggleButtonControl()
 }
 
 // GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-ToggleButtonProvider* ToggleButtonControl::GetButtonProvider(_In_ HWND hwnd)
+ButtonProvider* ButtonControl::GetButtonProvider(_In_ HWND hwnd)
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new ToggleButtonProvider(hwnd, this);
+		m_buttonProvider = new ButtonProvider(hwnd, this);
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
 
 // GetHWND: Get the HWND associated with this control.
-HWND ToggleButtonControl::GetHWND()
+HWND ButtonControl::GetHWND()
 {
 	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
-void ToggleButtonControl::InvokeButton(_In_ HWND hwnd)
+void ButtonControl::InvokeButton(_In_ HWND hwnd)
 {
+
 	if (UiaClientsAreListening())
 	{
-
-		if (m_buttonProvider == NULL)
-		{
-			m_buttonProvider = GetButtonProvider(hwnd);
-		}
-			
-		//m_buttonProvider->Toggle();
-
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
 	}
 
 }
 
-// RegisterButtonControl: Registers the ToggleButtonControl with Windows API so that it can used and later be registered with UI Automation
-bool ToggleButtonControl::Initialize(_In_ HINSTANCE hInstance)
+// RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
+bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
 	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = StaticToggleButtonControlWndProc;
+	wc.lpfnWndProc = StaticButtonControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_TOGGLEBUTTON";
+	wc.lpszClassName = L"QUORUM_BUTTON";
 
 	if (RegisterClassExW(&wc) == 0)
 	{
@@ -95,7 +89,7 @@ bool ToggleButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
@@ -105,10 +99,10 @@ HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName
 
 	if (Initialized)
 	{
-		ToggleButtonControl * control = new ToggleButtonControl();
+		ButtonControl * control = new ButtonControl();
 
-		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_TOGGLEBUTTON",
+		CreateWindowExW(WS_EX_WINDOWEDGE,
+			L"QUORUM_BUTTON",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
 			-1,
@@ -146,51 +140,41 @@ HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName
 
 }
 
-WCHAR* ToggleButtonControl::GetName()
+WCHAR* ButtonControl::GetName()
 {
 	return m_buttonName;
 }
 
-void ToggleButtonControl::SetName(_In_ WCHAR* name)
+void ButtonControl::SetName(_In_ WCHAR* name)
 {
 	m_buttonName = name;
 }
 
-void ToggleButtonControl::SetControlFocus()
+void ButtonControl::SetControlFocus()
 {
 	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
 }
 
-void ToggleButtonControl::KillControlFocus()
+void ButtonControl::KillControlFocus()
 {
 	m_focused = false;
 }
 
-bool ToggleButtonControl::HasFocus()
+bool ButtonControl::HasFocus()
 {
 	return m_focused;
 }
 
-void ToggleButtonControl::SetState(_In_ ToggleState controlState)
+LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	m_toggleState = controlState;
-}
-
-ToggleState ToggleButtonControl::GetState()
-{
-	return m_toggleState;
-}
-
-
-LRESULT ToggleButtonControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-	ToggleButtonControl * pThis = reinterpret_cast<ToggleButtonControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	ButtonControl * pThis = reinterpret_cast<ButtonControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<ToggleButtonControl*>(createStruct->lpCreateParams);
+		pThis = reinterpret_cast<ButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_buttonControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -201,26 +185,25 @@ LRESULT ToggleButtonControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _I
 
 	if (pThis != NULL)
 	{
-		return pThis->ToggleButtonControlWndProc(hwnd, message, wParam, lParam);
+		return pThis->ButtonControlWndProc(hwnd, message, wParam, lParam);
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 // Control window procedure.
-LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In_  UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
 
 	switch (message)
 	{
-
 	case WM_GETOBJECT:
 	{
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
 		break;
@@ -241,26 +224,13 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		// TODO:  This message should notify the user that the button was checked. It does not do that.
-		//		  Maybe the provider doesn't implement the correct interface
-		bool state = static_cast<bool>(wParam);
-
 		this->InvokeButton(hwnd);
-
-		if (state)
-		{
-			this->SetState(ToggleState_On);
-		}
-		else
-		{
-			this->SetState(ToggleState_Off);
-		}
-
 		break;
 	}
 	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
+		break;
 	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);

@@ -102,7 +102,7 @@ HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName,
 	{
 		RadioButtonControl * control = new RadioButtonControl();
 
-		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_RADIOBUTTON",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
@@ -193,6 +193,7 @@ LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<RadioButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_buttonControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)

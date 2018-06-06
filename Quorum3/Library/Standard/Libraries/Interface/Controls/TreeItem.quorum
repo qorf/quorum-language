@@ -35,7 +35,7 @@ class TreeItem is Control
     // Replace with something that's a GUI visual content.
     ControlLabel label
 
-    Behavior doubleClickBehavior = undefined
+    Behavior activationBehavior = undefined
 
     on create
         SetInputGroup("TreeItem")
@@ -54,6 +54,7 @@ class TreeItem is Control
         panelLayout = verticalFlow
 
         panel:AddLayout(panelLayout)
+        SetAccessibilityCode(parent:Item:TREE_ITEM)
     end
     
     action Initialize(text name)
@@ -293,12 +294,24 @@ class TreeItem is Control
         end
     end
 
-    action SetDoubleClickBehavior(Behavior behavior)
-        doubleClickBehavior = behavior
+    action SetBehavior(Behavior behavior)
+        activationBehavior = behavior
     end
 
-    action GetDoubleClickBehavior returns Behavior
-        return doubleClickBehavior
+    action GetBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action RunBehavior
+        BehaviorEvent event
+        event:SetItem(me)
+        RunBehavior(event)
+    end
+
+    action RunBehavior(BehaviorEvent event)
+        if activationBehavior not= undefined
+            activationBehavior:Run(event)
+        end
     end
 
     action OnDoubleClick(BehaviorEvent event)
@@ -310,9 +323,7 @@ class TreeItem is Control
             end
         end
 
-        if doubleClickBehavior not= undefined
-            doubleClickBehavior:Run(event)
-        end
+        RunBehavior()
     end
 
     action ClickedMouse
@@ -344,7 +355,7 @@ class TreeItem is Control
         // We do this to allow the Tree to fully update its information,
         // deselect this, and prevent infinite loops.
         if parentTree not= undefined
-            parentTree:Deselect(GetTreePath())
+            parentTree:Deselect()
         end
     end
 

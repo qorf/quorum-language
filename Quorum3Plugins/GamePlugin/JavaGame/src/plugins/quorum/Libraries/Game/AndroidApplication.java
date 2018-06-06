@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import java.io.IOException;
+import java.io.InputStream;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
@@ -17,6 +19,7 @@ import quorum.Libraries.Game.AndroidApplication_;
 import quorum.Libraries.Game.AndroidDisplay_;
 import java.lang.reflect.Method;
 import quorum.Libraries.Game.AndroidConfiguration_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -380,6 +383,34 @@ public class AndroidApplication
     public static boolean IsInitialized()
     {
         return initialized;
+    }
+    
+    public static byte[] QuorumFileToBytes(File_ quorumFile)
+    {
+        try
+        {
+            InputStream stream = androidActivity.getAssets().open(quorumFile.GetPath());
+            byte[] bytes = new byte[stream.available()];
+            stream.read(bytes);
+            stream.close();
+            return bytes;
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+        }
+    }
+    
+    public static InputStream QuorumFileToInputStream(File_ quorumFile)
+    {
+        try
+        {
+            return androidActivity.getAssets().open(quorumFile.GetPath());
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+        }
     }
     
     public void Log(String header, String text)

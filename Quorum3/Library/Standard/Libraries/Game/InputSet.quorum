@@ -211,4 +211,12 @@ class InputSet
         valueBits = bits:ShiftLeft(valueBits, shift)
         bitmask = bits:Or(bits:And(bitmask, zeroBits), valueBits)
     end
+
+    action GetDisplayName returns text
+        return ""
+    end
+    
+    action ToText returns text
+        return GetDisplayName()
+    end
 end

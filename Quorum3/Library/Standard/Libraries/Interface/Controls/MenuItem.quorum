@@ -16,6 +16,10 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
+use Libraries.Game.InputSet
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputTable
+use Libraries.Interface.Behaviors.Controls.PassthroughBehavior
 
 class MenuItem is Control
     
@@ -55,6 +59,7 @@ class MenuItem is Control
     on create
         SetInputGroup("MenuItem")
         panel:SetName("Menu Panel")
+        SetAccessibilityCode(parent:Item:MENU_ITEM)
     end
 
     action Initialize(text name)
@@ -96,6 +101,16 @@ class MenuItem is Control
         panelLayout = layout
         panel:AddLayout(layout)
         panel:SetView2D(panelView)
+    end
+
+    action SetShortcut(InputSet set)
+        text name = set:GetDisplayName()
+        GameStateManager manager
+        InputTable table = manager:GetGame():GetDefaultInputTable()
+        PassthroughBehavior behave
+        behave:SetControl(me)
+        table:Add(set, behave)
+        SetShortcut(name)
     end
 
     private action InitializeMenuAppearance
@@ -185,6 +200,10 @@ class MenuItem is Control
         end
         LostSelection()
         selectionIndex = 0
+    end
+
+    action IsOpen returns boolean
+        return open
     end
 
     action SetShortcut(text shortcut)
@@ -329,7 +348,7 @@ class MenuItem is Control
         // We do this to allow the MenuBar to fully update its information,
         // deselect this, and prevent infinite loops.
         if menuBar not= undefined
-            menuBar:Deselect(GetMenuPath())
+            menuBar:Deselect()
         end
     end
 

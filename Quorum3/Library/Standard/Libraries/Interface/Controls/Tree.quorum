@@ -1,10 +1,11 @@
 package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
-use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Containers.Iterator
 
 class Tree is Item2D
@@ -29,6 +30,7 @@ class Tree is Item2D
         parent:Item2D:Add(panel)
 
         selection:Initialize(me)
+        SetAccessibilityCode(parent:Item:TREE)
     end
 
     action Add(TreeItem item)
@@ -90,7 +92,12 @@ class Tree is Item2D
         selection:Set(path)
     end
 
-    action Deselect(Array<TreeItem> path)
+    action Deselect
+        TreeSelection selection = GetSelection()
+        Deselect(selection:GetPath())
+    end
+
+    private action Deselect(Array<TreeItem> path)
         TreeItem item = undefined
         if not path:IsEmpty()
             item = path:RemoveFromFront()
@@ -102,6 +109,8 @@ class Tree is Item2D
 
         // Add the removed portion back to the path to undo our side effects.
         path:AddToFront(item)
+        Array<TreeItem> newPath
+        selection:Set(newPath)
     end
 
     action SelectionRight
@@ -221,5 +230,23 @@ class Tree is Item2D
             array:Add(treeItems:Get(0))
             Select(array)
         end
+    end
+
+    /*
+
+    */
+    action GainedFocus(FocusEvent event)
+        if selection:IsEmpty() and not treeItems:IsEmpty()
+            Array<TreeItem> array
+            array:Add(treeItems:Get(0))
+            Select(array)
+        end
+    end
+
+    /*
+
+    */
+    action LostFocus(FocusEvent event)
+
     end
 end

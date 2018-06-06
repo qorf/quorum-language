@@ -2,27 +2,30 @@
 #include <windows.h>
 #include <UIAutomation.h>
 
-#include "PushButtonProvider.h"
-#include "PushButtonControl.h"
+#include "CheckBoxProvider.h"
+#include "CheckBoxControl.h"
 
-PushButtonProvider::PushButtonProvider(HWND hwnd, PushButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
+#include <iostream>
+#include <string>
+
+CheckBoxProvider::CheckBoxProvider(HWND hwnd, CheckBoxControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
 {
 	// Nothing to do.
 }
 
-PushButtonProvider::~PushButtonProvider()
+CheckBoxProvider::~CheckBoxProvider()
 {
 	// Nothing to do.
 }
 
 // =========== IUnknown implementation.
 
-IFACEMETHODIMP_(ULONG) PushButtonProvider::AddRef()
+IFACEMETHODIMP_(ULONG) CheckBoxProvider::AddRef()
 {
 	return InterlockedIncrement(&m_refCount);
 }
 
-IFACEMETHODIMP_(ULONG) PushButtonProvider::Release()
+IFACEMETHODIMP_(ULONG) CheckBoxProvider::Release()
 {
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
@@ -32,7 +35,7 @@ IFACEMETHODIMP_(ULONG) PushButtonProvider::Release()
 	return val;
 }
 
-IFACEMETHODIMP PushButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
+IFACEMETHODIMP CheckBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
 {
 	if (riid == __uuidof(IUnknown))
 	{
@@ -42,9 +45,9 @@ IFACEMETHODIMP PushButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ voi
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
 	}
-	else if (riid == __uuidof(IInvokeProvider))
+	else if (riid == __uuidof(IToggleProvider))
 	{
-		*ppInterface = static_cast<IInvokeProvider*>(this);
+		*ppInterface = static_cast<IToggleProvider*>(this);
 	}
 	else
 	{
@@ -60,16 +63,16 @@ IFACEMETHODIMP PushButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ voi
 // =========== IRawElementProviderSimple implementation
 
 // Get provider options.
-IFACEMETHODIMP PushButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
+IFACEMETHODIMP CheckBoxProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 
-// Get the object that supports IInvokePattern.
-IFACEMETHODIMP PushButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
+// Get the object that supports ISelectionItemPattern.
+IFACEMETHODIMP CheckBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (patternId == UIA_InvokePatternId)
+	if (patternId == UIA_TogglePatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
@@ -82,19 +85,24 @@ IFACEMETHODIMP PushButtonProvider::GetPatternProvider(PATTERNID patternId, _Outp
 }
 
 // Gets custom properties.
-IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
+IFACEMETHODIMP CheckBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Button");
+		pRetVal->bstrVal = SysAllocString(L"Check Box");
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		//pRetVal->vt = VT_BSTR;
+		//pRetVal->bstrVal = SysAllocString(L"Help text here");
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_ButtonControlTypeId;
+		pRetVal->lVal = UIA_CheckBoxControlTypeId;
 	}
-	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
+	else if (propertyId == UIA_IsTogglePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
@@ -123,6 +131,7 @@ IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_
 		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = m_pButtonControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+
 	}
 	else
 	{
@@ -131,30 +140,60 @@ IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_
 		// If the property is found then it will have the UI Automation defaults listed in the Microsoft Developer's Network documentation.
 		// More often than not the default values are responsible for a control not functioning properly with a screen reader.
 	}
+
 	return S_OK;
 }
 
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
-IFACEMETHODIMP PushButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
+IFACEMETHODIMP CheckBoxProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	return UiaHostProviderFromHwnd(m_buttonControlHWnd, pRetVal);
 }
 
 
-// =========== IInvokeProvider implementation.
+// =========== ISelectionItemProvider implementation.
 
-// Invoke
-IFACEMETHODIMP PushButtonProvider::Invoke()
+// Toggle: Cycles through the toggle states of a control. 
+IFACEMETHODIMP CheckBoxProvider::Toggle()
 {
-	PostMessage(m_buttonControlHWnd, QUORUM_INVOKEBUTTON, NULL, NULL);
+
+	if (m_pButtonControl->GetState() == ToggleState_On)
+	{
+		// Change state to off
+		m_pButtonControl->SetState(ToggleState_Off);
+	}
+	else if (m_pButtonControl->GetState() == ToggleState_Off)
+	{
+		// Change state to off
+		m_pButtonControl->SetState(ToggleState_On);
+	}
+	else
+	{
+		// State is ToggleState_Indeterminate. This state hasn't been implemented but it could be.
+	}
+
+	// Raise a UI Automation Event
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
+	}
+
+	return S_OK;
+}
+
+// get_ToggleState: Specifies the toggle state of the control.
+IFACEMETHODIMP CheckBoxProvider::get_ToggleState(_Out_ ToggleState * pRetVal)
+{
+	*pRetVal = m_pButtonControl->GetState();
 	return S_OK;
 }
 
 // =========== Other Methods
-void PushButtonProvider::NotifyFocusGained()
+
+void CheckBoxProvider::NotifyFocusGained()
 {
 	if (UiaClientsAreListening())
 	{
-		//UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
 }

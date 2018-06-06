@@ -1,22 +1,21 @@
 #include <string>
-#include <windows.h>
 #include <iostream>
 
-#include "PushButtonControl.h"
-#include "PushButtonProvider.h"
+#include "CheckBoxControl.h"
+#include "CheckBoxProvider.h"
 
-bool PushButtonControl::Initialized = false;
+bool CheckBoxControl::Initialized = false;
 
 /**** Button methods ***/
 
-// PushButtonControl: Constructor. Sets the default values for the button.
-PushButtonControl::PushButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button")
+// CheckBoxControl: Constructor. Sets the default values for the button.
+CheckBoxControl::CheckBoxControl() : m_buttonProvider(NULL), m_buttonName(L"Check Box"), m_toggleState(ToggleState_Off)
 {
 	// Nothing to do here.
 }
 
-// ~PushButtonControl: Release the reference to the PushButtonProvider if there is one.
-PushButtonControl::~PushButtonControl()
+// ~CheckBoxControl: Release the reference to the CheckBoxProvider if there is one.
+CheckBoxControl::~CheckBoxControl()
 {
 	if (m_buttonProvider != NULL)
 	{
@@ -26,46 +25,53 @@ PushButtonControl::~PushButtonControl()
 }
 
 // GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-PushButtonProvider* PushButtonControl::GetButtonProvider(_In_ HWND hwnd)
+CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new PushButtonProvider(hwnd, this);
+		m_buttonProvider = new CheckBoxProvider(hwnd, this);
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
 
 // GetHWND: Get the HWND associated with this control.
-HWND PushButtonControl::GetHWND()
+HWND CheckBoxControl::GetHWND()
 {
 	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
-void PushButtonControl::InvokeButton(_In_ HWND hwnd)
+void CheckBoxControl::InvokeButton(_In_ HWND hwnd)
 {
-
 	if (UiaClientsAreListening())
 	{
+
+		if (m_buttonProvider == NULL)
+		{
+			m_buttonProvider = GetButtonProvider(hwnd);
+		}
+			
+		//m_buttonProvider->Toggle();
+
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
 	}
 
 }
 
-// RegisterButtonControl: Registers the PushButtonControl with Windows API so that it can used and later be registered with UI Automation
-bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
+// RegisterButtonControl: Registers the CheckBoxControl with Windows API so that it can used and later be registered with UI Automation
+bool CheckBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
 	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = StaticButtonControlWndProc;
+	wc.lpfnWndProc = StaticToggleButtonControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_PUSHBUTTON";
+	wc.lpszClassName = L"QUORUM_CHECKBOX";
 
 	if (RegisterClassExW(&wc) == 0)
 	{
@@ -89,7 +95,7 @@ bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
@@ -99,10 +105,10 @@ HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, 
 
 	if (Initialized)
 	{
-		PushButtonControl * control = new PushButtonControl();
+		CheckBoxControl * control = new CheckBoxControl();
 
-		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_PUSHBUTTON",
+		CreateWindowExW(WS_EX_WINDOWEDGE,
+			L"QUORUM_CHECKBOX",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
 			-1,
@@ -131,10 +137,8 @@ HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, 
 		}
 		else
 		{
-
 			control->SetName(buttonName);
 			return control->m_buttonControlHWND;
-
 		}
 	}
 
@@ -142,40 +146,52 @@ HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, 
 
 }
 
-WCHAR* PushButtonControl::GetName()
+WCHAR* CheckBoxControl::GetName()
 {
 	return m_buttonName;
 }
 
-void PushButtonControl::SetName(_In_ WCHAR* name)
+void CheckBoxControl::SetName(_In_ WCHAR* name)
 {
 	m_buttonName = name;
 }
 
-void PushButtonControl::SetControlFocus()
+void CheckBoxControl::SetControlFocus()
 {
 	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
 }
 
-void PushButtonControl::KillControlFocus()
+void CheckBoxControl::KillControlFocus()
 {
 	m_focused = false;
 }
 
-bool PushButtonControl::HasFocus()
+bool CheckBoxControl::HasFocus()
 {
 	return m_focused;
 }
 
-LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+void CheckBoxControl::SetState(_In_ ToggleState controlState)
 {
-	PushButtonControl * pThis = reinterpret_cast<PushButtonControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	m_toggleState = controlState;
+}
+
+ToggleState CheckBoxControl::GetState()
+{
+	return m_toggleState;
+}
+
+
+LRESULT CheckBoxControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+	CheckBoxControl * pThis = reinterpret_cast<CheckBoxControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<PushButtonControl*>(createStruct->lpCreateParams);
+		pThis = reinterpret_cast<CheckBoxControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_buttonControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -186,25 +202,26 @@ LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _
 
 	if (pThis != NULL)
 	{
-		return pThis->ButtonControlWndProc(hwnd, message, wParam, lParam);
+		return pThis->ToggleButtonControlWndProc(hwnd, message, wParam, lParam);
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 // Control window procedure.
-LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In_  UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
 
 	switch (message)
 	{
+
 	case WM_GETOBJECT:
 	{
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
 		break;
@@ -225,13 +242,26 @@ LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UI
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
+		// TODO:  This message should notify the user that the button was checked. It does not do that.
+		//		  Maybe the provider doesn't implement the correct interface
+		bool state = static_cast<bool>(wParam);
+
 		this->InvokeButton(hwnd);
+
+		if (state)
+		{
+			this->SetState(ToggleState_On);
+		}
+		else
+		{
+			this->SetState(ToggleState_Off);
+		}
+
 		break;
 	}
 	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
-		break;
 	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);

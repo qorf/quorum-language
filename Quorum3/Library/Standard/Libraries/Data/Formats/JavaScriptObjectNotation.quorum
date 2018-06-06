@@ -72,6 +72,9 @@ class JavaScriptObjectNotation
     /*
     Use this method to add a nested JavaScriptObjectNotation object with a key.
 
+    Attribute: Parameter key The key value to add.
+    Attribute: Parameter value The JavaScriptObjectNotation value object to add.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -105,6 +108,9 @@ class JavaScriptObjectNotation
     /*
     Use this method to add a boolean item to a JavaScriptObjectNotation object.
 
+    Attribute: Parameter key The key value to add.
+    Attribute: Parameter value The boolean value to add.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -129,6 +135,9 @@ class JavaScriptObjectNotation
 
     /*
     Use this method to add an integer item to a JavaScriptObjectNotation object.
+
+    Attribute: Parameter key The key value to add.
+    Attribute: Parameter value The integer value to add.
 
     Attribute: Example
 
@@ -155,6 +164,9 @@ class JavaScriptObjectNotation
     /*
     Use this method to add a number item to a JavaScriptObjectNotation object.
 
+    Attribute: Parameter key The key value to add.
+    Attribute: Parameter value The number value to add.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -180,6 +192,9 @@ class JavaScriptObjectNotation
     /*
     Use this method to add a text item to a JavaScriptObjectNotation object.
 
+    Attribute: Parameter key The key value to add.
+    Attribute: Parameter value The text value to add.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -204,6 +219,10 @@ class JavaScriptObjectNotation
 
     /*
     Use this method to return one of the items in the json object by it's index number
+
+    Attribute: Parameter index The index value of the JavaScriptObjectNotation object.
+
+    Attribute: Returns The JavaScriptObjectNotation object at the specified index.
 
     Attribute: Example
 
@@ -233,6 +252,8 @@ class JavaScriptObjectNotation
     /*
     Use this method to get the boolean value of a JavaScriptObjectNotation object
 
+    Attribute: Returns The boolean value of the object if applicable.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -255,6 +276,8 @@ class JavaScriptObjectNotation
     /*
     Use this method to get the key (or name) of a JavaScriptObjectNotation object
 
+    Attribute: Returns The name of the JavaScriptObjectNotation object.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -276,6 +299,8 @@ class JavaScriptObjectNotation
 
     /*
     This method returns an array of the key names inside a JavaScriptObjectNotation object
+
+    Attribute: Returns An array of key values in the object.
 
     Attribute: Example
 
@@ -313,6 +338,8 @@ class JavaScriptObjectNotation
     /*
     This method returns an integer value of a JavaScriptObjectNotation object containing an integer type
 
+    Attribute: Returns The integer value of the object if applicable.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -340,6 +367,11 @@ class JavaScriptObjectNotation
     end
 
     /*
+
+    Attribute: Returns An iterator of the JavaScriptObjectNotation objects in the object.
+
+    Attribute: Example
+
     use Libraries.Data.Formats.JavaScriptObjectNotation
     use Libraries.Containers.Iterator
 
@@ -371,6 +403,8 @@ class JavaScriptObjectNotation
     /*
     This method returns a number value of a JavaScriptObjectNotation object containing a number type
 
+    Attribute: Returns The number value of the object if applicable.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -398,7 +432,9 @@ class JavaScriptObjectNotation
     end
 
 /*
-    This method returns a number of children in a JavaScriptObjectNotation object
+    This method returns a number of children in a JavaScriptObjectNotation object.
+
+    Attribute: Returns The number of children in the object.
 
     Attribute: Example
 
@@ -422,6 +458,8 @@ class JavaScriptObjectNotation
 
     /*
     This method returns a text value of a JavaScriptObjectNotation object containing a text type
+
+    Attribute: Returns The text value of the object if applicable.
 
     Attribute: Example
 
@@ -458,6 +496,8 @@ class JavaScriptObjectNotation
     OBJECT = 7
     PARENT = 8
 
+    Attribute: Returns The type of the object as an integer.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -485,6 +525,10 @@ class JavaScriptObjectNotation
 
     /*
     This method returns the value of a JavaScriptObjectNotation object by the key name in text format
+
+    Attribute: Parameter key The key of the object to return
+
+    Attribute; Returns The value of the object with the specified key.
 
     Attribute: Example
 
@@ -517,6 +561,8 @@ class JavaScriptObjectNotation
 
     /*
     This method returns the value of a JavaScriptObjectNotation object by the key name in text format
+    
+    Attribute; Returns The value of the object as text.
 
     Attribute: Example
 
@@ -560,6 +606,8 @@ class JavaScriptObjectNotation
     /*
     This method returns true if a JavaScriptObjectNotation object is an array or false otherwise.
 
+    Attribute: Returns A boolean value based on whether or not the object is an array.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -587,6 +635,8 @@ class JavaScriptObjectNotation
     /*
     This method returns true if a JavaScriptObjectNotation object is a boolean value or false otherwise.
 
+    Attribute: Returns A boolean value based on whether or not the object is a boolean type.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -613,6 +663,11 @@ class JavaScriptObjectNotation
 
     /*
     This method returns true if a JavaScriptObjectNotation object contains values or false otherwise
+
+    Attribute: Returns A boolean value based on whether or not the object is empty.
+
+    Attribute: Example
+
     use Libraries.Data.Formats.JavaScriptObjectNotation
     class Main
         action Main
@@ -629,6 +684,8 @@ class JavaScriptObjectNotation
 
     /*
     This method returns true if a JavaScriptObjectNotation object is an integer value or false otherwise.
+
+    Attribute: Returns A boolean value based on whether or not the object is an integer.
 
     Attribute: Example
 
@@ -657,6 +714,8 @@ class JavaScriptObjectNotation
     /*
     This method returns true if a JavaScriptObjectNotation object is an integer value or false otherwise.
 
+    Attribute: Returns A boolean value based on whether or not the object is a number.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -683,6 +742,8 @@ class JavaScriptObjectNotation
 
     /*
     This method returns true if a JavaScriptObjectNotation object is an object or false otherwise.
+
+    Attribute: Returns A boolean value based on whether or not the object is an object type.
 
     Attribute: Example
 
@@ -711,6 +772,8 @@ class JavaScriptObjectNotation
     /*
     This method returns true if a JavaScriptObjectNotation object is the parent or false otherwise.
 
+    Attribute: Returns A boolean value based on whether or not the object is the parent.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -735,12 +798,34 @@ class JavaScriptObjectNotation
         return type = PARENT
     end
 
+    /*
+    This method returns true if a JavaScriptObjectNotation object is set to format the output.
+
+    Attribute: Returns A boolean value based on whether or not the object is set for formatted printing.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            output json:IsPrettyPrint()
+       end
+    end
+    */
     action IsPrettyPrint returns boolean
         return prettyPrint
     end
 
     /*
     This method returns true if a JavaScriptObjectNotation object is a text or false otherwise.
+
+    Attribute: Returns A boolean value based on whether or not the object is a text type.
 
     Attribute: Example
 
@@ -769,6 +854,8 @@ class JavaScriptObjectNotation
     /*
     This method returns true if a JavaScriptObjectNotation object is a text or false otherwise.
 
+    Attribute: Returns A boolean value based on whether or not the object type is undefined.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -796,6 +883,10 @@ class JavaScriptObjectNotation
     /*
     This method will read in the contents of a file to a JavaScriptObjectNotation object.
 
+    Attribute: Parameter file The file to read into the object.
+
+    Attribute: Example
+
     use Libraries.Data.Formats.JavaScriptObjectNotation
     use Libraries.System.File
 
@@ -821,6 +912,10 @@ class JavaScriptObjectNotation
 
     /*
     This method will read a text value to a JavaScriptObjectNotation object.
+
+    Attribute: Parameter data The text value to read into the object.
+
+    Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
 
@@ -849,6 +944,10 @@ class JavaScriptObjectNotation
 
     /*
     This method will read a hash table to a JavaScriptObjectNotation object.
+
+    Attribute: Parameter data The HashTable to read into the object.
+
+    Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
     use Libraries.Containers.HashTable
@@ -895,6 +994,8 @@ class JavaScriptObjectNotation
     /*
     This method removes an item from a JavaScriptObjectNotation object.
 
+    Attribute: Parameter index The index of the child object to remove.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -917,6 +1018,8 @@ class JavaScriptObjectNotation
 
     /*
     This method sets a JavaScriptObjectNotation object to boolean type with a specified value
+
+    Attribute: Parameter value The value to set in the object.
 
     Attribute: Example
 
@@ -942,6 +1045,8 @@ class JavaScriptObjectNotation
     /*
     This method sets a JavaScriptObjectNotation object to integer type with a specified value
 
+    Attribute: Parameter value The value to set in the object.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -966,6 +1071,8 @@ class JavaScriptObjectNotation
     /*
     This method sets a JavaScriptObjectNotation object to number type with a specified value
 
+    Attribute: Parameter value The value to set in the object.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -989,6 +1096,8 @@ class JavaScriptObjectNotation
 
     /*
     This method sets a JavaScriptObjectNotation object to object type
+
+    Attribute: Parameter value The value to set in the object.
 
     Attribute: Example
 
@@ -1025,12 +1134,30 @@ class JavaScriptObjectNotation
         type = PARENT
     end
 
+    /*
+    This method sets a JavaScriptObjectNotation object to parent type
+
+    Attribute: Parameter print The boolean value to set formatted printing mode.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetPrettyPrint(true)
+       end
+    end
+    */
     action SetPrettyPrint(boolean print)
         prettyPrint = print
     end
 
     /*
     This method sets the name of a key of a JavaScriptObjectNotation object
+
+    Attribute: Parameter key The name of the object to set.
 
     Attribute: Example
 
@@ -1054,6 +1181,8 @@ class JavaScriptObjectNotation
 
     /*
     This method sets a JavaScriptObjectNotation object to text type with a specified value
+
+    Attribute: Parameter value The text value of the object to set.
 
     Attribute: Example
 
@@ -1124,6 +1253,8 @@ class JavaScriptObjectNotation
 
     /*
     This method prints a JavaScriptObjectNotation object in text format
+
+    Attribute: Returns The text value of the object in JavaScriptObjectNotation format.
 
     Attribute: Example
 
@@ -1234,5 +1365,4 @@ class JavaScriptObjectNotation
 
         return result
     end
-
 end

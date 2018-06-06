@@ -3,17 +3,17 @@
 #include "CustomMessages.h"
 
 
-class ToggleButtonProvider;
+class CheckBoxProvider;
 
-class ToggleButtonControl
+class CheckBoxControl
 {
 public:
-	ToggleButtonControl();
-	virtual ~ToggleButtonControl();
+	CheckBoxControl();
+	virtual ~CheckBoxControl();
 
 	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
-	ToggleButtonProvider* GetButtonProvider(_In_ HWND hwnd);
+	CheckBoxProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
 
 	void InvokeButton(_In_ HWND hwnd);
@@ -40,6 +40,6 @@ private:
 	ToggleState m_toggleState;
 	WCHAR* m_buttonName;
 	HWND m_buttonControlHWND;
-	ToggleButtonProvider* m_buttonProvider;
+	CheckBoxProvider* m_buttonProvider;
 
 };

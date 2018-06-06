@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
-import quorum.Libraries.Interface.TextBox_;
+import quorum.Libraries.Interface.Controls.TextBox_;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
 
@@ -33,6 +33,8 @@ public class AccessibilityManager
                 nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
             
             System.load(nativeFile);
+            
+            NativeWin32InitializeAccessibility(glfwGetWin32Window(DesktopDisplay.window));
         }
         catch (URISyntaxException ex) 
         {
@@ -42,12 +44,28 @@ public class AccessibilityManager
     } 
     
     public AccessibilityManager(){};
-    
     public java.lang.Object me_ = null;
     
     // Container to associate the Quorum item with its respective HWND.
     private final HashMap<Item_, Long> itemMap = new HashMap<>();
-    private Item_ focusedItem = null;
+    
+    private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
+    private static final int ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_();
+    private static final int CUSTOM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CUSTOM_();
+    private static final int CHECKBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHECKBOX_();
+    private static final int RADIO_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__RADIO_BUTTON_();
+    private static final int BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_();
+    private static final int TOGGLE_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_();
+    private static final int TEXTBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_();
+    private static final int MENU_BAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_();
+    private static final int MENU_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_();
+    private static final int PANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_();
+    private static final int TREE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_();
+    private static final int TREE_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_ITEM_();
+    private static final int TOOLBAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLBAR_();
+    private static final int TAB = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_();
+    private static final int TABPANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_();
+    
     // The handle to the main game window that GLFW creates
     private long mainWindow;
 
@@ -55,7 +73,7 @@ public class AccessibilityManager
     // ====== Native Windows API (Win32) Function Declarations
     
     
-    private native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
+    private static native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
     
     private native void NativeWin32ShutdownAccessibility();
     
@@ -68,11 +86,11 @@ public class AccessibilityManager
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreatePushButton(String name, String description);
+    private native long NativeWin32CreateButton(String name, String description);
     
     // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateToggleButton(String name, String description);
+    private native long NativeWin32CreateCheckBox(String name, String description);
     
     // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
@@ -105,23 +123,14 @@ public class AccessibilityManager
 
     
     // ===== Accessiblity Manager Function Declarations
-    
-    // Initialize: Gets the window handle (a pointer) for the Quorum Game window and initializes the native accessiblity library.
-    //             This has to be called after the game window already exists otherwise Accessiblity won't work. It should never be
-    //             called more than once either.
-    public void Initialize()
-    {
-        mainWindow = glfwGetWin32Window(DesktopDisplay.window);
-        NativeWin32InitializeAccessibility(mainWindow);
-    }
-    
+        
     // Shutdown: Closes the COM library on the native level.
     public void Shutdown()
     {
         NativeWin32ShutdownAccessibility();
     }
     
-    public boolean Add(Item_ item)
+    public boolean NativeAdd(Item_ item)
     {
         long itemHWND = 0;
         
@@ -134,16 +143,16 @@ public class AccessibilityManager
                 // Not implemented yet. Create as Item for now.
                 itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
-            case 2: // ToggleButton
-                itemHWND = NativeWin32CreateToggleButton(item.GetName(), item.GetDescription());
+            case 2: // CheckBox
+                itemHWND = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
                 break;
             case 3: // RadioButton
                 itemHWND = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
                 break;
-            case 4: // PushButton
-                itemHWND = NativeWin32CreatePushButton(item.GetName(), item.GetDescription());
+            case 4: // Button
+                itemHWND = NativeWin32CreateButton(item.GetName(), item.GetDescription());
                 break;
-            case 5: // TextBox
+            case 6: // TextBox
                 TextBox_ textbox = (TextBox_)item;
                 itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
                 break;
@@ -163,10 +172,10 @@ public class AccessibilityManager
             return false;
     }
     
-    // GetFocus: Returns the current item that has focus with UI Automation.
-    public Item_ GetFocus()
+    public boolean NativeRemove(Item_ item)
     {
-        return focusedItem;
+        // TODO: Remove the item from the accessibility hierarchy.
+        return false;
     }
     
     // SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
@@ -176,23 +185,11 @@ public class AccessibilityManager
     {
         // Retreive HWND for given object
         long itemHWND = itemMap.get(item);
-        long previousFocusedItem; // Could be used for something later.
 
         if (itemHWND != 0)
-        {
-            // TODO: The main GLFW window could come out of this function call.
-            // So we want to make sure that Quorum users don't get access to it.
-            previousFocusedItem = NativeWin32SetFocus(itemHWND);
-
-            if (previousFocusedItem != 0)
-                return true;
-            else
-                return false;
-        }
+            return NativeWin32SetFocus(itemHWND) != 0;
         else
-        {
             return false;
-        }
     }
     
     // InvokeButton: Invoke a button through UI Automation

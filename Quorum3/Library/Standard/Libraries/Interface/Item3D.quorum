@@ -978,12 +978,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
-        end
 
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1012,12 +1012,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
-        end
 
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1059,12 +1059,12 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(removed)
-        end
 
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(removed)
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(removed)
+            end
         end
 
         return success
@@ -1109,12 +1109,12 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(temp)
-        end
 
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(temp)
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(temp)
+            end
         end
 
         return temp
@@ -1208,6 +1208,12 @@ class Item3D is Item
             oldItem:SetOffset(0, 0, 0)
             if layer not= undefined
                 layer:DisableItemLighting(oldItem)
+                
+                GameStateManager manager
+                AccessibilityManager accessibility = manager:GetAccessibilityManager()
+                if accessibility not= undefined
+                    accessibility:Remove(oldItem)
+                end
             end
         end
 
@@ -1219,6 +1225,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 

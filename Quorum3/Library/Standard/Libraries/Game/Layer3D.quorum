@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Interface.Item
 use Libraries.Interface.Item3D
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.ResizeEvent
@@ -92,6 +93,7 @@ class Layer3D is Layer
     Painter3D painter
     Environment environment
     Skybox skybox = undefined
+    GameStateManager manager
 
     boolean newItemAdded = false
 
@@ -190,6 +192,11 @@ class Layer3D is Layer
         items:Add(item)
         EnableItemLighting(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -240,6 +247,11 @@ class Layer3D is Layer
         item:SetLayer(me)
         items:Add(index, item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -291,6 +303,11 @@ class Layer3D is Layer
         item:SetLayer(me)
         items:AddToFront(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -399,6 +416,11 @@ class Layer3D is Layer
         item:SetLayer(undefined)
         items:Remove(item)
         DisableItemLighting(item)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
     end
 
     /*
@@ -455,6 +477,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end 
 
@@ -511,6 +539,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -566,6 +600,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -868,6 +908,11 @@ class Layer3D is Layer
         if oldItem not= undefined
             item:SetLayer(undefined)
             DisableItemLighting(oldItem)
+
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(item)
+            end
         end
 
         items:Set(index, item)
@@ -879,6 +924,11 @@ class Layer3D is Layer
             item:SetLayer(me)
             newItemAdded = true
             EnableItemLighting(item)
+
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(item)
+            end
         end
     end
 

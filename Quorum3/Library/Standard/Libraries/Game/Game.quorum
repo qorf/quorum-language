@@ -38,6 +38,7 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
@@ -54,6 +55,7 @@ use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRunBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
+use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
@@ -62,7 +64,6 @@ use Libraries.Interface.Behaviors.Controls.TreeUpBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
@@ -75,15 +76,20 @@ use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
+use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
+use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -118,6 +124,7 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+    AccessibilityManager accessibility = undefined
 
     public boolean exitRequested = false
 
@@ -442,6 +449,41 @@ class Game
 
         gameInput:AddInputTable(textBoxTable)
 
+        InputTable tabPaneTable
+        tabPaneTable:SetIdentifier("TabPane")
+
+        TabPaneForwardTabBehavior forward
+        TabPaneBackwardTabBehavior backward
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:LEFT_BRACKET)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        else
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:TAB)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:TAB)
+            backwardTab:AddModifier(forwardTab:SHIFT)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        end
+        
+        gameInput:AddInputTable(tabPaneTable)
+
         InputTable buttonTable
         buttonTable:SetIdentifier("Button")
 
@@ -531,6 +573,11 @@ class Game
         TreeUpBehavior treeUpBehavior
         treeTable:Add(upArrow, treeUpBehavior)
 
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        TreeActivateBehavior treeActivateBehavior
+        treeTable:Add(enterSet, treeActivateBehavior)
+
         AddInputTable(treeTable)
     end
 
@@ -588,7 +635,6 @@ class Game
         end
     */
     action Add(Item2D item)
-        focusManager:Add(item)
         currentLayer2D:Add(item)
     end
 
@@ -619,7 +665,6 @@ class Game
         end
     */
     action Add(Item3D item)
-        focusManager:Add(item)
         currentLayer3D:Add(item)
     end
 
@@ -653,7 +698,6 @@ class Game
         end
     */
     action Remove(Item2D item)
-        focusManager:Remove(item)
         currentLayer2D:Remove(item)
     end
 
@@ -687,7 +731,6 @@ class Game
         end
     */
     action Remove(Item3D item)
-        focusManager:Remove(item)
         currentLayer3D:Remove(item)
     end
 
@@ -2594,7 +2637,6 @@ class Game
     end
     */
     action Add(PointLight light)
-        focusManager:Add(light)
         currentLayer3D:Add(light)
     end
 
@@ -2728,7 +2770,6 @@ class Game
 
     */
     action Remove(PointLight light)
-        focusManager:Remove(light)
         currentLayer3D:Remove(light)
     end
 
@@ -3469,31 +3510,78 @@ class Game
     end
 
     /*
+    This action adds a FocusListener to the Game. Whenever the focus changes,
+    the FocusListener will be informed via a FocusEvent.
 
+    Attribute: Parameter listener The FocusListener to add to the Game.
     */
     action AddFocusListener(FocusListener listener)
         focusManager:Add(listener)
     end
 
     /*
+    This action removes a FocusListener from the Game. The given FocusListener
+    will no longer be informed of FocusEvents when the focus changes.
 
+    Attribute: Parameter listener The FocusListener to remove from the Game.
     */
     action RemoveFocusListener(FocusListener listener)
         focusManager:Remove(listener)
     end
 
     /*
+    This action adds a SelectionListener to the Game. Whenever a Selection is
+    changed, the SelectionListener will be informed via a SelectionEvent.
 
+    Attribute: Parameter listener The SelectionListener to add to the Game.
     */
     action AddSelectionListener(SelectionListener listener)
         gameInput:AddSelectionListener(listener)
     end
 
     /*
+    This action removes a SelectionListener from the Game. The SelectionListener
+    will no longer be informed when Selections change.
 
+    Attribute: Parameter listener The SelectionListener to remove from the Game.
     */
     action RemoveSelectionListener(SelectionListener listener)
         gameInput:RemoveSelectionListener(listener)
+    end
+
+    /*
+    This action adds a TextChangeListener to the Game. When text is changed
+    (such as in a TextBox) the TextChangeListener will be informed via a
+    TextChangeEvent.
+
+    Attribute: Parameter listener The TextChangeListener to add to the Game.
+    */
+    action AddTextChangeListener(TextChangeListener listener)
+        gameInput:AddTextChangeListener(listener)
+    end
+
+    /*
+    This action removes a TextChangeListener from the Game. It will no longer 
+    receive TextChangeEvents.
+
+    Attribute: Parameter listener The TextChangeListener to remove from the Game.
+    */
+    action RemoveTextChangeListener(TextChangeListener listener)
+        gameInput:RemoveTextChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddTabChangeListener(TabChangeListener listener)
+        gameInput:AddTabChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTabChangeListener(TabChangeListener listener)
+        gameInput:RemoveTabChangeListener(listener)
     end
 
     /*
@@ -3536,4 +3624,20 @@ class Game
     action RemoveInputTable(text key) returns InputTable
         return gameInput:RemoveInputTable(key)
     end
+
+    /*
+
+    */
+    action SetAccessibilityManager(AccessibilityManager accessibilityManager)
+        accessibility = accessibilityManager
+    end
+
+    /*
+
+    */
+    action GetAccessibilityManager returns AccessibilityManager
+        return accessibility
+    end
+
+    
 end

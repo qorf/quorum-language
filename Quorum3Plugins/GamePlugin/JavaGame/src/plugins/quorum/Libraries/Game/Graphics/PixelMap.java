@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import plugins.quorum.Libraries.Game.AndroidApplication;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
@@ -61,9 +62,17 @@ public class PixelMap {
     
     public void LoadPixelMap(quorum.Libraries.System.File_ quorumFile)
     {   
-        GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
+        byte[] bytes;
         
-        byte[] bytes = javaFile.ReadBytes();
+        if (GameStateManager.operatingSystem.contains("Android"))
+        {
+            bytes = AndroidApplication.QuorumFileToBytes(quorumFile);
+        }
+        else
+        {
+            GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
+            bytes = javaFile.ReadBytes();
+        }
         
         pixelPointer = Load(nativeData, bytes, 0, bytes.length);
         if (pixelPointer == null)

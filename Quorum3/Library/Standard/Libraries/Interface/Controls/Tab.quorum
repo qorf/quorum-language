@@ -39,6 +39,7 @@ class Tab is ToggleButton
         flow:SetFrontPadding(true)
         flow:SetIgnoreHidden(true)
         AddLayout(flow)
+        SetAccessibilityCode(parent:Item:TAB)
     end
 
     action Initialize(text name, Item2D item)
@@ -240,7 +241,7 @@ class Tab is ToggleButton
             TabBar bar = cast(TabBar, GetButtonGroup())
             TabPane pane = bar:GetTabPane()
             if pane not= undefined
-                pane:SetCurrentItem(relatedItem)
+                pane:UpdateSelection(me)
             end
 
             bar:FitTab(me)
@@ -252,7 +253,7 @@ class Tab is ToggleButton
             TabBar bar = cast(TabBar, GetButtonGroup())
             TabPane pane = bar:GetTabPane()
             if pane not= undefined
-                pane:SetCurrentItem(undefined)
+                pane:UpdateSelection(undefined)
             end
         end
     end

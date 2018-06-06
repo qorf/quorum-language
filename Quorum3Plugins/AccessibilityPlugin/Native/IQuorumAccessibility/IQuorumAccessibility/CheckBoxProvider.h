@@ -1,11 +1,11 @@
 
-class ToggleButtonControl;
+class CheckBoxControl;
 
-class ToggleButtonProvider : public IRawElementProviderSimple,
+class CheckBoxProvider : public IRawElementProviderSimple,
 	public IToggleProvider
 {
 public:
-	ToggleButtonProvider(HWND hwnd, ToggleButtonControl* pButtonControl);
+	CheckBoxProvider(HWND hwnd, CheckBoxControl* pButtonControl);
 
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();
@@ -23,13 +23,13 @@ public:
 	IFACEMETHODIMP get_ToggleState(_Out_ ToggleState *pRetVal);
 
 	// Other methods
-	void ToggleButtonProvider::NotifyFocusGained(); // Fires a UI Automation event when this is called.
+	void CheckBoxProvider::NotifyFocusGained(); // Fires a UI Automation event when this is called.
 
 private:
-	virtual ~ToggleButtonProvider();
+	virtual ~CheckBoxProvider();
 	// Ref Counter for this COM object
 	ULONG m_refCount;
 
-	ToggleButtonControl* m_pButtonControl;
+	CheckBoxControl* m_pButtonControl;
 	HWND m_buttonControlHWnd; // The HWND for the control.
 };

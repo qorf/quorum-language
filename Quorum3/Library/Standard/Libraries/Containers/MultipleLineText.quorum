@@ -186,7 +186,7 @@ class MultipleLineText
             if rightChild not= undefined
                 left = leftChild
                 right = rightChild
-                weight = left:GetLength()
+                weight = left:GetSize()
                 leafWeight = left:GetLineCount()
                 leafCount = left:GetLineCount() + right:GetLineCount()
                 fibonacciArray = left:GetFibonacciArray()
@@ -747,10 +747,10 @@ class MultipleLineText
         if index < 0
             alert("I can not insert text at a negative index. I was asked to insert at index " + index + ".")
         end
-        integer length = GetLength()
+        integer length = GetSize()
         if index > length
             alert("I can not insert text at the given index because it is too large. I was asked to insert at index " + index + 
-                ", but the last available index to insert at is " + GetLength() + ".")
+                ", but the last available index to insert at is " + GetSize() + ".")
         end
 
         if index = length
@@ -823,16 +823,16 @@ class MultipleLineText
     MultipleLineText tree
     tree:Initialize("Hello world!")
 
-    MultipleLineText deleteTree = tree:Delete(5, tree:GetLength() - 1)
+    MultipleLineText deleteTree = tree:Delete(5, tree:GetSize() - 1)
     output deleteTree:GetText()
     */
     action Delete(integer startIndex, integer endIndex) returns MultipleLineText
         if startIndex < 0
             alert("I can not delete text at a negative index. I was asked to delete between indices " + startIndex + " and " + endIndex + ".")
         end
-        if endIndex > GetLength()
+        if endIndex > GetSize()
             alert("I couldn't delete the text from this MultipleLineText because I was asked to remove more text than was available. I was asked to delete between indices "  
-                + startIndex + " and " + endIndex + ", but there are only " + GetLength() + " characters available.")
+                + startIndex + " and " + endIndex + ", but there are only " + GetSize() + " characters available.")
         end
         MultipleLineText newTree = RecursiveDelete(startIndex, endIndex, true)
         if newTree = undefined
@@ -938,9 +938,9 @@ class MultipleLineText
         if startIndex < 0
             alert("I can not find text at a negative index. I was asked to search between indices " + startIndex + " and " + endIndex + ".")
         end
-        if endIndex > GetLength()
+        if endIndex > GetSize()
             alert("I couldn't return the text from this MultipleLineText because I was asked to provide more text than was available. I was asked to search between indices "  
-                + startIndex + " and " + endIndex + ", but there are only " + GetLength() + " characters available to return.")
+                + startIndex + " and " + endIndex + ", but there are only " + GetSize() + " characters available to return.")
         end
         return RecursiveGetText(startIndex, endIndex)
     end
@@ -1018,11 +1018,11 @@ class MultipleLineText
 
     MultipleLineText tree
     tree:Initialize("Hello world!")
-    output "The length of the text in the tree is " + tree:GetLength()
+    output "The length of the text in the tree is " + tree:GetSize()
     */
-    action GetLength returns integer
+    action GetSize returns integer
         if right not= undefined
-            return GetWeight() + right:GetLength()
+            return GetWeight() + right:GetSize()
         end
         return GetWeight()
     end

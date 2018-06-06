@@ -2,9 +2,12 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.TabFlowLayout
-use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Events.TabChangeEvent
+use Libraries.Interface.Events.TabChangeListener
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 
 class TabBar is Item2D, ButtonGroup
@@ -12,6 +15,8 @@ class TabBar is Item2D, ButtonGroup
     Array<Tab> tabs
     TabFlowLayout layout
     TabPane pane = undefined
+
+    Array<TabChangeListener> listeners
 
     on create
         layout:SetPercentageWidth(1.0)
@@ -50,6 +55,10 @@ class TabBar is Item2D, ButtonGroup
         parent:Item2D:Add(tab)
         parent:ButtonGroup:AddButton(tab)
         Resize()
+
+        TabChangeEvent event
+        event:Set(tab, pane, event:OPENED)
+        NotifyTabChangeListeners(event)
     end
 
     action Remove(Tab tab)
@@ -67,11 +76,19 @@ class TabBar is Item2D, ButtonGroup
             if tabs:GetSize() > 0
                 tabs:Get(0):SetToggleState(true)
             else
-                pane:SetCurrentItem(undefined)
+                pane:UpdateSelection(undefined)
             end
         end
 
         Resize()
+
+        TabChangeEvent event
+        event:Set(tab, pane, event:CLOSED)
+        NotifyTabChangeListeners(event)
+    end
+
+    action Get(integer index) returns Tab
+        return tabs:Get(index)
     end
 
     action SetTabPane(TabPane tabPane)
@@ -153,4 +170,33 @@ class TabBar is Item2D, ButtonGroup
         Resize()
     end
 
+    action GetSize returns integer
+        return tabs:GetSize()
+    end
+
+    action AddTabChangeListener(TabChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveTabChangeListener(TabChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    private action NotifyTabChangeListeners(TabChangeEvent event)
+        GameStateManager manager
+        manager:GetInput():NotifyTabChangeListeners(event)
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedTab(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedTab(event)
+                counter = counter + 1
+            end
+        end
+    end
 end

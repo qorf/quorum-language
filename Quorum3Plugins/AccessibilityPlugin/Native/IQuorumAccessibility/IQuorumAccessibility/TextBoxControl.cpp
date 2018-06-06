@@ -61,7 +61,7 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 	{
 		TextBoxControl * control = new TextBoxControl(fullText, caretIndex);
 
-		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
 			textboxName,
 			WS_VISIBLE | WS_CHILD,
@@ -344,6 +344,7 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_TextboxHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)

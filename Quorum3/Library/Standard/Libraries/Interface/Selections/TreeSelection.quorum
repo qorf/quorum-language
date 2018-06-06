@@ -77,4 +77,17 @@ class TreeSelection is Selection
     action GetPath returns Array<TreeItem>
         return treeItems:CopyToArray()
     end
+
+    /*
+        This action returns the selected TreeItem. This is the last TreeItem in
+        the path. If the selection is empty, this will return undefined.
+
+        Attribute: Returns The selected TreeItem, or undefined if the selection is empty.
+    */
+    action GetTreeItem returns TreeItem
+        if not treeItems:IsEmpty()
+            return treeItems:GetFromEnd()
+        end
+        return undefined
+    end
 end
