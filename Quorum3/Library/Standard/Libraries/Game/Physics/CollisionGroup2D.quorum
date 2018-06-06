@@ -34,6 +34,9 @@ class CollisionGroup2D
 
     Math math
 
+    /*
+    This action resets all of the arrays involved in the class to an empty state.
+    */
     action Empty
         itemCount = 0
         items:Empty()
@@ -51,7 +54,7 @@ class CollisionGroup2D
         items:Add(item)
         item:SetCollisionGroupIndex(itemCount)
         itemCount = itemCount + 1
-        end
+    end
 
     action Add(CollisionEvent2D collision)
         collisions:Add(collision)

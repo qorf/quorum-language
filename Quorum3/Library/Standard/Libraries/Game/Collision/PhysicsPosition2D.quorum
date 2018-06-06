@@ -3,13 +3,21 @@ use Libraries.Compute.Math
 
 package Libraries.Game.Collision
 
+
+/*
+This class stores coordinate systems in 2D space.
+*/
 class PhysicsPosition2D
-    Vector2 position
-    number sine = 0
-    number cosine = 1
+    Vector2 position  //the local coordinate's origin (doesn't have to be the center of the item) relative to the global coordinates
+    //angle == how much the local coordinate has been rotated relative to the global coordinates
+    number sine = 0 //math:Sine(angle)
+    number cosine = 1   //math:Cosine(angle)
 
     Math math
     
+    /*
+    sets the physics positions using another obj of PhysicsPosition2D
+    */
     action Set(PhysicsPosition2D other)
         me:position:Set(other:position)
         me:sine = other:sine
@@ -56,6 +64,11 @@ class PhysicsPosition2D
         cosine = 1
     end
 
+    /*
+    Given a point relative to the local coordinates of this item (Vector2 vector), this
+    action computes that point relative to the global coordinates.
+    The result is returned instead of changed within the function.
+    */
     action Multiply(PhysicsPosition2D transform, Vector2 vector) returns Vector2
         Vector2 result
         result:SetX((transform:cosine * vector:GetX() - transform:sine * vector:GetY()) + transform:position:GetX())
@@ -63,12 +76,27 @@ class PhysicsPosition2D
         return result
     end
 
+    /*
+    Given a point relative to the center of this item (Vector2 vector), this action computes
+    and returns that point in screen coordinates (Vector2 out).
+    Uses the rotational matrix, R = [cos(angle) -sin(angle); sin(angle) cos(angle)], and
+    the translation between the global coordinates and the local coordinates.
+
+    pass the resultant vector in by reference
+    */
     action MultiplyToOut(PhysicsPosition2D transform, Vector2 vector, Vector2 out)
         number tempY = (transform:sine * vector:GetX() + transform:cosine * vector:GetY()) + transform:position:GetY()
         out:SetX((transform:cosine * vector:GetX() - transform:sine * vector:GetY()) + transform:position:GetX())
         out:SetY(tempY)
     end
 
+
+
+    /*
+    Given a vector "Vector2 vector" that is in global coordinates,
+    this action computes what "Vector2 vector" will be at relative to
+    the object that has the positions at "PhysicsPosition2D transform."
+    */
     action MultiplyAndTranslate(PhysicsPosition2D transform, Vector2 vector) returns Vector2
         number px = vector:GetX() - transform:position:GetX()
         number py = vector:GetY() - transform:position:GetY()
@@ -78,9 +106,13 @@ class PhysicsPosition2D
         return result
     end
 
+
+    /*
+    T_A * T_B   //multiply two transformation matrices together
+    */
     action Multiply(PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns PhysicsPosition2D
         PhysicsPosition2D result
-        result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine
+        result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine    //this might be the wrong formula
         result:cosine = transformA:cosine * transformB:cosine - transformA:sine * transformB:sine
         result:position:SetX(transformA:cosine * transformB:position:GetX() - transformA:sine * transformB:position:GetY())
         result:position:SetY(transformA:sine * transformB:position:GetX() + transformA:cosine * transformB:position:GetY())
@@ -89,6 +121,9 @@ class PhysicsPosition2D
         return result
     end
 
+
+    /* transform relative to the local coordinates,  THIS CODE WILL NOT WORK 
+    */
     action MultiplyAndTranslate(PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns PhysicsPosition2D
         PhysicsPosition2D result
         result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine

@@ -55,9 +55,20 @@ class Item2D is Item
 
     constant text PHYSICS_ERROR_MESSAGE = "Enable physics to use this action"
     
+    /*
+    If this Item2D is a part of a larger Item2D object, then this Item2D
+    is the child of that larger Item2D object.
+    */
     private Item2D parentItem = undefined
+    /*  
+    If this Item2D is made up of different Item2D objects, then those objects
+    that makes up this Item2D would be the children of this Item2D.
+    */
     private Array<Item2D> children
 
+    /*
+    This sets if you can collide with this item.
+    */
     boolean collidable = false
 
     /*
@@ -81,6 +92,9 @@ class Item2D is Item
     boolean flipX = false
     boolean flipY = false
 
+    /*
+    The layer that this Item2D belongs to.
+    */
     Layer2D layer = undefined
 
     private boolean verticesChanged = true
@@ -91,18 +105,42 @@ class Item2D is Item
 
     Array<number> vertices
 
+    //the shape of that bounds this 2D object
     CollisionShape2D shape = undefined
+
+
+    /*
+    Stores the shape of the children and also the bounding boxes of the children.
+    */
     Array<Item2DNode> nodes
+    /*
+    The number of broadphase nodes that are attached to this item.
+    */
     integer nodeCount = 0
 
+    /*
+    Used to record the position of the Item2D object from the previous frame, 
+    estimated position in the next frame, and target positions.
+    */
     Sweep2D sweep
 
+    /*
+    The head of the doubly linked list that records all of the objects
+    that this Item2D is in contact with.
+    */
     CollisionEdge2D collisionList = undefined
     JointEdge2D jointList = undefined
 
+    /*
+    The position of the Item2D object from the previous frame.
+    */
     PhysicsPosition2D transform0
 
     PhysicsProperties2D properties = undefined
+    /*
+    A flag that remembers whether the physics is enabled for this item.
+    If physics is enabled, then this item will be able to collide with other items.
+    */
     boolean physicsEnabled = false
 
     on create
@@ -118,7 +156,12 @@ class Item2D is Item
 
     boolean updateTransform = true
 
-    boolean collideWithChildren = false
+    /*
+    Children: some other shape that this Item2D is composed of.
+    This boolean value sets if the current Item2D object can collide with
+    its own children.
+    */
+    boolean collideWithChildren = false 
 
     boolean shouldTriggerSimulation = true
 
@@ -2544,11 +2587,11 @@ class Item2D is Item
     end
 
     /*
-    This is an action used internally to retrieve the head of the liked list of 
+    This is an action used internally to retrieve the head of the linked list of 
     collisions with this item. This action is used internally and users should 
     not need to use this action.
 
-    Attribute: Returns The head of the linked list of collisions
+    Attribute: Returns The head of the doubly linked list of collisions
     */
     action GetCollisionList returns CollisionEdge2D
         return collisionList

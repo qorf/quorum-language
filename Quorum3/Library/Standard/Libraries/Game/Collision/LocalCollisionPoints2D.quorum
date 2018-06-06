@@ -1,5 +1,6 @@
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
+use Libraries.Game.Collision.CollisionPoint2D
 
 package Libraries.Game.Collision
 
@@ -10,6 +11,10 @@ class LocalCollisionPoints2D
     public constant integer FACE_A = 1
     public constant integer FACE_B = 2
 
+    /*
+    This records all of the local collision points that is involved in the collision
+    between two objects.
+    */
     Array<CollisionPoint2D> points
     Vector2 localNormal
     Vector2 localPoint

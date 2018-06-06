@@ -7,32 +7,37 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.PhysicsPosition2D
 
-
+/*
+This class is a property holder for a 2D mass.
+*/
 class PhysicsProperties2D 
-    public constant integer UNMOVABLE = 0
-    public constant integer NON_RESPONSIVE = 1
-    public constant integer RESPONSIVE = 2
+    public constant integer UNMOVABLE = 0       //static object
+    public constant integer NON_RESPONSIVE = 1  //object governed by kinematics
+    public constant integer RESPONSIVE = 2      //object governed by dynamics
 
-    Vector2 linearVelocity
-    number angularVelocity = 0
-    Vector2 force
-    number torque = 0
-    number mass = 0
-    number inverseMass = 0
-    number inertia = 0
-    number inverseInertia = 0
-    number linearDamping = 0
-    number angularDamping = 0
-    number density = 0
-    number friction = 0
-    number restitution = 0
+    Vector2 linearVelocity      //linear velocity of the center of mass of the 2D object [Units: m]
+    number angularVelocity = 0  //angular velocity of the 2D object about the COM [Units: rad/s]
+    Vector2 force               //force being applied to the 2D object [Units:N]
+    number torque = 0           //torque being applied to the 2D object [Units: Nm]
+    number mass = 0             //mass of the 2D object [Units: kg]
+    number inverseMass = 0      //1/mass of the 2D object [Units: 1/kg]
+    number inertia = 0          //mass moment of inertia about the center of mass [Units: kgm^2]
+    number inverseInertia = 0   //1/inertia [Units: 1/(kgm^2)]
+    number linearDamping = 0    //how easily is for this object to slow down its linear velocity just by existing in a physics governed world
+                                //usually, you want to keep this between [0.0,1.0]
+    number angularDamping = 0   //how easily is for this object to slow down its angular velocity just by existing in a physics governed world
+                                //usually, you want to keep this between [0.0,1.0]
+    number density = 0          //density of the 2D object [Units: kg/m^3]
+    number friction = 0         //friction associated with the 2D object, since friction only makes sense between surfaces, this is used to calculate a new friction when two objects collide
+    number restitution = 0      //restitution associated with the 2D object, since restitution only makes sense between surfaces, this is used to calculate a new restitution when two objects collide
 
-    number sleepTime = 0
+    number sleepTime = 0        //the amount of time this 2D object will go to sleep 
 
-    integer type = UNMOVABLE
+    integer type = UNMOVABLE    //by default, objects are static
 
-    boolean collisionGroupFlag = false
-    integer collisionGroupIndex = 0
+    boolean collisionGroupFlag = false  //this is for collision filtering
+    integer collisionGroupIndex = 0     //if two items have the same positive group index, then that means they always collide
+                                        //if two items have the same negative group index, then that means they never collide
 
     boolean simulated = true
     boolean simulationRequired = false
@@ -42,33 +47,49 @@ class PhysicsProperties2D
 
     boolean massSet = false
 
-    Item2D item = undefined
+    Item2D item = undefined             //the 2D item that is attached to the physics property
 
+
+    /*
+    This action attaches a 2D item, which includes the shape, friction, 
+    restitution, positions, and others of a 2D object as a part of the properties
+    that this 2D item has.
+    */
     action SetItem(Item2D item)
         me:item = item
 
+        //get the current location of the 2D item
         Sweep2D sweep = item:GetSweep()
 
+        //if this item is not supposed to be moving
         if me:type = UNMOVABLE
-            linearVelocity:SetZero()
-            angularVelocity = 0
-            sweep:SetAngle0(sweep:GetAngle())
+            linearVelocity:SetZero()    //static condition
+            angularVelocity = 0         //static condition
+            //since center0, angle0 is what will be drawn to the screen
+            //so update those of the object to be where the current physics 
+            //wants the object to be
+            sweep:SetAngle0(sweep:GetAngle())  
             sweep:GetCenter0():Set(sweep:GetCenter())
 
+            //if the item will actually be drawn on the screen
             if item:GetLayer() not= undefined
-                item:SynchronizeNodes()
+                item:SynchronizeNodes()  //synchronize the item's position with the position recorded in the dynamic bounding volume tree for broadphase collision detection
             end
         end
 
+        //if the item will actually be drawn on the screen
         if item:GetLayer() not= undefined
-            CollisionEdge2D edge = item:GetCollisionList()
-            repeat while edge not= undefined
+            CollisionEdge2D edge = item:GetCollisionList()   //get the head of the doubly linked list that has the records of what the "item" is in contact with
+            
+            repeat while edge not= undefined   //while there are still nodes left in the doubly linked list
                 CollisionEdge2D edge0 = edge
                 edge = edge:GetNext()
-                item:GetLayer():GetCollisionManager():Destroy(edge0:GetCollision())
+                item:GetLayer():GetCollisionManager():Destroy(edge0:GetCollision())  //destroy the collision event that involves the "item" and another Item2D
             end
-            item:SetCollisionList(undefined)
 
+            item:SetCollisionList(undefined)  //reset the head of the collision list
+
+            
             BroadphaseCollision2D broadphase = item:GetLayer():GetCollisionManager():GetBroadphase()
             integer i = 0
             repeat while i < item:GetNodeCount()
@@ -77,6 +98,7 @@ class PhysicsProperties2D
             end
         end
 
+        //calculate the density of the item
         if not massSet
             SetDensity(mass / item:GetShape():ComputeArea())
         end
@@ -84,10 +106,19 @@ class PhysicsProperties2D
         item:ResetMass()
     end
 
+
+    /*
+    This action returns the Item2D that is attached to these physical properties.
+    */
     action GetItem returns Item2D
         return item
     end
 
+
+    /*
+    This action allows another PhysicsProperties2D object to be assigned by
+    the values stored inside the current PhysicsProperties2D object.
+    */
     action Copy returns PhysicsProperties2D
         PhysicsProperties2D new
         new:linearVelocity = linearVelocity:Copy()
@@ -117,17 +148,27 @@ class PhysicsProperties2D
         return new
     end
 
+
+    /*
+    This action sets the linear velocity of the 2D object.
+    */
     action SetLinearVelocity(Vector2 linearVelocity)
         if type = UNMOVABLE
             // static bodies don't move - hence don't have velocity
             return now
         end
+
+        //kinematic or dynamic bodies can move
         me:linearVelocity:Set(linearVelocity)
+        //make sure the kinematic or dynamic bodies will be simulated to the screen
         if not simulated and (me:linearVelocity:GetX() not= 0 or me:linearVelocity:GetY() not= 0)
             Simulate(true)
         end
     end
 
+    /*
+    This action sets the x component of the linear velocity of the 2D object.
+    */
     action SetLinearVelocityX(number linearVelocityX)
         if type = UNMOVABLE
             return now
@@ -139,6 +180,10 @@ class PhysicsProperties2D
         end
     end
 
+
+    /*
+    This action sets the y component of the linear velocity of the 2D object.
+    */
     action SetLinearVelocityY(number linearVelocityY)
         if type = UNMOVABLE
             return now
@@ -150,24 +195,50 @@ class PhysicsProperties2D
         end
     end
 
+
+    /*
+    This action returns both the x and y components of the linear velocity as 
+    a 2D vector.
+    */
     action GetLinearVelocity returns Vector2
         return linearVelocity
     end
 
+
+    /*
+    This action sets the angular velocity of the 2D object.
+    */
     action SetAngularVelocity(number angularVelocity)
-        if type = UNMOVABLE
+        if type = UNMOVABLE     //static object doesn't move 
             return now
         end
-        me:angularVelocity = angularVelocity
+        
+        me:angularVelocity = angularVelocity  //simulate the kinematic/dynamic bodies if not already
         if not simulated and angularVelocity not= 0
             Simulate(true)
         end
     end
 
+
+    /*
+    This action returns the angular velocity of the 2D object.
+    */
     action GetAngularVelocity returns number
         return angularVelocity
     end
 
+
+    /*
+    This action sets the force that will be applied to the object. You only 
+    want to set a force on a RESPONSIVE 2D object (an object that will respond
+    to forces). 
+    To actually apply a force, the type of the 2D object will be checked, 
+    therefore, it is not checked here.
+    This action is useful to clear the forces to zero, not useful in setting
+    a specific force that you want to apply to the object. To apply a force
+    that you want to an object, use "ApplyForce(Vector2 force, Vector2 point)"
+    or "ApplyForceToCenter(Vector2 force)".
+    */
     action SetForce(Vector2 force)
         me:force = force
         if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
@@ -175,10 +246,17 @@ class PhysicsProperties2D
         end
     end
 
+
+    /*
+    This action gets the force that is stored in this object.
+    */
     action GetForce returns Vector2
         return force
     end
 
+    /*
+    This action sets the torque that could potentially be applied to this object.
+    */
     action SetTorque(number torque)
         me:torque = torque
         if not simulated and torque not= 0
@@ -186,12 +264,23 @@ class PhysicsProperties2D
         end
     end
 
+    /*
+    This action gets the torque that is stored inside this object.
+    */
     action GetTorque returns number
         return torque
     end
 
+    
+    /*
+    This action applies the force that you passed in to a point that you passed in.
+
+    Attribute: Parameter force The force in global coordinates that you want to apply.
+    
+    Attribute: Parameter point The point in the global coordinants that you want the force to be applied to.
+    */
     action ApplyForce(Vector2 force, Vector2 point)
-        if type not= RESPONSIVE
+        if type not= RESPONSIVE  //if the type is not dynamic, then do not apply the force
             return now
         end
 
@@ -199,14 +288,23 @@ class PhysicsProperties2D
             Simulate(true)
         end
         
+        //the applied force will be simplified into a force applied at the center of mass of the object
+        //and a torque applied at the center of mass of the object
         me:force:SetX(me:force:GetX() + force:GetX())
         me:force:SetY(me:force:GetY() + force:GetY())
 
         Sweep2D sweep = item:GetSweep()
 
+        //since the force and torque values have updated, then the physics will be simulated with the solver
         torque = torque + (point:GetX() - sweep:GetCenter():GetX()) * force:GetY() - (point:GetY() - sweep:GetCenter():GetY()) * force:GetX()
     end
 
+    
+    /*
+    This action applies a force to the center pf mass of the object.
+
+    Attribute: Parameter force The force in global coordinates that you want to apply.
+    */
     action ApplyForceToCenter(Vector2 force)
         if type not= RESPONSIVE
             return now
@@ -220,6 +318,12 @@ class PhysicsProperties2D
         me:force:SetY(me:force:GetY() + force:GetY())
     end
 
+
+    /*
+    This action applies a torque to the center of mass of the object, which means
+    this torque will only affect the angular velocity of the object but not
+    the linear velocity of the object.
+    */
     action ApplyTorque(number torque)
         if type not= RESPONSIVE
             return now
@@ -232,6 +336,17 @@ class PhysicsProperties2D
         me:torque = me:torque + torque
     end
 
+
+    /*
+    This action applies a linear impulse to the object at a specified point, 
+    which will lead to a sudden change in linear velocity of the object. This 
+    will also lead to a sudden change in angular velocity of the object if 
+    the linear impulse is not applied at the center of mass of the object.
+
+    Attribute: Parameter impulse The impulse vector in global coordinates that you want to apply to the object.
+    
+    Attribute: Parameter point The point in the global coordinants that you want the linear impulse to be applied to.
+    */
     action ApplyLinearImpulse(Vector2 impulse, Vector2 point)
         if type not= RESPONSIVE
             return now
@@ -241,6 +356,8 @@ class PhysicsProperties2D
             Simulate(true)
         end
         
+        //Using the conservation of linear momentum to calculate the linear velocity
+        //v_f = impulse/m + v_i
         linearVelocity:SetX(linearVelocity:GetX() + (impulse:GetX() * inverseMass))
         linearVelocity:SetY(linearVelocity:GetY() + (impulse:GetY() * inverseMass))
 
@@ -249,6 +366,11 @@ class PhysicsProperties2D
         angularVelocity = angularVelocity + ((point:GetX() - sweep:GetCenter():GetX()) * impulse:GetY() - (point:GetY() - sweep:GetCenter():GetY()) * impulse:GetX())
     end
 
+
+    /*
+    This action applied an angular impulse to the object which will cause the
+    object to have a sudden change in angular velocity.
+    */
     action ApplyAngularImpulse(number impulse)
         if type not= RESPONSIVE
             return now
@@ -258,13 +380,22 @@ class PhysicsProperties2D
             Simulate(true)
         end
 
+        //calculated using the conservation of angular momentum
         angularVelocity = angularVelocity + (inverseInertia * impulse)
     end
 
+
+    /*
+    This action returns the mass of the object.
+    */
     action GetMass returns number
         return mass
     end
 
+    /*
+    This action sets the mass of the this property holder, which will also 
+    set the density if a 2D item has been attached to this property holder. 
+    */
     action SetMass(number mass)
         me:mass = mass
         if item not= undefined
@@ -285,6 +416,11 @@ class PhysicsProperties2D
         me:inverseMass = inverseMass
     end
 
+    /*  //CHANGE THIS
+    This action returns the mass moment of inertia about the object's local
+    origin (NOTE: not the mass moment of inertia about the object's center of
+    mass).
+    */
     action GetInertia returns number
         Sweep2D sweep = item:GetSweep()
         return inertia + mass * (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY())
@@ -294,6 +430,10 @@ class PhysicsProperties2D
         me:inertia = inertia
     end
 
+    /*
+    This action returns the mass moment of inertia about the object's center
+    of mass.
+    */
     action GetRawInertia returns number
         return inertia
     end
