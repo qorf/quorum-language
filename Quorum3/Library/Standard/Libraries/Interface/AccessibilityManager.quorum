@@ -12,31 +12,12 @@ use Libraries.Containers.Array
 
 class AccessibilityManager 
 
-    system action test
-
-    // Initialize: Allows the Java code to retreive the native windows handle for the
-    //             main GLFW window that is created for the game. It also calls down
-    //             to the native level so that the DLL can register the control classes
-    //             with Windows API so that Add() can add controls to the accessibility
-    //             tree through UI Automation.
-    //             NOTE: This action must be called after the GLFW window is already created.
-    //                   Otherwise, the accessibilty manager won't work.
-    system action Initialize
-
-    // GetFocus: Returns the Item that the accessibility manager last
-    //           received from the SetFocus action.
-    system action GetFocus returns Item
-
     // SetFocus: Tells the accessibility manager that focus has changed to the 
     //           given Item. As far as the native code is concerned, focus changes
     //           only raise an event with UI Automation. No focus state is maintained
     //           at the native level.
-    system action SetFocus(Item item) returns boolean
+    private system action SetFocus(Item item) returns boolean
 
-    // RegisterItem: Same as add.
-    // TODO: Delete this method and replace with add once enum types have been added to Item.
-    system action RegisterItem(Item item, Text className) returns boolean
-    
     // NativeAdd: Adds an Item to the accessibility hierarchy so the screen 
     //            readers can access information about it.
     private system action NativeAdd(Item item) returns boolean
@@ -88,8 +69,13 @@ class AccessibilityManager
 
     action FocusChanged(FocusEvent event)
         // Handle the focus change.
+        Item newFocus = event:GetNewFocus()
+        output "Focus changed to: " + newFocus:GetAccessibilityType() + " - " + newFocus:GetName()
+        
+        if newFocus:GetAccessibilityCode() = newFocus:BUTTON
+            SetFocus(newFocus)
+        end
 
-        output "Focus changed."
     end
 
     action Add(Item item)
@@ -98,10 +84,10 @@ class AccessibilityManager
         if item:GetAccessibilityCode() not= 0
             // TODO: Set the parent of an item when appropriate
             //       for now keep the flat hierarchy
-            output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
             
             // TODO: Add support for stuff other than button
             if item:GetAccessibilityCode() = item:BUTTON
+                output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 NativeAdd(item)
             end
         end        
