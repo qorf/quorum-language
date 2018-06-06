@@ -33,6 +33,8 @@ public class AccessibilityManager
                 nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
             
             System.load(nativeFile);
+            
+            NativeWin32InitializeAccessibility(glfwGetWin32Window(DesktopDisplay.window));
         }
         catch (URISyntaxException ex) 
         {
@@ -47,23 +49,22 @@ public class AccessibilityManager
     // Container to associate the Quorum item with its respective HWND.
     private final HashMap<Item_, Long> itemMap = new HashMap<>();
     
-    quorum.Libraries.Interface.Item item = new quorum.Libraries.Interface.Item();
-    
-    private final int ITEM = item.Get_Libraries_Interface_Item__ITEM_();
-    private final int CUSTOM = item.Get_Libraries_Interface_Item__CUSTOM_();
-    private final int CHECKBOX = item.Get_Libraries_Interface_Item__CHECKBOX_();
-    private final int RADIO_BUTTON = item.Get_Libraries_Interface_Item__RADIO_BUTTON_();
-    private final int BUTTON = item.Get_Libraries_Interface_Item__BUTTON_();
-    private final int TOGGLE_BUTTON = item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_();
-    private final int TEXTBOX = item.Get_Libraries_Interface_Item__TEXTBOX_();
-    private final int MENU_BAR = item.Get_Libraries_Interface_Item__MENU_BAR_();
-    private final int MENU_ITEM = item.Get_Libraries_Interface_Item__MENU_ITEM_();
-    private final int PANE = item.Get_Libraries_Interface_Item__PANE_();
-    private final int TREE = item.Get_Libraries_Interface_Item__TREE_();
-    private final int TREE_ITEM = item.Get_Libraries_Interface_Item__TREE_ITEM_();
-    private final int TOOLBAR = item.Get_Libraries_Interface_Item__TOOLBAR_();
-    private final int TAB = item.Get_Libraries_Interface_Item__TAB_();
-    private final int TABPANE = item.Get_Libraries_Interface_Item__TABPANE_();
+    private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
+    private static final int ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_();
+    private static final int CUSTOM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CUSTOM_();
+    private static final int CHECKBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHECKBOX_();
+    private static final int RADIO_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__RADIO_BUTTON_();
+    private static final int BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_();
+    private static final int TOGGLE_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_();
+    private static final int TEXTBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_();
+    private static final int MENU_BAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_();
+    private static final int MENU_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_();
+    private static final int PANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_();
+    private static final int TREE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_();
+    private static final int TREE_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_ITEM_();
+    private static final int TOOLBAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLBAR_();
+    private static final int TAB = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_();
+    private static final int TABPANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_();
     
     // The handle to the main game window that GLFW creates
     private long mainWindow;
@@ -72,7 +73,7 @@ public class AccessibilityManager
     // ====== Native Windows API (Win32) Function Declarations
     
     
-    private native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
+    private static native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
     
     private native void NativeWin32ShutdownAccessibility();
     
@@ -122,16 +123,7 @@ public class AccessibilityManager
 
     
     // ===== Accessiblity Manager Function Declarations
-    
-    // Initialize: Gets the window handle (a pointer) for the Quorum Game window and initializes the native accessiblity library.
-    //             This has to be called after the game window already exists otherwise Accessiblity won't work. It should never be
-    //             called more than once either.
-    public void Initialize()
-    {
-        mainWindow = glfwGetWin32Window(DesktopDisplay.window);
-        NativeWin32InitializeAccessibility(mainWindow);
-    }
-    
+        
     // Shutdown: Closes the COM library on the native level.
     public void Shutdown()
     {
@@ -160,7 +152,7 @@ public class AccessibilityManager
             case 4: // Button
                 itemHWND = NativeWin32CreateButton(item.GetName(), item.GetDescription());
                 break;
-            case 5: // TextBox
+            case 6: // TextBox
                 TextBox_ textbox = (TextBox_)item;
                 itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
                 break;
