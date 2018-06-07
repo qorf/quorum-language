@@ -4,11 +4,11 @@
 #include "MenuBarProvider.h"
 #include "MenuBarControl.h"
 
-// =========== IUnknown implementation.
-
 MenuBarProvider::MenuBarProvider(HWND MenuBarControlHWND, MenuBarControl * pMenuBarControl) : m_menuBarControl(MenuBarControlHWND), m_pMenuBarControl(pMenuBarControl)
 {
 }
+
+// =========== IUnknown implementation.
 
 IFACEMETHODIMP_(ULONG) MenuBarProvider::AddRef()
 {
@@ -35,14 +35,14 @@ IFACEMETHODIMP MenuBarProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void *
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
 	}
-	//else if (riid == __uuidof(IRawElementProviderFragment))
-	//{
-	//	*ppInterface = static_cast<IRawElementProviderFragment*>(this);
-	//}
-	//else if (riid == __uuidof(IRawElementProviderFragmentRoot))
-	//{
-	//	*ppInterface = static_cast<IRawElementProviderFragmentRoot*>(this);
-	//}
+	else if (riid == __uuidof(IRawElementProviderFragment))
+	{
+		*ppInterface = static_cast<IRawElementProviderFragment*>(this);
+	}
+	else if (riid == __uuidof(IRawElementProviderFragmentRoot))
+	{
+		*ppInterface = static_cast<IRawElementProviderFragmentRoot*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -54,7 +54,6 @@ IFACEMETHODIMP MenuBarProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void *
 }
 
 // Gets UI Automation provider options.
-//
 IFACEMETHODIMP MenuBarProvider::get_ProviderOptions(_Out_ ProviderOptions * pRetVal)
 {
 	*pRetVal = ProviderOptions_ServerSideProvider;
@@ -62,7 +61,6 @@ IFACEMETHODIMP MenuBarProvider::get_ProviderOptions(_Out_ ProviderOptions * pRet
 }
 
 // The MenuBar doesn't support any patterns so NULL is correct.
-//
 IFACEMETHODIMP MenuBarProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
 	*pRetVal = NULL;
@@ -70,7 +68,6 @@ IFACEMETHODIMP MenuBarProvider::GetPatternProvider(PATTERNID patternId, _Outptr_
 }
 
 // Gets the custom properties for this control.
-//
 IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
 	if (propertyId == UIA_AccessKeyPropertyId)
@@ -125,6 +122,78 @@ IFACEMETHODIMP MenuBarProvider::get_HostRawElementProvider(_Outptr_result_mayben
 
 	HRESULT hr = UiaHostProviderFromHwnd(m_menuBarControl, pRetVal);
 	return hr;
+}
+
+
+IFACEMETHODIMP MenuBarProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
+{
+	
+	return S_OK;
+}
+
+// UI Automation gets this value from the host window provider, so NULL is correct here.
+IFACEMETHODIMP MenuBarProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+{
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+IFACEMETHODIMP MenuBarProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
+{
+	// For now we aren't painting a rectangle for the provider
+	// that'd require more info from Quorum.
+	pRetVal->left = 0;
+	pRetVal->top = 0;
+	pRetVal->width = 0;
+	pRetVal->height = 0;
+	return S_OK;
+}
+
+// Retrieves other fragment roots that may be hosted in this one.
+IFACEMETHODIMP MenuBarProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+{
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+// Responds to the control receiving focus through a UI Automation request.
+// For HWND-based controls, this is handled by the host window provider.
+IFACEMETHODIMP MenuBarProvider::SetFocus()
+{
+	return S_OK;
+}
+
+// Retrieves the root element of this fragment.
+IFACEMETHODIMP MenuBarProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
+{
+	*pRetVal = static_cast<IRawElementProviderFragmentRoot*>(this);
+	AddRef();
+	return S_OK;
+}
+
+// Retrieves the IRawElementProviderFragment interface for the item at the specified 
+// point (in client coordinates).
+IFACEMETHODIMP MenuBarProvider::ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
+{
+	// Not implemented yet.
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+// Retrieves the provider for the list item that is selected when the control gets focus.
+IFACEMETHODIMP MenuBarProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
+{
+	*pRetVal = NULL;
+
+	MenuItemControl* pMenuItem = m_pMenuBarControl->GetSelectedMenuItem();
+	if (pMenuItem != NULL)
+	{
+		// TODO: Get Provider
+
+		// If provider isn't null assign to pRetVal.
+	}
+
+	return S_OK;
 }
 
 

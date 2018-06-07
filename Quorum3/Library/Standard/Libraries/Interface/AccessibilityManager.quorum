@@ -68,28 +68,38 @@ class AccessibilityManager
     end
 
     action FocusChanged(FocusEvent event)
+        
         // Handle the focus change.
         Item newFocus = event:GetNewFocus()
         output "Focus changed to: " + newFocus:GetAccessibilityType() + " - " + newFocus:GetName()
-        
-        if newFocus:GetAccessibilityCode() = newFocus:BUTTON
-            SetFocus(newFocus)
-        end
+        SetFocus(newFocus)
 
     end
 
     action Add(Item item)
 
         // Add item to accessibility hierarchy if its accessibility type is supported.
-        if item:GetAccessibilityCode() not= 0
-            // TODO: Set the parent of an item when appropriate
-            //       for now keep the flat hierarchy
-            
-            // TODO: Add support for stuff other than button
+        if item:GetAccessibilityCode() not= item:ITEM
+
+            // TODO: This section can be removed once everything is supported
             if item:GetAccessibilityCode() = item:BUTTON
+                    or item:GetAccessibilityCode() = item:MENU_BAR
+                    or item:GetAccessibilityCode() = item:MENU_ITEM
+
                 output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 NativeAdd(item)
+            elseif item:GetAccessibilityCode() not= item:ITEM
+                // Until other controls are properly fleshed out create an ITEM
+                // accessibility object for unsupported types. That way at the 
+                // very least the name of the GUI component will be spoken on focus.
+                output "Adding " + item:GetAccessibilityType() + ": " + item:GetName() + " as ITEM."
+                item:SetAccessibilityCode(item:ITEM)
+                NativeAdd(item)
             end
+            
+            // TODO: Once all GUI controls have been implemented properly then
+            //       remove the above if statment and uncomment this line.
+            //NativeAdd(item)
         end        
 
         if item is Item2D

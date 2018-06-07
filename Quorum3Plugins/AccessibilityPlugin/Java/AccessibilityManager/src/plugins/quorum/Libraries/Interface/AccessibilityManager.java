@@ -7,8 +7,10 @@ import java.util.logging.Logger;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
+import quorum.Libraries.Containers.Array_;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
+import quorum.Libraries.Interface.Controls.MenuItem_;
 
 
 
@@ -18,8 +20,45 @@ import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
  */
 public class AccessibilityManager 
 {
-    static   //static initializer code
+    enum AccessibilityCodes
     {
+        ITEM,
+        CUSTOM,
+        CHECKBOX,
+        RADIO_BUTTON,
+        BUTTON,
+        TOGGLE_BUTTON,
+        TEXTBOX,
+        MENU_BAR,
+        MENU_ITEM,
+        PANE,
+        TREE,
+        TREE_ITEM,
+        TOOLBAR,
+        TAB,
+        TABPANE;
+    }
+    private static final HashMap<Integer, AccessibilityCodes> ACCESSIBILITYCODES_MAP = new HashMap<>();
+    private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
+
+    static
+    {
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_(), AccessibilityCodes.ITEM);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CUSTOM_(), AccessibilityCodes.CUSTOM);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHECKBOX_(), AccessibilityCodes.CHECKBOX);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__RADIO_BUTTON_(), AccessibilityCodes.RADIO_BUTTON);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_(), AccessibilityCodes.BUTTON);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_(), AccessibilityCodes.TOGGLE_BUTTON);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_(), AccessibilityCodes.TEXTBOX);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_(), AccessibilityCodes.MENU_BAR);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_(), AccessibilityCodes.MENU_ITEM);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_(), AccessibilityCodes.PANE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_(), AccessibilityCodes.TREE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_ITEM_(), AccessibilityCodes.TREE_ITEM);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLBAR_(), AccessibilityCodes.TOOLBAR);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_(), AccessibilityCodes.TAB);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_(), AccessibilityCodes.TABPANE);
+        
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -46,33 +85,11 @@ public class AccessibilityManager
     public AccessibilityManager(){};
     public java.lang.Object me_ = null;
     
-    // Container to associate the Quorum item with its respective HWND.
-    private final HashMap<Item_, Long> itemMap = new HashMap<>();
-    
-    private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
-    private static final int ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_();
-    private static final int CUSTOM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CUSTOM_();
-    private static final int CHECKBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHECKBOX_();
-    private static final int RADIO_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__RADIO_BUTTON_();
-    private static final int BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_();
-    private static final int TOGGLE_BUTTON = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_();
-    private static final int TEXTBOX = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_();
-    private static final int MENU_BAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_();
-    private static final int MENU_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_();
-    private static final int PANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_();
-    private static final int TREE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_();
-    private static final int TREE_ITEM = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_ITEM_();
-    private static final int TOOLBAR = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLBAR_();
-    private static final int TAB = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_();
-    private static final int TABPANE = ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_();
-    
-    // The handle to the main game window that GLFW creates
-    private long mainWindow;
+    // Container to associate the Quorum item with its respective native pointer.
+    private static final HashMap<Item_, Long> ITEM_MAP = new HashMap<>();
 
-    
     // ====== Native Windows API (Win32) Function Declarations
-    
-    
+
     private static native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
     
     private native void NativeWin32ShutdownAccessibility();
@@ -80,50 +97,66 @@ public class AccessibilityManager
     // NativePrint: For debugging
     private native void NativePrint();
     
+    //
+    // ==== Accessible Object Creation Functions
+    //
+    
     // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
-    //      Returns: null on failure, otherwise itemHWND associated with item
+    //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateItem(String name, String description);
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
-    //      Returns: null on failure, otherwise itemHWND associated with item
+    //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateButton(String name, String description);
     
     // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
-    //      Returns: null on failure, otherwise itemHWND associated with item
+    //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateCheckBox(String name, String description);
     
     // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
-    //      Returns: null on failure, otherwise itemHWND associated with item
+    //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateRadioButton(String name, String description);
+
+    // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
+    //      Returns: null on failure, otherwise the native pointer associated with item
+    private native long NativeWin32CreateTextBox(String name, String description, String fullText, int caretIndex);
+
+    // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
+    //
+    private native long NativeWin32CreateMenuBar(String name);
+    
+    // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
+    //
+    private native long NativeWin32CreateMenuItem(String name, String shortcut, long parentMenu, long parentMenuBar);
+    
+    //
+    // ==== Accessible Object Event Response Functions
+    //
     
     // NativeWin32InvokeButton: Calls the native method that will raise a UI Automation that tells the screen reader that the button was iteracted with.
-    private native boolean NativeWin32InvokeButton(long itemHWND);
+    //
+    private native boolean NativeWin32InvokeButton(long nativePointer);
     
     // NativeWin32UpdateToggleStatus: Calls the native method that is responsible for updating the native control's toggle status (on or off)
     //                                and raising the appropriate UI Automation event.
-    private native boolean NativeWin32UpdateToggleStatus(long itemHWND, boolean selected);
-
-    // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
-    //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateTextBox(String name, String description, String fullText, int caretIndex);
+    private native boolean NativeWin32UpdateToggleStatus(long nativePointer, boolean selected);
 
     // NativeWin32TextBoxTextSelectionChanged:
     // TODO: Figure out the parameters required
-    private native boolean NativeWin32TextBoxTextSelectionChanged(long itemHWND, String TextValue, int caretLine, int caretCharacter);
+    private native boolean NativeWin32TextBoxTextSelectionChanged(long nativePointer, String TextValue, int caretLine, int caretCharacter);
     
     // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
     //
-    private native boolean NativeWin32UpdateCaretPosition(long itemHWND, String fullText, int caretIndex);
+    private native boolean NativeWin32UpdateCaretPosition(long nativePointer, String fullText, int caretIndex);
     
     // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
-    //      Returns: null on failure, otherwise itemHWND of previously focused item.
-    private native long NativeWin32SetFocus(long itemHWND);
-    
-    
+    //      Returns: null on failure, otherwise the native pointer of previously focused item.
+    private native long NativeWin32SetFocus(long nativePointer);
 
+    //
+    // ====== Accessiblity Manager Function Declarations
+    //
     
-    // ===== Accessiblity Manager Function Declarations
-        
     // Shutdown: Closes the COM library on the native level.
     public void Shutdown()
     {
@@ -132,49 +165,66 @@ public class AccessibilityManager
     
     public boolean NativeAdd(Item_ item)
     {
-        long itemHWND = 0;
+        long nativePointer;
+        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         
-        switch(item.GetAccessibilityCode())
+        switch(code)
         {
-            case 0: // Item
-                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+            case ITEM:
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
-            case 1: // Custom
+            case CUSTOM:
                 // Not implemented yet. Create as Item for now.
-                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
-            case 2: // CheckBox
-                itemHWND = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
+            case CHECKBOX:
+                nativePointer = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
                 break;
-            case 3: // RadioButton
-                itemHWND = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
+            case RADIO_BUTTON:
+                nativePointer = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
                 break;
-            case 4: // Button
-                itemHWND = NativeWin32CreateButton(item.GetName(), item.GetDescription());
+            case BUTTON:
+                nativePointer = NativeWin32CreateButton(item.GetName(), item.GetDescription());
                 break;
-            case 6: // TextBox
+            case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
-                itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
+                nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
+                break;
+            case MENU_BAR:
+                nativePointer = NativeWin32CreateMenuBar(item.GetName());
+                break;
+            case MENU_ITEM:
+                MenuItem_ menuItem = (MenuItem_)item;
+                
+                // Get parent MenuItem pointer if it exists.
+                Long parentMenuItem = ITEM_MAP.get((Item_)menuItem.GetParentMenu());
+                
+                // Get parent MenuBar
+                long menuBar = ITEM_MAP.get((Item_)menuItem.GetParent());
+                
+                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), parentMenuItem, menuBar);
                 break;
             default: // Assume Item
-                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
         }
         
-        if (itemHWND != 0)
-        {
-            // Add item and respective HWND to collection.
-            itemMap.put(item, itemHWND);
-            
-            return true;
-        }
-        else
+        if (nativePointer == 0)
             return false;
+
+        // Add item and respective pointer to collection.
+        ITEM_MAP.put(item, nativePointer);
+        return true;
     }
     
     public boolean NativeRemove(Item_ item)
     {
         // TODO: Remove the item from the accessibility hierarchy.
+        return false;
+    }
+    
+    private boolean NativeChildAdd(Item_ childItem, Item_ parentItem)
+    {
         return false;
     }
     
@@ -184,10 +234,10 @@ public class AccessibilityManager
     public boolean SetFocus(Item_ item)
     {
         // Retreive HWND for given object
-        long itemHWND = itemMap.get(item);
+        Long nativePointer = ITEM_MAP.get(item);
 
-        if (itemHWND != 0)
-            return NativeWin32SetFocus(itemHWND) != 0;
+        if (nativePointer != null)
+            return NativeWin32SetFocus(nativePointer) != 0;
         else
             return false;
     }
@@ -197,11 +247,11 @@ public class AccessibilityManager
     public boolean InvokeButton(Item_ button)
     {
         // Retreive HWND for given object
-        long itemHWND = itemMap.get(button);
+        long nativePointer = ITEM_MAP.get(button);
         
-        if (itemHWND != 0)
+        if (nativePointer != 0)
         {
-            return NativeWin32InvokeButton(itemHWND);
+            return NativeWin32InvokeButton(nativePointer);
         }
         else
             return false;
@@ -214,11 +264,11 @@ public class AccessibilityManager
     public boolean UpdateToggleState(Item_ button, boolean selected)
     {
         // Retreive HWND for given object
-        long itemHWND = itemMap.get(button);
+        Long nativePointer = ITEM_MAP.get(button);
         
-        if (itemHWND != 0)
+        if (nativePointer != null)
         {
-            return NativeWin32UpdateToggleStatus(itemHWND, selected);
+            return NativeWin32UpdateToggleStatus(nativePointer, selected);
         }
         else            
             return false;
@@ -227,20 +277,23 @@ public class AccessibilityManager
     // TODO: Fix this method so that it behaves. Otherwise, only ever use CaretPositionChanged
     public void TextSelectionChanged(Item_ textbox)
     {
-//        long itemHWND = itemMap.get(textbox);
+//        long nativePointer = itemMap.get(textbox);
 //        
 //        TextBox_ text = (TextBox_)textbox;
 //        
-//        NativeWin32TextBoxTextSelectionChanged(itemHWND, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
+//        NativeWin32TextBoxTextSelectionChanged(nativePointer, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
         System.out.println("This method needs to be reworked. Use CaretPositionChanged.");
     }
     
     public void CaretPositionChanged(Item_ item, Text_ fullText)
     {
-        long itemHWND = itemMap.get(item);
-        TextBox_ textbox = (TextBox_)item;
+        Long nativePointer = ITEM_MAP.get(item);
+        if (nativePointer != null)
+        {
+            TextBox_ textbox = (TextBox_)item;
         
-        NativeWin32UpdateCaretPosition(itemHWND, textbox.GetText(), textbox.GetCaretIndex());
+            NativeWin32UpdateCaretPosition(nativePointer, textbox.GetText(), textbox.GetCaretIndex());
+        }
     }
     
 }

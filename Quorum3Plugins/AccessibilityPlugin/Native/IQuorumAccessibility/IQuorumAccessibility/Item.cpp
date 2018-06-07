@@ -78,7 +78,7 @@ HWND Item::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* ite
 	{
 		Item * control = new Item();
 
-		control->m_ItemHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_ITEM",
 			itemName,
 			WS_VISIBLE | WS_CHILD,
@@ -151,6 +151,7 @@ LRESULT Item::StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ W
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<Item*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_ItemHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)

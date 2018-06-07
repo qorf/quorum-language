@@ -9,7 +9,7 @@
 
 bool MenuBarControl::Initialized = false;
 
-MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) : m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false)
+MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) : m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
 
 }
@@ -88,6 +88,51 @@ void MenuBarControl::SetName(_In_ WCHAR * menuBarName)
 bool MenuBarControl::HasFocus()
 {
 	return m_focused;
+}
+
+MENUITEM_ITERATOR MenuBarControl::GetMenuItemAt(_In_ int index)
+{
+	return MENUITEM_ITERATOR();
+}
+
+int MenuBarControl::GetCount()
+{
+	return static_cast<int>(m_menuItemCollection.size());
+}
+
+int MenuBarControl::CreateUniqueId()
+{
+	static int uniqueId;
+	return uniqueId++;
+}
+
+bool MenuBarControl::AddMenuItem(_In_ MenuItemControl* pMenuItem)
+{
+	// Create a unique id for the new item.
+	int id = CreateUniqueId();
+
+	if (pMenuItem != NULL)
+	{
+		// Add to MenuBar's collection
+		m_menuItemCollection.push_back(pMenuItem);
+
+		// TODO: Raise UI Automation Event
+		
+
+		return true;
+	}
+	else
+		return false;
+}
+
+MenuItemControl * MenuBarControl::GetSelectedMenuItem()
+{
+	return m_pSelectedMenuItem;
+}
+
+void MenuBarControl::SetSelectedMenuItem(_In_ MenuItemControl * selectedMenuItem)
+{
+	m_pSelectedMenuItem = selectedMenuItem;
 }
 
 MenuBarControl::~MenuBarControl()
@@ -201,6 +246,6 @@ void MenuBarControl::SetControlFocus(_In_ bool isFocused)
 	m_focused = isFocused;
 	if (isFocused)
 	{
-		// Raise a UIA Event
+		// TODO: Raise a UIA Event
 	}
 }
