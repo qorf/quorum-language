@@ -3,6 +3,8 @@ package Libraries.Game
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardProcessor
+use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -27,10 +29,13 @@ class AndroidInput is GameInput
     Array<TouchListener> touchListeners
     Array<TextInputListener> textInputListeners
     Array<ResizeListener> resizeListeners
+    Array<KeyboardListener> keyboardListeners
 
     List<TouchEvent> touchEvents
     private TextInputProcessor textInputProcessor
+    private KeyboardProcessor keyboardProcessor
     GameStateManager manager
+    InputSet keyboardModifiers
 
     on create
         InitializePlugin(touchEvents)
@@ -44,7 +49,15 @@ class AndroidInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
-        // Note: touchEvents is automatically filled with events in plugins.
+         // Note: touchEvents is automatically filled with events in plugins.
+        HandleTouchEvents()
+        
+        HandleKeyboardEvents()
+
+        HandleTextInputEvents()
+    end  
+
+    public action HandleTouchEvents()
         if touchEvents:IsEmpty() = false
             Array<Layer> layers = parent:GameInput:layers
             TouchEvent touchEvent = undefined
@@ -63,15 +76,108 @@ class AndroidInput is GameInput
                 end        
             end
         end
-
-
-        textInputProcessor:Update()
+    end
+    
+    public action HandleKeyboardEvents()
+        keyboardProcessor:Update()
         
-        AndroidApplication application = cast(AndroidApplication, manager:GetApplication())
-        if textInputProcessor:HasEvents()
-            ProcessTextInputEvent(textInputProcessor:GetEvents())
+        if keyboardProcessor:HasEvents()
+            ProcessKeyboardEvent(keyboardProcessor:GetEvents())
         end
+    end
+ 
+    public action HandleTextInputEvents()
+         textInputProcessor:Update()
+         
+         AndroidApplication application = cast(AndroidApplication, manager:GetApplication())
+         if textInputProcessor:HasEvents()
+             ProcessTextInputEvent(textInputProcessor:GetEvents())
+         end
     end  
+
+private action ProcessKeyboardEvent(List<KeyboardEvent> events)
+        KeyboardEvent currentEvent = undefined
+        KeyboardListener currentListener = undefined
+        Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
+
+        text inputGroup = ""
+        Item focusedItem = manager:GetFocus()
+        if focusedItem not= undefined
+            inputGroup = focusedItem:GetInputGroup()
+        end
+
+        repeat while not events:IsEmpty()
+            currentEvent = events:RemoveFromFront()
+
+            if currentEvent:eventType = currentEvent:PRESSED_KEY
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:META)
+                end
+            else
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
+                end
+            end
+
+            InputSet set = keyboardModifiers:Copy()
+            set:SetKeyboardInput(currentEvent:keyCode)
+
+            InputSet anySet = keyboardModifiers:Copy()
+            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
+
+            if currentEvent:eventType = currentEvent:RELEASED_KEY
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(anySet:FINISH)
+            end
+            
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetKeyboardEvent(currentEvent)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
++            If the table exists, attempt to trigger behaviors that use that
++            specific input or that trigger on any input of that type. Once both
++            are tested, if neither were successful, try to trigger behaviors
++            from the default input table instead.
++            */
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+                processed = table:ProcessInput(anySet, behaviorEvent) or processed
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+            end
+
+            repeat while listenIterator:HasNext()
+                currentListener = listenIterator:Next()
+
+               if currentEvent:eventType = currentEvent:PRESSED_KEY
+                   currentListener:PressedKey(currentEvent)
+                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
+                    currentListener:ReleasedKey(currentEvent)
+                end
+            end
+
+            listenIterator:Rewind()
+        end
+    end
 
     private action ProcessTextInputEvent(List<TextInputEvent> events)
         TextInputEvent currentEvent = undefined
@@ -150,7 +256,7 @@ class AndroidInput is GameInput
     is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
-         // Do nothing - Keyboard isn't supported on Android currently.
+        keyboardListeners:Add(listener)
     end
 
     /*
@@ -159,7 +265,7 @@ class AndroidInput is GameInput
     action is automatically called by the Game class when needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-        // Do nothing - Keyboard isn't supported on Android currently.
+        keyboardListeners:Remove(listener)
     end
 
     /*
