@@ -102,6 +102,8 @@ class CodeCompletionHandler
     private action AddExpressionResults(CodeCompletionRequest request, CodeCompletionResult result)
         text line = request:line //this is already trimmed
         Array<text> split = line:Split(":")
+        CompilerResult compilerResult = request:result
+        CompilerResult lastCompiledResult = request:lastCompiledResult
 
         //now set the filer for this particular request
         if split:GetSize() > 0 and not line:IsEmpty()
@@ -113,40 +115,39 @@ class CodeCompletionHandler
             end
         end
         SymbolTable sandboxSymbolTable = request:result:symbolTable
+        SymbolTable lastGoodCompileTable = undefined
+        if lastCompiledResult not= undefined
+            lastGoodCompileTable = lastCompiledResult:symbolTable
+        end
         //the most recent compile may contain errors. Get the most recent
         //successful compile. Store the error compile as well, as it may
         //help us determine the right values for code completion.
         text file = request:fileKey
         Class clazz = sandboxSymbolTable:GetClassInFile(file)
-
+        SymbolTable finalTable = undefined
+        
         //we have tried to get the class from the sandbox. It this is undefined
         //then check the cache. If there is no cached version of the class,
         //then likely this class hasn't compiled in a while and there may
         //be little we can do to detect what the user is doing.
-        Class clazzCached = sandboxSymbolTable:GetClassInFile(file)
+        Class clazzCached = undefined
+        if lastGoodCompileTable not= undefined
+            clazzCached = lastGoodCompileTable:GetClassInFile(file)
+        end
         boolean classNotFound = false
         if clazz = undefined and clazzCached not= undefined
             clazz = clazzCached
             classNotFound = true
+            finalTable = lastGoodCompileTable
+        elseif clazz not= undefined and clazzCached = undefined
+            clazzCached = clazz //better than nothing to check if there is no previous good cache
+            finalTable = sandboxSymbolTable
         end
 
-        CompilerResult compilerResult = request:result
-
         boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
-//        if clazz not= undefined and clazzCached not= undefined
-//            hash1 = clazz:GetHashCode()
-//            hash2 = clazzCached:GetHashCode()
-//
-//            //if these don't match, the most recent parse did not compile
-//            //for this file. Let the code completion library know we
-//            //are in an intermediate state.
-//            if hash1 not= hash2
-//                lastCompileFailed = true
-//            end
-//        end
         
         //now we have checked the cache. If this is still undefined, bail
-        if clazz not= undefined
+        if clazz not= undefined or finalTable = undefined
             integer start = clazz:GetIndex()
             integer finish = clazz:GetIndexEnd()
 
@@ -159,9 +160,10 @@ class CodeCompletionHandler
                 clazz = undefined
                 return now
             end
+        else 
+            return now
         end
 
-        
         text left = split:Get(0)
         text trimmedLeft = left:Trim()
         if clazz not= undefined
@@ -201,6 +203,8 @@ class CodeCompletionHandler
             Action method = GetActionAtIndex(clazz, request:caretLocation)
             if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
                 AddClassToResult(undefined, request, result, clazz, true, method)
+            elseif trimmedLeft = "return"
+                AddClassToResult(undefined, request, result, clazz, true, method, 6)
             elseif left = "parent"
                 //if this is a parent line, get all of the items on it, split
                 //by colons and start chaining through.
@@ -216,7 +220,7 @@ class CodeCompletionHandler
                     if block not= undefined
                         Variable variable = block:GetVariable(trimmedLeft)
                         if variable not= undefined and not lastCompileFailed
-                            AddVariableAsClass(variable, request, result)
+                            AddVariableAsClass(variable, request, result, finalTable)
                         //in this case, we've found the variable, but the last compile
                         //failed. Use the cached version. This assumption needs 
                         //to be tested carefully to see how well it works in practice.
@@ -226,20 +230,20 @@ class CodeCompletionHandler
                         elseif variable not= undefined and lastCompileFailed
                             Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
                             if methodCached = undefined
-                                AddVariableAsClass(variable, request, result)
+                                AddVariableAsClass(variable, request, result, finalTable)
                                 return now
                             end
                             Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
                             if blockCached = undefined
-                                AddVariableAsClass(variable, request, result)
+                                AddVariableAsClass(variable, request, result, finalTable)
                                 return now
                             end
                             Variable variableCached = blockCached:GetVariable(trimmedLeft)
                             if variableCached = undefined
-                                AddVariableAsClass(variable, request, result)
+                                AddVariableAsClass(variable, request, result, finalTable)
                                 return now
                             end
-                            AddVariableAsClass(variableCached, request, result)
+                            AddVariableAsClass(variableCached, request, result, finalTable)
                         //if we can't find the variable and the last compile
                         //failed, check the cache. Maybe it has some information
                         elseif variable = undefined and lastCompileFailed and classNotFound not= true
@@ -255,7 +259,7 @@ class CodeCompletionHandler
                             if variableCached = undefined
                                 return now
                             end
-                            AddVariableAsClass(variableCached, request, result)
+                            AddVariableAsClass(variableCached, request, result, finalTable)
                         end
                     end
                 end
@@ -417,24 +421,48 @@ class CodeCompletionHandler
         end
     end
 
-    private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result)
-        SymbolTable sandboxSymbolTable = request:result:symbolTable
+    private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
         Type type = variable:GetType()
         if type not= undefined
             text key = type:GetStaticKey()
-            Class varClass = sandboxSymbolTable:GetClass(key)
+            Class varClass = table:GetClass(key)
+
             if varClass not= undefined
                 AddClassToResult(variable, request, result, varClass, false, undefined)
+            elseif not type:IsPrimitive() and varClass = undefined
+                //perhaps it was not resolved in the case. Check use statements
+                //for anything that looks reasonable.
+                Class variablesClass = variable:GetParentClass()
+                varClass = variablesClass:GetValidUseName(key)
+                if varClass not= undefined
+                    AddClassToResult(variable, request, result, varClass, false, undefined)
+                else 
+                    Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
+                    Array<Class> classes
+                    repeat while iterator:HasNext()
+                        QualifiedName value = iterator:Next()
+                        if value:GetName() = key
+                            Class value1 = table:GetClass(value:GetStaticKey())
+                            if value1 not= undefined
+                                classes:Add(value1)
+                            end
+                        end
+                    end
+
+                    if classes:GetSize() = 1
+                        AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
+                    end
+                end
             elseif type:IsPrimitive() and varClass = undefined
                 Class clazz = undefined
                 if type:IsInteger()
-                    clazz = sandboxSymbolTable:GetClass(type:INTEGER_OBJECT_KEY)
+                    clazz = table:GetClass(type:INTEGER_OBJECT_KEY)
                 elseif type:IsNumber()
-                    clazz = sandboxSymbolTable:GetClass(type:NUMBER_OBJECT_KEY)
+                    clazz = table:GetClass(type:NUMBER_OBJECT_KEY)
                 elseif type:IsBoolean()
-                    clazz = sandboxSymbolTable:GetClass(type:BOOLEAN_OBJECT_KEY)
+                    clazz = table:GetClass(type:BOOLEAN_OBJECT_KEY)
                 else type:IsText()
-                    clazz = sandboxSymbolTable:GetClass(type:TEXT_OBJECT_KEY)
+                    clazz = table:GetClass(type:TEXT_OBJECT_KEY)
                 end
 
                 //if this is the current class, load all methods, public or private
@@ -539,6 +567,20 @@ class CodeCompletionHandler
                 return act
             end
         end
+        //check the constructor
+        if act = undefined
+            Action constructor = clazz:GetConstructor()
+            if constructor not= undefined
+                integer start = constructor:GetIndex()
+                integer finish = constructor:GetIndexEnd()
+                File f = constructor:GetFile()
+                text actionPath = f:GetAbsolutePath()
+                if index >= start and index <= finish and classPath = actionPath
+                    act = constructor
+                    return act
+                end
+            end
+        end
         return act
     end
 
@@ -634,6 +676,13 @@ class CodeCompletionHandler
         CodeCompletionRequest request, 
         CodeCompletionResult result, Class clazz, 
         boolean isCurrentClass, Action insideMethod)
+        AddClassToResult(variable, request, result, clazz, isCurrentClass, insideMethod, 0)
+    end  
+
+    private action AddClassToResult(Variable variable, 
+        CodeCompletionRequest request, 
+        CodeCompletionResult result, Class clazz, 
+        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
 
         if clazz not= undefined
             //add all of the fields from this class
@@ -644,7 +693,7 @@ class CodeCompletionHandler
                     CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
                     text filter = result:filter
                     integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
+                    item:dotOffset = request:caretLocation - size + additionalDotOffset
                     if isCurrentClass
                         result:Add(item)
                     else
@@ -666,7 +715,7 @@ class CodeCompletionHandler
                         CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
                         text filter = result:filter
                         integer size = filter:GetSize()
-                        item:dotOffset = request:caretLocation - size
+                        item:dotOffset = request:caretLocation - size + additionalDotOffset
                         if isCurrentClass
                             result:Add(item)
                         else
@@ -686,7 +735,7 @@ class CodeCompletionHandler
                 CodeCompletionItem item = act:GetCodeCompletionItem(variable)
                 text filter = result:filter
                 integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
+                item:dotOffset = request:caretLocation - size + additionalDotOffset
 
                 //is this action in the base class or the v-table?
                 if clazz:HasAction(act:GetStaticKey())

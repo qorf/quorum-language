@@ -285,9 +285,6 @@ class Block is Location
             parentBlock = parentBlock:GetParentBlock()
         end //it isn't in any of the parent blocks, check the action and class
 
-        if parentAction = undefined
-            a = 5
-        end
         variable = parentAction:GetParameter(key)
         if variable not= undefined
             return variable
