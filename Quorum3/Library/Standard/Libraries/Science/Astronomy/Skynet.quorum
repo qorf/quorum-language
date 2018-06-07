@@ -582,6 +582,22 @@ class Skynet is NetworkRequestListener
     */
     action SubmitObservationByName
         //requires type and name
+        //requires RA, Dec, name
+        NetworkRequest request
+        me:resource = "obs"
+        request:SetRequestTypeToPost()
+        request:SetWebAddress(me:server + me:resource)
+        request:SetHeaders(GetSkynetHeaders())
+        request:SetBodyAsFormEncodedData(GetObservationParametersByName())
+        NetworkConnection http
+        http:AddListener(me)
+        repeat while status not= STATUS_NO_REQUEST_MADE
+            output "waiting for previous request"
+            SystemHelper sys
+            sys:Sleep(1000)
+        end
+        status = STATUS_WAITING_FOR_OBSERVATIONID
+        http:SendRequest(request)
     end
 
     /*
@@ -627,10 +643,10 @@ class Skynet is NetworkRequestListener
         //requires RA, Dec, name
         NetworkRequest request
         me:resource = "obs"
-        request:SetRequestTypeToPOST()
+        request:SetRequestTypeToPost()
         request:SetWebAddress(me:server + me:resource)
         request:SetHeaders(GetSkynetHeaders())
-        request:SetBodyAsFormEncodedData(GetObservationParameters())
+        request:SetBodyAsFormEncodedData(GetObservationParametersByCoordinates())
         NetworkConnection http
         http:AddListener(me)
         repeat while status not= STATUS_NO_REQUEST_MADE
@@ -666,7 +682,7 @@ class Skynet is NetworkRequestListener
     action SubmitExposureRequest
         NetworkRequest request
         me:resource = "exps"
-        request:SetRequestTypeToPOST()
+        request:SetRequestTypeToPost()
         request:SetWebAddress(me:server + me:resource)
         request:SetHeaders(GetSkynetHeaders())
         request:SetBodyAsFormEncodedData(GetExposureParameters())
@@ -701,7 +717,7 @@ class Skynet is NetworkRequestListener
     end
 
     /*
-    This method is used internally by the class to return the observationd parameters set in the object.
+    This method is used internally by the class to return the observation parameters by coordinates set in the object.
 
     Attribute: Returns a JavaScriptObjectNotation object with the parameters.
 
@@ -712,14 +728,44 @@ class Skynet is NetworkRequestListener
 
     action SubmitObservationByCoordinates
         NetworkRequest request
-        request:SetBodyAsFormEncodedData(GetObservationParameters())
+        request:SetBodyAsFormEncodedData(GetObservationParametersByCoordinates())
     end
     */
-    action GetObservationParameters returns JavaScriptObjectNotation
+    action GetObservationParametersByCoordinates returns JavaScriptObjectNotation
         JavaScriptObjectNotation params
         params:Add("name", me:name)
         params:Add("raHours", me:rightAscension)
         params:Add("decDegs", me:declination)
+        params:Add("maxSun", me:maxSun)
+        params:Add("minEl", me:minElevation)
+        params:Add("mode", me:mode)
+        params:Add("timeAccountId", me:timeAccount)
+        params:Add("priority", me:priority)
+        params:Add("teleOwnerId", me:ownerId)
+        params:Add("isToo", me:isToo)
+        return params
+    end
+
+    /*
+    This method is used internally by the class to return the observation parameters by name set in the object.
+
+    Attribute: Returns a JavaScriptObjectNotation object with the parameters.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action SubmitObservationByName
+        NetworkRequest request
+        request:SetBodyAsFormEncodedData(GetObservationParametersByName())
+    end
+    */
+    action GetObservationParametersByName returns JavaScriptObjectNotation
+        JavaScriptObjectNotation params
+        params:Add("name", me:name)
+        params:Add("objectName", me:name)
+        params:Add("objectType", me:type)
         params:Add("maxSun", me:maxSun)
         params:Add("minEl", me:minElevation)
         params:Add("mode", me:mode)
@@ -828,7 +874,7 @@ class Skynet is NetworkRequestListener
     class Skynet is NetworkResponseListener
         action Submit
             NetworkRequest request
-            request:SetRequestTypeToPOST()
+            request:SetRequestTypeToPost()
             NetworkConnection http
             http:AddListener(me)
             http:SendRequest(request)

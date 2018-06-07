@@ -1,8 +1,16 @@
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
+use Libraries.Game.Collision.CollisionPoint2D
 
 package Libraries.Game.Collision
 
+
+/*
+This class records the collision points between collisions. 
+Collision points will be evaluated when a CollisionEvent2D occurs, where the 
+CollisionEvent2D uses the narrow phase evaluation to calculate where the
+collision points are.
+*/
 class LocalCollisionPoints2D
     public constant integer MAX_COLLISION_POINTS = 2
 
@@ -10,6 +18,10 @@ class LocalCollisionPoints2D
     public constant integer FACE_A = 1
     public constant integer FACE_B = 2
 
+    /*
+    This records all of the local collision points that is involved in the collision
+    between two objects.
+    */
     Array<CollisionPoint2D> points
     Vector2 localNormal
     Vector2 localPoint

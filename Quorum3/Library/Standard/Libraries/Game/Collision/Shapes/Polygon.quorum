@@ -10,9 +10,9 @@ package Libraries.Game.Collision.Shapes
 
 class Polygon is CollisionShape2D
     public constant integer MAXIMUM_POLYGON_VERTICES = 8
-    Vector2 centroid
-    Array<Vector2> vertices
-    Array<Vector2> normals
+    Vector2 centroid  //centroid of the polygon relative to the polygon's local coordinate's origin
+    Array<Vector2> vertices   //stores the vertices points
+    Array<Vector2> normals    //stores the vectors that points normal to each edges of the polygon
     integer vertexCount = 0
 
     boolean isBox = false
@@ -32,6 +32,10 @@ class Polygon is CollisionShape2D
         end
     end
 
+
+    /*
+    This action sets another polygon shape using the current polygon shape.
+    */
     action Copy returns CollisionShape2D
         Polygon shape
         shape:centroid:Set(me:centroid)
@@ -47,6 +51,10 @@ class Polygon is CollisionShape2D
         return shape
     end
 
+
+    /*
+    This action shrinks or expands the polygon shape.
+    */
     action Scale(number scaleX, number scaleY)
         integer i = 0
         repeat vertexCount times
@@ -187,6 +195,9 @@ class Polygon is CollisionShape2D
         centroid = ComputeCentroid(vertices, vertexCount)
     end
 
+    /*
+    This action sets the polygon shape to an untilted box centered at the origin.
+    */
     action SetAsBox(number width, number height)
         number halfWidth = width / 2
         number halfHeight = height / 2
@@ -203,7 +214,14 @@ class Polygon is CollisionShape2D
         isBox = true
     end
 
+
+
+    /*
+    This action creates a polygon as a rectangle with present center point and 
+    tilted angle.
+    */
     action SetAsBox(number width, number height, Vector2 center, number angle)
+        //set the box as if it wasn't tilted or translated
         number halfWidth = width / 2
         number halfHeight = height / 2
         vertexCount = 4
@@ -220,6 +238,7 @@ class Polygon is CollisionShape2D
         PhysicsPosition2D transform
         transform:Set(center, angle)
 
+        //now, transform both the vertices points and normal vectors using the tranformation matrices stored in "transform". 
         integer i = 0
         repeat while i < vertexCount
             transform:MultiplyToOut(transform, vertices:Get(i), vertices:Get(i))
@@ -232,10 +251,19 @@ class Polygon is CollisionShape2D
         isBox = true
     end
 
+
+
+    /*
+    Because each polygon can be seen as an primitive shape, therefore, 
+    a polygon is its own child and parent.
+    */
     action GetChildCount returns integer
         return 1
     end
 
+    /*
+    Attribute: Parameter point The point of interest in global coordinates.
+    */
     action TestPoint(PhysicsPosition2D transform, Vector2 point) returns boolean
         number tempX = 0
         number tempY = 0
@@ -243,8 +271,10 @@ class Polygon is CollisionShape2D
         number sine = transform:GetSine()
         number cosine = transform:GetCosine()
 
+        //find the vector (in global coordinates) whose head is at the point of interest and whose tail is at the origin of the local coordinates attached to the polygon
         tempX = point:GetX() - transform:GetPosition():GetX()
         tempY = point:GetY() - transform:GetPosition():GetY()
+        //now, we need to find the points of that vector in local coordinates of the polygon
         number pLocalx = cosine * tempX + sine * tempY
         number pLocaly = -1 * sine * tempX + cosine * tempY
 
@@ -252,9 +282,13 @@ class Polygon is CollisionShape2D
         repeat while i < vertexCount
             Vector2 vertex = vertices:Get(i)
             Vector2 normal = normals:Get(i)
+            //find the vector whose head is at the point of interest and whose tail is at the vertex
             tempX = pLocalx - vertex:GetX()
             tempY = pLocaly - vertex:GetY()
             number dot = normal:GetX() * tempX + normal:GetY() * tempY
+            //if the <tempX, tempY> vector forms an angle that is >180 degrees with the corresponding normal vector
+            //then, this means that <tempX, tempY> points outward from the vertex instead of pointing inward
+            //which implies that the point (pLocalx, pLocaly) is outside the boundary of the polygon
             if dot > 0
                 return false
             end
@@ -482,8 +516,10 @@ class Polygon is CollisionShape2D
         center:Scale(1.0 / area)
         mass:GetCenter():Set(center):Add(s)
 
+        //find the inertia of the mass about its own center of mass
         mass:SetInertia(I * density)
 
+        //find the inertia of the mass about its local origin
         mass:SetInertia(mass:GetInertia() + (mass:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter())))
     end
 

@@ -519,7 +519,9 @@ class Library
                 if file:IsDirectory()
                     folders:Add(file)
                 else
-                    files:Add(file)
+                    if file:GetFileName() not= ".DS_Store"
+                        files:Add(file)
+                    end
                 end
                 i = i + 1
             end

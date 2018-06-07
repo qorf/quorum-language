@@ -6,9 +6,13 @@ use Libraries.Compute.Matrix4
 package Libraries.Game.Collision
 
 /*
-This class represents a 2D box that bounds an item. The box is defined by two
-Vector2 objects which represent the maximum and minimum points of the item. 
+This class represents a 2D box that bounds an 2D item. The box approximates
+the size of the 2D items.
+The box is defined by two Vector2 objects which represent the maximum and 
+minimum points of the item. 
 This class is used throughout the Collision libraries to monitor collisions.
+The box is not allowed to rotate, therefore, we call these boxes "axis-aligned 
+bounding boxes".
 
 Attribute: Example
 
@@ -34,11 +38,11 @@ class BoundingBox2D
     Math math
 
     /*
-    minimum represents the minimum point of the bounding box
+    minimum represents the minimum point (bottom left vertex) of the bounding box relative to the global coordinates
     */
     Vector2 minimum
     /*
-    maximum represents the maximum point of the bounding box
+    maximum represents the maximum point (top right vertex) of the bounding box relative to the global coordinates
     */
     Vector2 maximum
 
@@ -163,13 +167,13 @@ class BoundingBox2D
 
     /*
     This action re-calculates the center and the dimensions of the BoundingBox2D.
-    This action is used internally. Note that center and dimensions are calucted when 
+    This action is used internally. Note that center and dimensions are calculated when 
     minimum and maximum are set. 
     */
     action CalculateDimensions
         center:Set(minimum)
         center:Add(maximum)
-        center:Scale(0.5)
+        center:Scale(0.5)   //the center is calculated using the mid-point formula between two points
 
         dimensions:Set(maximum)
         dimensions:Subtract(minimum)
@@ -400,14 +404,21 @@ class BoundingBox2D
     use Libraries.Containers.Array
 
     BoundingBox2D boundingBox
-    Vector2 point1
-    Vector2 point2
-    Vector2 outlier
+    Vector2 point1   //the minimum point of the boundingBox
+    Vector2 point2   //the maximum point of the boundingBox
+    Vector2 outlier  //the outlier in addition to the original boundingBox
     point1:Set(-1, -1)
     point2:Set(1, 1)
     outlier:Set(5, 2)
 
     Array<Vector2> points
+    //you would want to include the minimum and the maximum points of the 
+    //original bounding box if you want to add an extra outlier 
+    //(another way to do this is to use the Extend(Vector2 point) action)
+
+    //but if you just want to bound a series of points, you just have to insert 
+    //the points that you want the box to bound 
+    
     points:Add(point1)
     points:Add(point2)
     points:Add(outlier)
@@ -419,11 +430,11 @@ class BoundingBox2D
             +  boundingBox:GetWidth() + " and a height of " + boundingBox:GetHeight()
     */
     action Set(Array<Vector2> points)
-       Invalidate()
+        Invalidate()   //destroys the oritinal boundingBox
         
         integer counter = 0
         repeat points:GetSize() times
-            Extend(points:Get(counter))
+            Extend(points:Get(counter))  //let the bounding box include the point at points:Get(counter)
             counter = counter + 1
         end
     end
@@ -826,7 +837,7 @@ class BoundingBox2D
         +  boundingBox:GetWidth() + " and a height of " + boundingBox:GetHeight()
     */
     action Contains(BoundingBox2D bounds) returns boolean
-        if not IsValid()
+        if not IsValid()   //check if there is a bounding box first
             return false
         end
 
@@ -887,7 +898,7 @@ class BoundingBox2D
     This action will test to see if this BoundingBox2D intersects with the given
     BoundingBox2D.
 
-    Attribute: Parameter bounds The bounding box to be checked for instersection 
+    Attribute: Parameter bounds The bounding box to be checked for intersection 
     against this bounding box. 
 
     Attribute: Returns whether the given bounding box intersects this bounding box.
@@ -937,6 +948,8 @@ class BoundingBox2D
         number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenter():GetY())
         number sumy = (dimensions:GetY() / 2) + (bounds:GetDimensions():GetY() / 2)
         
+        //if the distance between the centers (in both x and y directions) 
+        //are less than their combined mid-lengths, then they will be intersecting
         return lx <= sumx and ly <= sumy
     end
 
