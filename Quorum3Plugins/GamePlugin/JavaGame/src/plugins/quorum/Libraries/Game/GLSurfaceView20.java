@@ -26,11 +26,18 @@ import android.util.Log;
 import android.view.View;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import quorum.Libraries.Game.AndroidConfiguration;
 
+import quorum.Libraries.Game.AndroidConfiguration;
+import quorum.Libraries.Game.AndroidInput_;
+
+/**
+ *
+ * @author alleew
+ */
 public class GLSurfaceView20 extends GLSurfaceView
 {
     static String TAG = "GL2JNIView";
@@ -56,6 +63,14 @@ public class GLSurfaceView20 extends GLSurfaceView
         height = config.targetHeight;
         aspectRatio = config.useAspectRatio;
         Initialize(translucent, depth, stencil);
+    }
+    
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+        input.plugin_.AddEvent(event);
+        return true;
     }
     
     @Override
@@ -193,6 +208,15 @@ public class GLSurfaceView20 extends GLSurfaceView
     
     private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser 
     {
+        // Subclasses can adjust these values:
+        protected int mRedSize;
+        protected int mGreenSize;
+        protected int mBlueSize;
+        protected int mAlphaSize;
+        protected int mDepthSize;
+        protected int mStencilSize;
+        private int[] mValue = new int[1];
+        
         public ConfigChooser (int r, int g, int b, int a, int depth, int stencil) 
         {
             mRedSize = r;
@@ -323,13 +347,5 @@ public class GLSurfaceView20 extends GLSurfaceView
             }
         }
 
-        // Subclasses can adjust these values:
-        protected int mRedSize;
-        protected int mGreenSize;
-        protected int mBlueSize;
-        protected int mAlphaSize;
-        protected int mDepthSize;
-        protected int mStencilSize;
-        private int[] mValue = new int[1];
     }
 }
