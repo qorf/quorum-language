@@ -116,6 +116,7 @@ public class QuorumProject implements Project {
     private Library_ myProjectsLibrary = null;
     private File_ mainFile = null;
     private CompilerResult_ lastCompileResult;
+    private CompilerResult_ lastGoodCompileResult;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -178,13 +179,13 @@ public class QuorumProject implements Project {
         projectType = type;
     }
     
-    public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
-        return sandboxResult;
-    }
-    
-    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult_ result) {
-        sandboxResult = result;
-    }
+//    public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
+//        return sandboxResult;
+//    }
+//    
+//    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult_ result) {
+//        sandboxResult = result;
+//    }
     
     @Override
     public FileObject getProjectDirectory() {
@@ -815,5 +816,19 @@ public class QuorumProject implements Project {
      */
     public void setLastCompileResult(CompilerResult_ lastCompileResult) {
         this.lastCompileResult = lastCompileResult;
+    }
+    
+    /**
+     * @return the lastCompileResult
+     */
+    public CompilerResult_ getLastGoodCompileResult() {
+        return lastGoodCompileResult;
+    }
+
+    /**
+     * @param lastCompileResult the lastCompileResult to set
+     */
+    public void setLastGoodCompileResult(CompilerResult_ lastCompileResult) {
+        this.lastGoodCompileResult = lastCompileResult;
     }
 }

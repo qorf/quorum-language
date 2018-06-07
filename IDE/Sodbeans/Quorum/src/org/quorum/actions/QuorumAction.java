@@ -261,7 +261,18 @@ public abstract class QuorumAction implements Action {
             result = compiler.Compile(request);
             info.result = result;
             manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
-            project.setLastCompileResult(result);
+            if(manager != null && manager.IsCompilationErrorFree()){
+                if(result != null && project instanceof QuorumProject) {
+                    QuorumProject qp = (QuorumProject) project;
+                    qp.setLastCompileResult(result);
+                    qp.setLastGoodCompileResult(result);
+                }
+            } else {
+                if(result != null && project instanceof QuorumProject) {
+                    QuorumProject qp = (QuorumProject) project;
+                    qp.setLastCompileResult(result);
+                }
+            }
         } catch (final Exception e) {
             if(logExceptionsToConsoleOutput) {
                 SwingUtilities.invokeLater(new Runnable() {

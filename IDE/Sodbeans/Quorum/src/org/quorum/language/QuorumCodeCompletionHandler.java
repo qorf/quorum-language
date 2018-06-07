@@ -70,6 +70,7 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
             request.source = string;
             QuorumProject qp = (QuorumProject) project;
             request.result = qp.getLastCompileResult();
+            request.lastCompiledResult = qp.getLastGoodCompileResult();
             String prefix = context.getPrefix();
             boolean caseSensitive = context.isCaseSensitive();
                 

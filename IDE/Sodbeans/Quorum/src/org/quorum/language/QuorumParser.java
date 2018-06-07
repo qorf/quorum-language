@@ -23,7 +23,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.quorum.actions.QuorumAction;
 import org.quorum.projects.QuorumProject;
-import org.quorum.support.Utility;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
@@ -43,7 +42,6 @@ public class QuorumParser extends Parser{
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
     private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
-    CompilerResult_ recentResult = null;
     
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
@@ -112,7 +110,6 @@ public class QuorumParser extends Parser{
                     request.recompileValue = string;
                     CompilerResult_ result = compiler.Compile(request);
                     ((QuorumProject) project).setLastCompileResult(result);
-                    recentResult = result;
                     
                     result.Set_Libraries_Language_Compile_CompilerResult__source_(string);
                     result.Set_Libraries_Language_Compile_CompilerResult__sourceLocation_(quorumFile);
@@ -127,9 +124,14 @@ public class QuorumParser extends Parser{
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
                             QuorumProject qp = (QuorumProject) project;
-                            qp.setSandboxCompilerResult(result);
+                            qp.setLastCompileResult(result);
+                            qp.setLastGoodCompileResult(result);
                         }
                     } else {
+                        if(result != null && project instanceof QuorumProject) {
+                            QuorumProject qp = (QuorumProject) project;
+                            qp.setLastCompileResult(result);
+                        }
                         fileErrors.clear();
                         Iterator_ it = manager.GetIterator();
                         while(it.HasNext()) {
@@ -200,7 +202,24 @@ public class QuorumParser extends Parser{
     }
 
     public CompilerResult_ getRecentResult() {
-        return recentResult;
+        FileObject fo = snapshot.getSource().getFileObject();
+        if(fo == null) {
+            return null;
+        }
+        String extension = fo.getExt();
+
+        if(extension.compareTo("quorum") != 0) {
+            return null;
+        }
+
+        Project project = FileOwnerQuery.getOwner(fo);
+
+        if(project != null && project instanceof QuorumProject) {
+            QuorumProject qp = (QuorumProject) project;
+            CompilerResult_ lastCompileResult = qp.getLastCompileResult();
+            return lastCompileResult;
+        }
+        return null;
     }
     
     /**
