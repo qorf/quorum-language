@@ -107,7 +107,7 @@ HWND CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _I
 	{
 		CheckBoxControl * control = new CheckBoxControl();
 
-		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_CHECKBOX",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
@@ -191,6 +191,7 @@ LRESULT CheckBoxControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _In_ U
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<CheckBoxControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_buttonControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)

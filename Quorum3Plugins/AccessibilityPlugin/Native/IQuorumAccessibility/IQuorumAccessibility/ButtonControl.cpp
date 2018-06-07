@@ -10,7 +10,7 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button")
+ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button"), m_buttonControlHWND(0), m_focused(false)
 {
 	// Nothing to do here.
 }
@@ -54,7 +54,7 @@ void ButtonControl::InvokeButton(_In_ HWND hwnd)
 
 }
 
-// RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used and later be registered with UI Automation
+// RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
 bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
@@ -101,7 +101,7 @@ HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_
 	{
 		ButtonControl * control = new ButtonControl();
 
-		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_BUTTON",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
@@ -131,10 +131,8 @@ HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_
 		}
 		else
 		{
-
 			control->SetName(buttonName);
 			return control->m_buttonControlHWND;
-
 		}
 	}
 
@@ -176,6 +174,7 @@ LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ 
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<ButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+		pThis->m_buttonControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)

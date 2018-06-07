@@ -15,7 +15,7 @@
 #include <string>
 
 // This is the handle to the main game window. It is set during initialization and must never be changed.
-HWND GLFWParentWindow;
+HWND GLFWParentWindow = NULL;
 
 HWND GetMainWindowHandle()
 {
@@ -119,7 +119,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 }
 
-// NativeWin32CreatePushButton: Creates a window that contains the accessible information for a PushButton that was passed into this function.
+// NativeWin32CreateButton: Creates a window that contains the accessible information for a PushButton that was passed into this function.
 //		Returns: jlong which is the HWND for the window. This is used to further interact with the button after creation. i.e., to rename the button later should the name be changed. Also, used to keep track of it in java.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateButton(JNIEnv *env, jobject obj, jstring buttonName, jstring description)
 {
@@ -142,7 +142,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 }
 
-// NativeWin32CreateToggleButton: 
+// NativeWin32CreateCheckBox: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateCheckBox(JNIEnv *env, jobject obj, jstring togglebuttonName, jstring description)
 {
 	UNREFERENCED_PARAMETER(obj);
