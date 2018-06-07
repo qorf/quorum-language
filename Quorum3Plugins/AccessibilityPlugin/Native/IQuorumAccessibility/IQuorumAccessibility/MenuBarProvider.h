@@ -1,9 +1,8 @@
-
 class MenuBarControl;
 
-class MenuBarProvider : public IRawElementProviderSimple//,
-						//public IRawElementProviderFragment,
-						//public IRawElementProviderFragmentRoot
+class MenuBarProvider : public IRawElementProviderSimple,
+						public IRawElementProviderFragment,
+						public IRawElementProviderFragmentRoot
 {
 public:
 	MenuBarProvider(_In_ HWND MenuBarControlHWND, _In_ MenuBarControl* pMenuBarControl);
@@ -19,17 +18,17 @@ public:
 	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal);
 	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal);
 
-	//// IRawElementProviderFragment methods
-	//IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
-	//IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	//IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect * pRetVal);
-	//IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	//IFACEMETHODIMP SetFocus();
-	//IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
+	// IRawElementProviderFragment methods
+	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
+	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
+	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect * pRetVal);
+	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
+	IFACEMETHODIMP SetFocus();
+	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
 
-	//// IRawElementProviderFragmentRoot methods
-	//IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
-	//IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
+	// IRawElementProviderFragmentRoot methods
+	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
+	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 
 private:
 	virtual ~MenuBarProvider();

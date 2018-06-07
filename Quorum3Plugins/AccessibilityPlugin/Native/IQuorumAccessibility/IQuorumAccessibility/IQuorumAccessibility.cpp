@@ -9,6 +9,8 @@
 #include "RadioButtonControl.h"
 #include "CheckBoxControl.h"
 #include "TextBoxControl.h"
+#include "MenuBarControl.h"
+#include "MenuItemControl.h"
 
 // For Debug Output
 #include <iostream>
@@ -215,6 +217,37 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 }
 
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateMenuBar(JNIEnv * env, jobject obj, jstring menuBarName)
+{
+	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
+	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
+
+	HWND menuBarControl = MenuBarControl::Create(GetModuleHandle(NULL), wMenuBarName);
+
+	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
+
+	return PtrToLong(menuBarControl);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateMenuItem(JNIEnv * env, jobject obj, jstring menuItemName, jstring menuShortcut, jlong parentMenu, jlong parentMenuBar)
+{
+	const char* nativeMenuItemName = env->GetStringUTFChars(menuItemName, 0);
+	const char* nativeMenuShortcut = env->GetStringUTFChars(menuShortcut, 0);
+
+	WCHAR* wMenuItemName = CreateWideStringFromUTF8Win32(nativeMenuItemName);
+	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
+
+	// Check if this MenuItem has a parent MenuItem.
+
+
+	//MenuItemControl* menuItemControl = MenuItemControl::Create(GetModuleHandle(NULL), ... );
+
+	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
+	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
+
+	return 0;
+}
+
 #pragma endregion
 
 
@@ -235,11 +268,6 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 
 	HWND control = (HWND)jlongHWND;
-
-
-	//DWORD threadID = GetCurrentThreadId();
-
-	//std::cout << "NativeWin32SetFocus Thread ID: " << threadID << std::endl;
 
 	// Sends the appropriate messages to all windows.
 	SetFocus(control);
