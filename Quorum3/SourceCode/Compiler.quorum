@@ -393,8 +393,10 @@ class Compiler
                 text manifest = GetManifest(request, generator, table)
                 //text compiledName = request:GetName(name)
                 File jar = GetExecutable(request)
-                generator:SetManifest(manifest)
-                generator:Open(jar)
+                if not request:isFastCompileRequest
+                    generator:SetManifest(manifest)
+                    generator:Open(jar)
+                end
 
                 //iterate over all the class opcodes and write them to disk
                 Iterator<ClassOpcode> codes = theOpcodes:GetValueIterator()//classOpcodes:GetIterator()
@@ -436,23 +438,25 @@ class Compiler
 
                     //if the file is not part of the standard library, 
                     //generate it
-                    if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
-                        and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
-                        if build not= undefined
-                            if request:IsWebRequest()
-                                text path = WEB_DIRECTORY + "/" + build:GetPath()
-                                generator:Add(build, path)
-                            else 
-                                generator:Add(build)
+                    if not request:isFastCompileRequest
+                        if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                            and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
+                            if build not= undefined
+                                if request:IsWebRequest()
+                                    text path = WEB_DIRECTORY + "/" + build:GetPath()
+                                    generator:Add(build, path)
+                                else 
+                                    generator:Add(build)
+                                end
                             end
-                        end
 
-                        if buildInterface not= undefined
-                            if request:IsWebRequest()
-                                text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
-                                generator:Add(buildInterface, path)
-                            else 
-                                generator:Add(buildInterface)
+                            if buildInterface not= undefined
+                                if request:IsWebRequest()
+                                    text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                                    generator:Add(buildInterface, path)
+                                else 
+                                    generator:Add(buildInterface)
+                                end
                             end
                         end
                     end

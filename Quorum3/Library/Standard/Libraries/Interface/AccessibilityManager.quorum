@@ -86,8 +86,8 @@ class AccessibilityManager
 
             // TODO: This section can be removed once everything is supported
             if item:GetAccessibilityCode() = item:BUTTON
-                    or item:GetAccessibilityCode() = item:MENU_BAR
-                    or item:GetAccessibilityCode() = item:MENU_ITEM
+//                    or item:GetAccessibilityCode() = item:MENU_BAR
+//                    or item:GetAccessibilityCode() = item:MENU_ITEM
 
                 output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 NativeAdd(item)

@@ -237,15 +237,17 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wMenuItemName = CreateWideStringFromUTF8Win32(nativeMenuItemName);
 	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
 
-	// Check if this MenuItem has a parent MenuItem.
+	HWND menuBar = (HWND)parentMenuBar;
+	
+	MenuItemControl* parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
+	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, parentMenuItem);
 
-
-	//MenuItemControl* menuItemControl = MenuItemControl::Create(GetModuleHandle(NULL), ... );
+	SendMessage(menuBar, QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
 
 	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
 
-	return 0;
+	return PtrToLong(menuItemControl);
 }
 
 #pragma endregion

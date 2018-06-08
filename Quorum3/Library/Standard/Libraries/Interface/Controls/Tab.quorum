@@ -40,6 +40,7 @@ class Tab is ToggleButton
         flow:SetIgnoreHidden(true)
         AddLayout(flow)
         SetAccessibilityCode(parent:Item:TAB)
+        closeButton:SetName("Close")
     end
 
     action Initialize(text name, Item2D item)

@@ -29,9 +29,9 @@ public:
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
 
 
-	//// Various methods
-	//void NotifyMenuItemAdded();
-	//void NotifyElementSelected();
+	// Various methods
+	void NotifyMenuItemAdded();
+	void NotifyElementSelected();
 
 private:
 	virtual ~MenuItemProvider();
