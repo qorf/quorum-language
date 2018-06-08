@@ -309,7 +309,12 @@ public class DesktopDisplay {
 
     public boolean IsCloseRequested() {
         // This will need to be revised for a multiple-window system.
-        return GLFW.glfwWindowShouldClose(window);
+        if (GLFW.glfwWindowShouldClose(window))
+        {
+            GLFW.glfwSetWindowShouldClose(window, false);
+            return true;
+        }
+        return false;
     }
 
     public void Destroy() {
