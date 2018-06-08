@@ -158,7 +158,7 @@ public abstract class Data {
     // This will throw an error in non-streaming audio classes.
     public abstract void Update();
     
-    protected static FileInputStream FileToStream(File file)
+    public static FileInputStream FileToStream(File file)
     {
         FileInputStream stream;
         

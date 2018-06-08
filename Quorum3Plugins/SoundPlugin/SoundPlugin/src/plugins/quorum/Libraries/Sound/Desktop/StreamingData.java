@@ -20,7 +20,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -52,12 +52,20 @@ public abstract class StreamingData extends DesktopData
     private float renderedSeconds, secondsPerBuffer;
 
     protected final File file;
+    protected final String filePath;
     protected int bufferOverhead = 0;
     protected boolean isPlaying = false;
 
     public StreamingData (File file) 
     {
 	this.file = file;
+        filePath = file.getAbsolutePath();
+    }
+    
+    public StreamingData (String filePath)
+    {
+        file = null;
+        this.filePath = filePath;
     }
 
     protected void SetUp (int channels, int sampleRate) 
@@ -69,15 +77,15 @@ public abstract class StreamingData extends DesktopData
 
     public void Play () 
     {
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
             return;
 	if (sourceID == -1) 
         {
-            sourceID = manager.ObtainSource(true);
+            sourceID = MANAGER.ObtainSource(true);
             if (sourceID == -1)
                 return;
 
-            manager.streamedAudio.add(this);
+            MANAGER.streamedAudio.add(this);
 
             if (buffers == null) 
             {
@@ -123,14 +131,14 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void Stop () 
     {
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID == -1) 
             return;
 		
-        manager.streamedAudio.remove(this);
+        MANAGER.streamedAudio.remove(this);
 	Reset();
-	manager.FreeSource(sourceID);
+	MANAGER.FreeSource(sourceID);
 	sourceID = -1;
 	renderedSeconds = 0;
 	isPlaying = false;
@@ -139,7 +147,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void Pause () 
     {
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
             return;
 	if (sourceID != -1)
             alSourcePause(sourceID);
@@ -149,7 +157,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public boolean IsPlaying () 
     {
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return false;
 	if (sourceID == -1) 
             return false;
@@ -172,7 +180,7 @@ public abstract class StreamingData extends DesktopData
     public void SetVolume (float volume) 
     {
 	this.volume = volume;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             alSourcef(sourceID, AL_GAIN, volume);
@@ -188,7 +196,7 @@ public abstract class StreamingData extends DesktopData
     public void SetReferenceDistance(float distance) 
     {
 	this.referenceDistance = distance;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             alSourcef(sourceID, AL_REFERENCE_DISTANCE, distance);
@@ -198,7 +206,7 @@ public abstract class StreamingData extends DesktopData
     public void SetRolloff(float rolloff) 
     {
 	this.rolloff = rolloff;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             alSourcef(sourceID, AL_ROLLOFF_FACTOR, rolloff);
@@ -209,7 +217,7 @@ public abstract class StreamingData extends DesktopData
     {
 	this.pan = pan;
         fade = 0;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
@@ -228,7 +236,7 @@ public abstract class StreamingData extends DesktopData
     {
 	this.fade = newFade;
         pan = 0;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
         
         this.x = 0;
@@ -245,7 +253,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetX(float newX)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.x = newX;
@@ -260,7 +268,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetY(float newY)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.y = newY;
@@ -275,7 +283,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetZ(float newZ)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.z = newZ;
@@ -290,7 +298,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetPosition(float newX, float newY, float newZ)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.x = newX;
@@ -317,7 +325,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void DisableDoppler()
     {
-        if (!dopplerEnabled || manager.noDevice)
+        if (!dopplerEnabled || MANAGER.noDevice)
             return;
         
         dopplerEnabled = false;
@@ -329,7 +337,7 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetVelocity(float newX, float newY, float newZ)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         velocityX = newX;
@@ -344,7 +352,7 @@ public abstract class StreamingData extends DesktopData
 
     public void SetPosition (float position) 
     {
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID == -1) 
             return;
@@ -391,7 +399,7 @@ public abstract class StreamingData extends DesktopData
 
     public float GetPosition () 
     {
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
             return 0;
 	if (sourceID == -1)
             return 0;
@@ -423,7 +431,7 @@ public abstract class StreamingData extends DesktopData
 
     public void Update () 
     {
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
             return;
 	if (sourceID == -1)
             return;
@@ -480,7 +488,7 @@ public abstract class StreamingData extends DesktopData
     public void Dispose () 
     {
 	Stop();
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
             return;
 	if (buffers == null)
             return;
@@ -527,5 +535,13 @@ public abstract class StreamingData extends DesktopData
     public void UnqueueSamples(AudioSamples_ samples)
     {
         throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
+    }
+    
+    public String GetFilePath()
+    {
+        if (file != null)
+            return file.getAbsolutePath();
+        else 
+            return filePath;
     }
 }

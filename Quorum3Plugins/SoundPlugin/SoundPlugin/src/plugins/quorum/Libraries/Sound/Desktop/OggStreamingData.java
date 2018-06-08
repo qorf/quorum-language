@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.io.ByteArrayOutputStream;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  *
@@ -20,9 +21,18 @@ public class OggStreamingData extends StreamingData {
     public OggStreamingData(File file) 
     {
 	super(file);
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	input = new OggInputStream(FileToStream(file));
+	SetUp(input.getChannels(), input.getSampleRate());
+    }
+    
+    public OggStreamingData(InputStream stream, String filePath)
+    {
+	super(filePath);
+	if (MANAGER.noDevice) 
+            return;
+	input = new OggInputStream(stream);
 	SetUp(input.getChannels(), input.getSampleRate());
     }
 

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,6 +14,7 @@ import java.util.HashMap;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
+import plugins.quorum.Libraries.Sound.AudioSamples;
 import quorum.Libraries.Sound.AudioSamples_;
 
 /**
@@ -180,7 +181,7 @@ public class RawStreamingData extends DesktopData
     {
         if (sourceID == -1)
         {
-            sourceID = manager.ObtainSource(true);
+            sourceID = MANAGER.ObtainSource(true);
             if (sourceID == -1)
                 return;
             
@@ -218,7 +219,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void Update()
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         if (sourceID == -1)
             return;
@@ -245,14 +246,14 @@ public class RawStreamingData extends DesktopData
     @Override
     public void Stop()
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
 	if (sourceID == -1) 
             return;
         
         AL10.alSourceStop(sourceID);
         RecycleBuffers();
-	manager.FreeSource(sourceID);
+	MANAGER.FreeSource(sourceID);
 	sourceID = -1;
         samplesArray.clear();
     }
@@ -269,7 +270,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void Pause()
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
 	if (sourceID != -1)
             AL10.alSourcePause(sourceID);
@@ -297,7 +298,7 @@ public class RawStreamingData extends DesktopData
     public void SetVolume(float volume)
     {
         this.volume = volume;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -308,7 +309,7 @@ public class RawStreamingData extends DesktopData
     {
         this.pan = position;
         fade = 0;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
@@ -327,7 +328,7 @@ public class RawStreamingData extends DesktopData
     {
         this.fade = newFade;
         pan = 0;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
         
         this.x = 0;
@@ -344,7 +345,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetX(float newX)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.x = newX;
@@ -359,7 +360,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetY(float newY)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.y = newY;
@@ -374,7 +375,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetZ(float newZ)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.z = newZ;
@@ -389,7 +390,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetPosition(float newX, float newY, float newZ)
     {
-        if (manager.noDevice) 
+        if (MANAGER.noDevice) 
             return;
         
         this.x = newX;
@@ -412,7 +413,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetVelocity(float x, float y, float z)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         velocityX = x;
@@ -438,7 +439,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public void DisableDoppler()
     {
-        if (!dopplerEnabled || manager.noDevice)
+        if (!dopplerEnabled || MANAGER.noDevice)
             return;
         
         dopplerEnabled = false;
@@ -461,7 +462,7 @@ public class RawStreamingData extends DesktopData
     public void SetReferenceDistance(float distance)
     {
         this.referenceDistance = distance;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             AL10.alSourcef(sourceID, AL10.AL_REFERENCE_DISTANCE, distance);
@@ -471,7 +472,7 @@ public class RawStreamingData extends DesktopData
     public void SetRolloff(float rate)
     {
         this.rolloff = rate;
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (sourceID != -1) 
             AL10.alSourcef(sourceID, AL10.AL_ROLLOFF_FACTOR, rate);

@@ -20,7 +20,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.io.File;
 import java.io.FileInputStream;

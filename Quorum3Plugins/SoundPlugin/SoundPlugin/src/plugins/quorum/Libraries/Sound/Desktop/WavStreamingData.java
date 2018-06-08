@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
 
 /**
@@ -19,7 +20,16 @@ public class WavStreamingData extends StreamingData {
     {
 	super(file);
 	input = new WavInputStream(file);
-	if (manager.noDevice)
+	if (MANAGER.noDevice)
+            return;
+	SetUp(input.channels, input.sampleRate);
+    }
+    
+    public WavStreamingData (InputStream stream, String filePath)
+    {
+        super(filePath);
+        input = new WavInputStream(stream, filePath);
+        if (MANAGER.noDevice)
             return;
 	SetUp(input.channels, input.sampleRate);
     }
@@ -38,7 +48,7 @@ public class WavStreamingData extends StreamingData {
 	}
         catch (IOException ex) 
         {
-            throw new RuntimeException("Error reading WAV file: " + file, ex);
+            throw new RuntimeException("Error reading WAV file: " + GetFilePath(), ex);
 	}
     }
 

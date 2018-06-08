@@ -22,31 +22,45 @@
  * limitations under the License.
  ******************************************************************************/
 
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 
-import plugins.quorum.Libraries.Sound.AudioData;
+import plugins.quorum.Libraries.Sound.Desktop.AudioData;
+import plugins.quorum.Libraries.Sound.Data;
 
 /**
  *
  * @author alleew
  */
 public class WavInputStream extends FilterInputStream {
-    int channels, sampleRate, dataRemaining;
-    public File file;
+    public int channels, sampleRate, dataRemaining;
+    public String file;
     
-    WavInputStream (File file) 
+    public WavInputStream (File file) 
     {
-	
-        super(AudioData.FileToStream(file));
-        this.file = file;
+        super(Data.FileToStream(file));
+        this.file = file.getAbsolutePath();
         
-	try 
+	Initialize();
+    }
+    
+    public WavInputStream(InputStream stream, String filePath)
+    {
+        super(stream);
+        this.file = filePath;
+        
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        try 
         {
             if (read() != 'R' || read() != 'I' || read() != 'F' || read() != 'F')
                 throw new IOException("RIFF header not found: " + file);
@@ -122,6 +136,7 @@ public class WavInputStream extends FilterInputStream {
 	}
     }
 
+    @Override
     public int read (byte[] buffer) throws IOException 
     {
 	if (dataRemaining == 0) 

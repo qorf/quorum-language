@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import quorum.Libraries.Sound.AudioSamples_;
 
 /**
@@ -32,9 +33,19 @@ public class WavData extends AudioData
         SetUp(output, input.channels, input.sampleRate);
     }
     
+    public WavData(InputStream stream, String filePath)
+    {
+        WavInputStream input = new WavInputStream(stream, filePath);
+        // GetBytes also sets input.channels and input.sampleRate via side effect.
+        byte[] output = GetBytes(input);
+        if (output == null)
+            return;
+        SetUp(output, input.channels, input.sampleRate);
+    }
+    
     public static byte[] GetBytes(WavInputStream input)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return null;
         
         ByteArrayOutputStream output = new ByteArrayOutputStream(input.dataRemaining);

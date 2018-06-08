@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.nio.ByteOrder;
+import plugins.quorum.Libraries.Sound.AudioSamples;
 import quorum.Libraries.Sound.AudioSamples_;
 import static org.lwjgl.openal.AL10.*;
 
@@ -64,27 +65,27 @@ public abstract class AudioData extends DesktopData
     
     public void Play () 
     {   
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
         
         int sourceID;
         
-        if (manager.SoundIDIsActive(soundID))
-            sourceID = (int)manager.soundIDToSource.get(soundID);
+        if (MANAGER.SoundIDIsActive(soundID))
+            sourceID = (int)MANAGER.soundIDToSource.get(soundID);
         else
         {
-            sourceID = manager.ObtainSource(false);
+            sourceID = MANAGER.ObtainSource(false);
         
             if (sourceID == -1) 
             {
                 // Attempt to recover by stopping the least recently played sound
-                manager.Retain(this, true);
-                sourceID = manager.ObtainSource(false);
+                MANAGER.Retain(this, true);
+                sourceID = MANAGER.ObtainSource(false);
             }
             else
-                manager.Retain(this, false);
+                MANAGER.Retain(this, false);
             
-            soundID = manager.GetSoundID(sourceID);
+            soundID = MANAGER.GetSoundID(sourceID);
         }	
         // In case it still didn't work
 	if (sourceID == -1) 
@@ -107,238 +108,238 @@ public abstract class AudioData extends DesktopData
     @Override
     public void Stop () 
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
             return;
-        manager.StopSound(soundID);
+        MANAGER.StopSound(soundID);
     }
 
     @Override
     public void Dispose () 
     {
-	if (manager.noDevice) 
+	if (MANAGER.noDevice) 
             return;
 	if (bufferID == -1) 
             return;
-	manager.FreeBuffer(bufferID);
+	MANAGER.FreeBuffer(bufferID);
 	alDeleteBuffers(bufferID);
 	bufferID = -1;
-	manager.Forget(this);
+	MANAGER.Forget(this);
     }
     
     @Override
     public void Pause()
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
             return;
-        manager.PauseSound(soundID);
+        MANAGER.PauseSound(soundID);
     }
     
     @Override
     public void Resume()
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
             return;
-        manager.ResumeSound(soundID);
+        MANAGER.ResumeSound(soundID);
     }
     
     @Override
     public void SetPitch(float pitch)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         this.pitch = pitch;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
-        manager.SetSoundPitch(soundID, pitch);
+        MANAGER.SetSoundPitch(soundID, pitch);
     }
     
     @Override
     public void SetVolume(float newVolume)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         volume = newVolume;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
-        manager.SetSoundGain(soundID, volume);
+        MANAGER.SetSoundGain(soundID, volume);
     }
     
     @Override
     public void SetLooping(boolean looping)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         isLooping = looping;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
-        manager.SetSoundLooping(soundID, looping);
+        MANAGER.SetSoundLooping(soundID, looping);
     }
     
     @Override
     public void SetReferenceDistance(float distance)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         this.referenceDistance = distance;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
-        manager.SetSoundReferenceDistance(soundID, distance);
+        MANAGER.SetSoundReferenceDistance(soundID, distance);
     }
     
     @Override
     public void SetRolloff(float rolloff)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         this.rolloff = rolloff;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
-        manager.SetSoundRolloff(soundID, rolloff);
+        MANAGER.SetSoundRolloff(soundID, rolloff);
     }
     
     @Override
     public void SetHorizontalPosition(float newPan)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         pan = newPan;
         fade = 0;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
         this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
         this.z = 0;
         
-        manager.SetSoundPan(soundID, pan);
+        MANAGER.SetSoundPan(soundID, pan);
     }
     
     @Override
     public void SetFade(float newFade)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
         fade = newFade;
         pan = 0;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.x = 0;
         this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
         this.z = -(float)Math.cos((fade - 1) * (float)Math.PI / 2);
         
-        manager.SetSoundFade(soundID, fade);
+        MANAGER.SetSoundFade(soundID, fade);
     }
     
     @Override
     public void SetX(float newX)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.x = newX;
         
-        manager.UpdatePosition(soundID, newX, y, z);
+        MANAGER.UpdatePosition(soundID, newX, y, z);
     }
     
     @Override
     public void SetY(float newY)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.y = newY;
         
-        manager.UpdatePosition(soundID, x, newY, z);
+        MANAGER.UpdatePosition(soundID, x, newY, z);
     }
     
     @Override
     public void SetZ(float newZ)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.z = newZ;
         
-        manager.UpdatePosition(soundID, x, y, newZ);
+        MANAGER.UpdatePosition(soundID, x, y, newZ);
     }
     
     @Override
     public void SetPosition(float newX, float newY, float newZ)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         this.x = newX;
         this.y = newY;
         this.z = newZ;
         
-        manager.UpdatePosition(soundID, newX, newY, newZ);
+        MANAGER.UpdatePosition(soundID, newX, newY, newZ);
     }
     
     @Override
@@ -354,37 +355,37 @@ public abstract class AudioData extends DesktopData
     @Override
     public void DisableDoppler()
     {
-        if (!dopplerEnabled || manager.noDevice)
+        if (!dopplerEnabled || MANAGER.noDevice)
             return;
         
         dopplerEnabled = false;
         
-        if (!manager.SoundIDIsActive((soundID)))
+        if (!MANAGER.SoundIDIsActive((soundID)))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
-        manager.SetSoundVelocity(soundID, 0, 0, 0);
+        MANAGER.SetSoundVelocity(soundID, 0, 0, 0);
     }
     
     @Override
     public void SetVelocity(float newX, float newY, float newZ)
     {
-        if (manager.noDevice)
+        if (MANAGER.noDevice)
             return;
         
-        if (!manager.SoundIDIsActive((soundID)))
+        if (!MANAGER.SoundIDIsActive((soundID)))
         {
-            int sourceID = manager.ObtainSource(false);
-            soundID = (long)manager.sourceToSoundID.get(sourceID);
+            int sourceID = MANAGER.ObtainSource(false);
+            soundID = (long)MANAGER.sourceToSoundID.get(sourceID);
         }
         
         velocityX = newX;
         velocityY = newY;
         velocityZ = newZ;
         
-        manager.SetSoundVelocity(soundID, newX, newY, newZ);
+        MANAGER.SetSoundVelocity(soundID, newX, newY, newZ);
     }
     
     // Returns the duration of the sound in seconds.
@@ -402,10 +403,10 @@ public abstract class AudioData extends DesktopData
     @Override
     public boolean IsPlaying()
     {
-        if (!manager.SoundIDIsActive(soundID))
+        if (!MANAGER.SoundIDIsActive(soundID))
             return false;
         
-        int sourceID = (int)manager.soundIDToSource.get(soundID);
+        int sourceID = (int)MANAGER.soundIDToSource.get(soundID);
         
         return (alGetSourcei(sourceID, AL_SOURCE_STATE) == AL_PLAYING);
     }

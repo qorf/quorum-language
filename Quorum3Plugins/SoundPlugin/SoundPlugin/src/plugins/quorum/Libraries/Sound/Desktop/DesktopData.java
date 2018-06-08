@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Sound;
+package plugins.quorum.Libraries.Sound.Desktop;
+
+import plugins.quorum.Libraries.Sound.Data;
 
 /**
  *
@@ -11,5 +13,5 @@ package plugins.quorum.Libraries.Sound;
  */
 public abstract class DesktopData extends Data
 {
-    protected final static AudioManager manager = new AudioManager();
+    protected final static DesktopAudioManager MANAGER = new DesktopAudioManager();
 }
