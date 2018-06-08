@@ -2,11 +2,14 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Game.GameStateManager
 
 class Tree is Item2D
 
@@ -14,6 +17,7 @@ class Tree is Item2D
     Layout panelLayout = undefined
     TreeSelection selection
     Array<TreeItem> treeItems
+    Array<TreeChangeListener> listeners
 
     on create
         SetFocusable(true)
@@ -248,5 +252,31 @@ class Tree is Item2D
     */
     action LostFocus(FocusEvent event)
 
+    end
+
+    action AddTreeChangeListener(TreeChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    action NotifyTreeChangeListeners(TreeChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedTree(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedTree(event)
+                counter = counter + 1
+            end
+        end
+
+        GameStateManager manager
+        manager:GetInput():NotifyTreeChangeListeners(event)
     end
 end

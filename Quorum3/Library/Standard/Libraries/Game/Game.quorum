@@ -78,6 +78,8 @@ use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Events.MenuChangeListener
+use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -1194,6 +1196,47 @@ class Game
     */
     action Exit
         exitRequested = true
+    end
+
+    /*
+    The OnExit action is called when the Game is about to close, either because
+    the Exit action was called or because the user requested it (for example, by
+    attempting to close the window on desktop platforms). The action must return
+    a boolean value representing whether or not the application should proceed
+    to shut down. If the returned value is true, the application will shut down.
+    If it is false, the program will continue running instead. Users should
+    always make sure that it is possible for OnExit to return true in some cases
+    to allow the user to close the program.
+
+    This action doesn't prevent the Game from shutting down on all platforms.
+    For example, mobile devices typically don't allow an application to keep
+    itself open after a close has been requested.
+
+    Attribute: Returns True if the Game should be allowed to close, false if the Game should continue running.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+
+    class Main is Game
+        integer countdown = 3
+
+        action Main
+            StartGame()
+        end
+
+        action OnExit returns boolean
+            if countdown <= 0
+                return true
+            end
+            output "Countdown: " + countdown
+            countdown = countdown - 1
+            return false
+        end
+    end
+    */
+    action OnExit returns boolean
+        return true
     end
 
     /*
@@ -3582,6 +3625,34 @@ class Game
     */
     action RemoveTabChangeListener(TabChangeListener listener)
         gameInput:RemoveTabChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddMenuChangeListener(MenuChangeListener listener)
+        gameInput:AddMenuChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        gameInput:RemoveMenuChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddTreeChangeListener(TreeChangeListener listener)
+        gameInput:AddTreeChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        gameInput:RemoveTreeChangeListener(listener)
     end
 
     /*

@@ -126,9 +126,10 @@ class DesktopApplication is Application
     /*
     This action tells the game to close at the end of the next iteration of
     the MainLoop. It is called automatically by the Game class's Exit action.
+    Exit can be aborted if the Game's OnExit() action returns false.
     */
     action Exit()
-        parent:Application:running = false
+        parent:Application:running = (not parent:Application:game:OnExit())
     end
 
 end

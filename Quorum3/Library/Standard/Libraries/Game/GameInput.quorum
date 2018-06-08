@@ -16,6 +16,10 @@ use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Events.TabChangeEvent
+use Libraries.Interface.Events.MenuChangeListener
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.TreeChangeListener
+use Libraries.Interface.Events.TreeChangeEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -32,6 +36,8 @@ class GameInput
     Array<SelectionListener> selectionListeners
     Array<TextChangeListener> textChangeListeners
     Array<TabChangeListener> tabChangeListeners
+    Array<MenuChangeListener> menuChangeListeners
+    Array<TreeChangeListener> treeChangeListeners
 
     GameStateManager manager
 
@@ -313,4 +319,77 @@ class GameInput
         end
     end
     
+    /*
+
+    */
+    action AddMenuChangeListener(MenuChangeListener listener)
+        menuChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        menuChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyMenuChangeListeners(MenuChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:MenuChanged(event)
+        end
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < menuChangeListeners:GetSize()
+                menuChangeListeners:Get(counter):OpenedMenu(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < menuChangeListeners:GetSize()
+                menuChangeListeners:Get(counter):ClosedMenu(event)
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+
+    */
+    action AddTreeChangeListener(TreeChangeListener listener)
+        treeChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        treeChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyTreeChangeListeners(TreeChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:TreeChanged(event)
+        end
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < treeChangeListeners:GetSize()
+                treeChangeListeners:Get(counter):OpenedTree(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < treeChangeListeners:GetSize()
+                treeChangeListeners:Get(counter):ClosedTree(event)
+                counter = counter + 1
+            end
+        end
+    end
 end

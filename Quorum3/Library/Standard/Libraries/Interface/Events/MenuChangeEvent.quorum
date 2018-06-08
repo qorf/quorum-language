@@ -1,0 +1,33 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.MenuBar
+use Libraries.Interface.Controls.MenuItem
+
+class MenuChangeEvent
+
+    public constant integer OPENED = 1
+    public constant integer CLOSED = 2
+    
+    integer type = 0
+    MenuBar menu = undefined
+    MenuItem item = undefined
+
+    action Set(MenuBar menuBar, MenuItem menuItem, integer eventType)
+        menu = menuBar
+        item = menuItem
+        type = eventType
+    end
+
+    action GetEventType returns integer
+        return type
+    end
+
+    action GetMenuBar returns MenuBar
+        return menu
+    end
+
+    action GetMenuItem returns MenuItem
+        return item
+    end
+
+end

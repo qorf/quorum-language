@@ -11,10 +11,13 @@ use Libraries.Interface.Views.DrawableView
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.MenuItemView
 use Libraries.Interface.Views.DefaultMenuItemView
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
+use Libraries.Game.GameStateManager
 
 class MenuBar is Item2D
     Layout defaultLayout = undefined
@@ -26,6 +29,8 @@ class MenuBar is Item2D
     boolean isSelecting = false
 
     MenuSelection selection
+
+    Array<MenuChangeListener> listeners
 
     on create
         FlowLayout layout
@@ -316,5 +321,31 @@ class MenuBar is Item2D
                 Close()
             end
         end
+    end
+
+    action AddMenuChangeListener(MenuChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    action NotifyMenuChangeListeners(MenuChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedMenu(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedMenu(event)
+                counter = counter + 1
+            end
+        end
+
+        GameStateManager manager
+        manager:GetInput():NotifyMenuChangeListeners(event)
     end
 end

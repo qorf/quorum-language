@@ -6,6 +6,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
@@ -151,6 +152,9 @@ class TreeItem is Control
             Tree tree = GetTree()
             if tree not= undefined
                 tree:Resize()
+                TreeChangeEvent event
+                event:Set(tree, me, event:OPENED)
+                tree:NotifyTreeChangeListeners(event)
             end
         end
     end
@@ -165,6 +169,9 @@ class TreeItem is Control
             Tree tree = GetTree()
             if tree not= undefined
                 tree:Resize()
+                TreeChangeEvent event
+                event:Set(tree, me, event:CLOSED)
+                tree:NotifyTreeChangeListeners(event)
             end
         end
     end

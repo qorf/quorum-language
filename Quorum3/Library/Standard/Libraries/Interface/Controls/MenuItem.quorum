@@ -4,7 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.VerticalMenuLayout
 use Libraries.Interface.Views.ControlView
@@ -182,6 +182,13 @@ class MenuItem is Control
             open = true
             Add(panel)
             panel:Resize()
+            
+            MenuBar bar = GetMenuBar()
+            if bar not= undefined
+                MenuChangeEvent event
+                event:Set(bar, me, event:OPENED)
+                bar:NotifyMenuChangeListeners(event)
+            end
         end
     end
 
@@ -197,6 +204,13 @@ class MenuItem is Control
 
             open = false
             Remove(panel)
+
+            MenuBar bar = GetMenuBar()
+            if bar not= undefined
+                MenuChangeEvent event
+                event:Set(bar, me, event:CLOSED)
+                bar:NotifyMenuChangeListeners(event)
+            end
         end
         LostSelection()
         selectionIndex = 0
