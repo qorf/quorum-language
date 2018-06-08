@@ -3,6 +3,7 @@
 
 #include "MenuBarProvider.h"
 #include "MenuBarControl.h"
+#include "MenuItemControl.h"
 
 MenuBarProvider::MenuBarProvider(HWND MenuBarControlHWND, MenuBarControl * pMenuBarControl) : m_menuBarControl(MenuBarControlHWND), m_pMenuBarControl(pMenuBarControl)
 {
@@ -124,10 +125,33 @@ IFACEMETHODIMP MenuBarProvider::get_HostRawElementProvider(_Outptr_result_mayben
 	return hr;
 }
 
-
+// Enables UI Automation to locate the element in the tree.
+// Navigation to the parent is handled by the host window provider.
 IFACEMETHODIMP MenuBarProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
-	
+	MenuBarControl* pMenuBarControl = this->m_pMenuBarControl;
+	MenuItemControl* pMenuItem = NULL;
+	IRawElementProviderFragment* pFragment = NULL;
+	MENUITEM_ITERATOR iter;
+
+	switch (direction)
+	{
+	case NavigateDirection_FirstChild:
+		iter = pMenuBarControl->GetMenuItemAt(0);
+		pMenuItem = static_cast<MenuItemControl*>(*iter);
+		pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider(); // TODO: Check that this cast doesn't cause issues.
+		break;
+	case NavigateDirection_LastChild:
+		iter = pMenuBarControl->GetMenuItemAt(pMenuBarControl->GetCount() - 1);
+		pMenuItem = static_cast<MenuItemControl*>(*iter);
+		pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider();
+		break;
+	}
+	if (pFragment != NULL)
+	{
+		pFragment->AddRef();
+	}
+	*pRetVal = pFragment;
 	return S_OK;
 }
 
