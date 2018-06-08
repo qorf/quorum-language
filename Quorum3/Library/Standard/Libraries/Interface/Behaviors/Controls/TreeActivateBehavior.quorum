@@ -11,7 +11,7 @@ class TreeActivateBehavior is Behavior
             Tree tree = cast(Tree, event:GetItem())
             TreeItem item = tree:GetSelection():GetTreeItem()
             if item not= undefined
-                item:RunBehavior(event)
+                item:Activate(event)
             end
         end
     end

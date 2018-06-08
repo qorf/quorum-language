@@ -5,6 +5,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Selections.TabPaneSelection
@@ -132,5 +133,9 @@ class AccessibilityManager
 
     action TreeChanged(TreeChangeEvent event)
         output "Tree changed: " + event:GetTreeItem():GetName()
+    end
+
+    action ControlActivated(ControlActivationEvent event)
+        output "Control activated: " + event:GetControl():GetName()
     end
 end

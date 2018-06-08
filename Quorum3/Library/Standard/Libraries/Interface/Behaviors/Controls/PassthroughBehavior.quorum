@@ -18,8 +18,8 @@ class PassthroughBehavior is Behavior
     end
 
     action Run(BehaviorEvent event)
-        if control not= undefined and control:GetBehavior() not= undefined
-            control:RunBehavior(event)
+        if control not= undefined and control:GetActivationBehavior() not= undefined
+            control:Activate(event)
         end
     end
 end

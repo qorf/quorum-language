@@ -53,7 +53,7 @@ use Libraries.Interface.Behaviors.Controls.MouseOffBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarDownBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarRunBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarActivateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
@@ -80,6 +80,7 @@ use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Interface.Events.TreeChangeListener
+use Libraries.Interface.Events.ControlActivationListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -530,7 +531,7 @@ class Game
         MenuBarUpBehavior menuUpBehavior
         MenuBarLeftBehavior menuLeftBehavior
         MenuBarRightBehavior menuRightBehavior
-        MenuBarRunBehavior menuRunBehavior
+        MenuBarActivateBehavior menuRunBehavior
 
         menuBarTable:Add(downArrow, menuDownBehavior)
         menuBarTable:Add(upArrow, menuUpBehavior)
@@ -3653,6 +3654,20 @@ class Game
     */
     action RemoveTreeChangeListener(TreeChangeListener listener)
         gameInput:RemoveTreeChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddControlActivationListener(ControlActivationListener listener)
+        gameInput:AddControlActivationListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveControlActivationListener(ControlActivationListener listener)
+        gameInput:RemoveControlActivationListener(listener)
     end
 
     /*

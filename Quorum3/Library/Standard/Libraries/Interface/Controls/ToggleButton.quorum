@@ -29,7 +29,7 @@ class ToggleButton is Button
             content:SetToggleState(toggleState)
         end
 
-        Behavior behavior = GetBehavior()
+        Behavior behavior = GetActivationBehavior()
         if toggleState = true
             OnToggleOn()
             if behavior not= undefined
@@ -50,7 +50,7 @@ class ToggleButton is Button
     end
 
     action Update(number seconds)
-        Behavior behavior = GetBehavior()
+        Behavior behavior = GetActivationBehavior()
         if toggled and behavior not= undefined
             behavior:Update(seconds)
         end

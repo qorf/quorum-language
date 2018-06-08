@@ -311,13 +311,13 @@ class MenuBar is Item2D
         item:MenuSelectionUp()
     end
 
-    action RunSelection
+    action ActivateSelection
         if IsSelecting()
             MenuItem item = GetMenuItem(selection:GetPath())
             if item:IsMenu()
                 item:Open()
             else
-                item:RunBehavior()
+                item:Activate()
                 Close()
             end
         end

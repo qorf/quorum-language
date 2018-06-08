@@ -4,8 +4,14 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
 
 class Control is Item2D
+
+    Array<ControlActivationListener> listeners
 
     action ClickedMouse
         if GetView2D() is ControlView
@@ -55,10 +61,42 @@ class Control is Item2D
         of input. Others, however, have default behaviors, like a Button or a MenuItem. 
         If there is no default behavior, this action returns undefined.
     */
-    action GetBehavior returns Behavior
+    action GetActivationBehavior returns Behavior
         return undefined
     end
 
-    action RunBehavior(BehaviorEvent event)
+    action Activate
+        BehaviorEvent event
+        event:SetItem(me)
+        Activate(event)
+    end
+
+    action Activate(BehaviorEvent event)
+        if GetActivationBehavior() not= undefined
+            GetActivationBehavior():Run(event)
+
+            ControlActivationEvent controlEvent
+            controlEvent:Set(me, event)
+            NotifyControlActivationListeners(controlEvent)
+        end
+    end
+
+    action AddControlActivationListener(ControlActivationListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveControlActivationListener(ControlActivationListener listener)
+        listeners:Remove(listener)
+    end
+
+    action NotifyControlActivationListeners(ControlActivationEvent event)
+        integer counter = 0
+        repeat while counter < listeners:GetSize()
+            listeners:Get(counter):ControlActivated(event)
+            counter = counter + 1
+        end
+
+        GameStateManager manager
+        manager:GetInput():NotifyControlActivationListeners(event)
     end
 end
