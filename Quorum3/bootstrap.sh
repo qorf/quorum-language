@@ -39,6 +39,8 @@ cp Library/Compiled/Run/QuorumStandardPlugins.jar ../../IDE/Sodbeans/Quorum/rele
 rm -r ../../IDE/Sodbeans/Quorum/release/modules/Library
 cp -r Library ../../IDE/Sodbeans/Quorum/release/modules
 
+rm -r ../../../quorumstudio/QuorumStudio/Library
+cp -r Library ../../../quorumstudio/QuorumStudio
 
 #Make the folder and all of its contents read only
 #chmod -R-w ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
