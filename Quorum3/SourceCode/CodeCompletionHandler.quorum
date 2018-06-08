@@ -481,6 +481,9 @@ class CodeCompletionHandler
         Type type = variable:GetType()
         if type not= undefined
             text key = type:GetStaticKey()
+            if table = undefined
+                return now
+            end
             Class varClass = table:GetClass(key)
 
             if varClass not= undefined
