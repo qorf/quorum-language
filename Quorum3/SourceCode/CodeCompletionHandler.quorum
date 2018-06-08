@@ -243,6 +243,11 @@ class CodeCompletionHandler
                                 AddVariableAsClass(variable, request, result, finalTable)
                                 return now
                             end
+
+                            if variableCached:IsParameter()
+                                GetUnresolvedVariableInformation(variableCached, method, request, result, finalTable)
+                                return now
+                            end
                             AddVariableAsClass(variableCached, request, result, finalTable)
                         //if we can't find the variable and the last compile
                         //failed, check the cache. Maybe it has some information
@@ -421,6 +426,57 @@ class CodeCompletionHandler
         end
     end
 
+    private action GetUnresolvedVariableInformation(Variable variable, Action act, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
+        Type type = variable:GetType()
+        if type not= undefined
+            text key = type:GetStaticKey()
+            Class varClass = table:GetClass(key)
+            //perhaps it was not resolved in the case. Check use statements
+            //for anything that looks reasonable.
+            Class variablesClass = variable:GetParentClass()
+            if variablesClass not= undefined and variablesClass:GetValidUseName(key) not= undefined
+                varClass = variablesClass:GetValidUseName(key)
+                AddClassToResult(variable, request, result, varClass, false, undefined)
+            elseif variablesClass not= undefined
+                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
+                Array<Class> classes
+                repeat while iterator:HasNext()
+                    QualifiedName value = iterator:Next()
+                    if value:GetName() = key
+                        Class value1 = table:GetClass(value:GetStaticKey())
+                        if value1 not= undefined
+                            classes:Add(value1)
+                        end
+                    end
+                end
+
+                if classes:GetSize() = 1
+                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
+                end
+            elseif variablesClass = undefined and act not= undefined
+                variablesClass = act:GetParentClass()
+                if variablesClass = undefined
+                    return now
+                end
+                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
+                Array<Class> classes
+                repeat while iterator:HasNext()
+                    QualifiedName value = iterator:Next()
+                    if value:GetName() = key
+                        Class value1 = table:GetClass(value:GetStaticKey())
+                        if value1 not= undefined
+                            classes:Add(value1)
+                        end
+                    end
+                end
+
+                if classes:GetSize() = 1
+                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
+                end
+            end
+        end
+    end
+
     private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
         Type type = variable:GetType()
         if type not= undefined
@@ -430,29 +486,7 @@ class CodeCompletionHandler
             if varClass not= undefined
                 AddClassToResult(variable, request, result, varClass, false, undefined)
             elseif not type:IsPrimitive() and varClass = undefined
-                //perhaps it was not resolved in the case. Check use statements
-                //for anything that looks reasonable.
-                Class variablesClass = variable:GetParentClass()
-                varClass = variablesClass:GetValidUseName(key)
-                if varClass not= undefined
-                    AddClassToResult(variable, request, result, varClass, false, undefined)
-                else 
-                    Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
-                    Array<Class> classes
-                    repeat while iterator:HasNext()
-                        QualifiedName value = iterator:Next()
-                        if value:GetName() = key
-                            Class value1 = table:GetClass(value:GetStaticKey())
-                            if value1 not= undefined
-                                classes:Add(value1)
-                            end
-                        end
-                    end
-
-                    if classes:GetSize() = 1
-                        AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
-                    end
-                end
+                GetUnresolvedVariableInformation(variable, undefined, request, result, table)
             elseif type:IsPrimitive() and varClass = undefined
                 Class clazz = undefined
                 if type:IsInteger()
