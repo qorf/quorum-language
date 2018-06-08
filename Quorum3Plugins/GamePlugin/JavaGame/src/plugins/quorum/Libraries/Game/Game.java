@@ -37,7 +37,7 @@ public class Game
                     Log.d("Quorum Game Application", "Loading C libraries...");
                     Log.d("Quorum Game Application", "Java version is " + System.getProperty("java.version"));
                     nativeFile = null;
-                    GameStateManager.operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                    GameStateManager.operatingSystem = "Android";
                     System.loadLibrary("GameEngineCPlugins");
                     Log.d("Quorum Game Application", "Finished loading C libraries.");
                 }

@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Game;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Handler;
@@ -413,6 +414,18 @@ public class AndroidApplication
         }
     }
     
+    public static AssetFileDescriptor QuorumFileToAssetFileDescriptor(File_ quorumFile)
+    {
+        try
+        {
+            return GetActivity().getAssets().openFd(quorumFile.GetPath());
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+        }
+    }
+    
     public void Log(String header, String text)
     {
         Log.d(header, text);
@@ -421,5 +434,10 @@ public class AndroidApplication
     public void Log(String text)
     {
         Log.d("Quorum Game Application", text);
+    }
+    
+    public static void LogStatic(String header, String text)
+    {
+        Log.d(header, text);
     }
 }
