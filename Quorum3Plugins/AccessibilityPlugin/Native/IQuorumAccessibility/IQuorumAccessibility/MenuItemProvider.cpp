@@ -4,8 +4,9 @@
 #include "MenuBarProvider.h"
 #include "MenuBarControl.h"
 #include "MenuItemProvider.h"
+#include "MenuItemControl.h"
 
-MenuItemProvider::MenuItemProvider(MenuItemControl * pControl)
+MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_pMenuItemControl(pControl)
 {
 }
 
@@ -40,14 +41,10 @@ IFACEMETHODIMP MenuItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
 	}
-	//else if (riid == __uuidof(IRawElementProviderFragment))
-	//{
-	//	*ppInterface = static_cast<IRawElementProviderFragment*>(this);
-	//}
-	//else if (riid == __uuidof(IRawElementProviderFragmentRoot))
-	//{
-	//	*ppInterface = static_cast<IRawElementProviderFragmentRoot*>(this);
-	//}
+	else if (riid == __uuidof(IRawElementProviderFragment))
+	{
+		*ppInterface = static_cast<IRawElementProviderFragment*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -81,9 +78,8 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
-		// TODO: Insert Name here.
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"");
+		pRetVal->bstrVal = SysAllocString(m_pMenuItemControl->GetName());
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
@@ -120,9 +116,125 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 }
 
 // Gets the UI Automation provider for the host window. 
-// Return NULL since menuitems are not directly hosted in a window and therefore don't have an HWND
+// Return NULL since MenuItems are not directly hosted in a window and therefore don't have an HWND
 IFACEMETHODIMP MenuItemProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
 	*pRetVal = NULL;
+	return S_OK;
+}
+
+// Enables UI Automation to locate the element in the tree.
+IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
+{
+	IRawElementProviderFragment* pFragment = NULL;
+	MenuControl* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
+
+	if (pMenuControl == NULL)
+		pMenuControl = m_pMenuItemControl->GetParentMenuBar();
+
+	switch (direction)
+	{
+	case NavigateDirection_Parent:
+	{
+		MenuItemControl* pParentMenuItem = m_pMenuItemControl->GetParentMenuItem();
+		if (pParentMenuItem != NULL)
+		{
+			pFragment = pParentMenuItem->GetMenuItemProvider();
+		}
+		else
+		{
+			MenuBarControl* pMenuBar = m_pMenuItemControl->GetParentMenuBar();
+			pFragment = pMenuBar->GetMenuBarProvider();
+		}
+		break;
+	}
+	case NavigateDirection_NextSibling:
+	{
+		int myIndex = m_pMenuItemControl->GetMenuItemIndex();
+		if (myIndex == pMenuControl->GetCount() - 1)
+		{
+			pFragment = NULL;
+			break;
+		}
+		MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex + 1);
+		MenuItemControl* pNext = (MenuItemControl*)(*nextIter);
+		pFragment = pNext->GetMenuItemProvider();
+		break;
+	}
+
+	case NavigateDirection_PreviousSibling:
+	{
+		int myIndex = m_pMenuItemControl->GetMenuItemIndex();
+		if (myIndex <= 0)
+		{
+			pFragment = NULL;
+			break;
+		}
+		MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex - 1);
+		MenuItemControl* pPrev = static_cast<MenuItemControl*>(*nextIter);
+		pFragment = pPrev->GetMenuItemProvider();
+		break;
+	}
+	}
+
+	*pRetVal = pFragment;
+
+	if (pFragment != NULL)
+		pFragment->AddRef();
+
+	return S_OK;
+}
+
+// Gets the runtime identifier. This is an array consisting of UiaAppendRuntimeId, 
+// which makes the ID unique among instances of the control, and the Automation Id.
+IFACEMETHODIMP MenuItemProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+{
+	int id = m_pMenuItemControl->GetId();
+	int rId[] = { UiaAppendRuntimeId, id };
+
+	SAFEARRAY *psa = SafeArrayCreateVector(VT_I4, 0, 2);
+	for (LONG i = 0; i < 2; i++)
+	{
+		SafeArrayPutElement(psa, &i, &(rId[i]));
+	}
+	*pRetVal = psa;
+	return S_OK;
+}
+
+// Gets the bounding rectangle of the item, in screen coordinates.
+IFACEMETHODIMP MenuItemProvider::get_BoundingRectangle(_Outptr_result_maybenull_ UiaRect * pRetVal)
+{
+	// For now we aren't painting a rectangle for the provider
+	// that'd require more info from Quorum.
+	pRetVal->left = 0;
+	pRetVal->top = 0;
+	pRetVal->width = 0;
+	pRetVal->height = 0;
+	return S_OK;
+}
+
+// Retrieves any fragment roots that may be hosted in this element. There aren't any, so NULL is correct.
+IFACEMETHODIMP MenuItemProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+{
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+// Responds to the control receiving focus through a UI Automation request.
+IFACEMETHODIMP MenuItemProvider::SetFocus()
+{
+	// TODO: Implement this when all providers are filled in.
+	return S_OK;
+}
+
+IFACEMETHODIMP MenuItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
+{
+	IRawElementProviderFragmentRoot* pRoot = m_pMenuItemControl->GetParentMenuBar()->GetMenuBarProvider();
+	if (pRoot == NULL)
+	{
+		return E_FAIL;
+	}
+	pRoot->AddRef();
+	*pRetVal = pRoot;
 	return S_OK;
 }

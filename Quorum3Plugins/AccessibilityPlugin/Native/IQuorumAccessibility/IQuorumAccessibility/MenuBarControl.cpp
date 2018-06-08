@@ -90,41 +90,6 @@ bool MenuBarControl::HasFocus()
 	return m_focused;
 }
 
-MENUITEM_ITERATOR MenuBarControl::GetMenuItemAt(_In_ int index)
-{
-	return MENUITEM_ITERATOR();
-}
-
-int MenuBarControl::GetCount()
-{
-	return static_cast<int>(m_menuItemCollection.size());
-}
-
-int MenuBarControl::CreateUniqueId()
-{
-	static int uniqueId;
-	return uniqueId++;
-}
-
-bool MenuBarControl::AddMenuItem(_In_ MenuItemControl* pMenuItem)
-{
-	// Create a unique id for the new item.
-	int id = CreateUniqueId();
-
-	if (pMenuItem != NULL)
-	{
-		// Add to MenuBar's collection
-		m_menuItemCollection.push_back(pMenuItem);
-
-		// TODO: Raise UI Automation Event
-		
-
-		return true;
-	}
-	else
-		return false;
-}
-
 MenuItemControl * MenuBarControl::GetSelectedMenuItem()
 {
 	return m_pSelectedMenuItem;

@@ -1,14 +1,14 @@
 #include <windows.h>
 #include <UIAutomation.h>
-#include "CustomMessages.h"
 #include <deque>
 
-#define MENUITEM_ITERATOR std::deque<MenuItemControl*>::iterator
+#include "CustomMessages.h"
+#include "MenuControl.h"
 
 class MenuBarProvider;
 class MenuItemControl;
 
-class MenuBarControl
+class MenuBarControl : public MenuControl
 {
 public:
 	MenuBarControl(_In_ WCHAR* menuBarName);
@@ -22,16 +22,6 @@ public:
 	void SetName(_In_ WCHAR* menuBarName);
 
 	bool HasFocus();
-
-	MENUITEM_ITERATOR GetMenuItemAt(_In_ int index);
-	
-	// Number of child items for this MenuBarControl.
-	int GetCount();
-
-	// Generates a unique id for this instance of this control for RuntimeIds of children.
-	int CreateUniqueId();
-
-	bool AddMenuItem(_In_ MenuItemControl* pMenuItem);
 
 	MenuItemControl* GetSelectedMenuItem();
 	void SetSelectedMenuItem(_In_ MenuItemControl* selectedMenuItem);
@@ -51,7 +41,6 @@ private:
 	WCHAR* m_menuBarName;
 	HWND m_menuBarControl;
 	MenuBarProvider* m_menuBarProvider;
-	std::deque<MenuItemControl*> m_menuItemCollection;
 	MenuItemControl* m_pSelectedMenuItem;
 
 };
