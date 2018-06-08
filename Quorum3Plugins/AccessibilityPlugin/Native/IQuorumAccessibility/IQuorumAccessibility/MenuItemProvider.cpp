@@ -72,9 +72,12 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 {
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
-		// TODO:
-		pRetVal->vt = VT_EMPTY;
-
+		pRetVal->vt = VT_BSTR;
+		int Id = m_pMenuItemControl->GetId();
+		// Convert int to BSTR.
+		WCHAR idString[3];
+		swprintf_s(idString, 3, L"%d", Id);
+		pRetVal->bstrVal = SysAllocString(idString);
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -89,9 +92,9 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	// HasKeyboardFocus is true if the MenuBar has focus, and this MenuItem is selected.
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// TODO: Implement this.
+		bool hasFocus = (m_pMenuItemControl->GetParentMenuBar()->GetSelectedMenuItem() == m_pMenuItemControl) && (m_pMenuItemControl->GetParentMenuBar()->HasFocus());
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_FALSE;
+		pRetVal->boolVal = hasFocus ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
@@ -237,4 +240,20 @@ IFACEMETHODIMP MenuItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRaw
 	pRoot->AddRef();
 	*pRetVal = pRoot;
 	return S_OK;
+}
+
+// Raises a UIA Event when an item is added to the Menu collection
+void MenuItemProvider::NotifyMenuItemAdded()
+{
+	if (UiaClientsAreListening())
+		UiaRaiseStructureChangedEvent(this, StructureChangeType_ChildAdded, NULL, 0);
+}
+
+// Raises a UIA Event when an item is selected.
+void MenuItemProvider::NotifyElementSelected()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+	}
 }

@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include "MenuBarControl.h"
+#include "MenuItemControl.h"
 #include "MenuBarProvider.h"
 
 // For error reporting
@@ -9,7 +10,8 @@
 
 bool MenuBarControl::Initialized = false;
 
-MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) : m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
+MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) 
+	: m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
 
 }
@@ -163,6 +165,23 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	{
 		this->SetName((WCHAR*)lParam);
 		break;
+	}
+	case QUORUM_ADDMENUITEM:
+	{
+		MenuItemControl* newMenuItem = (MenuItemControl*)lParam;
+		
+		// This was set to NULL by the constructor. Set it here.
+		newMenuItem->SetParentMenuBar(this);
+		
+		// Add the new MenuItem to the proper collection.
+		MenuControl* menuControl;
+		
+		if (newMenuItem->GetParentMenuItem() == NULL)
+			menuControl = this;
+		else
+			menuControl = newMenuItem->GetParentMenuItem();
+
+		menuControl->AddMenuItem(newMenuItem);
 	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);

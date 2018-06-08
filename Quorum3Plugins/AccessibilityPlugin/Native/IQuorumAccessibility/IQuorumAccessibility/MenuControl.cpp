@@ -2,6 +2,8 @@
 #include <UIAutomation.h>
 
 #include "MenuControl.h"
+#include "MenuItemControl.h"
+#include "MenuItemProvider.h"
 
 
 MENUITEM_ITERATOR MenuControl::GetMenuItemAt(_In_ int index)
@@ -20,18 +22,22 @@ ULONG MenuControl::CreateUniqueId()
 	return InterlockedIncrement(&uniqueId);
 }
 
-bool MenuControl::AddMenuItem(_In_ MenuItemControl* pMenuItem)
+bool MenuControl::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {
 	// Create a unique id for the new item.
 	int id = CreateUniqueId();
 
-	if (pMenuItem != NULL)
+	if (pNewMenuItem != NULL)
 	{
+		// Set id field
+		pNewMenuItem->SetId(id);
+
 		// Add to MenuBar's collection
-		m_menuItemCollection.push_back(pMenuItem);
+		m_menuItemCollection.push_back(pNewMenuItem);
 
-		// TODO: Raise UI Automation Event
-
+		// Raise UI Automation Event
+		MenuItemProvider* provider = pNewMenuItem->GetMenuItemProvider();
+		provider->NotifyMenuItemAdded();
 
 		return true;
 	}

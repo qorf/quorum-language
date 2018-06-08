@@ -10,13 +10,19 @@
 #include <iostream>
 
 
-MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ int id, _In_opt_  MenuItemControl* pParentMenuItem, _In_ MenuBarControl* pParentMenuBar)
+MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem) 
+	: m_menuItemName(menuItemName), m_shortcut(menuItemShortcut), m_pParentMenuBar(NULL), m_pParentMenuItem(parentMenuItem)
 {
 }
 
 MenuBarControl * MenuItemControl::GetParentMenuBar()
 {
 	return m_pParentMenuBar;
+}
+
+void MenuItemControl::SetParentMenuBar(_In_ MenuBarControl * menuBar)
+{
+	m_pParentMenuBar = menuBar;
 }
 
 MenuItemControl * MenuItemControl::GetParentMenuItem()
@@ -42,6 +48,11 @@ WCHAR * MenuItemControl::GetName()
 ULONG MenuItemControl::GetId()
 {
 	return m_uniqueId;
+}
+
+void MenuItemControl::SetId(ULONG id)
+{
+	m_uniqueId = id;
 }
 
 int MenuItemControl::GetMenuItemIndex()
