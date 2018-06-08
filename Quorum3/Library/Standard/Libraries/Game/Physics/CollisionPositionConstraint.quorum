@@ -4,10 +4,13 @@ use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 use Libraries.Game.Collision.LocalCollisionPoints2D
 
+/*
+This class is used internally by CollisionSolver2D.
+*/
 class CollisionPositionConstraint 
-    Array<Vector2> localPoints
-    Vector2 localNormal
-    Vector2 localPoint
+    Array<Vector2> localPoints  //array that contains the vectors that represents the collision points
+    Vector2 localNormal         //the direction to apply forces that will cause the two objects that have collided to separate
+    Vector2 localPoint          //
     integer indexA = 0
     integer indexB = 0
     number inverseMassA = 0
@@ -21,6 +24,12 @@ class CollisionPositionConstraint
     number radiusB = 0
     integer pointCount = 0
 
+
+    /*
+    Since we are restraining how many collision points are possible, which is
+    2 based on the LocalCollisionPoints2D class, therefore, we will only be
+    creating an array of Vector2's that has 2 elements.
+    */
     on create
         LocalCollisionPoints2D collisionPoints
         repeat collisionPoints:MAX_COLLISION_POINTS times

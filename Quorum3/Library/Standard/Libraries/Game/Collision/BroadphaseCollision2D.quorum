@@ -47,6 +47,10 @@ use Libraries.Compute.Vector2
     broadphase:Query(broadphase, queryBox)
 */
 class BroadphaseCollision2D 
+    /*
+    For one broadphase calculation, you would have only one tree to search
+    through for potential collision.
+    */
     DynamicBoundingVolumeTree2D tree
     integer nodeCount = 0
     

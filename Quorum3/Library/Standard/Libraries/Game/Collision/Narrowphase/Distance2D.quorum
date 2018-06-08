@@ -6,6 +6,12 @@ use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Narrowphase.Simplex2D
 use Libraries.Game.Collision.Narrowphase.SimplexVertex2D
 
+
+/*
+This class calculates the distance between two objects.
+The algorithm that this class uses is the GJK algorithm, which finds the distance
+between two convex shapes.
+*/
 class Distance2D 
     constant integer MAX_ITERATIONS = 20
 

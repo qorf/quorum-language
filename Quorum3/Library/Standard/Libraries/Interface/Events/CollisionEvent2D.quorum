@@ -85,6 +85,7 @@ class CollisionEvent2D
     */
     CollisionEdge2D nodeB
 
+    //stores where collision occured
     LocalCollisionPoints2D collisionPoints
     LocalCollisionPoints2D oldCollisionPoints
 
@@ -540,12 +541,14 @@ class CollisionEvent2D
         number dy = pBy - pAy
         number distSquared = dx * dx + dy * dy
 
+        //when the circles are NOT colliding, return
         number radius = circleA:GetRadius() + circleB:GetRadius()
         if distSquared > radius * radius
             return now
         end
 
-        collisionPoints:SetType(collisionPoints:CIRCLES)
+        //when circles are colliding
+        collisionPoints:SetType(collisionPoints:CIRCLES)    //in the LocalCollisionPoints2D, ensure that this was a circle & circle collision
         collisionPoints:GetLocalPoint():Set(circle1p)
         collisionPoints:GetLocalNormal():SetZero()
         collisionPoints:SetPointCount(1)

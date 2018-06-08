@@ -1,18 +1,23 @@
 package Libraries.Game.Collision
 
 /*
-This class identifies the two objects that are involved in a collision.
+This class identifies the two objects' shapes that are involved in a collision 
+and what type of collision is involved (vertex with vertex collision, vertex
+with face collision, face with face collision).
 This class is used internally by BroadphaseCollision2D and by CollisionPoint2D.
 */
 class CollisionIdentifier2D 
-    public constant integer VERTEX = 0
-    public constant integer FACE = 1
+    public constant integer VERTEX = 0  //when the vertex of the 2D object is actually getting collided
+    public constant integer FACE = 1    //when the face of the 2D object is getting collided
 
     integer indexA = 0
     integer indexB = 0
-    integer typeA = 0
-    integer typeB = 0
+    integer typeA = 0   //stores whether the first 2D object is getting colliding with its VERTEX or FACE
+    integer typeB = 0   //stores whether the second 2D object is getting colliding with its VERTEX or FACE
 
+    /*
+    This action is used to compare between identifiers to see if they are equal.
+    */
     action Equals(CollisionIdentifier2D other) returns boolean
         return indexA = other:indexA and indexB = other:indexB and typeA = other:typeA and typeB = other:typeB
     end

@@ -6,21 +6,24 @@ package Libraries.Game.Collision
 
 
 /*
-This class records the collision points between collisions. 
+This class records the all of the local collision points during one collision
+from the perspective of one of the 2D object that is involved in the collision.
 Collision points will be evaluated when a CollisionEvent2D occurs, where the 
 CollisionEvent2D uses the narrow phase evaluation to calculate where the
 collision points are.
+This class is also known as manifolds.
 */
 class LocalCollisionPoints2D
     public constant integer MAX_COLLISION_POINTS = 2
 
-    public constant integer CIRCLES = 0
-    public constant integer FACE_A = 1
+    public constant integer CIRCLES = 0 //when two circles collide, both 2D objects are going to be circles
+    public constant integer FACE_A = 1  //when circle collide with polygon -OR- polygon collide with polygon, 
     public constant integer FACE_B = 2
 
     /*
-    This records all of the local collision points that is involved in the collision
-    between two objects.
+    This records all of the local collision points from the point of view of the 
+    first object that is involved in the collision and from the point of view
+    of the second object that is involved in the collision.
     */
     Array<CollisionPoint2D> points
     Vector2 localNormal
