@@ -288,20 +288,8 @@ class MenuItem is Control
         activationBehavior = behavior
     end
 
-    action GetBehavior returns Behavior
+    action GetActivationBehavior returns Behavior
         return activationBehavior
-    end
-
-    action RunBehavior
-        BehaviorEvent event
-        event:SetItem(me)
-        RunBehavior(event)
-    end
-
-    action RunBehavior(BehaviorEvent event)
-        if activationBehavior not= undefined
-            activationBehavior:Run(event)
-        end
     end
 
     action ClickedMouse
@@ -310,7 +298,7 @@ class MenuItem is Control
         MenuBar bar = GetMenuBar()
         if bar not= undefined
             if bar:IsSelecting()
-                RunBehavior()
+                Activate()
                 MenuBar menuBar = GetMenuBar()
                 if menuBar not= undefined
                     menuBar:Close()
@@ -319,7 +307,7 @@ class MenuItem is Control
                 Select()
             end
         else
-            RunBehavior()
+            Activate()
         end
     end
 

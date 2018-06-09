@@ -23,6 +23,9 @@
 #define QUORUM_UPDATECARET WM_USER + 3
 #define QUORUM_SETTEXT WM_USER + 4
 
+// MenuBar messages
+#define QUORUM_ADDMENUITEM WM_USER + 5
+
 // This returns the main game engine window handle for Quorum which messages must be forwarded to.
 // Its defined in IQuorumAccessibility.cpp
 HWND GetMainWindowHandle();

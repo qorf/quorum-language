@@ -10,14 +10,16 @@ class MenuBarControl;
 class MenuItemControl : public MenuControl
 {
 public:
-	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ int id, _In_opt_  MenuItemControl* pParentMenuItem, _In_ MenuBarControl* pParentMenuBar);
+	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem);
 
 	MenuBarControl* GetParentMenuBar();
+	void SetParentMenuBar(_In_ MenuBarControl* menuBar);
 	MenuItemControl* GetParentMenuItem();
 	MenuItemProvider* GetMenuItemProvider();
 
 	WCHAR* GetName();
 	ULONG GetId();
+	void SetId(ULONG id);
 	int GetMenuItemIndex();
 
 private:
