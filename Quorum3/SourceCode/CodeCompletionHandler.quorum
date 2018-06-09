@@ -147,7 +147,7 @@ class CodeCompletionHandler
         boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
         
         //now we have checked the cache. If this is still undefined, bail
-        if clazz not= undefined or finalTable = undefined
+        if clazz not= undefined
             integer start = clazz:GetIndex()
             integer finish = clazz:GetIndexEnd()
 
