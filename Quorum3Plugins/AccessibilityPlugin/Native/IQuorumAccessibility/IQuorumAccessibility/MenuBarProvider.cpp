@@ -103,8 +103,8 @@ IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	}
 	else if (propertyId == UIA_OrientationPropertyId)
 	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(this->m_pMenuBarControl->GetName());
+		// Not implemented yet.
+		pRetVal->vt = VT_EMPTY;
 	}
 	else
 	{
@@ -136,16 +136,26 @@ IFACEMETHODIMP MenuBarProvider::Navigate(NavigateDirection direction, _Outptr_re
 
 	switch (direction)
 	{
-	case NavigateDirection_FirstChild:
-		iter = pMenuBarControl->GetMenuItemAt(0);
-		pMenuItem = static_cast<MenuItemControl*>(*iter);
-		pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider(); // TODO: Check that this cast doesn't cause issues.
-		break;
-	case NavigateDirection_LastChild:
-		iter = pMenuBarControl->GetMenuItemAt(pMenuBarControl->GetCount() - 1);
-		pMenuItem = static_cast<MenuItemControl*>(*iter);
-		pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider();
-		break;
+		case NavigateDirection_FirstChild:
+		{
+			if (pMenuBarControl->hasChildren())
+			{
+				iter = pMenuBarControl->GetMenuItemAt(0);
+				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider();
+			}
+			break;
+		}
+		case NavigateDirection_LastChild:
+		{
+			if (pMenuBarControl->hasChildren())
+			{
+				iter = pMenuBarControl->GetMenuItemAt(pMenuBarControl->GetCount() - 1);
+				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				pFragment = (IRawElementProviderFragment*)pMenuItem->GetMenuItemProvider();
+			}
+			break;
+		}
 	}
 	if (pFragment != NULL)
 	{

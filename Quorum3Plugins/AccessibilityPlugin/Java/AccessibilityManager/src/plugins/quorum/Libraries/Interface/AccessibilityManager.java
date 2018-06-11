@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
-import quorum.Libraries.Containers.Array_;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
 import quorum.Libraries.Interface.Controls.MenuItem_;
@@ -129,6 +128,18 @@ public class AccessibilityManager
     //
     private native long NativeWin32CreateMenuItem(String name, String shortcut, long parentMenu, long parentMenuBar);
     
+    // NativeWin32RemoveMenuItem: Removes a MenuItem control from UI Automation hierarchy.
+    //
+    private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
+    
+    // NativeWin32RemoveMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
+    //
+    private native boolean NativeWin32SelectMenuItem(long selectedMenuItem);
+    
+    // NativeWin32RemoveMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
+    //
+    private native boolean NativeWin32DeselectMenuItem(long menubar);
+    
     //
     // ==== Accessible Object Event Response Functions
     //
@@ -198,11 +209,17 @@ public class AccessibilityManager
                 
                 // Get parent MenuItem pointer if it exists.
                 Long parentMenuItem = ITEM_MAP.get((Item_)menuItem.GetParentMenu());
+                long parentMenu = 0;
+                
+                // If the parent menu exists then pass that down.
+                // Otherwise, native code will take care of the rest.
+                if (parentMenuItem != null)
+                    parentMenu = parentMenuItem;
                 
                 // Get parent MenuBar
-                long menuBar = ITEM_MAP.get((Item_)menuItem.GetParent());
+                long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuBar());
                 
-                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), parentMenuItem, menuBar);
+                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), parentMenu, menuBar);
                 break;
             default: // Assume Item
                 nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
@@ -219,13 +236,80 @@ public class AccessibilityManager
     
     public boolean NativeRemove(Item_ item)
     {
-        // TODO: Remove the item from the accessibility hierarchy.
-        return false;
+        Long itemToRemove;
+        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
+        boolean wasRemoved;
+        
+        switch(code)
+        {
+            case MENU_ITEM:
+
+                // Retreive native pointer for given object
+                itemToRemove = ITEM_MAP.get(item);
+                
+                wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
+                
+                if (wasRemoved)
+                    ITEM_MAP.remove(item);
+                
+                break;
+            default:
+                wasRemoved = false;
+        }
+        
+        
+        return wasRemoved;
     }
     
-    private boolean NativeChildAdd(Item_ childItem, Item_ parentItem)
+    public boolean Select(Item_ item)
     {
-        return false;
+        Long selectedItem;
+        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
+        boolean Selected;
+        
+        switch(code)
+        {
+            case MENU_ITEM:
+
+                // Retreive native pointer for given object
+                selectedItem = ITEM_MAP.get(item);
+                
+                if (selectedItem != null)
+                    Selected = NativeWin32SelectMenuItem(selectedItem);
+                else
+                    Selected = false;
+                
+                break;
+            default:
+                Selected = false;
+        }
+        
+        return Selected;
+    }
+    
+    public boolean Deselect(Item_ item)
+    {
+        Long deselectedItem;
+        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
+        boolean Deselected;
+        
+        switch(code)
+        {
+            case MENU_ITEM:
+                // Retreive native pointer for given object
+                deselectedItem = ITEM_MAP.get(item);
+                                
+                if (deselectedItem != null)
+                    Deselected = NativeWin32DeselectMenuItem(deselectedItem);
+                else
+                    Deselected = false;
+                
+                break;
+            default:
+                Deselected = false;
+        }
+        
+        return Deselected;
     }
     
     // SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
@@ -233,7 +317,7 @@ public class AccessibilityManager
     //      Returns: boolean of success or failure.
     public boolean SetFocus(Item_ item)
     {
-        // Retreive HWND for given object
+        // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(item);
 
         if (nativePointer != null)
@@ -246,7 +330,7 @@ public class AccessibilityManager
     //      Returns: boolean of success or failure.
     public boolean InvokeButton(Item_ button)
     {
-        // Retreive HWND for given object
+        // Retreive native pointer for given object
         long nativePointer = ITEM_MAP.get(button);
         
         if (nativePointer != 0)
@@ -263,7 +347,7 @@ public class AccessibilityManager
     //      Returns: boolean of success or failure
     public boolean UpdateToggleState(Item_ button, boolean selected)
     {
-        // Retreive HWND for given object
+        // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(button);
         
         if (nativePointer != null)
