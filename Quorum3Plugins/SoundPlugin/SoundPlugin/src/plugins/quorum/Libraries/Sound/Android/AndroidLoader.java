@@ -18,10 +18,6 @@ import plugins.quorum.Libraries.Game.AndroidApplication;
 import plugins.quorum.Libraries.Sound.Data;
 import plugins.quorum.Libraries.Sound.DataLoader;
 
-/**
- *
- * @author alleew
- */
 public class AndroidLoader implements DataLoader
 {
 
@@ -41,16 +37,7 @@ public class AndroidLoader implements DataLoader
     @Override
     public Data LoadToStream(File_ quorumFile) 
     { 
-        return null;
-//        InputStream stream = AndroidApplication.QuorumFileToInputStream(quorumFile);
-//        String fileName = quorumFile.GetAbsolutePath().toLowerCase();
-//        
-//        if (fileName.endsWith(".wav"))
-//            return new WavStreamingData(stream, fileName);
-//        else if (fileName.endsWith(".ogg"))
-//            return new OggStreamingData(stream, fileName);
-//        else 
-//            throw new RuntimeException("Can't load file " + quorumFile.GetPath() + " because the file extension is unsupported!");
+        return audioManager.LoadAndroidStreamingData(quorumFile);
     }
     
     @Override

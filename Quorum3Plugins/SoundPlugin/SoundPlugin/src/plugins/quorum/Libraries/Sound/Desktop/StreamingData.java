@@ -101,6 +101,7 @@ public abstract class StreamingData extends DesktopData
                 SetVelocity(velocityX, velocityY, velocityZ);
             
             SetVolume(volume);
+            SetPitch(pitch);
             SetReferenceDistance(referenceDistance);
             SetRolloff(rolloff);
             SetPosition(x, y, z);

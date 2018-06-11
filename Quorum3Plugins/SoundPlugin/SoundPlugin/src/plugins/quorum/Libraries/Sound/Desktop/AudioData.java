@@ -63,6 +63,7 @@ public abstract class AudioData extends DesktopData
 	}
     }
     
+    @Override
     public void Play () 
     {   
 	if (MANAGER.noDevice) 
