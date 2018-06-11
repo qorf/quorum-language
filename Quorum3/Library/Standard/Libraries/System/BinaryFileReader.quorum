@@ -1,0 +1,13 @@
+package Libraries.System
+use Libraries.Containers.ByteArray
+
+/*
+    This is a temporary class that will be replaced once put into the standard library.
+*/
+class BinaryFileReader
+    system action ReadBytes returns ByteArray
+    private system action OpenForReadNative(text path)
+    action OpenForRead(File file)
+        OpenForReadNative(file:GetAbsolutePath())
+    end
+end
