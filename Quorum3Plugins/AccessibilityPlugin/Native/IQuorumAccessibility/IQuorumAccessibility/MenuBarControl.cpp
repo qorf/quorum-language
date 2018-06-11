@@ -2,6 +2,7 @@
 
 #include "MenuBarControl.h"
 #include "MenuItemControl.h"
+#include "MenuItemProvider.h"
 #include "MenuBarProvider.h"
 
 // For error reporting
@@ -13,7 +14,10 @@ bool MenuBarControl::Initialized = false;
 MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) 
 	: m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
+}
 
+MenuBarControl::~MenuBarControl()
+{
 }
 
 HWND MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
@@ -100,10 +104,10 @@ MenuItemControl * MenuBarControl::GetSelectedMenuItem()
 void MenuBarControl::SetSelectedMenuItem(_In_ MenuItemControl * selectedMenuItem)
 {
 	m_pSelectedMenuItem = selectedMenuItem;
-}
-
-MenuBarControl::~MenuBarControl()
-{
+	if (m_pSelectedMenuItem != NULL && UiaClientsAreListening())
+	{
+		m_pSelectedMenuItem->GetMenuItemProvider()->NotifyElementSelected();
+	}
 }
 
 LRESULT MenuBarControl::StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)

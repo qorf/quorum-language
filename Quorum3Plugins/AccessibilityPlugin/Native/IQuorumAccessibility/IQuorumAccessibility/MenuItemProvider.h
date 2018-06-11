@@ -31,7 +31,10 @@ public:
 
 	// Various methods
 	void NotifyMenuItemAdded();
+	void NotifyMenuItemRemoved();
 	void NotifyElementSelected();
+	IUnknown* GetParentProvider();
+
 
 private:
 	virtual ~MenuItemProvider();
