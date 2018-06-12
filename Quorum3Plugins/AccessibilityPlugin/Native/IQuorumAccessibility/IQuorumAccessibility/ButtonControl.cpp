@@ -10,9 +10,9 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button"), m_buttonControlHWND(0), m_focused(false)
+ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_focused(false)
 {
-	// Nothing to do here.
+	m_ControlHWND = NULL; // Must be set in the Static WndProc
 }
 
 // ~ButtonControl: Release the reference to the ButtonProvider if there is one.
@@ -34,12 +34,6 @@ ButtonProvider* ButtonControl::GetButtonProvider(_In_ HWND hwnd)
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
-}
-
-// GetHWND: Get the HWND associated with this control.
-HWND ButtonControl::GetHWND()
-{
-	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
@@ -89,9 +83,8 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
-	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);
@@ -114,7 +107,7 @@ HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_
 			instance,
 			static_cast<PVOID>(control));
 
-		if (control->m_buttonControlHWND == 0)
+		if (control->m_ControlHWND == NULL)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -132,33 +125,21 @@ HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_
 		else
 		{
 			control->SetName(buttonName);
-			return control->m_buttonControlHWND;
+			control->SetDescription(buttonDescription);
+			return control;
 		}
 	}
 
-	return 0; // Indicates failure to create window.
+	return NULL; // Indicates failure to create window.
 
 }
 
-WCHAR* ButtonControl::GetName()
+void ButtonControl::SetControlFocus(bool focused)
 {
-	return m_buttonName;
-}
+	m_focused = focused;
+	if (focused)
+		m_buttonProvider->NotifyFocusGained();
 
-void ButtonControl::SetName(_In_ WCHAR* name)
-{
-	m_buttonName = name;
-}
-
-void ButtonControl::SetControlFocus()
-{
-	m_focused = true;
-	m_buttonProvider->NotifyFocusGained();
-}
-
-void ButtonControl::KillControlFocus()
-{
-	m_focused = false;
 }
 
 bool ButtonControl::HasFocus()
@@ -174,7 +155,7 @@ LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ 
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<ButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_buttonControlHWND = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -203,7 +184,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
 		}
 
 		break;
@@ -214,12 +195,12 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus();
+		this->SetControlFocus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->KillControlFocus();
+		this->SetControlFocus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

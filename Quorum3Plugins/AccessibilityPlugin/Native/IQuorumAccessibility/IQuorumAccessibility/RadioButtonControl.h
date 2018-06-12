@@ -1,30 +1,20 @@
 #include <windows.h>
-#include <windowsx.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <new>
-
-#include <ole2.h>
 #include <UIAutomation.h>
+
 #include "CustomMessages.h"
-
-
+#include "Item.h"
 
 class RadioButtonProvider;
 
-class RadioButtonControl
+class RadioButtonControl : public Item
 {
 public:
 	RadioButtonControl();
 	virtual ~RadioButtonControl();
 
-	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static RadioButtonControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	RadioButtonProvider* GetButtonProvider(_In_ HWND hwnd);
-	HWND GetHWND();
-
-	WCHAR* GetName();
-	void SetName(_In_ WCHAR* name);
 
 	void InvokeButton(_In_ HWND hwnd);
 	void SetState(_In_ bool controlState);
@@ -39,14 +29,11 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus();
-	void KillControlFocus();
+	void SetControlFocus(_In_ bool focused);
 
+	bool m_focused;
 
 	bool m_isOn;
-	bool m_focused;
-	WCHAR* m_buttonName;
-	HWND m_buttonControlHWND;
 	RadioButtonProvider* m_buttonProvider;
 
 };

@@ -12,15 +12,18 @@
 bool MenuBarControl::Initialized = false;
 
 MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) 
-	: m_menuBarName(menuBarName), m_menuBarControl(NULL), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
+	: m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
+	this->SetName(menuBarName);
+	this->SetDescription(L"");
+	this->m_ControlHWND = NULL; // Must be set in the Static WndProc function
 }
 
 MenuBarControl::~MenuBarControl()
 {
 }
 
-HWND MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
+MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
 {
 	if (!Initialized)
 	{
@@ -44,7 +47,7 @@ HWND MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
 			instance,
 			static_cast<PVOID>(control));
 
-		if (control->m_menuBarControl == NULL)
+		if (control->m_ControlHWND == NULL)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -60,7 +63,7 @@ HWND MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
 			LocalFree(messageBuffer);
 		}
 		else
-			return control->m_menuBarControl;
+			return control;
 	}
 
 	return NULL; // Indicates failure to create window.
@@ -70,25 +73,10 @@ MenuBarProvider * MenuBarControl::GetMenuBarProvider()
 {
 	if (m_menuBarProvider == NULL)
 	{
-		m_menuBarProvider = new MenuBarProvider(m_menuBarControl, this);
+		m_menuBarProvider = new MenuBarProvider(m_ControlHWND, this);
 		UiaRaiseAutomationEvent(m_menuBarProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_menuBarProvider;
-}
-
-HWND MenuBarControl::GetHWND()
-{
-	return m_menuBarControl;
-}
-
-WCHAR * MenuBarControl::GetName()
-{
-	return m_menuBarName;
-}
-
-void MenuBarControl::SetName(_In_ WCHAR * menuBarName)
-{
-	m_menuBarName = menuBarName;
 }
 
 bool MenuBarControl::HasFocus()
@@ -96,7 +84,7 @@ bool MenuBarControl::HasFocus()
 	return m_focused;
 }
 
-MenuItemControl * MenuBarControl::GetSelectedMenuItem()
+MenuItemControl* MenuBarControl::GetSelectedMenuItem()
 {
 	return m_pSelectedMenuItem;
 }
@@ -118,7 +106,7 @@ LRESULT MenuBarControl::StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT me
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<MenuBarControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_menuBarControl = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -232,8 +220,12 @@ bool MenuBarControl::Initialize(_In_ HINSTANCE hInstance)
 void MenuBarControl::SetControlFocus(_In_ bool isFocused)
 {
 	m_focused = isFocused;
-	if (isFocused)
+	if (isFocused && UiaClientsAreListening())
 	{
-		// TODO: Raise a UIA Event
+		UiaRaiseAutomationEvent(GetMenuBarProvider(), UIA_MenuModeStartEventId);
+	}
+	else
+	{
+		UiaRaiseAutomationEvent(GetMenuBarProvider(), UIA_MenuModeEndEventId);
 	}
 }

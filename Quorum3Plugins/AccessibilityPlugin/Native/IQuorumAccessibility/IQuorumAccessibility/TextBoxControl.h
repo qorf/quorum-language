@@ -1,6 +1,8 @@
 #include <UIAutomation.h>
 #include <string>
+
 #include "CustomMessages.h"
+#include "Item.h"
 
 #ifndef TextBoxControl_HEADER
 #define TextBoxControl_HEADER
@@ -61,12 +63,12 @@ inline int CompareEndpointPair(_In_ EndPoint endpoint1, _In_ EndPoint endpoint2)
 
 class TextBoxProvider;
 
-class TextBoxControl
+class TextBoxControl : public Item
 {
 	public:
 		TextBoxControl(_In_ const char* lines, _In_ int caretIndex);
 
-		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
+		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
 
 		int GetLineLength();
 
@@ -77,8 +79,7 @@ class TextBoxControl
 		EndPoint GetTextboxEndpoint();
 
 		TextBoxProvider* GetTextBoxProvider();
-		WCHAR* GetName();
-		void SetName(_In_ WCHAR* name);
+
 		EndPoint GetCaretPosition();
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
@@ -94,11 +95,10 @@ class TextBoxControl
 		static bool Initialize(_In_ HINSTANCE hInstance);
 		static bool Initialized;
 		
-		void SetControlFocus();
-		void KillControlFocus();
+		void SetControlFocus(_In_ bool focused);
+
 		void UpdateCaret(_In_ EndPoint caretPosition);
 
-		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool m_focused;
 
@@ -114,7 +114,6 @@ class TextBoxControl
 		 */
 		const int m_lineCount = 1;
 		
-		WCHAR* m_pTextboxName;
 		TextBoxProvider* m_pTextBoxProvider;
 
 

@@ -3,6 +3,7 @@
 
 #include "ItemProvider.h"
 #include "ItemControl.h"
+#include "Item.h"
 
 ItemProvider::ItemProvider(HWND hwnd, ItemControl* pItem) : m_refCount(1), m_controlHWnd(hwnd), m_pItem(pItem)
 {
@@ -74,6 +75,23 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"Item");
 	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		// The name of this item as given from Quorum.
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pItem->GetName());
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pItem->GetDescription());
+	}
+	else if (propertyId == UIA_ProviderDescriptionPropertyId)
+	{
+		// This is not read aloud by screen readers.
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"An item created within Quorum.");
+	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
@@ -83,11 +101,6 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	{
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_ProviderDescriptionPropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"An item created within Quorum.");
 	}
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
@@ -100,12 +113,6 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = m_pItem->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
-	}
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		// The name of this item as given from Quorum.
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(m_pItem->GetName());
 	}
 	else
 	{

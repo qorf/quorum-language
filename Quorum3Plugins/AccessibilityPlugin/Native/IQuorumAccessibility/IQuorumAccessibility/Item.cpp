@@ -11,7 +11,7 @@ bool Item::HasFocus()
 
 HWND Item::GetHWND()
 {
-	return NULL;
+	return m_ControlHWND;
 }
 
 void Item::SetName(WCHAR * name)

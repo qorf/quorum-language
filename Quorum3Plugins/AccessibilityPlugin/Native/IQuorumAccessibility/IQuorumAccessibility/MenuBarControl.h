@@ -4,29 +4,25 @@
 
 #include "CustomMessages.h"
 #include "MenuControl.h"
+#include "Item.h"
 
 class MenuBarProvider;
 class MenuItemControl;
 
-class MenuBarControl : public MenuControl
+class MenuBarControl : public MenuControl, public Item
 {
 public:
 	MenuBarControl(_In_ WCHAR* menuBarName);
 	virtual ~MenuBarControl();
 
-	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* menuBarName);
+	static MenuBarControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* menuBarName);
 
 	MenuBarProvider* GetMenuBarProvider();
-	HWND GetHWND();
-
-	WCHAR* GetName();
-	void SetName(_In_ WCHAR* menuBarName);
-
-	bool HasFocus();
 
 	MenuItemControl* GetSelectedMenuItem();
 	void SetSelectedMenuItem(_In_ MenuItemControl* selectedMenuItem);
 
+	bool HasFocus();
 private:
 
 	static LRESULT CALLBACK StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -38,8 +34,7 @@ private:
 	void SetControlFocus(_In_ bool isFocused);
 
 	bool m_focused;
-	WCHAR* m_menuBarName;
-	HWND m_menuBarControl;
+
 	MenuBarProvider* m_menuBarProvider;
 	MenuItemControl* m_pSelectedMenuItem;
 

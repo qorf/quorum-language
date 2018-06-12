@@ -9,8 +9,9 @@
 bool TextBoxControl::Initialized = false;
 
 TextBoxControl::TextBoxControl(_In_ const char* lines, _In_ int caretIndex) 
-	: m_TextboxHWND(NULL), m_focused(false), m_fullText(lines), m_pTextboxName(L"Textbox"), m_pTextBoxProvider(NULL)
+	: m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL)
 {
+	m_ControlHWND = NULL; // must be set in Static WndProc function
 	m_caretPosition.character = caretIndex;
 }
 
@@ -48,9 +49,8 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
 {
-	UNREFERENCED_PARAMETER(textboxDescription);
 
 	if (!Initialized)
 	{
@@ -75,7 +75,7 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 			static_cast<PVOID>(control)
 		);
 
-		if (control->m_TextboxHWND == 0)
+		if (control->m_ControlHWND == 0)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -93,13 +93,14 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 		else
 		{
 			control->SetName(textboxName);
+			control->SetDescription(textboxDescription);
 
 			if (UiaClientsAreListening())
 			{
 				control->GetTextBoxProvider();
 			}
 
-			return control->m_TextboxHWND;
+			return control;
 		}
 	}
 
@@ -310,7 +311,7 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 {
 	if (m_pTextBoxProvider == NULL)
 	{
-		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
+		m_pTextBoxProvider = new TextBoxProvider(GetHWND(), this);
 	}
 	return m_pTextBoxProvider;
 }
@@ -325,16 +326,6 @@ EndPoint TextBoxControl::GetCaretPosition()
 	return m_caretPosition;
 }
 
-WCHAR* TextBoxControl::GetName()
-{
-	return m_pTextboxName;
-}
-
-void TextBoxControl::SetName(_In_ WCHAR* name)
-{
-	m_pTextboxName = name;
-}
-
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 
@@ -344,7 +335,7 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_TextboxHWND = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -391,12 +382,12 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case WM_SETFOCUS:
 	{
-		SetControlFocus();
+		SetControlFocus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		KillControlFocus();
+		SetControlFocus(false);
 		break;
 	}
 	case QUORUM_UPDATECARET:
@@ -429,19 +420,15 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	return lResult;
 }
 
-void TextBoxControl::SetControlFocus()
+void TextBoxControl::SetControlFocus(_In_ bool focused)
 {
-	NotifyFocusGained(this->m_TextboxHWND, this);
-	m_focused = true;
-}
-
-void TextBoxControl::KillControlFocus()
-{
-	m_focused = false;
+	m_focused = focused;
+	if (focused)
+		NotifyFocusGained(GetHWND(), this);
 }
 
 void TextBoxControl::UpdateCaret(_In_ EndPoint caretPosition)
 {
 	m_caretPosition = caretPosition;
-	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
+	NotifyCaretPositionChanged(GetHWND(), this);
 }

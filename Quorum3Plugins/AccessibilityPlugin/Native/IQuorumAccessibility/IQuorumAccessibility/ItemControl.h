@@ -2,21 +2,19 @@
 #include <UIAutomation.h>
 
 #include "CustomMessages.h"
+#include "Item.h"
 
 
 class ItemProvider;
 
-class ItemControl
+class ItemControl : public Item
 {
 public:
 	ItemControl();
 	virtual ~ItemControl();
 	ItemProvider* GetItemProvider(_In_ HWND hwnd);
 
-	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription);
-
-	WCHAR* GetName();
-	void SetName(_In_ WCHAR* name);
+	static ItemControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription);
 
 	bool HasFocus();
 
@@ -27,12 +25,10 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus();
-	void KillControlFocus();
+	void SetControlFocus(_In_ bool focused);
 
 	bool m_focused;
-	WCHAR* m_pItemName;
+
 	ItemProvider* m_pItemProvider;
-	HWND m_ItemHWND;
 	
 };

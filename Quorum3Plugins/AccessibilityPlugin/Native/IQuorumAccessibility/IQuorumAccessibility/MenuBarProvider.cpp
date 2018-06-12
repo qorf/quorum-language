@@ -76,6 +76,16 @@ IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"ALT");
 	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(this->m_pMenuBarControl->GetName());
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pMenuBarControl->GetDescription());
+	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
@@ -95,11 +105,6 @@ IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	{
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(this->m_pMenuBarControl->GetName());
 	}
 	else if (propertyId == UIA_OrientationPropertyId)
 	{

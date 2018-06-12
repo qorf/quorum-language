@@ -92,10 +92,15 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"Radio Button");
 	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pButtonControl->GetName());
+	}
 	else if (propertyId == UIA_HelpTextPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Help Text here");
+		pRetVal->bstrVal = SysAllocString(m_pButtonControl->GetDescription());
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
@@ -113,11 +118,6 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 		// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(m_pButtonControl->GetName());
 	}
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
