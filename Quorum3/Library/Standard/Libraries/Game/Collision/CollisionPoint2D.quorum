@@ -4,18 +4,20 @@ use Libraries.Game.Collision.CollisionIdentifier2D
 package Libraries.Game.Collision
 
 /*
-This class contains the one local collision point for a 2D collision from the
-perspective of one of the objects that is involved in the collision. This class
-also records what kind of impulses should be applied to the object to resolve
+This class contains the one estimated local collision point for a 2D collision from the
+perspective of the reference object that is involved in the collision. This class
+also records what kind of impulses should be applied to the objects to resolve
 the collision.
 This class is also known as manifold points. 
 This class is used internally by LocalCollisionPoints2D.
 */
 class CollisionPoint2D
-    Vector2 localPoint          //the value of this vector depends on which shapes are involved in the collision
-                                
-                                //if this CollisionPoint would be from the reference of a circle, this would be the local center of the circle
-                                //if this CollisionPoint would be from the reference of a polygon, this would be the clip point of the polygon
+    Vector2 localPoint          //one collision point with respect to the object that is not the reference object                             
+                                  //for a circle-circle collision: if the reference object is a circleA, this would be the estimated "contact point" from the perspective of circleB, which would be the local center of circleB
+                                  //for a polygon-circle collision, the reference object would be a polygon (polygonA), so "localPoint" would be the local center of circleB from the perspective of circleB
+                                  //for a polygon-polygon collision, depending on if the "LocalCollisionPoints2D" is of type FACE_A or FACE_B
+                                    //FACE_A: this means the reference object is polygonA, therefore, this "localPoint" would be the clip point of polygonB from the perspective of polygonB
+                                    //FACE_B: this means the reference object is polygonB, therefore, this "localPoint" would be the clip point of polygonA from the perspective of polygonA (flipped)
     number normalImpulse = 0    //the magnitude of the impulse that should be applied to separate the two objects in collision  
     number tangentImpulse = 0   //the magnitude of impulse that should be applied to simulate the friction between the two objects during collision
     CollisionIdentifier2D id    //identifies what type of collision is involved

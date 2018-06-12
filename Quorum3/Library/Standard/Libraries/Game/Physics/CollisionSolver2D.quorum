@@ -14,22 +14,59 @@ use Libraries.Game.Collision.GlobalCollisionPoints2D
 use Libraries.Containers.Table
 use Libraries.Game.Physics.PositionSolver
 
+/*
+This class is a calculation tool that updates an object's impulse to move the 
+object around.
+*/
 class CollisionSolver2D 
     constant number k_maxConditionNumber = 100.0
 
     constant integer INITIAL_NUM_CONSTRAINTS = 256
     
     TimeStep timeStep = undefined
+
+    /*
+    This is a list of the target center of each objects at the end of the 
+    current physics step relative to the global coordinates.
+    */
     Array<Vector2> positions = undefined
+
+    /*
+    This is a list of the target tilt of each object at the end of the current
+    physics step relative to the global coordinates.
+    */
+
     Array<number> angles = undefined
+    /*
+    This is a list of linear velocities of each object currently with respect to
+    the global coordinates.
+    */
+
     Array<Vector2> velocities = undefined
+    /*
+    This is a list of angular velocities of each object currently.
+    */
+
     Array<number> ws = undefined
     Array<CollisionPositionConstraint> positionConstraints
     Array<CollisionVelocityConstraint> velocityConstraints
+
+    /*
+    An array containing the collisions that has happened in the current physics
+    step that this solver is accountable for.
+    */
     Array<CollisionEvent2D> collisions = undefined
+
+    /*
+    The total number of collision that has happened in the current physics step.
+    */
     integer count = 0
     integer resizeCount = 1
 
+    /*
+    This will initialize positionConstraints and velocityConstraints arrays
+    to have INITIAL_NUM_CONSTRAINTS number of items.
+    */
     on create
         repeat INITIAL_NUM_CONSTRAINTS times
             CollisionPositionConstraint positionConstraint
@@ -39,10 +76,18 @@ class CollisionSolver2D
         end
     end
 
+    /*
+    This action sets the timeStep of this CollisionSolver2D using another 
+    timeStep that is passed in.
+    */
     action SetTimeStep(TimeStep timeStep)
         me:timeStep = timeStep
     end
 
+    /*
+    This action allows the solver to know how many collision has happened 
+    during the current physics step by passing in an array of CollisionEvent2D.
+    */
     action SetCollisionList(Array<CollisionEvent2D> collisionList)
         me:collisions = collisionList
         me:count = collisionList:GetSize()
@@ -192,6 +237,12 @@ class CollisionSolver2D
 
     PhysicsPosition2D xfA
     PhysicsPosition2D xfB
+
+    /*
+    This stores where the collision points are in the global coordinates.
+    These collision points are evaluated based on which object that is involved
+    in the collision of the two 2D objects is the reference object.
+    */
     GlobalCollisionPoints2D globalCollisionPoints
 
     action InitializeVelocityConstraints

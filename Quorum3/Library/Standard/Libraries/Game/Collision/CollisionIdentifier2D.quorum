@@ -10,8 +10,8 @@ class CollisionIdentifier2D
     public constant integer VERTEX = 0  //when the vertex of the 2D object is actually getting collided
     public constant integer FACE = 1    //when the face of the 2D object is getting collided
 
-    integer indexA = 0
-    integer indexB = 0
+    integer indexA = 0  //the group index that the first 2D object belongs to
+    integer indexB = 0  //the group index that the second 2D object belongs to
     integer typeA = 0   //stores whether the first 2D object is getting colliding with its VERTEX or FACE
     integer typeB = 0   //stores whether the second 2D object is getting colliding with its VERTEX or FACE
 

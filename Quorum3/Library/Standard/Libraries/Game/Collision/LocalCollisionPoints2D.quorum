@@ -7,27 +7,63 @@ package Libraries.Game.Collision
 
 /*
 This class records the all of the local collision points during one collision
-from the perspective of one of the 2D object that is involved in the collision.
+using the array called "points," from the perspective of one of the 2D object 
+that is involved in the collision. This 2D object will be called as a reference 
+object (because all of the local collision points are recorded from the 
+perspective of that 2D object).
 Collision points will be evaluated when a CollisionEvent2D occurs, where the 
 CollisionEvent2D uses the narrow phase evaluation to calculate where the
-collision points are.
+collision points that are relative to the reference object (defined above).
 This class is also known as manifolds.
+This class is used by GlobalCollisionPoints2D.
 */
 class LocalCollisionPoints2D
     public constant integer MAX_COLLISION_POINTS = 2
 
     public constant integer CIRCLES = 0 //when two circles collide, both 2D objects are going to be circles
-    public constant integer FACE_A = 1  //when circle collide with polygon -OR- polygon collide with polygon, 
-    public constant integer FACE_B = 2
+                                        //the reference object will be selected as circleA
+    public constant integer FACE_A = 1  //when circle collide with polygon -OR- polygon collide with polygon
+                                        //the "type" of the LocalCollisionPoints2D is selected as FACE_A when A is the reference polygon
+                                        //in a circle-polygon collision, the polygon will be selected as the reference object
+                                        
+    public constant integer FACE_B = 2  //when polygon collides with polygon
+                                        //the "type" of the LocalCollisionPoints2D is selected as FACE_B when B is the reference polygon
 
     /*
     This records all of the local collision points from the point of view of the 
-    first object that is involved in the collision and from the point of view
-    of the second object that is involved in the collision.
+    reference object that is involved in the collision. The amount of items in 
+    this array tells you whether the contact is a line (2 CollisionPoint2D) or
+    just a point (1 CollisionPoint2D object in the array).
     */
     Array<CollisionPoint2D> points
+
+    /*
+    This is the actual direction (with respect to the reference object) at which
+    you should apply the normal impulse to the objects to separate the objects.
+    In the case where the reference object is a circle (circleA), localNormal
+    can't be used.
+    In the case where the reference object is a polygon, localNormal would be
+    the direction of normal impulse in reference to that polygon pointing away
+    from the polygon.
+    */
     Vector2 localNormal
+    
+    /*
+    This is used to reduce the collision that caused 2 CollisionPoint2Ds into
+    one local point (with respect to the reference object) as the estimated 
+    point of contact.
+    In the case where the reference object is a circle, this would be the local
+    center of circleA.
+    In the case where the reference object is a polygon, this would be the local
+    center of that polygon.
+    */
     Vector2 localPoint
+
+    /*
+    This is the number of CollisionPoint2D objects that is inside the array
+    named "points." 1 indicates that the collision caused a point contact, and
+    2 indicates that the collision caused a line contact.
+    */
     integer pointCount = 0
 
     integer type = 1

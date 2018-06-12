@@ -80,12 +80,12 @@ class CollisionEvent2D
     */
     CollisionEdge2D nodeA
     /*
-    The starting point of the doubly linked list of collisions on the first
+    The starting point of the doubly linked list of collisions on the second
     item that is involved in the collision.
     */
     CollisionEdge2D nodeB
 
-    //stores where collision occured
+    //stores where collision occured with respect to the reference object.
     LocalCollisionPoints2D collisionPoints
     LocalCollisionPoints2D oldCollisionPoints
 
@@ -101,7 +101,8 @@ class CollisionEvent2D
         enabledFlag = true
         
         //gets the shapes of the two items that are involved in the collision
-        CollisionShape2D shapeA = itemA:GetShape()  //should get the shapes of the children involved in the collision?
+        //this assumes that each item is made up of one shape
+        CollisionShape2D shapeA = itemA:GetShape()  
         CollisionShape2D shapeB = itemB:GetShape()
 
         //NOTE: we only support two shapes in 2D: circle and polygon
@@ -130,7 +131,7 @@ class CollisionEvent2D
             me:indexB = indexA
         end
 
-        collisionPoints:pointCount = 0
+        collisionPoints:pointCount = 0  //local collision points
 
         previous = undefined
         next = undefined
@@ -233,13 +234,19 @@ class CollisionEvent2D
     end
 
     
+    /*
+    This action calculates if the collision has started or if the collision has 
+    been resolved. Using a CollisionListener, the user can change what would the
+    responses of the system (ex. audio playback) and the objects be when the
+    collision has begun or when the collision has ended.
+    */
     action DispatchCollision(Array<CollisionListener2D> listeners)
-        oldCollisionPoints:Set(collisionPoints)
+        oldCollisionPoints:Set(collisionPoints)   //save the previous collisionPoints
 
         enabledFlag = true
 
         boolean touching = false
-        boolean wasTouching = touchingFlag
+        boolean wasTouching = touchingFlag  //save the previous touching flag
 
         boolean sensorA = not itemA:IsPhysicsEnabled()
         boolean sensorB = not itemB:IsPhysicsEnabled()
@@ -249,23 +256,26 @@ class CollisionEvent2D
         PhysicsPosition2D transformB = itemB:GetTransform()
 
         if sensor
-            CollisionShape2D shapeA = itemA:GetShape()   //
+            CollisionShape2D shapeA = itemA:GetShape() 
             CollisionShape2D shapeB = itemB:GetShape()
 
             touching = TestOverlap(shapeA, indexA, shapeB, indexB, transformA, transformB)
             collisionPoints:SetPointCount(0)
-        else
-            NarrowphaseEvaluation(collisionPoints, transformA, transformB)
+        else    //if both items are NOT sensors
+            NarrowphaseEvaluation(collisionPoints, transformA, transformB)  //calculate the new "collisionPoints"
             touching = collisionPoints:GetPointCount() > 0
 
             integer i = 0
             repeat while i < collisionPoints:GetPointCount()
-                CollisionPoint2D p2 = collisionPoints:GetPoints():Get(i)
+                //let p2 be the most current evaluation of collisionPoints
+                CollisionPoint2D p2 = collisionPoints:GetPoints():Get(i)    //changing p2 will also change the "ith" CollisionPoint2D inside collisionPoints
                 p2:SetNormalImpulse(0)
                 p2:SetTangentImpulse(0)
                 CollisionIdentifier2D id2 = p2:GetIdentifier()
 
                 integer j = 0
+                //give the impulses calculated for the oldCollisionPoints to the new collisionPoints if they have the same id
+                //so that old impulses would be the "first guess" for the solver to work with because the old impulses are probably a good starting point
                 repeat while j < oldCollisionPoints:GetPointCount()
                     CollisionPoint2D p1 = oldCollisionPoints:GetPoints():Get(j)
 
@@ -280,8 +290,9 @@ class CollisionEvent2D
                 i = i + 1
             end
 
+            //if the items are starting to have contact
             if touching not= wasTouching
-                itemA:Simulate(true)
+                itemA:Simulate(true)    //wake both objects up
                 itemB:Simulate(true)
             end
         end
@@ -332,7 +343,11 @@ class CollisionEvent2D
             return restitution2
         end
     end
-
+    
+    /*
+    This action tests if two shapes overlap. This action returns "true" if the
+    two shapes do overlap and returns "false" if the two shapes do not overlap.
+    */
     private action TestOverlap(CollisionShape2D shapeA, integer indexA, CollisionShape2D shapeB, integer indexB, PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns boolean
         DistanceInput2D in
         in:GetProxyA():Set(shapeA, indexA)
@@ -351,6 +366,10 @@ class CollisionEvent2D
         return out:GetDistance() < 10.0 * EPSILON
     end
 
+    /*
+    This action calls the correct LocalCollisionPoints2D evaluation action
+    based on the shape of objects A and B.
+    */
     private action NarrowphaseEvaluation(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D transformA, PhysicsPosition2D transformB)
         CollisionShape2D shapeA = itemA:GetShape()
         CollisionShape2D shapeB = itemB:GetShape()
@@ -377,6 +396,9 @@ class CollisionEvent2D
     Array<ClipVertex2D> clipPoints1
     Array<ClipVertex2D> clipPoints2
 
+    /*
+    This action finds the LocalCollisionPoints2D for a polygon-polygon collision.
+    */
     private action CollidePolygons(LocalCollisionPoints2D collisionPoints, Polygon polygonA, PhysicsPosition2D transformA, Polygon polygonB, PhysicsPosition2D transformB)
         collisionPoints:pointCount = 0
         EdgeResult2D results1
@@ -384,27 +406,29 @@ class CollisionEvent2D
 
         number totalRadius = polygonA:GetRadius() + polygonB:GetRadius()
 
+        //when there is no collision
         FindMaxSeparation(results1, polygonA, transformA, polygonB, transformB)
         if results1:GetSeparation() > totalRadius
             return now
         end
 
+        //when there is no collision
         FindMaxSeparation(results2, polygonB, transformB, polygonA, transformA)
         if results2:GetSeparation() > totalRadius
             return now
         end
 
-        Polygon poly1
-        Polygon poly2
+        Polygon poly1   //this would be the reference polygon
+        Polygon poly2   //this would be the incident polygon 
         PhysicsPosition2D xf1
         PhysicsPosition2D xf2
-        integer edge1 = 0
+        integer edge1 = 0   //this stores the index of the reference edge
         boolean flip = false
         number k_tol = 0.1 * 0.005
 
         if results2:GetSeparation() > results1:GetSeparation() + k_tol
-            poly1 = polygonB
-            poly2 = polygonA
+            poly1 = polygonB    //B becomes the reference polygon
+            poly2 = polygonA    //A becomes the indicent polygon
             xf1 = transformB
             xf2 = transformA
             edge1 = results2:GetEdgeIndex()
@@ -527,6 +551,9 @@ class CollisionEvent2D
 
     end
 
+    /*
+    This action finds the LocalCollisionPoints2D for a circle-circle collision.
+    */
     private action CollideCircles(LocalCollisionPoints2D collisionPoints, Circle circleA, PhysicsPosition2D transformA, Circle circleB, PhysicsPosition2D transformB)
         collisionPoints:pointCount = 0
 
@@ -556,6 +583,9 @@ class CollisionEvent2D
         collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle2p)
     end
 
+    /*
+    This action finds the LocalCollisionPoints2D for a polygon-circle collision.
+    */
     private action CollidePolygonAndCircle(LocalCollisionPoints2D collisionPoints, Polygon polygon, PhysicsPosition2D transformA, Circle circle, PhysicsPosition2D transformB)
         collisionPoints:pointCount = 0
         
@@ -685,6 +715,9 @@ class CollisionEvent2D
         end        
     end
 
+    /*
+    This action finds the maximum vertex to vertex separation of two polygons.
+    */
     private action FindMaxSeparation(EdgeResult2D results, Polygon poly1, PhysicsPosition2D xf1, Polygon poly2, PhysicsPosition2D xf2)
         integer count1 = poly1:GetVertexCount()
         integer count2 = poly2:GetVertexCount()
@@ -739,6 +772,10 @@ class CollisionEvent2D
         results:SetSeparation(maxSeparation)
     end
 
+    /*
+    This action finds the edge of the incident polygon that is colliding with
+    the reference polygon.
+    */
     private action FindIncidentEdge(Array<ClipVertex2D> c, Polygon poly1, PhysicsPosition2D xf1, integer edge1, Polygon poly2, PhysicsPosition2D xf2)
         integer count1 = poly1:GetVertexCount()
         Array<Vector2> normals1 = poly1:GetNormals()
@@ -795,6 +832,9 @@ class CollisionEvent2D
         c1:GetIdentifier():SetTypeB(c1:GetIdentifier():VERTEX)
     end
 
+    /*
+    This action finds the collision point on the incident edge.
+    */
     action ClipSegmentToLine(Array<ClipVertex2D> vOut, Array<ClipVertex2D> vIn, Vector2 normal, number offset, integer vertexIndexA) returns integer
         integer numOut = 0
         ClipVertex2D vIn0 = vIn:Get(0)

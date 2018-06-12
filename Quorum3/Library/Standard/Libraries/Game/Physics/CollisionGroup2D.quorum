@@ -13,15 +13,24 @@ use Libraries.Game.Physics.Joints.Joint2D
 use Libraries.Game.Physics.Joints.JointSolverData2D
 
 /*
-An internal class used to solve the physical interactions between groups of
-physics bodies
+This class is used to solve the physics between 2D objects that are in the same
+group. For example, a chain of joints would be considered to be in the same group.
+Groups are also known as islands.
 */
 class CollisionGroup2D    
     Array<Item2D> items
     Array<CollisionEvent2D> collisions
     Array<Joint2D> joints
 
+    /*
+    This is a list of the target center of each objects at the end of the 
+    current physics step relative to the global coordinates.
+    */
     Array<Vector2> positions
+    /*
+    This is a list of the target tilt of each object at the end of the current
+    physics step relative to the global coordinates.
+    */
     Array<number> angles
     Array<Vector2> linearVelocities
     Array<number> angularVelocities
