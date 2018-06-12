@@ -2,9 +2,9 @@
 #include <UIAutomation.h>
 
 #include "ItemProvider.h"
-#include "Item.h"
+#include "ItemControl.h"
 
-ItemProvider::ItemProvider(HWND hwnd, Item* pItem) : m_refCount(1), m_controlHWnd(hwnd), m_pItem(pItem)
+ItemProvider::ItemProvider(HWND hwnd, ItemControl* pItem) : m_refCount(1), m_controlHWnd(hwnd), m_pItem(pItem)
 {
 	// Nothing to do.
 }
@@ -61,7 +61,7 @@ IFACEMETHODIMP ItemProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 IFACEMETHODIMP ItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
 	UNREFERENCED_PARAMETER(patternId);
-	// Item doesn't implement any control patterns so NULL is correct.
+	// ItemControl doesn't implement any control patterns so NULL is correct.
 	*pRetVal = NULL;
 	return S_OK;
 }

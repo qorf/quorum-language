@@ -1,43 +1,24 @@
 #include <windows.h>
-#include <windowsx.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <new>
-
-#include <ole2.h>
 #include <UIAutomation.h>
-#include "CustomMessages.h"
 
-
-class ItemProvider;
 
 class Item
 {
 public:
-	Item();
-	virtual ~Item();
-	ItemProvider* GetItemProvider(_In_ HWND hwnd);
+	virtual void SetControlFocus(_In_ bool Focused);
+	virtual bool HasFocus();
 
-	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription);
+	virtual HWND GetHWND();
 
-	WCHAR* GetName();
 	void SetName(_In_ WCHAR* name);
+	WCHAR* GetName();
+	
+	void SetDescription(_In_ WCHAR* description);
+	WCHAR* GetDescription();
 
-	bool HasFocus();
+
 
 private:
-	static LRESULT CALLBACK StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
-	LRESULT CALLBACK ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
-
-	static bool Initialize(_In_ HINSTANCE hInstance);
-	static bool Initialized;
-
-	void SetControlFocus();
-	void KillControlFocus();
-
-	bool m_focused;
-	WCHAR* m_pItemName;
-	ItemProvider* m_pItemProvider;
-	HWND m_ItemHWND;
-	
+	WCHAR* m_ControlName;
+	WCHAR* m_ControlDescription;
 };

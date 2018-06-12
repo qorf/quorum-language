@@ -1,10 +1,10 @@
 
-class Item;
+class ItemControl;
 
 class ItemProvider : public IRawElementProviderSimple
 {
 public:
-	ItemProvider(HWND hwnd, Item* pItem);
+	ItemProvider(HWND hwnd, ItemControl* pItem);
 
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();
@@ -24,7 +24,7 @@ private:
 	virtual ~ItemProvider();
 	ULONG m_refCount; // Ref Counter for this COM object
 	
-	Item* m_pItem;
+	ItemControl* m_pItem;
 	HWND m_controlHWnd; // The HWND for the control.
 
 	

@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <UIAutomation.h>
 
-#include "Item.h"
+#include "ItemControl.h"
 #include "ButtonControl.h"
 #include "RadioButtonControl.h"
 #include "CheckBoxControl.h"
@@ -112,7 +112,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND itemControlHandle;
 
-	itemControlHandle = Item::Create(GetModuleHandle(NULL), wItemName, wDescription);
+	itemControlHandle = ItemControl::Create(GetModuleHandle(NULL), wItemName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
