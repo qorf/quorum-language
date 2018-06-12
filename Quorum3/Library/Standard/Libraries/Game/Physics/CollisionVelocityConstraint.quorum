@@ -13,7 +13,7 @@ This class is used internally by CollisionSolver2D.
 class CollisionVelocityConstraint 
     Array<VelocityConstraintPoint> points
     Vector2 normal
-    Table<number> normalMass
+    Table<number> normalMass        //this is a 2x2 matrix that represents 
     Table<number> inverseNormalMass
     integer indexA = 0
     integer indexB = 0
@@ -28,7 +28,7 @@ class CollisionVelocityConstraint
     integer collisionIndex = 0
 
     on create
-        LocalCollisionPoints2D collisionPoints
+        LocalCollisionPoints2D collisionPoints  //this is here just so we can extract MAX_COLLISION_POINTS from the LocalCollisionPoints2D class
         repeat collisionPoints:MAX_COLLISION_POINTS times
             VelocityConstraintPoint point
             points:Add(point)

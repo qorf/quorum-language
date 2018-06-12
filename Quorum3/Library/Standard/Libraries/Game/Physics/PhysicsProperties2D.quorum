@@ -16,9 +16,9 @@ class PhysicsProperties2D
     public constant integer NON_RESPONSIVE = 1  //object governed by kinematics (meaning, the object is affected by linear velocity and angular velocity settings)
     public constant integer RESPONSIVE = 2      //object governed by dynamics (meaning, the object is affect by force and torque applied to it)
 
-    Vector2 linearVelocity      //linear velocity of the center of mass of the 2D object [Units: m]
+    Vector2 linearVelocity      //linear velocity of the center of mass of the 2D object in global coordinates[Units: m]
     number angularVelocity = 0  //angular velocity of the 2D object about the COM [Units: rad/s]
-    Vector2 force               //force being applied to the 2D object [Units:N]
+    Vector2 force               //force being applied to the 2D object in global coordinates [Units:N]
     number torque = 0           //torque being applied to the 2D object [Units: Nm]
     number mass = 0             //mass of the 2D object [Units: kg]
     number inverseMass = 0      //1/mass of the 2D object [Units: 1/kg]

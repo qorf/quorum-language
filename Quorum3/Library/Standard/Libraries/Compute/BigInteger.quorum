@@ -1,0 +1,62 @@
+package Libraries.Compute
+
+class BigInteger 
+
+    action SetValue(text v)
+        SetValue(v, 10)
+    end
+
+    system action SetValue(text v, integer base)
+
+    action GetText() returns text
+        return GetText(10)
+    end
+
+    system action GetText(integer base) returns text
+
+    system action Add(BigInteger b) returns BigInteger
+
+    system action And(BigInteger b) returns BigInteger
+
+    system action AndNot(BigInteger b) returns BigInteger
+
+    system action CompareTo(BigInteger b) returns BigInteger
+
+    system action Divide(BigInteger b) returns BigInteger
+
+    system action Equals(Object o) returns boolean
+
+    system action ToNumber() returns number
+
+    system action GreatestCommonDivisor(BigInteger b) returns BigInteger
+
+    system action ToInteger() returns integer
+
+    system action Max(BigInteger b) returns BigInteger
+
+    system action Min(BigInteger b) returns BigInteger
+
+    system action Mod(BigInteger b) returns BigInteger
+
+    system action Multiply(BigInteger b) returns BigInteger
+
+    system action Negate() returns BigInteger
+
+    system action BitwiseNot() returns BigInteger
+
+    system action Or() returns BigInteger
+
+    system action RaiseToPower(integer power) returns BigInteger
+
+    system action Remainder(BigInteger b) returns BigInteger
+
+    system action ShiftLeft(integer positions) returns BigInteger
+
+    system action ShiftRight(integer positions) returns BigInteger
+
+    system action SignNumber() returns integer
+
+    system action Subtract(BigInteger b) returns BigInteger
+
+    system action Xor(BigInteger b) returns BigInteger
+end

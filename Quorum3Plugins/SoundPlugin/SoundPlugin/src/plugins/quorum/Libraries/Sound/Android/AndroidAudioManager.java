@@ -1,8 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*******************************************************************************
+ * An adapation of the AndroidAudio class from the libGDX project. The original
+ * license information is preserved below.
+ * 
+ * Copyright 2011 See AUTHORS file.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package plugins.quorum.Libraries.Sound.Android;
 
 import android.content.res.AssetFileDescriptor;
@@ -74,6 +87,26 @@ public class AndroidAudioManager implements AudioManager, OnLoadCompleteListener
         AndroidData data = new AndroidData(soundPool, soundID, GetDuration(quorumFile));
         SOUND_MAP.put(soundID, data);
         return data;
+    }
+    
+    public AndroidStreamingData LoadAndroidStreamingData(File_ quorumFile)
+    {
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        
+        AssetFileDescriptor descriptor = AndroidApplication.QuorumFileToAssetFileDescriptor(quorumFile);
+        
+        try
+        {
+            mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+            descriptor.close();
+            mediaPlayer.prepare();
+            AndroidStreamingData data = new AndroidStreamingData(this, mediaPlayer);
+            return data;
+        }
+        catch(IOException exception)
+        {
+            throw new RuntimeException("Could not load streaming audio file: " + quorumFile.GetPath());
+        }
     }
     
     @Override

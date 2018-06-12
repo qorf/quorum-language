@@ -1,0 +1,72 @@
+ package Libraries.Containers
+use Libraries.Containers.Support.ByteArrayIterator
+
+/*
+    The ByteArray class is a specialized kind of array specifically designed
+    for low level byte manipulation from files. The purpose is to provide a 
+    way to manipulate bytes efficiently in Quorum, which is necessary for 
+    some specialized applications. 
+
+    The values in each position in the array are raw bytes, which means 
+    any integer returned is 8 bits in length. As such, they are individually 
+    between the numbers -128 and 127.
+
+    Attribute: Example
+    //this example will load a file into memory as a ByteArray
+    //and print the values from the bytes out one by one.
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    i = 0
+    repeat while i < value:GetSize()
+        integer byte = value:Get(i)
+        output byte
+        i = i + 1
+    end
+*/
+class ByteArray 
+    system action Get(integer i) returns integer
+    system action Set(integer location, integer value)
+
+    system action GetSubArray(integer begin, integer finish) returns ByteArray
+
+    /*
+        This action gets the size of the array.
+
+        Attribute: Return The size of the array. 
+
+        Attribute: Example
+        use Libraries.Containers.ByteArray
+        ByteArray myArray
+        integer size = myArray:GetSize()
+        output size
+    */
+    system action GetSize returns integer
+
+    action GetIterator returns ByteArrayIterator
+        ByteArrayIterator iterator
+        iterator:SetByteArray(me)
+        return iterator
+    end
+
+    system action DecompressZLib returns ByteArray
+
+    system action IsBigEndian returns boolean
+    system action SetBigEndian(boolean yes)
+
+    system action ConvertByteToUnsignedInteger(integer a) returns integer
+    system action ConvertByteToCharacter(integer a) returns text
+    system action ConvertBytesToCharacter(integer a, integer b) returns text
+    system action ConvertByteToInteger(integer a) returns integer
+    system action ConvertBytesToNumber4Byte(integer a, integer b, integer c, integer d) returns number
+    system action ConvertBytesToNumber(integer a, integer b, integer c, integer d,
+                                       integer e, integer f, integer g, integer h) returns number
+    system action ConvertBytesTo2ByteInteger(integer a, integer b) returns integer
+    system action ConvertBytesTo2ByteUnsignedInteger(integer a, integer b) returns integer
+    system action ConvertBytesToInteger(integer a, integer b, integer c, integer d) returns integer
+    system action ConvertBytesFromUnsignedToSignedInteger(integer a, integer b, integer c, integer d) returns integer
+    system action ConvertBytesToNumberString(integer a, integer b, integer c, integer d, integer e, integer f, integer g, integer h) returns text
+end
