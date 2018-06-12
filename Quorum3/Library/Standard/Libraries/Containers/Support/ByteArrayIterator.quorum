@@ -101,8 +101,14 @@ class ByteArrayIterator
     end
 
     action NextTwoByteInteger returns integer
-        integer byte1 = array:Get(position)
-        integer byte2 = array:Get(position + 1)
+        integer byte1 = 0
+        integer byte2 = 0
+        if(position >= 0 and position < array:GetSize())
+            byte1 = array:Get(position)
+        end
+        if(position+1 >= 0 and position+1 < array:GetSize())
+            byte2 = array:Get(position+1)
+        end
         integer value = array:ConvertBytesTo2ByteInteger(byte1, byte2)
 
         position = position + 2
