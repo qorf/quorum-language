@@ -85,6 +85,11 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(m_pMenuItemControl->GetName());
 	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pMenuItemControl->GetDescription());
+	}
 	else if (propertyId == UIA_AcceleratorKeyPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -98,9 +103,8 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	// HasKeyboardFocus is true if the MenuBar has focus, and this MenuItem is selected.
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		bool hasFocus = (m_pMenuItemControl->GetParentMenuBar()->GetSelectedMenuItem() == m_pMenuItemControl) && (m_pMenuItemControl->GetParentMenuBar()->HasFocus());
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = hasFocus ? VARIANT_TRUE : VARIANT_FALSE;
+		pRetVal->boolVal = m_pMenuItemControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{

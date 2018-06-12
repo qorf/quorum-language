@@ -56,8 +56,7 @@ bool MenuControl::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 
 	if (pNewMenuItem != NULL)
 	{
-		// Set id field
-		pNewMenuItem->SetId(id);
+		// TODO: Unique Id must be changed when becoming a child of another control
 
 		// Add to MenuBar's collection
 		m_menuItemCollection.push_back(pNewMenuItem);

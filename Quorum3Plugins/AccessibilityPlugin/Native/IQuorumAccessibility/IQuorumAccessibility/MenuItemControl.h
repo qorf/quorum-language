@@ -3,14 +3,15 @@
 
 #include "CustomMessages.h"
 #include "MenuControl.h"
+#include "Item.h"
 
 class MenuItemProvider;
 class MenuBarControl;
 
-class MenuItemControl : public MenuControl
+class MenuItemControl : public MenuControl, public Item
 {
 public:
-	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem);
+	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
 	virtual ~MenuItemControl();
 
 	MenuBarControl* GetParentMenuBar();
@@ -19,12 +20,13 @@ public:
 	MenuItemProvider* GetMenuItemProvider();
 	MenuControl* GetMenuControl();
 
-	WCHAR* GetName();
 	WCHAR* GetShortcut();
+	
 	ULONG GetId();
-	void SetId(ULONG id);
+
 	int GetMenuItemIndex();
 
+	bool HasFocus();
 private:
 
 	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
@@ -33,7 +35,6 @@ private:
 	// Where this MenuItem is located in the collection.
 	int m_myIndex = -1;
 
-	WCHAR* m_menuItemName;
 	WCHAR* m_shortcut;
 
 	// The provider for this MenuItem
@@ -47,6 +48,5 @@ private:
 	// If this is null then the MenuBar is the direct parent of this control.
 	MenuItemControl* m_pParentMenuItem;
 
-
-
+	void SetControlFocus(_In_ bool focused);
 };

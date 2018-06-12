@@ -10,9 +10,13 @@
 #include <iostream>
 
 
-MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem) 
-	: m_menuItemName(menuItemName), m_shortcut(menuItemShortcut), m_pParentMenuBar(NULL), m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL)
+MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
+	: m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar), m_pParentMenuItem(parentMenuItem),
+	  m_pMenuItemProvider(NULL), m_uniqueId(uniqueId)
 {
+	this->SetName(menuItemName);
+	this->SetDescription(L"");
+	this->m_ControlHWND = NULL;
 }
 
 MenuItemControl::~MenuItemControl()
@@ -53,25 +57,14 @@ MenuControl * MenuItemControl::GetMenuControl()
 	return menuControl;
 }
 
-WCHAR * MenuItemControl::GetName()
-{
-	return m_menuItemName;
-}
-
 WCHAR * MenuItemControl::GetShortcut()
 {
 	return m_shortcut;
 }
 
-
 ULONG MenuItemControl::GetId()
 {
 	return m_uniqueId;
-}
-
-void MenuItemControl::SetId(ULONG id)
-{
-	m_uniqueId = id;
 }
 
 int MenuItemControl::GetMenuItemIndex()
@@ -92,4 +85,15 @@ int MenuItemControl::GetMenuItemIndex()
 	return m_myIndex;
 	
 }
+
+bool MenuItemControl::HasFocus()
+{
+	return (GetParentMenuBar()->GetSelectedMenuItem() == this) && (GetParentMenuBar()->HasFocus());
+}
+
+void MenuItemControl::SetControlFocus(bool focused)
+{
+}
+
+
 

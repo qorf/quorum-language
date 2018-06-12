@@ -141,15 +141,15 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 			pRetVal->vt = VT_BSTR;
 		}
 	}
-	/*else if (propertyId == UIA_HelpTextPropertyId)
-	{
-	pRetVal->vt = VT_BSTR;
-	pRetVal->bstrVal = SysAllocString(L" What do you want from me?");
-	}*/
 	else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetName());
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetDescription());
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{

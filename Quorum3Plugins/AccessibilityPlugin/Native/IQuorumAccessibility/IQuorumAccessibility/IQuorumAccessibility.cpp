@@ -110,14 +110,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND itemControlHandle;
-
-	itemControlHandle = ItemControl::Create(GetModuleHandle(NULL), wItemName, wDescription);
+	ItemControl* pItemControl = ItemControl::Create(GetModuleHandle(NULL), wItemName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(itemControlHandle);
+	return PtrToLong(pItemControl);
 
 }
 
@@ -132,15 +130,14 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
+	ButtonControl* pButtonControl;
 
-	HWND buttonControlHandle;
-
-	buttonControlHandle = ButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
+	pButtonControl = ButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
 
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(buttonControlHandle);
+	return PtrToLong(pButtonControl);
 
 }
 
@@ -154,14 +151,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wTogglebuttonName = CreateWideStringFromUTF8Win32(nativeTogglebuttonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND checkBoxControlHandle;
-
-	checkBoxControlHandle = CheckBoxControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
+	CheckBoxControl* pCheckBoxControl = CheckBoxControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(checkBoxControlHandle);
+	return PtrToLong(pCheckBoxControl);
 
 }
 
@@ -175,14 +170,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wRadiobuttonName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND radiobuttonControlHandle;
-
-	radiobuttonControlHandle = RadioButtonControl::Create(GetModuleHandle(NULL), wRadiobuttonName, wDescription);
+	RadioButtonControl* pRadiobuttonControl = RadioButtonControl::Create(GetModuleHandle(NULL), wRadiobuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(radiobuttonControlHandle);
+	return PtrToLong(pRadiobuttonControl);
 
 }
 
@@ -196,24 +189,14 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-	//WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeFullText);
 
-	//EndPoint caret = EndPoint(caretLine, caretCharacter);
-	
-	//TextLine line[] = { wCurrentLineText };
-	//TextLine line[] = { { L"Hello world!", 12 }, };
-
-	//DWORD threadID = GetCurrentThreadId();
-
-	//std::cout << "NativeWin32CreateTextBox Thread ID: " << threadID << std::endl;
-
-	HWND textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
+	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 	env->ReleaseStringUTFChars(fullText, nativeFullText);
 
-	return PtrToLong(textboxControlHandle);
+	return PtrToLong(pTextboxControl);
 
 }
 
@@ -222,11 +205,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
 	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
 
-	HWND menuBarControl = MenuBarControl::Create(GetModuleHandle(NULL), wMenuBarName);
+	MenuBarControl* pMenuBarControl = MenuBarControl::Create(GetModuleHandle(NULL), wMenuBarName);
 
 	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
 
-	return PtrToLong(menuBarControl);
+	return PtrToLong(pMenuBarControl);
 }
 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateMenuItem(JNIEnv * env, jobject obj, jstring menuItemName, jstring menuShortcut, jlong parentMenu, jlong parentMenuBar)
@@ -237,16 +220,16 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wMenuItemName = CreateWideStringFromUTF8Win32(nativeMenuItemName);
 	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
 
-	HWND menuBar = (HWND)parentMenuBar;
+	MenuBarControl* pMenuBar = static_cast<MenuBarControl*>(LongToPtr((long)parentMenuBar));
 	
 	MenuItemControl* parentMenuItem = NULL;
 	
-	if ((long)parentMenu != 0)
+	if ((long)parentMenu != NULL)
 		parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
 	
-	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, parentMenuItem);
+	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar);
 
-	SendMessage(menuBar, QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
+	SendMessage(pMenuBar->GetHWND(), QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
 
 	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
@@ -269,10 +252,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 }
 
-
 #pragma endregion
-
-
 
 /* ==============================
 *	This section of code contains the
@@ -282,21 +262,23 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // ============================== */
 #pragma region Send A Message
 
-// NativeWin32SetFocus: This function will send a message to the window procedure for the given jlongHWND to set focus. Each window procedure may handle that message differently but in general a window procedure will raise
-//						a UI Automation Focus Changed event that triggers the screen reader to announce that the focus has changed. This function does not and should not change the keyboard focus to the given jlongHWND. If it does
-//						then it will take keyboard control away from the main GLFW window that Quorum uses to get keyboard events from. There is no known way to give it back to the main GLFW window once the keyboard focus has been moved from it.
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong jlongHWND)
+// NativeWin32SetFocus: This function will send a message to the window procedure for the control to change focus to that control. This function can only be called
+//						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong control)
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	HWND control = (HWND)jlongHWND;
-
-	// Sends the appropriate messages to all windows.
-	SetFocus(control);
-
-
-	return PtrToLong(control);
+	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
+	
+	if (pControl != NULL && pControl->GetHWND() != NULL)
+	{
+		// Sends the appropriate messages to all windows.
+		HWND prevFocus = SetFocus(pControl->GetHWND());
+		return PtrToLong(prevFocus);
+	}
+	
+	return NULL;
 }
 
 // NativeWin32TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
@@ -319,59 +301,65 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	SendMessage((HWND)textboxHWND, QUORUM_UPDATECARET, 0, (LPARAM)&caret);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);*/
-	std::cout << "NativeWin32TextBoxTextSelectionChanged is being reworked. Use NativeWin32UpdateCaretPosition instead." << std::endl;
+	std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
 }
 
 // NativeWin32UpdateCaretPosition:
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring fullText, jint caretIndex)
 {
+	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	UNREFERENCED_PARAMETER(textboxHWND);
 	UNREFERENCED_PARAMETER(fullText);
 	UNREFERENCED_PARAMETER(caretIndex);
 
-	HWND control = (HWND)textboxHWND;
+	/*HWND control = (HWND)textboxHWND;
 
 	const char *nativeFullText = env->GetStringUTFChars(fullText, 0);
 
 	SendMessage(control, QUORUM_UPDATECARET, (int)caretIndex, (LPARAM)nativeFullText);
 
-	env->ReleaseStringUTFChars(fullText, nativeFullText);
+	env->ReleaseStringUTFChars(fullText, nativeFullText);*/
+	std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
 }
 
 // NativeWin32InvokeButton: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InvokeButton(JNIEnv *env, jobject obj, jlong jlongHWND)
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InvokeButton(JNIEnv *env, jobject obj, jlong control)
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
-	HWND control = (HWND)jlongHWND;
+	
+	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
 
-	SendMessage(control, QUORUM_INVOKEBUTTON, 0, 0);
-
-	return PtrToLong(control);
+	if (pControl != NULL && pControl->GetHWND() != NULL)
+	{
+		SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, 0, 0);
+		return true;
+	}
+	
+	return false;
 }
 
 // NativeWin32UpdateToggleStatus: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateToggleStatus(JNIEnv *env, jobject obj, jlong jlongHWND, jboolean selected)
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateToggleStatus(JNIEnv *env, jobject obj, jlong control, jboolean selected)
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	HWND control = (HWND)jlongHWND;
+	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
 
 	bool nativeSelected = (bool)selected;
 
-	if (nativeSelected)
+	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
-		SendMessage(control, QUORUM_INVOKEBUTTON, true, 0);
+		if (nativeSelected)
+			SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, true, 0);
+		else
+			SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, false, 0);
 		return true;
 	}
-	else
-	{
-		SendMessage(control, QUORUM_INVOKEBUTTON, false, 0);
-		return true;
-	}
-
+	
+	return false;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SelectMenuItem(JNIEnv * env, jobject obj, jlong selectedMenuItem)

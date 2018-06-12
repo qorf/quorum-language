@@ -9,9 +9,9 @@ bool CheckBoxControl::Initialized = false;
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl() : m_buttonProvider(NULL), m_buttonName(L"Check Box"), m_toggleState(ToggleState_Off)
+CheckBoxControl::CheckBoxControl() : m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
 {
-	// Nothing to do here.
+	m_ControlHWND = NULL; // Must be set in Static WndProc function.
 }
 
 // ~CheckBoxControl: Release the reference to the CheckBoxProvider if there is one.
@@ -33,12 +33,6 @@ CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
-}
-
-// GetHWND: Get the HWND associated with this control.
-HWND CheckBoxControl::GetHWND()
-{
-	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
@@ -95,9 +89,8 @@ bool CheckBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
-	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);
@@ -120,7 +113,7 @@ HWND CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _I
 			instance,
 			static_cast<PVOID>(control));
 
-		if (control->m_buttonControlHWND == 0)
+		if (control->m_ControlHWND == NULL)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -138,33 +131,21 @@ HWND CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _I
 		else
 		{
 			control->SetName(buttonName);
-			return control->m_buttonControlHWND;
+			control->SetDescription(buttonDescription);
+			return control;
 		}
 	}
 
-	return 0; // Indicates failure to create window.
+	return NULL; // Indicates failure to create window.
 
 }
 
-WCHAR* CheckBoxControl::GetName()
-{
-	return m_buttonName;
-}
 
-void CheckBoxControl::SetName(_In_ WCHAR* name)
+void CheckBoxControl::SetControlFocus(_In_ bool focused)
 {
-	m_buttonName = name;
-}
-
-void CheckBoxControl::SetControlFocus()
-{
-	m_focused = true;
-	m_buttonProvider->NotifyFocusGained();
-}
-
-void CheckBoxControl::KillControlFocus()
-{
-	m_focused = false;
+	m_focused = focused;
+	if (focused)
+		m_buttonProvider->NotifyFocusGained();
 }
 
 bool CheckBoxControl::HasFocus()
@@ -191,7 +172,7 @@ LRESULT CheckBoxControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _In_ U
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<CheckBoxControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_buttonControlHWND = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -221,7 +202,7 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
 		}
 
 		break;
@@ -232,12 +213,12 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus();
+		this->SetControlFocus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->KillControlFocus();
+		this->SetControlFocus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

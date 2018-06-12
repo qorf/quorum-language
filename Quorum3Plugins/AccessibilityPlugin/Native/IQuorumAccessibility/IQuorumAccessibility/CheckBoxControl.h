@@ -1,26 +1,23 @@
 #include <windows.h>
 #include <UIAutomation.h>
-#include "CustomMessages.h"
 
+#include "CustomMessages.h"
+#include "Item.h"
 
 class CheckBoxProvider;
 
-class CheckBoxControl
+class CheckBoxControl : public Item
 {
 public:
 	CheckBoxControl();
 	virtual ~CheckBoxControl();
 
-	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static CheckBoxControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	CheckBoxProvider* GetButtonProvider(_In_ HWND hwnd);
-	HWND GetHWND();
-
+	
 	void InvokeButton(_In_ HWND hwnd);
-	
-	WCHAR* GetName();
-	void SetName(_In_ WCHAR* name);
-	
+
 	void SetState(_In_ ToggleState controlState);
 	ToggleState GetState();
 
@@ -33,13 +30,11 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus();
-	void KillControlFocus();
+	void SetControlFocus(_In_ bool focused);
 
 	bool m_focused;
+
 	ToggleState m_toggleState;
-	WCHAR* m_buttonName;
-	HWND m_buttonControlHWND;
 	CheckBoxProvider* m_buttonProvider;
 
 };

@@ -9,8 +9,9 @@ bool ItemControl::Initialized = false;
 
 /**** ItemControl methods ***/
 
-ItemControl::ItemControl() : m_pItemProvider(NULL), m_pItemName(L"Item")
+ItemControl::ItemControl() : m_pItemProvider(NULL), m_focused(false)
 {
+	m_ControlHWND = NULL; // Must be set in Static WndProc function
 }
 
 ItemControl::~ItemControl()
@@ -66,7 +67,7 @@ bool ItemControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
+ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
 	UNREFERENCED_PARAMETER(itemDescription);
 	if (!Initialized)
@@ -91,7 +92,7 @@ HWND ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCH
 			instance,
 			static_cast<PVOID>(control));
 
-		if (control->m_ItemHWND == 0)
+		if (control->m_ControlHWND == 0)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -109,33 +110,20 @@ HWND ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCH
 		else
 		{
 			control->SetName(itemName);
-			return control->m_ItemHWND;
+			return control;
 		}
 	}
 
-	return 0; // Indicates failure to create window.
+	return NULL; // Indicates failure to create window.
 
 }
 
-WCHAR* ItemControl::GetName()
+void ItemControl::SetControlFocus(bool focused)
 {
-	return m_pItemName;
-}
+	m_focused = focused;
+	if (focused)
+		this->m_pItemProvider->NotifyFocusGained();
 
-void ItemControl::SetName(_In_ WCHAR* name)
-{
-	m_pItemName = name;
-}
-
-void ItemControl::SetControlFocus()
-{
-	m_focused = true;
-	this->m_pItemProvider->NotifyFocusGained();
-}
-
-void ItemControl::KillControlFocus()
-{
-	m_focused = false;
 }
 
 bool ItemControl::HasFocus()
@@ -151,7 +139,7 @@ LRESULT ItemControl::StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<ItemControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_ItemHWND = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -181,7 +169,7 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetItemProvider(this->m_ItemHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetItemProvider(GetHWND()));
 		}
 		break;
 	}
@@ -191,12 +179,12 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus();
+		this->SetControlFocus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->KillControlFocus();
+		this->SetControlFocus(false);
 		break;
 	}
 	case QUORUM_SETNAME:

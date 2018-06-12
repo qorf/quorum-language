@@ -1,5 +1,4 @@
 #include <string>
-#include <windowsx.h>
 #include <iostream>
 
 #include "RadioButtonControl.h"
@@ -10,9 +9,9 @@ bool RadioButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Radio Button"), m_isOn(false)
+RadioButtonControl::RadioButtonControl() : m_buttonProvider(NULL), m_focused(false), m_isOn(false)
 {
-	// Nothing to do here.
+	m_ControlHWND = NULL; // Must be set in the Static WndProc
 }
 
 // ~RadioButtonControl: Release the reference to the RadioButtonProvider if there is one.
@@ -34,12 +33,6 @@ RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
-}
-
-// GetHWND: Get the HWND associated with this control.
-HWND RadioButtonControl::GetHWND()
-{
-	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
@@ -89,7 +82,7 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	UNREFERENCED_PARAMETER(buttonDescription);
 
@@ -115,7 +108,7 @@ HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName,
 			instance,
 			static_cast<PVOID>(control));
 
-		if (control->m_buttonControlHWND == 0)
+		if (control->m_ControlHWND == NULL)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -133,22 +126,13 @@ HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName,
 		else
 		{
 			control->SetName(buttonName);
-			return control->m_buttonControlHWND;
+			control->SetDescription(buttonDescription);
+			return control;
 		}
 	}
 
-	return 0; // Indicates failure to create window.
+	return NULL; // Indicates failure to create window.
 
-}
-
-WCHAR* RadioButtonControl::GetName()
-{
-	return m_buttonName;
-}
-
-void RadioButtonControl::SetName(_In_ WCHAR* name)
-{
-	m_buttonName = name;
 }
 
 void RadioButtonControl::SetState(_In_ bool controlState)
@@ -168,22 +152,17 @@ bool RadioButtonControl::GetState()
 	return m_isOn;
 }
 
-void RadioButtonControl::SetControlFocus()
+void RadioButtonControl::SetControlFocus(_In_ bool focused)
 {
-	m_focused = true;
-	m_buttonProvider->NotifyFocusGained();
-}
-
-void RadioButtonControl::KillControlFocus()
-{
-	m_focused = false;
+	m_focused = focused;
+	if (focused)
+		m_buttonProvider->NotifyFocusGained();
 }
 
 bool RadioButtonControl::HasFocus()
 {
 	return m_focused;
 }
-
 
 LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
@@ -193,7 +172,7 @@ LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 		pThis = reinterpret_cast<RadioButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_buttonControlHWND = hwnd;
+		pThis->m_ControlHWND = hwnd;
 	}
 
 	if (message == WM_NCDESTROY)
@@ -222,7 +201,7 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
 		}
 
 		break;
@@ -233,12 +212,12 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus();
+		this->SetControlFocus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->KillControlFocus();
+		this->SetControlFocus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

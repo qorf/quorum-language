@@ -6,8 +6,11 @@
 package plugins.quorum.Libraries.System;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,15 +38,34 @@ public class BinaryFileReader {
     
     public ByteArray_ ReadBytes() {
         ByteArray array = new ByteArray();
-        byte[] bytes;
+        byte[] bytes = FileToByteArray(file);
+        array.plugin_.setBytes(bytes);
+        
+        return array;
+    }
+    
+    public static byte[] FileToByteArray(java.io.File file) 
+    {
+        byte[] byteArray = null;
         try {
-            bytes = Files.readAllBytes(file.toPath());
-            array.plugin_.setBytes(bytes);
+            InputStream inputStream = new FileInputStream(file);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] bytes = new byte[1024*8];
+            int bytesRead = 0;
+            
+            while((bytesRead = inputStream.read(bytes)) != -1)
+            {
+                outputStream.write(bytes, 0, bytesRead);
+            }    
+            
+            byteArray = outputStream.toByteArray();
+            //bytes = Files.readAllBytes(file.toPath());
+            //array.plugin_.setBytes(bytes);
         } catch (IOException ex) {
             Logger.getLogger(BinaryFileReader.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        return array;
+        return byteArray;
     }
     
     public void OpenForReadNative(String path) throws FileNotFoundException {
