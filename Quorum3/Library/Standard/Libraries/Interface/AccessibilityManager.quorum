@@ -12,6 +12,7 @@ use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.MenuItem
 
 class AccessibilityManager 
 
@@ -21,19 +22,16 @@ class AccessibilityManager
     //           at the native level.
     private system action SetFocus(Item item) returns boolean
 
+    private system action Select(Item item) returns boolean
+
+    private system action Deselect(Item item) returns boolean
+
     // NativeAdd: Adds an Item to the accessibility hierarchy so the screen 
     //            readers can access information about it.
     private system action NativeAdd(Item item) returns boolean
     
-    // NativeAdd: Adds an Item to the accessibility heirarchy and sets it's parent
-    //            to an item already in the heirarchy if that parent is supported.
-    private system action NativeAdd(Item item, Item parentItem) returns boolean
-
     // NativeRemove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
     private system action NativeRemove(Item item) returns boolean
-
-    
-    private system action NativeRemove(Item item, Item parentItem) returns boolean
 
     // ===== actions for Buttons
     
@@ -60,7 +58,18 @@ class AccessibilityManager
         elseif selection is TabPaneSelection
             // Do TabPane things
         elseif selection is MenuSelection
-            // Do Menu things
+            MenuSelection menuSelection = cast(MenuSelection, selection)
+
+            if not menuSelection:IsEmpty()
+                Array<MenuItem> path = menuSelection:GetPath()
+
+                Item selectedMenuItem = path:Get(path:GetSize()-1)
+                
+                Select(selectedMenuItem)
+            else
+                // Deselect any native selection
+//                Deselect(currentSelection)
+            end
         elseif selection is TreeSelection
             // Do Tree things
         else
@@ -86,8 +95,8 @@ class AccessibilityManager
 
             // TODO: This section can be removed once everything is supported
             if item:GetAccessibilityCode() = item:BUTTON
-//                    or item:GetAccessibilityCode() = item:MENU_BAR
-//                    or item:GetAccessibilityCode() = item:MENU_ITEM
+                    or item:GetAccessibilityCode() = item:MENU_BAR
+                    or item:GetAccessibilityCode() = item:MENU_ITEM
 
                 output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 NativeAdd(item)
@@ -124,7 +133,41 @@ class AccessibilityManager
     end
 
     action Remove(Item item)
-        output "Removing item: " + item:GetName()
+
+        // If the item being removed has children then remove them first.
+        if item is Item2D
+            Item2D temp = cast(Item2D, item)
+            Array<Item2D> children = temp:GetChildren()
+            
+            integer counter = 0
+
+            repeat while counter < children:GetSize()
+                Remove(children:Get(counter))
+                counter = counter + 1
+            end
+
+        elseif item is Item3D
+            // TODO: Add support for Item3D
+        end
+
+        // Remove item from accessibility hierarchy if its accessibility type is supported.
+        // Otherwise, leave it for now.
+        if item:GetAccessibilityCode() not= item:ITEM
+
+            // TODO: This section can be removed once everything is supported
+            if  item:GetAccessibilityCode() = item:MENU_ITEM
+//                    or item:GetAccessibilityCode() = item:MENU_BAR
+//                    or item:GetAccessibilityCode() = item:BUTTON
+
+                output "Removing " + item:GetAccessibilityType() + ": " + item:GetName()
+                NativeRemove(item)
+            end
+            
+            // TODO: Once all GUI controls have been implemented properly then
+            //       remove the above if statment and uncomment this line.
+            //NativeRemove(item)
+        end
+
     end
 
     action MenuChanged(MenuChangeEvent event)

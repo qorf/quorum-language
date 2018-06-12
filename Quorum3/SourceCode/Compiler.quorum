@@ -807,11 +807,7 @@ class Compiler
         if not additionalJarFiles:IsEmpty()
             repeat while jars:HasNext()
                 File file = jars:Next()
-                if isFirst
-                    classpath = classpath + libraries + "/" + file:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
-                end
+                classpath = classpath + " " + libraries + "/" + file:GetFileName()
                 isFirst = false
             end
         end

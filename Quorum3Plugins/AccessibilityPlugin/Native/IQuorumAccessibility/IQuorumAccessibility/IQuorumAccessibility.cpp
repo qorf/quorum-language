@@ -239,7 +239,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND menuBar = (HWND)parentMenuBar;
 	
-	MenuItemControl* parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
+	MenuItemControl* parentMenuItem = NULL;
+	
+	if ((long)parentMenu != 0)
+		parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
+	
 	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, parentMenuItem);
 
 	SendMessage(menuBar, QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
@@ -251,6 +255,23 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 }
 
 #pragma endregion
+
+#pragma region Remove Accessible Object
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveMenuItem(JNIEnv * env, jobject obj, jlong menuItem)
+{
+	
+	MenuItemControl* menuItemToRemove = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+
+	MenuControl* menuControl = menuItemToRemove->GetMenuControl();
+
+	return menuControl->RemoveMenuItem(menuItemToRemove->GetMenuItemIndex());
+
+}
+
+
+#pragma endregion
+
 
 
 /* ==============================
@@ -351,6 +372,28 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		return true;
 	}
 
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SelectMenuItem(JNIEnv * env, jobject obj, jlong selectedMenuItem)
+{
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+	
+	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)selectedMenuItem));
+	
+	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(pMenuItem);
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32DeselectMenuItem(JNIEnv * env, jobject obj, jlong deselectedMenuItem)
+{
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
+	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)deselectedMenuItem));
+
+	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(NULL);
+	return true;
 }
 
 #pragma endregion

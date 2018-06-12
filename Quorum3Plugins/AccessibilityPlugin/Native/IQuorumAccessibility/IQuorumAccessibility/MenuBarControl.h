@@ -12,6 +12,7 @@ class MenuBarControl : public MenuControl
 {
 public:
 	MenuBarControl(_In_ WCHAR* menuBarName);
+	virtual ~MenuBarControl();
 
 	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* menuBarName);
 
@@ -27,7 +28,6 @@ public:
 	void SetSelectedMenuItem(_In_ MenuItemControl* selectedMenuItem);
 
 private:
-	virtual ~MenuBarControl();
 
 	static LRESULT CALLBACK StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);

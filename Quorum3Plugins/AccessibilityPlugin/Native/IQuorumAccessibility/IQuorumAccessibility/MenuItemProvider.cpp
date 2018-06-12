@@ -6,6 +6,7 @@
 #include "MenuItemProvider.h"
 #include "MenuItemControl.h"
 
+
 MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_pMenuItemControl(pControl)
 {
 }
@@ -84,6 +85,11 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(m_pMenuItemControl->GetName());
 	}
+	else if (propertyId == UIA_AcceleratorKeyPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pMenuItemControl->GetShortcut());
+	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
@@ -131,6 +137,8 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 {
 	IRawElementProviderFragment* pFragment = NULL;
 	MenuControl* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
+	MENUITEM_ITERATOR iter;
+	MenuItemControl* pMenuItem;
 
 	if (pMenuControl == NULL)
 		pMenuControl = m_pMenuItemControl->GetParentMenuBar();
@@ -139,15 +147,27 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	{
 	case NavigateDirection_Parent:
 	{
-		MenuItemControl* pParentMenuItem = m_pMenuItemControl->GetParentMenuItem();
-		if (pParentMenuItem != NULL)
+		pFragment = static_cast<IRawElementProviderFragment*>(this->GetParentProvider());
+		break;
+	}
+	case NavigateDirection_FirstChild:
+	{
+		if (m_pMenuItemControl->hasChildren())
 		{
-			pFragment = pParentMenuItem->GetMenuItemProvider();
+			iter = m_pMenuItemControl->GetMenuItemAt(0);
+			pMenuItem = static_cast<MenuItemControl*>(*iter);
+			pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
+
 		}
-		else
+		break;
+	}
+	case NavigateDirection_LastChild:
+	{
+		if (m_pMenuItemControl->hasChildren())
 		{
-			MenuBarControl* pMenuBar = m_pMenuItemControl->GetParentMenuBar();
-			pFragment = pMenuBar->GetMenuBarProvider();
+			iter = m_pMenuItemControl->GetMenuItemAt(m_pMenuItemControl->GetCount() - 1);
+			pMenuItem = static_cast<MenuItemControl*>(*iter);
+			pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
 		}
 		break;
 	}
@@ -249,11 +269,48 @@ void MenuItemProvider::NotifyMenuItemAdded()
 		UiaRaiseStructureChangedEvent(this, StructureChangeType_ChildAdded, NULL, 0);
 }
 
+// Raises an event when an item is removed from the list.
+// StructureType_ChildRemoved is unusual in that it is raised on the parent provider,
+// since the child provider may not exist anymore, but it uses the child's runtime ID.
+void MenuItemProvider::NotifyMenuItemRemoved()
+{
+	if (UiaClientsAreListening())
+	{
+		IRawElementProviderSimple* parentProvider = static_cast<IRawElementProviderSimple*>(this->GetParentProvider());
+		parentProvider->AddRef();
+
+		// Construct the runtime ID for the removed child
+		int id = m_pMenuItemControl->GetId();
+		int rId[] = { UiaAppendRuntimeId, id };
+
+		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, 2);
+	}
+}
+
 // Raises a UIA Event when an item is selected.
 void MenuItemProvider::NotifyElementSelected()
 {
 	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
 	}
+}
+
+IUnknown* MenuItemProvider::GetParentProvider()
+{
+	IRawElementProviderSimple* parentProvider;
+
+	MenuItemControl* pParentMenuItem = m_pMenuItemControl->GetParentMenuItem();
+	if (pParentMenuItem != NULL)
+	{
+		parentProvider = pParentMenuItem->GetMenuItemProvider();
+	}
+	else
+	{
+		MenuBarControl* pMenuBar = m_pMenuItemControl->GetParentMenuBar();
+		parentProvider = pMenuBar->GetMenuBarProvider();
+	}
+
+	return static_cast<IUnknown*>(parentProvider);
 }

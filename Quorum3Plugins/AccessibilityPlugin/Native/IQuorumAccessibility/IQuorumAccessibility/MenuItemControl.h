@@ -11,19 +11,21 @@ class MenuItemControl : public MenuControl
 {
 public:
 	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem);
+	virtual ~MenuItemControl();
 
 	MenuBarControl* GetParentMenuBar();
 	void SetParentMenuBar(_In_ MenuBarControl* menuBar);
 	MenuItemControl* GetParentMenuItem();
 	MenuItemProvider* GetMenuItemProvider();
+	MenuControl* GetMenuControl();
 
 	WCHAR* GetName();
+	WCHAR* GetShortcut();
 	ULONG GetId();
 	void SetId(ULONG id);
 	int GetMenuItemIndex();
 
 private:
-	virtual ~MenuItemControl();
 
 	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
 	ULONG m_uniqueId;

@@ -11,7 +11,11 @@
 
 
 MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ MenuItemControl* parentMenuItem) 
-	: m_menuItemName(menuItemName), m_shortcut(menuItemShortcut), m_pParentMenuBar(NULL), m_pParentMenuItem(parentMenuItem)
+	: m_menuItemName(menuItemName), m_shortcut(menuItemShortcut), m_pParentMenuBar(NULL), m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL)
+{
+}
+
+MenuItemControl::~MenuItemControl()
 {
 }
 
@@ -40,10 +44,25 @@ MenuItemProvider * MenuItemControl::GetMenuItemProvider()
 	return m_pMenuItemProvider;
 }
 
+MenuControl * MenuItemControl::GetMenuControl()
+{
+	MenuControl* menuControl = GetParentMenuItem();
+	if (menuControl == NULL)
+		menuControl = GetParentMenuBar();
+
+	return menuControl;
+}
+
 WCHAR * MenuItemControl::GetName()
 {
-	return nullptr;
+	return m_menuItemName;
 }
+
+WCHAR * MenuItemControl::GetShortcut()
+{
+	return m_shortcut;
+}
+
 
 ULONG MenuItemControl::GetId()
 {
@@ -57,31 +76,20 @@ void MenuItemControl::SetId(ULONG id)
 
 int MenuItemControl::GetMenuItemIndex()
 {
-	if (m_myIndex < 0)
-	{
-		MenuControl* pMenuControl;
-
-		if (m_pParentMenuItem != NULL)
-			pMenuControl = m_pParentMenuItem;
-		else
-			pMenuControl = m_pParentMenuBar;
+	MenuControl* pMenuControl = GetMenuControl();
 		
-		for (int i = 0; i < pMenuControl->GetCount(); i++)
+	for (int i = 0; i < pMenuControl->GetCount(); i++)
+	{
+		MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
+		MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
+		if (pMenuItem == this)
 		{
-			MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
-			MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
-			if (pMenuItem == this)
-			{
-				m_myIndex = i;
-				break;
-			}
+			m_myIndex = i;
+			break;
 		}
 	}
-
+	
 	return m_myIndex;
 	
 }
 
-MenuItemControl::~MenuItemControl()
-{
-}
