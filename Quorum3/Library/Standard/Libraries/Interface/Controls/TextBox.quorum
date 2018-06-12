@@ -138,6 +138,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     integer verticalMode = VISIBLE_IF_NEEDED
     integer horizontalMode = VISIBLE_IF_NEEDED
 
+    integer leftCharacterPadding = 9
     /*
     Values used for when the control is dragged along the scroll track.
     */
@@ -190,6 +191,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         selectionColor:SetColor(0.75, 0.75, 1, 1)
         SetAccessibilityCode(parent:Item:TEXTBOX)
+    end
+
+    action GetLeftCharacterPadding returns integer
+        return leftCharacterPadding
+    end
+
+    action SetLeftCharacterPadding(integer padding)
+        leftCharacterPadding = padding
     end
 
     action Initialize(number width, number height, Color backgroundColor, text value)
@@ -303,7 +312,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
             Array<Drawable> drawables
             integer characterCounter = 0
-            number x = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
+            number x = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
             repeat size times
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
@@ -400,8 +409,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             counter = counter + 1
         end
 
-        caret:SetPosition(x + horizontalOffset, GetHeight() - lineOffset - font:GetLineHeight() / 4)
-        return x
+        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset - font:GetLineHeight() / 4)
+        return x + leftCharacterPadding
     end
 
     action GoToLine(number line)
@@ -1229,7 +1238,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             counter = counter + 1
         end
 
-        scrollRegionWidth = width
+        scrollRegionWidth = width + leftCharacterPadding
     end
 
     private action GetLineWidth(integer index) returns number
