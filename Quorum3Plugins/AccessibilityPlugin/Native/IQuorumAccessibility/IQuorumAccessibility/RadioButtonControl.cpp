@@ -9,9 +9,8 @@ bool RadioButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl() : m_buttonProvider(NULL), m_focused(false), m_isOn(false)
+RadioButtonControl::RadioButtonControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false), m_isOn(false)
 {
-	m_ControlHWND = NULL; // Must be set in the Static WndProc
 }
 
 // ~RadioButtonControl: Release the reference to the RadioButtonProvider if there is one.
@@ -84,8 +83,6 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 
 RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
-	UNREFERENCED_PARAMETER(buttonDescription);
-
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);
@@ -93,7 +90,7 @@ RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCH
 
 	if (Initialized)
 	{
-		RadioButtonControl * control = new RadioButtonControl();
+		RadioButtonControl * control = new RadioButtonControl(buttonName, buttonDescription);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_RADIOBUTTON",
@@ -124,11 +121,7 @@ RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCH
 			LocalFree(messageBuffer);
 		}
 		else
-		{
-			control->SetName(buttonName);
-			control->SetDescription(buttonDescription);
 			return control;
-		}
 	}
 
 	return NULL; // Indicates failure to create window.

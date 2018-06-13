@@ -179,6 +179,9 @@ public class AccessibilityManager
         long nativePointer;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         
+        if (ITEM_MAP.get(item) != null)
+            return true;
+
         switch(code)
         {
             case ITEM:
@@ -236,29 +239,30 @@ public class AccessibilityManager
     
     public boolean NativeRemove(Item_ item)
     {
-        Long itemToRemove;
-        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        boolean wasRemoved;
-        
-        switch(code)
-        {
-            case MENU_ITEM:
-
-                // Retreive native pointer for given object
-                itemToRemove = ITEM_MAP.get(item);
-                
-                wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
-                
-                if (wasRemoved)
-                    ITEM_MAP.remove(item);
-                
-                break;
-            default:
-                wasRemoved = false;
-        }
-        
-        
-        return wasRemoved;
+//        Long itemToRemove;
+//        AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
+//        boolean wasRemoved;
+//        
+//        switch(code)
+//        {
+//            case MENU_ITEM:
+//
+//                // Retreive native pointer for given object
+//                itemToRemove = ITEM_MAP.get(item);
+//                
+//                wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
+//                
+//                if (wasRemoved)
+//                    ITEM_MAP.remove(item);
+//                
+//                break;
+//            default:
+//                wasRemoved = false;
+//        }
+//        
+//        
+//        return wasRemoved;
+        return true;
     }
     
     public boolean Select(Item_ item)

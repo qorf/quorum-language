@@ -66,7 +66,7 @@ class TextBoxProvider;
 class TextBoxControl : public Item
 {
 	public:
-		TextBoxControl(_In_ const char* lines, _In_ int caretIndex);
+		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ const char* lines, _In_ int caretIndex);
 
 		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
 

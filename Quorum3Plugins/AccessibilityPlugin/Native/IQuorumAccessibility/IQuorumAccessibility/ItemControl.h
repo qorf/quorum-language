@@ -10,7 +10,7 @@ class ItemProvider;
 class ItemControl : public Item
 {
 public:
-	ItemControl();
+	ItemControl(_In_ WCHAR* name, _In_ WCHAR* description);
 	virtual ~ItemControl();
 	ItemProvider* GetItemProvider(_In_ HWND hwnd);
 

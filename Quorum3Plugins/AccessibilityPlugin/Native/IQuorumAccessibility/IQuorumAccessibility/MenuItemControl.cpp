@@ -5,18 +5,16 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
+
 // For error reporting
 #include <string>
 #include <iostream>
 
 
-MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
-	: m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar), m_pParentMenuItem(parentMenuItem),
-	  m_pMenuItemProvider(NULL), m_uniqueId(uniqueId)
+MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
+	: Item(menuItemName, L""), m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar),
+	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_uniqueId(uniqueId)
 {
-	this->SetName(menuItemName);
-	this->SetDescription(L"");
-	this->m_ControlHWND = NULL;
 }
 
 MenuItemControl::~MenuItemControl()
@@ -91,7 +89,7 @@ bool MenuItemControl::HasFocus()
 	return (GetParentMenuBar()->GetSelectedMenuItem() == this) && (GetParentMenuBar()->HasFocus());
 }
 
-void MenuItemControl::SetControlFocus(bool focused)
+void MenuItemControl::SetControlFocus(_In_ bool focused)
 {
 }
 

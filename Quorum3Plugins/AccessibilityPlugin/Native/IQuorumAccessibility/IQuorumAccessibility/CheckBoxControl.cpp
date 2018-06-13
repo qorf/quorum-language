@@ -9,9 +9,8 @@ bool CheckBoxControl::Initialized = false;
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl() : m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
+CheckBoxControl::CheckBoxControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
 {
-	m_ControlHWND = NULL; // Must be set in Static WndProc function.
 }
 
 // ~CheckBoxControl: Release the reference to the CheckBoxProvider if there is one.
@@ -98,7 +97,7 @@ CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* bu
 
 	if (Initialized)
 	{
-		CheckBoxControl * control = new CheckBoxControl();
+		CheckBoxControl * control = new CheckBoxControl(buttonName, buttonDescription);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_CHECKBOX",
@@ -129,11 +128,7 @@ CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* bu
 			LocalFree(messageBuffer);
 		}
 		else
-		{
-			control->SetName(buttonName);
-			control->SetDescription(buttonDescription);
 			return control;
-		}
 	}
 
 	return NULL; // Indicates failure to create window.

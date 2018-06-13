@@ -380,7 +380,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)deselectedMenuItem));
 
-	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(NULL);
+	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
 	return true;
 }
 

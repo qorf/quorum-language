@@ -10,9 +10,8 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_focused(false)
+ButtonControl::ButtonControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false)
 {
-	m_ControlHWND = NULL; // Must be set in the Static WndProc
 }
 
 // ~ButtonControl: Release the reference to the ButtonProvider if there is one.
@@ -92,7 +91,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 
 	if (Initialized)
 	{
-		ButtonControl * control = new ButtonControl();
+		ButtonControl* control = new ButtonControl(buttonName, buttonDescription);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_BUTTON",
@@ -123,18 +122,14 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 			LocalFree(messageBuffer);
 		}
 		else
-		{
-			control->SetName(buttonName);
-			control->SetDescription(buttonDescription);
 			return control;
-		}
 	}
 
 	return NULL; // Indicates failure to create window.
 
 }
 
-void ButtonControl::SetControlFocus(bool focused)
+void ButtonControl::SetControlFocus(_In_ bool focused)
 {
 	m_focused = focused;
 	if (focused)

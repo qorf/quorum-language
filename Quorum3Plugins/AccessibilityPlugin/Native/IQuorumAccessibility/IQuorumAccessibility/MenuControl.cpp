@@ -19,7 +19,7 @@ bool MenuControl::RemoveMenuItem(_In_ int index)
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItemToRemove);
 	
 	if (pMenuItem->GetParentMenuBar()->GetSelectedMenuItem() == pMenuItem)
-		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(NULL);
+		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
 
 	// Raise a UIA event
 	MenuItemProvider* pMenuItemProvider = pMenuItem->GetMenuItemProvider();

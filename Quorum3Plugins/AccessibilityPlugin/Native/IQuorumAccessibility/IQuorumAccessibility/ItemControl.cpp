@@ -9,9 +9,9 @@ bool ItemControl::Initialized = false;
 
 /**** ItemControl methods ***/
 
-ItemControl::ItemControl() : m_pItemProvider(NULL), m_focused(false)
+ItemControl::ItemControl(_In_ WCHAR* name, _In_ WCHAR* description) 
+	: Item(name, description), m_pItemProvider(NULL), m_focused(false)
 {
-	m_ControlHWND = NULL; // Must be set in Static WndProc function
 }
 
 ItemControl::~ItemControl()
@@ -69,7 +69,6 @@ bool ItemControl::Initialize(_In_ HINSTANCE hInstance)
 
 ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
-	UNREFERENCED_PARAMETER(itemDescription);
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);
@@ -77,7 +76,7 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, 
 
 	if (Initialized)
 	{
-		ItemControl * control = new ItemControl();
+		ItemControl * control = new ItemControl(itemName, itemDescription);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_ITEM",
@@ -109,7 +108,6 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, 
 		}
 		else
 		{
-			control->SetName(itemName);
 			return control;
 		}
 	}
@@ -118,7 +116,7 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, 
 
 }
 
-void ItemControl::SetControlFocus(bool focused)
+void ItemControl::SetControlFocus(_In_ bool focused)
 {
 	m_focused = focused;
 	if (focused)

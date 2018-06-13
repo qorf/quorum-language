@@ -20,7 +20,7 @@ public:
 	MenuBarProvider* GetMenuBarProvider();
 
 	MenuItemControl* GetSelectedMenuItem();
-	void SetSelectedMenuItem(_In_ MenuItemControl* selectedMenuItem);
+	void SetSelectedMenuItem(_In_opt_ MenuItemControl* selectedMenuItem);
 
 	bool HasFocus();
 private:

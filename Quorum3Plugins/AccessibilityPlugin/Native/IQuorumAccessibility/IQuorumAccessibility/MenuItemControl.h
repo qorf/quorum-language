@@ -11,7 +11,7 @@ class MenuBarControl;
 class MenuItemControl : public MenuControl, public Item
 {
 public:
-	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
+	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
 	virtual ~MenuItemControl();
 
 	MenuBarControl* GetParentMenuBar();
@@ -27,6 +27,7 @@ public:
 	int GetMenuItemIndex();
 
 	bool HasFocus();
+
 private:
 
 	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
