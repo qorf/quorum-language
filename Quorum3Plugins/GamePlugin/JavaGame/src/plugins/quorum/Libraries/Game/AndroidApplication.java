@@ -388,9 +388,24 @@ public class AndroidApplication
     
     public static byte[] QuorumFileToBytes(File_ quorumFile)
     {
+        return AssetAsBytes(quorumFile.GetPath());
+    }
+    
+    public static InputStream QuorumFileToInputStream(File_ quorumFile)
+    {
+        return AssetAsInputStream(quorumFile.GetPath());
+    }
+    
+    public static AssetFileDescriptor QuorumFileToAssetFileDescriptor(File_ quorumFile)
+    {
+        return AssetAsAssetFileDescriptor(quorumFile.GetPath());
+    }
+    
+    public static byte[] AssetAsBytes(String assetName)
+    {
         try
         {
-            InputStream stream = androidActivity.getAssets().open(quorumFile.GetPath());
+            InputStream stream = androidActivity.getAssets().open(assetName);
             byte[] bytes = new byte[stream.available()];
             stream.read(bytes);
             stream.close();
@@ -398,31 +413,31 @@ public class AndroidApplication
         }
         catch (IOException e)
         {
-            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
         }
     }
     
-    public static InputStream QuorumFileToInputStream(File_ quorumFile)
+    public static InputStream AssetAsInputStream(String assetName)
     {
         try
         {
-            return androidActivity.getAssets().open(quorumFile.GetPath());
+            return androidActivity.getAssets().open(assetName);
         }
         catch (IOException e)
         {
-            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
         }
     }
     
-    public static AssetFileDescriptor QuorumFileToAssetFileDescriptor(File_ quorumFile)
+    public static AssetFileDescriptor AssetAsAssetFileDescriptor(String assetName)
     {
         try
         {
-            return GetActivity().getAssets().openFd(quorumFile.GetPath());
+            return GetActivity().getAssets().openFd(assetName);
         }
         catch (IOException e)
         {
-            throw new GameRuntimeError("I couldn't load this file: " + quorumFile.GetPath());
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
         }
     }
     
