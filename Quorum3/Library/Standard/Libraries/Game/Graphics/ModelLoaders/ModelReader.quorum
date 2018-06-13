@@ -1,7 +1,9 @@
 package Libraries.Game.Graphics.ModelLoaders
 
 use Libraries.Data.Formats.SeparatedValueFileReader
+use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.FileReader
+use Libraries.System.AndroidAssetReader
 use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Model
@@ -67,7 +69,7 @@ class ModelReader
 
     private action ReadWavefrontObject(File file) returns ModelBlueprint
         WavefrontConverterListener listener
-        FileReader reader
+        FileReaderBlueprint reader = GetFileReader()
 
         reader:OpenForRead(file)
         repeat while not reader:IsAtEndOfFile()
@@ -93,7 +95,7 @@ class ModelReader
             MaterialConverterListener materialListener
 
             //setup the file
-            FileReader materialReader
+            FileReaderBlueprint materialReader = GetFileReader()
             File materialFile
             File parentDirectory = file:GetParentDirectory()
             materialFile:SetWorkingDirectory(parentDirectory:GetWorkingDirectory())
@@ -409,4 +411,14 @@ class ModelReader
         end
     end
     
+    private action GetFileReader returns FileReaderBlueprint
+        GameStateManager manager
+        if manager:GetOperatingSystem():Contains("Android")
+            AndroidAssetReader androidReader
+            return androidReader
+        else
+            FileReader fileReader
+            return fileReader
+        end
+    end
 end
