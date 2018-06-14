@@ -110,7 +110,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	ItemControl* pItemControl = ItemControl::Create(GetModuleHandle(NULL), wItemName, wDescription);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	ItemControl* pItemControl = ItemControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wItemName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -132,7 +134,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	ButtonControl* pButtonControl;
 
-	pButtonControl = ButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	pButtonControl = ButtonControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wButtonName, wDescription);
 
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -151,7 +155,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wTogglebuttonName = CreateWideStringFromUTF8Win32(nativeTogglebuttonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	CheckBoxControl* pCheckBoxControl = CheckBoxControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	CheckBoxControl* pCheckBoxControl = CheckBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTogglebuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -170,7 +176,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wRadiobuttonName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	RadioButtonControl* pRadiobuttonControl = RadioButtonControl::Create(GetModuleHandle(NULL), wRadiobuttonName, wDescription);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	RadioButtonControl* pRadiobuttonControl = RadioButtonControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wRadiobuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -190,7 +198,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -205,7 +215,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
 	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
 
-	MenuBarControl* pMenuBarControl = MenuBarControl::Create(GetModuleHandle(NULL), wMenuBarName);
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	MenuBarControl* pMenuBarControl = MenuBarControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wMenuBarName);
 
 	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
 
@@ -241,12 +253,22 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 #pragma region Remove Accessible Object
 
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveItem(JNIEnv * env, jobject obj, jlong item)
+{
+	ItemControl* itemToRemove = static_cast<ItemControl*>(LongToPtr((long)item));
+
+	delete itemToRemove;
+
+	return true;
+}
+
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveMenuItem(JNIEnv * env, jobject obj, jlong menuItem)
 {
 	
 	MenuItemControl* menuItemToRemove = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
 
-	MenuControl* menuControl = menuItemToRemove->GetMenuControl();
+	Menu* menuControl = menuItemToRemove->GetMenuControl();
 
 	return menuControl->RemoveMenuItem(menuItemToRemove->GetMenuItemIndex());
 

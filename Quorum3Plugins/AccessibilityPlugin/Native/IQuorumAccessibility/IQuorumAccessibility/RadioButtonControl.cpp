@@ -81,7 +81,7 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	if (!Initialized)
 	{
@@ -100,7 +100,7 @@ RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCH
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control));

@@ -2,13 +2,13 @@
 #include <UIAutomation.h>
 
 #include "CustomMessages.h"
-#include "MenuControl.h"
+#include "Menu.h"
 #include "Item.h"
 
 class MenuItemProvider;
 class MenuBarControl;
 
-class MenuItemControl : public MenuControl, public Item
+class MenuItemControl : public Menu, public Item
 {
 public:
 	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
@@ -18,13 +18,14 @@ public:
 	void SetParentMenuBar(_In_ MenuBarControl* menuBar);
 	MenuItemControl* GetParentMenuItem();
 	MenuItemProvider* GetMenuItemProvider();
-	MenuControl* GetMenuControl();
+	Menu* GetMenuControl();
 
 	WCHAR* GetShortcut();
 	
 	ULONG GetId();
 
 	int GetMenuItemIndex();
+	void SetMenuItemIndex(_In_ int index);
 
 	bool HasFocus();
 
@@ -34,7 +35,7 @@ private:
 	ULONG m_uniqueId;
 
 	// Where this MenuItem is located in the collection.
-	int m_myIndex = -1;
+	int m_myIndex;
 
 	WCHAR* m_shortcut;
 

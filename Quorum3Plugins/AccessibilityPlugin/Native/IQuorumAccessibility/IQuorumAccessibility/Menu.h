@@ -1,14 +1,14 @@
 #include <deque>
 
 
-#ifndef MenuControl_HEADER
-#define MenuControl_HEADER
+#ifndef Menu_HEADER
+#define Menu_HEADER
 
 class MenuItemControl;
 #define MENUITEM_ITERATOR std::deque<MenuItemControl*>::iterator
 
 
-class MenuControl
+class Menu
 {
 public:
 

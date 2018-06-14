@@ -48,7 +48,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
 {
 
 	if (!Initialized)
@@ -68,7 +68,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* text
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control)

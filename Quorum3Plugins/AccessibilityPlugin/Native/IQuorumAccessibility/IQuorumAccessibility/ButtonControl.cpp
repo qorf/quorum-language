@@ -25,24 +25,24 @@ ButtonControl::~ButtonControl()
 }
 
 // GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-ButtonProvider* ButtonControl::GetButtonProvider(_In_ HWND hwnd)
+ButtonProvider* ButtonControl::GetButtonProvider()
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new ButtonProvider(hwnd, this);
+		m_buttonProvider = new ButtonProvider(this);
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
 
 // InvokeButton: Handle button click or invoke.
-void ButtonControl::InvokeButton(_In_ HWND hwnd)
+void ButtonControl::InvokeButton()
 {
 
 	if (UiaClientsAreListening())
 	{
 		// Raise an event.
-		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
+		UiaRaiseAutomationEvent(GetButtonProvider(), UIA_Invoke_InvokedEventId);
 	}
 
 }
@@ -82,7 +82,7 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	if (!Initialized)
 	{
@@ -101,7 +101,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -122,7 +122,13 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 			LocalFree(messageBuffer);
 		}
 		else
+		{
+
+			if (UiaClientsAreListening())
+				control->GetButtonProvider();
+
 			return control;
+		}
 	}
 
 	return NULL; // Indicates failure to create window.
@@ -179,7 +185,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider());
 		}
 
 		break;
@@ -200,7 +206,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		this->InvokeButton(hwnd);
+		this->InvokeButton();
 		break;
 	}
 	case QUORUM_SETNAME:
