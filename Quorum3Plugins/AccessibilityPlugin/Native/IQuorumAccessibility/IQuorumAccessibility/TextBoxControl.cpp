@@ -8,10 +8,9 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ const char* lines, _In_ int caretIndex) 
-	: m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL)
+TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ const char* lines, _In_ int caretIndex)
+	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL)
 {
-	m_ControlHWND = NULL; // must be set in Static WndProc function
 	m_caretPosition.character = caretIndex;
 }
 
@@ -49,7 +48,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
 {
 
 	if (!Initialized)
@@ -59,7 +58,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* text
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(fullText, caretIndex);
+		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
@@ -69,13 +68,13 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* text
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control)
 		);
 
-		if (control->m_ControlHWND == 0)
+		if (control->m_ControlHWND == NULL)
 		{
 			DWORD errorMessageID = ::GetLastError();
 
@@ -92,9 +91,6 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* text
 		}
 		else
 		{
-			control->SetName(textboxName);
-			control->SetDescription(textboxDescription);
-
 			if (UiaClientsAreListening())
 			{
 				control->GetTextBoxProvider();
@@ -104,7 +100,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* text
 		}
 	}
 
-	return 0; // Indicates failure to create window.
+	return NULL; // Indicates failure to create window.
 
 }
 

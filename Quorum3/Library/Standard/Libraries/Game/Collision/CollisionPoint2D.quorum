@@ -22,6 +22,9 @@ class CollisionPoint2D
     number tangentImpulse = 0   //the magnitude of impulse that should be applied to simulate the friction between the two objects during collision
     CollisionIdentifier2D id    //identifies what type of collision is involved
 
+    /*
+    This action sets the current CollisionPoint2D using another CollisionPoint2D.
+    */
     action Set(CollisionPoint2D point)
         me:localPoint:Set(point:localPoint)
         me:normalImpulse = point:normalImpulse
@@ -29,30 +32,51 @@ class CollisionPoint2D
         me:id:Set(point:id)
     end
 
+    /*
+    This action sets the local point.
+    */
     action SetLocalPoint(Vector2 localPoint)
         me:localPoint:Set(localPoint)
     end
 
+    /*
+    This action returns the local point.
+    */
     action GetLocalPoint returns Vector2
         return localPoint
     end
 
+    /*
+    This action sets the normal impulse.
+    */
     action SetNormalImpulse(number normalImpulse)
         me:normalImpulse = normalImpulse
     end
 
+    /*
+    This action returns the normal impulse.
+    */
     action GetNormalImpulse returns number
         return normalImpulse
     end
 
+    /*
+    This action sets the tangential impulse.
+    */
     action SetTangentImpulse(number tangentImpulse)
         me:tangentImpulse = tangentImpulse
     end
 
+    /*
+    This action returns the tangential impulse.
+    */
     action GetTangentImpulse returns number
         return tangentImpulse
     end
 
+    /*
+    This action returns what type of collision was involved.
+    */
     action GetIdentifier returns CollisionIdentifier2D
         return id
     end

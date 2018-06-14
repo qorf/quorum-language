@@ -12,18 +12,20 @@
 bool MenuBarControl::Initialized = false;
 
 MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) 
-	: m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
+	: Item(menuBarName, L""), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
-	this->SetName(menuBarName);
-	this->SetDescription(L"");
-	this->m_ControlHWND = NULL; // Must be set in the Static WndProc function
 }
 
 MenuBarControl::~MenuBarControl()
 {
+	if (m_menuBarProvider != NULL)
+	{
+		m_menuBarProvider->Release();
+		m_menuBarProvider = NULL;
+	}
 }
 
-MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
+MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * menuBarName)
 {
 	if (!Initialized)
 	{
@@ -42,7 +44,7 @@ MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * men
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow, // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -69,7 +71,7 @@ MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * men
 	return NULL; // Indicates failure to create window.
 }
 
-MenuBarProvider * MenuBarControl::GetMenuBarProvider()
+MenuBarProvider* MenuBarControl::GetMenuBarProvider()
 {
 	if (m_menuBarProvider == NULL)
 	{
@@ -89,10 +91,10 @@ MenuItemControl* MenuBarControl::GetSelectedMenuItem()
 	return m_pSelectedMenuItem;
 }
 
-void MenuBarControl::SetSelectedMenuItem(_In_ MenuItemControl * selectedMenuItem)
+void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenuItem)
 {
 	m_pSelectedMenuItem = selectedMenuItem;
-	if (m_pSelectedMenuItem != NULL && UiaClientsAreListening())
+	if (m_pSelectedMenuItem != nullptr && UiaClientsAreListening())
 	{
 		m_pSelectedMenuItem->GetMenuItemProvider()->NotifyElementSelected();
 	}
@@ -162,11 +164,8 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	{
 		MenuItemControl* newMenuItem = (MenuItemControl*)lParam;
 		
-		// This was set to NULL by the constructor. Set it here.
-		newMenuItem->SetParentMenuBar(this);
-		
 		// Add the new MenuItem to the proper collection.
-		MenuControl* menuControl;
+		Menu* menuControl;
 		
 		if (newMenuItem->GetParentMenuItem() == NULL)
 			menuControl = this;

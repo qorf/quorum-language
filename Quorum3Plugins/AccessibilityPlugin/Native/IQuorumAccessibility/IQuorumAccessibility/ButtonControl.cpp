@@ -10,9 +10,8 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_focused(false)
+ButtonControl::ButtonControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false)
 {
-	m_ControlHWND = NULL; // Must be set in the Static WndProc
 }
 
 // ~ButtonControl: Release the reference to the ButtonProvider if there is one.
@@ -26,24 +25,24 @@ ButtonControl::~ButtonControl()
 }
 
 // GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-ButtonProvider* ButtonControl::GetButtonProvider(_In_ HWND hwnd)
+ButtonProvider* ButtonControl::GetButtonProvider()
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new ButtonProvider(hwnd, this);
+		m_buttonProvider = new ButtonProvider(this);
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
 
 // InvokeButton: Handle button click or invoke.
-void ButtonControl::InvokeButton(_In_ HWND hwnd)
+void ButtonControl::InvokeButton()
 {
 
 	if (UiaClientsAreListening())
 	{
 		// Raise an event.
-		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
+		UiaRaiseAutomationEvent(GetButtonProvider(), UIA_Invoke_InvokedEventId);
 	}
 
 }
@@ -83,7 +82,7 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	if (!Initialized)
 	{
@@ -92,7 +91,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 
 	if (Initialized)
 	{
-		ButtonControl * control = new ButtonControl();
+		ButtonControl* control = new ButtonControl(buttonName, buttonDescription);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_BUTTON",
@@ -102,7 +101,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -124,8 +123,10 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 		}
 		else
 		{
-			control->SetName(buttonName);
-			control->SetDescription(buttonDescription);
+
+			if (UiaClientsAreListening())
+				control->GetButtonProvider();
+
 			return control;
 		}
 	}
@@ -134,7 +135,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* button
 
 }
 
-void ButtonControl::SetControlFocus(bool focused)
+void ButtonControl::SetControlFocus(_In_ bool focused)
 {
 	m_focused = focused;
 	if (focused)
@@ -184,7 +185,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider());
 		}
 
 		break;
@@ -205,7 +206,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		this->InvokeButton(hwnd);
+		this->InvokeButton();
 		break;
 	}
 	case QUORUM_SETNAME:

@@ -1,25 +1,25 @@
 #include <windows.h>
 #include <UIAutomation.h>
 
-#include "MenuControl.h"
+#include "Menu.h"
 #include "MenuItemControl.h"
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
 
-MENUITEM_ITERATOR MenuControl::GetMenuItemAt(_In_ int index)
+MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
 {
 	return m_menuItemCollection.begin() + index;
 }
 
-bool MenuControl::RemoveMenuItem(_In_ int index)
+bool Menu::RemoveMenuItem(_In_ int index)
 {
 	MENUITEM_ITERATOR menuItemToRemove = GetMenuItemAt(index);
 
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItemToRemove);
 	
 	if (pMenuItem->GetParentMenuBar()->GetSelectedMenuItem() == pMenuItem)
-		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(NULL);
+		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
 
 	// Raise a UIA event
 	MenuItemProvider* pMenuItemProvider = pMenuItem->GetMenuItemProvider();
@@ -33,23 +33,23 @@ bool MenuControl::RemoveMenuItem(_In_ int index)
 	return true;
 }
 
-int MenuControl::GetCount()
+int Menu::GetCount()
 {
 	return static_cast<int>(m_menuItemCollection.size());
 }
 
-bool MenuControl::hasChildren()
+bool Menu::hasChildren()
 {
 	return !m_menuItemCollection.empty();
 }
 
-ULONG MenuControl::CreateUniqueId()
+ULONG Menu::CreateUniqueId()
 {
 	static ULONG uniqueId;
 	return InterlockedIncrement(&uniqueId);
 }
 
-bool MenuControl::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
+bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {
 	// Create a unique id for the new item.
 	int id = CreateUniqueId();
@@ -61,12 +61,17 @@ bool MenuControl::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 		// Add to MenuBar's collection
 		m_menuItemCollection.push_back(pNewMenuItem);
 
-		// Raise UI Automation Event
-		MenuItemProvider* provider = pNewMenuItem->GetMenuItemProvider();
-		
-		if (provider != NULL)
-			provider->NotifyMenuItemAdded();
+		pNewMenuItem->SetMenuItemIndex(GetCount() - 1);
 
+		// Raise UI Automation Event
+		if (UiaClientsAreListening())
+		{
+			MenuItemProvider* provider = pNewMenuItem->GetMenuItemProvider();
+
+			if (provider != NULL)
+				provider->NotifyMenuItemAdded();
+		}
+		
 		return true;
 	}
 	else

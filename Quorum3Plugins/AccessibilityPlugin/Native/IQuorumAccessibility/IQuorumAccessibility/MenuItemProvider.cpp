@@ -5,9 +5,9 @@
 #include "MenuBarControl.h"
 #include "MenuItemProvider.h"
 #include "MenuItemControl.h"
+#include <string>
 
-
-MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_pMenuItemControl(pControl)
+MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_refCount(1), m_pMenuItemControl(pControl)
 {
 }
 
@@ -74,11 +74,9 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		int Id = m_pMenuItemControl->GetId();
-		// Convert int to BSTR.
-		WCHAR idString[3];
-		swprintf_s(idString, 3, L"%d", Id);
-		pRetVal->bstrVal = SysAllocString(idString);
+		ULONG Id = m_pMenuItemControl->GetId();
+
+		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -116,6 +114,13 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}
+	else if (propertyId == UIA_IsEnabledPropertyId)
+	{
+		// This tells the screen reader whether or not the control can be interacted with.
+		// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
@@ -140,7 +145,7 @@ IFACEMETHODIMP MenuItemProvider::get_HostRawElementProvider(_Outptr_result_maybe
 IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
 	IRawElementProviderFragment* pFragment = NULL;
-	MenuControl* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
+	Menu* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
 	MENUITEM_ITERATOR iter;
 	MenuItemControl* pMenuItem;
 
@@ -218,18 +223,21 @@ IFACEMETHODIMP MenuItemProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRA
 {
 	int id = m_pMenuItemControl->GetId();
 	int rId[] = { UiaAppendRuntimeId, id };
-
+	
+	HRESULT hr = S_OK;
+	
 	SAFEARRAY *psa = SafeArrayCreateVector(VT_I4, 0, 2);
+	
 	for (LONG i = 0; i < 2; i++)
 	{
-		SafeArrayPutElement(psa, &i, &(rId[i]));
+		hr = SafeArrayPutElement(psa, &i, &(rId[i]));
 	}
 	*pRetVal = psa;
-	return S_OK;
+	return hr;
 }
 
 // Gets the bounding rectangle of the item, in screen coordinates.
-IFACEMETHODIMP MenuItemProvider::get_BoundingRectangle(_Outptr_result_maybenull_ UiaRect * pRetVal)
+IFACEMETHODIMP MenuItemProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
 {
 	// For now we aren't painting a rectangle for the provider
 	// that'd require more info from Quorum.
@@ -256,7 +264,15 @@ IFACEMETHODIMP MenuItemProvider::SetFocus()
 
 IFACEMETHODIMP MenuItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
 {
-	IRawElementProviderFragmentRoot* pRoot = m_pMenuItemControl->GetParentMenuBar()->GetMenuBarProvider();
+
+	IRawElementProviderFragmentRoot* pRoot = NULL;
+	
+	if (m_pMenuItemControl->GetParentMenuBar() != nullptr)
+	{
+		pRoot = m_pMenuItemControl->GetParentMenuBar()->GetMenuBarProvider();
+	}
+
+
 	if (pRoot == NULL)
 	{
 		return E_FAIL;

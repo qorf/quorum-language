@@ -9,10 +9,10 @@ class RadioButtonProvider;
 class RadioButtonControl : public Item
 {
 public:
-	RadioButtonControl();
+	RadioButtonControl(_In_ WCHAR* name, _In_ WCHAR* description);
 	virtual ~RadioButtonControl();
 
-	static RadioButtonControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static RadioButtonControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	RadioButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 

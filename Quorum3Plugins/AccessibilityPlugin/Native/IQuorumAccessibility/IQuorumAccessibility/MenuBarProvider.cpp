@@ -5,7 +5,7 @@
 #include "MenuBarControl.h"
 #include "MenuItemControl.h"
 
-MenuBarProvider::MenuBarProvider(HWND MenuBarControlHWND, MenuBarControl * pMenuBarControl) : m_menuBarControl(MenuBarControlHWND), m_pMenuBarControl(pMenuBarControl)
+MenuBarProvider::MenuBarProvider(_In_ HWND MenuBarControlHWND, _In_ MenuBarControl * pMenuBarControl) : m_refCount(1), m_menuBarControl(MenuBarControlHWND), m_pMenuBarControl(pMenuBarControl)
 {
 }
 
@@ -98,6 +98,13 @@ IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	}
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_IsEnabledPropertyId)
+	{
+		// This tells the screen reader whether or not the control can be interacted with.
+		// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}

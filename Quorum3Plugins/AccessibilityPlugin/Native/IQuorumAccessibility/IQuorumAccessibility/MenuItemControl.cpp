@@ -5,22 +5,25 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
+
 // For error reporting
 #include <string>
 #include <iostream>
 
 
-MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
-	: m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar), m_pParentMenuItem(parentMenuItem),
-	  m_pMenuItemProvider(NULL), m_uniqueId(uniqueId)
+MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
+	: Item(menuItemName, L""), m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar),
+	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1)
 {
-	this->SetName(menuItemName);
-	this->SetDescription(L"");
-	this->m_ControlHWND = NULL;
 }
 
 MenuItemControl::~MenuItemControl()
 {
+	if (m_pMenuItemProvider != NULL)
+	{
+		m_pMenuItemProvider->Release();
+		m_pMenuItemProvider = NULL;
+	}
 }
 
 MenuBarControl * MenuItemControl::GetParentMenuBar()
@@ -48,9 +51,9 @@ MenuItemProvider * MenuItemControl::GetMenuItemProvider()
 	return m_pMenuItemProvider;
 }
 
-MenuControl * MenuItemControl::GetMenuControl()
+Menu * MenuItemControl::GetMenuControl()
 {
-	MenuControl* menuControl = GetParentMenuItem();
+	Menu* menuControl = GetParentMenuItem();
 	if (menuControl == NULL)
 		menuControl = GetParentMenuBar();
 
@@ -69,16 +72,20 @@ ULONG MenuItemControl::GetId()
 
 int MenuItemControl::GetMenuItemIndex()
 {
-	MenuControl* pMenuControl = GetMenuControl();
-		
-	for (int i = 0; i < pMenuControl->GetCount(); i++)
+	
+	if (m_myIndex < 0)
 	{
-		MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
-		MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
-		if (pMenuItem == this)
+		Menu* pMenuControl = GetMenuControl();
+
+		for (int i = 0; i < pMenuControl->GetCount(); i++)
 		{
-			m_myIndex = i;
-			break;
+			MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
+			MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
+			if (pMenuItem == this)
+			{
+				m_myIndex = i;
+				break;
+			}
 		}
 	}
 	
@@ -86,12 +93,17 @@ int MenuItemControl::GetMenuItemIndex()
 	
 }
 
+void MenuItemControl::SetMenuItemIndex(_In_ int index)
+{
+	m_myIndex = index;
+}
+
 bool MenuItemControl::HasFocus()
 {
 	return (GetParentMenuBar()->GetSelectedMenuItem() == this) && (GetParentMenuBar()->HasFocus());
 }
 
-void MenuItemControl::SetControlFocus(bool focused)
+void MenuItemControl::SetControlFocus(_In_ bool focused)
 {
 }
 

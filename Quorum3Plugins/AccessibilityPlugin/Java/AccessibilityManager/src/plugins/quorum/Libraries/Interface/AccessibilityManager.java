@@ -128,9 +128,15 @@ public class AccessibilityManager
     //
     private native long NativeWin32CreateMenuItem(String name, String shortcut, long parentMenu, long parentMenuBar);
     
+    // NativeWin32RemoveMenuItem: Removes a item control from UI Automation hierarchy.
+    //
+    private native boolean NativeWin32RemoveItem(long itemToRemove);
+    
     // NativeWin32RemoveMenuItem: Removes a MenuItem control from UI Automation hierarchy.
     //
     private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
+    
+    
     
     // NativeWin32RemoveMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
     //
@@ -179,6 +185,9 @@ public class AccessibilityManager
         long nativePointer;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         
+        if (ITEM_MAP.get(item) != null)
+            return true;
+
         switch(code)
         {
             case ITEM:
@@ -240,25 +249,29 @@ public class AccessibilityManager
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean wasRemoved;
         
+        // Retreive native pointer for given object
+        itemToRemove = ITEM_MAP.get(item);
+        
         switch(code)
         {
+            case ITEM:
+                wasRemoved = NativeWin32RemoveItem(itemToRemove);
+                break;
+            case CUSTOM:
+                // Not implemented yet. Create as Item for now.
+                wasRemoved = NativeWin32RemoveItem(itemToRemove);
+                break;
             case MENU_ITEM:
-
-                // Retreive native pointer for given object
-                itemToRemove = ITEM_MAP.get(item);
-                
                 wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
-                
-                if (wasRemoved)
-                    ITEM_MAP.remove(item);
-                
                 break;
             default:
                 wasRemoved = false;
         }
-        
+        if (wasRemoved)
+            ITEM_MAP.remove(item);
         
         return wasRemoved;
+
     }
     
     public boolean Select(Item_ item)

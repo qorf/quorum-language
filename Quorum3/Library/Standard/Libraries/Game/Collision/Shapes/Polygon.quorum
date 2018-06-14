@@ -8,6 +8,13 @@ use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
+/*
+This class extends the CollisionShape2D by rewritting specific actions that
+are blueprint actions in CollisionShape2D for the shape of a polygon.
+This class records all of the geometric properties that a polygon should have.
+To display the polygon with the properties that you've set, you have to use
+"Libraries.Game.Graphics.Drawable".
+*/
 class Polygon is CollisionShape2D
     public constant integer MAXIMUM_POLYGON_VERTICES = 8
     Vector2 centroid  //centroid of the polygon relative to the polygon's local coordinate's origin
@@ -65,6 +72,11 @@ class Polygon is CollisionShape2D
         end
     end
 
+    /*
+    This action records the passed vertices to this class and also calculate 
+    the normal vectors to the edges from the polygon created using the vertices
+    passed.
+    */
     action Set(Array<Vector2> passedVertices, integer count)
         if count < 3
             SetAsBox(1, 1)
@@ -297,6 +309,9 @@ class Polygon is CollisionShape2D
         return true
     end
 
+    /*
+    This action calculates the BoundingBox2D for the polygon shape.
+    */
     action ComputeBoundingBox(BoundingBox2D boundingBox, PhysicsPosition2D transform, integer childIndex)
         Vector2 minimum
         Vector2 maximum
@@ -346,14 +361,24 @@ class Polygon is CollisionShape2D
         boundingBox:Set(minimum, maximum)
     end
 
+    /*
+    This action returns how many vertices the polygon has.
+    */
     action GetVertexCount returns integer
         return vertexCount
     end
 
+    /*
+    This action gets the point at which the vertex of interest is at.
+    */
     action GetVertex(integer index) returns Vector2
         return vertices:Get(index)
     end
 
+    /*
+    This action finds the closest distance between the point of interest and the 
+    polygon.
+    */
     action ComputeDistance(PhysicsPosition2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
@@ -417,6 +442,10 @@ class Polygon is CollisionShape2D
         return distance
     end
 
+    /*
+    This action finds the centroid of the polygon based on the geometry of the 
+    polygon.
+    */
     action ComputeCentroid(Array<Vector2> vectors, integer count) returns Vector2
         Vector2 result
         result:Set(0, 0)
@@ -459,6 +488,10 @@ class Polygon is CollisionShape2D
         return result
     end
 
+    /*
+    This action finds ths mass and mass rotational of inertia of the polygon based
+    on the density of the polygon passed in and the geometry of the polygon.    
+    */
     action ComputeMass(Mass2D mass, number density)
         Vector2 center
         center:SetZero()
@@ -523,6 +556,9 @@ class Polygon is CollisionShape2D
         mass:SetInertia(mass:GetInertia() + (mass:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter())))
     end
 
+    /*
+    This action checks whether the polygon is convex.
+    */
     action Validate returns boolean
         integer i = 0
         repeat while i < vertexCount
@@ -556,26 +592,46 @@ class Polygon is CollisionShape2D
         return true
     end
 
+    /*
+    This action returns all of the vertices of the current polygon.
+    */
     action GetVertices returns Array<Vector2>
         return vertices
     end
-
+    
+    /*
+    This action returns all of the normals to the edges of the current polygon.
+    */
     action GetNormals returns Array<Vector2>
         return normals
     end
 
+    /*
+    This action returns the centroid of the polygon in the global coordinates.
+    */
     action Centroid(PhysicsPosition2D transform) returns Vector2
         return transform:Multiply(transform, centroid)
     end
 
+    /*
+    This action returns the centroid of the polygon in the local coordinates of
+    that polygon.
+    */
     action GetCentroid returns Vector2
         return centroid
     end
 
+    /*
+    This action returns whether the polygon is a box or not.
+    */
     action IsBox returns boolean
         return isBox
     end
 
+    /*
+    This action computes the area of the polygon based on the geometry of the
+    polygon that is stored inside this Polygon class.
+    */
     action ComputeArea returns number
         number area = 0
 

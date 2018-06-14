@@ -4,6 +4,11 @@ use Libraries.Containers.Array
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Vector2
 
+/*
+This class records a point (count = 1), a line (count = 2), or a triangle
+(count = 3).
+This class is used internally by the class Distance2D.
+*/
 class Simplex2D 
     SimplexVertex2D vertex1
     SimplexVertex2D vertex2
@@ -17,6 +22,11 @@ class Simplex2D
         vertices:Add(vertex3)
     end
 
+    /*
+    This action sets where the vertex points for either a point, a line, or a triangles
+    are by using a SimplexCache2D object that allows the calculation in the
+    Distance2D class to be quicker.
+    */
     action ReadCache(SimplexCache2D cache, DistanceProxy2D distanceA, PhysicsPosition2D transformA, DistanceProxy2D distanceB, PhysicsPosition2D transformB)
         count = cache:GetCount()
 
@@ -59,6 +69,11 @@ class Simplex2D
         end
     end
 
+    /*
+    This class updates a SimplexCache2D object with the calculations updated and
+    stored in this Simplex2D object from the last iteration of distance
+    calculation.
+    */
     action WriteCache(SimplexCache2D cache)
         cache:SetMetric(GetMetric())
         cache:SetCount(count)

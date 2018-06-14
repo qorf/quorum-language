@@ -3,24 +3,24 @@
 #include <deque>
 
 #include "CustomMessages.h"
-#include "MenuControl.h"
+#include "Menu.h"
 #include "Item.h"
 
 class MenuBarProvider;
 class MenuItemControl;
 
-class MenuBarControl : public MenuControl, public Item
+class MenuBarControl : public Menu, public Item
 {
 public:
 	MenuBarControl(_In_ WCHAR* menuBarName);
 	virtual ~MenuBarControl();
 
-	static MenuBarControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* menuBarName);
+	static MenuBarControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* menuBarName);
 
 	MenuBarProvider* GetMenuBarProvider();
 
 	MenuItemControl* GetSelectedMenuItem();
-	void SetSelectedMenuItem(_In_ MenuItemControl* selectedMenuItem);
+	void SetSelectedMenuItem(_In_opt_ MenuItemControl* selectedMenuItem);
 
 	bool HasFocus();
 private:

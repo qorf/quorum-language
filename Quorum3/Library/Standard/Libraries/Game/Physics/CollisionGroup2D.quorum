@@ -59,17 +59,28 @@ class CollisionGroup2D
         angularVelocities:Empty()
     end
 
+    /*
+    This action adds a Item2D into the array of existing items to group these
+    the new Item2D into the existing items.
+    */
     action Add(Item2D item)
         items:Add(item)
         item:SetCollisionGroupIndex(itemCount)
         itemCount = itemCount + 1
     end
 
+    /*
+    This action adds a CollisionEvent2D that is associated with an item that
+    is inside this CollisionGroup2D.
+    */
     action Add(CollisionEvent2D collision)
         collisions:Add(collision)
         collisionCount = collisionCount + 1
     end
 
+    /*
+    This action adds a contraint to the items.
+    */
     action Add(Joint2D joint)
         joints:Add(joint)
         jointCount = jointCount + 1
@@ -78,6 +89,9 @@ class CollisionGroup2D
     CollisionSolver2D collisionSolver
     JointSolverData2D solverData
 
+    /*
+    This action solves the collision for objects inside this CollisionGroup2D.
+    */
     action Solve(TimeStep step, Vector2 gravity, boolean requireSimulation)
         number h = step:GetTimeStep()
 
@@ -245,6 +259,10 @@ class CollisionGroup2D
 
     CollisionSolver2D timeOfImpactCollisionSolver
 
+    /*
+    This action solves the time of impact for the objects that are in this 
+    CollisionGroup2D.
+    */
     action SolveTimeOfImpact(TimeStep subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
         integer i = 0
         repeat while i < itemCount

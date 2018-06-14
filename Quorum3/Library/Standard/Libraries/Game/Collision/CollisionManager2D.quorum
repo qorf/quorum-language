@@ -11,8 +11,9 @@ package Libraries.Game.Collision
 
 
 /*
-This class uses the BroadphaseCollision2D class to determine whether a possible
-collision has happened.
+This class uses the CollisionEvent2D to record all of the collision that has 
+occured during the current physics step. This class also uses the 
+BroadphaseCollision2D class to determine whether a possible collision has happened.
 */
 class CollisionManager2D
     BroadphaseCollision2D broadphase
@@ -22,10 +23,19 @@ class CollisionManager2D
 
     Layer2D myLayer = undefined
     
+    /*
+    This action sets the 2D layer at which the objects lie on.
+    */
     action SetLayer(Layer2D layer)
         myLayer = layer
     end
 
+    /*
+    This action compares the two nodes in the DynamicBoundingVolumeTree2D
+    to determine whether the items in the two nodes collide. If the items in the
+    two nodes do collide, then the collision will be recorded inside this
+    CollisionManager2D.
+    */
     action AddPair(Item2DNode nodeA, Item2DNode nodeB)
         Item2D itemA = nodeA:GetItem()
         Item2D itemB = nodeB:GetItem()
@@ -106,10 +116,18 @@ class CollisionManager2D
         collisionCount = collisionCount + 1
     end
 
+    /*
+    This action uses the broadphase linked to this CollisionManager2D to test
+    if two nodes are colliding.
+    */
     action FindNewCollisions
         broadphase:UpdatePairs(me)
     end
 
+    /*
+    This action tests deletes a CollisionEvent2D in a doubly linked list of
+    CollisionEvent2D. 
+    */
     action Destroy(CollisionEvent2D collision)
         Item2D itemA = collision:GetItemA()
         Item2D itemB = collision:GetItemB()
@@ -164,6 +182,10 @@ class CollisionManager2D
         collisionCount = collisionCount - 1
     end
 
+    /*
+    This action resolve every collision that is recorded in the CollisionEvent2D
+    doubly linked list.
+    */
     action Collide
         CollisionEvent2D collision = collisionList
         repeat while collision not= undefined
@@ -236,7 +258,7 @@ class CollisionManager2D
     /*
     Returns the BroadphaseCollison2D
 
-    Attribute: Returns the BroadphaseCollision2D
+    Attribute: Returns The BroadphaseCollision2D that is used to solve a collision.
 
     Attribute: Example
 
@@ -252,22 +274,40 @@ class CollisionManager2D
         return broadphase
     end
 
+    /*
+    This class returns the first event in the doubly linked list of 
+    CollisionEvent2D.
+    */
     action GetCollisionList returns CollisionEvent2D
         return collisionList
     end
 
+    /*
+    This class returns how many CollisionEvent2D is available in this 
+    CollisionManager2D.
+    */
     action GetCollisionCount returns integer
         return collisionCount
     end
 
+    /*
+    This action adds a CollisionListener2D to the current CollisionManager2D.
+    */
     action AddCollisionListener(CollisionListener2D listener)
         listeners:Add(listener)
     end
 
+    /*
+    This action removes a CollisionListener2D from the current CollisionManager2D.
+    */
     action RemoveCollisionListener(CollisionListener2D listener)
         listeners:Remove(listener)
     end
 
+    /*
+    This action returns all of the CollisionListen2D that is attached to the
+    current CollisionManager2D through an array.
+    */
     action GetCollisionListeners returns Array<CollisionListener2D>
         return listeners
     end

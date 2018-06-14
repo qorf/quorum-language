@@ -5,6 +5,10 @@ use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Containers.Array
 
+/*
+This action calculates the separation between shapes A and B depending on the 
+type of collision that has happened between shapes A and B.
+*/
 class Separation2D
     constant integer POINTS = 0
     constant integer FACE_A = 1
@@ -31,18 +35,30 @@ class Separation2D
     PhysicsPosition2D transformA
     PhysicsPosition2D transformB
 
+    /*  
+    This action sets the DistanceProxy2D that is associated with shape A.
+    */
     action SetProxyA(DistanceProxy2D proxy)
         proxyA = proxy
     end
 
+    /*  
+    This action sets the DistanceProxy2D that is associated with shape B.
+    */
     action SetProxyB(DistanceProxy2D proxy)
         proxyB = proxy
     end
 
+    /*
+    This action sets the Sweep2D that is associated with shape A.
+    */
     action SetSweepA(Sweep2D sweep)
         sweepA = sweep
     end
 
+    /*
+    This action sets the Sweep2D that is associated with shape B.
+    */
     action SetSweepB(Sweep2D sweep)
         sweepB = sweep
     end

@@ -2,10 +2,10 @@
 class ButtonControl;
 
 class ButtonProvider : public IRawElementProviderSimple,
-	public IInvokeProvider
+					   public IInvokeProvider
 {
 public:
-	ButtonProvider(HWND hwnd, ButtonControl* pButtonControl);
+	ButtonProvider(ButtonControl* pButtonControl);
 
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();
@@ -30,5 +30,4 @@ private:
 	ULONG m_refCount;
 
 	ButtonControl* m_pButtonControl;
-	HWND m_buttonControlHWnd; // The HWND for the control.
 };

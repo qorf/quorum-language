@@ -9,13 +9,13 @@ class ButtonProvider;
 class ButtonControl : public Item
 {
 public:
-	ButtonControl();
+	ButtonControl(_In_ WCHAR* name, _In_ WCHAR* description);
 	virtual ~ButtonControl();
 
-	static ButtonControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static ButtonControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
-	ButtonProvider* GetButtonProvider(_In_ HWND hwnd);
-	void InvokeButton(_In_ HWND hwnd);
+	ButtonProvider* GetButtonProvider();
+	void InvokeButton();
 
 	bool HasFocus();
 

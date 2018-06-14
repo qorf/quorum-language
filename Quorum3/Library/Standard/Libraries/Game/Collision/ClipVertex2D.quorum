@@ -3,10 +3,18 @@ package Libraries.Game.Collision
 use Libraries.Compute.Vector2
 use Libraries.Game.Collision.CollisionIdentifier2D
 
+/*
+This class contains the data needed for the CollisionEvent2D class to store
+the clipping points of a shape that has collided.
+*/
 class ClipVertex2D 
     Vector2 vertex
     CollisionIdentifier2D id
 
+    /*
+    This action sets the variables in this ClipVertex2D class using another
+    ClipVertex2D class.
+    */
     action Set(ClipVertex2D clipVertex)
         Vector2 v1 = clipVertex:vertex
         vertex:SetX(v1:GetX())
@@ -18,18 +26,35 @@ class ClipVertex2D
         id:SetTypeB(c:GetTypeB())
     end
 
+    /*
+    This action returns best estimate of the point of contact of a shape with
+    another shape.
+    */
     action GetVertex returns Vector2
         return vertex
     end
 
+    /*
+    This action sets the best estimate of the point of contact of a shape with
+    another shape, which is calculated in actions inside the CollisionEvent2D
+    class.
+    */
     action SetVertex(Vector2 vertex)
         me:vertex = vertex
     end
 
+    /*
+    This action returns the type of collision that happened to the shape that 
+    is associated with this ClipVertex2D.
+    */
     action GetIdentifier returns CollisionIdentifier2D
         return id
     end
 
+    /*
+    This action sets the type of collision that happened to the shape that 
+    is associated with this ClipVertex2D.
+    */
     action SetIdentifier(CollisionIdentifier2D identifier)
         me:id = identifier
     end
