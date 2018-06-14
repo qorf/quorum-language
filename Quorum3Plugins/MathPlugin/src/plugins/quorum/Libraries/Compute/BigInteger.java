@@ -21,7 +21,7 @@ public class BigInteger {
     
     public void SetValue(String v, int base){
         java.math.BigInteger bigInt = new java.math.BigInteger(v, base);
-         value = bigInt;
+        value = bigInt;
     }
     
     public String GetText(int base) {
@@ -63,7 +63,7 @@ public class BigInteger {
        return name;
     }
     
-    public int CompareTo(BigInteger_ b) {
+    public int CompareResult(BigInteger_ b) {
         
        java.math.BigInteger castB = ((quorum.Libraries.Compute.BigInteger)b).plugin_.value; 
         
@@ -94,9 +94,9 @@ public class BigInteger {
     }
     
     
-    public float ToNumber() {
+    public double ToNumber() {
         
-       float number = value.floatValue();
+       double number = value.doubleValue();
        
        return number;
     }
@@ -121,7 +121,7 @@ public class BigInteger {
     }
             
 
-    public BigInteger_ Max(BigInteger_ b) {
+    public BigInteger_ GetMaximumValue(BigInteger_ b) {
         
        java.math.BigInteger castB = ((quorum.Libraries.Compute.BigInteger)b).plugin_.value; 
         
@@ -134,7 +134,7 @@ public class BigInteger {
     }
     
     
-    public BigInteger_ Min(BigInteger_ b) {
+    public BigInteger_ GetMinimumValue(BigInteger_ b) {
         
        java.math.BigInteger castB = ((quorum.Libraries.Compute.BigInteger)b).plugin_.value; 
         
@@ -227,7 +227,7 @@ public class BigInteger {
        return name;
     }
     
-    public BigInteger_ Xor(BigInteger_ b) {
+    public BigInteger_ ExclusiveOr(BigInteger_ b) {
         
        java.math.BigInteger castB = ((quorum.Libraries.Compute.BigInteger)b).plugin_.value; 
         
@@ -271,7 +271,7 @@ public class BigInteger {
        return name;
     }
     
-    public int SignNumber(){
+    public int GetSignValue(){
         return this.value.signum();
     }
 }

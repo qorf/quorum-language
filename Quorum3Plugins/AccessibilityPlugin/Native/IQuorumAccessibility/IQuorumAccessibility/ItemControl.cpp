@@ -23,11 +23,11 @@ ItemControl::~ItemControl()
 	}
 }
 
-ItemProvider* ItemControl::GetItemProvider(_In_ HWND hwnd)
+ItemProvider* ItemControl::GetItemProvider()
 {
 	if (m_pItemProvider == NULL)
 	{
-		m_pItemProvider = new ItemProvider(hwnd, this);
+		m_pItemProvider = new ItemProvider(this);
 		UiaRaiseAutomationEvent(m_pItemProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pItemProvider;
@@ -67,7 +67,7 @@ bool ItemControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
+ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
 	if (!Initialized)
 	{
@@ -86,7 +86,7 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, 
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -108,6 +108,8 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, 
 		}
 		else
 		{
+			if (UiaClientsAreListening())
+				control->GetItemProvider();
 			return control;
 		}
 	}
@@ -167,7 +169,7 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetItemProvider(GetHWND()));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetItemProvider());
 		}
 		break;
 	}
