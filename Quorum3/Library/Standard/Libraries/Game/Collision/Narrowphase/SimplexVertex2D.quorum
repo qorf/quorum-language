@@ -2,14 +2,21 @@ package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Compute.Vector2
 
+/*
+This class records the support points between shapes A and B.
+This class is used internally by Simplex2D.
+*/
 class SimplexVertex2D 
-    Vector2 supportA
-    Vector2 supportB
-    Vector2 support
-    number barycentricCoordinate = 0
-    integer indexA = 0
-    integer indexB = 0
+    Vector2 supportA    //support point for shape A
+    Vector2 supportB    //support point for shape B
+    Vector2 support     //vector from supportA to supportB
+    number barycentricCoordinate = 0    //records how a queried point is in reference to supportA and supportB
+    integer indexA = 0      //the index for shape A
+    integer indexB = 0      //the index for shape B
 
+    /*
+    This action sets this SimplexVertex2D class with another SimplexVertex2D.
+    */
     action Set(SimplexVertex2D vertex)
         supportA:Set(vertex:supportA)
         supportB:Set(vertex:supportB)
@@ -19,22 +26,36 @@ class SimplexVertex2D
         indexB = vertex:indexB
     end
 
+    /*
+    This action returns a support point on shape A.
+    */
     action GetSupportA returns Vector2
         return supportA
     end
 
+    /*
+    This action sets a support point on shape A.
+    */
     action SetSupportA(Vector2 support)
         me:supportA = support
     end
 
+    /*
+    This action gets a support point on shape B.
+    */
     action GetSupportB returns Vector2
         return supportB
     end
 
+    /*
+    This action sets a support point on shape B.
+    */
     action SetSupportB(Vector2 support)
         me:supportB = support
     end
 
+    /*
+    This action gets the support 
     action GetSupport returns Vector2
         return support
     end

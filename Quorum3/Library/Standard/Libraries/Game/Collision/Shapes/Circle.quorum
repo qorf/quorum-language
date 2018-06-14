@@ -55,14 +55,25 @@ class Circle is CollisionShape2D
         return 1
     end
 
+    /*
+    This action returns the centroid of the circle relative to the circle's local
+    coordinates.
+    */
     action GetSupportVertex returns Vector2
         return point
     end
 
+    /*
+    This action returns 1 for a circle.
+    */
     action GetVertexCount returns integer
         return 1
     end
 
+    /*
+    This action returns the centroid of the circle relative to the circle's local
+    coordinates.
+    */
     action GetVertex(integer index) returns Vector2
         return point
     end

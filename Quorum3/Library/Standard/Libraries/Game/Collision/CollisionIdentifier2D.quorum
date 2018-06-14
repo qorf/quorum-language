@@ -22,6 +22,10 @@ class CollisionIdentifier2D
         return indexA = other:indexA and indexB = other:indexB and typeA = other:typeA and typeB = other:typeB
     end
 
+    /*
+    This action sets the current CollisionIdentifier2D using another 
+    CollisionIdentifier2D.
+    */
     action Set(CollisionIdentifier2D other)
         me:indexA = other:indexA
         me:indexB = other:indexB
@@ -29,6 +33,9 @@ class CollisionIdentifier2D
         me:typeB = other:typeB
     end
 
+    /*
+    This action flips the A object with the B object.
+    */
     action Flip
         integer tempA = indexA
         me:indexA = indexB
@@ -38,6 +45,9 @@ class CollisionIdentifier2D
         me:typeB = tempA
     end
 
+    /*
+    This action reset this CollisionIdentifier2D.
+    */
     action Clear
         me:indexA = 0
         me:indexB = 0
@@ -45,34 +55,58 @@ class CollisionIdentifier2D
         me:typeB = 0
     end
 
+    /*
+    This action sets the group index of object A.
+    */
     action SetIndexA(integer indexA)
         me:indexA = indexA
     end
 
+    /*
+    This action gets the group index of object A.
+    */
     action GetIndexA returns integer
         return indexA
     end
 
+    /*
+    This action sets the group index of object B.
+    */
     action SetIndexB(integer indexB)
         me:indexB = indexB
     end
 
+    /*
+    This action gets the group index of object B.
+    */
     action GetIndexB returns integer
         return indexB
     end
 
+    /*
+    This action sets whether object A is colliding with its edge or vertex.
+    */
     action SetTypeA(integer typeA)
         me:typeA = typeA
     end
 
+    /*
+    This action returns whether object A is colliding with its edge or vertex.
+    */
     action GetTypeA returns integer
         return typeA
     end
 
+    /*
+    This action sets whether object B is colliding with its edge or vertex.
+    */
     action SetTypeB(integer typeB)
         me:typeB = typeB
     end
 
+    /*
+    This action returns whether object B is colliding with its edge or vertex.
+    */
     action GetTypeB returns integer
         return typeB
     end

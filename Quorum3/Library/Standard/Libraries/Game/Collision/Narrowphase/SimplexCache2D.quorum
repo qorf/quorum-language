@@ -2,6 +2,12 @@ package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Containers.Array
 
+
+/*
+This class estimates the distance between two shapes to be used in the calculation
+of distance in the Distance2D class, where a good distance estimation will decrease
+the number of iterations required to solve the distance between two shapes.
+*/
 class SimplexCache2D 
     number metric = 0
     integer count = 0
@@ -16,6 +22,10 @@ class SimplexCache2D
         end
     end
 
+    /*
+    This action sets the current SimplexCache2D class with another 
+    SimplexCache2D object.
+    */
     action Set(SimplexCache2D simplexCache)
         integer i = 0
         repeat indexA:GetSize() times
