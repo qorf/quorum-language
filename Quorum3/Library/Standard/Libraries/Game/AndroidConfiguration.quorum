@@ -102,12 +102,11 @@ class AndroidConfiguration is ApplicationConfiguration
     public boolean useImmersiveMode = false
 
     /*
-    /** whether to use {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20API18} in place of the classic
-	 * {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20} on Android API 10 and lower.
-	 * In case this is true {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20API18} will be used.
-	 * This implementation properly supports attach to and detach from window. default: false 
-	public boolean useGLSurfaceView20API18 = false;
+    The maximum number of seconds allowed between each touch event before the
+    tap is no longer considered related to the previous tap. This is used
+    for things such as double-tap input.
     */
+    public number multipleTapTimer = 0.5
 
     /*
     This action will set the game display to fill the entire screen of the 

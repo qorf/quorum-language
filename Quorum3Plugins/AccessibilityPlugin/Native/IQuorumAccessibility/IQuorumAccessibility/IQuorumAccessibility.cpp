@@ -251,18 +251,59 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 #pragma endregion
 
+/* ==============================
+*	This section of code contains the
+*	JNI methods that will remove an
+*	instance of the appropriate accessible
+*	object for the UIA hierarchy.
+// ============================== */
 #pragma region Remove Accessible Object
 
 
-JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveItem(JNIEnv * env, jobject obj, jlong item)
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32Remove(JNIEnv * env, jobject obj, jlong item)
 {
-	ItemControl* itemToRemove = static_cast<ItemControl*>(LongToPtr((long)item));
+	Item* itemToRemove = static_cast<Item*>(LongToPtr((long)item));
+	std::cout << "Calling DestoryWindow." << std::endl;
+	
+	DestroyWindow(itemToRemove->GetHWND());
+	std::cout << "DestoryWindow returned." << std::endl;
 
 	delete itemToRemove;
+	std::cout << "Pointer deleted." << std::endl;
 
 	return true;
 }
 
+//JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveButton(JNIEnv * env, jobject obj, jlong item)
+//{
+//
+//	ButtonControl* itemToRemove = static_cast<ButtonControl*>(LongToPtr((long)item));
+//
+//	delete itemToRemove;
+//
+//	return true;
+//}
+//
+//JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveCheckBox(JNIEnv * env, jobject obj, jlong item)
+//{
+//
+//	CheckBoxControl* itemToRemove = static_cast<CheckBoxControl*>(LongToPtr((long)item));
+//
+//	delete itemToRemove;
+//
+//	return true;
+//}
+//
+//JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveRadioButton(JNIEnv * env, jobject obj, jlong item)
+//{
+//
+//	RadioButtonControl* itemToRemove = static_cast<RadioButtonControl*>(LongToPtr((long)item));
+//
+//	delete itemToRemove;
+//
+//	return 1;
+//}
+//
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveMenuItem(JNIEnv * env, jobject obj, jlong menuItem)
 {
 	

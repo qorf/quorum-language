@@ -1,5 +1,7 @@
 package Libraries.Interface.Events
 
+use Libraries.Interface.Item
+
 /*
 The TouchEvent class represents an event caused by the user tapping the screen,
 releasing their finger from the screen, or moving their finger across the screen.
@@ -61,6 +63,20 @@ class TouchEvent
     different ID.
     */
     public integer fingerID = 0
+
+    /*
+    How many taps have occurred in a short period of time, 
+    including this event (if it is a BEGAN event). 
+    */
+    public integer tapCount = 0
+
+    /*
+    The Item which received, was the target of, or otherwise is relevant to the
+    TouchEvent which has occurred. If an Item is tapped directly, it will be 
+    stored here. If a TouchEvent is triggered with no such Item available, this 
+    will be undefined.
+    */
+    Item source = undefined
 
     boolean eventHandled = false
 
@@ -267,6 +283,95 @@ class TouchEvent
     */
     action WasEventHandled returns boolean
         return eventHandled
+    end
+
+    /*
+    This action sets the source item for this event, which is the the target of
+    touch event which has occurred (or is otherwise relevant to it). In the Game
+    engine, if an Item is tapped directly, it will be stored here. If a 
+    TouchEvent is triggered with no such Item available, this will be undefined.
+
+    Attribute: Parameter item The source Item to be stored for this TouchEvent.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.TouchEvent
+    use Libraries.Interface.Events.TouchListener
+    use Libraries.Interface.Item2D
+
+    class Main is Game, TouchListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddTouchListener(me)
+        end
+
+        action BeganTouch(TouchEvent event)
+            if event:GetSource() not= undefined
+                return now
+            end
+
+            Item2D newItem
+            event:SetSource(newItem)
+            event:SetEventHandled(false)
+        end
+    end
+
+    
+    */
+    action SetSource(Item item)
+        source = item
+    end
+
+    /*
+    This action returns the source item for this event, which is the target of
+    the touch event which has occurred (or is otherwise relevant to it). In the Game
+    engine, if an Item is clicked directly, it will be stored here. If a 
+    MouseEvent is triggered with no such Item available, this will be undefined.
+
+    Attribute: Returns The source Item for this MouseEvent.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    use Libraries.Interface.Item
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game, MouseListener
+
+        Drawable square
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            square:LoadFilledRectangle(200, 200)
+            square:SetPosition(300, 200)
+            Add(square)
+
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            Item source = event:GetSource()
+
+            if source = undefined
+                output "The background was clicked!"
+            elseif source:Equals(square)
+                output "The square was clicked!"
+            end
+        end
+    end
+    */
+    action GetSource returns Item
+        return source
     end
 
 end

@@ -75,7 +75,7 @@ MenuBarProvider* MenuBarControl::GetMenuBarProvider()
 {
 	if (m_menuBarProvider == NULL)
 	{
-		m_menuBarProvider = new MenuBarProvider(m_ControlHWND, this);
+		m_menuBarProvider = new MenuBarProvider(this);
 		UiaRaiseAutomationEvent(m_menuBarProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_menuBarProvider;
@@ -143,7 +143,17 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	}
 	case WM_DESTROY:
 	{
-		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+		// Disconnect the provider
+		IRawElementProviderSimple* provider = this->GetMenuBarProvider();
+		if (provider != NULL)
+		{
+			HRESULT hr = UiaDisconnectProvider(provider);
+			if (FAILED(hr))
+			{
+				// An error occurred while trying to disconnect the provider. For now, print the error message.
+				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
+			}
+		}
 	}
 	case WM_SETFOCUS:
 	{

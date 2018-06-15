@@ -7,32 +7,6 @@
 #include "MenuBarControl.h"
 
 
-MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
-{
-	return m_menuItemCollection.begin() + index;
-}
-
-bool Menu::RemoveMenuItem(_In_ int index)
-{
-	MENUITEM_ITERATOR menuItemToRemove = GetMenuItemAt(index);
-
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItemToRemove);
-	
-	if (pMenuItem->GetParentMenuBar()->GetSelectedMenuItem() == pMenuItem)
-		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
-
-	// Raise a UIA event
-	MenuItemProvider* pMenuItemProvider = pMenuItem->GetMenuItemProvider();
-	pMenuItemProvider->NotifyMenuItemRemoved();
-
-	// Remove from list
-	m_menuItemCollection.erase(menuItemToRemove);
-
-	delete pMenuItem;
-
-	return true;
-}
-
 int Menu::GetCount()
 {
 	return static_cast<int>(m_menuItemCollection.size());
@@ -48,6 +22,12 @@ ULONG Menu::CreateUniqueId()
 	static ULONG uniqueId;
 	return InterlockedIncrement(&uniqueId);
 }
+
+MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
+{
+	return m_menuItemCollection.begin() + index;
+}
+
 
 bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {
@@ -76,4 +56,35 @@ bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 	}
 	else
 		return false;
+}
+
+bool Menu::RemoveMenuItem(_In_ int index)
+{
+	MENUITEM_ITERATOR menuItemToRemove = GetMenuItemAt(index);
+
+	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItemToRemove);
+
+	if (pMenuItem->GetParentMenuBar()->GetSelectedMenuItem() == pMenuItem)
+		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
+
+	// Raise a UIA event
+	MenuItemProvider* pMenuItemProvider = pMenuItem->GetMenuItemProvider();
+	pMenuItemProvider->NotifyMenuItemRemoved();
+
+	// Remove from list
+	m_menuItemCollection.erase(menuItemToRemove);
+
+	//IRawElementProviderSimple* provider = pMenuItem->GetMenuItemProvider();
+	//if (provider != NULL)
+	//{
+	//	HRESULT hr = UiaDisconnectProvider(provider);
+	//	if (FAILED(hr))
+	//	{
+	//		// An error occurred while trying to disconnect the provider. For now, print the error message.
+	//	}
+	//}
+
+	delete pMenuItem;
+
+	return true;
 }
