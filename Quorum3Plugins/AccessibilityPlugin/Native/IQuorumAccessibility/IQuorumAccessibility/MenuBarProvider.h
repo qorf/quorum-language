@@ -5,7 +5,7 @@ class MenuBarProvider : public IRawElementProviderSimple,
 						public IRawElementProviderFragmentRoot
 {
 public:
-	MenuBarProvider(_In_ HWND MenuBarControlHWND, _In_ MenuBarControl* pMenuBarControl);
+	MenuBarProvider(_In_ MenuBarControl* pMenuBarControl);
 	
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();
@@ -34,7 +34,5 @@ private:
 	virtual ~MenuBarProvider();
 	ULONG m_refCount;
 
-	HWND m_menuBarControl;
 	MenuBarControl* m_pMenuBarControl;
-
 };

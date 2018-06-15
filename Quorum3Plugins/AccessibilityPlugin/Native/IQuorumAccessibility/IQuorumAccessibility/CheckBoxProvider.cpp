@@ -1,4 +1,3 @@
-#define INITGUID
 #include <windows.h>
 #include <UIAutomation.h>
 
@@ -65,13 +64,23 @@ IFACEMETHODIMP CheckBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void*
 // Get provider options.
 IFACEMETHODIMP CheckBoxProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 // Get the object that supports ISelectionItemPattern.
 IFACEMETHODIMP CheckBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (patternId == UIA_TogglePatternId)
 	{
 		AddRef();
@@ -87,6 +96,11 @@ IFACEMETHODIMP CheckBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 // Gets custom properties.
 IFACEMETHODIMP CheckBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -156,6 +170,10 @@ IFACEMETHODIMP CheckBoxProvider::get_HostRawElementProvider(_Outptr_result_maybe
 // Toggle: Cycles through the toggle states of a control. 
 IFACEMETHODIMP CheckBoxProvider::Toggle()
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	if (m_pButtonControl->GetState() == ToggleState_On)
 	{
@@ -184,6 +202,11 @@ IFACEMETHODIMP CheckBoxProvider::Toggle()
 // get_ToggleState: Specifies the toggle state of the control.
 IFACEMETHODIMP CheckBoxProvider::get_ToggleState(_Out_ ToggleState * pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = m_pButtonControl->GetState();
 	return S_OK;
 }

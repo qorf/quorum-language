@@ -54,7 +54,11 @@ IFACEMETHODIMP ItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** pp
 // Get provider options.
 IFACEMETHODIMP ItemProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	if (!IsWindow(m_pItem->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
@@ -62,6 +66,10 @@ IFACEMETHODIMP ItemProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 IFACEMETHODIMP ItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
 	UNREFERENCED_PARAMETER(patternId);
+	if (!IsWindow(m_pItem->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 	// ItemControl doesn't implement any control patterns so NULL is correct.
 	*pRetVal = NULL;
 	return S_OK;
@@ -70,6 +78,11 @@ IFACEMETHODIMP ItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_res
 // Gets custom properties.
 IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
+	if (!IsWindow(m_pItem->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -128,10 +141,6 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
 IFACEMETHODIMP ItemProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	if (m_pItem->GetHWND() == NULL)
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 	return UiaHostProviderFromHwnd(m_pItem->GetHWND(), pRetVal);
 }
 

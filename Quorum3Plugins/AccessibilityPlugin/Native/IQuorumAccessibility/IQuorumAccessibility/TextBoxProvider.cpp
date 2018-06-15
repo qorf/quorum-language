@@ -156,11 +156,6 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 
 IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	if (!IsWindow(m_textBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	return UiaHostProviderFromHwnd(m_textBoxControlHWND, pRetVal);
 }
 

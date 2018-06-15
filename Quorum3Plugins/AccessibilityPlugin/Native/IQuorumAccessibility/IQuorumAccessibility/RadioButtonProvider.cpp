@@ -65,13 +65,23 @@ IFACEMETHODIMP RadioButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ vo
 // Get provider options.
 IFACEMETHODIMP RadioButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 // Get the object that supports ISelectionItemPattern.
 IFACEMETHODIMP RadioButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (patternId == UIA_SelectionItemPatternId)
 	{
 		AddRef();
@@ -87,6 +97,11 @@ IFACEMETHODIMP RadioButtonProvider::GetPatternProvider(PATTERNID patternId, _Out
 // Gets custom properties.
 IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -155,6 +170,11 @@ IFACEMETHODIMP RadioButtonProvider::get_HostRawElementProvider(_Outptr_result_ma
 // Select: Deselects any selected items and then selects the current element.
 IFACEMETHODIMP RadioButtonProvider::Select()
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
@@ -166,6 +186,11 @@ IFACEMETHODIMP RadioButtonProvider::Select()
 // AddToSelection: Adds the current element to the collection of selected items.
 IFACEMETHODIMP RadioButtonProvider::AddToSelection()
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	Select();
 	return S_OK;
 }
@@ -174,12 +199,21 @@ IFACEMETHODIMP RadioButtonProvider::AddToSelection()
 //						One and only one item must always be selected, so this is not implemented.
 IFACEMETHODIMP RadioButtonProvider::RemoveFromSelection()
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	return UIA_E_INVALIDOPERATION;
 }
 
 // get_IsSelected: Indicates whether an item is selected. 
 IFACEMETHODIMP RadioButtonProvider::get_IsSelected(_Out_ BOOL * pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	if (m_pButtonControl->GetState())
 	{
@@ -197,10 +231,13 @@ IFACEMETHODIMP RadioButtonProvider::get_IsSelected(_Out_ BOOL * pRetVal)
 }
 
 // get_SelectionContainer: Specifies the provider that implements ISelectionProvider and acts as the container for the calling object.
-//						   For the Microsoft Win32 version of the radio button, the selection container is not supported because it is not possible
-//						   to obtain this information from that legacy framework.
 IFACEMETHODIMP RadioButtonProvider::get_SelectionContainer(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = NULL;
 	return S_OK;
 }

@@ -1199,12 +1199,13 @@ class Layer3D is Layer
 
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
-    action ProcessTouchEvent(TouchEvent event)
+    action ProcessTouchEvent(TouchEvent event) returns Item
         Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
         Item3D temp = undefined
+        Item result = undefined
 
         /*
         TO-DO: This array of all items is regenerated for each mouse event
@@ -1235,8 +1236,12 @@ class Layer3D is Layer
             eventTargetArray:Sort()
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
+                event:SetSource(eventTargetArray:Get(counter):GetValue())
                 eventTargetArray:Get(counter):GetValue():ProcessTouchEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = eventTargetArray:Get(counter):GetValue()
+                end
                 counter = counter + 1
             end
 
@@ -1278,6 +1283,12 @@ class Layer3D is Layer
             end
 
         end
+
+        if event:GetSource() not= undefined and event:eventType = event:BEGAN
+            event:GetSource():Focus()
+        end
+
+        return result
     end
 
     /*

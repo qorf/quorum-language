@@ -70,7 +70,7 @@ class DesktopInput is GameInput
     Array<RecentInputTimer> recentClicks
 
     /*
-    An array containing "recent" key presses. Presses are consideered recent if
+    An array containing "recent" key presses. Presses are considered recent if
     they happened within a certain number of seconds, defined by the
     "multipleKeyPressTimer" value from DesktopConfiguration.
     */
@@ -336,20 +336,6 @@ class DesktopInput is GameInput
                 table = GetDefaultInputTable()
 
                 if recentInput not= undefined
-//                    if recentInput:item not= mouseEvent:GetSource()
-//                        recentInput:item = mouseEvent:GetSource()
-//                        recentInput:timer = 0
-//                        recentInput:count = 1
-//                        mouseEvent:clickCount = 1
-//                    else
-//                        multiSet:SetEventCount(recentInput:count + 1)
-//                        recentInput:timer = 0
-//                        recentInput:count = recentInput:count + 1
-//                        mouseEvent:clickCount = recentInput:count
-//                        if table:HasKey(multiSet)
-//                            set = multiSet
-//                        end
-//                    end
 
                     if ItemsAreRelated(recentInput:item, mouseEvent:GetSource())
                         multiSet:SetEventCount(recentInput:count + 1)
@@ -374,6 +360,9 @@ class DesktopInput is GameInput
             table:ProcessInput(set, behaviorEvent)
             table:ProcessInput(anySet, behaviorEvent)
         end
+
+        // After processing all the mouse events, trigger CONTINUE InputSets.
+        ContinueMouseInputSets()
 
         // Begin processing other event types.
         keyboardProcessor:Update()
@@ -446,9 +435,6 @@ class DesktopInput is GameInput
         repeat while counter < recentClicks:GetSize()
             RecentInputTimer timer = recentClicks:Get(counter)
             if timer:inputValue = button
-//                timer:timer = 0
-//                timer:count = timer:count + 1 
-//                event:clickCount = timer:count
                 return timer
             end
 
@@ -460,7 +446,6 @@ class DesktopInput is GameInput
         timer:count = 0
         recentClicks:Add(timer)
 
-//        event:clickCount = 1
         return timer
     end
 
@@ -881,6 +866,89 @@ class DesktopInput is GameInput
         end
 
         mouseButtons:SetMouseInput(newButtons)
+    end
+
+    private action ContinueMouseInputSets
+        integer buttons = mouseButtons:GetInputValue()
+        integer counter = 0
+
+        repeat while counter < 8 and buttons not= 0
+            integer mask = bits:And(buttons, bits:ShiftLeft(1, counter))
+
+            if mask not= 0
+                
+                MouseEvent event
+                event:eventType = event:CLICKED_MOUSE
+                event:mouseButton = mask
+
+                RecentInputTimer recentInput = GetRecentMouseInput(event)
+
+                event:clickCount = recentInput:count
+
+                InputTable table = undefined
+                if recentInput:item not= undefined
+                    table = GetInputTable(recentInput:item:GetInputGroup())
+                end
+
+                BehaviorEvent behaviorEvent
+                behaviorEvent:SetMouseEvent(event)
+                behaviorEvent:SetItem(recentInput:item)
+
+                InputSet set = keyboardModifiers:Copy()
+                set:SetInputTrigger(set:CONTINUE)
+                set:SetEventCount(event:clickCount)
+                set:SetMouseInput(mask)
+
+                boolean processed = (table not= undefined)
+                
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if not processed
+                    GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                end
+
+                // Remove this value from the buttons value. Once all buttons
+                // are processed this will set buttons to 0, allowing us to exit
+                // the loop early.
+                buttons = bits:ExclusiveOr(buttons, mask)
+            end
+
+            counter = counter + 1
+        end
+
+        // If the counter is greater than 0, we must have entered the loop at
+        // least once, which only occurs if the buttons value was non-zero (or
+        // in other words, at least one mouse button was down).
+        if counter > 0
+            MouseEvent event
+            event:eventType = event:CLICKED_MOUSE
+            event:mouseButton = event:ANY
+            
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetMouseEvent(event)
+            behaviorEvent:SetItem(lastMouseMoveTarget)
+
+            InputSet set = keyboardModifiers:Copy()
+            set:SetInputTrigger(set:CONTINUE)
+            set:SetMouseInput(event:ANY)
+
+            InputTable table = undefined
+            if lastMouseMoveTarget not= undefined
+                table = GetInputTable(lastMouseMoveTarget:GetInputGroup())
+            end
+
+            boolean processed = (table not= undefined)
+                
+            if table not= undefined
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+        end
     end
 
     /*

@@ -1702,6 +1702,8 @@ class Item2D is Item
             return now
         end
 
+        boolean wasSent = false
+
         Iterator<TouchListener> iterator = GetTouchListeners()
         if iterator:HasNext()
             event:SetEventHandled(true)
@@ -1709,16 +1711,19 @@ class Item2D is Item
             if event:eventType = event:BEGAN
                 repeat while iterator:HasNext()
                     iterator:Next():BeganTouch(event)
+                    wasSent = true
                 end
 
             elseif event:eventType = event:MOVED or event:eventType = event:STATIONARY
                 repeat while iterator:HasNext()
                     iterator:Next():ContinuedTouch(event)
+                    wasSent = true
                 end
 
             elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
                 repeat while iterator:HasNext()
                     iterator:Next():EndedTouch(event)
+                    wasSent = true
                 end
 
             end
@@ -1726,8 +1731,12 @@ class Item2D is Item
         end
 
 
-        if not event:WasEventHandled() and parentItem not= undefined
-            parentItem:ProcessTouchEvent(event)
+        if not wasSent
+            if parentItem not= undefined
+                parentItem:ProcessTouchEvent(event)
+            else
+                event:SetEventHandled(true)
+            end
         end
     end
 

@@ -37,10 +37,10 @@ public class AndroidInput
             }
             return super.onTouchEvent(event);
         } */
-        AndroidGestures gesture = new AndroidGestures();
-        gesture.PrintStuff("New gesture created in AddEvent");
-        if(event != null && gesture.onTouchEvent(event))
-            gesture.PrintStuff("Made it back to AddEvent call after sending event to Java");
+//        AndroidGestures gesture = new AndroidGestures();
+//        gesture.PrintStuff("New gesture created in AddEvent");
+//        if(event != null && gesture.onTouchEvent(event))
+//            gesture.PrintStuff("Made it back to AddEvent call after sending event to Java");
         TouchEvent_[] events = ConvertToQuorumEvents(event);
         for (TouchEvent_ e : events)
             AddEvent(e);
@@ -83,7 +83,7 @@ public class AndroidInput
                         y = (int)e.getRawY();
 
                         event.x = x;
-                        event.y = y;
+                        event.y = GameStateManager.display.GetHeight() - y;
                         event.fingerID = id;
                         event.eventType = event.BEGAN;
                         map.put(id, new Coordinates(x, y));
@@ -112,7 +112,7 @@ public class AndroidInput
                         event.movementX = x - coordinates.x;
                         event.movementY = y - coordinates.y;
                         coordinates.x = x;
-                        coordinates.y = y;
+                        coordinates.y = GameStateManager.display.GetHeight() - y;
                         eventArray[i] = event;
                     }
                     break;
@@ -129,6 +129,8 @@ public class AndroidInput
                         coordinates = map.get(id);
                         event.movementX = x - coordinates.x;
                         event.movementY = y - coordinates.y;
+                        event.x = x;
+                        event.y = GameStateManager.display.GetHeight() - y;
                         map.remove(id);
                         eventArray[0] = event;
                         break;
