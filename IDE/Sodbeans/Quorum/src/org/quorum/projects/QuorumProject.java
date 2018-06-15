@@ -43,6 +43,7 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
+import org.quorum.actions.SendToAndroidApplication;
 import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
@@ -77,6 +78,12 @@ public class QuorumProject implements Project {
     public static final String QUORUM_IPHONE_PROVISION = "Quorum_IPhone_Provision";
     public static final String QUORUM_IPHONE_SIGNING_KEY = "Quorum_IPhone_Signing_Key";
     public static final String QUORUM_MOBILE_ASSETS_FOLDER = "Quorum_Mobile_Assets_Folder";
+    
+    public static final String QUORUM_ANDROID_PATH = "Quorum_Android_Path";
+    public static final String QUORUM_ANDROID_KEYSTORE_PATH = "Quorum_Android_Keystore_Path";
+    public static final String QUORUM_ANDROID_KEYSTORE_PASSWORD = "Quorum_Android_Keystore_Password";
+    public static final String QUORUM_ANDROID_KEY_ALIAS = "Quorum_Android_Key_Alias";
+    public static final String QUORUM_ANDROID_KEY_PASSWORD = "Quorum_Android_Key_Password";
 
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";
@@ -92,6 +99,12 @@ public class QuorumProject implements Project {
     private String iPhoneProvisioningKey = "";
     private String iPhoneSigningKey = "";
     
+    private String androidPath = "";
+    private String androidKeystorePath = "";
+    private String androidKeystorePassword = "";
+    private String androidKeyAlias = "";
+    private String androidKeyPassword = "";
+    
     public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
@@ -102,6 +115,7 @@ public class QuorumProject implements Project {
     private Document document;
     private Debug debug;
     private SendToIPhoneApplication sendToIPhoneApplication;
+    private SendToAndroidApplication sendToAndroidApplication;
     private SendToIPhoneSimulator sendToIPhoneSimulator;
     private Build build;
     private Clean clean;
@@ -142,6 +156,7 @@ public class QuorumProject implements Project {
         debug = new Debug(this);
         build = new Build(this);
         sendToIPhoneApplication = new SendToIPhoneApplication(this);
+        sendToAndroidApplication = new SendToAndroidApplication(this);
         sendToIPhoneSimulator = new SendToIPhoneSimulator(this);
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
@@ -305,6 +320,12 @@ public class QuorumProject implements Project {
         setiPhoneProvisioningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION));
         setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
         
+        setAndroidPath(properties.getProperty(QuorumProject.QUORUM_ANDROID_PATH));
+        setAndroidKeystorePath(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PATH));
+        setAndroidKeystorePassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD));
+        setAndroidKeyAlias(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_ALIAS));
+        setAndroidKeyPassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD));
+        
         return properties;
     }
     
@@ -390,6 +411,10 @@ public class QuorumProject implements Project {
      */
     public SendToIPhoneApplication getSendToIPhoneApplication() {
         return sendToIPhoneApplication;
+    }
+    
+    public SendToAndroidApplication getSendToAndroidApplication() {
+        return sendToAndroidApplication;
     }
     
     /**
@@ -830,5 +855,75 @@ public class QuorumProject implements Project {
      */
     public void setLastGoodCompileResult(CompilerResult_ lastCompileResult) {
         this.lastGoodCompileResult = lastCompileResult;
+    }
+
+    /**
+     * @return the androidPath
+     */
+    public String getAndroidPath() {
+        return androidPath;
+    }
+
+    /**
+     * @param androidPath the androidPath to set
+     */
+    public void setAndroidPath(String androidPath) {
+        this.androidPath = androidPath;
+    }
+
+    /**
+     * @return the androidKeystorePath
+     */
+    public String getAndroidKeystorePath() {
+        return androidKeystorePath;
+    }
+
+    /**
+     * @param androidKeystorePath the androidKeystorePath to set
+     */
+    public void setAndroidKeystorePath(String androidKeystorePath) {
+        this.androidKeystorePath = androidKeystorePath;
+    }
+
+    /**
+     * @return the androidKeystorePassword
+     */
+    public String getAndroidKeystorePassword() {
+        return androidKeystorePassword;
+    }
+
+    /**
+     * @param androidKeystorePassword the androidKeystorePassword to set
+     */
+    public void setAndroidKeystorePassword(String androidKeystorePassword) {
+        this.androidKeystorePassword = androidKeystorePassword;
+    }
+
+    /**
+     * @return the androidKeyAlias
+     */
+    public String getAndroidKeyAlias() {
+        return androidKeyAlias;
+    }
+
+    /**
+     * @param androidKeyAlias the androidKeyAlias to set
+     */
+    public void setAndroidKeyAlias(String androidKeyAlias) {
+        this.androidKeyAlias = androidKeyAlias;
+    }
+
+    /**
+     * @return the androidKeyPassword
+     */
+    public String getAndroidKeyPassword() {
+        return androidKeyPassword;
+    }
+
+    /**
+     * @param androidKeyPassword the androidKeyPassword to set
+     */
+    public void setAndroidKeyPassword(String androidKeyPassword) {
+        this.androidKeyPassword = androidKeyPassword;
     }
 }
