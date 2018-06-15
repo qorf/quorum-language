@@ -46,6 +46,7 @@ import org.quorum.actions.Run;
 import org.quorum.actions.SendToAndroidApplication;
 import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
+import org.quorum.actions.SendToSignedAndroidApplication;
 import org.quorum.support.Utility;
 import quorum.Libraries.Language.Compile.CompilerRequest;
 import quorum.Libraries.Language.Compile.CompilerRequest_;
@@ -116,6 +117,7 @@ public class QuorumProject implements Project {
     private Debug debug;
     private SendToIPhoneApplication sendToIPhoneApplication;
     private SendToAndroidApplication sendToAndroidApplication;
+    private SendToSignedAndroidApplication sendToSignedAndroidApplication;
     private SendToIPhoneSimulator sendToIPhoneSimulator;
     private Build build;
     private Clean clean;
@@ -157,6 +159,7 @@ public class QuorumProject implements Project {
         build = new Build(this);
         sendToIPhoneApplication = new SendToIPhoneApplication(this);
         sendToAndroidApplication = new SendToAndroidApplication(this);
+        sendToSignedAndroidApplication = new SendToSignedAndroidApplication(this);
         sendToIPhoneSimulator = new SendToIPhoneSimulator(this);
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
@@ -415,6 +418,10 @@ public class QuorumProject implements Project {
     
     public SendToAndroidApplication getSendToAndroidApplication() {
         return sendToAndroidApplication;
+    }
+    
+    public SendToSignedAndroidApplication getSendToSignedAndroidApplication() {
+        return sendToSignedAndroidApplication;
     }
     
     /**
