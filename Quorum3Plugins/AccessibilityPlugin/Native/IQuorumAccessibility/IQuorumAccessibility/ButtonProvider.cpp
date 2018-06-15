@@ -62,13 +62,22 @@ IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** 
 // Get provider options.
 IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 // Get the object that supports IInvokePattern.
 IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (patternId == UIA_InvokePatternId)
 	{
 		AddRef();
@@ -84,6 +93,11 @@ IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_r
 // Gets custom properties.
 IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -151,6 +165,10 @@ IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenu
 // Invoke
 IFACEMETHODIMP ButtonProvider::Invoke()
 {
+	if (!IsWindow(m_pButtonControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 	PostMessage(m_pButtonControl->GetHWND(), QUORUM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }

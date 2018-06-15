@@ -72,20 +72,17 @@ ULONG MenuItemControl::GetId()
 
 int MenuItemControl::GetMenuItemIndex()
 {
-	
-	if (m_myIndex < 0)
-	{
-		Menu* pMenuControl = GetMenuControl();
 
-		for (int i = 0; i < pMenuControl->GetCount(); i++)
+	Menu* pMenuControl = GetMenuControl();
+
+	for (int i = 0; i < pMenuControl->GetCount(); i++)
+	{
+		MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
+		MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
+		if (pMenuItem == this)
 		{
-			MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
-			MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
-			if (pMenuItem == this)
-			{
-				m_myIndex = i;
-				break;
-			}
+			m_myIndex = i;
+			break;
 		}
 	}
 	
