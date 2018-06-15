@@ -12,9 +12,9 @@ class ItemControl : public Item
 public:
 	ItemControl(_In_ WCHAR* name, _In_ WCHAR* description);
 	virtual ~ItemControl();
-	ItemProvider* GetItemProvider(_In_ HWND hwnd);
+	ItemProvider* GetItemProvider();
 
-	static ItemControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription);
+	static ItemControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription);
 
 	bool HasFocus();
 

@@ -18,9 +18,14 @@ MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName)
 
 MenuBarControl::~MenuBarControl()
 {
+	if (m_menuBarProvider != NULL)
+	{
+		m_menuBarProvider->Release();
+		m_menuBarProvider = NULL;
+	}
 }
 
-MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * menuBarName)
+MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * menuBarName)
 {
 	if (!Initialized)
 	{
@@ -39,7 +44,7 @@ MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ WCHAR * men
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow, // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -160,7 +165,7 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		MenuItemControl* newMenuItem = (MenuItemControl*)lParam;
 		
 		// Add the new MenuItem to the proper collection.
-		MenuControl* menuControl;
+		Menu* menuControl;
 		
 		if (newMenuItem->GetParentMenuItem() == NULL)
 			menuControl = this;

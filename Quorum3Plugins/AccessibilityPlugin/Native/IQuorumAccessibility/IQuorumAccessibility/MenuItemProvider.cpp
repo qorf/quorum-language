@@ -145,7 +145,7 @@ IFACEMETHODIMP MenuItemProvider::get_HostRawElementProvider(_Outptr_result_maybe
 IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
 	IRawElementProviderFragment* pFragment = NULL;
-	MenuControl* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
+	Menu* pMenuControl = m_pMenuItemControl->GetParentMenuItem();
 	MENUITEM_ITERATOR iter;
 	MenuItemControl* pMenuItem;
 

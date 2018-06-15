@@ -12,7 +12,7 @@ public:
 	CheckBoxControl(_In_ WCHAR* name, _In_ WCHAR* description);
 	virtual ~CheckBoxControl();
 
-	static CheckBoxControl* Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static CheckBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	CheckBoxProvider* GetButtonProvider(_In_ HWND hwnd);
 	

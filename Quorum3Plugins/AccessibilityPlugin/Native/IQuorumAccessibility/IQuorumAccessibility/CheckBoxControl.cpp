@@ -39,14 +39,6 @@ void CheckBoxControl::InvokeButton(_In_ HWND hwnd)
 {
 	if (UiaClientsAreListening())
 	{
-
-		if (m_buttonProvider == NULL)
-		{
-			m_buttonProvider = GetButtonProvider(hwnd);
-		}
-			
-		//m_buttonProvider->Toggle();
-
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
 	}
@@ -88,7 +80,7 @@ bool CheckBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	if (!Initialized)
 	{
@@ -107,7 +99,7 @@ CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* bu
 			-1,
 			1,
 			1,
-			GetMainWindowHandle(), // Parent window
+			parentWindow,
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -218,12 +210,7 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		// TODO:  This message should notify the user that the button was checked. It does not do that.
-		//		  Maybe the provider doesn't implement the correct interface
 		bool state = static_cast<bool>(wParam);
-
-		this->InvokeButton(hwnd);
-
 		if (state)
 		{
 			this->SetState(ToggleState_On);
@@ -232,6 +219,8 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 		{
 			this->SetState(ToggleState_Off);
 		}
+
+		this->InvokeButton(hwnd);
 
 		break;
 	}

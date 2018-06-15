@@ -5,7 +5,7 @@
 #include "ItemControl.h"
 #include "Item.h"
 
-ItemProvider::ItemProvider(HWND hwnd, ItemControl* pItem) : m_refCount(1), m_controlHWnd(hwnd), m_pItem(pItem)
+ItemProvider::ItemProvider(ItemControl* pItem) : m_refCount(1), m_pItem(pItem)
 {
 	// Nothing to do.
 }
@@ -73,7 +73,7 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Item");
+		pRetVal->bstrVal = SysAllocString(L"item");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -83,6 +83,7 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	}
 	else if (propertyId == UIA_HelpTextPropertyId)
 	{
+		// This is read aloud each time the control gains focus.
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(m_pItem->GetDescription());
 	}
@@ -127,11 +128,11 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
 IFACEMETHODIMP ItemProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	if (m_controlHWnd == NULL)
+	if (m_pItem->GetHWND() == NULL)
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-	return UiaHostProviderFromHwnd(m_controlHWnd, pRetVal);
+	return UiaHostProviderFromHwnd(m_pItem->GetHWND(), pRetVal);
 }
 
 // =========== Other Methods

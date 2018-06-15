@@ -5,7 +5,7 @@
 #include "ButtonProvider.h"
 #include "ButtonControl.h"
 
-ButtonProvider::ButtonProvider(HWND hwnd, ButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
+ButtonProvider::ButtonProvider(ButtonControl* pButtonControl) : m_refCount(1), m_pButtonControl(pButtonControl)
 {
 	// Nothing to do.
 }
@@ -87,7 +87,7 @@ IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VAR
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Button");
+		pRetVal->bstrVal = SysAllocString(L"button");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -142,7 +142,7 @@ IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VAR
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
 IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	return UiaHostProviderFromHwnd(m_buttonControlHWnd, pRetVal);
+	return UiaHostProviderFromHwnd(m_pButtonControl->GetHWND(), pRetVal);
 }
 
 
@@ -151,7 +151,7 @@ IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenu
 // Invoke
 IFACEMETHODIMP ButtonProvider::Invoke()
 {
-	PostMessage(m_buttonControlHWnd, QUORUM_INVOKEBUTTON, NULL, NULL);
+	PostMessage(m_pButtonControl->GetHWND(), QUORUM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }
 
@@ -160,6 +160,6 @@ void ButtonProvider::NotifyFocusGained()
 {
 	if (UiaClientsAreListening())
 	{
-		//UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
 }
