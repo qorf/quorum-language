@@ -231,7 +231,7 @@ class Layer
 
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
-    blueprint action ProcessTouchEvent(TouchEvent event)
+    blueprint action ProcessTouchEvent(TouchEvent event) returns Item
 
     /*
     This action will add a MouseListener to the layer. When the layer receives a

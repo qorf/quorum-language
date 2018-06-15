@@ -1135,11 +1135,12 @@ class Layer2D is Layer
 
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
-    action ProcessTouchEvent(TouchEvent event)
+    action ProcessTouchEvent(TouchEvent event) returns Item
         
         boolean processing = true
         integer counter = items:GetSize()
         Item2D temp = undefined
+        Item result = undefined
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
@@ -1148,8 +1149,12 @@ class Layer2D is Layer
             temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
 
             if temp not= undefined
+                event:SetSource(temp)
                 temp:ProcessTouchEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = temp
+                end
             end
         end
 
@@ -1188,6 +1193,12 @@ class Layer2D is Layer
             end
 
         end
+
+        if event:GetSource() not= undefined and event:eventType = event:BEGAN
+            event:GetSource():Focus()
+        end
+
+        return result
     end
 
     /*

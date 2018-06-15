@@ -8,6 +8,7 @@ class BehaviorEvent
     KeyboardEvent keyboardEvent = undefined
     MouseEvent mouseEvent = undefined
     TextInputEvent textInputEvent = undefined
+    TouchEvent touchEvent = undefined
     number seconds = 0
 
     on create
@@ -45,6 +46,14 @@ class BehaviorEvent
 
     action SetTextInputEvent(TextInputEvent event)
         textInputEvent = event
+    end
+
+    action GetTouchEvent returns TouchEvent
+        return touchEvent
+    end
+
+    action SetTouchEvent(TouchEvent event)
+        touchEvent = event
     end
 
     action SetSecondsSinceLastFrame(number seconds)
