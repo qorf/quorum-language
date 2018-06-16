@@ -59,14 +59,20 @@ class TreeItem is Control
     end
     
     action Initialize(text name)
-        label:Initialize()
-        SetName(name)
-        // Handle image - default case is most likely no image.
+        Initialize(name, undefined)
     end
 
     action Initialize(text name, Texture image)
         label:Initialize()
         integer height = label:GetLineHeight()
+
+        if image = undefined
+            Texture texture
+            Color color
+            texture:LoadFilledRectangle(1, 1, color:CustomColor(1, 1, 1, 0))
+            image = texture
+        end
+
         icon:Load(image)
         number aspectRatio = icon:GetWidth() / icon:GetHeight()
         icon:SetSize(aspectRatio * height, height)

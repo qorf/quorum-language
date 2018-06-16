@@ -236,8 +236,9 @@ class MenuBar is Item2D
 
     action MoveSelectionLeft
         Array<MenuItem> path = selection:GetPath()
-        if path:GetSize() = 1
+        if path:GetSize() <= 2
             MenuItem name = path:Get(0)
+            boolean shouldOpen = name:IsOpen()
             integer counter = 0
             repeat while counter < menus:GetSize()
                 Item2D menu = menus:Get(counter)
@@ -247,6 +248,11 @@ class MenuBar is Item2D
                         index = menus:GetSize() - 1
                     end
                     path:Set(0, menus:Get(index))
+                    if shouldOpen
+                        menus:Get(index):Open()
+                    else
+                        menus:Get(index):Close()
+                    end
                     Select(path)
                     return now
                 end
@@ -264,12 +270,18 @@ class MenuBar is Item2D
         Array<MenuItem> path = selection:GetPath():CopyToArray()
         if path:GetSize() = 1
             MenuItem name = path:Get(0)
+            boolean shouldOpen = name:IsOpen()
             integer counter = 0
             repeat while counter < menus:GetSize()
                 Item2D menu = menus:Get(counter)
                 if menu:Equals(name)
                     integer index = (counter + 1) mod menus:GetSize()
                     path:Set(0, menus:Get(index))
+                    if shouldOpen
+                        menus:Get(index):Open()
+                    else
+                        menus:Get(index):Close()
+                    end
                     Select(path)
                     return now
                 end
@@ -278,16 +290,25 @@ class MenuBar is Item2D
         elseif path:GetSize() > 1
             MenuItem item = GetMenuItem(path)
             if item:IsMenu()
+                if not item:IsOpen()
+                    item:Open()
+                end
                 item:GetMenuItems():Next():Select()
             else
                 MenuItem name = path:Get(0)
                 integer counter = 0
+                boolean shouldOpen = name:IsOpen()
                 repeat while counter < menus:GetSize()
                     Item2D menu = menus:Get(counter)
                     if menu:Equals(name)
                         integer index = (counter + 1) mod menus:GetSize()
                         path:Empty()
                         path:Add(menus:Get(index))
+                        if shouldOpen
+                            menus:Get(index):Open()
+                        else
+                            menus:Get(index):Close()
+                        end
                         Select(path)
                         return now
                     end
