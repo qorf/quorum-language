@@ -315,6 +315,9 @@ class MenuItem is Control
         MenuBar bar = GetMenuBar()
         if bar not= undefined and bar:IsSelecting()
             Select()
+            if not open
+                Open()
+            end
         end
     end
 
@@ -323,9 +326,6 @@ class MenuItem is Control
         MenuBar menuBar = GetMenuBar()
         if menuBar not= undefined
             menuBar:SetSelectingState(true)
-        end
-        if not open
-            Open()
         end
     end
 
@@ -453,6 +453,9 @@ class MenuItem is Control
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionDown(me)
         elseif menuItems:GetSize() > 0
+            if not open
+                Open()
+            end
             menuItems:Get(0):Select()
         end
     end
@@ -478,6 +481,9 @@ class MenuItem is Control
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionUp(me)
         elseif menuItems:GetSize() > 0
+            if not open
+                Open()
+            end
             menuItems:Get(menuItems:GetSize() - 1):Select()
         end
     end
@@ -518,4 +524,15 @@ class MenuItem is Control
         return array
     end
 
+    action Activate(BehaviorEvent event)
+        if IsMenu()
+            if open
+                Close()
+            else
+                Open()
+            end
+        end
+
+        parent:Control:Activate(event)
+    end
 end
