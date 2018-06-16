@@ -39,6 +39,8 @@ class CollisionGroup2D
     integer jointCount = 0
     integer collisionCount = 0
 
+    //when a body's linear velocity is below the sleepThreashold, then that body
+    //will allowed to continue to sleep
     number sleepThreshold = 3
 
     Math math
@@ -93,6 +95,8 @@ class CollisionGroup2D
     This action solves the collision for objects inside this CollisionGroup2D.
     */
     action Solve(TimeStep step, Vector2 gravity, boolean requireSimulation)
+        //simulation == awake
+        //!requireSimulation == allowSleep
         number h = step:GetTimeStep()
 
         integer i = 0
@@ -349,34 +353,61 @@ class CollisionGroup2D
         end
     end
 
+    /*
+    This action returns how many items are in the collision group.
+    */
     action GetItemCount returns integer
         return itemCount
     end
 
+    /*
+    This action returns how many joints are in this collision group.    
+    */
     action GetJointCount returns integer
         return jointCount
     end
 
+    /*
+    This action returns the number of collision events that is associated with
+    this CollisionGroup2D.
+    */
     action GetCollisionCount returns integer
         return collisionCount
     end
 
+    /*
+    This action returns the Item2D requested at the index passed in.
+    */
     action GetItem(integer index) returns Item2D
         return items:Get(index)
     end
 
+    /*
+    This action returns the Join2D requested at the index passed in.
+    */
     action GetJoint(integer index) returns Joint2D
         return joints:Get(index)
     end
 
+    /*
+    This action returns the CollisionEvent2D requested at the index passed in.
+    */
     action GetCollision(integer index) returns CollisionEvent2D
         return collisions:Get(index)
     end
 
+    /*
+    This action sets the maximum linear velocity that a sleeping object can
+    have.
+    */
     action SetSimulationThreshold(number threshold)
         me:sleepThreshold = threshold
     end
 
+    /*
+    This action returns the maximum linear velocity that a sleeping object can
+    have.
+    */
     action GetSimulationThreshold returns number
         return sleepThreshold
     end

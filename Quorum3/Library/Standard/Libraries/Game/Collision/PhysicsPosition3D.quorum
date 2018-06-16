@@ -7,59 +7,109 @@ use Libraries.Compute.Quaternion
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 
-
+/*
+This class stores coordinate systems in 3D space, where the coordinate system
+represent the position of the 3D item and the tilt of the 3D item with 
+respect to your screen.
+NOTE: this class can be seen as the class that stores a 4x4 transformation matrix.
+*/
 class PhysicsPosition3D 
-    Matrix3 basis
-    Vector3 origin
+    Matrix3 basis   //the "tilt" of the 3D object, or the basis that is used to describe the local coordinate system of the 3D object 
+    Vector3 origin  //the position of the 3D object's origin with respect to the origin of the global coordinates
 
+    /*
+    This action sets the location and the tilt of the 3D object using another
+    PhysicsPosition3D.
+    */
     action Set(PhysicsPosition3D transform)
         basis:Set(transform:basis)
         origin:Set(transform:origin)
     end
 
+    /*
+    This action sets the tilt of the 3D object and reset the position of the 3D
+    object (the 3D object's local origin) to the global coordinate's origin.
+    If you don't want the origin of the 3D object to be reset, please use the 
+    action "Set(Matrix3 basis, Vector3 origin)."
+    */
     action Set(Matrix3 matrix)
         basis:Set(matrix)
         origin:Set(0, 0, 0)
     end
 
+    /*
+    This action sets the position of a 3D object using a matrix that contains
+    both the tilt of the object and the position of the 3D object's center
+    with respect to the world center.  
+    */
     action Set(Matrix4 matrix)
         basis:Set(matrix)
         origin:Set(matrix:row0column3, matrix:row1column3, matrix:row2column3)
     end
 
+    /*
+    This action sets the tilt of the 3D object using "Matrix3 basis" and sets
+    the location of the 3D object using "Vector3 origin."
+    */
     action Set(Matrix3 basis, Vector3 origin)
         me:basis:Set(basis)
         me:origin:Set(origin)
     end
 
+    /*
+    This action gets the tilt of the 3D object (the rotational part of the 
+    transformation matrix).
+    */
     action GetBasis returns Matrix3
         return basis
     end
 
-   action GetOrigin returns Vector3
+    /*
+    This action gets the position of the 3D object (the 3D object's local origin
+    with respect to the global coordinates).
+    */
+    action GetOrigin returns Vector3
         return origin
     end
 
+    /*
+    This action turns a point/vector (Vector3 vector) that is described relative
+    to the 3D object and change it so that the point/vector is described in
+    the global coordinates.
+    */
     action Transform(Vector3 vector)
         vector:Multiply(basis)
         vector:Add(origin)
     end
 
+    /*
+    This action sets the tilt of the 3D object to be 0 and make the position of
+    the 3D object described by this PhysicsPosition3D to align with the global
+    origin.
+    */
     action SetToIdentity
         basis:IdentityMatrix()
         origin:SetZero()
     end
 
+    /*
+    This action calculates the inverse of the transformation matrix stored inside
+    this PhysicsPosition3D.
+    */
     action Inverse
         basis:Transpose()
         origin:Scale(-1)
         origin:Multiply(basis)
     end
 
+    /*
+    This action stores the inverse of the transformation matrix passed in.
+    */
     action Inverse(PhysicsPosition3D transform)
         Set(transform)
         Inverse()
     end
+
 
     action Multiply(PhysicsPosition3D transform)
         Vector3 vector

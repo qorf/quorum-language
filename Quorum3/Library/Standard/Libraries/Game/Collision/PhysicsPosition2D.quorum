@@ -8,7 +8,7 @@ package Libraries.Game.Collision
 This class stores coordinate systems in 2D space, where the coordinate system
 represent the position of the 2D item and the tilt of the 2D item with 
 respect to your screen.
-NOTE: this class can be seen as the class that stores a rotational matrix.
+NOTE: this class can be seen as the class that stores a 3x3 transformation matrix.
 */
 class PhysicsPosition2D
     Vector2 position  //the local coordinate's origin (doesn't have to be the center of the item) relative to the global coordinates
@@ -19,7 +19,7 @@ class PhysicsPosition2D
     Math math
     
     /*
-    sets the physics positions using another obj of PhysicsPosition2D
+    This action sets the physics positions using another object of PhysicsPosition2D
     */
     action Set(PhysicsPosition2D other)
         me:position:Set(other:position)
@@ -27,40 +27,73 @@ class PhysicsPosition2D
         me:cosine = other:cosine
     end
 
+    /*
+    This action sets the physics position of the 2D object using the passed in 
+    position and sets the tilt of the 2D object using the angle passed in.
+    */
     action Set(Vector2 position, number angle)
         me:position:Set(position)
         me:sine = math:Sine(angle)
         me:cosine = math:Cosine(angle)
     end
 
+    /*
+    This action gets the location of the 2D object (the 2D object's local origin)
+    with respect to the global coordinates.
+    */
     action GetPosition returns Vector2
         return position
     end
 
+    /*
+    This action gets the position of the 2D object (the 2D object's local origin
+    with respect to the global coordinates).
+    */
     action SetPosition(Vector2 position)
         me:position = position
     end
 
+    /*
+    This action gets the tilt of the 2D object in radians.
+    */
     action GetAngle returns number
         return math:InverseTangent(cosine, sine)
     end
 
+    /*
+    This action gets the sine of the tilt of the 2D object.
+    */
     action GetSine returns number
         return sine
     end
 
+    /*
+    This action sets the sine of the tilt of the 2D object.
+    */
     action SetSine(number sine)
         me:sine = sine
     end
 
+    /*
+    This action gets the cosine of the tilt of the 2D object described by this
+    PhysicsPosition2D.
+    */
     action GetCosine returns number
         return cosine
     end
 
+    /*
+    This action sets the cosine of the tilt of the 2D object described by this
+    PhysicsPosition2D.
+    */
     action SetCosine(number cosine)
         me:cosine = cosine
     end
 
+    /*
+    This action sets the tilt of the 2D object described by this PhysicsPosition2D
+    to 0 and align the 2D object with the global origin.
+    */
     action SetToIdentity
         position:SetZero()
         sine = 0

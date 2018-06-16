@@ -9,12 +9,16 @@ use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
 use Libraries.Compute.Quaternion
 
+/*
+This class is a property holder for a 3D mass. This class is used internally 
+by Item3D class.
+*/
 class PhysicsProperties3D 
     Math math
 
-    public constant integer UNMOVABLE = 0
-    public constant integer NON_RESPONSIVE = 1
-    public constant integer RESPONSIVE = 2
+    public constant integer UNMOVABLE = 0       //static object
+    public constant integer NON_RESPONSIVE = 1  //object governed by kinematics (meaning, the object is affected by linear velocity and angular velocity settings)
+    public constant integer RESPONSIVE = 2      //object governed by dynamics (meaning, the object is affect by force and torque applied to it)
 
     Vector3 linearVelocity
     Vector3 angularVelocity
