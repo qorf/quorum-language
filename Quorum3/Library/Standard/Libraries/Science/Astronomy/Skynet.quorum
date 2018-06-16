@@ -893,8 +893,13 @@ class Skynet is NetworkRequestListener
             status = STATUS_OBSERVATIONID_RECEIVED
             SubmitExposureRequest()
         elseif status = STATUS_OBSERVATIONID_RECEIVED
-            status = STATUS_NO_REQUEST_MADE
-            Notify(response)
+            numberOfExposures = cast(integer, json:GetValue("expNum"))
+            if numberOfExposures < expNum
+                SubmitExposureRequest()
+            else
+                status = STATUS_NO_REQUEST_MADE
+                Notify(response)
+            end
         end
     end
 

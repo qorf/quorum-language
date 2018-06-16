@@ -128,21 +128,19 @@ public class AccessibilityManager
     //
     private native long NativeWin32CreateMenuItem(String name, String shortcut, long parentMenu, long parentMenuBar);
     
-    // NativeWin32RemoveMenuItem: Removes a item control from UI Automation hierarchy.
+    // NativeWin32Remove: Removes a item control from UI Automation hierarchy.
     //
-    private native boolean NativeWin32RemoveItem(long itemToRemove);
+    private native boolean NativeWin32Remove(long itemToRemove);
     
     // NativeWin32RemoveMenuItem: Removes a MenuItem control from UI Automation hierarchy.
     //
     private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
     
-    
-    
-    // NativeWin32RemoveMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
+    // NativeWin32SelectMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
     //
     private native boolean NativeWin32SelectMenuItem(long selectedMenuItem);
     
-    // NativeWin32RemoveMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
+    // NativeWin32DeselectMenuItem: Deselects a MenuItem control in the UI Automation hierarchy.
     //
     private native boolean NativeWin32DeselectMenuItem(long menubar);
     
@@ -240,37 +238,40 @@ public class AccessibilityManager
 
         // Add item and respective pointer to collection.
         ITEM_MAP.put(item, nativePointer);
+        
         return true;
     }
     
     public boolean NativeRemove(Item_ item)
     {
-        Long itemToRemove;
+        Long itemToRemove = ITEM_MAP.get(item);
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        boolean wasRemoved;
+        boolean wasRemoved = false;
         
         // Retreive native pointer for given object
-        itemToRemove = ITEM_MAP.get(item);
+        if (itemToRemove == null)
+            return true;
         
         switch(code)
         {
             case ITEM:
-                wasRemoved = NativeWin32RemoveItem(itemToRemove);
-                break;
             case CUSTOM:
-                // Not implemented yet. Create as Item for now.
-                wasRemoved = NativeWin32RemoveItem(itemToRemove);
+            case BUTTON:
+            case RADIO_BUTTON:
+            case CHECKBOX:
+                wasRemoved = NativeWin32Remove(itemToRemove);
                 break;
             case MENU_ITEM:
                 wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
                 break;
             default:
-                wasRemoved = false;
+                return false;
         }
+        
         if (wasRemoved)
             ITEM_MAP.remove(item);
         
-        return wasRemoved;
+        return true;
 
     }
     

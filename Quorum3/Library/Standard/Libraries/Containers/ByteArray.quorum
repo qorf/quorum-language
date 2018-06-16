@@ -1,5 +1,5 @@
- package Libraries.Containers
-use Libraries.Containers.Support.ByteArrayIterator
+package Libraries.Containers
+use Libraries.Containers.Support.ByteReader
 
 /*
     The ByteArray class is a specialized kind of array specifically designed
@@ -46,10 +46,10 @@ class ByteArray
     */
     system action GetSize returns integer
 
-    action GetIterator returns ByteArrayIterator
-        ByteArrayIterator iterator
-        iterator:SetByteArray(me)
-        return iterator
+    action GetIterator returns ByteReader
+        ByteReader reader
+        reader:SetByteArray(me)
+        return reader
     end
 
     system action DecompressZLib returns ByteArray

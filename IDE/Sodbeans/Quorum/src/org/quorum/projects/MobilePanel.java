@@ -48,16 +48,16 @@ public class MobilePanel extends javax.swing.JPanel {
         jLabel4 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        androidPathTextField = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        androidKeystorePathTextField = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        androidKeystorePasswordTextField = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
+        androidKeyAliasTextField = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
+        androidKeyPasswordTextField = new javax.swing.JTextField();
 
         mobileFolderFileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
@@ -93,25 +93,25 @@ public class MobilePanel extends javax.swing.JPanel {
         jLabel5.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel5.text")); // NOI18N
 
-        jTextField1.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jTextField1.text")); // NOI18N
+        androidPathTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.androidPathTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel6.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel7.text")); // NOI18N
 
-        jTextField2.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jTextField2.text")); // NOI18N
+        androidKeystorePathTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.androidKeystorePathTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel8.text")); // NOI18N
 
-        jTextField3.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jTextField3.text")); // NOI18N
+        androidKeystorePasswordTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.androidKeystorePasswordTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel9.text")); // NOI18N
 
-        jTextField4.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jTextField4.text")); // NOI18N
+        androidKeyAliasTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.androidKeyAliasTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jLabel10.text")); // NOI18N
 
-        jTextField5.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.jTextField5.text")); // NOI18N
+        androidKeyPasswordTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.androidKeyPasswordTextField.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -138,11 +138,11 @@ public class MobilePanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jSeparator1))
-            .addComponent(jTextField1)
-            .addComponent(jTextField2)
-            .addComponent(jTextField3)
-            .addComponent(jTextField4)
-            .addComponent(jTextField5)
+            .addComponent(androidPathTextField)
+            .addComponent(androidKeystorePathTextField)
+            .addComponent(androidKeystorePasswordTextField)
+            .addComponent(androidKeyAliasTextField)
+            .addComponent(androidKeyPasswordTextField)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel5)
@@ -180,23 +180,23 @@ public class MobilePanel extends javax.swing.JPanel {
                 .addGap(7, 7, 7)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(androidPathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(androidKeystorePathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(androidKeystorePasswordTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(androidKeyAliasTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(androidKeyPasswordTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(54, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -249,11 +249,37 @@ public class MobilePanel extends javax.swing.JPanel {
         return resourcesTextField.getText();
     }
     
+    public String getAndroidPath() {
+        return androidPathTextField.getText();
+    }
+    
+    public String getAndroidKeystorePath() {
+        return androidKeystorePathTextField.getText();
+    }
+    
+    public String getAndroidKeystorePassword() {
+        return androidKeystorePasswordTextField.getText();
+    }
+    
+    public String getAndroidKeyAlias() {
+        return androidKeyAliasTextField.getText();
+    }
+    
+    public String getAndroidKeyPassword() {
+        return androidKeyPasswordTextField.getText();
+    }
+    
     private void loadProperties() {
         Properties properties = project.getLookup().lookup(Properties.class);
         String assets = properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
         String provision = properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION);
         String signingKey = properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
+        
+        String androidPath = properties.getProperty(QuorumProject.QUORUM_ANDROID_PATH);
+        String androidKeystorePath = properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PATH);
+        String androidKeystorePassword = properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD);
+        String androidKeyAlias = properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_ALIAS);
+        String androidKeyPassword = properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD);
         
         if(assets != null) {
             resourcesTextField.setText(assets);
@@ -268,9 +294,34 @@ public class MobilePanel extends javax.swing.JPanel {
         if(signingKey != null) {
             signingKeyTextField.setText(signingKey);
         }
+        
+        if(androidPath != null) {
+            androidPathTextField.setText(androidPath);
+        }
+        
+        if(androidKeystorePath != null) {
+            androidKeystorePathTextField.setText(androidKeystorePath);
+        }
+        
+        if(androidKeystorePassword != null) {
+            androidKeystorePasswordTextField.setText(androidKeystorePassword);
+        }
+        
+        if(androidKeyAlias != null) {
+            androidKeyAliasTextField.setText(androidKeyAlias);
+        }
+        
+        if(androidKeyPassword != null) {
+            androidKeyPasswordTextField.setText(androidKeyPassword);
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField androidKeyAliasTextField;
+    private javax.swing.JTextField androidKeyPasswordTextField;
+    private javax.swing.JTextField androidKeystorePasswordTextField;
+    private javax.swing.JTextField androidKeystorePathTextField;
+    private javax.swing.JTextField androidPathTextField;
     private javax.swing.JButton browseButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
@@ -284,11 +335,6 @@ public class MobilePanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
     private javax.swing.JFileChooser mobileFolderFileChooser;
     private javax.swing.JTextField provisioningTextField;
     private javax.swing.JTextField resourcesTextField;
