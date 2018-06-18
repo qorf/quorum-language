@@ -60,6 +60,7 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = L"QUORUM_BUTTON";
 
+
 	if (RegisterClassExW(&wc) == 0)
 	{
 		// An error occured. Output this error so it can be seen from Quorum.

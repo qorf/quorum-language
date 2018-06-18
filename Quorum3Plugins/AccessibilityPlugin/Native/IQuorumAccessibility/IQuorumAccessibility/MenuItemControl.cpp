@@ -5,11 +5,9 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
-
 // For error reporting
 #include <string>
 #include <iostream>
-
 
 MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
 	: Item(menuItemName, L""), m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar),
@@ -51,7 +49,7 @@ MenuItemProvider * MenuItemControl::GetMenuItemProvider()
 	return m_pMenuItemProvider;
 }
 
-Menu * MenuItemControl::GetMenuControl()
+Menu * MenuItemControl::GetMenu()
 {
 	Menu* menuControl = GetParentMenuItem();
 	if (menuControl == NULL)
@@ -65,15 +63,15 @@ WCHAR * MenuItemControl::GetShortcut()
 	return m_shortcut;
 }
 
-ULONG MenuItemControl::GetId()
+int MenuItemControl::GetId()
 {
 	return m_uniqueId;
 }
 
+// GetMenuItemIndex: Retreives the MenuItem index by iterating through the collection.
 int MenuItemControl::GetMenuItemIndex()
 {
-
-	Menu* pMenuControl = GetMenuControl();
+	Menu* pMenuControl = GetMenu();
 
 	for (int i = 0; i < pMenuControl->GetCount(); i++)
 	{
@@ -90,6 +88,7 @@ int MenuItemControl::GetMenuItemIndex()
 	
 }
 
+// SetMenuItemIndex: Sets the MenuItem index to the given index.
 void MenuItemControl::SetMenuItemIndex(_In_ int index)
 {
 	m_myIndex = index;

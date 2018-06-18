@@ -6,6 +6,9 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
+#include <iostream>
+
+#include <cstdlib>
 
 int Menu::GetCount()
 {
@@ -17,10 +20,11 @@ bool Menu::hasChildren()
 	return !m_menuItemCollection.empty();
 }
 
-ULONG Menu::CreateUniqueId()
+int Menu::CreateUniqueId()
 {
-	static ULONG uniqueId;
-	return InterlockedIncrement(&uniqueId);
+	//int uniqueId;
+	//return uniqueId++;
+	return std::rand();
 }
 
 MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
@@ -31,6 +35,7 @@ MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
 
 bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {
+
 	// Create a unique id for the new item.
 	int id = CreateUniqueId();
 
@@ -58,31 +63,27 @@ bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 		return false;
 }
 
-bool Menu::RemoveMenuItem(_In_ int index)
+bool Menu::RemoveMenuItem(MenuItemControl* pMenuItem)
 {
-	MENUITEM_ITERATOR menuItemToRemove = GetMenuItemAt(index);
-
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItemToRemove);
+	MENUITEM_ITERATOR menuItemToRemove = GetMenuItemAt(pMenuItem->GetMenuItemIndex());
 
 	if (pMenuItem->GetParentMenuBar()->GetSelectedMenuItem() == pMenuItem)
 		pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
 
 	// Raise a UIA event
 	MenuItemProvider* pMenuItemProvider = pMenuItem->GetMenuItemProvider();
-	pMenuItemProvider->NotifyMenuItemRemoved();
+	if (pMenuItemProvider != NULL)
+	{
+		pMenuItemProvider->NotifyMenuItemRemoved();
+		UiaDisconnectProvider(pMenuItemProvider);
+	}
+	else
+		std::cout << "RemoveMenuItem: MenuItem provider is NULL." << std::endl;
+
 
 	// Remove from list
 	m_menuItemCollection.erase(menuItemToRemove);
 
-	//IRawElementProviderSimple* provider = pMenuItem->GetMenuItemProvider();
-	//if (provider != NULL)
-	//{
-	//	HRESULT hr = UiaDisconnectProvider(provider);
-	//	if (FAILED(hr))
-	//	{
-	//		// An error occurred while trying to disconnect the provider. For now, print the error message.
-	//	}
-	//}
 
 	delete pMenuItem;
 

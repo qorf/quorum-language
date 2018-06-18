@@ -7,6 +7,10 @@
 #include "MenuItemControl.h"
 #include <string>
 
+#include <iostream>
+
+#define RID_ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
+
 MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_refCount(1), m_pMenuItemControl(pControl)
 {
 }
@@ -154,59 +158,58 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 
 	switch (direction)
 	{
-	case NavigateDirection_Parent:
-	{
-		pFragment = static_cast<IRawElementProviderFragment*>(this->GetParentProvider());
-		break;
-	}
-	case NavigateDirection_FirstChild:
-	{
-		if (m_pMenuItemControl->hasChildren())
+		case NavigateDirection_Parent:
 		{
-			iter = m_pMenuItemControl->GetMenuItemAt(0);
-			pMenuItem = static_cast<MenuItemControl*>(*iter);
-			pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
-
-		}
-		break;
-	}
-	case NavigateDirection_LastChild:
-	{
-		if (m_pMenuItemControl->hasChildren())
-		{
-			iter = m_pMenuItemControl->GetMenuItemAt(m_pMenuItemControl->GetCount() - 1);
-			pMenuItem = static_cast<MenuItemControl*>(*iter);
-			pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
-		}
-		break;
-	}
-	case NavigateDirection_NextSibling:
-	{
-		int myIndex = m_pMenuItemControl->GetMenuItemIndex();
-		if (myIndex == pMenuControl->GetCount() - 1)
-		{
-			pFragment = NULL;
+			pFragment = static_cast<IRawElementProviderFragment*>(this->GetParentProvider());
 			break;
 		}
-		MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex + 1);
-		MenuItemControl* pNext = (MenuItemControl*)(*nextIter);
-		pFragment = pNext->GetMenuItemProvider();
-		break;
-	}
-
-	case NavigateDirection_PreviousSibling:
-	{
-		int myIndex = m_pMenuItemControl->GetMenuItemIndex();
-		if (myIndex <= 0)
+		case NavigateDirection_FirstChild:
 		{
-			pFragment = NULL;
+			if (m_pMenuItemControl->hasChildren())
+			{
+				iter = m_pMenuItemControl->GetMenuItemAt(0);
+				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
+
+			}
 			break;
 		}
-		MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex - 1);
-		MenuItemControl* pPrev = static_cast<MenuItemControl*>(*nextIter);
-		pFragment = pPrev->GetMenuItemProvider();
-		break;
-	}
+		case NavigateDirection_LastChild:
+		{
+			if (m_pMenuItemControl->hasChildren())
+			{
+				iter = m_pMenuItemControl->GetMenuItemAt(m_pMenuItemControl->GetCount() - 1);
+				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
+			}
+			break;
+		}
+		case NavigateDirection_NextSibling:
+		{
+			int myIndex = m_pMenuItemControl->GetMenuItemIndex();
+			if (myIndex == pMenuControl->GetCount() - 1)
+			{
+				pFragment = NULL;
+				break;
+			}
+			MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex + 1);
+			MenuItemControl* pNext = (MenuItemControl*)(*nextIter);
+			pFragment = pNext->GetMenuItemProvider();
+			break;
+		}
+		case NavigateDirection_PreviousSibling:
+		{
+			int myIndex = m_pMenuItemControl->GetMenuItemIndex();
+			if (myIndex <= 0)
+			{
+				pFragment = NULL;
+				break;
+			}
+			MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex - 1);
+			MenuItemControl* pPrev = static_cast<MenuItemControl*>(*nextIter);
+			pFragment = pPrev->GetMenuItemProvider();
+			break;
+		}
 	}
 
 	*pRetVal = pFragment;
@@ -267,9 +270,10 @@ IFACEMETHODIMP MenuItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRaw
 
 	IRawElementProviderFragmentRoot* pRoot = NULL;
 	
-	if (m_pMenuItemControl->GetParentMenuBar() != nullptr)
+	if (m_pMenuItemControl->GetParentMenuBar() != NULL)
 	{
-		pRoot = m_pMenuItemControl->GetParentMenuBar()->GetMenuBarProvider();
+		MenuBarControl* pMenuBar = m_pMenuItemControl->GetParentMenuBar();
+		pRoot = pMenuBar->GetMenuBarProvider();
 	}
 
 
@@ -303,7 +307,8 @@ void MenuItemProvider::NotifyMenuItemRemoved()
 		int id = m_pMenuItemControl->GetId();
 		int rId[] = { UiaAppendRuntimeId, id };
 
-		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, 2);
+		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, RID_ARRAYSIZE(rId));
+
 	}
 }
 

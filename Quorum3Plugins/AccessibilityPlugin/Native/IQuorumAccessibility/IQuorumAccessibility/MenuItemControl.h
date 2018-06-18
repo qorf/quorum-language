@@ -18,11 +18,11 @@ public:
 	void SetParentMenuBar(_In_ MenuBarControl* menuBar);
 	MenuItemControl* GetParentMenuItem();
 	MenuItemProvider* GetMenuItemProvider();
-	Menu* GetMenuControl();
+	Menu* GetMenu();
 
 	WCHAR* GetShortcut();
 	
-	ULONG GetId();
+	int GetId();
 
 	int GetMenuItemIndex();
 	void SetMenuItemIndex(_In_ int index);
@@ -32,7 +32,7 @@ public:
 private:
 
 	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
-	ULONG m_uniqueId;
+	int m_uniqueId;
 
 	// Where this MenuItem is located in the collection.
 	int m_myIndex;

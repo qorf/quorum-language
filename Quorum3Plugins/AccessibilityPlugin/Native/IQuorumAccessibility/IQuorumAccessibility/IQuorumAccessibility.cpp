@@ -68,10 +68,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
-
-	//DWORD threadID = GetCurrentThreadId();
-
-	//std::cout << "NativeWin32InitializeAccessibility Thread ID: " << threadID << std::endl;
+	
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
@@ -263,55 +260,24 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32Remove(JNIEnv * env, jobject obj, jlong item)
 {
 	Item* itemToRemove = static_cast<Item*>(LongToPtr((long)item));
-	std::cout << "Calling DestoryWindow." << std::endl;
-	
+		
 	DestroyWindow(itemToRemove->GetHWND());
-	std::cout << "DestoryWindow returned." << std::endl;
 
 	delete itemToRemove;
-	std::cout << "Pointer deleted." << std::endl;
 
 	return true;
 }
 
-//JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveButton(JNIEnv * env, jobject obj, jlong item)
-//{
-//
-//	ButtonControl* itemToRemove = static_cast<ButtonControl*>(LongToPtr((long)item));
-//
-//	delete itemToRemove;
-//
-//	return true;
-//}
-//
-//JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveCheckBox(JNIEnv * env, jobject obj, jlong item)
-//{
-//
-//	CheckBoxControl* itemToRemove = static_cast<CheckBoxControl*>(LongToPtr((long)item));
-//
-//	delete itemToRemove;
-//
-//	return true;
-//}
-//
-//JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveRadioButton(JNIEnv * env, jobject obj, jlong item)
-//{
-//
-//	RadioButtonControl* itemToRemove = static_cast<RadioButtonControl*>(LongToPtr((long)item));
-//
-//	delete itemToRemove;
-//
-//	return 1;
-//}
-//
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveMenuItem(JNIEnv * env, jobject obj, jlong menuItem)
 {
 	
 	MenuItemControl* menuItemToRemove = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
 
-	Menu* menuControl = menuItemToRemove->GetMenuControl();
+	Menu* menuControl = menuItemToRemove->GetMenu();
 
-	return menuControl->RemoveMenuItem(menuItemToRemove->GetMenuItemIndex());
+	menuControl->RemoveMenuItem(menuItemToRemove);
+
+	return true;
 
 }
 

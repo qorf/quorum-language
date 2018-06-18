@@ -68,6 +68,10 @@ class AccessibilityManager
 
                 Item selectedMenuItem = path:Get(path:GetSize()-1)
                 
+                if (debugOutput)
+                    output "Selection changed: " + selectedMenuItem:GetName()
+                end
+
                 Select(selectedMenuItem)
             else
                 // Deselect any native selection
@@ -79,9 +83,7 @@ class AccessibilityManager
             // Do generic things
         end
 
-        if (debugOutput)
-            output "Selection changed."
-        end
+        
     end
 
     action FocusChanged(FocusEvent event)
