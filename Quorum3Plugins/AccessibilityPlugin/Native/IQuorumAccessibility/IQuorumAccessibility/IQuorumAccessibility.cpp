@@ -221,7 +221,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return PtrToLong(pMenuBarControl);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateMenuItem(JNIEnv * env, jobject obj, jstring menuItemName, jstring menuShortcut, jlong parentMenu, jlong parentMenuBar)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateMenuItem(JNIEnv * env, jobject obj, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar)
 {
 	const char* nativeMenuItemName = env->GetStringUTFChars(menuItemName, 0);
 	const char* nativeMenuShortcut = env->GetStringUTFChars(menuShortcut, 0);
@@ -236,7 +236,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	if ((long)parentMenu != NULL)
 		parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
 	
-	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar);
+	MenuItemControl* menuItemControl = new MenuItemControl(wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar);
 
 	SendMessage(pMenuBar->GetHWND(), QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
 
@@ -410,6 +410,30 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)deselectedMenuItem));
 
 	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32MenuExpanded(JNIEnv *env, jobject obj, jlong menuItem)
+{
+	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+
+	if (pMenuItem != NULL)
+		pMenuItem->Expand();
+	else
+		return false;
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32MenuCollapsed(JNIEnv *env, jobject obj, jlong menuItem)
+{
+	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+
+	if (pMenuItem != NULL)
+		pMenuItem->Collapse();
+	else
+		return false;
+
 	return true;
 }
 

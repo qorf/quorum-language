@@ -2,9 +2,9 @@ class MenuItemControl;
 class MenuBarControl;
 
 class MenuItemProvider : public IRawElementProviderSimple,
-						 public IRawElementProviderFragment//,
-						 //public IExpandCollapseProvider,
-						 //public IInvokeProvider
+						 public IRawElementProviderFragment,
+						 public IExpandCollapseProvider,
+						 public IInvokeProvider
 {
 public:
 	MenuItemProvider(MenuItemControl* pControl);
@@ -28,11 +28,20 @@ public:
 	IFACEMETHODIMP SetFocus();
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
 
+	// IExpandCollapseProvider methods
+	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState *pRetVal);
+	IFACEMETHODIMP Expand();
+	IFACEMETHODIMP Collapse();
+
+	// IInvokeProvider methods
+	IFACEMETHODIMP Invoke();
 
 	// Various methods
 	void NotifyMenuItemAdded();
 	void NotifyMenuItemRemoved();
 	void NotifyElementSelected();
+	void NotifyElementInvoked();
+	void NotifyElementExpandCollapse();
 	IUnknown* GetParentProvider();
 
 
@@ -45,4 +54,5 @@ private:
 	// The MenuItem
 	MenuItemControl* m_pMenuItemControl;
 
+	ExpandCollapseState m_expandCollapseState;
 };

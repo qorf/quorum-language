@@ -15,7 +15,7 @@ int Menu::GetCount()
 	return static_cast<int>(m_menuItemCollection.size());
 }
 
-bool Menu::hasChildren()
+bool Menu::HasChildren()
 {
 	return !m_menuItemCollection.empty();
 }

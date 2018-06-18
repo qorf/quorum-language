@@ -19,7 +19,7 @@ public:
 	// Number of child items for this Menu.
 	int GetCount();
 
-	bool hasChildren();
+	bool HasChildren();
 
 	// Generates a unique id for this instance of this control for RuntimeIds of children.
 	int CreateUniqueId();

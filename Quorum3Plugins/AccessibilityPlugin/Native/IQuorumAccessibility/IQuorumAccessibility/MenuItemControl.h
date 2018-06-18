@@ -11,16 +11,19 @@ class MenuBarControl;
 class MenuItemControl : public Menu, public Item
 {
 public:
-	MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
+	MenuItemControl(_In_ std::wstring menuItemName, _In_ std::wstring menuItemShortcut, _In_ bool isMenu, _In_ int uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar);
 	virtual ~MenuItemControl();
 
 	MenuBarControl* GetParentMenuBar();
 	void SetParentMenuBar(_In_ MenuBarControl* menuBar);
 	MenuItemControl* GetParentMenuItem();
 	MenuItemProvider* GetMenuItemProvider();
+
+	bool IsMenu();
 	Menu* GetMenu();
 
-	WCHAR* GetShortcut();
+	void SetShortcut(std::wstring shortcut);
+	const WCHAR* GetShortcut();
 	
 	int GetId();
 
@@ -28,6 +31,9 @@ public:
 	void SetMenuItemIndex(_In_ int index);
 
 	bool HasFocus();
+
+	void Expand();
+	void Collapse();
 
 private:
 
@@ -37,7 +43,8 @@ private:
 	// Where this MenuItem is located in the collection.
 	int m_myIndex;
 
-	WCHAR* m_shortcut;
+	std::wstring m_shortcut;
+	bool m_isMenu;
 
 	// The provider for this MenuItem
 	MenuItemProvider* m_pMenuItemProvider;

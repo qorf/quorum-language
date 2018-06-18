@@ -7,12 +7,18 @@
 #include "MenuItemControl.h"
 #include <string>
 
-#include <iostream>
-
-#define RID_ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
 
 MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_refCount(1), m_pMenuItemControl(pControl)
 {
+	if (pControl->IsMenu())
+	{
+		if (pControl->HasChildren())
+			m_expandCollapseState = ExpandCollapseState_Expanded;
+		else
+			m_expandCollapseState = ExpandCollapseState_Collapsed;
+	}
+	else
+		m_expandCollapseState = ExpandCollapseState_LeafNode;
 }
 
 MenuItemProvider::~MenuItemProvider()
@@ -50,6 +56,14 @@ IFACEMETHODIMP MenuItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 	{
 		*ppInterface = static_cast<IRawElementProviderFragment*>(this);
 	}
+	else if (riid == __uuidof(IExpandCollapseProvider))
+	{
+		*ppInterface = static_cast<IExpandCollapseProvider*>(this);
+	}
+	else if (riid == __uuidof(IInvokeProvider))
+	{
+		*ppInterface = static_cast<IInvokeProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -68,7 +82,17 @@ IFACEMETHODIMP MenuItemProvider::get_ProviderOptions(_Out_ ProviderOptions * pRe
 
 IFACEMETHODIMP MenuItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
-	// TODO: Implement the patterns and provide them here.
+	if (patternId == UIA_InvokePatternId && !m_pMenuItemControl->IsMenu())
+	{
+		AddRef();
+		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (patternId == UIA_ExpandCollapsePatternId && m_pMenuItemControl->IsMenu())
+	{
+		AddRef();
+		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+	}
+
 	*pRetVal = NULL;
 	return S_OK;
 }
@@ -101,6 +125,21 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_MenuItemControlTypeId;
+	}
+	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = !m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
+	}
+	else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
+	}
+	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId && m_pMenuItemControl->IsMenu())
+	{
+		pRetVal->vt = VT_I4;
+		pRetVal->lVal = m_expandCollapseState;
 	}
 	// HasKeyboardFocus is true if the MenuBar has focus, and this MenuItem is selected.
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
@@ -165,7 +204,7 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 		}
 		case NavigateDirection_FirstChild:
 		{
-			if (m_pMenuItemControl->hasChildren())
+			if (m_pMenuItemControl->HasChildren())
 			{
 				iter = m_pMenuItemControl->GetMenuItemAt(0);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
@@ -176,7 +215,7 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 		}
 		case NavigateDirection_LastChild:
 		{
-			if (m_pMenuItemControl->hasChildren())
+			if (m_pMenuItemControl->HasChildren())
 			{
 				iter = m_pMenuItemControl->GetMenuItemAt(m_pMenuItemControl->GetCount() - 1);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
@@ -261,7 +300,7 @@ IFACEMETHODIMP MenuItemProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenu
 // Responds to the control receiving focus through a UI Automation request.
 IFACEMETHODIMP MenuItemProvider::SetFocus()
 {
-	// TODO: Implement this when all providers are filled in.
+	m_pMenuItemControl->GetParentMenuBar()->SetSelectedMenuItem(m_pMenuItemControl);
 	return S_OK;
 }
 
@@ -286,6 +325,32 @@ IFACEMETHODIMP MenuItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRaw
 	return S_OK;
 }
 
+IFACEMETHODIMP MenuItemProvider::get_ExpandCollapseState(ExpandCollapseState * pRetVal)
+{
+	*pRetVal = m_expandCollapseState;
+	return S_OK;
+}
+
+IFACEMETHODIMP MenuItemProvider::Expand()
+{
+	m_expandCollapseState = ExpandCollapseState_Expanded;
+	NotifyElementExpandCollapse();
+	return S_OK;
+}
+
+IFACEMETHODIMP MenuItemProvider::Collapse()
+{
+	m_expandCollapseState = ExpandCollapseState_Collapsed;
+	NotifyElementExpandCollapse();
+	return S_OK;
+}
+
+IFACEMETHODIMP MenuItemProvider::Invoke()
+{
+	NotifyElementInvoked();
+	return S_OK;
+}
+
 // Raises a UIA Event when an item is added to the Menu collection
 void MenuItemProvider::NotifyMenuItemAdded()
 {
@@ -307,7 +372,7 @@ void MenuItemProvider::NotifyMenuItemRemoved()
 		int id = m_pMenuItemControl->GetId();
 		int rId[] = { UiaAppendRuntimeId, id };
 
-		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, RID_ARRAYSIZE(rId));
+		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, (sizeof(rId) / sizeof(rId[0])));
 
 	}
 }
@@ -320,6 +385,19 @@ void MenuItemProvider::NotifyElementSelected()
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
 	}
+}
+
+void MenuItemProvider::NotifyElementInvoked()
+{
+	if (UiaClientsAreListening())
+		UiaRaiseAutomationEvent(this, UIA_Invoke_InvokedEventId);
+}
+
+void MenuItemProvider::NotifyElementExpandCollapse()
+{
+	// Raise a UI Automation Event
+	if (UiaClientsAreListening())
+		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
 }
 
 IUnknown* MenuItemProvider::GetParentProvider()

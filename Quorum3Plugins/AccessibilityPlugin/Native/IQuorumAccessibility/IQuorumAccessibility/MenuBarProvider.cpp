@@ -164,7 +164,7 @@ IFACEMETHODIMP MenuBarProvider::Navigate(NavigateDirection direction, _Outptr_re
 	{
 		case NavigateDirection_FirstChild:
 		{
-			if (pMenuBarControl->hasChildren())
+			if (pMenuBarControl->HasChildren())
 			{
 				iter = pMenuBarControl->GetMenuItemAt(0);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
@@ -174,7 +174,7 @@ IFACEMETHODIMP MenuBarProvider::Navigate(NavigateDirection direction, _Outptr_re
 		}
 		case NavigateDirection_LastChild:
 		{
-			if (pMenuBarControl->hasChildren())
+			if (pMenuBarControl->HasChildren())
 			{
 				iter = pMenuBarControl->GetMenuItemAt(pMenuBarControl->GetCount() - 1);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
