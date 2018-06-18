@@ -4,13 +4,14 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import plugins.quorum.Libraries.Game.DesktopDisplay;
+
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
-import plugins.quorum.Libraries.Game.DesktopDisplay;
-import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
 import quorum.Libraries.Interface.Controls.MenuItem_;
-
+import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 
 
 /**
@@ -37,9 +38,18 @@ public class AccessibilityManager
         TAB,
         TABPANE;
     }
+    
+    enum MenuChanges
+    {
+        EXPANDED,
+        COLLAPSED;
+    }
+    
     private static final HashMap<Integer, AccessibilityCodes> ACCESSIBILITYCODES_MAP = new HashMap<>();
+    private static final HashMap<Integer, MenuChanges> MENUCHANGES_MAP = new HashMap<>();
     private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
-
+    private static final quorum.Libraries.Interface.Events.MenuChangeEvent MENUCHANGECODES = new quorum.Libraries.Interface.Events.MenuChangeEvent();
+    
     static
     {
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_(), AccessibilityCodes.ITEM);
@@ -58,6 +68,9 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_(), AccessibilityCodes.TAB);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_(), AccessibilityCodes.TABPANE);
         
+        MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
+        MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
+
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -72,7 +85,7 @@ public class AccessibilityManager
             
             System.load(nativeFile);
             
-            NativeWin32InitializeAccessibility(glfwGetWin32Window(DesktopDisplay.window));
+            NativeWin32InitializeAccessibility(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window));
         }
         catch (URISyntaxException ex) 
         {
@@ -126,7 +139,7 @@ public class AccessibilityManager
     
     // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
     //
-    private native long NativeWin32CreateMenuItem(String name, String shortcut, long parentMenu, long parentMenuBar);
+    private native long NativeWin32CreateMenuItem(String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar);
     
     // NativeWin32Remove: Removes a item control from UI Automation hierarchy.
     //
@@ -136,13 +149,7 @@ public class AccessibilityManager
     //
     private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
     
-    // NativeWin32SelectMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
-    //
-    private native boolean NativeWin32SelectMenuItem(long selectedMenuItem);
     
-    // NativeWin32DeselectMenuItem: Deselects a MenuItem control in the UI Automation hierarchy.
-    //
-    private native boolean NativeWin32DeselectMenuItem(long menubar);
     
     //
     // ==== Accessible Object Event Response Functions
@@ -168,6 +175,18 @@ public class AccessibilityManager
     //      Returns: null on failure, otherwise the native pointer of previously focused item.
     private native long NativeWin32SetFocus(long nativePointer);
 
+        // NativeWin32SelectMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
+    //
+    private native boolean NativeWin32SelectMenuItem(long selectedMenuItem);
+    
+    // NativeWin32DeselectMenuItem: Deselects a MenuItem control in the UI Automation hierarchy.
+    //
+    private native boolean NativeWin32DeselectMenuItem(long menubar);
+
+    private native boolean NativeWin32MenuExpanded(long nativePointer);
+    
+    private native boolean NativeWin32MenuCollapsed(long nativePointer);
+    
     //
     // ====== Accessiblity Manager Function Declarations
     //
@@ -226,7 +245,7 @@ public class AccessibilityManager
                 // Get parent MenuBar
                 long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuBar());
                 
-                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), parentMenu, menuBar);
+                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar);
                 break;
             default: // Assume Item
                 nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
@@ -338,6 +357,35 @@ public class AccessibilityManager
             return NativeWin32SetFocus(nativePointer) != 0;
         else
             return false;
+    }
+    
+    public boolean NativeMenuChanged(MenuChangeEvent_ event)
+    {
+        Item_ item = event.GetMenuItem();
+        Long itemToChange = ITEM_MAP.get(item);
+        MenuChanges code = MENUCHANGES_MAP.get(event.GetEventType());
+        boolean wasChanged = false;
+        
+        // Retreive native pointer for given object
+        if (itemToChange == null)
+            return true;
+        
+        switch(code)
+        {
+            case EXPANDED:
+            {
+                wasChanged = NativeWin32MenuExpanded(itemToChange);
+                break;
+            }
+            case COLLAPSED:
+            {
+                wasChanged = NativeWin32MenuCollapsed(itemToChange);
+                break;
+            }
+            default:
+        }
+        
+        return wasChanged;
     }
     
     // InvokeButton: Invoke a button through UI Automation

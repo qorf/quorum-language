@@ -5,15 +5,13 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
-
 // For error reporting
 #include <string>
 #include <iostream>
 
-
-MenuItemControl::MenuItemControl(_In_ WCHAR* menuItemName, _In_ WCHAR* menuItemShortcut, _In_ ULONG uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
+MenuItemControl::MenuItemControl(_In_ std::wstring menuItemName, _In_ std::wstring menuItemShortcut, _In_ bool isMenu, _In_ int uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar)
 	: Item(menuItemName, L""), m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar),
-	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1)
+	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1), m_isMenu(isMenu)
 {
 }
 
@@ -51,7 +49,12 @@ MenuItemProvider * MenuItemControl::GetMenuItemProvider()
 	return m_pMenuItemProvider;
 }
 
-Menu * MenuItemControl::GetMenuControl()
+bool MenuItemControl::IsMenu()
+{
+	return m_isMenu;
+}
+
+Menu * MenuItemControl::GetMenu()
 {
 	Menu* menuControl = GetParentMenuItem();
 	if (menuControl == NULL)
@@ -60,20 +63,25 @@ Menu * MenuItemControl::GetMenuControl()
 	return menuControl;
 }
 
-WCHAR * MenuItemControl::GetShortcut()
+void MenuItemControl::SetShortcut(std::wstring shortcut)
 {
-	return m_shortcut;
+	m_shortcut = shortcut;
 }
 
-ULONG MenuItemControl::GetId()
+const WCHAR * MenuItemControl::GetShortcut()
+{
+	return m_shortcut.c_str();
+}
+
+int MenuItemControl::GetId()
 {
 	return m_uniqueId;
 }
 
+// GetMenuItemIndex: Retreives the MenuItem index by iterating through the collection.
 int MenuItemControl::GetMenuItemIndex()
 {
-
-	Menu* pMenuControl = GetMenuControl();
+	Menu* pMenuControl = GetMenu();
 
 	for (int i = 0; i < pMenuControl->GetCount(); i++)
 	{
@@ -90,6 +98,7 @@ int MenuItemControl::GetMenuItemIndex()
 	
 }
 
+// SetMenuItemIndex: Sets the MenuItem index to the given index.
 void MenuItemControl::SetMenuItemIndex(_In_ int index)
 {
 	m_myIndex = index;
@@ -98,6 +107,16 @@ void MenuItemControl::SetMenuItemIndex(_In_ int index)
 bool MenuItemControl::HasFocus()
 {
 	return (GetParentMenuBar()->GetSelectedMenuItem() == this) && (GetParentMenuBar()->HasFocus());
+}
+
+void MenuItemControl::Expand()
+{
+	GetMenuItemProvider()->Expand();
+}
+
+void MenuItemControl::Collapse()
+{
+	GetMenuItemProvider()->Collapse();
 }
 
 void MenuItemControl::SetControlFocus(_In_ bool focused)

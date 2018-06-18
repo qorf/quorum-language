@@ -12,18 +12,17 @@ class Menu
 {
 public:
 
+	bool AddMenuItem(_In_ MenuItemControl* pMenuItem);
+	bool RemoveMenuItem(MenuItemControl * pMenuItem);
 	MENUITEM_ITERATOR GetMenuItemAt(_In_ int index);
-	bool RemoveMenuItem(_In_ int index);
 
-	// Number of child items for this MenuBarControl.
+	// Number of child items for this Menu.
 	int GetCount();
 
-	bool hasChildren();
-
-	bool AddMenuItem(_In_ MenuItemControl* pMenuItem);
+	bool HasChildren();
 
 	// Generates a unique id for this instance of this control for RuntimeIds of children.
-	ULONG CreateUniqueId();
+	int CreateUniqueId();
 
 private:
 	std::deque<MenuItemControl*> m_menuItemCollection;

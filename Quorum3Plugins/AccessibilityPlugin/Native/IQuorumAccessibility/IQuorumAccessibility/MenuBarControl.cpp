@@ -18,11 +18,6 @@ MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName)
 
 MenuBarControl::~MenuBarControl()
 {
-	if (m_menuBarProvider != NULL)
-	{
-		m_menuBarProvider->Release();
-		m_menuBarProvider = NULL;
-	}
 }
 
 MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * menuBarName)

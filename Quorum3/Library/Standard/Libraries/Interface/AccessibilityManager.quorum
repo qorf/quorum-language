@@ -17,7 +17,7 @@ use Libraries.Containers.Iterator
 
 class AccessibilityManager 
 
-    boolean debugOutput = false
+    private boolean debugOutput = false
 
     // SetFocus: Tells the accessibility manager that focus has changed to the 
     //           given Item. As far as the native code is concerned, focus changes
@@ -39,20 +39,25 @@ class AccessibilityManager
     // ===== actions for Buttons
     
     // == Pushbuttons
-    system action InvokeButton(Item button) returns boolean
+    private system action InvokeButton(Item button) returns boolean
 
     // == Togglebuttons
-    system action UpdateToggleState(Item button, boolean selected) returns boolean
+    private system action UpdateToggleState(Item button, boolean selected) returns boolean
 
     // ===== actions for Textbox
 
     // TextSelectionChanged: This action will be called whenever the text selection has changed.
     //                       For example, a word or character has been added to the selection.
-    system action TextSelectionChanged(Item Textbox)
+    private system action TextSelectionChanged(Item Textbox)
 
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
-    system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
+    private system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
+
+    // =====
+
+    
+    private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
 
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
@@ -68,9 +73,13 @@ class AccessibilityManager
 
                 Item selectedMenuItem = path:Get(path:GetSize()-1)
                 
+                if (debugOutput)
+                    output "Selection changed: " + selectedMenuItem:GetName()
+                end
+
                 Select(selectedMenuItem)
             else
-                // Deselect any native selection
+                // TODO: Deselect any native selection
 //                Deselect(currentSelection)
             end
         elseif selection is TreeSelection
@@ -79,9 +88,7 @@ class AccessibilityManager
             // Do generic things
         end
 
-        if (debugOutput)
-            output "Selection changed."
-        end
+        
     end
 
     action FocusChanged(FocusEvent event)
@@ -206,6 +213,7 @@ class AccessibilityManager
         if (debugOutput)
             output "Menu changed: " + event:GetMenuItem():GetName()
         end
+        NativeMenuChanged(event)
     end
 
     action TreeChanged(TreeChangeEvent event)
