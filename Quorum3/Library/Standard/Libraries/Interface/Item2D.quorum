@@ -1681,10 +1681,9 @@ class Item2D is Item
         end
 
         if not wasSent
+            event:SetEventHandled(true)
             if parentItem not= undefined
                 parentItem:ProcessMouseEvent(event)
-            else
-                event:SetEventHandled(true)
             end
         end
     end
@@ -1732,10 +1731,9 @@ class Item2D is Item
 
 
         if not wasSent
+            event:SetEventHandled(true)
             if parentItem not= undefined
                 parentItem:ProcessTouchEvent(event)
-            else
-                event:SetEventHandled(true)
             end
         end
     end

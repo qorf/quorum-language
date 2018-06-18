@@ -102,10 +102,7 @@ class AndroidInput is GameInput
             Item target = undefined
             Item touchMoveTarget = undefined
 
-            integer DEBUG_COUNTER = 1
             repeat touchEvents:GetSize() times
-                output "Handling event " + DEBUG_COUNTER
-                DEBUG_COUNTER = DEBUG_COUNTER + 1
                 touchEvent = touchEvents:RemoveFromFront()
 
                 set:SetInputType(set:TOUCH_INPUT)
@@ -136,7 +133,6 @@ class AndroidInput is GameInput
                     Item temp = layers:Get(counter):ProcessTouchEvent(touchEvent)
 
                     if touchEvent:GetSource() not= undefined
-                        output "Source is " + touchEvent:GetSource():GetName()
                         Item seeker = touchEvent:GetSource()
 
                         boolean noMoveTarget = true
@@ -151,7 +147,6 @@ class AndroidInput is GameInput
 
                         repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
                             InputTable table = GetInputTable(seeker:GetInputGroup())
-                            output "For seeker " + seeker:GetName() + " input table defined is " + (table not= undefined)
 
                             if useDefaultTable
                                 if table not= undefined
@@ -166,7 +161,6 @@ class AndroidInput is GameInput
                                         end
                                     end
                                     if table:HasKey(set)
-                                        output "Table " + table:GetIdentifier() + " had key."
                                         if recentInput not= undefined
                                             recentInput:timer = 0
                                             if recentInput:item not= seeker
@@ -182,8 +176,6 @@ class AndroidInput is GameInput
                                         useDefaultTable = false
                                         touchEvent:SetEventHandled(true)
                                         target = seeker
-                                    else
-                                        output "Table didn't have key."
                                     end
                                 end
                             end
@@ -191,13 +183,9 @@ class AndroidInput is GameInput
                             if noMoveTarget
                                 if table not= undefined
                                     boolean valid = table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet)
-                                    output "noMoveTarget - table is " + table:GetIdentifier()
                                     if valid
                                         noMoveTarget = false
                                         touchMoveTarget = seeker
-                                        output "valid"
-                                    else
-                                        output "invalid"
                                     end
                                 end
                             end
@@ -311,16 +299,10 @@ class AndroidInput is GameInput
                             table:ProcessInput(beginSet, newTargetEvent)
 
                             lastTouchMoveTarget = touchMoveTarget
-                            if lastTouchMoveTarget not= undefined
-                                output "lastTouchMove = " + lastTouchMoveTarget:GetName()
-                            else
-                                output "lastTouchMove is UNDEF"
-                            end
                         end
                     end
 
                     if useDefaultTable
-                        output "Using default table."
                         table = GetDefaultInputTable()
 
                         if recentInput not= undefined
@@ -342,7 +324,6 @@ class AndroidInput is GameInput
                             recentInput:item = touchEvent:GetSource()
                         end
                     else
-                        output "Using " + target:GetInputGroup() + " table."
                         table = GetInputTable(target:GetInputGroup())
                     end
 
@@ -583,11 +564,11 @@ private action ProcessKeyboardEvent(List<KeyboardEvent> events)
             InputTable table = GetInputTable(inputGroup)
 
             /*
-+            If the table exists, attempt to trigger behaviors that use that
-+            specific input or that trigger on any input of that type. Once both
-+            are tested, if neither were successful, try to trigger behaviors
-+            from the default input table instead.
-+            */
+            If the table exists, attempt to trigger behaviors that use that
+            specific input or that trigger on any input of that type. Once both
+            are tested, if neither were successful, try to trigger behaviors
+            from the default input table instead.
+            */
             boolean processed = (table not= undefined)
             if processed
                 processed = table:ProcessInput(set, behaviorEvent)

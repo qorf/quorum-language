@@ -142,9 +142,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     /*
     Values used for when the control is dragged along the scroll track.
     */
-    boolean isClicked = false
+    boolean barIsClicked = false
     boolean verticalChanging = true
     number clickPointOffset = 0
+
+    /*
+    Values used for when text is being selected by dragging the mouse.
+    */
+    boolean draggingInText = false
 
     /*
     An array of listeners which are notified when the text in this TextBox
@@ -774,6 +779,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             size = size - 1
         end
 
+        position = position - leftCharacterPadding
+
         number x1 = 0
         number x2 = 0
         integer counter = 0
@@ -1066,7 +1073,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action DraggedMouse(MouseEvent event)
-        if isClicked
+        if barIsClicked
             // Determine if we are updating the vertical or horizontal bar.
             if verticalChanging
                 number y = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - clickPointOffset
@@ -1082,21 +1089,57 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if event:GetSource() not= undefined and event:GetSource() is Item2D
             Item2D source = cast(Item2D, event:GetSource())
             if source:Equals(verticalControl)
-                isClicked = true
+                barIsClicked = true
                 verticalChanging = true
                 clickPointOffset = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - vertical
             elseif source:Equals(horizontalControl)
-                isClicked = true
+                barIsClicked = true
                 verticalChanging = false
                 clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
-            else
-                isClicked = false
+            elseif source:Equals(verticalBar) or source:Equals(horizontalBar)
+                // React to click being on the bar itself.
+            else // Assume main text area was clicked.
+                draggingInText = true
+                MousePositionCaret(event, false)
             end
         end
     end
 
     action ReleasedMouse(MouseEvent event)
-        isClicked = false
+        barIsClicked = false
+        draggingInText = false
+    end
+
+    private action MousePositionCaret(MouseEvent event, boolean dragging)
+        if dragging
+            // NYI
+        else
+            PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+            EmptySelectionEvent()
+        end
+    end
+
+    private action PositionCaretFromCoordinates(number x, number y)
+        integer totalLines = textValue:GetLines():GetSize()
+        integer lineHeight = font:GetLineHeight()
+        integer line = cast(integer, firstLine)
+        number yPosition = GetHeight() + (firstLine - line) * lineHeight
+        repeat while yPosition > 0
+            yPosition = yPosition - lineHeight
+            if y > yPosition
+                if line > totalLines
+                    line = totalLines
+                end
+
+                integer index = GetNearestCharacter(line, x)
+                caretLine = line
+                caretCharacter = index
+                caretX = PositionCaret()
+                yPosition = -1
+            else
+                line = line + 1
+            end
+        end
     end
 
     action GainedFocus(FocusEvent event)
