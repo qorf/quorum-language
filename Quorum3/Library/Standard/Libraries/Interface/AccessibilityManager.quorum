@@ -213,7 +213,20 @@ class AccessibilityManager
         if (debugOutput)
             output "Menu changed: " + event:GetMenuItem():GetName()
         end
+
         NativeMenuChanged(event)
+
+        // It's possible that the selection event for a child item was triggered
+        // before the menu opened. To ensure it is selected by the accessibilty system
+        // we raise another selection event whenever the menu opens so that native
+        // selection is up to date.
+        if event:GetEventType() = event:OPENED
+            SelectionEvent selectionEvent
+            selectionEvent:SetSelection(event:GetMenuBar():GetSelection())
+            SelectionChanged(selectionEvent)
+        end
+
+        
     end
 
     action TreeChanged(TreeChangeEvent event)
