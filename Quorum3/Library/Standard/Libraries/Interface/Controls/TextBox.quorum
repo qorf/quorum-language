@@ -1082,6 +1082,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 number x = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - clickPointOffset
                 UpdatePaneView(x, vertical)
             end
+        elseif draggingInText
+            MousePositionCaret(event, true)
         end
     end
 
@@ -1111,19 +1113,44 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action MousePositionCaret(MouseEvent event, boolean dragging)
+        
+        integer line = caretLine
+        integer index = caretCharacter
+
+        PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+        
         if dragging
-            // NYI
+            if line = caretLine and index = caretCharacter
+                return now
+            end
+
+            boolean atEnd = selection:IsCaretAtEnd()
+
+            if atEnd
+                if GetCaretIndex() < selection:GetStartIndex()
+                    Select(GetCaretIndex(), selection:GetStartIndex(), false)
+                else
+                    Select(selection:GetStartIndex(), GetCaretIndex(), true)
+                end
+            else
+                if GetCaretIndex() > selection:GetEndIndex()
+                    Select(selection:GetEndIndex(), GetCaretIndex(), true)
+                else
+                    Select(GetCaretIndex(), selection:GetEndIndex(), false)
+                end
+            end
         else
-            PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
             EmptySelectionEvent()
         end
+        ShowCaret()
     end
 
     private action PositionCaretFromCoordinates(number x, number y)
         integer totalLines = textValue:GetLines():GetSize()
         integer lineHeight = font:GetLineHeight()
         integer line = cast(integer, firstLine)
-        number yPosition = GetHeight() + (firstLine - line) * lineHeight
+        number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
+        
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
             if y > yPosition
@@ -1396,7 +1423,23 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         NotifyTextChangeListeners(changeEvent)
     end
 
+    action AppendToText(text value)
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, "")
+        
+        textValue = textValue:Concatenate(value)
+
+        Resize()
+        GoToLine(textValue:GetLines():GetSize() - 1)
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
     action Select(integer startIndex, integer endIndex)
+        Select(startIndex, endIndex, true)
+    end
+
+    action Select(integer startIndex, integer endIndex, boolean caretAtEnd)
         if startIndex < 0
             startIndex = 0
         end
@@ -1405,7 +1448,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             endIndex = textValue:GetSize()
         end
 
-        selection:Set(startIndex, endIndex, true)
+        selection:Set(startIndex, endIndex, caretAtEnd)
         UpdateVisualSelection()
     end
 
