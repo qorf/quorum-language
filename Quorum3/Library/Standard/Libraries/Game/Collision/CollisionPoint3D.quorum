@@ -38,6 +38,9 @@ class CollisionPoint3D
         me:distance1 = distance
     end
 
+    /*
+    This action sets the current CollisionPoint3D using another CollisionPoint3D.
+    */
     action Set(CollisionPoint3D point)
         me:localPointA:Set(point:localPointA)
         me:localPointB:Set(point:localPointB)

@@ -4,9 +4,10 @@ use Libraries.Containers.Array
 
 
 /*
-This class estimates the distance between two shapes to be used in the calculation
-of distance in the Distance2D class, where a good distance estimation will decrease
-the number of iterations required to solve the distance between two shapes.
+This class records the vertices from shapes A and B that are invovled in the 
+current simplex of the Minkowski difference of the shapes so that Distance2D
+class can just refer to this SimplexCache to find the vertices instead of having
+to extract these information from Simplex2D class.
 */
 class SimplexCache2D 
     number metric = 0
@@ -37,26 +38,58 @@ class SimplexCache2D
         count = simplexCache:count
     end
 
+    /*
+    This action gets the denominator to normalize the barycentric coordinates with.
+    For a point, don't need to normalize.
+    For a line, the barycentric coordinates are normalized by the length of the line.
+    For a triangle, the barycentric coordinates are normalized by the area of the triangle.
+    */
     action GetMetric returns number
         return metric
     end
 
+    /*
+    This action sets the denominator to normalize the barycentric coordinates with.
+    For a point, don't need to normalize.
+    For a line, the barycentric coordinates are normalized by the length of the line.
+    For a triangle, the barycentric coordinates are normalized by the area of the triangle.
+    */
     action SetMetric(number metric)
         me:metric = metric
     end
 
+    /*
+    This action returns what kind of simplex is currently being used.
+    1: a point simplex.
+    2: a line simplex.
+    3: a triangle simplex.
+    */
     action GetCount returns integer
         return count
     end
 
+    /*
+    This action sets what kind of simplex is currently being used.
+    1: a point simplex.
+    2: a line simplex.
+    3: a triangle simplex.
+    */
     action SetCount(integer count)
         me:count = count
     end
 
+    /*
+    This action returns the indices of the vertices of object A that is inside
+    the current simplex.
+    */
     action GetIndexA returns Array<integer>
         return indexA
     end
 
+    /*
+    This action returns the indices of the vertices of object B that is inside
+    the current simplex.
+    */
     action GetIndexB returns Array<integer>
         return indexB
     end

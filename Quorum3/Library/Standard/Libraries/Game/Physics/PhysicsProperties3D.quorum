@@ -67,6 +67,15 @@ class PhysicsProperties3D
 
     number angularFactor = 1
 
+    /*
+    This action attaches a 3D item, which includes the shape, friction, 
+    restitution, positions, and others of a 3D object as a part of the properties
+    that this 3D item has.
+    This action is used internally in the Item3D class when you enable
+    physics on the item when a "PhysicsProperties3D" property holder will be 
+    created so that Item3D will be attached to that property holder and the
+    property holder will be attached to the Item3D.
+    */
     action SetItem(Item3D item)
         me:item = item
 
@@ -101,10 +110,17 @@ class PhysicsProperties3D
         SetMassProperties(mass, inertia)
     end
 
+    /*
+    This action returns the Item3D that is attached to these physical properties.
+    */
     action GetItem returns Item3D
         return item
     end
 
+    /*
+    This action allows another PhysicsProperties3D object to be assigned by
+    the values stored inside the current PhysicsProperties3D object.
+    */
     action Copy returns PhysicsProperties3D
         PhysicsProperties3D new
         new:linearVelocity = linearVelocity:Copy()
@@ -138,6 +154,9 @@ class PhysicsProperties3D
         return new
     end
 
+    /*
+    This action sets the linear velocity of the 3D object.
+    */
     action SetLinearVelocity(Vector3 linearVelocity)
         if type = UNMOVABLE
             // static bodies don't move - hence don't have velocity
@@ -149,6 +168,9 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action sets the x component of the linear velocity of the 3D object.
+    */
     action SetLinearVelocityX(number linearVelocityX)
         if type = UNMOVABLE
             return now
@@ -160,6 +182,9 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action sets the y component of the linear velocity of the 3D object.
+    */
     action SetLinearVelocityY(number linearVelocityY)
         if type = UNMOVABLE
             return now
@@ -171,6 +196,9 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action sets the z component of the linear velocity of the 3D object.
+    */
     action SetLinearVelocityZ(number linearVelocityZ)
         if type = UNMOVABLE
             return now
@@ -182,10 +210,17 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action returns the linear velocity of the 3D object that is attached to 
+    this PhysicsProperties3D property holder.
+    */
     action GetLinearVelocity returns Vector3
         return linearVelocity
     end
 
+    /*
+    This action sets the angular velocity of the 3D object.
+    */
     action SetAngularVelocity(Vector3 angularVelocity)
         if type = UNMOVABLE
             return now
@@ -196,26 +231,51 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action returns the angular velocity of the 3D object.
+    */
     action GetAngularVelocity returns Vector3
         return angularVelocity
     end
 
+    /*
+    This action sets the force that will be applied to the object.
+    */
     action SetForce(Vector3 force)
         me:force = force
     end
 
+    /*
+    This action gets the force that is stored inside thie PhysicsProperties3D 
+    property holder.
+    */
     action GetForce returns Vector3
         return force
     end
 
+    /*
+    This action sets the torque that could potentially be applied to the
+    center of mass of this object.
+    */
     action SetTorque(Vector3 torque)
         me:torque = torque
     end
 
+    /*
+    This action gets the torque that is stored inside this object.
+    */
     action GetTorque returns Vector3
         return torque
     end
 
+
+    /*
+    This action applies the force that you passed in to a point that you passed in.
+
+    Attribute: Parameter force The force in global coordinates that you want to apply.
+    
+    Attribute: Parameter point The point in the global coordinants that you want the force to be applied to.
+    */
     action ApplyForce(Vector3 force, Vector3 point)
         if type not= RESPONSIVE
             return now
@@ -233,6 +293,11 @@ class PhysicsProperties3D
         ApplyTorque(temp)
     end
 
+    /*
+    This action applies a force to the center pf mass of the object.
+
+    Attribute: Parameter force The force in global coordinates that you want to apply.
+    */
     action ApplyForceToCenter(Vector3 force)
         if type not= RESPONSIVE
             return now
@@ -245,6 +310,11 @@ class PhysicsProperties3D
         me:force:Add(force)
     end
 
+    /*
+    This action applies a torque to the center of mass of the object, which means
+    this torque will only affect the angular velocity of the object but not
+    the linear velocity of the object.
+    */
     action ApplyTorque(Vector3 torque)
         if type not= RESPONSIVE
             return now
@@ -257,6 +327,16 @@ class PhysicsProperties3D
         me:torque:Add(torque)
     end
 
+    /*
+    This action applies a linear impulse to the object at a specified point, 
+    which will lead to a sudden change in linear velocity of the object. This 
+    will also lead to a sudden change in angular velocity of the object if 
+    the linear impulse is not applied at the center of mass of the object.
+
+    Attribute: Parameter impulse The impulse vector in global coordinates that you want to apply to the object.
+    
+    Attribute: Parameter point The point in the global coordinants that you want the linear impulse to be applied to.
+    */
     action ApplyLinearImpulse(Vector3 impulse, Vector3 point)
         if type not= RESPONSIVE
             return now
@@ -275,12 +355,21 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action applies an linear impulse to the center of mass of this object.
+    
+    Attribute: Parameter impulse The impulse vector in global coordinates that you want to apply to the object.
+    */
     action ApplyLinearImpulseToCenter(Vector3 impulse)
         Vector3 temp
         temp:Set(impulse):Scale(inverseMass):Add(linearVelocity)
         me:linearVelocity:Set(temp)
     end
 
+    /*
+    This action applied an angular impulse to the object which will cause the
+    object to have a sudden change in angular velocity.
+    */
     action ApplyAngularImpulse(Vector3 impulse)
         if type not= RESPONSIVE
             return now
@@ -295,10 +384,17 @@ class PhysicsProperties3D
         angularVelocity:Add(tmp)
     end
 
+    /*
+    This action returns the mass of the object.
+    */
     action GetMass returns number
         return mass
     end
 
+    /*
+    This action sets the mass of the this property holder, which will also 
+    set the density if a 3D item has been attached to this property holder. 
+    */
     action SetMass(number mass)
         me:mass = mass
         massSet = true
@@ -312,10 +408,18 @@ class PhysicsProperties3D
         end
     end
 
+    /*
+    This action returns the reciprocal of the mass (1/mass) inside this 
+    property holder. 
+    */
     action GetInverseMass returns number
         return inverseMass
     end
 
+    /*
+    This action sets the reciprocal of the mass (1/mass) inside this 
+    property holder. 
+    */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
     end

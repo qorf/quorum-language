@@ -19,7 +19,7 @@ class Distance2D
     integer GJK_iterations = 0
     integer GJK_max_iterations = 20
 
-    Simplex2D simplex
+    Simplex2D simplex   //the current simplex used in the GJK algorithm
     Array<integer> saveA
     Array<integer> saveB
     Vector2 closestPoint
@@ -68,6 +68,7 @@ class Distance2D
                 i = i + 1
             end
 
+            //find the closest point on the simplex to the origin
             if simplex:GetCount() = 1
                 // nothing
             elseif simplex:GetCount() = 2
@@ -95,6 +96,7 @@ class Distance2D
                 end
             end
 
+            //using support points to find if there is a new simplex vertex to be added
             if not break
                 SimplexVertex2D vertex = vertices:Get(simplex:GetCount())
 

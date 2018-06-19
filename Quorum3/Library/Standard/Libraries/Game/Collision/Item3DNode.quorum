@@ -3,40 +3,74 @@ use Libraries.Game.BoundingBox
 
 package Libraries.Game.Collision
 
+/*
+The Item3DNode class represents a node to be contained within a tree. It has
+an item and a boundingBox plus a node ID and the index of this node among its sibings.
+*/
 class Item3DNode 
     BoundingBox boundingBox
     Item3D item
     integer childIndex = -1
     integer nodeID = -1
 
+    /*
+    This action returns the BoundingBox3D which contains the item this node represents. 
+    This action is used internally. 
+
+    Attribute: Returns The BoundingBox3D represented by this Item3DNode. 
+    */
     action GetBoundingBox returns BoundingBox
         return boundingBox
     end
 
+    /*
+    This action sets the BoundingBox3D which contains the item this node represents. 
+    This action is used internally. 
+
+    Attribute: Returns The BoundingBox3D represented by this Item3DNode. 
+    */
     action SetBoundingBox(BoundingBox boundingBox)
         me:boundingBox = boundingBox
     end
 
+    /*
+    This action returns the Item3D this node represents. 
+    */
     action GetItem returns Item3D
         return item
     end
 
+    /*
+    This action sets the Item3D this node represents to be the passed item. 
+    */
     action SetItem(Item3D item)
         me:item = item
     end
 
+    /*
+    This action returns the child index of this node within its tree. 
+    */
     action GetChildIndex returns integer
         return childIndex
     end
 
+    /*
+    This action sets the child index of this node within its tree. 
+    */
     action SetChildIndex(integer index)
         childIndex = index
     end
 
+    /*
+    This action gets the id of this node.
+    */
     action GetNodeID returns integer
         return nodeID
     end
 
+    /*
+    This action sets the id of this node.
+    */
     action SetNodeID(integer id)
         nodeID = id
     end

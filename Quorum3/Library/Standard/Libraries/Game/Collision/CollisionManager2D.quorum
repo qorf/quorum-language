@@ -11,6 +11,9 @@ package Libraries.Game.Collision
 
 
 /*
+This class can be seen as a "manager" class that uses CollisionEvent2D class
+and the BoardphaseCollision2D class to record if a collision occured, to decide
+if a collision occured.
 This class uses the CollisionEvent2D to record all of the collision that has 
 occured during the current physics step. This class also uses the 
 BroadphaseCollision2D class to determine whether a possible collision has happened.
@@ -275,7 +278,7 @@ class CollisionManager2D
     end
 
     /*
-    This class returns the first event in the doubly linked list of 
+    This action returns the first event in the doubly linked list of 
     CollisionEvent2D.
     */
     action GetCollisionList returns CollisionEvent2D

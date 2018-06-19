@@ -110,25 +110,46 @@ class PhysicsPosition3D
         Inverse()
     end
 
-
+    /*
+    This action changes the current PhysicsPosition3D with respect to the
+    current PhysicsPosition3D using the "PhysicsPosition3D transform" passed in.
+    A mathematical representation is: [currT] = [currT][passedInT]
+    */
     action Multiply(PhysicsPosition3D transform)
         Vector3 vector
-        vector:Set(origin)
+        /*
+        vector:Set(origin)   //translation of [currT]
+        Transform(vector)    //transform the "translation of [currT] using [currT], doesn't make sense
+        */
+
+        //edit the code above to the code below
+        vector:Set(transform:origin)        
         Transform(vector)
-        
+
         basis:Multiply(transform:basis)
         origin:Set(vector)
     end
 
+    /*
+    This action multiplies two transformation matrices together and store the 
+    result in the current PhysicsPosition3D.
+    Mathematically: [currT] = [T_1][T_2]
+    */
     action Multiply(PhysicsPosition3D transform1, PhysicsPosition3D transform2)
         Vector3 vector
         vector:Set(transform2:origin)
-        transform1:Transform(vector)
+        transform1:Transform(vector)    //vector becomes displacement of transform2 relative to the global coordinates
+                                        //if transform2 is described from the perspective of transform1
 
         basis:Multiply(transform1:basis, transform2:basis)
         origin:Set(vector)
     end
 
+    /*
+    This action multiplies "Vector3 in" with the inverse of the current PhysicsPosition3D
+    and store the result in "Vector3 out."
+    Mathematically: out = [currT]^(-1) * in
+    */
     action InverseTransform(Vector3 in, Vector3 out)
         out:Set(in)
         out:Subtract(origin)
@@ -139,6 +160,10 @@ class PhysicsPosition3D
         out:Multiply(matrix)
     end
 
+    /*
+    This action returns a quaternion (another holder of the position and tilt 
+    information) that represents the current PhysicsPosition3D.
+    */
     action GetRotation returns Quaternion
         Quaternion quaternion
         number trace = basis:row0column0 + basis:row1column1 + basis:row2column2
@@ -188,6 +213,10 @@ class PhysicsPosition3D
         return quaternion
     end
 
+    /*
+    This action sets the current PhysicsPosition3D using a quaternion that is
+    passed in.
+    */
     action SetRotation(Quaternion quaternion)
         number d = quaternion:GetX() * quaternion:GetX() + quaternion:GetY() * quaternion:GetY() + quaternion:GetZ() * quaternion:GetZ() + quaternion:GetW() * quaternion:GetW()
         number s = 2.0 / d
@@ -215,6 +244,10 @@ class PhysicsPosition3D
         basis:row2column2 = 1 - (xx + yy)        
     end
 
+    /*
+    This action returns a 4x4 transformation matrix representation of this
+    PhysicsPosition3D.
+    */
     action GetMatrix(Matrix4 matrix) returns Matrix4
         matrix:Set(basis)
         matrix:row0column3 = origin:GetX()

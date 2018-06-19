@@ -7,6 +7,7 @@ package Libraries.Game.Collision
 This class represents a node to a doubly linked list of collision edges for 2D 
 objects. The doubly linked list is used for every 2D objects that are collidable
 and have collided.
+So an Item2D object will have a head to a CollisionEdge2D doubly linked list.
 */
 class CollisionEdge2D 
     /*
@@ -30,16 +31,16 @@ class CollisionEdge2D
     CollisionEdge2D next = undefined
 
     /*
-    This action gets the Item2D object that the current Item2D object is 
-    colliding with.
+    This action gets the Item2D object that the Item2D object that has the head
+    of this CollisionEdge3D doubly linked list is colliding with.
     */
     action GetOther returns Item2D
         return other
     end
 
     /*
-    This action sets the Item2D object that the current Item2D object is
-    colliding with.
+    This action sets the Item2D object that the Item2D object that has the head
+    of this CollisionEdge3D doubly linked list is colliding with.
     */
     action SetOther(Item2D other)
         me:other = other
