@@ -27,10 +27,64 @@ use Libraries.Containers.Support.ByteReader
         i = i + 1
     end
 */
-class ByteArray 
-    system action Get(integer i) returns integer
+class ByteArray
+    
+    /*
+    This action returns the byte, in integer form, in the array at the given location.
+
+    Attribute: Parameter location The index of where you want to read the array from.
+
+    Attribute: Returns Returns the byte, as an integer, at the specified location.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    */
+    system action Get(integer location) returns integer
+
+    /*
+    This action sets the byte at the given location in the array to the value given.
+
+    Attribute: Parameter location The index of where you want to read the array from.
+
+    Attribute: Parameter value The value to set the byte at the location to.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Set(0, 10)
+    */
     system action Set(integer location, integer value)
 
+    /*
+    This action creates a new ByteArray that is a sub-array of an existing ByteArray,
+    starting at begin and ending at finish.
+
+    Attribute: Parameter begin The index location to begin creating the new ByteArray.
+
+    Attribute: Parameter finish The index location to finish creating the new ByteArray.
+
+    Attribute: Returns Returns a ByteArray containing all elements from the original ByteArray
+    between begin and finish, inclusive.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    ByteArray newValue = value:GetSubArray(0, 2)
+    */
     system action GetSubArray(integer begin, integer finish) returns ByteArray
 
     /*
@@ -46,27 +100,362 @@ class ByteArray
     */
     system action GetSize returns integer
 
-    action GetIterator returns ByteReader
+    /*
+    This action gets a ByteReader for this ByteArray.
+
+    Attribute: Returns Returns a ByteReader.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+    use Libraries.Containers.Support.ByteReader
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    ByteReader reader = value:GetByteReader()
+    */
+    action GetByteReader returns ByteReader
         ByteReader reader
         reader:SetByteArray(me)
         return reader
     end
 
-    system action DecompressZLib returns ByteArray
+    /*
+    This action decompresses a file that has already been stored in a ByteArray
+    and returns a new ByteArray containing the decompressed information. The default
+    decompression method is ZLib.
 
+    Attribute: Returns Returns a ByteArray containing all of the decompressed data.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    value = value:Decompress()
+    */
+    system action Decompress returns ByteArray
+
+    /*
+    This action checks if the data file is in Big Endian format or not.
+
+    Attribute: Returns Returns true if the file is in Big Endian and false if not.
+    
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    boolean endian = value:IsBigEndian()
+    */
     system action IsBigEndian returns boolean
+
+    /*
+    This action sets the file to be in Big Endian format or not.
+
+    Attribute: Parameter yes Sets the format to Big Endian if true, Little Endian if false.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    value:SetBigEndian(true)
+    */
     system action SetBigEndian(boolean yes)
 
-    system action ConvertByteToUnsignedInteger(integer a) returns integer
-    system action ConvertByteToCharacter(integer a) returns text
-    system action ConvertBytesToCharacter(integer a, integer b) returns text
-    system action ConvertByteToInteger(integer a) returns integer
-    system action ConvertBytesToNumber4Byte(integer a, integer b, integer c, integer d) returns number
-    system action ConvertBytesToNumber(integer a, integer b, integer c, integer d,
-                                       integer e, integer f, integer g, integer h) returns number
-    system action ConvertBytesTo2ByteInteger(integer a, integer b) returns integer
-    system action ConvertBytesTo2ByteUnsignedInteger(integer a, integer b) returns integer
-    system action ConvertBytesToInteger(integer a, integer b, integer c, integer d) returns integer
-    system action ConvertBytesFromUnsignedToSignedInteger(integer a, integer b, integer c, integer d) returns integer
-    system action ConvertBytesToNumberString(integer a, integer b, integer c, integer d, integer e, integer f, integer g, integer h) returns text
+    /*
+    This action converts a byte into an unsigned integer.
+
+    Attribute: Parameter byte The byte value to convert to an unsigned integer.
+
+    Attribute: Returns Returns the byte value as an unsigned integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    byte = value:UnsignedIntegerFromByte(byte)
+    */
+    system action UnsignedIntegerFromByte(integer byte) returns integer
+
+    /*
+    This action converts a byte into a character.
+
+    Attribute: Parameter byte The byte value to convert to a character.
+
+    Attribute: Returns Returns the character as text.
+    
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    text letter = value:CharacterFromByte(byte)
+    */
+    system action CharacterFromByte(integer byte) returns text
+
+    /*
+    This action converts two bytes intto a character.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Returns Returns the character as text.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    text letter = value:CharacterFromTwoBytes(byte, byte2)
+    */
+    system action CharacterFromTwoBytes(integer byte1, integer byte2) returns text
+
+    /*
+    This action converts a byte into an integer.
+
+    Attribute: Parameter byte The byte value to convert to an integer.
+
+    Attribute: Returns Returns the byte value as an integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    byte = value:IntegerFromByte(byte)
+    */
+    system action IntegerFromByte(integer byte) returns integer
+
+    /*
+    This action converts four bytes into a number.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Parameter byte3 The third byte value to use for conversion.
+
+    Attribute: Parameter byte4 The fourth byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as a number.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    integer byte3 = value:Get(2)
+    integer byte4 = value:Get(3)
+    number result = value:NumberFromFourBytes(byte, byte2, byte3, byte4)
+    */
+    system action NumberFromFourBytes(integer byte1, integer byte2, integer byte3, integer byte4) returns number
+
+    /*
+    This action converts eight bytes into a number.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Parameter byte3 The third byte value to use for conversion.
+
+    Attribute: Parameter byte4 The fourth byte value to use for conversion.
+
+    Attribute: Parameter byte5 The fifth byte value to use for conversion.
+
+    Attribute: Parameter byte6 The sixth byte value to use for conversion.
+
+    Attribute: Parameter byte7 The seventh byte value to use for conversion.
+
+    Attribute: Parameter byte8 The eighth byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as a number.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    integer byte3 = value:Get(2)
+    integer byte4 = value:Get(3)
+    integer byte5 = value:Get(4)
+    integer byte6 = value:Get(5)
+    integer byte7 = value:Get(6)
+    integer byte8 = value:Get(7)
+    number result = value:NumberFromEightBytes(byte, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+    */
+    system action NumberFromEightBytes(integer byte1, integer byte2, integer byte3, integer byte4,
+                                       integer byte5, integer byte6, integer byte7, integer byte8) returns number
+                                       
+    /*
+    This action converts two bytes into an integer. 
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as an integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    byte = value:IntegerFromTwoBytes(byte, byte2)
+    */
+    system action IntegerFromTwoBytes(integer byte1, integer byte2) returns integer
+
+    /*
+    This action converts two bytes into an unsigned integer.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as an unsigned integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    byte = value:UnsignedIntegerFromTwoBytes(byte, byte2)
+    */
+    system action UnsignedIntegerFromTwoBytes(integer byte1, integer byte2) returns integer
+
+    /*
+    This action converts four bytes into an integer.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Parameter byte3 The third byte value to use for conversion.
+
+    Attribute: Parameter byte4 The fourth byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as an integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    integer byte3 = value:Get(2)
+    integer byte4 = value:Get(3)
+    byte = value:IntegerFromFourBytes(byte, byte2, byte3, byte4)
+    */
+    system action IntegerFromFourBytes(integer byte1, integer byte2, integer byte3, integer byte4) returns integer
+
+    /*
+    This action converts four unsigned bytes into a signed integer.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Parameter byte3 The third byte value to use for conversion.
+
+    Attribute: Parameter byte4 The fourth byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as a signed integer.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    integer byte3 = value:Get(2)
+    integer byte4 = value:Get(3)
+    byte = value:SignedIntegerFromFourUnsignedBytes(byte, byte2, byte3, byte4)
+    */
+    system action SignedIntegerFromFourUnsignedBytes(integer byte1, integer byte2, integer byte3, integer byte4) returns integer
+
+    /*
+    This action converts eight bytes into text as a sequence of numbers.
+
+    Attribute: Parameter byte1 The first byte value to use for conversion.
+
+    Attribute: Parameter byte2 The second byte value to use for conversion.
+
+    Attribute: Parameter byte3 The third byte value to use for conversion.
+
+    Attribute: Parameter byte4 The fourth byte value to use for conversion.
+
+    Attribute: Parameter byte5 The fifth byte value to use for conversion.
+
+    Attribute: Parameter byte6 The sixth byte value to use for conversion.
+
+    Attribute: Parameter byte7 The seventh byte value to use for conversion.
+
+    Attribute: Parameter byte8 The eighth byte value to use for conversion.
+
+    Attribute: Returns Returns the byte values as text.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Containers.ByteArray
+
+    File file
+    file:SetPath("files/Quorum.png")
+    ByteArray value = file:ReadBytes()
+    integer byte = value:Get(0)
+    integer byte2 = value:Get(1)
+    integer byte3 = value:Get(2)
+    integer byte4 = value:Get(3)
+    integer byte5 = value:Get(4)
+    integer byte6 = value:Get(5)
+    integer byte7 = value:Get(6)
+    integer byte8 = value:Get(7)
+    text result = value:TextFromEightBytes(byte, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+    */
+    system action TextFromEightBytes(integer byte1, integer byte2, integer byte3, integer byte4, integer byte5, integer byte6, integer byte7, integer byte8) returns text
 end

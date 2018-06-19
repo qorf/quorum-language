@@ -163,7 +163,7 @@ class ByteReader
         boolean done = false
         repeat while position < array:GetSize() and not done
             integer byte = array:Get(position)
-            text value1 = array:ConvertByteToCharacter(byte)
+            text value1 = array:CharacterFromByte(byte)
             if value1 = constrained
                 done = true
             end
@@ -197,7 +197,7 @@ class ByteReader
         integer remainder = amount
         repeat while position < array:GetSize() and remainder > 0
             integer byte = array:Get(position)
-            text value1 = array:ConvertByteToCharacter(byte)
+            text value1 = array:CharacterFromByte(byte)
             value = value + value1
             position = position + 1
             remainder = remainder - 1
@@ -248,7 +248,7 @@ class ByteReader
     action NextByteAsUnsignedInteger returns integer
         integer byte = array:Get(position)
         position = position + 1
-        integer value = array:ConvertByteToUnsignedInteger(byte)
+        integer value = array:UnsignedIntegerFromByte(byte)
 
         return value
     end
@@ -305,7 +305,7 @@ class ByteReader
         if(position+1 >= 0 and position+1 < array:GetSize())
             byte2 = array:Get(position+1)
         end
-        integer value = array:ConvertBytesTo2ByteInteger(byte1, byte2)
+        integer value = array:IntegerFromTwoBytes(byte1, byte2)
 
         position = position + 2
         return value
@@ -332,7 +332,7 @@ class ByteReader
     action NextTwoByteUnsignedInteger returns integer
         integer byte1 = array:Get(position)
         integer byte2 = array:Get(position + 1)
-        integer value = array:ConvertBytesTo2ByteUnsignedInteger(byte1, byte2)
+        integer value = array:UnsignedIntegerFromTwoBytes(byte1, byte2)
 
         position = position + 2
         return value
@@ -367,7 +367,7 @@ class ByteReader
         integer byte6 = array:Get(position + 5)
         integer byte7 = array:Get(position + 6)
         integer byte8 = array:Get(position + 7)
-        text value = array:ConvertBytesToNumberString(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+        text value = array:TextFromEightBytes(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
 
         bigint:SetValue(value, 10)
 
@@ -398,7 +398,7 @@ class ByteReader
         integer byte3 = array:Get(position + 2)
         integer byte4 = array:Get(position + 3)
 
-        integer value = array:ConvertBytesToInteger(byte1, byte2, byte3, byte4)
+        integer value = array:IntegerFromFourBytes(byte1, byte2, byte3, byte4)
         position = position + 4
         return value
     end
@@ -426,7 +426,7 @@ class ByteReader
         integer byte3 = array:Get(position + 2)
         integer byte4 = array:Get(position + 3)
 
-        number value = array:ConvertBytesToNumber4Byte(byte1, byte2, byte3, byte4)
+        number value = array:NumberFromFourBytes(byte1, byte2, byte3, byte4)
         position = position + 4
         return value
     end
@@ -458,7 +458,7 @@ class ByteReader
         integer byte7 = array:Get(position + 6)
         integer byte8 = array:Get(position + 7)
 
-        number value = array:ConvertBytesToNumber(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+        number value = array:NumberFromEightBytes(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
         position = position + 8
         return value
     end
@@ -487,7 +487,7 @@ class ByteReader
         integer byte3 = array:Get(position + 2)
         integer byte4 = array:Get(position + 3)
 
-        integer value = array:ConvertBytesFromUnsignedToSignedInteger(byte1, byte2, byte3, byte4)
+        integer value = array:SignedIntegerFromFourUnsignedBytes(byte1, byte2, byte3, byte4)
         position = position + 4
         return value
     end

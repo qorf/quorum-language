@@ -398,7 +398,11 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)selectedMenuItem));
 	
+	if (!pMenuItem->GetParentMenuBar()->HasFocus())
+		SetFocus(pMenuItem->GetParentMenuBar()->GetHWND());
+
 	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(pMenuItem);
+
 	return true;
 }
 

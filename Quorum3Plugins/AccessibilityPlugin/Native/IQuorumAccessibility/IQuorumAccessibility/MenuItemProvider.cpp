@@ -7,6 +7,7 @@
 #include "MenuItemControl.h"
 #include <string>
 
+#include <iostream>
 
 MenuItemProvider::MenuItemProvider(MenuItemControl * pControl) : m_refCount(1), m_pMenuItemControl(pControl)
 {
@@ -82,12 +83,12 @@ IFACEMETHODIMP MenuItemProvider::get_ProviderOptions(_Out_ ProviderOptions * pRe
 
 IFACEMETHODIMP MenuItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
-	if (patternId == UIA_InvokePatternId && !m_pMenuItemControl->IsMenu())
+	if (patternId == UIA_InvokePatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
 	}
-	else if (patternId == UIA_ExpandCollapsePatternId && m_pMenuItemControl->IsMenu())
+	else if (patternId == UIA_ExpandCollapsePatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
@@ -129,14 +130,16 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = !m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
+		//pRetVal->boolVal = (m_pMenuItemControl->IsMenu() == false) ? VARIANT_TRUE : VARIANT_FALSE;
+		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
+		//pRetVal->boolVal = (m_pMenuItemControl->IsMenu() == true) ? VARIANT_TRUE : VARIANT_FALSE;
+		pRetVal->boolVal = VARIANT_TRUE;
 	}
-	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId && m_pMenuItemControl->IsMenu())
+	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId)
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = m_expandCollapseState;
@@ -397,7 +400,14 @@ void MenuItemProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
+	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
+		if (m_expandCollapseState == ExpandCollapseState_Expanded)
+			UiaRaiseAutomationEvent(this, UIA_MenuOpenedEventId);
+		else if (m_expandCollapseState == ExpandCollapseState_Collapsed)
+			UiaRaiseAutomationEvent(this, UIA_MenuClosedEventId);
+
+	}
 }
 
 IUnknown* MenuItemProvider::GetParentProvider()

@@ -65,7 +65,7 @@ public class ByteArray {
         return array;
     }
     
-    public ByteArray_ DecompressZLib() {
+    public ByteArray_ Decompress() {
         byte[] compressedBytes = bytes;
         //System.out.println(compressedBytes.length);
         //start out with a stream at least as large as the original and allow it to grow
@@ -95,12 +95,12 @@ public class ByteArray {
         return bytes.length;
     }
     
-    public String ConvertByteToCharacter(int a) {
+    public String CharacterFromByte(int a) {
         char value = (char) a;
         return "" + value;
     }
     
-    public String ConvertBytesToCharacter(int a, int b) {
+    public String CharacterFromTwoBytes(int a, int b) {
         byte[] values = new byte[2];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -109,7 +109,7 @@ public class ByteArray {
         return "" + car;
     }
     
-    public int ConvertBytesTo2ByteInteger(int a, int b) {
+    public int IntegerFromTwoBytes(int a, int b) {
         byte[] values = new byte[2];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -118,12 +118,12 @@ public class ByteArray {
         return value;
     }
     
-    public int ConvertByteToUnsignedInteger(int a) {
+    public int UnsignedIntegerFromByte(int a) {
         int value = a & 0x00FF;
         return value;
     }
     
-    public int ConvertBytesTo2ByteUnsignedInteger(int a, int b) {
+    public int UnsignedIntegerFromTwoBytes(int a, int b) {
         byte[] values = new byte[2];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -134,7 +134,7 @@ public class ByteArray {
     }
     
     
-    public int ConvertBytesFromUnsignedToSignedInteger(int a, int b, int c, int d) {
+    public int SignedIntegerFromFourUnsignedBytes(int a, int b, int c, int d) {
         byte[] values = new byte[4];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -146,7 +146,7 @@ public class ByteArray {
         return value;
     }
     
-    public String ConvertBytesToNumberString(int a, int b, int c, int d, int e, int f, int g, int h) {
+    public String TextFromEightBytes(int a, int b, int c, int d, int e, int f, int g, int h) {
         byte[] values = new byte[8];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -171,7 +171,7 @@ public class ByteArray {
         }
         return buffer;
     }
-    public int ConvertBytesToInteger(int a, int b, int c, int d) {
+    public int IntegerFromFourBytes(int a, int b, int c, int d) {
         byte[] values = new byte[4];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -182,7 +182,7 @@ public class ByteArray {
         return value;
     }
     
-    public double ConvertBytesToNumber4Byte(int a, int b, int c, int d) {
+    public double NumberFromFourBytes(int a, int b, int c, int d) {
         byte[] values = new byte[4];
         values[0] = (byte) a;
         values[1] = (byte) b;
@@ -193,7 +193,7 @@ public class ByteArray {
         return value;
     }
     
-    public double ConvertBytesToNumber(int a, int b, int c, int d,
+    public double NumberFromEightBytes(int a, int b, int c, int d,
                                        int e, int f, int g, int h) {
         byte[] values = new byte[8];
         values[0] = (byte) a;
