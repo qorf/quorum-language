@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import quorum.Libraries.Network.NetworkRequest_;
 import quorum.Libraries.Network.NetworkResponseEvent_;
@@ -98,7 +100,10 @@ public class NetworkConnection {
                 response.SetContentType("NULL");
             }
             response.SetResponseText(responseText);
-            response.SetResponseMessage(http.getResponseMessage());
+            Map<String, List<String>> map = http.getHeaderFields();
+            for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+                response.AddHeader(entry.getKey(), entry.getValue());
+            }
             connection.SetResponse(response);
         } catch (Exception ex) {
             System.out.println(ex.toString());
