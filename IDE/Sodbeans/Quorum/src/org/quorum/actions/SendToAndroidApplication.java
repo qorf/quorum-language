@@ -76,24 +76,27 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     string, assume that the user has not defined them and the default
                     should be used.
                 */
-                String androidPath = project.getAndroidPath();
-                String androidKeystorePath = project.getAndroidKeystorePath();
-                String androidKeystorePassword = project.getAndroidKeystorePassword();
-                String androidKeyAlias = project.getAndroidKeyAlias();
-                String androidKeyPassword = project.getAndroidKeyPassword();
-                
+                String androidSDKPath = project.getAndroidPath();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
-                setup.CopyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
                 
+                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath());
+                if (androidSDKPath != null && !androidSDKPath.equals("")) {
+                    droid.setAndroidSDKPath(androidSDKPath);
+                    setup.setAndroidSDKPath(androidSDKPath);
+                }
+                
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
                 //get all the properties, in case they are there.
                 
-                RunAndroid droid = new RunAndroid();
-                
-                
-                //location of where robovm is
+               
+                droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
+                Process process = droid.GetAPKDebugBuildProcess();
+                        
+                        //droid.debugBuildAndInstall();
+                        //location of where robovm is
 //            InstalledFileLocator locator = InstalledFileLocator.getDefault();
 //            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
 //
@@ -152,27 +155,26 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
 //            io.getOut().println("Compiling to Android. This may take a few minutes.");
 //            // Start the process.
 //            Process process;
-//            try {
-//                process = builder.start();
-//                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
-//                OutputStream outputStream = process.getOutputStream();
-//                watch.setStream(outputStream);
-//                watch.start();
-//                cancel.process = process;
-//                cancel.watcher = watch;
-//                process.waitFor();
-//                watch.wasDestroyed = true;
-//                watch.cancelled = true;
-//                watch.flush();
-//                process.destroy();
-//                progress.finish();
-//            } catch (IOException ex) {
-//                Exceptions.printStackTrace(ex);
-//            } catch (InterruptedException ex) {
-//                Exceptions.printStackTrace(ex);
-//            }
+            try {
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
+                OutputStream outputStream = process.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = process;
+                cancel.watcher = watch;
+                process.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                process.destroy();
+                progress.finish();
+            } catch (InterruptedException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+;
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
+                System.out.println(ex);
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
             }

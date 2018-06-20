@@ -38,9 +38,9 @@ class Tree is Item2D
     end
 
     action Add(TreeItem item)
-        panel:Add(item)
-        treeItems:Add(item)
         item:SetTree(me)
+        treeItems:Add(item)
+        panel:Add(item)
     end
 
     action Remove(TreeItem item)
