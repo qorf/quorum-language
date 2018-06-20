@@ -13,11 +13,6 @@ MenuItemControl::MenuItemControl(_In_ std::wstring menuItemName, _In_ std::wstri
 
 MenuItemControl::~MenuItemControl()
 {
-	if (m_pMenuItemProvider != NULL)
-	{
-		m_pMenuItemProvider->Release();
-		m_pMenuItemProvider = NULL;
-	}
 }
 
 MenuBarControl * MenuItemControl::GetParentMenuBar()
