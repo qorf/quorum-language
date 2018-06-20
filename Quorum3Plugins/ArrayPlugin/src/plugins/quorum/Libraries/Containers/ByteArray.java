@@ -34,7 +34,7 @@ public class ByteArray {
     }
     
     public int Get(int index) throws InvalidLocationError {
-        if(bytes == null || index > bytes.length || index < 0) {
+        if(bytes == null || index >= bytes.length || index < 0) {
             throw new InvalidLocationError();
         }
         return bytes[index];
