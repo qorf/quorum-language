@@ -2,14 +2,9 @@ package org.quorum.android;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
@@ -17,96 +12,80 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.quorum.android.RunAndroid.isWindows;
 
 public class AndroidSetup {
 
-    public static String PATH_TO_MAIN = File.separator + "app" + File.separator + "src" + File.separator + "main" + File.separator;
-    public static String PATH_TO_MAIN_XML = PATH_TO_MAIN + "AndroidManifest.xml";
+    public static final String PATH_TO_MAIN = File.separator + "app" + File.separator + "src" + File.separator + "main" + File.separator;
+    public static final String PATH_TO_MAIN_XML = PATH_TO_MAIN + "AndroidManifest.xml";
 
-    public static String PATH_TO_LAYOUT = PATH_TO_MAIN + "res" + File.separator + "layout" + File.separator;
-    public static String PATH_TO_LAYOUT_XML = PATH_TO_LAYOUT + "activity_main.xml";
+    public static final String PATH_TO_LAYOUT = PATH_TO_MAIN + "res" + File.separator + "layout" + File.separator;
+    public static final String PATH_TO_LAYOUT_XML = PATH_TO_LAYOUT + "activity_main.xml";
 
-    public static String PATH_TO_PACKAGE = PATH_TO_MAIN + "java" + File.separator;
-    private static final String PACKAGES_FOLDER = "packagesfolder";
+    public static final String PATH_TO_PACKAGE = PATH_TO_MAIN + "java" + File.separator;
+    public static final String PACKAGES_FOLDER = "packagesfolder";
+    
     public static final String FOLDER_NAME = "Android";
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        try {
-            String projectPath = "." + File.separator + "TestApplication";
-            String applicationName = "TADA";
-        //    new AndroidSetup().CopyAndRename(projectPath, applicationName);
-            System.out.println("Finished setting up project!");
-            new RunAndroid(projectPath).BuildAndSign();
-            System.out.println("Finished ");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(AndroidSetup.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(AndroidSetup.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(AndroidSetup.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    
+    String androidSDKPath;
+    
+    public AndroidSetup() {
+        this.androidSDKPath = getDefaultAndroidSDKPath();
     }
 
-    public void CopyAndRename(String templateLocation, String projectPath, String applicationName) throws FileNotFoundException, IOException, InterruptedException {
-        // Information that has to be configured
-        String templatePosition = templateLocation;
-      //  String packageName = "com.test.cs.TestApplication";
-     //   String sdkVersion = "26";
-     //   String minSdkVersion = "16";
-
+    public void copyAndRename(String templateLocation, String pathToRunFolder, String applicationName) throws FileNotFoundException, IOException, InterruptedException {
+        String pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
         // Copy project into new folder with appropriate name
-        CopyFolder(projectPath, templatePosition);
-
-        // Change the used package name inside the different files that refer to it
-      //  ChangePackageNameInFiles(packageName, projectPath);
+        copyFolder(pathToBuildAndroidFolder, templateLocation);
         
-        // Change the version information inside the build configuration
-    //    ChangeSdkVersions(sdkVersion, minSdkVersion, projectPath);
+        // Set SDK location
+        setSDKLocation(pathToBuildAndroidFolder);
         
         // Change Application Name
-        ChangeApplicationName(applicationName, projectPath);
+        changeApplicationName(pathToBuildAndroidFolder, applicationName);
     
-        // Change the package name inside the folder structure
-       // ChangePackageName(projectPath, packageName);
-        
         // Clean the generated files that might conflict with the renamings
-        CleanGeneratedFiles(projectPath);
-
-  
-        //DeleteFolder(projectPath);
+        cleanGeneratedFiles(pathToBuildAndroidFolder);
     }
     
-    public void ChangeSdkVersions(String sdkVersion, String minSdkVersion, String projectPath) throws IOException {
-        String pathToGradle = projectPath + File.separator + "app" + File.separator + "build.gradle";
-        
-        
-        File file = new File(pathToGradle);
-        List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath(), StandardCharsets.UTF_8));
-
-        for (int i = 0; i < fileContent.size(); i++) {
-            CheckAndChangeLine(fileContent, i, "compileSdkVersion", sdkVersion);
-            CheckAndChangeLine(fileContent, i, "targetSdkVersion", sdkVersion);
-            CheckAndChangeLine(fileContent, i, "minSdkVersion", minSdkVersion);
-            //String buildToolVersion = "\"" +sdkVersion + ".0.0\"";
-            //CheckAndChangeLine(fileContent, i, "buildToolsVersion", buildToolVersion);
-        }
-
-        Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
-    }
     
-    private void CheckAndChangeLine(List<String> fileContent, int index, String indicator, String replacement){
-        if (fileContent.get(index).contains(indicator)) {
-                int position = fileContent.get(index).indexOf(indicator) + indicator.length() + 1;
-                String newLine = fileContent.get(index).substring(0, position) + replacement;
-                fileContent.set(index, newLine);
+    private void setSDKLocation(String pathToBuildAndroidFolder) throws IOException {
+        String pathToLocalProperties = pathToBuildAndroidFolder + File.separator + "local.properties";
+        String sdkLocation = this.androidSDKPath;
+        if(isWindows()) {
+            sdkLocation = "";
+            for (int i = 0; i < this.androidSDKPath.length(); i++) {
+                sdkLocation += this.androidSDKPath.charAt(i);
+                if (this.androidSDKPath.charAt(i) =='\\'){
+                    sdkLocation += "\\\\\\";
+                }
             }
+        }
+        replaceLineText(pathToLocalProperties, "sdk.dir=", "sdk.dir="+sdkLocation);
+    }
+    
+    public void copyFolder(String projectPath, String templatePosition) throws IOException {
+        
+        File srcDir = new File(templatePosition);
+        
+        File destDir = new File(projectPath);
+
+        if (destDir.exists()) {
+            deleteFolder(projectPath);
+        }
+        
+        copy(srcDir, destDir);
+    }
+    
+     public void changeApplicationName(String projectPath, String applicationName) throws FileNotFoundException, IOException {
+        String pathToMain = projectPath + PATH_TO_MAIN_XML;
+        replaceLineText(pathToMain, "android:label=\"Android\"", "android:label=\""+applicationName+"\"");
     }
 
-    public void CleanGeneratedFiles(String projectPath) throws IOException, InterruptedException {
+    public void cleanGeneratedFiles(String projectPath) throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /C \"\" " + projectPath + "\\gradlew.bat -p " + projectPath + " clean & exit");
+            
             proc.waitFor();
             proc.destroy();
         } else if(isMac()) {
@@ -124,54 +103,60 @@ public class AndroidSetup {
             proc.destroy();
         }
     }
-
-    public void CopyFolder(String projectPath, String templatePosition) throws IOException {
-        
-        File srcDir = new File(templatePosition);
-        
-        File destDir = new File(projectPath);
-
-        if (destDir.exists()) {
-            DeleteFolder(projectPath);
+    
+    public final String getDefaultAndroidSDKPath() {
+        String defaultPath = System.getProperty("user.home");
+        if (isWindows()) {
+            defaultPath += File.separator + "AppData" + File.separator + "Local" +File.separator + "Android"+ File.separator +"sdk"; 
+            System.out.println("defaultPath: " + defaultPath);
+        } else {
+           defaultPath += File.separator + "Library/Android/sdk"; 
         }
-        
-        copy(srcDir, destDir);
+        return defaultPath;
     }
 
-    public void ChangePackageName(String projectPath, String packageName) throws IOException {
-        String packageFolderNames = ConvertPackageName(packageName);
+    public void changePackageName(String projectPath, String packageName) throws IOException {
+        String packageFolderNames = convertPackageName(packageName);
         File packagesRoot = new File(projectPath + PATH_TO_PACKAGE + PACKAGES_FOLDER);
 
         File newPackages = new File(projectPath + PATH_TO_PACKAGE + packageFolderNames);
         newPackages.mkdirs();
 
         copy(packagesRoot, newPackages);
-        DeleteFolder(packagesRoot.getCanonicalPath());
+        deleteFolder(packagesRoot.getCanonicalPath());
     }
 
-    public void ChangeApplicationName(String applicationName, String projectPath) throws FileNotFoundException, IOException {
-
-        String pathToMain = projectPath + PATH_TO_MAIN_XML;
-        ReplaceLineText(pathToMain, "android:label=\"Moep\"", "android:label=\""+applicationName+"\"");
-
-    }
-    
-    public void ChangePackageNameInFiles(String packageName, String projectPath) throws FileNotFoundException, IOException {
+    public void changePackageNameInFiles(String packageName, String projectPath) throws FileNotFoundException, IOException {
 
         String pathToGradle = projectPath + File.separator + "app" + File.separator + "build.gradle";
-        ReplaceLineText(pathToGradle, PACKAGES_FOLDER, packageName);
+        replaceLineText(pathToGradle, PACKAGES_FOLDER, packageName);
 
         String pathToJavaFile = projectPath + PATH_TO_PACKAGE + PACKAGES_FOLDER + File.separator + "MainActivity.java";
-        ReplaceLineText(pathToJavaFile, PACKAGES_FOLDER, packageName);
+        replaceLineText(pathToJavaFile, PACKAGES_FOLDER, packageName);
 
         String pathToMain = projectPath + PATH_TO_MAIN_XML;
-        ReplaceLineText(pathToMain, PACKAGES_FOLDER, packageName);
+        replaceLineText(pathToMain, PACKAGES_FOLDER, packageName);
 
         String pathToLayout = projectPath + PATH_TO_LAYOUT_XML;
-        ReplaceLineText(pathToLayout, PACKAGES_FOLDER, packageName);
+        replaceLineText(pathToLayout, PACKAGES_FOLDER, packageName);
     }
    
-    /// ########################################################################
+    public void changeSdkVersions(String sdkVersion, String minSdkVersion, String projectPath) throws IOException {
+        String pathToGradle = projectPath + File.separator + "app" + File.separator + "build.gradle";
+
+        File file = new File(pathToGradle);
+        List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath(), StandardCharsets.UTF_8));
+
+        for (int i = 0; i < fileContent.size(); i++) {
+            checkAndChangeLine(fileContent, i, "compileSdkVersion", sdkVersion);
+            checkAndChangeLine(fileContent, i, "targetSdkVersion", sdkVersion);
+            checkAndChangeLine(fileContent, i, "minSdkVersion", minSdkVersion);
+        }
+
+        Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
+    }
+    
+    // Helper methods ##########################################################
     public static boolean isWindows() {
         return getOsName().startsWith("Windows");
     }
@@ -189,20 +174,29 @@ public class AndroidSetup {
         return OS;
     }
 
-    private void ReplaceLineText(String filePath, String toReplace, String newString) throws IOException {
+    private void checkAndChangeLine(List<String> fileContent, int index, String indicator, String replacement){
+        if (fileContent.get(index).contains(indicator)) {
+                int position = fileContent.get(index).indexOf(indicator) + indicator.length() + 1;
+                String newLine = fileContent.get(index).substring(0, position) + replacement;
+                fileContent.set(index, newLine);
+            }
+    }
+    
+    private void replaceLineText(String filePath, String toReplace, String newString) throws IOException {
         File file = new File(filePath);
         List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath(), StandardCharsets.UTF_8));
 
         for (int i = 0; i < fileContent.size(); i++) {
             if (fileContent.get(i).contains(toReplace)) {
-                fileContent.set(i, fileContent.get(i).replaceFirst(toReplace, newString));
+                
+                fileContent.set(i, newString);
             }
         }
 
         Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
     }
 
-    private String ConvertPackageName(String packageName) {
+    private String convertPackageName(String packageName) {
         String result = packageName.replaceAll("\\.", File.separator);
         return result;
     }
@@ -222,6 +216,7 @@ public class AndroidSetup {
     }
 
     private void copy(File sourceLocation, File targetLocation) throws IOException {
+        
         if (sourceLocation.isDirectory()) {
             copyDirectory(sourceLocation, targetLocation);
         } else {
@@ -230,22 +225,34 @@ public class AndroidSetup {
     }
 
     private void copyDirectory(File source, File target) throws IOException {
+        if (target.exists()) {
+            deleteFolder(target);
+        }
+        
         if (!target.exists()) {
             target.mkdir();
         }
 
+        
         for (String f : source.list()) {
             copy(new File(source, f), new File(target, f));
         }
     }
 
     private void copyFile(File source, File target) throws IOException {
+        if (target.exists()) {
+            delete(target);
+        }
         Files.copy(source.toPath(), target.toPath(), COPY_ATTRIBUTES);
     }
 
-    private void DeleteFolder(String projectPath) {
+    private void deleteFolder(String projectPath) {
         File f = new File(projectPath);
 
+        deleteFolder(f);
+    }
+    
+    private void deleteFolder(File f) {
         try {
             delete(f);
         } catch (IOException ex) {
@@ -286,6 +293,37 @@ public class AndroidSetup {
             //if file, then delete it
             file.delete();
         }
+    }
+    
+     static class ProcessWatcher implements Runnable {
+
+        private final Process proc;
+
+        public ProcessWatcher(Process proc) {
+            this.proc = proc;
+        }
+
+        public void run() {
+            BufferedReader input = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            BufferedReader inputE = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String line = null;
+            try {
+                while ((line = inputE.readLine()) != null)
+                    System.out.println(line);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                while ((line = input.readLine()) != null)
+                    System.out.println(line);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+     
+    public void setAndroidSDKPath(String androidPath) {
+        this.androidSDKPath = androidPath;
     }
 
 }

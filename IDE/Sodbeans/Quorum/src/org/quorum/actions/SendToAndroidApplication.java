@@ -76,23 +76,26 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     string, assume that the user has not defined them and the default
                     should be used.
                 */
-                String androidPath = project.getAndroidPath();
-                String androidKeystorePath = project.getAndroidKeystorePath();
-                String androidKeystorePassword = project.getAndroidKeystorePassword();
-                String androidKeyAlias = project.getAndroidKeyAlias();
-                String androidKeyPassword = project.getAndroidKeyPassword();
-                
+                String androidSDKPath = project.getAndroidPath();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
-                setup.CopyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
                 
+                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath());
+                if (androidSDKPath != null && !androidSDKPath.equals("")) {
+                    droid.setAndroidSDKPath(androidSDKPath);
+                    setup.setAndroidSDKPath(androidSDKPath);
+                }
+                
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
                 //get all the properties, in case they are there.
                 
-                RunAndroid droid = new RunAndroid();
+               
                 
+             
                 
+               droid.debugBuildAndInstall();
                 //location of where robovm is
 //            InstalledFileLocator locator = InstalledFileLocator.getDefault();
 //            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);

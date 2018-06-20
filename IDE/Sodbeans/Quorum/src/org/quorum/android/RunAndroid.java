@@ -1,7 +1,6 @@
 
 package org.quorum.android;
 
-import static org.quorum.android.AndroidSetup.isWindows;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -17,50 +16,43 @@ public class RunAndroid {
     String ASSEMBLED_APK_FOR_RELEASE = File.separator + "app" + File.separator + "build" + File.separator + "outputs" + File.separator + "apk" + File.separator + "release" + File.separator + "app-release-unsigned.apk";
     
     String keyStorePath = "~/keystore.ks";
-    String keyStorePassword = "test";
+    String keyStorePassword = "";
     String keyAlias = "key0";
-    String keyPassword = "test2";
-    String androidPath;
+    String keyPassword = "";
+    String androiSDKPath;
     
     String toolPath = File.separator +  "build-tools" + File.separator + "27.0.3" + File.separator;
     String zipalignPath = toolPath + "zipalign";
     String zipalignOptions = "-v -p 4";
     String apksignerPath = toolPath + "apksigner";
     
-    String projectPath = "./TestApplication";
+    String pathToBuildAndroidFolder = "./TestApplication";
     
     String[] librarySources; 
     String[] libraryDestinations;
+    
+    public static final String FOLDER_NAME = "Android";
 
-    
-    public RunAndroid() { 
-        this.androidPath = getDefaultAndroidPath();
-        this.librarySources = new String[] {"temp" + File.separator + "Default.jar",
-            "temp" + File.separator + "QuorumStandardLibrary.jar", 
-            "temp" + File.separator + "QuorumStandardPlugins.jar"}; 
-        this.libraryDestinations = new String[] {projectPath + PATH_TO_LIBS + File.separator + "Default.jar", 
-            projectPath + PATH_TO_LIBS + File.separator + "QuorumStandardLibrary.jar", 
-            projectPath + PATH_TO_LIBS + File.separator + "QuorumStandardPlugins.jar"}; 
-        if (isWindows()) 
+    public RunAndroid(String pathToRunFolder) {
+        this.androiSDKPath = getDefaultAndroidSDKPath();
+        this.pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
+        this.librarySources = new String[] {
+            pathToRunFolder + File.separator + "Default.jar",
+            pathToRunFolder + File.separator + "QuorumStandardLibrary.jar", 
+            pathToRunFolder + File.separator + "QuorumStandardPlugins.jar"
+        }; 
+        this.libraryDestinations = new String[] {
+            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "Default.jar", 
+            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardLibrary.jar", 
+            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardPlugins.jar"
+        }; 
+        if (isWindows()) {
             zipalignPath = zipalignPath + ".exe";
+        }
     }
     
-    public RunAndroid(String projectPath) {
-        this.androidPath = getDefaultAndroidPath();
-        this.projectPath = projectPath;
-        this.librarySources = new String[] {"temp" + File.separator + "Default.jar",
-            "temp" + File.separator + "QuorumStandardLibrary.jar", 
-            "temp" + File.separator + "QuorumStandardPlugins.jar"}; 
-        this.libraryDestinations = new String[] {projectPath + PATH_TO_LIBS + File.separator + "Default.jar", 
-            projectPath + PATH_TO_LIBS + File.separator + "QuorumStandardLibrary.jar", 
-            projectPath + PATH_TO_LIBS + File.separator + "QuorumStandardPlugins.jar"}; 
-        if (isWindows()) 
-            zipalignPath = zipalignPath + ".exe";
-    }
-    
-    public final String getDefaultAndroidPath() {
+    public final String getDefaultAndroidSDKPath() {
         String defaultPath = System.getProperty("user.home");
-        System.out.println(defaultPath);
         if (isWindows()) {
             defaultPath += File.separator + "AppData\\Local\\Android\\sdk"; 
         } else {
@@ -69,35 +61,47 @@ public class RunAndroid {
         return defaultPath;
     }
     
-    public void CopyAndRun() throws IOException, InterruptedException {
-        //paths are coming from somewhere else probably
-        
-        
-        // build libraries first
-        
+    /*
+    Builds project as android application using debug key
+    Before running this, libraries have to be built
+    */
+    public void debugBuildAndInstall() throws IOException, InterruptedException {
+
         // copy libraries to project
-        CopyLibraries(librarySources, libraryDestinations);
-        System.out.println("Done copying libraries.");
-        
+        copyLibraries(librarySources, libraryDestinations);
+        System.out.println("Done copying libraries");
         // assembleDebug android app
-        AssembleDebugCommand();
-        
+        assembleDebugCommand();
+        System.out.println("Done assembling");
         // installDebug android app
-        InstallDebugCommand();
+        installDebugCommand();
+        System.out.println("Done installing");
     }
     
-    public void BuildAndSign() throws IOException, InterruptedException {
-       AssembleReleaseCommand();
+    /*
+    Builds project as android application using release key
+    Before running this, libraries have to be built
+    */
+    public void releaseBuildAndSign() throws IOException, InterruptedException {
+       // Building project
+       assembleReleaseCommand();
        
-       System.out.println("Done Assembling");
-       ZipalignCommand();
-       System.out.println("Done Aligning");
-       ApkSignerCommand();
+       // Doing zipalign is necessary before signing
+       zipalignCommand();
+       
+       // Sign application
+       apkSignerCommand();
+       
+       apkSignerCommand();
     }
     
-    public void ZipalignCommand () throws IOException, InterruptedException {
+    public void zipalignCommand () throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + buildZipalignCommand() + "& exit");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else if(isMac()) {
+            Process proc = Runtime.getRuntime().exec(buildZipalignCommand());
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
         } else {
@@ -107,10 +111,13 @@ public class RunAndroid {
         }
     }
     
-    public void ApkSignerCommand () throws IOException, InterruptedException {
+    public void apkSignerCommand () throws IOException, InterruptedException {
         if (isWindows()) {
-            System.out.println(buildAPKSignerCommand());
             Process proc = Runtime.getRuntime().exec("cmd start /c \"\" " + buildAPKSignerCommand() + "& exit");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else if(isMac()) {
+            Process proc =  Runtime.getRuntime().exec(buildAPKSignerCommand());
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
         } else {
@@ -120,63 +127,75 @@ public class RunAndroid {
         }
     }
     
+    public void assembleReleaseCommand( ) throws IOException, InterruptedException {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleRelease & exit");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else if(isMac()) {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        }
+    }
+        
+    public void assembleDebugCommand( ) throws IOException, InterruptedException {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleDebug & exit");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else if(isMac()) {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        }
+    }
+    
+    public void installDebugCommand( ) throws IOException, InterruptedException {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " installDebug & exit");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else if(isMac()) {   
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " installDebug ");
+            new Thread(new ProcessWatcher(proc)).start();
+            proc.waitFor();
+        }
+    }
+    
     private String buildAPKSignerCommand() {
-        return androidPath + apksignerPath + " sign --ks " + keyStorePath + " --ks-pass pass:" + keyStorePassword + " --ks-key-alias " + keyAlias + " --key-pass pass:" + keyPassword + " --out ." + File.separator + "Run" + File.separator + "ReleaseReady.apk" + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk" ;
+        return androiSDKPath + apksignerPath + " sign --ks " + keyStorePath + " --ks-pass pass:" + keyStorePassword + " --ks-key-alias " + keyAlias + " --key-pass pass:" + keyPassword + " --out ." + File.separator + "Run" + File.separator + "ReleaseReady.apk" + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk" ;
     }
     
     private String buildZipalignCommand() {  
-        return androidPath + zipalignPath + " " + zipalignOptions + " " + projectPath + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
+        return androiSDKPath + zipalignPath + " " + zipalignOptions + " " + pathToBuildAndroidFolder + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
                 
     }
     
-    public void AssembleReleaseCommand( ) throws IOException, InterruptedException {
-        if (isWindows()) {
-            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + projectPath + "\\gradlew.bat -p " + projectPath + " assembleRelease & exit");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
-        } else {
-            Process proc =  Runtime.getRuntime().exec(projectPath + "/gradlew -p " + projectPath + " assembleRelease");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
+    public void copyLibraries(String[] sourcePaths, String[] destinationPaths) throws IOException {
+        File libFolder = new File(this.pathToBuildAndroidFolder + PATH_TO_LIBS);
+        if(!libFolder.exists()) {
+            libFolder.mkdir();
         }
-    }
-    
-    
-    public void AssembleDebugCommand( ) throws IOException, InterruptedException {
-        if (isWindows()) {
-            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + projectPath + "\\gradlew.bat -p " + projectPath + " assembleDebug & exit");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
-        } else {
-            Process proc =  Runtime.getRuntime().exec(projectPath + "/gradlew -p " + projectPath + " assembleDebug");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
-        }
-    }
-    
-    public void InstallDebugCommand( ) throws IOException, InterruptedException {
-        if (isWindows()) {
-            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + projectPath + "\\gradlew.bat -p " + projectPath + " installDebug & exit");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
-        } else {
-            Process proc =  Runtime.getRuntime().exec(projectPath + "/gradlew -p " + projectPath + " installDebug ");
-            new Thread(new ProcessWatcher(proc)).start();
-            proc.waitFor();
-        }
-    }
-    
-    
-    public void CopyLibraries(String[] sourcePaths, String[] destinationPaths) throws IOException {
+        
         for (int i = 0; i < sourcePaths.length; i++ ){
-            System.out.println("Source: " + sourcePaths[i]);
-            System.out.println("Destinations: " + destinationPaths[i]);
-            
-            CopyLibrary(sourcePaths[i], destinationPaths[i]);
+            copyLibrary(sourcePaths[i], destinationPaths[i]);
         }
     }
     
-    public void CopyLibrary(String sourcePath, String destinationPath) throws IOException {
+    public void copyLibrary(String sourcePath, String destinationPath) throws IOException {
         File source = new File(sourcePath);
         File destination = new File(destinationPath);
         
@@ -222,7 +241,7 @@ public class RunAndroid {
     }
     
     public String getAndroidPath() {
-        return androidPath;
+        return androiSDKPath;
     }
     
     public void setKeyStorePath(String keyStorePath) {
@@ -241,20 +260,20 @@ public class RunAndroid {
         this.keyPassword = keyPassword;
     }
     
-    public void setAndroidPath(String androidPath) {
-        this.androidPath = androidPath;
+    public void setAndroidSDKPath(String androidSDKPath) {
+        this.androiSDKPath = androidSDKPath;
     }
     
     public void setProjectPath(String projectPath) {
-        this.projectPath = projectPath;
+        this.pathToBuildAndroidFolder = projectPath;
         
     }
     
     public String getProjectPath() {
-        return this.projectPath;
+        return this.pathToBuildAndroidFolder;
     }
     
-       public void setLibrarySources(String[] librarySources) {
+    public void setLibrarySources(String[] librarySources) {
         this.librarySources = librarySources;
     }
     
@@ -269,7 +288,24 @@ public class RunAndroid {
     public String[] getLibraryDestinations() {
         return this.libraryDestinations;
     }
+    
+    public static boolean isWindows() {
+        return getOsName().startsWith("Windows");
+    }
 
+    public static boolean isMac() {
+        return getOsName().startsWith("Mac");
+    }
+
+    private static String OS = null;
+
+    public static String getOsName() {
+        if (OS == null) {
+            OS = System.getProperty("os.name");
+        }
+        return OS;
+    }
+    
     static class ProcessWatcher implements Runnable {
 
         private final Process proc;
