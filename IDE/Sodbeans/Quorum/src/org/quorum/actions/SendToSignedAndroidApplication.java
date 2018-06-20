@@ -86,7 +86,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
-                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request), "t");
                 
                 //get all the properties, in case they are there.
                 

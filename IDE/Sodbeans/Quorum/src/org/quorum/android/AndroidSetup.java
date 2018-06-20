@@ -33,13 +33,17 @@ public class AndroidSetup {
         this.androidSDKPath = getDefaultAndroidSDKPath();
     }
 
-    public void copyAndRename(String templateLocation, String pathToRunFolder, String applicationName) throws FileNotFoundException, IOException, InterruptedException {
+    public void copyAndRename(String templateLocation, String pathToRunFolder, String applicationName, String jdkPath) throws FileNotFoundException, IOException, InterruptedException {
         String pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
         // Copy project into new folder with appropriate name
         copyFolder(pathToBuildAndroidFolder, templateLocation);
         
         // Set SDK location
         setSDKLocation(pathToBuildAndroidFolder);
+        
+        if (jdkPath != null && !jdkPath.equals("")){
+            setJDKLocation(pathToBuildAndroidFolder, jdkPath);
+        }
         
         // Change Application Name
         changeApplicationName(pathToBuildAndroidFolder, applicationName);
@@ -195,6 +199,15 @@ public class AndroidSetup {
 
         Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
     }
+    
+    private void appendLine(String filePath, String toAdd) throws IOException {
+        File file = new File(filePath);
+        List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath(), StandardCharsets.UTF_8));
+
+        fileContent.add(toAdd);
+
+        Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
+    }
 
     private String convertPackageName(String packageName) {
         String result = packageName.replaceAll("\\.", File.separator);
@@ -293,6 +306,21 @@ public class AndroidSetup {
             //if file, then delete it
             file.delete();
         }
+    }
+
+    private void setJDKLocation(String pathToBuildAndroidFolder, String jdkPath) throws IOException {
+        String pathToLocalProperties = pathToBuildAndroidFolder + File.separator + "gradle.properties";
+        String sdkLocation = jdkPath;
+        if(isWindows()) {
+            sdkLocation = "";
+            for (int i = 0; i < jdkPath.length(); i++) {
+                sdkLocation += jdkPath.charAt(i);
+                if (jdkPath.charAt(i) =='\\'){
+                    sdkLocation += "\\\\";
+                }
+            }
+        }
+        appendLine(pathToLocalProperties, "org.gradle.java.home="+sdkLocation);
     }
     
      static class ProcessWatcher implements Runnable {

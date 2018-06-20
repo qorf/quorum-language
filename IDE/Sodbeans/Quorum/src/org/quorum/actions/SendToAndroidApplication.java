@@ -77,6 +77,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     should be used.
                 */
                 String androidSDKPath = project.getAndroidPath();
+                String jdkPath = "";
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
@@ -88,7 +89,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     setup.setAndroidSDKPath(androidSDKPath);
                 }
                 
-                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request), jdkPath);
                 //get all the properties, in case they are there.
                 
                
