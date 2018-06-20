@@ -85,7 +85,8 @@ public class QuorumProject implements Project {
     public static final String QUORUM_ANDROID_KEYSTORE_PASSWORD = "Quorum_Android_Keystore_Password";
     public static final String QUORUM_ANDROID_KEY_ALIAS = "Quorum_Android_Key_Alias";
     public static final String QUORUM_ANDROID_KEY_PASSWORD = "Quorum_Android_Key_Password";
-
+    public static final String QUORUM_ANDROID_ALTERNATE_JDK = "Quorum_Android_Alternate_JDK";
+    
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";
 
@@ -105,6 +106,7 @@ public class QuorumProject implements Project {
     private String androidKeystorePassword = "";
     private String androidKeyAlias = "";
     private String androidKeyPassword = "";
+    private String androidAlternateJDK = "";
     
     public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
@@ -328,6 +330,7 @@ public class QuorumProject implements Project {
         setAndroidKeystorePassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD));
         setAndroidKeyAlias(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_ALIAS));
         setAndroidKeyPassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD));
+        setAndroidAlternateJDK(properties.getProperty(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK));
         
         return properties;
     }
@@ -932,5 +935,19 @@ public class QuorumProject implements Project {
      */
     public void setAndroidKeyPassword(String androidKeyPassword) {
         this.androidKeyPassword = androidKeyPassword;
+    }
+
+    /**
+     * @return the androidAlternateJDK
+     */
+    public String getAndroidAlternateJDK() {
+        return androidAlternateJDK;
+    }
+
+    /**
+     * @param androidAlternateJDK the androidAlternateJDK to set
+     */
+    public void setAndroidAlternateJDK(String androidAlternateJDK) {
+        this.androidAlternateJDK = androidAlternateJDK;
     }
 }

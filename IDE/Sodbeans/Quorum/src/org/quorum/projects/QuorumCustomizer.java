@@ -235,6 +235,12 @@ public class QuorumCustomizer implements CustomizerProvider{
             } else {
                 properties.setProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD, mobilePanel.getAndroidKeyPassword());
             }
+            
+            if(mobilePanel.getAndroidAlternateJDK().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK, mobilePanel.getAndroidAlternateJDK());
+            }
         }
 
         @Override
