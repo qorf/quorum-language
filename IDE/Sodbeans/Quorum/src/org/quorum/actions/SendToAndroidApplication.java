@@ -92,11 +92,11 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 //get all the properties, in case they are there.
                 
                
-                
-             
-                
-               droid.debugBuildAndInstall();
-                //location of where robovm is
+                droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
+                Process process = droid.GetAPKDebugBuildProcess();
+                        
+                        //droid.debugBuildAndInstall();
+                        //location of where robovm is
 //            InstalledFileLocator locator = InstalledFileLocator.getDefault();
 //            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
 //
@@ -155,27 +155,26 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
 //            io.getOut().println("Compiling to Android. This may take a few minutes.");
 //            // Start the process.
 //            Process process;
-//            try {
-//                process = builder.start();
-//                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
-//                OutputStream outputStream = process.getOutputStream();
-//                watch.setStream(outputStream);
-//                watch.start();
-//                cancel.process = process;
-//                cancel.watcher = watch;
-//                process.waitFor();
-//                watch.wasDestroyed = true;
-//                watch.cancelled = true;
-//                watch.flush();
-//                process.destroy();
-//                progress.finish();
-//            } catch (IOException ex) {
-//                Exceptions.printStackTrace(ex);
-//            } catch (InterruptedException ex) {
-//                Exceptions.printStackTrace(ex);
-//            }
+            try {
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
+                OutputStream outputStream = process.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = process;
+                cancel.watcher = watch;
+                process.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                process.destroy();
+                progress.finish();
+            } catch (InterruptedException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+;
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
+                System.out.println(ex);
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
             }

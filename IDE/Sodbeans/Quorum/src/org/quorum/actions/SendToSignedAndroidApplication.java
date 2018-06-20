@@ -206,6 +206,6 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
     
     @Override
     protected String getDisplayName() {
-        return "Send to Signed Android Application";
+        return "Generate Android Application for Store";
     }
 }
