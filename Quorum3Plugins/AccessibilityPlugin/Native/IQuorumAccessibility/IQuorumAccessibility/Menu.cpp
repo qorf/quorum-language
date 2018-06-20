@@ -6,10 +6,6 @@
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
 
-#include <iostream>
-
-#include <cstdlib>
-
 int Menu::GetCount()
 {
 	return static_cast<int>(m_menuItemCollection.size());
@@ -77,8 +73,6 @@ bool Menu::RemoveMenuItem(MenuItemControl* pMenuItem)
 		pMenuItemProvider->NotifyMenuItemRemoved();
 		UiaDisconnectProvider(pMenuItemProvider);
 	}
-	else
-		std::cout << "RemoveMenuItem: MenuItem provider is NULL." << std::endl;
 
 
 	// Remove from list
