@@ -40,6 +40,7 @@ public class AndroidSetup {
         
         // Set SDK location
         setSDKLocation(pathToBuildAndroidFolder);
+        setNDKLocation(pathToBuildAndroidFolder);
         
         if (jdkPath != null && !jdkPath.equals("")){
             setJDKLocation(pathToBuildAndroidFolder, jdkPath);
@@ -61,6 +62,22 @@ public class AndroidSetup {
             for (int i = 0; i < this.androidSDKPath.length(); i++) {
                 sdkLocation += this.androidSDKPath.charAt(i);
                 if (this.androidSDKPath.charAt(i) =='\\'){
+                    sdkLocation += "\\\\\\";
+                }
+            }
+        }
+        replaceLineText(pathToLocalProperties, "sdk.dir=", "sdk.dir="+sdkLocation);
+    }
+    
+    private void setNDKLocation(String pathToBuildAndroidFolder) throws IOException {
+        String pathToLocalProperties = pathToBuildAndroidFolder + File.separator + "local.properties";
+        String ndkLocation = this.androidSDKPath + File.separator + "ndk-bundle";
+        String sdkLocation = ndkLocation;
+        if(isWindows()) {
+            sdkLocation = "";
+            for (int i = 0; i < ndkLocation.length(); i++) {
+                sdkLocation += ndkLocation.charAt(i);
+                if (ndkLocation.charAt(i) =='\\'){
                     sdkLocation += "\\\\\\";
                 }
             }
