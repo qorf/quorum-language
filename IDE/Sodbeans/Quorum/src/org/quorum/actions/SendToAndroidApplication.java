@@ -176,6 +176,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
 //            }
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
+                System.out.println(ex);
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
             }
