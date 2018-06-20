@@ -86,13 +86,27 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
-                setup.CopyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request));
                 
                 //get all the properties, in case they are there.
                 
-                RunAndroid droid = new RunAndroid();
+                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath());
                 
-                
+                if (androidPath != null && !androidPath.equals("")) {
+                    droid.setAndroidSDKPath(androidPath);
+                }
+                if (androidKeystorePath != null && !androidKeystorePath.equals("")) {
+                    droid.setKeyStorePath(androidKeystorePath);
+                }
+                if (androidKeystorePassword != null && !androidKeystorePassword.equals("")) {
+                    droid.setKeyStorePassword(androidKeystorePassword);
+                }
+                if (androidKeyAlias != null && !androidKeyAlias.equals("")) {
+                    droid.setKeyAlias(androidKeyAlias);
+                }
+                if (androidKeyPassword != null && !androidKeyPassword.equals("")) {
+                    droid.setKeyPassword(androidKeyPassword);
+                }
                 //location of where robovm is
 //            InstalledFileLocator locator = InstalledFileLocator.getDefault();
 //            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
