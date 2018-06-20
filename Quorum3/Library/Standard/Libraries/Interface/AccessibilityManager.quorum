@@ -12,8 +12,10 @@ use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.MenuItem
 use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Interface.Controls.TreeItem
+
 
 class AccessibilityManager 
 
@@ -83,7 +85,19 @@ class AccessibilityManager
 //                Deselect(currentSelection)
             end
         elseif selection is TreeSelection
-            // Do Tree things
+            TreeSelection treeSelection = cast(TreeSelection, selection)
+
+            if not treeSelection:IsEmpty()
+                Array<TreeItem> path = treeSelection:GetPath()
+
+                Item selectedTreeItem = path:Get(path:GetSize()-1)
+                
+                if (debugOutput)
+                    output "Selection changed: " + selectedTreeItem:GetName()
+                end
+
+                Select(selectedTreeItem)
+            end
         else
             // Do generic things
         end
@@ -113,6 +127,8 @@ class AccessibilityManager
             if item:GetAccessibilityCode() = item:BUTTON
                     or item:GetAccessibilityCode() = item:MENU_BAR
                     or item:GetAccessibilityCode() = item:MENU_ITEM
+                    or item:GetAccessibilityCode() = item:TREE
+                    or item:GetAccessibilityCode() = item:TREE_ITEM
                 if (debugOutput)
                     output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 end
@@ -194,8 +210,11 @@ class AccessibilityManager
 
             // TODO: This section can be removed once everything is supported
             if  item:GetAccessibilityCode() = item:MENU_ITEM
-//                    or item:GetAccessibilityCode() = item:MENU_BAR
-//                    or item:GetAccessibilityCode() = item:BUTTON
+                    or item:GetAccessibilityCode() = item:MENU_BAR
+                    or item:GetAccessibilityCode() = item:BUTTON
+                    or item:GetAccessibilityCode() = item:TREE
+                    or item:GetAccessibilityCode() = item:TREE_ITEM
+
                 if (debugOutput)
                     output "Removing " + item:GetAccessibilityType() + ": " + item:GetName()
                 end
