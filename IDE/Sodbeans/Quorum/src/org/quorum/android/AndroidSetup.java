@@ -82,7 +82,7 @@ public class AndroidSetup {
                 }
             }
         }
-        replaceLineText(pathToLocalProperties, "sdk.dir=", "sdk.dir="+sdkLocation);
+        appendLine(pathToLocalProperties, "ndk.dir="+sdkLocation);
     }
     
     public void copyFolder(String projectPath, String templatePosition) throws IOException {
