@@ -194,13 +194,31 @@ public class RunAndroid {
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " installDebug");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
         } else {
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " installDebug ");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
+        }
+    }
+    
+    public Process GetDebugInstallProcess( ) throws IOException, InterruptedException {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " installDebug & exit");
+            return proc;
+        } else if(isMac()) {   
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " installDebug");
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " installDebug ");
+            return proc;
         }
     }
     

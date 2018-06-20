@@ -77,7 +77,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     should be used.
                 */
                 String androidSDKPath = project.getAndroidPath();
-                String jdkPath = "";
+                String jdkPath = project.getAndroidAlternateJDK();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
@@ -94,80 +94,35 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 
                
                 droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
-                Process process = droid.GetAPKDebugBuildProcess();
+                
+                
                         
-                        //droid.debugBuildAndInstall();
-                        //location of where robovm is
-//            InstalledFileLocator locator = InstalledFileLocator.getDefault();
-//            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
-//
-//                    
-//            //the command
-//            String robovmCommand = robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "robovm";
-//            
-//            File robovmFileExec = new File(robovmCommand);
-//            if(robovmFileExec.exists()) {
-//                robovmFileExec.setExecutable(true);
-//            }
-//            
-//            File iosSimFileExec = new File(robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "ios-sim");
-//            if(iosSimFileExec.exists()) {
-//                iosSimFileExec.setExecutable(true);
-//            }
-//
-//            
-//            // Spawn a new Java process that will run "Default.jar" from the project directory.
-//            String java = System.getProperty("java.home");
-//            java += File.separator + "bin" + File.separator + "java";
-//            
-//            Properties properties = project.getLookup().lookup(Properties.class);
-//            //now get all of the paramters from the user interface
-//            String resources = properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
-//
-//            
-//            //Fake Example: "mb922625-1b6d-489c-54c8-65d204cfdb7c"
-//            String signing = properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
-//            
-//            //Fake Example: "'iPhone Developer: bob.timelord@tardis.edu (LHDJI2A9GY)'"
-//            String provisioning = properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION); 
-//            String outputLocation = runDirectory.getAbsolutePath();
-//            
-//            resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
-//            //signing = "'" + signing + "'";
-//            
-//            String newName = project.getExecutableName(info.request);
-//            newName = newName.substring(0, newName.length() - 3);
-//            newName = newName + "ipa";
-//            
-//            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName(info.request);
-//            ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", "ios", 
-//                "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
-//                "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",
-//                "-weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
-//                "-jar", runFullPath, 
-//                "-resources", resources,
-//                "-signidentity", signing,
-//                "-provisioningprofile", provisioning,
-//                "-d", outputLocation,
-//                "-createipa"
-//            );
-//            builder.directory(robovmFileExec.getParentFile());
-
-//            io.getOut().println("Compiling to Android. This may take a few minutes.");
-//            // Start the process.
-//            Process process;
             try {
-                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
-                OutputStream outputStream = process.getOutputStream();
+                Process buildProcess = droid.GetAPKDebugBuildProcess();
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getErrorStream());
+                OutputStream outputStream = buildProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
-                cancel.process = process;
+                cancel.process = buildProcess;
                 cancel.watcher = watch;
-                process.waitFor();
+                buildProcess.waitFor();
                 watch.wasDestroyed = true;
                 watch.cancelled = true;
                 watch.flush();
-                process.destroy();
+                buildProcess.destroy();
+                
+                Process installProcess = droid.GetDebugInstallProcess();
+                watch = new QuorumAction.QuorumProcessWatcher(installProcess.getErrorStream());
+                outputStream = installProcess.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = installProcess;
+                cancel.watcher = watch;
+                installProcess.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                installProcess.destroy();
                 progress.finish();
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
