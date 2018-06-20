@@ -81,7 +81,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 String androidKeystorePassword = project.getAndroidKeystorePassword();
                 String androidKeyAlias = project.getAndroidKeyAlias();
                 String androidKeyPassword = project.getAndroidKeyPassword();
-                
+                String androidAlternateJDK = project.getAndroidAlternateJDK();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
