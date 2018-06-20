@@ -149,13 +149,37 @@ public class RunAndroid {
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
         } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
-            new Thread(new ProcessWatcher(proc)).start();
+            Thread thread = new Thread(new ProcessWatcher(proc));
+            
             proc.waitFor();
         } else {
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
+        }
+    }
+    
+    public Process GetAPKDebugBuildProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleDebug & exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
+            return proc;
         }
     }
     
@@ -165,6 +189,11 @@ public class RunAndroid {
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
         } else if(isMac()) {   
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
