@@ -11,6 +11,7 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 
 
@@ -247,6 +248,29 @@ public class AccessibilityManager
                 
                 nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar);
                 break;
+            case TREE:
+                nativePointer = NativeWin32CreateMenuBar(item.GetName());
+                break;
+            case TREE_ITEM:
+                TreeItem_ treeItem = (TreeItem_)item;
+                
+                // Get parent MenuItem pointer if it exists.
+                Long parentTreeItem = ITEM_MAP.get((Item_)treeItem.GetParentTreeItem());
+                long parentSubtree = 0;
+                
+                // If the parent subtree exists then pass that down.
+                // Otherwise, native code will take care of the rest.
+                if (parentTreeItem != null)
+                    parentSubtree = parentTreeItem;
+                
+                // Get parent Tree
+                Long parentTree = ITEM_MAP.get((Item_)treeItem.GetTree());
+                
+                if (parentTree == null)
+                    return false;
+                    
+                nativePointer = NativeWin32CreateMenuItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), parentSubtree, parentTree);
+                break;
             default: // Assume Item
                 nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
@@ -281,6 +305,8 @@ public class AccessibilityManager
                 wasRemoved = NativeWin32Remove(itemToRemove);
                 break;
             case MENU_ITEM:
+            case TREE_ITEM:
+
                 wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
                 break;
             default:
@@ -303,7 +329,7 @@ public class AccessibilityManager
         switch(code)
         {
             case MENU_ITEM:
-
+            case TREE_ITEM:
                 // Retreive native pointer for given object
                 selectedItem = ITEM_MAP.get(item);
                 
