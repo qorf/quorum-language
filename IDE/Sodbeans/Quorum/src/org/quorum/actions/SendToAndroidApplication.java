@@ -68,6 +68,9 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 //executable name and path
                 // Compute the location of the project's root directory.
                 File runDirectory = project.getRunDirectory();
+                File parentFile = runDirectory.getParentFile();
+                File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
+                
                 String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
                 
                 /* NOTE: 

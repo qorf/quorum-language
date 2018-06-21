@@ -10,10 +10,19 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Physics.CollisionPersistentData
 use Libraries.Game.Physics.all
 
+/*
+This class records all of the collision points during one collision between two 
+objects. The number of collision points recorded in this class determines what
+kind of contact was made between the two objects during a collision. For example,
+if there is only one contact point recorded, then the collision between the two
+objects would be at a point. If there are two contact points recorded, then the
+collision between the two objects would either be an edge to another object's edge or an edge
+to another object's face.
+*/
 class LocalCollisionPoints3D
     public constant integer MAX_COLLISION_POINTS = 4
 
-    Array<CollisionPoint3D> points
+    Array<CollisionPoint3D> points  //this array tells you what kind of tact was made
 
     Item3D body0
     Item3D body1

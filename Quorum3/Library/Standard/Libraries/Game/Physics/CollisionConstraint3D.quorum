@@ -7,6 +7,9 @@ use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.CollisionPoint3D
 
 class CollisionConstraint3D 
+    //contact constraints
+
+    
     action ResolveSingleBilateralConstraint(Item3D body1, Vector3 position1, Item3D body2, Vector3 position2, number distance, Vector3 normal, Array<number> impulse, number timeStep)
         number normalLenSqr = normal:LengthSquared()
         if normalLenSqr > 1.1
@@ -71,6 +74,10 @@ class CollisionConstraint3D
         impulse:Set(0, velocityImpulse)
     end
 
+
+    /*
+    This action resolves collision without the use of friction.
+    */
     action ResolveSingleCollision(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
