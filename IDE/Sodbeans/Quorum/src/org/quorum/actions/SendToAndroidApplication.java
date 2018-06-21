@@ -69,8 +69,8 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 // Compute the location of the project's root directory.
                 File runDirectory = project.getRunDirectory();
                 File parentFile = runDirectory.getParentFile();
-                File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
-                
+               //File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
+                File media = new File(parentFile.getAbsolutePath() + "/media");
                 String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
                 
                 /* NOTE: 
@@ -80,25 +80,31 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                     should be used.
                 */
                 String androidSDKPath = project.getAndroidPath();
-                String jdkPath = project.getAndroidAlternateJDK();
+                String androidAlternateJDK = project.getAndroidAlternateJDK();
+                String jarName = project.getExecutableName(info.request);
+                String applicationName = jarName;
+                String[] nameComponents = jarName.split("\\.");
+                if (nameComponents.length >= 1) {
+                   applicationName = nameComponents[0];
+                }
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
                 
-                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath());
+                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath(), jarName);
                 if (androidSDKPath != null && !androidSDKPath.equals("")) {
                     droid.setAndroidSDKPath(androidSDKPath);
                     setup.setAndroidSDKPath(androidSDKPath);
                 }
                 
-                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request), jdkPath);
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), applicationName, androidAlternateJDK);
                 //get all the properties, in case they are there.
                 
                
                 droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
                 
-                
+                droid.copyAssets(media);
                         
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();
