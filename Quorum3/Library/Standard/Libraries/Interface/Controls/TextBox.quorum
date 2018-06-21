@@ -1154,8 +1154,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
             if y > yPosition
-                if line > totalLines
-                    line = totalLines
+                if line >= totalLines
+                    line = totalLines - 1
                 end
 
                 integer index = GetNearestCharacter(line, x)

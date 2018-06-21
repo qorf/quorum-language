@@ -244,6 +244,9 @@ class Tree is Item2D
             Array<TreeItem> array
             array:Add(treeItems:Get(0))
             Select(array)
+        else
+            // Force a selection event.
+            selection:SetDisplayName(selection:GetDisplayName())
         end
     end
 

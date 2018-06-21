@@ -15,8 +15,8 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         
         this.gl = gl;
         
-        // Set clear color to black, fully opaque
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        // Set clear color to fully opaque dark gray.
+        gl.clearColor(0.85, 0.85, 0.85, 1.0);
         // Enable depth testing
         gl.enable(gl.DEPTH_TEST);
         // Near things obscure far things

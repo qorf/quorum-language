@@ -93,4 +93,14 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
             listeners[i].TextureLoaded(me_);
         }
     };
+    
+    this.AddReloadableTexture = function()
+    {
+        // Do nothing, this isn't necessary on the web.
+    };
+    
+    this.RemoveReloadableTexture = function()
+    {
+        // Do nothing, this isn't necessary on the web.
+    };
 }
