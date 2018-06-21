@@ -1,0 +1,502 @@
+package Libraries.Interface.Vibration
+
+use Libraries.Containers.Array
+use Libraries.Interface.Vibration.PatternArray
+use Libraries.Interface.Vibration.VibrationArray
+
+/*
+    The Vibration class can be used to start vibration patterns on devices
+    with a vibration motor.
+
+    Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(1000)
+            end
+
+        end
+*/
+class Vibration 
+    
+    /*
+        This method should be called before the Vibration class is used, so that the
+        vibration control can be acquired. If this method is called before the 
+        system is initialized, it will fail.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize() // initialize here in CreateGame
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(1000) 
+            end
+
+        end
+    */
+    system action Initialize()
+   
+    /*
+        This method changes how long the timeslices in the calculated patterns are in milliseconds
+        when they are called without explicit timeslice length. The timeslices influence
+        how many different values are computed for a pattern of a certain length. 
+        The default timeslice length is 20 ms and should be kept between 5ms and 50ms.
+        
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+                hm:SetTimeSlice(5) // sets timeslices to 5ms
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(1000) 
+            end
+
+        end
+    */
+    system action SetTimeslice(integer timesliceLength)
+
+    /*
+        This method returns the current timeslice length that is used by the Vibration class.
+
+        Attribute: Example
+
+        Vibration hm
+        hm:Initialize()
+        output hm:GetTimeslice()
+    */
+    system action GetTimeslice() returns integer
+
+    /* 
+       This method plays a vibration pattern given in Android's pattern definition.
+       The pattern is an Array of integers. The integers represent instructions to
+       the vibration motor in milliseconds. The first integer represents how long
+       the motor should pause, the second represents how long the motor should run,
+       the third is a pause again, and the fourth is a run instruction again and so forth.
+       This alternating pattern of off and on times can then be used to create 
+       complex patterns.
+
+       Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                PatternArray pattern
+                pattern:Add(5)
+                pattern:Add(100)
+                pattern:Add(50) 
+                pattern:Add(200) 
+                pattern:Add(1000)
+                pattern:Add(500) 
+
+                hm:PlayPattern(pattern, 4) // plays through once and then repeats the last two commands
+            end
+
+        end
+    */
+    system action VibratePattern(PatternArray pattern)
+
+   /* 
+       This method plays a vibration pattern given in Android's pattern definition.
+       The pattern is an Array of integers. The integers represent instructions to
+       the vibration motor in milliseconds. The first integer represents how long
+       the motor should pause, the second represents how long the motor should run,
+       the third is a pause again, and the fourth is a run instruction again and so forth.
+       This alternating pattern of off and on times can then be used to create 
+       complex patterns.
+
+       The repetition argument allows to repeat the pattern at the index given in 
+       the argument. Set to -1 for no repetition.
+
+       Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                PatternArray pattern
+                pattern:Add(5)
+                pattern:Add(100)
+                pattern:Add(50) 
+                pattern:Add(200) 
+                pattern:Add(1000)
+                pattern:Add(500) 
+
+                hm:VibratePattern(pattern, 4) // plays through once and then repeats the last two commands
+            end
+
+        end
+    */
+    system action VibratePattern(PatternArray pattern, integer repetitions)
+
+
+     /* 
+       This method plays a vibration pattern created with a HapticCommandArray. 
+
+       The repetition argument allows to repeat the pattern at the index given in 
+       the argument. Set to -1 for no repetition.
+
+       Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray pattern
+                pattern:LongStrong()
+                hm:VibratePattern(pattern)
+            end
+
+        end
+    */
+    system action VibratePattern(VibrationArray vibrationArray)
+
+    /* 
+        Plays a pattern based on an intensity and a duration. This method will
+        take the intensity number to emulate a weaker signal in the same time frame
+        by interspersing the pattern with pauses.
+
+        The intensity argument is expected to be between 0.0 and 1.0.
+
+        The duration is measured in milliseconds.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateGeneratedPattern(0.5, 500)
+            end
+
+        end
+
+    */ 
+    system action VibrateGeneratedPattern(number intensity, integer duration)
+
+    /* 
+        Plays a pattern for the length of duration that increases linearly in intensity from 0.0 to 1.0.
+
+        The duration is measured in milliseconds.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(600)
+            end
+
+        end
+
+    */ 
+    system action VibrateLinearPattern(integer duration)
+
+    /* 
+        Plays a pattern for the length of duration that increases linearly in intensity from 0.0 to 1.0.
+
+        The duration is measured in milliseconds.
+
+        Timeslice is measured in milliseconds and determines in what intervals the
+        change in intensity is calculated.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(600)
+            end
+
+        end
+
+    */ 
+    system action VibrateLinearPattern(integer duration, integer timeslice)
+
+    /* 
+        Plays a pattern for the length of duration that changes intensity between 0.0 and 1.0 in a sin wave form
+
+        The duration is measured in milliseconds.
+
+        Timeslice is measured in milliseconds and determines in what intervals the
+        change in intensity is calculated.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateWavePattern(1000)
+            end
+
+        end
+
+    */ 
+    system action VibrateWavePattern(integer duration)
+
+    /* 
+        Plays a pattern for the length of duration that changes intensity between 0.0 and 1.0 in a sin wave form
+
+        The duration is measured in milliseconds.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateWavePattern(1000)
+            end
+
+        end
+
+    */ 
+    system action VibrateWavePattern(integer duration, integer timeslice)
+
+    /* 
+        Plays a pattern for the length of duration that increases exponentially in intensity from 0.0 to 1.0.
+
+        The duration is measured in milliseconds.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(600)
+            end
+
+        end
+
+    */ 
+    system action VibrateExponentialPattern (integer duration, integer timeslice)
+
+    /* 
+        Plays a pattern for the length of duration that increases exponentially in intensity from 0.0 to 1.0.
+
+        The duration is measured in milliseconds.
+
+        Timeslice is measured in milliseconds and determines in what intervals the
+        change in intensity is calculated.
+
+        Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            HapticManager hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                hm:VibrateLinearPattern(600)
+            end
+
+        end
+
+    */ 
+    system action VibrateExponentialPattern (integer duration)
+
+
+    system action Stop()
+
+end

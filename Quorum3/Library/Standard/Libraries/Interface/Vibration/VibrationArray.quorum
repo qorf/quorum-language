@@ -1,0 +1,108 @@
+package Libraries.Interface.Vibration
+
+/*
+    The VibrationArray class allows to create vibration patterns for use with 
+    the Vibration. This class also provides a number of pre-prepared patterns
+    to make the use of the Vibration class easier.
+
+    Attribute: Example
+
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game
+
+            Vibration hm
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                hm:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray pattern
+                pattern:Add(20)
+                hm:VibratePattern(pattern)
+            end
+
+        end
+    
+*/
+class VibrationArray
+
+    action ShortSharp returns VibrationArray
+        me:Add(50, 1.0)
+        
+        return me
+    end
+
+    action DoublePulse returns VibrationArray
+        me:Add(25, 1.0)
+        me:Add(50, 0.0)
+        me:Add(25, 1.0)
+        return me
+    end
+
+    action DoubleClick returns VibrationArray
+        me:Add(25, 1.0)
+        me:Add(100, 0.0)
+        me:Add(25, 1.0)
+        return me
+    end
+
+    action ShortStrong returns VibrationArray
+        me:Add(100, 0.8)
+        return me
+    end
+
+    action ShortWeak returns VibrationArray
+        me:Add(100, 0.01)
+        return me
+    end
+
+    action ShortLow returns VibrationArray
+        me:Add(100, 0.02)
+        return me
+    end
+
+    action ShortMedium returns VibrationArray
+        me:Add(100, 0.5)
+        return me
+    end
+
+    action LongStrong returns VibrationArray
+        me:Add(1000, 1.0)
+        return me
+    end
+
+    action LongMedium returns VibrationArray
+        me:Add(1000, 0.5)
+        return me
+    end
+
+    action LongWeak returns VibrationArray
+        me:Add(1000, 0.01)
+        return me
+    end
+
+    system action SimplePattern(integer duration, number intensity, integer cycleLength) returns VibrationArray
+
+    system action Add(VibrationCommand item)
+    
+    system action Remove(integer index)
+    
+    system action Get(integer index) returns VibrationCommand
+
+    system action RemoveAll()
+
+    system action GetSize() returns integer
+
+    system action Add(integer duration, number intensity)
+
+end
