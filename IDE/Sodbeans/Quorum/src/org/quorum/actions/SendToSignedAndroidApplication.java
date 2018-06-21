@@ -114,84 +114,58 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 if (androidKeyPassword != null && !androidKeyPassword.equals("")) {
                     droid.setKeyPassword(androidKeyPassword);
                 }
-                //location of where robovm is
-//            InstalledFileLocator locator = InstalledFileLocator.getDefault();
-//            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
-//
-//                    
-//            //the command
-//            String robovmCommand = robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "robovm";
-//            
-//            File robovmFileExec = new File(robovmCommand);
-//            if(robovmFileExec.exists()) {
-//                robovmFileExec.setExecutable(true);
-//            }
-//            
-//            File iosSimFileExec = new File(robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "ios-sim");
-//            if(iosSimFileExec.exists()) {
-//                iosSimFileExec.setExecutable(true);
-//            }
-//
-//            
-//            // Spawn a new Java process that will run "Default.jar" from the project directory.
-//            String java = System.getProperty("java.home");
-//            java += File.separator + "bin" + File.separator + "java";
-//            
-//            Properties properties = project.getLookup().lookup(Properties.class);
-//            //now get all of the paramters from the user interface
-//            String resources = properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
-//
-//            
-//            //Fake Example: "mb922625-1b6d-489c-54c8-65d204cfdb7c"
-//            String signing = properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
-//            
-//            //Fake Example: "'iPhone Developer: bob.timelord@tardis.edu (LHDJI2A9GY)'"
-//            String provisioning = properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION); 
-//            String outputLocation = runDirectory.getAbsolutePath();
-//            
-//            resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
-//            //signing = "'" + signing + "'";
-//            
-//            String newName = project.getExecutableName(info.request);
-//            newName = newName.substring(0, newName.length() - 3);
-//            newName = newName + "ipa";
-//            
-//            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName(info.request);
-//            ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", "ios", 
-//                "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
-//                "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",
-//                "-weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
-//                "-jar", runFullPath, 
-//                "-resources", resources,
-//                "-signidentity", signing,
-//                "-provisioningprofile", provisioning,
-//                "-d", outputLocation,
-//                "-createipa"
-//            );
-//            builder.directory(robovmFileExec.getParentFile());
-
-//            io.getOut().println("Compiling to Android. This may take a few minutes.");
-//            // Start the process.
-//            Process process;
-//            try {
-//                process = builder.start();
-//                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
-//                OutputStream outputStream = process.getOutputStream();
-//                watch.setStream(outputStream);
-//                watch.start();
-//                cancel.process = process;
-//                cancel.watcher = watch;
-//                process.waitFor();
-//                watch.wasDestroyed = true;
-//                watch.cancelled = true;
-//                watch.flush();
-//                process.destroy();
-//                progress.finish();
-//            } catch (IOException ex) {
-//                Exceptions.printStackTrace(ex);
-//            } catch (InterruptedException ex) {
-//                Exceptions.printStackTrace(ex);
-//            }
+                
+                // Nothing should happen without keystore info. Error message!
+                boolean hasKeyStoreInfo = droid.hasKeystoreInfo();
+                
+                
+                
+            try {
+                Process assembleReleaseProcess = droid.GetAssembleReleaseProcess();
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(assembleReleaseProcess.getErrorStream());
+                OutputStream outputStream = assembleReleaseProcess.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = assembleReleaseProcess;
+                cancel.watcher = watch;
+                assembleReleaseProcess.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                assembleReleaseProcess.destroy();
+                
+                Process zipalignProcess = droid.GetZipalignProcess();
+                watch = new QuorumAction.QuorumProcessWatcher(zipalignProcess.getErrorStream());
+                outputStream = zipalignProcess.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = zipalignProcess;
+                cancel.watcher = watch;
+                zipalignProcess.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                zipalignProcess.destroy();
+                
+                Process apkSignerProcess = droid.GetAPKSignerProcess();
+                watch = new QuorumAction.QuorumProcessWatcher(apkSignerProcess.getErrorStream());
+                outputStream = apkSignerProcess.getOutputStream();
+                watch.setStream(outputStream);
+                watch.start();
+                cancel.process = apkSignerProcess;
+                cancel.watcher = watch;
+                apkSignerProcess.waitFor();
+                watch.wasDestroyed = true;
+                watch.cancelled = true;
+                watch.flush();
+                apkSignerProcess.destroy();
+                
+                progress.finish();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            } catch (InterruptedException ex) {
+                Exceptions.printStackTrace(ex);
+            }
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             } catch (InterruptedException ex) {

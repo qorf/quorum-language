@@ -15,7 +15,7 @@ public class RunAndroid {
     String PATH_TO_LIBS = File.separator + "app" + File.separator + "libs";
     String ASSEMBLED_APK_FOR_RELEASE = File.separator + "app" + File.separator + "build" + File.separator + "outputs" + File.separator + "apk" + File.separator + "release" + File.separator + "app-release-unsigned.apk";
     
-    String keyStorePath = "~/keystore.ks";
+    String keyStorePath = "";
     String keyStorePassword = "";
     String keyAlias = "key0";
     String keyPassword = "";
@@ -59,6 +59,14 @@ public class RunAndroid {
            defaultPath += File.separator + "Library/Android/sdk"; 
         }
         return defaultPath;
+    }
+    
+    
+    public boolean hasKeystoreInfo() {
+        if (keyStorePath == null || keyStorePath.equals("") || keyStorePassword == null || keyStorePassword.equals("") || keyPassword == null || keyPassword.equals("") || keyAlias == null) {
+            return false;
+        }
+        return true;
     }
     
     /*
@@ -108,6 +116,24 @@ public class RunAndroid {
         }
     }
     
+    public Process GetZipalignProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + buildZipalignCommand() + "& exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(androiSDKPath + zipalignPath);
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc = Runtime.getRuntime().exec(buildZipalignCommand());
+            return proc;
+        } else {
+            Process proc = Runtime.getRuntime().exec(buildZipalignCommand());
+            return proc;
+        }
+    }
+    
     public void apkSignerCommand () throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd start /c \"\" " + buildAPKSignerCommand() + "& exit");
@@ -124,6 +150,24 @@ public class RunAndroid {
         }
     }
     
+    public Process GetAPKSignerProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd start /c \"\" " + buildAPKSignerCommand() + "& exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(androiSDKPath + apksignerPath);
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(buildAPKSignerCommand());
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(buildAPKSignerCommand());
+            return proc;
+        }
+    }
+    
     public void assembleReleaseCommand( ) throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleRelease & exit");
@@ -137,6 +181,24 @@ public class RunAndroid {
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
+        }
+    }
+    
+    public Process GetAssembleReleaseProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleRelease & exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            return proc;
         }
     }
         
