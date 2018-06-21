@@ -73,7 +73,7 @@ class Control is Item2D
 
     action Activate(BehaviorEvent event)
         if GetActivationBehavior() not= undefined
-            if event:GetItem() not= me
+            if not event:GetItem():Equals(me)
                 event = event:Copy()
                 event:SetItem(me)
             end
