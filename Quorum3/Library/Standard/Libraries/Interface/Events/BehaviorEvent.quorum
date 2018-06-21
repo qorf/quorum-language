@@ -64,4 +64,15 @@ class BehaviorEvent
         return seconds
     end
 
+    action Copy returns BehaviorEvent
+        BehaviorEvent event
+        event:SetItem(item)
+        event:SetKeyboardEvent(keyboardEvent)
+        event:SetMouseEvent(mouseEvent)
+        event:SetTextInputEvent(textInputEvent)
+        event:SetTouchEvent(touchEvent)
+        event:SetSecondsSinceLastFrame(seconds)
+        return event
+    end
+
 end
