@@ -15,7 +15,7 @@ public class RunAndroid {
     String PATH_TO_LIBS = File.separator + "app" + File.separator + "libs";
     String ASSEMBLED_APK_FOR_RELEASE = File.separator + "app" + File.separator + "build" + File.separator + "outputs" + File.separator + "apk" + File.separator + "release" + File.separator + "app-release-unsigned.apk";
     
-    String keyStorePath = "~/keystore.ks";
+    String keyStorePath = "";
     String keyStorePassword = "";
     String keyAlias = "key0";
     String keyPassword = "";
@@ -33,16 +33,16 @@ public class RunAndroid {
     
     public static final String FOLDER_NAME = "Android";
 
-    public RunAndroid(String pathToRunFolder) {
+    public RunAndroid(String pathToRunFolder, String jarName) {
         this.androiSDKPath = getDefaultAndroidSDKPath();
         this.pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
         this.librarySources = new String[] {
-            pathToRunFolder + File.separator + "Default.jar",
+            pathToRunFolder + File.separator + jarName,
             pathToRunFolder + File.separator + "QuorumStandardLibrary.jar", 
             pathToRunFolder + File.separator + "QuorumStandardPlugins.jar"
         }; 
         this.libraryDestinations = new String[] {
-            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "Default.jar", 
+            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + jarName, 
             this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardLibrary.jar", 
             this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardPlugins.jar"
         }; 
@@ -61,6 +61,14 @@ public class RunAndroid {
         return defaultPath;
     }
     
+    
+    public boolean hasKeystoreInfo() {
+        if (keyStorePath == null || keyStorePath.equals("") || keyStorePassword == null || keyStorePassword.equals("") || keyPassword == null || keyPassword.equals("") || keyAlias == null) {
+            return false;
+        }
+        return true;
+    }
+    
     /*
     Builds project as android application using debug key
     Before running this, libraries have to be built
@@ -69,13 +77,10 @@ public class RunAndroid {
 
         // copy libraries to project
         copyLibraries(librarySources, libraryDestinations);
-        System.out.println("Done copying libraries");
         // assembleDebug android app
         assembleDebugCommand();
-        System.out.println("Done assembling");
         // installDebug android app
         installDebugCommand();
-        System.out.println("Done installing");
     }
     
     /*
@@ -111,6 +116,24 @@ public class RunAndroid {
         }
     }
     
+    public Process GetZipalignProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + buildZipalignCommand() + "& exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(androiSDKPath + zipalignPath);
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc = Runtime.getRuntime().exec(buildZipalignCommand());
+            return proc;
+        } else {
+            Process proc = Runtime.getRuntime().exec(buildZipalignCommand());
+            return proc;
+        }
+    }
+    
     public void apkSignerCommand () throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd start /c \"\" " + buildAPKSignerCommand() + "& exit");
@@ -127,6 +150,24 @@ public class RunAndroid {
         }
     }
     
+    public Process GetAPKSignerProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd start /c \"\" " + buildAPKSignerCommand() + "& exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(androiSDKPath + apksignerPath);
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(buildAPKSignerCommand());
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(buildAPKSignerCommand());
+            return proc;
+        }
+    }
+    
     public void assembleReleaseCommand( ) throws IOException, InterruptedException {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleRelease & exit");
@@ -140,6 +181,24 @@ public class RunAndroid {
             Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
             new Thread(new ProcessWatcher(proc)).start();
             proc.waitFor();
+        }
+    }
+    
+    public Process GetAssembleReleaseProcess() throws IOException, InterruptedException  {
+        if (isWindows()) {
+            Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleRelease & exit");
+            return proc;
+        } else if(isMac()) {
+            //mac JDK's typically remove executable properties after a copy. Restore them.
+            File file = new File(pathToBuildAndroidFolder + "/gradlew");
+            if(file.exists()) {
+                file.setExecutable(true);
+            }
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            return proc;
+        } else {
+            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleRelease");
+            return proc;
         }
     }
         
@@ -229,6 +288,16 @@ public class RunAndroid {
     private String buildZipalignCommand() {  
         return androiSDKPath + zipalignPath + " " + zipalignOptions + " " + pathToBuildAndroidFolder + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
                 
+    }
+    
+    public void copyAssets(File mediaFolder) throws IOException {        
+        File assetsFolder = new File(this.pathToBuildAndroidFolder + File.separator + "app"+ File.separator + "src" + File.separator + "main" + File.separator+ "assets");
+        
+        if (mediaFolder.exists()) {
+            copyDirectory(mediaFolder, assetsFolder);
+        } else {
+            throw new IOException("Resources folder could not be found!");
+        }
     }
     
     public void copyLibraries(String[] sourcePaths, String[] destinationPaths) throws IOException {
