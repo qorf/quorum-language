@@ -33,16 +33,16 @@ public class RunAndroid {
     
     public static final String FOLDER_NAME = "Android";
 
-    public RunAndroid(String pathToRunFolder) {
+    public RunAndroid(String pathToRunFolder, String jarName) {
         this.androiSDKPath = getDefaultAndroidSDKPath();
         this.pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
         this.librarySources = new String[] {
-            pathToRunFolder + File.separator + "Default.jar",
+            pathToRunFolder + File.separator + jarName,
             pathToRunFolder + File.separator + "QuorumStandardLibrary.jar", 
             pathToRunFolder + File.separator + "QuorumStandardPlugins.jar"
         }; 
         this.libraryDestinations = new String[] {
-            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "Default.jar", 
+            this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + jarName, 
             this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardLibrary.jar", 
             this.pathToBuildAndroidFolder + PATH_TO_LIBS + File.separator + "QuorumStandardPlugins.jar"
         }; 
@@ -69,13 +69,10 @@ public class RunAndroid {
 
         // copy libraries to project
         copyLibraries(librarySources, libraryDestinations);
-        System.out.println("Done copying libraries");
         // assembleDebug android app
         assembleDebugCommand();
-        System.out.println("Done assembling");
         // installDebug android app
         installDebugCommand();
-        System.out.println("Done installing");
     }
     
     /*
@@ -229,6 +226,16 @@ public class RunAndroid {
     private String buildZipalignCommand() {  
         return androiSDKPath + zipalignPath + " " + zipalignOptions + " " + pathToBuildAndroidFolder + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
                 
+    }
+    
+    public void copyAssets(File mediaFolder) throws IOException {        
+        File assetsFolder = new File(this.pathToBuildAndroidFolder + File.separator + "app"+ File.separator + "src" + File.separator + "main" + File.separator+ "assets");
+        
+        if (mediaFolder.exists()) {
+            copyDirectory(mediaFolder, assetsFolder);
+        } else {
+            throw new IOException("Resources folder could not be found!");
+        }
     }
     
     public void copyLibraries(String[] sourcePaths, String[] destinationPaths) throws IOException {

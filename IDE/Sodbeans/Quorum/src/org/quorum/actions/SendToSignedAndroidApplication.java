@@ -83,14 +83,21 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 String androidKeyPassword = project.getAndroidKeyPassword();
                 String androidAlternateJDK = project.getAndroidAlternateJDK();
                 
+                String jarName = project.getExecutableName(info.request);
+                String applicationName = jarName;
+                String[] nameComponents = jarName.split("\\.");
+                if (nameComponents.length >= 1) {
+                   applicationName = nameComponents[0];
+                }
+                
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
                 File androidLocation = locator.locate("modules/Android", "org.quorum", false);
-                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), project.getExecutableName(info.request), "t");
+                setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), applicationName, androidAlternateJDK);
                 
                 //get all the properties, in case they are there.
                 
-                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath());
+                RunAndroid droid = new RunAndroid(runDirectory.getAbsolutePath(), jarName);
                 
                 if (androidPath != null && !androidPath.equals("")) {
                     droid.setAndroidSDKPath(androidPath);

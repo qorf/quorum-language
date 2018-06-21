@@ -35,6 +35,8 @@ public class AndroidSetup {
 
     public void copyAndRename(String templateLocation, String pathToRunFolder, String applicationName, String jdkPath) throws FileNotFoundException, IOException, InterruptedException {
         String pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
+        
+        
         // Copy project into new folder with appropriate name
         copyFolder(pathToBuildAndroidFolder, templateLocation);
         
