@@ -37,6 +37,8 @@ CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
 // InvokeButton: Handle button click or invoke.
 void CheckBoxControl::InvokeButton(_In_ HWND hwnd)
 {
+	GetButtonProvider(hwnd)->Toggle();
+
 	if (UiaClientsAreListening())
 	{
 		// Raise an event.
@@ -220,16 +222,7 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		bool state = static_cast<bool>(wParam);
-		if (state)
-		{
-			this->SetState(ToggleState_On);
-		}
-		else
-		{
-			this->SetState(ToggleState_Off);
-		}
-
+		
 		this->InvokeButton(hwnd);
 
 		break;

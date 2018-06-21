@@ -170,14 +170,27 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		MenuItemControl* newMenuItem = (MenuItemControl*)lParam;
 		
 		// Add the new MenuItem to the proper collection.
-		Menu* menuControl;
+		Menu* menuControl = newMenuItem->GetMenu();
 		
-		if (newMenuItem->GetParentMenuItem() == NULL)
-			menuControl = this;
-		else
-			menuControl = newMenuItem->GetParentMenuItem();
-
 		menuControl->AddMenuItem(newMenuItem);
+		break;
+	}
+	case QUORUM_REMOVEMENUITEM:
+	{
+		MenuItemControl* menuItemToRemove = (MenuItemControl*)lParam;
+
+		Menu* menuControl = menuItemToRemove->GetMenu();
+
+		menuControl->RemoveMenuItem(menuItemToRemove);
+		break;
+	}
+	case QUORUM_SELECTMENUITEM:
+	{
+		MenuItemControl* menuItem = (MenuItemControl*)lParam;
+
+		SetSelectedMenuItem(menuItem);
+
+		break;
 	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);

@@ -105,7 +105,7 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Radio Button");
+		pRetVal->bstrVal = SysAllocString(L"radio button");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{

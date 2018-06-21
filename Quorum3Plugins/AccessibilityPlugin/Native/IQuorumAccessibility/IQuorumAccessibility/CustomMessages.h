@@ -25,9 +25,14 @@
 
 // MenuBar messages
 #define QUORUM_ADDMENUITEM WM_USER + 5
+#define QUORUM_REMOVEMENUITEM WM_USER + 6
+#define QUORUM_SELECTMENUITEM WM_USER + 7
 
 // Tree messages
-#define QUORUM_ADDTREEITEM WM_USER + 6
+#define QUORUM_ADDTREEITEM WM_USER + 8
+#define QUORUM_REMOVETREEITEM WM_USER + 9
+#define QUORUM_SELECTTREEITEM WM_USER + 10
+
 
 // This returns the main game engine window handle for Quorum which messages must be forwarded to.
 // If new windows can be created by Quorum then messages will need to be forwarded to those instead.

@@ -66,7 +66,7 @@ IFACEMETHODIMP TreeProvider::get_ProviderOptions(_Out_ ProviderOptions * pRetVal
 	return S_OK;
 }
 
-// The MenuBar doesn't support any patterns so NULL is correct.
+// The Tree doesn't support any patterns so NULL is correct.
 IFACEMETHODIMP TreeProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
 	if (!IsWindow(m_pTreeControl->GetHWND()))
@@ -263,7 +263,7 @@ IFACEMETHODIMP TreeProvider::ElementProviderFromPoint(double x, double y, _Outpt
 	return S_OK;
 }
 
-// Retrieves the provider for the menu item that is selected when the control gets focus.
+// Retrieves the provider for the tree item that is selected when the control gets focus.
 IFACEMETHODIMP TreeProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
 	if (!IsWindow(m_pTreeControl->GetHWND()))

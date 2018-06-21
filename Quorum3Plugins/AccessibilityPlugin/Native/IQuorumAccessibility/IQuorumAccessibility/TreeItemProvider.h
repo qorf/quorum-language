@@ -3,8 +3,7 @@ class TreeControl;
 
 class TreeItemProvider : public IRawElementProviderSimple,
 						 public IRawElementProviderFragment,
-						 public IExpandCollapseProvider,
-						 public IInvokeProvider
+						 public IExpandCollapseProvider
 {
 public:
 	TreeItemProvider(TreeItemControl* pControl);
@@ -33,9 +32,6 @@ public:
 	IFACEMETHODIMP Expand();
 	IFACEMETHODIMP Collapse();
 
-	// IInvokeProvider methods
-	IFACEMETHODIMP Invoke();
-
 	// Various methods
 	void NotifyTreeItemAdded();
 	void NotifyTreeItemRemoved();
@@ -46,7 +42,6 @@ public:
 private:
 	virtual ~TreeItemProvider();
 
-	void NotifyElementInvoked();
 	void NotifyElementExpandCollapse();
 
 	// Ref Counter for this COM object

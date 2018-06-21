@@ -83,6 +83,8 @@ IFACEMETHODIMP MenuItemProvider::get_ProviderOptions(_Out_ ProviderOptions * pRe
 
 IFACEMETHODIMP MenuItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
+	*pRetVal = NULL;
+
 	if (patternId == UIA_InvokePatternId)
 	{
 		AddRef();
@@ -94,7 +96,6 @@ IFACEMETHODIMP MenuItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
 	}
 
-	*pRetVal = NULL;
 	return S_OK;
 }
 
@@ -130,14 +131,12 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		//pRetVal->boolVal = (m_pMenuItemControl->IsMenu() == false) ? VARIANT_TRUE : VARIANT_FALSE;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = !m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		//pRetVal->boolVal = (m_pMenuItemControl->IsMenu() == true) ? VARIANT_TRUE : VARIANT_FALSE;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = m_pMenuItemControl->IsMenu() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId)
 	{

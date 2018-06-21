@@ -13,7 +13,7 @@ TreeItemProvider::TreeItemProvider(TreeItemControl * pControl) : m_refCount(1), 
 {
 	if (pControl->IsSubtree())
 	{
-		if (pControl->HasChildren())
+		if (pControl->IsExpanded())
 			m_expandCollapseState = ExpandCollapseState_Expanded;
 		else
 			m_expandCollapseState = ExpandCollapseState_Collapsed;
@@ -61,10 +61,6 @@ IFACEMETHODIMP TreeItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 	{
 		*ppInterface = static_cast<IExpandCollapseProvider*>(this);
 	}
-	else if (riid == __uuidof(IInvokeProvider))
-	{
-		*ppInterface = static_cast<IInvokeProvider*>(this);
-	}
 	else
 	{
 		*ppInterface = NULL;
@@ -83,18 +79,14 @@ IFACEMETHODIMP TreeItemProvider::get_ProviderOptions(_Out_ ProviderOptions * pRe
 
 IFACEMETHODIMP TreeItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
-	if (patternId == UIA_InvokePatternId)
-	{
-		AddRef();
-		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
-	}
-	else if (patternId == UIA_ExpandCollapsePatternId)
+	*pRetVal = NULL;
+
+	if (patternId == UIA_ExpandCollapsePatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
 	}
 
-	*pRetVal = NULL;
 	return S_OK;
 }
 
@@ -122,15 +114,10 @@ IFACEMETHODIMP TreeItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_TreeItemControlTypeId;
 	}
-	else if (propertyId == UIA_IsInvokePatternAvailablePropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-	}
 	else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = !m_pTreeItemControl->IsSubtree() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId)
 	{
@@ -173,7 +160,7 @@ IFACEMETHODIMP TreeItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 }
 
 // Gets the UI Automation provider for the host window. 
-// Return NULL since MenuItems are not directly hosted in a window and therefore don't have an HWND
+// Return NULL since TreeItems are not directly hosted in a window and therefore don't have an HWND
 IFACEMETHODIMP TreeItemProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
 	*pRetVal = NULL;
@@ -321,6 +308,8 @@ IFACEMETHODIMP TreeItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRaw
 	return S_OK;
 }
 
+
+
 IFACEMETHODIMP TreeItemProvider::get_ExpandCollapseState(ExpandCollapseState * pRetVal)
 {
 	*pRetVal = m_expandCollapseState;
@@ -338,12 +327,6 @@ IFACEMETHODIMP TreeItemProvider::Collapse()
 {
 	m_expandCollapseState = ExpandCollapseState_Collapsed;
 	NotifyElementExpandCollapse();
-	return S_OK;
-}
-
-IFACEMETHODIMP TreeItemProvider::Invoke()
-{
-	NotifyElementInvoked();
 	return S_OK;
 }
 
@@ -368,7 +351,7 @@ void TreeItemProvider::NotifyTreeItemRemoved()
 		int id = m_pTreeItemControl->GetId();
 		int rId[] = { UiaAppendRuntimeId, id };
 
-		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, (sizeof(rId) / sizeof(rId[0])));
+		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, 2);
 
 	}
 }
@@ -383,23 +366,27 @@ void TreeItemProvider::NotifyElementSelected()
 	}
 }
 
-void TreeItemProvider::NotifyElementInvoked()
-{
-	if (UiaClientsAreListening())
-		UiaRaiseAutomationEvent(this, UIA_Invoke_InvokedEventId);
-}
-
 void TreeItemProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
-		if (m_expandCollapseState == ExpandCollapseState_Expanded)
-			UiaRaiseAutomationEvent(this, UIA_MenuOpenedEventId);
-		else if (m_expandCollapseState == ExpandCollapseState_Collapsed)
-			UiaRaiseAutomationEvent(this, UIA_MenuClosedEventId);
+		VARIANT oldValue, newValue;
+		oldValue.vt = VT_I4;
+		newValue.vt = VT_I4;
 
+		if (m_expandCollapseState == ExpandCollapseState_Expanded)
+		{
+			oldValue.lVal = ExpandCollapseState_Collapsed;
+			newValue.lVal = ExpandCollapseState_Expanded;
+		}
+		else if (m_expandCollapseState == ExpandCollapseState_Collapsed)
+		{
+			oldValue.lVal = ExpandCollapseState_Expanded;
+			newValue.lVal = ExpandCollapseState_Collapsed;
+		}
+
+		UiaRaiseAutomationPropertyChangedEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId, oldValue, newValue);
 	}
 }
 

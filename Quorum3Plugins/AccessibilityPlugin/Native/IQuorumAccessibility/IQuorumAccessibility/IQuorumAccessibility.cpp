@@ -11,6 +11,8 @@
 #include "TextBoxControl.h"
 #include "MenuBarControl.h"
 #include "MenuItemControl.h"
+#include "TreeControl.h"
+#include "TreeItemControl.h"
 
 // For Debug Output
 #include <iostream>
@@ -246,6 +248,45 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return PtrToLong(menuItemControl);
 }
 
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTree(JNIEnv * env, jobject obj, jstring treeName)
+{
+	const char* nativeTreeName = env->GetStringUTFChars(treeName, 0);
+	WCHAR* wTreeName = CreateWideStringFromUTF8Win32(nativeTreeName);
+
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	TreeControl* pTreeControl = TreeControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTreeName);
+
+	env->ReleaseStringUTFChars(treeName, nativeTreeName);
+
+	return PtrToLong(pTreeControl);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTreeItem(JNIEnv * env, jobject obj, jstring treeItemName, jstring treeItemDescription, jboolean isSubtree, jboolean isExpanded, jlong parentSubtree, jlong parentTree)
+{
+	const char* nativeTreeItemName = env->GetStringUTFChars(treeItemName, 0);
+	const char* nativeTreeItemDescription = env->GetStringUTFChars(treeItemDescription, 0);
+
+	WCHAR* wTreeItemName = CreateWideStringFromUTF8Win32(nativeTreeItemName);
+	WCHAR* wTreeItemDescription = CreateWideStringFromUTF8Win32(nativeTreeItemDescription);
+
+	TreeControl* pTree = static_cast<TreeControl*>(LongToPtr((long)parentTree));
+
+	TreeItemControl* parentTreeItem = NULL;
+
+	if ((long)parentSubtree != NULL)
+		parentTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)parentSubtree));
+
+	TreeItemControl* treeItemControl = new TreeItemControl(wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree->CreateUniqueId(), parentTreeItem, pTree);
+
+	SendMessage(pTree->GetHWND(), QUORUM_ADDTREEITEM, 0, (LPARAM)treeItemControl);
+
+	env->ReleaseStringUTFChars(treeItemName, nativeTreeItemName);
+	env->ReleaseStringUTFChars(treeItemDescription, nativeTreeItemDescription);
+
+	return PtrToLong(treeItemControl);
+}
+
 #pragma endregion
 
 /* ==============================
@@ -263,6 +304,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		
 	DestroyWindow(itemToRemove->GetHWND());
 
+	// The pointer is still in use until DestroyWindow has returned.
+	// So delete the pointer here.
 	delete itemToRemove;
 
 	return true;
@@ -273,13 +316,27 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	MenuItemControl* menuItemToRemove = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
 
-	Menu* menuControl = menuItemToRemove->GetMenu();
+	HWND hwnd = menuItemToRemove->GetParentMenuBar()->GetHWND();
 
-	menuControl->RemoveMenuItem(menuItemToRemove);
+	SendMessage(hwnd, QUORUM_REMOVEMENUITEM, 0, (LPARAM)menuItemToRemove);
 
 	return true;
 
 }
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32RemoveTreeItem(JNIEnv * env, jobject obj, jlong treeItem)
+{
+
+	TreeItemControl* treeItemToRemove = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+
+	HWND hwnd = treeItemToRemove->GetParentTree()->GetHWND();
+
+	SendMessage(hwnd, QUORUM_REMOVETREEITEM, 0, (LPARAM)treeItemToRemove);
+
+	return true;
+
+}
+
 
 #pragma endregion
 
@@ -397,11 +454,12 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 	
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)selectedMenuItem));
-	
-	if (!pMenuItem->GetParentMenuBar()->HasFocus())
-		SetFocus(pMenuItem->GetParentMenuBar()->GetHWND());
+	MenuBarControl* pMenuBar = pMenuItem->GetParentMenuBar();
 
-	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(pMenuItem);
+	if (!pMenuBar->HasFocus())
+		SetFocus(pMenuBar->GetHWND());
+
+	SendMessage(pMenuBar->GetHWND(), QUORUM_SELECTMENUITEM, 0, (LPARAM)pMenuItem);
 
 	return true;
 }
@@ -414,6 +472,22 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)deselectedMenuItem));
 
 	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SelectTreeItem(JNIEnv * env, jobject obj, jlong selectedTreeItem)
+{
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
+	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)selectedTreeItem));
+	TreeControl* pTree = pTreeItem->GetParentTree();
+
+	if (!pTree->HasFocus())
+		SetFocus(pTree->GetHWND());
+
+	SendMessage(pTree->GetHWND(), QUORUM_SELECTTREEITEM, 0, (LPARAM)pTreeItem);
+
 	return true;
 }
 
@@ -435,6 +509,30 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	if (pMenuItem != NULL)
 		pMenuItem->Collapse();
+	else
+		return false;
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SubtreeExpanded(JNIEnv *env, jobject obj, jlong treeItem)
+{
+	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+
+	if (pTreeItem != NULL)
+		pTreeItem->Expand();
+	else
+		return false;
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SubtreeCollapsed(JNIEnv *env, jobject obj, jlong treeItem)
+{
+	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+
+	if (pTreeItem != NULL)
+		pTreeItem->Collapse();
 	else
 		return false;
 
