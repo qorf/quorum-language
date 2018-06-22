@@ -19,7 +19,7 @@ use Libraries.Interface.Controls.TreeItem
 
 class AccessibilityManager 
 
-    private boolean debugOutput = false
+    private boolean debugOutput = true
 
     // SetFocus: Tells the accessibility manager that focus has changed to the 
     //           given Item. As far as the native code is concerned, focus changes
@@ -58,8 +58,8 @@ class AccessibilityManager
 
     // =====
 
-    
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
+    private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
@@ -212,6 +212,8 @@ class AccessibilityManager
             if  item:GetAccessibilityCode() = item:MENU_ITEM
                     or item:GetAccessibilityCode() = item:MENU_BAR
                     or item:GetAccessibilityCode() = item:BUTTON
+                    or item:GetAccessibilityCode() = item:CHECKBOX
+                    or item:GetAccessibilityCode() = item:RADIO_BUTTON
                     or item:GetAccessibilityCode() = item:TREE
                     or item:GetAccessibilityCode() = item:TREE_ITEM
 
@@ -235,11 +237,11 @@ class AccessibilityManager
 
         NativeMenuChanged(event)
 
-        // It's possible that the selection event for a child item was triggered
-        // before the menu opened. To ensure it is selected by the accessibilty system
-        // we raise another selection event whenever the menu opens so that native
-        // selection is up to date.
         if event:GetEventType() = event:OPENED
+            // It's possible that the selection event for a child item was triggered
+            // before the menu opened. To ensure it is selected by the accessibilty system
+            // we raise another selection event whenever the menu opens so that native
+            // selection is up to date.
             SelectionEvent selectionEvent
             selectionEvent:SetSelection(event:GetMenuBar():GetSelection())
             SelectionChanged(selectionEvent)
@@ -252,6 +254,8 @@ class AccessibilityManager
         if (debugOutput)
             output "Tree changed: " + event:GetTreeItem():GetName()
         end
+
+        NativeTreeChanged(event)
     end
 
     action ControlActivated(ControlActivationEvent event)

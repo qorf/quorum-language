@@ -104,7 +104,7 @@ IFACEMETHODIMP CheckBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Check Box");
+		pRetVal->bstrVal = SysAllocString(L"check box");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -175,25 +175,31 @@ IFACEMETHODIMP CheckBoxProvider::Toggle()
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
+	VARIANT oldValue, newValue;
+	oldValue.vt = VT_I4;
+	newValue.vt = VT_I4;
+
 	if (m_pButtonControl->GetState() == ToggleState_On)
 	{
+		oldValue.lVal = ToggleState_On;
+		newValue.lVal = ToggleState_Off;
+
 		// Change state to off
 		m_pButtonControl->SetState(ToggleState_Off);
 	}
-	else if (m_pButtonControl->GetState() == ToggleState_Off)
-	{
-		// Change state to off
-		m_pButtonControl->SetState(ToggleState_On);
-	}
 	else
 	{
-		// State is ToggleState_Indeterminate. This state hasn't been implemented but it could be.
+		oldValue.lVal = ToggleState_Off;
+		newValue.lVal = ToggleState_On;
+
+		// Change state to on
+		m_pButtonControl->SetState(ToggleState_On);
 	}
 
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
+		UiaRaiseAutomationPropertyChangedEvent(this, UIA_ToggleToggleStatePropertyId, oldValue, newValue);
 	}
 
 	return S_OK;

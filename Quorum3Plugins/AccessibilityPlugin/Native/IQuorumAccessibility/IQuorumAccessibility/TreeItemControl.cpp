@@ -5,9 +5,9 @@
 #include "TreeItemProvider.h"
 #include "TreeControl.h"
 
-TreeItemControl::TreeItemControl(_In_ std::wstring treeItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ int uniqueId, _In_opt_ TreeItemControl* parentTreeItem, _In_ TreeControl* parentTree)
+TreeItemControl::TreeItemControl(_In_ std::wstring treeItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_ int uniqueId, _In_opt_ TreeItemControl* parentTreeItem, _In_ TreeControl* parentTree)
 	: Item(treeItemName, treeItemDescription), m_pParentTree(parentTree),
-	  m_pParentTreeItem(parentTreeItem), m_pTreeItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1), m_isSubtree(isSubtree)
+	  m_pParentTreeItem(parentTreeItem), m_pTreeItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1), m_isSubtree(isSubtree), m_isExpanded(isExpanded)
 {
 }
 
@@ -38,6 +38,11 @@ TreeItemProvider* TreeItemControl::GetTreeItemProvider()
 		UiaRaiseAutomationEvent(m_pTreeItemProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pTreeItemProvider;
+}
+
+bool TreeItemControl::IsExpanded()
+{
+	return m_isExpanded;
 }
 
 bool TreeItemControl::IsSubtree()
@@ -92,11 +97,13 @@ bool TreeItemControl::HasFocus()
 
 void TreeItemControl::Expand()
 {
+	m_isExpanded = true;
 	GetTreeItemProvider()->Expand();
 }
 
 void TreeItemControl::Collapse()
 {
+	m_isExpanded = false;
 	GetTreeItemProvider()->Collapse();
 }
 

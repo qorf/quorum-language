@@ -37,7 +37,7 @@ bool Subtree::AddTreeItem(_In_ TreeItemControl* pNewTreetem)
 	{
 		// TODO: Unique Id must be changed when becoming a child of another control
 
-		// Add to MenuBar's collection
+		// Add to collection
 		m_treeItemCollection.push_back(pNewTreetem);
 
 		pNewTreetem->SetTreeItemIndex(GetCount() - 1);

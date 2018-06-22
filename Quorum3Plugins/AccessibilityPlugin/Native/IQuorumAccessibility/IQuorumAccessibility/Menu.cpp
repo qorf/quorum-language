@@ -18,8 +18,6 @@ bool Menu::HasChildren()
 
 int Menu::CreateUniqueId()
 {
-	//int uniqueId;
-	//return uniqueId++;
 	return std::rand();
 }
 
@@ -27,7 +25,6 @@ MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
 {
 	return m_menuItemCollection.begin() + index;
 }
-
 
 bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {

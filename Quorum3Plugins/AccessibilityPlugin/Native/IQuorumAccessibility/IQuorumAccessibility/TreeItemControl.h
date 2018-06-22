@@ -11,7 +11,7 @@ class TreeControl;
 class TreeItemControl : public Subtree, public Item
 {
 public:
-	TreeItemControl(_In_ std::wstring menuItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ int uniqueId, _In_opt_ TreeItemControl* parentMenuItem, _In_ TreeControl* parentMenuBar);
+	TreeItemControl(_In_ std::wstring menuItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_ int uniqueId, _In_opt_ TreeItemControl* parentMenuItem, _In_ TreeControl* parentMenuBar);
 	virtual ~TreeItemControl();
 
 	TreeControl* GetParentTree();
@@ -19,6 +19,7 @@ public:
 	TreeItemControl* GetParentTreeItem();
 	TreeItemProvider* GetTreeItemProvider();
 
+	bool IsExpanded();
 	bool IsSubtree();
 	Subtree* GetSubtree();
 
@@ -41,6 +42,7 @@ private:
 	int m_myIndex;
 
 	bool m_isSubtree;
+	bool m_isExpanded;
 
 	// The provider for this MenuItem
 	TreeItemProvider* m_pTreeItemProvider;

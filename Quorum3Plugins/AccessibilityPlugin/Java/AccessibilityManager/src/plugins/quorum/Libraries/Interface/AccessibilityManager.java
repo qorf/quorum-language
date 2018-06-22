@@ -13,6 +13,7 @@ import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
+import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 
 
 /**
@@ -46,10 +47,18 @@ public class AccessibilityManager
         COLLAPSED;
     }
     
+    enum TreeChanges
+    {
+        EXPANDED,
+        COLLAPSED;
+    }
+    
     private static final HashMap<Integer, AccessibilityCodes> ACCESSIBILITYCODES_MAP = new HashMap<>();
     private static final HashMap<Integer, MenuChanges> MENUCHANGES_MAP = new HashMap<>();
+    private static final HashMap<Integer, TreeChanges> TREECHANGES_MAP = new HashMap<>();
     private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
     private static final quorum.Libraries.Interface.Events.MenuChangeEvent MENUCHANGECODES = new quorum.Libraries.Interface.Events.MenuChangeEvent();
+    private static final quorum.Libraries.Interface.Events.TreeChangeEvent TREECHANGECODES = new quorum.Libraries.Interface.Events.TreeChangeEvent();
     
     static
     {
@@ -72,6 +81,9 @@ public class AccessibilityManager
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
 
+        TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__OPENED_(), TreeChanges.EXPANDED);
+        TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__CLOSED_(), TreeChanges.COLLAPSED);
+        
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -137,10 +149,16 @@ public class AccessibilityManager
     // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
     //
     private native long NativeWin32CreateMenuBar(String name);
+
+    private native long NativeWin32CreateTree(String name);
+
     
     // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
     //
     private native long NativeWin32CreateMenuItem(String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar);
+    
+    private native long NativeWin32CreateTreeItem(String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar);
+    
     
     // NativeWin32Remove: Removes a item control from UI Automation hierarchy.
     //
@@ -150,7 +168,8 @@ public class AccessibilityManager
     //
     private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
     
-    
+    private native boolean NativeWin32RemoveTreeItem(long itemToRemove);
+
     
     //
     // ==== Accessible Object Event Response Functions
@@ -188,6 +207,12 @@ public class AccessibilityManager
     
     private native boolean NativeWin32MenuCollapsed(long nativePointer);
     
+    private native boolean NativeWin32SelectTreeItem(long selectedMenuItem);
+    
+    private native boolean NativeWin32SubtreeExpanded(long nativePointer);
+    
+    private native boolean NativeWin32SubtreeCollapsed(long nativePointer);
+    
     //
     // ====== Accessiblity Manager Function Declarations
     //
@@ -216,9 +241,15 @@ public class AccessibilityManager
                 nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
             case CHECKBOX:
+                // This Create function will need more parameters for state information
+                // Since checkboxes don't exist some assumptions are made on the native level
+                // that won't be accurate if the correct info isn't passed down.
                 nativePointer = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
                 break;
             case RADIO_BUTTON:
+                // This Create function will need more parameters for state information
+                // Since dedicated radio buttons don't exist some assumptions are made 
+                // on the native level that won't be accurate if the correct info isn't passed down.
                 nativePointer = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
                 break;
             case BUTTON:
@@ -244,12 +275,15 @@ public class AccessibilityManager
                     parentMenu = parentMenuItem;
                 
                 // Get parent MenuBar
-                long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuBar());
+                Long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuBar());
+                
+                if (menuBar == null)
+                    return false;
                 
                 nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar);
                 break;
             case TREE:
-                nativePointer = NativeWin32CreateMenuBar(item.GetName());
+                nativePointer = NativeWin32CreateTree(item.GetName());
                 break;
             case TREE_ITEM:
                 TreeItem_ treeItem = (TreeItem_)item;
@@ -269,7 +303,7 @@ public class AccessibilityManager
                 if (parentTree == null)
                     return false;
                     
-                nativePointer = NativeWin32CreateMenuItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), parentSubtree, parentTree);
+                nativePointer = NativeWin32CreateTreeItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree);
                 break;
             default: // Assume Item
                 nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
@@ -302,12 +336,15 @@ public class AccessibilityManager
             case BUTTON:
             case RADIO_BUTTON:
             case CHECKBOX:
+            case MENU_BAR:
+            case TREE:
                 wasRemoved = NativeWin32Remove(itemToRemove);
                 break;
             case MENU_ITEM:
-            case TREE_ITEM:
-
                 wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
+                break;
+            case TREE_ITEM:
+                wasRemoved = NativeWin32RemoveTreeItem(itemToRemove);
                 break;
             default:
                 return false;
@@ -326,18 +363,19 @@ public class AccessibilityManager
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean Selected;
         
+        // Retreive native pointer for given object
+        selectedItem = ITEM_MAP.get(item);
+
+        if (selectedItem == null)
+            return false;
+        
         switch(code)
         {
             case MENU_ITEM:
+                Selected = NativeWin32SelectMenuItem(selectedItem);
+                break;
             case TREE_ITEM:
-                // Retreive native pointer for given object
-                selectedItem = ITEM_MAP.get(item);
-                
-                if (selectedItem != null)
-                    Selected = NativeWin32SelectMenuItem(selectedItem);
-                else
-                    Selected = false;
-                
+                Selected = NativeWin32SelectTreeItem(selectedItem);
                 break;
             default:
                 Selected = false;
@@ -406,6 +444,35 @@ public class AccessibilityManager
             case COLLAPSED:
             {
                 wasChanged = NativeWin32MenuCollapsed(itemToChange);
+                break;
+            }
+            default:
+        }
+        
+        return wasChanged;
+    }
+    
+    public boolean NativeTreeChanged(TreeChangeEvent_ event)
+    {
+        Item_ item = event.GetTreeItem();
+        Long itemToChange = ITEM_MAP.get(item);
+        TreeChanges code = TREECHANGES_MAP.get(event.GetEventType());
+        boolean wasChanged = false;
+        
+        // Retreive native pointer for given object
+        if (itemToChange == null)
+            return true;
+        
+        switch(code)
+        {
+            case EXPANDED:
+            {
+                wasChanged = NativeWin32SubtreeExpanded(itemToChange);
+                break;
+            }
+            case COLLAPSED:
+            {
+                wasChanged = NativeWin32SubtreeCollapsed(itemToChange);
                 break;
             }
             default:
