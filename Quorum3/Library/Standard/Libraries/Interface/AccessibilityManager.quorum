@@ -6,6 +6,7 @@ use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Selections.TabPaneSelection
@@ -15,7 +16,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Controls.TreeItem
-
+use Libraries.Interface.Controls.TextBox
 
 class AccessibilityManager 
 
@@ -50,7 +51,7 @@ class AccessibilityManager
 
     // TextSelectionChanged: This action will be called whenever the text selection has changed.
     //                       For example, a word or character has been added to the selection.
-    private system action TextSelectionChanged(Item Textbox)
+    private system action TextSelectionChanged(TextBoxSelection selection)
 
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
@@ -64,10 +65,14 @@ class AccessibilityManager
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
         if selection is TextBoxSelection
-            // Do TextBox things
+            
+            TextBoxSelection textSelection = cast(TextBoxSelection, selection)
+            TextSelectionChanged(textSelection)
+
         elseif selection is TabPaneSelection
             // Do TabPane things
         elseif selection is MenuSelection
+            
             MenuSelection menuSelection = cast(MenuSelection, selection)
 
             if not menuSelection:IsEmpty()
@@ -82,9 +87,11 @@ class AccessibilityManager
                 Select(selectedMenuItem)
             else
                 // TODO: Deselect any native selection
-//                Deselect(currentSelection)
+                //Deselect(currentSelection)
             end
+
         elseif selection is TreeSelection
+
             TreeSelection treeSelection = cast(TreeSelection, selection)
 
             if not treeSelection:IsEmpty()
@@ -98,6 +105,7 @@ class AccessibilityManager
 
                 Select(selectedTreeItem)
             end
+
         else
             // Do generic things
         end
@@ -124,11 +132,15 @@ class AccessibilityManager
         if item:GetAccessibilityCode() not= item:ITEM
 
             // TODO: This section can be removed once everything is supported
-            if item:GetAccessibilityCode() = item:BUTTON
+            if  item:GetAccessibilityCode() = item:MENU_ITEM
                     or item:GetAccessibilityCode() = item:MENU_BAR
-                    or item:GetAccessibilityCode() = item:MENU_ITEM
+                    or item:GetAccessibilityCode() = item:BUTTON
+                    or item:GetAccessibilityCode() = item:CHECKBOX
+                    or item:GetAccessibilityCode() = item:RADIO_BUTTON
                     or item:GetAccessibilityCode() = item:TREE
                     or item:GetAccessibilityCode() = item:TREE_ITEM
+                    or item:GetAccessibilityCode() = item:TEXTBOX
+
                 if (debugOutput)
                     output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 end
@@ -216,6 +228,8 @@ class AccessibilityManager
                     or item:GetAccessibilityCode() = item:RADIO_BUTTON
                     or item:GetAccessibilityCode() = item:TREE
                     or item:GetAccessibilityCode() = item:TREE_ITEM
+                    or item:GetAccessibilityCode() = item:TEXTBOX
+
 
                 if (debugOutput)
                     output "Removing " + item:GetAccessibilityType() + ": " + item:GetName()
@@ -236,18 +250,6 @@ class AccessibilityManager
         end
 
         NativeMenuChanged(event)
-
-        if event:GetEventType() = event:OPENED
-            // It's possible that the selection event for a child item was triggered
-            // before the menu opened. To ensure it is selected by the accessibilty system
-            // we raise another selection event whenever the menu opens so that native
-            // selection is up to date.
-            SelectionEvent selectionEvent
-            selectionEvent:SetSelection(event:GetMenuBar():GetSelection())
-            SelectionChanged(selectionEvent)
-        end
-
-        
     end
 
     action TreeChanged(TreeChangeEvent event)

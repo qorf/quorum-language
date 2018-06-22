@@ -89,6 +89,7 @@ IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions * pRet
 	return S_OK;
 }
 
+// TextBoxProvider doesn't support any patterns so NULL is correct
 IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
 	UNREFERENCED_PARAMETER(patternId);
@@ -101,6 +102,7 @@ IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_
 	return S_OK;
 }
 
+
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
 	if (!IsWindow(m_textBoxControlHWND))
@@ -112,14 +114,6 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_PaneControlTypeId;
-	}
-	else if (propertyId == UIA_AutomationIdPropertyId)
-	{
-		pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
-		if (pRetVal->bstrVal != NULL)
-		{
-			pRetVal->vt = VT_BSTR;
-		}
 	}
 	/*else if (propertyId == UIA_NamePropertyId)
 	{
@@ -207,8 +201,6 @@ IFACEMETHODIMP TextBoxProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
 	}
 
 	// For now we aren't painting a rectangle for the provider
-	// In the future this could be implemented so the screen reader cursor follows along
-	// with what is being said.
 	pRetVal->left = 0;
 	pRetVal->top = 0;
 	pRetVal->width = 0;
@@ -216,6 +208,7 @@ IFACEMETHODIMP TextBoxProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
 	return S_OK;
 }
 
+// Retreives other fragment roots that may be hosted in this one.
 IFACEMETHODIMP TextBoxProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
 	if (!IsWindow(m_textBoxControlHWND))
@@ -227,6 +220,9 @@ IFACEMETHODIMP TextBoxProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenul
 	return S_OK;
 }
 
+// Responds to the control receiving focus through a UI Automation request.
+// For HWND-based controls, this is handled by the host window provider.
+// So doing nothing here is fine.
 IFACEMETHODIMP TextBoxProvider::SetFocus()
 {
 	if (!IsWindow(m_textBoxControlHWND))
@@ -237,6 +233,7 @@ IFACEMETHODIMP TextBoxProvider::SetFocus()
 	return S_OK;
 }
 
+// Retrieves the root element of this fragment.
 IFACEMETHODIMP TextBoxProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
 {
 	if (!IsWindow(m_textBoxControlHWND))
@@ -244,14 +241,16 @@ IFACEMETHODIMP TextBoxProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawE
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-
-	*pRetVal = this;
+	// A provider for a fragment root should return a pointer to its own implementation.
+	*pRetVal = static_cast<IRawElementProviderFragmentRoot*>(this);
 	AddRef();
 	return S_OK;
 }
 
 // =========== IRawElementProviderFragmenRoot implementation.
 
+// Retrieves the IRawElementProviderFragment interface for the item at the specified 
+// point (in client coordinates).
 IFACEMETHODIMP TextBoxProvider::ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
 	UNREFERENCED_PARAMETER(x);
@@ -260,9 +259,10 @@ IFACEMETHODIMP TextBoxProvider::ElementProviderFromPoint(double x, double y, _Ou
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-
-
-	// Not Implemented
+	
+	// Since the accessible objects are 1x1 pixel boxes hidden in the corner of the application we'd need quorum to
+	// give us the client coordinates.
+	// Not implemented yet.
 	*pRetVal = NULL;
 	return S_OK;
 }

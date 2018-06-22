@@ -66,21 +66,23 @@ class TextBoxProvider;
 class TextBoxControl : public Item
 {
 	public:
-		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ const char* lines, _In_ int caretIndex);
+		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex);
 
-		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
+		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* lines, _In_ Range caretIndex);
 
 		int GetLineLength();
 
-		const char* GetLine();
-
+		std::wstring GetText();
 
 		int GetLineCount();
 		EndPoint GetTextboxEndpoint();
 
 		TextBoxProvider* GetTextBoxProvider();
 
-		EndPoint GetCaretPosition();
+		// These are the indices of selection for the text.
+		// If they are equal than the selection is empty.
+		EndPoint GetStartIndex();
+		EndPoint GetEndIndex();
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
@@ -97,15 +99,15 @@ class TextBoxControl : public Item
 		
 		void SetControlFocus(_In_ bool focused);
 
-		void UpdateCaret(_In_ EndPoint caretPosition);
+		void UpdateCaret();
 
-		EndPoint m_caretPosition;
+		Range m_caretPosition;
 		bool m_focused;
 
 		/* This is the text of the entire Textbox control. From this we will pull out the information
 		*  we need to report to the screen readers using Ranges and Endpoints.
 		*/
-		const char * m_fullText;
+		std::wstring m_fullText;
 
 		/* With the current approach to handling text from the textbox we are holding a
 		 * string that contains the entire contents of the textbox instead of using the TextLine struct.
