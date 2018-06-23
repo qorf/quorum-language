@@ -196,10 +196,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+	WCHAR* wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
 
 	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
 	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
-	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
+	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, wFullText, Range(caretIndex,caretIndex));
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -369,25 +370,19 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // NativeWin32TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textboxHWND, jstring currentLineText, jint caretLine, jint caretCharacter)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textbox, jstring currentLineText, jint startIndex, jint endIndex)
 {
-	UNREFERENCED_PARAMETER(env);
-	UNREFERENCED_PARAMETER(obj);
-	UNREFERENCED_PARAMETER(textboxHWND);
-	UNREFERENCED_PARAMETER(currentLineText);
-	UNREFERENCED_PARAMETER(caretLine);
-	UNREFERENCED_PARAMETER(caretCharacter);
-	/*const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
-	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	EndPoint caret;
-	caret.line = (int)caretLine;
-	caret.character = (int)caretCharacter;
+	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	SendMessage((HWND)textboxHWND, QUORUM_UPDATECARET, 0, (LPARAM)&caret);
+	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	Range indices((int)startIndex, (int)endIndex);
 
-	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);*/
-	std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
+	SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
+	SendMessage(pTextBox->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)&indices);
+
+	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
 
 // NativeWin32UpdateCaretPosition:
