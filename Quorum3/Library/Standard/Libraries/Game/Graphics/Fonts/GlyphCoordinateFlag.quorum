@@ -1,0 +1,70 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Compute.BitwiseOperations
+
+class GlyphCoordinateFlag 
+    
+    boolean onCurve = false
+    boolean xShort = false
+    boolean yShort = false
+    boolean repetition = false
+    boolean xSame = false
+    boolean ySame = false
+
+
+    action SetFlags(integer flags)
+        BitwiseOperations ops
+        onCurve = ops:And(flags, 1) > 0 
+        xShort = ops:And(flags, 2) > 0 
+        yShort = ops:And(flags, 4) > 0 
+        repetition = ops:And(flags, 8) > 0 
+        xSame = ops:And(flags, 16) > 0  
+        ySame = ops:And(flags, 32) > 0 
+    end
+
+/*
+    action SetFlags(boolean onCurve, boolean xshort, boolean yshort, boolean repetition, boolean xsame, boolean ysame)
+        me:onCurve = onCurve
+        me:xShort = xshort
+        me:yShort = yshort
+        me:xSame = xsame
+        me:ySame = ysame
+    end
+*/
+
+    //point on curve if true
+    action IsOnCurve() returns boolean
+        return onCurve
+    end
+
+    // xcoordinate is 1 byte if true
+    action XCoordinateIsOneByte() returns boolean
+        return xShort
+    end
+
+    // y coordinate is 1 byte if true
+    action YCoordinateIsOneByte() returns boolean
+        return yShort
+    end
+    
+    // depends, either sign of x-coordinate or means previous coordinate is the same as this one
+    action XCoordinateIsSame() returns boolean
+        return xSame
+    end
+
+    // depends, either sign of y-coordinate or means previous coordinate is the same as this one
+    action YCoordinateIsSame() returns boolean
+        return ySame
+    end
+    
+    // next byte contains number of following flags if true
+    action RepetitionIsTrue() returns boolean
+        return repetition
+    end
+
+    action DebugPrintBooleans () 
+        output "" + IsOnCurve() + ", " + XCoordinateIsOneByte() + ", " + YCoordinateIsOneByte() + ", " + RepetitionIsTrue() + ", " + XCoordinateIsSame() + ", " + YCoordinateIsSame()
+    end
+    
+    
+end

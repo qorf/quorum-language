@@ -1,0 +1,64 @@
+package Libraries.Game.Graphics.Fonts
+
+class CoordinateVector 
+    integer x = 0
+    integer y = 0
+
+    boolean onCurve = false
+    boolean endpoint = false
+    boolean computed = false
+
+    action Copy(CoordinateVector vector)
+        me:x = vector:GetX()
+        me:y = vector:GetY()
+        me:onCurve = vector:IsOnCurve()
+    end
+
+    action IsOnCurve() returns boolean
+        return me:onCurve
+    end
+
+    action SetOnCurve(boolean onCurve) 
+        me:onCurve = onCurve
+    end
+
+    action GetX() returns integer
+        return me:x
+    end
+
+    action GetY() returns integer
+        return me:y
+    end
+
+    action SetX(integer x)
+        me:x = x
+    end
+
+    action SetY(integer y)
+        me:y = y
+    end
+
+    action AddNewPointRelativeToLast(integer changeInX, integer changeInY, boolean onCurve, boolean endpoint)
+        me:x = me:x + changeInX
+        me:y = me:y + changeInY
+        me:onCurve = onCurve
+        me:endpoint = endpoint
+    end
+
+    action SetComputed(boolean computed)
+        me:computed = computed
+    end
+
+    action IsComputed returns boolean
+        return me:computed
+    end
+
+    action SetEndpoint(boolean endpoint)
+        me:endpoint = endpoint
+    end
+    
+    action IsEndpoint() returns boolean
+        return me:endpoint
+    end
+
+end

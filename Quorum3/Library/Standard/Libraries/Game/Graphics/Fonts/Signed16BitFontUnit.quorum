@@ -1,0 +1,17 @@
+package Libraries.Game.Graphics.Fonts
+
+class Signed16BitFontUnit 
+   integer signedInteger = 0
+
+   action SetFontUnit (integer fword)
+        signedInteger = fword
+   end
+
+   action GetFontUnit returns integer
+        return signedInteger
+   end
+
+   action ToText() returns text
+        return "" + signedInteger
+   end
+end

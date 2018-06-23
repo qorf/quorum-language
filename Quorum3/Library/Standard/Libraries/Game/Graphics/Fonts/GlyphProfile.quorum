@@ -1,0 +1,136 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+use Libraries.Language.Support.CompareResult
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class GlyphProfile 
+
+    integer yMaximum = -1
+    integer yMinimum = -1
+
+    HashTable<integer, CoordinateContainer> xIntercepts
+
+    integer nonzero = 0
+
+    action GetKeyIterator() returns Iterator<integer>
+        return me:xIntercepts:GetKeyIterator()
+    end
+
+    action GetNonzero() returns integer
+        return me:nonzero
+    end
+
+    action SetNonzero(integer nonzero)
+        me:nonzero = nonzero
+    end
+
+    action SetXIntercepts ( HashTable<integer, CoordinateContainer> intercepts) 
+        me:xIntercepts = intercepts
+    end
+
+    action GetXInterceptAtY(integer y) returns CoordinateContainer
+        return me:xIntercepts:GetValue(y)
+    end
+
+    action HasY(integer y) returns boolean
+        return me:xIntercepts:HasKey(y)
+    end
+
+    action GetXIntercepts returns HashTable<integer, CoordinateContainer>
+        return me:xIntercepts
+    end
+
+
+    action SetYMaximum (integer ymax)
+        me:yMaximum = ymax
+    end
+
+    action SetYMinimum (integer ymin)
+        me:yMinimum = ymin
+    end
+
+    action GetYMaximum returns integer
+       return me:yMaximum
+    end
+
+    action GetYMininmum returns integer
+        return me:yMinimum
+    end
+
+    action XInterceptsToText (integer y) returns text
+
+       
+        text  t = ""
+        CoordinateContainer xl = xIntercepts:GetValue(y)
+        integer i = 0
+        repeat while i < xl:GetSize()
+            t = t + xl:Get(i):ToText()
+            i = i + 1
+        end
+
+        return t
+    end
+
+    action AddCoordinatesAt(integer y, XCoordinateList coordinates) returns boolean
+        CoordinateContainer value 
+        if xIntercepts:HasKey(y)
+            value = xIntercepts:GetValue(y)
+        else 
+            value:Add(coordinates)
+            xIntercepts:Add(y, value)
+            return true
+        end
+        integer i = 0 
+        repeat while i < value:GetSize()
+            
+            XCoordinateList l = value:Get(i)
+            
+
+            if l:ContainsSame(coordinates)
+               AddCoordinates(l, coordinates)
+               return true
+            end
+
+            if coordinates:Get(0):GetXPosition() < l:Get(0):GetXPosition()
+                value:Add(i, coordinates)
+                return true
+            end
+
+            i = i + 1
+        end
+        value:AddToEnd(coordinates)
+        return true
+    end
+
+    action AddCoordinates(XCoordinateList m, XCoordinateList l)
+        integer i = 0
+        if (m:GetNonzero() < 0 and l:GetNonzero() > 0) or (m:GetNonzero() > 0 and l:GetNonzero() < 0)   // this may need to be changed
+            m:SetNonzero(0)
+        end
+
+        repeat while i < l:GetSize()
+            
+            PixelIntersection v = l:Get(i)
+            integer j = 0
+            boolean added = false
+            repeat while j < m:GetSize() and not added
+
+                PixelIntersection d = m:Get(j)
+                if d = v
+                    added = true
+                elseif v:GetXPosition() < d:GetXPosition()
+                    m:Add(j, v)
+                    added = true
+                end
+                j = j + 1
+            end
+            if not added
+                m:Add(v)
+                added = true
+            end
+            i = i + 1
+        end
+    end
+end

@@ -1,0 +1,53 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Game.Graphics.Drawable
+
+class FontDrawable 
+    
+    integer xMaximum = 0
+    integer xMinimum = 0
+    integer yMaximum = 0
+    integer yMinimum = 0
+
+    Drawable drawable
+
+    action GetXMaximum () returns integer
+        return me:xMaximum
+    end
+
+    action GetYMaximum() returns integer
+        return me:yMaximum
+    end
+
+    action GetXMinimum () returns integer
+        return me:xMinimum
+    end
+
+    action GetYMinimum() returns integer
+        return me:yMinimum
+    end
+    
+    action GetDrawable() returns Drawable
+        return me:drawable
+    end
+    
+    action SetDrawable(Drawable drawable)
+        me:drawable = drawable
+    end 
+    
+    action SetXMaximum(integer xMaximum)
+        me:xMaximum = xMaximum
+    end
+
+    action SetYMaximum(integer yMaximum)
+        me:yMaximum = yMaximum
+    end
+
+    action SetXMinimum(integer xMinimum)
+        me:xMinimum = xMinimum
+    end
+
+    action SetYMinimum(integer yMinimum)
+        me:yMinimum = yMinimum
+    end
+end

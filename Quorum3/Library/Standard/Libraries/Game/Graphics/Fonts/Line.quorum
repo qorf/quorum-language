@@ -1,0 +1,334 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class Line 
+    integer x1 = -1
+    integer x2 = -1
+    
+    integer y1 = -1
+    integer y2 = -1
+
+    private action ComputeNonzero(number y1, number y2) returns integer
+       integer iy1 = cast(integer, y1)
+       integer iy2 = cast(integer, y2)
+
+       if iy2 > iy1 
+           return -1
+       elseif iy2 = iy1 
+            return 0
+       else
+           return 1
+       end
+    end
+
+    /*
+        Treats calculated coordinates as numbers, instead of as integers, makes for better positioning and necessary for using the antialiazing line algorithm
+        This is the spot where the outline is put into an x/y position
+    */ 
+    action GetXInterceptsNumber(integer xPixelSize, integer yPixelSize, integer unitsPerEM, integer yScreenSize, integer oldNonZero) returns HashTable<integer, XCoordinateList>
+        Math math
+        
+        //output "X1: " + x1 + ", Y1: " + y1 + ", X2: " + x2 + ", Y2: " + y2
+        integer pixelX1 = CalculateCoordinate(x1, xPixelSize, unitsPerEM, 0)   
+        integer pixelX2 = CalculateCoordinate(x2, xPixelSize, unitsPerEM, 0)
+
+        integer pixelY1 = CalculateCoordinate(y1, yPixelSize, unitsPerEM, yScreenSize)
+        integer pixelY2 = CalculateCoordinate(y2, yPixelSize, unitsPerEM, yScreenSize)
+        //output "PixelX1: " + pixelX1 + ", PixelY1: " + pixelY1 + ", PixelX2: " + pixelX2 + ", PixelY2: " + pixelY2
+        
+
+        /*
+        // CalculateCoordinateNumber is causing anomalies in the text appearance, can revert back to CalculateCoordinate
+        number pixelX1 = CalculateCoordinateNumber(x1, xPixelSize, unitsPerEM, 0)   
+        number pixelX2 = CalculateCoordinateNumber(x2, xPixelSize, unitsPerEM, 0)
+
+        number pixelY1 = CalculateCoordinateNumber(y1, yPixelSize, unitsPerEM, yScreenSize)
+        number pixelY2 = CalculateCoordinateNumber(y2, yPixelSize, unitsPerEM, yScreenSize)
+        */
+
+        //HashTable<integer, XCoordinateList> temp = BresenhamLineAlgorithm(x1, y1, x2, y2) // this is to test the original size outline
+        HashTable<integer, XCoordinateList> temp = BresenhamLineAlgorithm(pixelX1, pixelY1, pixelX2, pixelY2)
+
+        // Sorting the entries is neccessary for reliable drawing
+        Iterator<integer> it = temp:GetKeyIterator()
+        repeat while it:HasNext()
+            integer i = it:Next()
+            XCoordinateList l = temp:GetValue(i)
+            l:Sort()    // doesn't actually seem to be necessary
+        end
+
+        return temp
+    end
+
+    /* 
+       Bresenham's line algorithm to calculate x intercepts
+       multi purpose from http://tech-algorithm.com/articles/drawing-line-using-bresenham-algorithm/
+    */ 
+    public action BresenhamLineAlgorithm (integer x1, integer y1, integer x2, integer y2) returns HashTable<integer, XCoordinateList>
+        HashTable<integer, XCoordinateList> intercepts
+        Math math
+
+        // attempt at new algorithm
+        /*
+        boolean steep = math:AbsoluteValue(y2 - y1) > math:AbsoluteValue(x2 - x1)
+        integer swap = 0
+        if(steep)
+            swap = x1
+            x1 = y1
+            y1 = swap
+            swap = x2
+            x2 = y2
+            y2 = swap
+        end
+        if(x1 > x2)
+            swap = x1
+            x1 = x2
+            x2 = swap
+            swap = y1
+            y1 = y2
+            y2 = swap
+        end
+        number dx = x2-x1
+        number dy = y2-y1
+        number gradient = dy/dx
+        if(dx = 0.0)
+            gradient = 1
+        end
+
+        integer xpx11 = x1
+        integer xpx12 = x2
+        number intersectY = y1
+
+        integer x = xpx11
+        if(steep)
+            repeat while x <= xpx12
+                DrawPoint(IntegerPartOfNumber(intersectY), x, rFractionalPartOfNumber(intersectY), ComputeNonzero(y1, y2), intercepts)
+                DrawPoint(IntegerPartOfNumber(intersectY)-1, x, FractionalPartOfNumber(intersectY), ComputeNonzero(y1, y2), intercepts)
+                intersectY = intersectY + gradient
+                x = x + 1
+            end
+        else
+            repeat while x <= xpx12
+                DrawPoint(x, IntegerPartOfNumber(intersectY), rFractionalPartOfNumber(intersectY), ComputeNonzero(y1, y2), intercepts)
+                DrawPoint(x, IntegerPartOfNumber(intersectY)-1, FractionalPartOfNumber(intersectY), ComputeNonzero(y1, y2), intercepts)
+                intersectY = intersectY + gradient
+                x = x + 1
+            end
+        end
+        */
+
+        
+        // Working algorithm
+        number intensity = 0
+
+        integer x1i = cast(integer, x1)
+        integer x2i = cast(integer, x2)
+        integer y1i = cast(integer, y1)
+        integer y2i = cast(integer, y2)
+
+           
+        
+
+        if y1 = y2 and x1 = x2
+            return intercepts
+        end
+
+        integer nonzero = ComputeNonzero(y1, y2)
+
+        integer lastx = -1
+        integer w = cast(integer, (x2 - x1))
+        integer h = cast(integer, (y2 - y1)) 
+        
+        integer dx1 = 0
+        integer dy1 = 0
+        integer dx2 = 0
+        integer dy2 = 0
+
+        if w < 0
+            dx1 = -1
+        elseif w > 0
+            dx1 = 1
+        end
+
+        if h < 0
+            dy1 = -1
+        elseif h > 0
+            dy1 = 1
+        end
+
+        if w < 0
+            dx2 = -1
+        elseif w > 0
+            dx2 = 1
+        end
+
+        integer longest = math:AbsoluteValue(w)
+        integer shortest = math:AbsoluteValue(h)
+        if not (longest > shortest)
+            longest = math:AbsoluteValue(h)
+            shortest = math:AbsoluteValue(w)
+            if h < 0
+                dy2 = -1
+            elseif h > 0
+                dy2 = 1
+            end
+
+            dx2 = 0
+        end
+
+        integer numerator = longest / 2
+        integer i = 0
+
+        repeat while i <= longest
+            
+            if intercepts:HasKey(cast(integer, y1))
+                XCoordinateList l = intercepts:GetValue(cast(integer, y1))
+                PixelIntersection p
+                p:SetXPosition(cast(integer, x1))
+                p:SetIntensity(1)
+                l:Add(p)
+            else
+                XCoordinateList l
+                l:SetNonzero(nonzero)
+                PixelIntersection p
+                p:SetXPosition(cast(integer, x1))
+                p:SetIntensity(1)
+                l:Add(p)
+                intercepts:Add(cast(integer, y1), l)
+            end
+
+            
+            numerator = numerator + shortest
+            if not (numerator < longest)
+                numerator = numerator - longest
+                x1 = x1 + dx1
+                y1 = y1 + dy1
+            else
+                x1 = x1 + dx2
+                y1 = y1 + dy2
+            end
+            
+            i = i + 1
+        end
+        // end working algorithm
+        
+      
+        
+        return intercepts
+    end
+
+    private action DrawPoint(integer x1, integer y1, number intensity, integer nonzero, HashTable<integer, XCoordinateList> intercepts)
+        //output "Intensity is: " + intensity 
+        if intercepts:HasKey(cast(integer, y1))
+                XCoordinateList l = intercepts:GetValue(y1)
+                PixelIntersection p
+                p:SetXPosition(x1)
+                p:SetIntensity(intensity)
+                l:Add(p)
+            else
+                XCoordinateList l
+                l:SetNonzero(nonzero)
+                PixelIntersection p
+                p:SetXPosition(x1)
+                p:SetIntensity(intensity)
+                l:Add(p)
+                intercepts:Add(y1, l)
+            end
+    end
+
+    private action Absolute(number x) returns number
+        if(x < 0)
+            return -x
+        end
+        return x
+    end
+
+    private action IntegerPartOfNumber(number x) returns integer
+        return cast(integer, x)
+    end
+
+    private action RoundNumber(number x) returns integer
+        return IntegerPartOfNumber(x + 0.5)
+    end
+
+    private action FractionalPartOfNumber(number x) returns number
+        if(x > 0)
+            return x - IntegerPartOfNumber(x)
+        end
+        return x - (IntegerPartOfNumber(x) + 1)
+    end
+
+    private action rFractionalPartOfNumber(number x) returns number
+        return 1 - FractionalPartOfNumber(x)
+    end
+
+    public action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screensize) returns integer
+        if screensize = 0
+            return gridCoordinate * pixelSize / emSize
+        end
+        integer coord = screensize - gridCoordinate * pixelSize / emSize
+        return coord
+    end
+
+    public action CalculateCoordinateNumber(integer gridCoordinate, integer pixelSize, integer emSize, integer screensize) returns number
+        if screensize = 0
+           return cast(number,gridCoordinate) * pixelSize / emSize
+        end
+        number coord = screensize - gridCoordinate * cast(number, pixelSize) / emSize
+        return coord
+    end
+
+
+    action SetPoint1(integer x1, integer y1)
+        me:x1 = x1
+        me:y1 = y1
+    end
+
+    action SetPoint2(integer x2, integer y2)
+        me:x2 = x2
+        me:y2 = y2
+    end
+
+    action SetX1(integer x1) 
+        me:x1 = x1
+    end
+
+    action GetX1() returns integer
+        return me:x1
+    end
+
+    action SetX2(integer x2) 
+        me:x2 = x2
+    end
+
+    action GetX2() returns integer
+        return me:x2
+    end
+
+    action SetY1(integer y1) 
+        me:y1 = y1
+    end
+
+    action GetY1() returns integer
+        return me:y1
+    end
+
+    action SetY2(integer y2) 
+        me:y2 = y2
+    end
+
+    action GetY2() returns integer
+        return me:y2
+    end
+    
+    action ToText() returns text
+        text r = ""
+        r = "(" + x1 + ", " + y1 + "), (" + x2 + ", " + y2 + "), "
+        return r
+    end
+    
+end

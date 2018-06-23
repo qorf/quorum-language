@@ -1,0 +1,51 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.HashTable
+
+/*
+    Each lefthandCharacter in the KerningTable class is paired 
+    with a KerningValuesList object. The KerningValuesList class contains 
+    a hash table of righthand character of kerning pairs and the kerning value.
+*/ 
+class KerningValuesList 
+
+    HashTable<integer, integer> kerningValuesList
+
+    /*
+        This action gets a value with a given character.
+
+        Attribute: Parameter rightCharacterGlyphIndex - glyph table index of 
+        character on righthand side of kerning pair
+
+        Attribute: Returns the kerning value between two passed characters
+    */
+    action GetKerningValue(integer rightCharacterGlyphIndex) returns integer
+        return me:kerningValuesList:GetValue(rightCharacterGlyphIndex)
+    end
+
+    /*
+        Adds kerning value between two characters to kerning table.
+
+        Attribute: Parameter rightCharacterGlyphInex - glyph table index of
+        character on righthand side of kerning pair
+
+        Attribute: Parameter kerningValue - kerning value between pair of kerned 
+        glyphs
+    */
+    action Add(integer rightCharacterGlyphIndex, integer kerningValue)
+        me:kerningValuesList:Add(rightCharacterGlyphIndex, kerningValue)
+    end
+
+    /*
+        This action determines whether the kerning value table contains target pair.
+
+        Attribute: Parameter rightCharacterGlyphindex - glyph table index of
+        character on righthand side of kerning pair
+
+        Attribute: Returns True if list contains passed righthand character. 
+        Returns false otherwise.
+    */
+    action HasKey(integer rightCharacterGlyphIndex) returns boolean
+        return me:kerningValuesList:HasKey(rightCharacterGlyphIndex)
+    end
+end

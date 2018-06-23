@@ -1,0 +1,856 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.System.File
+use Libraries.System.BinaryFileReader
+use Libraries.Containers.ByteArray
+use Libraries.Containers.Support.ByteReader
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Compute.BigInteger
+use Libraries.Compute.BitwiseOperations
+
+class FontFileReader
+ 
+    ByteArray byteArray = undefined
+    ByteReader byteReader = undefined
+    //Array<TypeFace> records
+    text NULL_TERMINATOR = ""
+    //integer version = 0
+    //text title = ""
+    //integer nesting = 0
+
+    TrueTypeFileInformation fileInformation
+    CharacterMap characterMap
+    KerningTable kerningTable
+
+    //integer currentRecord = 0
+
+    on create
+        NULL_TERMINATOR = NULL_TERMINATOR:GetUnicodeValue(0)
+    end
+
+    /*
+        Attribute: Returns TrueTypeFileInformation data structure containing 
+        all information read from .ttf file
+    */
+    action GetFileInformation() returns TrueTypeFileInformation
+        return me:fileInformation
+    end
+
+    /*
+        If file exists, initializes a binary file reader, opens file to be read,
+        and calls private GetRecords() action to read information from file.
+            
+        Attribute: Parameter fileInformation - the TrueType (.ttf) font file to read from
+    */
+    action Load(File fileInformation)
+        if not fileInformation:Exists()
+            alert ("File doesn't exist")
+            return now
+        end
+        BinaryFileReader reader
+        reader:OpenForRead(fileInformation)
+        byteArray = reader:ReadBytes()
+        // True type font format (ttf) is big endian
+        byteArray:SetBigEndian(true)
+        byteReader = byteArray:GetByteReader()
+
+        GetRecords()
+        
+    end
+
+    /*
+        Called by FontFileReader:Load() action.
+
+        Reads entire file using class variable byteReader and saves all
+        necessary information to fileInformation object from TrueTypeFileInformation 
+        class, which includes the character map, global font information table, 
+        glyph offset location table, and kern table. 
+    */
+    private action GetRecords
+        if byteReader:HasNextInteger()
+            integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
+            fileInformation:SetScalerType(scalertype)
+//            if scalertype = 65536 or scalertype = 1953658213
+////                output "Font is actual truetype font"
+//            else 
+////                output "This font only uses ttf as a container"
+//            end
+            
+            fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
+            fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
+            fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
+            fileInformation:SetRangeShift(byteReader:NextTwoByteUnsignedInteger())
+
+            integer i = 0
+            repeat while i < fileInformation:GetNumberOfTables()
+                
+                text tag = byteReader:NextTextRead(4)
+                integer checksum = byteReader:NextIntegerConvertFromUnsigned()
+                integer offset = byteReader:NextIntegerConvertFromUnsigned()
+                integer length = byteReader:NextIntegerConvertFromUnsigned()
+
+                fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
+
+                if tag = "cmap"
+                    // reads character map table into hash table from CharacterMap class
+                    ReadCharacterMapTable(byteReader, offset)
+                elseif tag = "head"
+                    // reads head table into hash table from GlobalFontInformationFlags class
+                    ReadGlobalFontInformationTable(byteReader, offset)
+                elseif tag = "kern"
+                    // saves offset in file where kern table begins
+                    ReadKerningTable(byteReader, offset)
+                elseif tag = "glyf"
+                    // saves offset in file where glyf table begins
+                    fileInformation:SetGlyphOutlineTablePosition(offset)
+                elseif tag = "loca"
+                    // saves offset in file where loca table begins
+                    fileInformation:SetGlyphDataLocationTablePosition(offset)
+                end
+                
+                i = i + 1
+            end
+ 
+        end
+    end
+
+    /*
+        called by:
+        DrawCharacter in MainGame 
+        GetGlyph in QuorumFont
+
+        If character map has passed character, finds and returns Bezier curve outline
+        of character. Otherwise, returns default empty BezierCurveGlyphPoints object 
+        (containing empty point arrays). 
+
+        Attribute: Parameter character - target character whose Bezier curve outline
+        is to be found
+
+        Attribute: Returns BezierCurveGlyphPoints object containing information
+        about a glyph's Bezier Curve outline
+    */
+    action GetCharacterGlyphPoints(text character) returns BezierCurveGlyphPoints
+        if not (character:GetSize() = 1)
+            alert("I can only get one character at a time")
+        end
+
+        BezierCurveGlyphPoints glyphPoints
+
+        if character = " " 
+            return glyphPoints
+        end
+
+        if characterMap:GlyphPointsHaveBeenRead(character)
+            glyphPoints = characterMap:GetGlyphPoints(character)
+        else
+            glyphPoints = GetCharacterGlyphPointsFromFile(character)
+        end
+
+        return glyphPoints
+    end
+
+    /*
+        called by:
+        DrawCharacters in MainGame (commented out)
+        GetCharacterGlyph in FontFileReader (above)
+
+        Locates and reads Bezier curve glyph points that outline the character glyph.
+
+        Attribute: Parameter characterCode - integer ASCII value of character (value paired 
+        with character in character map)
+
+        Attribute: Returns BezierCurveGlyphPoints object containing information
+        about a glyph's Bezier Curve outline
+    */
+    private action GetCharacterGlyphPointsFromFile(text character) returns BezierCurveGlyphPoints
+        BezierCurveGlyphPoints glyphPoints
+        integer characterCode = character:GetUnicodeInteger(0)
+
+        integer glyphLocationTableIndex = 0
+        check
+            glyphLocationTableIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
+        detect e
+            glyphLocationTableIndex = 0
+        end
+
+        integer glyphTableOffset = 0
+        check
+            glyphTableOffset = GetGlyphOffset(glyphLocationTableIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
+        detect e
+            glyphTableOffset = 0
+        end
+
+        characterMap:SetGlyphIndexAndOffset(character, glyphLocationTableIndex, glyphTableOffset)
+
+        check   // error here?
+            glyphPoints = ReadGlyphPoints(byteReader, glyphTableOffset + fileInformation:GetGlyphOutlineTablePosition())
+        detect e is Error
+            //output e:GetErrorMessage()
+            //output e:GetStackTraceMessage()
+            return glyphPoints
+        end
+        characterMap:SetGlyphPoints(character, glyphPoints)
+
+        return glyphPoints
+    end
+
+    /*
+        Uses character map and passed character code to look up glyph index in 
+        glyph offset location table.
+
+        Attribute: Parameter characterCode - ASCII value of character
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file
+
+        Attribute: Parameter characterMapTablePosition - byteReader position 
+        of character map table in TrueType file
+
+        Attribute: Parameter characterMapFormat - format of charcter map (must
+        be 4)
+
+        Attribute: Returns integer index of character in character map table?
+
+        Attribute: example call: 
+        integer index = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
+    */
+    private action FindCharacterGlyphIndex(integer characterCode, ByteReader byteReader, integer characterMapTablePosition, integer characterMapFormat) returns integer
+        byteReader:SetPosition(characterMapTablePosition)
+
+        // default is glyph not found
+        integer glyphLocationTableIndex = 0
+
+        if characterMapFormat = 4       // different cases for different files, may be why we're drawing a lot of boxes for fonts
+            integer length = byteReader:NextTwoByteUnsignedInteger()
+            integer language = byteReader:NextTwoByteUnsignedInteger()
+            integer segmentCountTimes2 = byteReader:NextTwoByteUnsignedInteger()
+            integer searchRange = byteReader:NextTwoByteUnsignedInteger()
+            integer entrySelector = byteReader:NextTwoByteUnsignedInteger()
+            integer rangeShift = byteReader:NextTwoByteUnsignedInteger()
+
+            integer count = -1
+            integer endCode = 0
+            integer glyphIndexArrayOffset = -1
+
+            repeat until  (endCode = 65535) or (endCode >= characterCode)
+                endCode = byteReader:NextTwoByteUnsignedInteger()
+                count = count + 1
+            end
+
+            // skip ahead to start code it's by the number of segments*2 + index of 
+            // entry (count) multiplied by 2 since the values are all 2 byte long
+            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count )
+            integer startCode = byteReader:NextTwoByteUnsignedInteger()
+
+            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count - 2)
+            integer delta = byteReader:NextTwoByteUnsignedInteger()
+
+            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count - 2)
+            glyphIndexArrayOffset = byteReader:GetPosition()
+            integer rangeOffset = byteReader:NextTwoByteUnsignedInteger()
+
+            // rangeOffset determines address
+            if rangeOffset > 0                
+                integer glyphIndexAddress = rangeOffset + 2*(characterCode - startCode) + glyphIndexArrayOffset
+                
+                byteReader:SetPosition(glyphIndexAddress)
+                glyphLocationTableIndex = byteReader:NextTwoByteUnsignedInteger()
+            // delta determines address
+            elseif delta > 0
+                glyphLocationTableIndex = (delta + characterCode) mod 65536
+            end 
+        end
+
+        //output "location Table index for " + characterCode + " is " + glyphLocationTableIndex
+        return glyphLocationTableIndex
+    end
+
+    /*
+        Uses Glyph Offset Location Table and glyph location table index to 
+        look up offset of glyph in Glyph Table.
+   
+        Attribute: Parameter glyphLocationTableIndex - index of glyph in Character Map Table 
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read
+
+        Attribute: Parameter glyphOffsetLocationTablePosition - byteReader position of Glyph Offset Location Table
+        in TrueType file being read
+       
+        Attribute: Returns integer glyphTableOffset - location of glyph in Glyph Table in TrueType file
+
+        Attribute: example call:
+        integer glyphTableOffset = GetGlyphOffset(glyphLocationTableIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
+    */
+    private action GetGlyphOffset(integer glyphLocationTableIndex, ByteReader byteReader, integer glyphOffsetLocationTablePosition) returns integer
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(glyphOffsetLocationTablePosition)
+
+        integer glyphTableOffset= -1
+        if iteratorIsValid
+            if fileInformation:GetIndexToLocationTableFormat() = 0 
+                
+                byteReader:SkipBytes(glyphLocationTableIndex*2)
+                glyphTableOffset = byteReader:NextTwoByteUnsignedInteger() * 2
+                // if nextoffset - glyphTableOffset = 0, then read whitespace, there is no glyph
+            else 
+                byteReader:SkipBytes(glyphLocationTableIndex*4)
+                glyphTableOffset = byteReader:NextIntegerConvertFromUnsigned()
+                // if nextoffset - glyphTableOffset = 0, then read whitespace, there is no glyph
+            end
+        end
+        return glyphTableOffset
+    end
+
+    /*
+        Reads and stores information from given TrueType file about a single glyph's contours
+        and the Bezier points outlining the glyph.
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read
+
+        Attribute: Parameter glyphTablePosition - position of Glyph Table in 
+        TrueType file being read
+
+        Attribute: Returns BezierCurveGlyphPoints object containing information
+        about a glyph's Bezier Curve outline
+
+        Attribute: example call:
+        glyph = ReadGlyph(byteReader, glyphTableOffset + fileInformation:GetGlyphTablePosition())
+    */
+    private action ReadGlyphPoints(ByteReader byteReader, integer glyphTablePosition) returns BezierCurveGlyphPoints
+       
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(glyphTablePosition)
+        //output "Index is: " + glyphTablePosition + ", previousPosition is: " + previousPosition + ", iteratorIsValid is: " + iteratorIsValid
+        BezierCurveGlyphPoints glyphPoints    
+        if iteratorIsValid
+            integer numberOfContours = byteReader:NextTwoByteInteger()
+
+            // Glyph bounding box
+            integer xMin = byteReader:NextTwoByteInteger()
+            integer yMin = byteReader:NextTwoByteInteger()
+            integer xMax = byteReader:NextTwoByteInteger()
+            integer yMax = byteReader:NextTwoByteInteger()
+            
+            glyphPoints:SetNumberOfContours(numberOfContours)
+            glyphPoints:SetBoundingBox(xMin, yMin, xMax, yMax)
+
+            if numberOfContours >= 0
+
+                integer contourIterator = 0
+                Array<integer> endPointsOfContours
+                integer numberOfPoints = 0
+                // Read contour endpoints
+                repeat while contourIterator < numberOfContours
+                    numberOfPoints = byteReader:NextTwoByteUnsignedInteger()
+                    endPointsOfContours:Add(numberOfPoints)
+                    contourIterator = contourIterator + 1
+                end
+
+                glyphPoints:SetContourEndpoints(endPointsOfContours)
+
+                numberOfPoints = numberOfPoints + 1
+                glyphPoints:SetNumberOfPoints(numberOfPoints)
+                
+                integer numberOfInstructions = byteReader:NextTwoByteUnsignedInteger()
+                
+                integer instructionCount = 0
+                Array<integer> instructions                                                 // read hints?
+                repeat while instructionCount < numberOfInstructions
+                    instructions:Add(byteReader:NextByteAsUnsignedInteger())
+                    instructionCount = instructionCount + 1
+                end
+
+                // Read Glyph Coordinate flags
+                Array<GlyphCoordinateFlag> glyphCoordinateFlagsArray
+                repeat while glyphCoordinateFlagsArray:GetSize() < numberOfPoints
+                    integer flags = byteReader:NextByteAsUnsignedInteger()
+                    
+                    GlyphCoordinateFlag glyphCoordinateFlag
+                    glyphCoordinateFlag:SetFlags(flags)
+                    glyphCoordinateFlagsArray:Add(glyphCoordinateFlag)
+
+                    if glyphCoordinateFlag:RepetitionIsTrue()
+                        integer repetitionCount = byteReader:NextByteAsUnsignedInteger()
+                        repeat repetitionCount times
+                            glyphCoordinateFlagsArray:Add(glyphCoordinateFlag)
+                        end
+                    end
+                end
+
+                // read x-Coordinates (relative)
+                Array<integer> relativeXCoordinates
+                integer flagIterator = 0
+                repeat while relativeXCoordinates:GetSize() < numberOfPoints
+                    GlyphCoordinateFlag currentFlag = glyphCoordinateFlagsArray:Get(flagIterator)
+
+                    if currentFlag:XCoordinateIsOneByte()
+                        integer currentX = byteReader:NextByteAsUnsignedInteger()
+                        if not currentFlag:XCoordinateIsSame()
+                            // is negative coordinate
+                            currentX = currentX * -1
+                        end
+                        relativeXCoordinates:Add(currentX)
+                    else    
+                        if currentFlag:XCoordinateIsSame()
+                            integer lastX = 0
+                            relativeXCoordinates:Add(lastX)
+                        else 
+                            integer currentX = byteReader:NextTwoByteInteger()
+                            relativeXCoordinates:Add(currentX)
+                        end
+                    end
+
+                    flagIterator = flagIterator + 1
+                end
+
+                // read y-Coordinates (relative)
+                Array<integer> relativeYCoordinates
+                flagIterator = 0 // reset for y
+                repeat while relativeYCoordinates:GetSize() < numberOfPoints
+                    GlyphCoordinateFlag currentFlag = glyphCoordinateFlagsArray:Get(flagIterator)
+                    
+                    if currentFlag:YCoordinateIsOneByte()
+                        integer currentY = 0
+                        check
+                            currentY = byteReader:NextByteAsUnsignedInteger()
+                        detect e
+                        end
+                        if not currentFlag:YCoordinateIsSame()
+                            // is negative coordinate
+                            currentY = currentY * -1
+                        end
+                        relativeYCoordinates:Add(currentY)
+                    elseif currentFlag:YCoordinateIsSame()
+                        integer lastY = 0
+                        relativeYCoordinates:Add(lastY)
+                    else
+                        integer currentY = 0
+                        check
+                            currentY = byteReader:NextTwoByteInteger()
+                        detect e
+                        end
+                        relativeYCoordinates:Add(currentY)
+                    end
+
+                    flagIterator = flagIterator + 1
+                end
+
+                integer pointIterator = 0
+                repeat while pointIterator < numberOfPoints
+                    glyphPoints:AddNewPointRelativeToLast(relativeXCoordinates:Get(pointIterator), relativeYCoordinates:Get(pointIterator), glyphCoordinateFlagsArray:Get(pointIterator):IsOnCurve(), IsEndpoint(pointIterator, endPointsOfContours))
+                    pointIterator = pointIterator + 1
+                end
+                //output "Just before AddVirtualPoints."
+                glyphPoints:AddVirtualPoints()
+
+
+            else
+                //output "Else statement."
+                //TODO
+                //alert("Not yet supported compound glyph")
+            end
+        end
+
+        byteReader:SetPosition(previousPosition)
+        return glyphPoints
+    end
+
+    /*
+        Called by AddNewPointRelativeToLast() in ReadGlyph() 
+        Traverses passed array of endpoints to check if passed targetPoint is
+        an endpoint.
+
+        Attribute: Parameter targetPoint - the point to be checked if endpoint
+        Attribute: Parameter endpoints - array of endpoints
+
+        Attribute: Returns True if passed point is an endpoint
+    */
+    private action IsEndpoint (integer targetPoint, Array<integer> endpoints) returns boolean
+        
+        integer index = 0
+
+        repeat while index < endpoints:GetSize()
+            if targetPoint = endpoints:Get(index)
+                return true
+            end
+
+            index = index + 1
+        end
+
+        return false
+    end
+  
+    /*
+        Traverses through TrueType file until encounters correct character
+        map table of platform ID 0.
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read.
+
+        Attribute: Parameter characterMapTablePosition - byteReader position of 
+        beginning of character map table in TrueType file being read.
+    */
+    private action ReadCharacterMapTable(ByteReader byteReader, integer characterMapTablePosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(characterMapTablePosition)
+        if iteratorIsValid
+            integer version = byteReader:NextTwoByteUnsignedInteger()
+            integer numberOfSubtables = byteReader:NextTwoByteUnsignedInteger()
+
+            integer characterMapSubtable = 0
+            integer tablePosition = byteReader:GetPosition()
+            repeat while characterMapSubtable < numberOfSubtables
+                integer platformID = byteReader:NextTwoByteUnsignedInteger()
+                integer platformspecificID= byteReader:NextTwoByteUnsignedInteger()
+                integer characterMapOffset = byteReader:NextIntegerConvertFromUnsigned()
+
+                characterMapSubtable = characterMapSubtable + 1
+
+                if platformID = 0
+                   ReadCharacterMapMapping(byteReader, characterMapTablePosition + characterMapOffset)
+                end
+            end
+        end
+        byteReader:SetPosition(previousPosition)
+    end
+
+    /*
+        Saves offset of character map in TrueType file to class's 
+        TrueTypeFileInformation object.
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read.
+
+        Attribute: Parameter characterMapOffsetPosition - byteReader position of character map
+        in TrueType file being read.
+    */
+    private action ReadCharacterMapMapping(ByteReader byteReader, integer characterMapOffsetPosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(characterMapOffsetPosition)
+        if iteratorIsValid
+            // Formats have to be read differently, so the format has
+            // to be saved
+            integer format = byteReader:NextTwoByteUnsignedInteger()
+            if format = 4
+                integer cmapPosition = byteReader:GetPosition()
+                fileInformation:SetCharacterMapTablePosition(cmapPosition, format)
+            elseif format = 12
+                // this should be viable too
+            end
+        end
+        byteReader:SetPosition(previousPosition)
+    end
+
+    /*
+        called by:
+        GetRecords in FontFileReader
+    
+        Reads heading kern table information from given TrueType file
+        into class's TrueTypeFileInformation object. Saves offset of kern tables in class 
+        TrueTypeFileInformation object. 
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read
+
+        Attribute: Parameter kernTablePosition - byteReader position of 
+        kernTable in TrueType file being read
+
+        kerning table reference: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
+    */
+    action ReadKerningTable (ByteReader byteReader, integer kernTablePosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(kernTablePosition)
+        if iteratorIsValid
+            fileInformation:SetKerningSubtablePosition(kernTablePosition)
+            
+            // format of newer versions 
+            //integer version = byteReader:NextIntegerConvertFromUnsigned()                                 // fixed32
+            //integer numberOfSubtables = byteReader:NextIntegerConvertFromUnsigned()    // uint32
+            // format of older versions
+            integer version = byteReader:NextTwoByteUnsignedInteger()
+            integer numberOfSubtables = byteReader:NextTwoByteUnsignedInteger()
+            //output "version: " + version
+            //output "numberOfSubtables: " + numberOfSubtables
+
+            integer kerningSubtable = 0            
+            repeat while kerningSubtable < numberOfSubtables
+                
+                BitwiseOperations bitwiseOperation
+                integer length = byteReader:NextIntegerConvertFromUnsigned()
+                integer coverage = byteReader:NextTwoByteUnsignedInteger()
+                integer format = bitwiseOperation:And(coverage, 65280)            // use mask value 0x00ff
+                //output "length: " + length
+                //output "coverage: " + coverage
+                //output "format: " + format
+                
+                // Format 0: Ordered List of Kerning Pairs
+                if format = 0
+                    ReadKerningSubtableFormat0(byteReader, byteReader:GetPosition())
+                end
+
+                kerningSubtable = kerningSubtable + 1
+            end 
+        end
+        
+        byteReader:SetPosition(previousPosition)
+    end
+
+    /* 
+        called by: 
+        ReadKernTables in FontFileReader (above).
+
+        Reads and stores kerning values to kerning table object in class's
+        TrueTypeFileInformation object.
+
+        Attribute: Parameter byteReader - used to travers ethrough the binary
+        TrueType file being read.
+
+        Attribute: Parameter kerningValuesPosition - byteReader position of
+        beginning of kerning values in TrueType file being read.
+    */
+    private action ReadKerningSubtableFormat0 (ByteReader byteReader, integer kerningSubtablePosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(kerningSubtablePosition)
+
+        if iteratorIsValid
+            integer nPairs = byteReader:NextTwoByteUnsignedInteger()
+            integer searchRange = byteReader:NextTwoByteUnsignedInteger()
+            integer entrySelector = byteReader:NextTwoByteUnsignedInteger()
+            integer rangeShift = byteReader:NextTwoByteUnsignedInteger()
+
+            integer pairIterator = 0
+            repeat while pairIterator < nPairs
+                integer leftCharacterGlyphIndex = byteReader:NextTwoByteUnsignedInteger()
+                integer rightCharacterGlyphIndex = byteReader:NextTwoByteUnsignedInteger()
+                integer kerningValue = byteReader:NextTwoByteInteger()
+     
+                //output pairIterator + ": " + leftCharacterGlyphIndex + "-" + rightCharacterGlyphIndex + "-  " + kerningValue
+                number kerningValueNumber = kerningValue / 1000
+                kerningTable:Add(leftCharacterGlyphIndex, rightCharacterGlyphIndex, kerningValue)
+                
+                pairIterator = pairIterator + 1
+            end 
+        end
+
+        byteReader:SetPosition(previousPosition)
+    end
+
+    /*
+        called by:
+        GetKerning in QuorumFont
+
+        Gets kerning value between two characters from kerning values stored in 
+        class kerningTable object.
+
+        Attribute: Parameter lefthandCharacter - text character on lefthand side
+        of kerning pair
+
+        Attribute: Parameter righthandCharacter - text character on righthand side
+        of kerning pair
+
+        Attribute: Returns integer - value of kerning pair between two passed characters
+    */
+    action GetKerningValue(text lefthandCharacter, text righthandCharacter) returns integer
+        integer kerningValue = 0
+        integer leftCharacterGlyphIndex = -1
+        integer rightCharacterGlyphIndex = -1
+
+        // get left character glyph index
+        if characterMap:GlyphPointsHaveBeenRead(lefthandCharacter)
+            leftCharacterGlyphIndex = characterMap:GetGlyphIndex(lefthandCharacter)
+        else
+            integer characterCode = characterMap:GetCharacterCode(lefthandCharacter)
+            leftCharacterGlyphIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
+        end
+        
+        // get right character glyph index
+        if characterMap:GlyphPointsHaveBeenRead(righthandCharacter)
+            rightCharacterGlyphIndex = characterMap:GetGlyphIndex(righthandCharacter)
+        else
+            integer characterCode = characterMap:GetCharacterCode(righthandCharacter)
+            rightCharacterGlyphIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())     
+        end
+
+        // retrieve kerning value from kerning table
+        if leftCharacterGlyphIndex > -1 and rightCharacterGlyphIndex > -1 and kerningTable:HasPair(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
+            kerningValue = me:kerningTable:GetKerningValue(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
+            //output "kerning value WAS found for " + lefthandCharacter + "(" + leftCharacterGlyphIndex + ")-" + righthandCharacter + "(" + rightCharacterGlyphIndex + "): " + kerningValue            
+        else
+            //output "kerning value not found for " + lefthandCharacter + "(" + leftCharacterGlyphIndex + ")-" + righthandCharacter + "(" + rightCharacterGlyphIndex + "): " + kerningValue
+        end
+
+        return kerningValue
+    end
+
+    action GetKerningTable() returns KerningTable
+        return me:kerningTable
+    end
+
+    /*
+        Reads and stores information from Global Font Information Table, which 
+        contains general measurements that apply to all characters of the font
+
+        Attribute: Parameter byteReader - used to traverse through the binary
+        TrueType file being read
+
+        Attribute: Parameter GlobalFontInformationTablePosition - position of Global Font Information Table
+        in TrueType file being read
+    */
+    private action ReadGlobalFontInformationTable (ByteReader byteReader, integer GlobalFontInformationTablePosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(GlobalFontInformationTablePosition)
+        if iteratorIsValid
+            // The first two entries are 16.16 fixed point values, that I don't know
+            // how to deal with yet. They contain the version number only, so I am
+            // going to skip them  (2x32 bit = 8 byte)
+            byteReader:SkipBytes(8)
+            integer checksum = byteReader:NextIntegerConvertFromUnsigned()
+            integer magicNumber = byteReader:NextIntegerConvertFromUnsigned()
+            
+            // these are bitflags with specific meanings. See https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6head.html
+            integer flags = byteReader:NextTwoByteUnsignedInteger()
+            fileInformation:SetGlobalFontInformationFlags(flags)
+
+            integer unitsPerEm = byteReader:NextTwoByteUnsignedInteger()
+            fileInformation:SetUnitsPerEm(unitsPerEm)
+
+            fileInformation:SetCreatedDate(byteReader:NextLong())
+            fileInformation:SetLastChangedDate(byteReader:NextLong())
+
+            Signed16BitFontUnit xMin
+            Signed16BitFontUnit yMin
+            Signed16BitFontUnit xMax
+            Signed16BitFontUnit yMax
+
+            xMin:SetFontUnit(byteReader:NextTwoByteInteger())
+            yMin:SetFontUnit(byteReader:NextTwoByteInteger())
+            xMax:SetFontUnit(byteReader:NextTwoByteInteger())
+            yMax:SetFontUnit(byteReader:NextTwoByteInteger())
+
+            fileInformation:SetXMinimum(xMin)
+            fileInformation:SetYMinimum(yMin)
+            fileInformation:SetXMaximum(xMax)
+            fileInformation:SetYMaximum(yMax)
+            
+            // Flags again, this time macStyle.
+            integer macStyleFlags = byteReader:NextTwoByteUnsignedInteger()
+            fileInformation:SetMacStyleFlags(macStyleFlags)
+
+            // lowest recommended points per EM
+            integer lowestRecommendedPixelsPerEm = byteReader:NextTwoByteUnsignedInteger()
+            fileInformation:SetLowestRecommendedPixelsPerEm(lowestRecommendedPixelsPerEm)
+
+            // contains small integer giving info on direction
+            // 0 : mixed; 1: only left to right; 2: like 1 but contains neutrals
+            // -1: right to left; -2: like -1 but contains neutrals
+            integer fontDirectionHint = byteReader:NextTwoByteUnsignedInteger()
+            fileInformation:SetFontDirectionHint(fontDirectionHint)
+
+
+            integer indexToLocationTableFormat = byteReader:NextTwoByteInteger()
+            fileInformation:SetIndexToLocationTableFormat(indexToLocationTableFormat)
+            integer glyphDataFormat = byteReader:NextTwoByteInteger()
+           
+        end
+        byteReader:SetPosition(previousPosition)
+    end
+
+/*
+    private action ReadCharacterMapFormat(ByteReader byteReader, integer charcode) 
+        integer length = byteReader:NextTwoByteUnsignedInteger()
+        integer language = byteReader:NextTwoByteUnsignedInteger()
+        integer segmentCountTimes2 = byteReader:NextTwoByteUnsignedInteger()
+        integer searchRange = byteReader:NextTwoByteUnsignedInteger()
+        integer entrySelector = byteReader:NextTwoByteUnsignedInteger()
+        integer rangeShift = byteReader:NextTwoByteUnsignedInteger()
+
+//        output "Length: " + length
+//        output "Language: " + language
+//        output "SegCountX2: " + segmentCountTimes2
+//        output "SearchRange: " + searchRange
+//        output "EntrySelector: " + entrySelector
+//        output "RangeShift: " + rangeShift
+
+        
+        Array<integer> endcodes
+        integer count = 0
+        integer segmentcount = segmentCountTimes2/2
+        
+        repeat while count < segmentcount
+            integer endCode = byteReader:NextTwoByteUnsignedInteger()
+
+            endcodes:Add(endCode)
+            count = count + 1
+        end
+        
+        integer reservedPad = byteReader:NextTwoByteUnsignedInteger()
+ //       output "ReservedPad: " + reservedPad
+        
+        Array<integer> startcodes
+        integer startcount = 0
+        repeat while startcount < segmentcount
+            integer startCode = byteReader:NextTwoByteUnsignedInteger()
+
+            startcodes:Add(startCode)
+            
+            
+            startcount = startcount + 1
+        end
+
+        Array<integer> idDeltas
+        integer deltacount = 0
+        repeat while deltacount < segmentcount
+            integer idDelta = byteReader:NextTwoByteInteger()
+
+            idDeltas:Add(idDelta)
+            
+            deltacount = deltacount + 1
+        end
+
+        Array<integer> idRangeOffsets
+        integer offsetcount = 0
+        repeat while offsetcount < segmentcount
+            integer idRangeOffset = byteReader:NextTwoByteUnsignedInteger()
+
+            idRangeOffsets:Add(idRangeOffset)
+  //          output "Start: " + startcodes:Get(offsetcount) + " | End: " + endcodes:Get(offsetcount) + " | Delta: " + idDeltas:Get(offsetcount) + " | Offset: " + idRangeOffsets:Get(offsetcount)
+            offsetcount = offsetcount + 1
+        end
+
+        // Rest of table is actual mapping.
+        
+    end
+*/
+
+/*
+    action FindCharacterSegment(integer charcode, Array<integer> endcodes) returns integer
+        integer i = 0
+
+        repeat while i < endcodes:GetSize()
+            if endcodes:Get(i) >= charcode
+                return i
+            else
+                i = i + 1
+            end
+        end
+
+        return -1
+    end
+
+    private action ReadGlyphTable(ByteReader byteReader) 
+        // TODO
+    end
+
+    action GetByteIterator() returns ByteReader
+        return byteReader
+    end
+
+    action GetIterator returns Iterator<TypeFace>
+        return records:GetIterator()
+    end
+*/
+    
+end

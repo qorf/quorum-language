@@ -1,4 +1,4 @@
-package Libraries.Game.Graphics
+package Libraries.Game.Graphics.Fonts
 
 use Libraries.System.File
 use Libraries.Containers.HashTable
@@ -7,9 +7,6 @@ use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
-use Libraries.Game.Graphics.Fonts.FontStrategy
-use Libraries.Game.Graphics.Fonts.FreeTypeStrategy
-use Libraries.Game.Graphics.Fonts.QuorumStrategy
 
 /*
 The Font class is used to load a font from the system. 
@@ -41,23 +38,8 @@ Attribute: Example
 
     end
 */
-class Font 
-    FontStrategy strategy = undefined
-    
-    on create
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-        if os:Contains("Windows")// or os:Contains("Mac OS X") or os:Contains("iOS Simulator") or os:Contains("iOS Device")
-            FreeTypeStrategy freeStrategy
-            strategy = freeStrategy
-        else    // Linux and Android
-            QuorumStrategy quorumStrategy
-            strategy = quorumStrategy
-        end
-        Color color
-        color = color:Black()
-        SetColor(color)
-    end
+class FontStrategy 
+   
     
     /*
     This action loads a font from a given font file. 
@@ -83,9 +65,7 @@ class Font
 
         end
     */
-    action LoadFont(File fontFile)
-        strategy:LoadFont(fontFile)
-    end
+    blueprint action LoadFont(File fontFile)
 
     /*
     This action will load a font by name from the system. On Windows, this will
@@ -110,12 +90,8 @@ class Font
 
         end
     */
-    action LoadFont(text fontName)
-        strategy:LoadFont(fontName)
-    end
+    blueprint action LoadFont(text fontName)
 
-
-   
 
     /*
     This action will look in the default system font folder and look for a font
@@ -140,9 +116,7 @@ class Font
 
         end
     */
-    action FontIsAvailable(text fontName) returns boolean
-        return strategy:FontIsAvailable(fontName)
-    end
+   blueprint action FontIsAvailable(text fontName) returns boolean
 
     /*
     This action will set the size of the font. The default font size is 14.
@@ -165,9 +139,8 @@ class Font
 
         end
     */
-    action SetSize (integer newSize)
-        strategy:SetSize(newSize)
-    end
+    blueprint action SetSize (integer newSize)
+
 
 
     /*
@@ -192,9 +165,8 @@ class Font
 
         end
     */
-    action GetSize returns integer
-        return strategy:GetSize()
-    end
+    blueprint action GetSize returns integer
+
 
     /*
     This action will rotate the characters produced by this font by the given
@@ -218,9 +190,7 @@ class Font
 
         end
     */
-    action Rotate(number rotation)
-        strategy:Rotate(rotation)
-    end
+    blueprint action Rotate(number rotation)
 
     /*
     This action will set the angle in degrees of the characters produced by this
@@ -244,9 +214,7 @@ class Font
 
         end
     */
-    action SetAngle(number newAngle)
-        strategy:SetAngle(newAngle)
-    end
+    blueprint action SetAngle(number newAngle)
 
 
     /*
@@ -274,11 +242,7 @@ class Font
 
         end
     */
-    action SetColor(Color newColor)
-        strategy:SetColor(newColor)
-    end
-
-
+    blueprint action SetColor(Color newColor)
 
     /*
     This action will return the color of the characters produced by this font.
@@ -304,9 +268,8 @@ class Font
 
         end
     */
-    action GetColor returns Color
-        return strategy:GetColor()
-    end
+    blueprint action GetColor returns Color
+
     /*
     This action will return the current angle of the font. The default angle is
     0 degrees.
@@ -329,9 +292,7 @@ class Font
 
         end
     */
-    action GetAngle returns number
-        return strategy:GetAngle()
-    end
+    blueprint action GetAngle returns number
 
     /*
     This action will release the resources used by a loaded font. The Font 
@@ -356,9 +317,8 @@ class Font
 
         end
     */
-    action Dispose
-        strategy:Dispose()
-    end
+    blueprint action Dispose
+
 
     /*
     This action will return a Glyph object for this font's representation of the
@@ -384,9 +344,11 @@ class Font
 
         end
     */
-    action GetGlyph(text character) returns Glyph
-        return strategy:GetGlyph(character)
-    end
+    blueprint action GetGlyph(text character) returns Glyph
+
+
+
+    blueprint action GetKerning(text currentCharacter, text nextCharacter) returns integer
 
 
     /*
@@ -412,9 +374,8 @@ class Font
 
         end
     */
-    action IsLoaded returns boolean
-        return strategy:IsLoaded()
-    end
+    blueprint action IsLoaded returns boolean
+
 
     /*
     This action will the height of each line of text produced by this font.
@@ -438,9 +399,8 @@ class Font
 
         end
     */
-    action GetLineHeight returns integer
-        return strategy:GetLineHeight()
-    end
+    blueprint action GetLineHeight returns integer
+
 
     /*
     This action will return an array of all files found in the system's default
@@ -473,7 +433,6 @@ class Font
 
         end
     */
-    action GetAvailableFonts returns Array<File>
-        return strategy:GetAvailableFonts()
-    end
+    blueprint action GetAvailableFonts returns Array<File>
+
 end

@@ -1,0 +1,40 @@
+package Libraries.Game.Graphics.Fonts
+
+class TrueTypeFontTableDirectory 
+    text tag = ""
+    integer checksum = -1
+    integer offset = -1
+    integer length = -1
+    
+    action SetTag(text t)
+        tag = t
+    end
+    
+    action GetTag returns text
+        return tag
+    end
+
+    action SetChecksum(integer c)
+          checksum = c
+    end
+    
+    action GetChecksum returns integer
+        return checksum
+    end
+
+    action SetOffset(integer o)
+        offset = o
+    end
+
+    action GetOffset returns integer
+        return offset
+    end
+
+    action SetLength(integer l)
+        length = l
+    end
+
+    action GetLength returns integer
+        return length
+    end
+end

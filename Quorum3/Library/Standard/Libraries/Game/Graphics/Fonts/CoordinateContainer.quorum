@@ -1,0 +1,76 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+
+class CoordinateContainer 
+    Array<XCoordinateList> list
+
+    action GetList() returns Array<XCoordinateList>
+        return me:list
+    end
+
+    action SetList(Array<XCoordinateList> list)
+        me:list = list
+    end
+
+    action GetSize() returns integer
+        return me:list:GetSize()
+    end
+
+    action Get(integer i) returns XCoordinateList
+        return me:list:Get(i)
+    end
+
+    action AddToFront(XCoordinateList l) 
+        me:list:AddToFront(l)
+    end
+
+    action AddToEnd(XCoordinateList l) 
+        me:list:AddToEnd(l)
+    end
+
+    action Add(integer i, XCoordinateList l) 
+        me:list:Add(i, l)
+    end
+    
+    action Add(XCoordinateList l)
+        me:list:Add(l)
+    end
+
+    action ToText() returns text
+        text t = ""
+        integer i = 0
+        repeat while i < me:list:GetSize()
+            XCoordinateList l = list:Get(i)
+            t = t + " :: " + l:ToText()
+            i = i + 1
+        end
+        return t
+    end
+
+    action RemoveDuplicates()
+        integer i = 0
+        repeat while i < me:list:GetSize()
+            XCoordinateList item = list:Get(i)
+            //output "Item is: " + item:ToText()
+            integer j = 0
+            repeat while j < item:GetSize()
+                PixelIntersection xCoord = item:Get(j)
+                //output "xCoord is: " + xCoord:GetXPosition()
+                integer k = j + 1
+                repeat while k < item:GetSize()
+                    if xCoord:GetXPosition() = item:Get(k):GetXPosition()
+                        item:Remove(k)
+                        item = list:Get(i)
+                        //output "Item is now: " + item:ToText()
+                        k = k - 1
+                    end
+                    k = k + 1
+                end
+                j = j + 1
+            end
+        i = i + 1    
+        end
+    end
+
+end
