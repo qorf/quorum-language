@@ -59,16 +59,12 @@ class Font
 
         useFreeType = useFreeType or mac or sim or device
 
-        output os
-
         if useFreeType
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy
-            output "Using FreeTypeStrategy"
         else    // Linux and Android
             QuorumStrategy quorumStrategy
             strategy = quorumStrategy
-            output "Using QuorumStrategy"
         end
         Color color
         color = color:Black()
