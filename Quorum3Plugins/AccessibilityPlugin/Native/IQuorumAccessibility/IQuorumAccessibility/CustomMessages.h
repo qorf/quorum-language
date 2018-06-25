@@ -20,7 +20,7 @@
 #define QUORUM_INVOKEBUTTON WM_USER + 2
 
 // Textbox messages
-#define QUORUM_UPDATECARET WM_USER + 3
+#define QUORUM_UPDATESELECTION WM_USER + 3
 #define QUORUM_SETTEXT WM_USER + 4
 
 // MenuBar messages

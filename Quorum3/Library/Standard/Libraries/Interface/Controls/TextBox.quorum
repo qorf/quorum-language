@@ -159,6 +159,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     boolean resizingScrollBars = false
 
+    /*
+    The IdentationStrategy is used while using the TAB and SHIFT-TAB commands to
+    increase or decrease indentation. The default strategy uses spaces.
+    */
+    IndentationStrategy indentation
+
     Math math
 
     on create
@@ -526,6 +532,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
 
         EmptySelectionEvent()
+    end
+
+    /*
+    Sets the caret to a particular index. Left private because it does not
+    adjust the selection, update the visuals, or trigger any events, and is only 
+    used in preparation for other calls which will perform some tasks from the 
+    caret's position and then trigger the appropriate events.
+    */
+    private action SetCaretToIndex(integer index)
+        caretLine = textValue:LineIndexFromCharacterIndex(index)
+        caretCharacter = index - textValue:CharacterIndexFromLineIndex(caretLine)
     end
 
     action MoveCaretLeft(boolean selecting)
@@ -926,8 +943,35 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         EmptySelectionEvent()
     end
 
+    action Delete(integer startIndex, integer endIndex)
+        if startIndex = endIndex
+            return now
+        end
+
+        caretLine = textValue:LineIndexFromCharacterIndex(startIndex)
+        caretCharacter = startIndex - textValue:CharacterIndexFromLineIndex(caretLine)
+
+        textValue = textValue:Delete(startIndex, endIndex)
+
+        // Force a recalculation of the width by setting its value to -1.
+        scrollRegionWidth = -1
+        Resize()
+        FitCharacterOnScreen(caretLine, caretCharacter)
+
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent()
+    end
+
     // For debugging purposes only.
     text lastInsertion = ""
+
+    action Insert(integer index, text value)
+        SetCaretToIndex(index)
+        Insert(value)
+    end
 
     action Insert(text value)
         text deletedText = ""
@@ -1435,6 +1479,32 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         NotifyTextChangeListeners(changeEvent)
     end
 
+    action AddIndentation
+        if indentation not= undefined
+            indentation:AddIndentation(me, caretLine, caretCharacter)
+        end
+    end
+
+    action AddIndentation(integer index)
+        SetCaretToIndex(index)
+        if indentation not= undefined
+            indentation:AddIndentation(me, caretLine, caretCharacter)
+        end
+    end
+
+    action RemoveIndentation
+        if indentation not= undefined
+            indentation:RemoveIndentation(me, caretLine, caretCharacter)
+        end
+    end
+
+    action RemoveIndentation(integer index)
+        SetCaretToIndex(index)
+        if indentation not= undefined
+            indentation:RemoveIndentation(me, caretLine, caretCharacter)
+        end
+    end
+
     action Select(integer startIndex, integer endIndex)
         Select(startIndex, endIndex, true)
     end
@@ -1476,5 +1546,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
         GameStateManager manager
         manager:GetInput():NotifyTextChangeListeners(event)
+    end
+
+    action SetIndentationStrategy(IndentationStrategy strategy)
+        indentation = strategy
+    end
+
+    action GetIndentationStrategy returns IndentationStrategy
+        return indentation
     end
 end

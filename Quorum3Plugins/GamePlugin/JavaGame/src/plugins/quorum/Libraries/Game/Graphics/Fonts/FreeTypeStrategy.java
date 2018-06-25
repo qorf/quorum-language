@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.Fonts;
 
 import java.nio.ByteBuffer;
 
@@ -14,7 +14,7 @@ import quorum.Libraries.Game.Graphics.TextureFilter;
  *
  * @author alleew
  */
-public class Font 
+public class FreeTypeStrategy 
 {    
     public java.lang.Object me_ = null;
     
@@ -86,7 +86,7 @@ public class Font
             throw new RuntimeException("Could not load font!");
         
         // After loading our font, we should set its initial color and size.
-        quorum.Libraries.Game.Graphics.Font quorumFont = (quorum.Libraries.Game.Graphics.Font)me_;
+        quorum.Libraries.Game.Graphics.Fonts.FontStrategy_ quorumFont = (quorum.Libraries.Game.Graphics.Fonts.FontStrategy_)me_;
         //quorum.Libraries.Game.Graphics.Color_ color = quorumFont.GetColor();
         //SetColorNative(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
         

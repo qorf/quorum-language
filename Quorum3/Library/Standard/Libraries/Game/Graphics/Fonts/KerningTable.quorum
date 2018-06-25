@@ -1,0 +1,66 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.HashTable
+
+/*
+    The KerningTable class supports storage and lookup of kerning 
+    values for Format 0 Kerning Tables.  
+*/
+class KerningTable 
+
+    HashTable<integer, KerningValuesList> kerningTable
+
+    /*
+        This action gets a value with a given character.
+
+        Attribute: Parameter leftCharacterGlyphIndex - glyph table index of 
+        character on lefthand side of kerning pair
+
+        Attribute: Parameter rightCharacterGlyphIndex - glyph table index of 
+        character on righthand side of kerning pair
+
+        Attribute: Returns the kerning value between two passed characters
+    */
+    action GetKerningValue(integer leftCharacterGlyphIndex, integer rightCharacterGlyphIndex) returns integer
+        return me:kerningTable:GetValue(leftCharacterGlyphIndex):GetKerningValue(rightCharacterGlyphIndex)
+    end
+
+    /*
+        Adds kerning value between two characters to kerning table.
+
+        Attribute: Paraeter leftCharacterGlyphIndex - glyph table index of
+        character on lefthand side of kerning pair
+
+        Attribute: Parameter rightCharacterGlyphInex - glyph table index of
+        character on righthand side of kerning pair
+
+        Attribute: Parameter kerningValue - kerning value between pair of kerned 
+        glyphs
+    */
+    action Add(integer leftCharacterGlyphIndex, integer rightCharacterGlyphIndex, integer kerningValue)
+        if me:kerningTable:HasKey(leftCharacterGlyphIndex) 
+            me:kerningTable:GetValue(leftCharacterGlyphIndex):Add(rightCharacterGlyphIndex, kerningValue)
+        else
+            KerningValuesList newList
+            newList:Add(rightCharacterGlyphIndex, kerningValue)
+            kerningTable:Add(leftCharacterGlyphIndex, newList)
+        end
+    end
+
+    /*
+        This action determines whether the kerning value table contains target pair.
+
+        Attribute: Parameter leftCharacterGlyphIndex - glyph table index of 
+        character on lefthand side of kerning pair
+
+        Attribute: Parameter rightCharacterGlyphindex - glyph table index of
+        character on righthand side of kerning pair
+
+        Attribute: Returns True if list contains passed righthand character. 
+        Returns false otherwise.
+    */
+    action HasPair(integer leftCharacterGlyphIndex, integer rightCharacterGlyphIndex) returns boolean
+        return kerningTable:HasKey(leftCharacterGlyphIndex) and kerningTable:GetValue(leftCharacterGlyphIndex):HasKey(rightCharacterGlyphIndex)
+    end
+
+end

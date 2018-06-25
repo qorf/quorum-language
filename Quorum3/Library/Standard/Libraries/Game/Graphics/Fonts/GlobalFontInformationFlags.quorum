@@ -1,0 +1,36 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Compute.BitwiseOperations
+
+class GlobalFontInformationFlags 
+
+    boolean yValueBaseline = false
+    boolean xPositionLeastSignificantBit = false
+    boolean scaledNotActualSize = false
+    boolean integerInsteadOfFractional = false
+    boolean microsoftBit = false
+    boolean verticalLayout = false
+    boolean correctLinguisticRendering = false
+    boolean metamorphosis = false
+    boolean rightToLeft = false
+    boolean rearrangementEffects = false
+    boolean genericSymbols = false
+
+
+    action Set(integer flags)
+        BitwiseOperations ops
+
+        yValueBaseline = ops:And(flags, 1) > 0
+        xPosLSB = ops:And(flags, 2) > 0
+        scaledNotActualSize = ops:And(flags, 4) > 0 
+        integerInsteadOfFractional = ops:And(flags, 8) > 0 
+        microsoftbit = ops:And(flags, 16) > 0  
+        verticalLayout = ops:And(flags, 32) > 0 
+        correctLinguisticRendering = ops:And(flags, 128) > 0 
+        metamorphosis = ops:And(flags, 256) > 0 
+        rightToLeft = ops:And(flags, 512) > 0
+        rearrangementEffects = ops:And(flags, 1024) > 0
+        genericsymbols = ops:And(flags, 16384) > 0
+    end
+
+end

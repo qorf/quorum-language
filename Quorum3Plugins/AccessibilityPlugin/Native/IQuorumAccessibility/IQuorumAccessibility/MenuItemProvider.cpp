@@ -85,12 +85,12 @@ IFACEMETHODIMP MenuItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 {
 	*pRetVal = NULL;
 
-	if (patternId == UIA_InvokePatternId)
+	if (patternId == UIA_InvokePatternId && !m_pMenuItemControl->IsMenu())
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
 	}
-	else if (patternId == UIA_ExpandCollapsePatternId)
+	else if (patternId == UIA_ExpandCollapsePatternId && m_pMenuItemControl->IsMenu())
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);

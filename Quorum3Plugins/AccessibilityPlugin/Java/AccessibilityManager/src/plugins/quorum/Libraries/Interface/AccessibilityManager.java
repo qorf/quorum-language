@@ -14,6 +14,7 @@ import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 
 
 /**
@@ -184,8 +185,8 @@ public class AccessibilityManager
     private native boolean NativeWin32UpdateToggleStatus(long nativePointer, boolean selected);
 
     // NativeWin32TextBoxTextSelectionChanged:
-    // TODO: Figure out the parameters required
-    private native boolean NativeWin32TextBoxTextSelectionChanged(long nativePointer, String TextValue, int caretLine, int caretCharacter);
+    //
+    private native boolean NativeWin32TextBoxTextSelectionChanged(long nativePointer, String TextValue, int startIndex, int endIndex);
     
     // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
     //
@@ -323,7 +324,7 @@ public class AccessibilityManager
     {
         Long itemToRemove = ITEM_MAP.get(item);
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        boolean wasRemoved = false;
+        boolean wasRemoved;
         
         // Retreive native pointer for given object
         if (itemToRemove == null)
@@ -513,15 +514,21 @@ public class AccessibilityManager
             return false;
     }
     
-    // TODO: Fix this method so that it behaves. Otherwise, only ever use CaretPositionChanged
-    public void TextSelectionChanged(Item_ textbox)
+    public void TextSelectionChanged(TextBoxSelection_ selection)
     {
-//        long nativePointer = itemMap.get(textbox);
-//        
-//        TextBox_ text = (TextBox_)textbox;
-//        
-//        NativeWin32TextBoxTextSelectionChanged(nativePointer, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
-        System.out.println("This method needs to be reworked. Use CaretPositionChanged.");
+        TextBox_ textbox = selection.GetTextBox();
+        
+        if (textbox == null)
+            return;
+        
+        Long nativePointer = ITEM_MAP.get((Item_)textbox);
+        
+        if (nativePointer == null)
+            return;
+        
+        NativeWin32TextBoxTextSelectionChanged(nativePointer, textbox.GetText(),
+            selection.GetStartIndex(), selection.GetEndIndex());
+        
     }
     
     public void CaretPositionChanged(Item_ item, Text_ fullText)

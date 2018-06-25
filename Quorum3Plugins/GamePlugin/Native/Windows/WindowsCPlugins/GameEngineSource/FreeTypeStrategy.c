@@ -1,4 +1,4 @@
-#include "Font.h"
+#include "FreeTypeStrategy.h"
 #include "math.h"
 #include "jni.h"
 
@@ -32,7 +32,7 @@ static FT_Error FontRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer
 }
 */
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_InitFreeType(JNIEnv * env, jobject clazz)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_InitFreeType(JNIEnv * env, jobject clazz)
 {
     error = FT_Init_FreeType(&library);
     if (error)
@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_InitFre
     return (jlong)&library;
 }
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_LoadFontC(JNIEnv * env, jobject jobj, jlong libHandle, jstring text)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_LoadFontC(JNIEnv * env, jobject jobj, jlong libHandle, jstring text)
 {
     const char * path;
     
@@ -58,7 +58,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_LoadFon
     return (jlong)face;
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_SetSizeC(JNIEnv * env, jobject jobj, jlong faceHandle, jint size)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_SetSizeC(JNIEnv * env, jobject jobj, jlong faceHandle, jint size)
 {
     long *ptr = (long*)faceHandle;
     FT_Face *f = (FT_Face*)ptr;
@@ -68,7 +68,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_SetSizeC
     // Error handling here -- need to determine proper way to return the error from here.
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_SetAngleC(JNIEnv * env, jobject jobj, jlong faceHandle, jdouble jAngle)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_SetAngleC(JNIEnv * env, jobject jobj, jlong faceHandle, jdouble jAngle)
 {
     FT_Matrix matrix;
     
@@ -83,7 +83,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_SetAngle
     //FT_Set_Transform(face, &matrix, 0);
 }
 
-JNIEXPORT jobject JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_LoadBitmap(JNIEnv * env, jobject jobj, jlongArray bitmapData, jchar sym, jlong faceHandle)
+JNIEXPORT jobject JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_LoadBitmap(JNIEnv * env, jobject jobj, jlongArray bitmapData, jchar sym, jlong faceHandle)
 {
     char symbol = sym;
     
@@ -115,13 +115,13 @@ JNIEXPORT jobject JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_LoadB
     return (*env)->NewDirectByteBuffer(env, glyph->bitmap.buffer, size);
 }
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_GetLineHeightNative(JNIEnv * env, jobject jobj, jlong faceHandle)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetLineHeightNative(JNIEnv * env, jobject jobj, jlong faceHandle)
 {
     FT_Face *face = (FT_Face*)faceHandle; 
     return (*face)->size->metrics.height;
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Font_DisposeC(JNIEnv * env, jobject jobj, jlong faceHandle)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_DisposeC(JNIEnv * env, jobject jobj, jlong faceHandle)
 {
     FT_Face *face = (FT_Face*)faceHandle;
     FT_Done_Face(*face);

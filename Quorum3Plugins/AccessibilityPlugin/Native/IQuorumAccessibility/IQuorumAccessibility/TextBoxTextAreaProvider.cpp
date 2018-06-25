@@ -131,15 +131,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
-	}
-	else if (propertyId == UIA_AutomationIdPropertyId)
-	{
-		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
-		if (pRetVal->bstrVal != NULL)
-		{
-			pRetVal->vt = VT_BSTR;
-		}
+		pRetVal->bstrVal = SysAllocString(L"textbox");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -347,8 +339,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	// For now, selection is hardcoded to be the degenerate text range.
-	Range caretRange = { m_pTextBoxControl->GetCaretPosition(), m_pTextBoxControl->GetCaretPosition() };
+	Range caretRange = { m_pTextBoxControl->GetStartIndex(), m_pTextBoxControl->GetEndIndex() };
 	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange);
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
@@ -414,7 +405,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	}
 
 	/*
-	This implementation will always report the closest range from a given screen coordinate point is just after the
+	This implementation will always report the closest range from a given screen coordinate point as just after the
 	first character on the first line of text. This will stop narrator from saying "No item in view" instead of
 	the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
 	within the textbox won't ever result in the character to the right of the caret being read aloud.

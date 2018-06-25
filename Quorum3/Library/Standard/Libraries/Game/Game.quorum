@@ -45,6 +45,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxStartNewLineBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxInsertBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxAddIndentationBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
@@ -448,6 +450,17 @@ class Game
         textInputSet:SetInputType(textInputSet:TEXT_INPUT)
         TextBoxInsertBehavior insertBehavior
         textBoxTable:Add(textInputSet, insertBehavior)
+
+        InputSet tabSet
+        tabSet:SetKeyboardInput(keys:TAB)
+        TextBoxAddIndentationBehavior addIndentBehavior
+        textBoxTable:Add(tabSet, addIndentBehavior)
+
+        InputSet shiftTabSet
+        shiftTabSet:SetKeyboardInput(keys:TAB)
+        shiftTabSet:AddModifier(shiftTabSet:SHIFT)
+        TextBoxRemoveIndentationBehavior removeIndentBehavior
+        textBoxTable:Add(shiftTabSet, removeIndentBehavior)
 
         gameInput:AddInputTable(textBoxTable)
 

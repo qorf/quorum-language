@@ -8,10 +8,9 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ const char* lines, _In_ int caretIndex)
-	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL)
+TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex)
+	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex)
 {
-	m_caretPosition.character = caretIndex;
 }
 
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
@@ -48,7 +47,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex)
 {
 
 	if (!Initialized)
@@ -104,14 +103,14 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 }
 
-const char* TextBoxControl::GetLine()
+std::wstring TextBoxControl::GetText()
 {
 	return m_fullText;
 }
 
 int TextBoxControl::GetLineLength()
 {
-	return static_cast<int>(strlen(m_fullText));
+	return static_cast<int>(m_fullText.size());
 }
 
 int TextBoxControl::GetLineCount()
@@ -260,11 +259,11 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_CaretPositionAttributeId)
 	{
 		retval.vt = VT_I4;
-		if (m_caretPosition.character == 0)
+		if (m_caretPosition.begin.character == 0)
 		{
 			retval.lVal = CaretPosition_BeginningOfLine;
 		}
-		else if (m_caretPosition.character == GetLineLength())
+		else if (m_caretPosition.begin.character == GetLineLength())
 		{
 			retval.lVal = CaretPosition_EndOfLine;
 		}
@@ -317,10 +316,16 @@ bool TextBoxControl::HasFocus()
 	return m_focused;
 }
 
-EndPoint TextBoxControl::GetCaretPosition()
+EndPoint TextBoxControl::GetStartIndex()
 {
-	return m_caretPosition;
+	return m_caretPosition.begin;
 }
+
+EndPoint TextBoxControl::GetEndIndex()
+{
+	return m_caretPosition.end;
+}
+
 
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
@@ -395,12 +400,13 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		SetControlFocus(false);
 		break;
 	}
-	case QUORUM_UPDATECARET:
+	case QUORUM_UPDATESELECTION:
 	{
 
-		//const char* fullText = (const char*)(lParam);
-		EndPoint caretPosition =  EndPoint(wParam);
-		UpdateCaret(caretPosition);
+		Range indices =  *(Range*)(lParam);
+		m_caretPosition = indices;
+
+		UpdateCaret();
 
 		break;
 	}
@@ -411,10 +417,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case QUORUM_SETTEXT:
 	{
-		// Set the text for the current text line.
-		// Currently the textbox only maintains one textline at a time but
-		// can and likely will need to be able to hold multiple lines.
-		//this->m_pLines->text = (WCHAR*)lParam;
+		m_fullText = (WCHAR*)lParam;
 		break;
 	}
 	default:
@@ -432,8 +435,7 @@ void TextBoxControl::SetControlFocus(_In_ bool focused)
 		NotifyFocusGained(GetHWND(), this);
 }
 
-void TextBoxControl::UpdateCaret(_In_ EndPoint caretPosition)
+void TextBoxControl::UpdateCaret()
 {
-	m_caretPosition = caretPosition;
 	NotifyCaretPositionChanged(GetHWND(), this);
 }

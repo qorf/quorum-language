@@ -7,6 +7,9 @@ use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Fonts.FontStrategy
+use Libraries.Game.Graphics.Fonts.FreeTypeStrategy
+use Libraries.Game.Graphics.Fonts.QuorumStrategy
 
 /*
 The Font class is used to load a font from the system. 
@@ -39,14 +42,18 @@ Attribute: Example
     end
 */
 class Font 
+    FontStrategy strategy = undefined
     
-    private integer size = 14
-    private number angle = 0
-    private integer height = 0
-    private boolean initialized = false
-    private HashTable<text, Glyph> glyphTable
-
     on create
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+        if os:Contains("Windows")// or os:Contains("Mac OS X") or os:Contains("iOS Simulator") or os:Contains("iOS Device")
+            FreeTypeStrategy freeStrategy
+            strategy = freeStrategy
+        else    // Linux and Android
+            QuorumStrategy quorumStrategy
+            strategy = quorumStrategy
+        end
         Color color
         color = color:Black()
         SetColor(color)
@@ -77,14 +84,7 @@ class Font
         end
     */
     action LoadFont(File fontFile)
-        if initialized
-            Dispose()
-            EmptyGlyphTable()
-        end
-
-        LoadFontNative(fontFile:GetAbsolutePath())
-        height = GetHeight()
-        initialized = true
+        strategy:LoadFont(fontFile)
     end
 
     /*
@@ -111,69 +111,11 @@ class Font
         end
     */
     action LoadFont(text fontName)
-
-        File fontFile
-        text os = GetOS()
-
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontFile:SetWorkingDirectory("/Library/Fonts")
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
-        end
-
-        text fontPath = FindFontExtension(fontName)
-        if fontPath = ""
-            alert("No font file named " + fontName + " could be found on the system!")
-        else
-            fontFile:SetPath(fontPath)
-            LoadFont(fontFile)
-        end
+        strategy:LoadFont(fontName)
     end
 
-    private system action LoadFontNative(text fontFile)
 
-    private action FindFontExtension(text fontName) returns text
-        File fontFile
-        text os = GetOS()
-
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontFile:SetWorkingDirectory("/Library/Fonts")
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
-        end
-
-        boolean success = false
-        fontFile:SetPath(fontName + ".ttf")
-        
-        if fontFile:Exists()
-           return fontName + ".ttf"
-        else
-            fontFile:SetPath(fontName + ".ttc")
-            if fontFile:Exists()
-                return fontName + ".ttc"
-            else
-                fontFile:SetPath(fontName + ".otf")
-                if fontFile:Exists()
-                    return fontName + ".otf"
-                else
-                    fontFile:SetPath(fontName + ".dfont")
-                    if fontFile:Exists()
-                        return fontName + ".dfont"
-                    else
-                        return ""
-                    end
-                end
-            end
-        end
-    end
+   
 
     /*
     This action will look in the default system font folder and look for a font
@@ -199,11 +141,7 @@ class Font
         end
     */
     action FontIsAvailable(text fontName) returns boolean
-        if FindFontExtension(fontName) = ""
-            return false
-        else
-            return true
-        end
+        return strategy:FontIsAvailable(fontName)
     end
 
     /*
@@ -228,16 +166,9 @@ class Font
         end
     */
     action SetSize (integer newSize)
-        size = newSize
-        textChanged = true
-        if initialized
-            SetSizeNative(newSize)
-            height = GetHeight()
-            EmptyGlyphTable()
-        end
+        strategy:SetSize(newSize)
     end
 
-    private system action SetSizeNative(integer newSize)
 
     /*
     This action will return the current size of the font. The default font size
@@ -262,7 +193,7 @@ class Font
         end
     */
     action GetSize returns integer
-        return size
+        return strategy:GetSize()
     end
 
     /*
@@ -288,7 +219,7 @@ class Font
         end
     */
     action Rotate(number rotation)
-        SetAngle(angle + rotation)
+        strategy:Rotate(rotation)
     end
 
     /*
@@ -314,27 +245,9 @@ class Font
         end
     */
     action SetAngle(number newAngle)
-        textChanged = true
-
-        if newAngle <= -360
-            newAngle = newAngle - 360 * cast(integer, newAngle/360)
-        end
-        if newAngle < 0
-            newAngle = 360 + newAngle
-        end
-        if newAngle >= 360
-            newAngle = newAngle - 360 * cast(integer, newAngle/360)
-        end
-
-        angle = newAngle
-
-        if initialized
-            SetAngleNative(angle * -1)
-            EmptyGlyphTable()
-        end
+        strategy:SetAngle(newAngle)
     end
 
-    private system action SetAngleNative(number angle)
 
     /*
     This action will set the color of the characters produced by this font.
@@ -362,14 +275,10 @@ class Font
         end
     */
     action SetColor(Color newColor)
-        textChanged = true
-        if initialized
-            EmptyGlyphTable()
-        end
-        SetColorNative(newColor)
+        strategy:SetColor(newColor)
     end
 
-    private system action SetColorNative(Color newColor)
+
 
     /*
     This action will return the color of the characters produced by this font.
@@ -395,8 +304,9 @@ class Font
 
         end
     */
-    system action GetColor returns Color
-
+    action GetColor returns Color
+        return strategy:GetColor()
+    end
     /*
     This action will return the current angle of the font. The default angle is
     0 degrees.
@@ -420,7 +330,7 @@ class Font
         end
     */
     action GetAngle returns number
-        return angle
+        return strategy:GetAngle()
     end
 
     /*
@@ -447,11 +357,8 @@ class Font
         end
     */
     action Dispose
-        DisposeNative()
-        initialized = false
+        strategy:Dispose()
     end
-
-    private system action DisposeNative
 
     /*
     This action will return a Glyph object for this font's representation of the
@@ -478,17 +385,9 @@ class Font
         end
     */
     action GetGlyph(text character) returns Glyph
-        text char = character:GetCharacter(0)
-        if glyphTable:HasKey(char)
-            return glyphTable:GetValue(char):CopyGlyph()
-        else
-            Glyph temp = GetGlyphNative(char)
-            glyphTable:Add(char, temp)
-            return temp
-        end
+        return strategy:GetGlyph(character)
     end
 
-    private system action GetGlyphNative(text character) returns Glyph
 
     /*
     This action will check if the font has been loaded yet. If the font has
@@ -514,10 +413,8 @@ class Font
         end
     */
     action IsLoaded returns boolean
-        return initialized
+        return strategy:IsLoaded()
     end
-
-    private system action GetHeight returns integer
 
     /*
     This action will the height of each line of text produced by this font.
@@ -542,7 +439,7 @@ class Font
         end
     */
     action GetLineHeight returns integer
-        return height
+        return strategy:GetLineHeight()
     end
 
     /*
@@ -577,51 +474,6 @@ class Font
         end
     */
     action GetAvailableFonts returns Array<File>
-
-        text os = GetOS()
-
-        Array<File> fontFiles = undefined
-        File fontDirectory
-
-        if os:Contains("Windows")
-            fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontDirectory:SetWorkingDirectory("/Library/Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("iOS Device")
-            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        else
-            // Find fonts for a linux system.
-        end
-
-        return fontFiles
+        return strategy:GetAvailableFonts()
     end
-    
-    // Used to determine where to look for available fonts.
-    private action GetOS returns text
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-        return os
-    end
-
-    private action EmptyGlyphTable
-        Iterator<Glyph> glyphs = glyphTable:GetValueIterator()
-        Glyph temp = undefined
-        Drawable tempDrawable = undefined
-        repeat while glyphs:HasNext()
-            temp = glyphs:Next()
-            tempDrawable = temp:drawable
-
-            if tempDrawable not= undefined
-                tempDrawable:Dispose()
-            end
-        end
-        glyphTable:Empty()
-    end
-
 end
