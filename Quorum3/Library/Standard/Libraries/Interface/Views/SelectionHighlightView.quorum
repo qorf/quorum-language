@@ -1,0 +1,75 @@
+package Libraries.Interface.Views
+
+use Libraries.Interface.Views.ControlView
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Painter2D
+
+class SelectionHighlightView is ControlView, Drawable
+
+    Color color = undefined
+    Gradient gradient = undefined
+    Color unselected
+
+    on create
+        unselected:SetColor(1, 1, 1, 0)
+    end
+
+    action Initialize(Color selectionColor)
+        color = selectionColor
+        gradient = undefined
+        LoadFilledRectangle(1, 1, unselected)
+    end
+
+    action Initialize(Gradient selectionGradient)
+        color = undefined
+        gradient = selectionGradient
+        LoadFilledRectangle(1, 1, unselected)
+    end
+
+    action Draw(Painter2D painter)
+        parent:Drawable:Draw(painter)
+    end
+
+    action UpdateSize(number width, number height)
+        SetSize(width, height)
+    end
+
+    action UpdatePosition(number x, number y)
+        SetPosition(x, y)
+    end
+
+    action UpdateRotation(number angle)
+        SetRotation(angle)
+    end
+
+    action UpdateFlipping(boolean flipX, boolean flipY)
+        SetFlipX(flipX)
+        SetFlipY(flipY)
+    end
+
+    action GainedSelection
+        if color not= undefined
+            SetColor(color)
+        elseif gradient not= undefined
+            SetGradient(gradient)
+        end
+    end
+
+    action LostSelection
+        SetColor(unselected)
+    end
+
+    action Copy returns ControlView
+        SelectionHighlightView content
+        if color not= undefined
+            content:Initialize(color)
+        elseif gradient not= undefined
+            content:Initialize(gradient)
+        end
+        return content
+    end
+    
+end

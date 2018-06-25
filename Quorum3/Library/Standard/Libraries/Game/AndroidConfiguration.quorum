@@ -2,6 +2,16 @@ package Libraries.Game
 
 class AndroidConfiguration is ApplicationConfiguration
 
+    public constant integer LANDSCAPE = 1
+    public constant integer PORTRAIT = 2
+
+    /*
+    What orientation the phone should be in by default when running a Game.
+    This should be one of either the LANDSCAPE or PORTRAIT constants. The 
+    default value is LANDSCAPE.
+    */
+    public integer defaultOrientation = LANDSCAPE
+
     /*
     Number of samples to use for CSAA/MSAA. 2 is a good value.
     */
@@ -92,12 +102,11 @@ class AndroidConfiguration is ApplicationConfiguration
     public boolean useImmersiveMode = false
 
     /*
-    /** whether to use {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20API18} in place of the classic
-	 * {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20} on Android API 10 and lower.
-	 * In case this is true {@link com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20API18} will be used.
-	 * This implementation properly supports attach to and detach from window. default: false 
-	public boolean useGLSurfaceView20API18 = false;
+    The maximum number of seconds allowed between each touch event before the
+    tap is no longer considered related to the previous tap. This is used
+    for things such as double-tap input.
     */
+    public number multipleTapTimer = 0.5
 
     /*
     This action will set the game display to fill the entire screen of the 

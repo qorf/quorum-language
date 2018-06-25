@@ -13,7 +13,7 @@ public class KeyboardEvent {
     
     public java.lang.Object me_ = null;
     
-    public final static int ANY_KEY = -1;
+    public final static int ANY_KEY = 1;
     public final static int NUM_0 = 7;
     public final static int NUM_1 = 8;
     public final static int NUM_2 = 9;

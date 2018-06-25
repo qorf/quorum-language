@@ -1,0 +1,162 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Selections.TabPaneSelection
+
+class TabPane is Item2D
+    
+    TabBar bar = undefined
+    Item2D currentItem = undefined
+    Item2D viewArea
+    Layout viewLayout
+    TabPaneSelection selection
+
+    on create
+        SetInputGroup("TabPane")
+        SetName("Tab Pane")
+        viewArea:SetName("Tab View Area")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:TABPANE)
+    end
+
+    action Initialize(number width, number height, Array<Tab> tabs)
+        TabBar tabBar
+        bar = tabBar
+        bar:SetTabPane(me)
+        bar:Initialize(tabs)
+        
+        viewLayout:SetPercentageX(0)
+        viewLayout:SetPercentageY(0)
+        viewLayout:SetPercentageWidth(1)
+        viewLayout:SetPercentageHeight(1)
+        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewArea:AddLayout(viewLayout)
+
+        viewArea:SetClipping(true)
+
+        Add(viewArea)
+        Add(bar)
+
+        SetSize(width, height)
+
+        selection:Initialize(me, -1)
+
+        if tabs:GetSize() > 0
+            Select(0)
+        end
+    end
+
+    private action SetCurrentItem(Item2D item)
+        if currentItem not= undefined
+            viewArea:Remove(currentItem)
+        end
+        if item not= undefined
+            viewArea:Add(item)
+            item:Focus()
+        else
+            Focus()
+        end
+        currentItem = item
+
+        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewArea:Resize()
+    end
+
+    action GetCurrentItem returns Item2D
+        return currentItem
+    end
+
+    action Add(Array<Tab> array)
+        bar:Add(array)
+    end
+
+    action Add(Tab tab)
+        bar:Add(tab)
+    end
+
+    action Remove(Tab tab)
+        bar:Remove(tab)
+    end
+
+    action Get(integer index) returns Tab
+        return bar:Get(index)
+    end
+
+    action GetSize returns integer
+        return bar:GetSize()
+    end
+
+    action Select(integer index)
+        if index = -1
+            Deselect()
+        elseif index >= 0 and index < GetSize()
+            Get(index):SetToggleState(true)
+        end
+    end
+
+    action Select(Tab tab)
+        integer size = GetSize()
+        integer counter = 0
+        repeat while counter < size
+            if Get(counter) = tab
+                Select(counter)
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+    action Deselect
+        integer index = selection:GetIndex()
+        if index >= 0 and index < GetSize()
+            Get(index):SetToggleState(false)
+        end
+    end
+
+    action UpdateSelection(Tab tab)
+        integer size = GetSize()
+        integer index = selection:GetIndex()
+        if index >= 0 and index < size
+            if Get(index) = tab
+                return now
+            end
+        end
+
+        integer counter = 0
+        boolean found = false
+
+        if tab not= undefined
+            repeat while counter < size
+                if Get(counter) = tab
+                    selection:Set(counter)
+                    found = true
+                    counter = size
+                end
+                counter = counter + 1
+            end
+        end
+
+        if found
+            SetCurrentItem(tab:GetRelatedItem())
+        else
+            SetCurrentItem(undefined)
+            selection:Set(-1)
+        end
+    end
+
+    action GetSelection returns TabPaneSelection
+        return selection
+    end
+
+    action AddTabChangeListener(TabChangeListener listener)
+        bar:AddTabChangeListener(listener)
+    end
+
+    action RemoveTabChangeListener(TabChangeListener listener)
+        bar:RemoveTabChangeListener(listener)
+    end
+end

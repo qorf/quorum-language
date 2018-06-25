@@ -1,8 +1,11 @@
 package Libraries.Game
 
+use Libraries.Interface.Item
 use Libraries.Interface.Item3D
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -90,6 +93,7 @@ class Layer3D is Layer
     Painter3D painter
     Environment environment
     Skybox skybox = undefined
+    GameStateManager manager
 
     boolean newItemAdded = false
 
@@ -188,6 +192,11 @@ class Layer3D is Layer
         items:Add(item)
         EnableItemLighting(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -238,6 +247,11 @@ class Layer3D is Layer
         item:SetLayer(me)
         items:Add(index, item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -289,6 +303,11 @@ class Layer3D is Layer
         item:SetLayer(me)
         items:AddToFront(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -397,6 +416,11 @@ class Layer3D is Layer
         item:SetLayer(undefined)
         items:Remove(item)
         DisableItemLighting(item)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
     end
 
     /*
@@ -453,6 +477,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end 
 
@@ -509,6 +539,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -564,6 +600,12 @@ class Layer3D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -866,6 +908,11 @@ class Layer3D is Layer
         if oldItem not= undefined
             item:SetLayer(undefined)
             DisableItemLighting(oldItem)
+
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(item)
+            end
         end
 
         items:Set(index, item)
@@ -877,6 +924,11 @@ class Layer3D is Layer
             item:SetLayer(me)
             newItemAdded = true
             EnableItemLighting(item)
+
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(item)
+            end
         end
     end
 
@@ -1029,13 +1081,15 @@ class Layer3D is Layer
     needed. Most users will never need to use this action directly.
 
     Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
-    action ProcessMouseEvent(MouseEvent event)
+    action ProcessMouseEvent(MouseEvent event) returns Item
         Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
         Item3D temp = undefined
+        Item result = undefined
 
         /*
         TO-DO: This array of all items is regenerated for each mouse event
@@ -1069,6 +1123,9 @@ class Layer3D is Layer
                 event:SetSource(eventTargetArray:Get(counter):GetValue())
                 eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = eventTargetArray:Get(counter):GetValue()
+                end
                 counter = counter + 1
             end
 
@@ -1131,6 +1188,8 @@ class Layer3D is Layer
         if event:GetSource() not= undefined and event:eventType = event:CLICKED_MOUSE
             event:GetSource():Focus()
         end
+
+        return result
     end
 
     /*
@@ -1140,12 +1199,13 @@ class Layer3D is Layer
 
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
-    action ProcessTouchEvent(TouchEvent event)
+    action ProcessTouchEvent(TouchEvent event) returns Item
         Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
         Item3D temp = undefined
+        Item result = undefined
 
         /*
         TO-DO: This array of all items is regenerated for each mouse event
@@ -1176,8 +1236,12 @@ class Layer3D is Layer
             eventTargetArray:Sort()
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
+                event:SetSource(eventTargetArray:Get(counter):GetValue())
                 eventTargetArray:Get(counter):GetValue():ProcessTouchEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = eventTargetArray:Get(counter):GetValue()
+                end
                 counter = counter + 1
             end
 
@@ -1219,6 +1283,12 @@ class Layer3D is Layer
             end
 
         end
+
+        if event:GetSource() not= undefined and event:eventType = event:BEGAN
+            event:GetSource():Focus()
+        end
+
+        return result
     end
 
     /*
@@ -2860,5 +2930,17 @@ class Layer3D is Layer
         joint:GetEdgeB():SetNext(undefined)
 
         //TODO: collision filtering?
+    end
+
+    action Resize(ResizeEvent event)
+        number width = event:GetWidth()
+        number height = event:GetHeight()
+
+        camera:SetWidth(width)
+        camera:SetHeight(height)
+
+        camera:Update()
+
+        // Resize items, if reasonable to do so, here.
     end
 end

@@ -42,7 +42,8 @@ public class Run extends QuorumAction implements ActionListener {
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
             cancel.progress = progress;
             progress.start();
-            boolean success = build();
+            BuildInformation info = build();
+            boolean success = info.success;
             if(!success) {
                 progress.finish();
                 return;
@@ -59,7 +60,7 @@ public class Run extends QuorumAction implements ActionListener {
 
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
-            String runName = runDirectory.getName() + "/" + project.getExecutableName();
+            String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
 
             // Spawn a new Java process that will run "Default.jar" from the project directory.
             String java = System.getProperty("java.home");

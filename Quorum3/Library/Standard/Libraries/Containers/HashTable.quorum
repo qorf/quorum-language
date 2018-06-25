@@ -226,6 +226,32 @@ class HashTable<Key, Value>
         return size
     end
 
+     /*
+        This action sets the size of the hash table. If this table already has 
+        entries, it forces it to resize, manually rehashing all objects. For this 
+        reason, we recommend selecting a size before adding items to the table.
+
+        Attribute: Returns The iterator of keys. 
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        use Libraries.Containers.Iterator
+
+        HashTable<text, integer> phoneBook
+        phoneBook:SetSize(20)
+        phoneBook:Add("Jane", 2626984)
+        Array<text> keysIterator = phoneBook:GetKeyArray()
+    */
+    action SetSize(integer size)
+        if not IsEmpty()
+            Resize(size)
+        else 
+            array:SetSize(arraySize)
+            array:SetAutoResize(false)
+            maxItemsBeforeResize = ComputeMaxItemResize()
+        end
+    end
+
     /*
         This action empties or clears out the hash table.
 
@@ -287,7 +313,7 @@ class HashTable<Key, Value>
 
     /*
         This action adds an item to the hash table, given the key-value pair. It
-        functions identically to the add action and exists only as a convencience
+        functions identically to the add action and exists only as a convenience
         action, given that there are also actions named with the prefix Get.
 
         Attribute: Parameter key The key used to access the value.

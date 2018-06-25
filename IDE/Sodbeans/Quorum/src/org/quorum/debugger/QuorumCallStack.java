@@ -79,7 +79,7 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
         Project proj = cookie.getProject();
         if(proj instanceof QuorumProject) {
             QuorumProject project = (QuorumProject) proj;
-            support.setCompiler(project.getCompiler());
+            support.setProject(project);
         }
     }
     

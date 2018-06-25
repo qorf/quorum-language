@@ -1,8 +1,13 @@
 package Libraries.Game
 
+use Libraries.Game.all
+use Libraries.Interface.Behaviors.all
+use Libraries.Interface.all
+use Libraries.Interface.Events.all
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
+use Libraries.Compute.BitwiseOperations
 use Libraries.Interface.Item
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
@@ -17,6 +22,9 @@ use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.TextInputProcessor
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.ResizeProcessor
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -29,16 +37,44 @@ class DesktopInput is GameInput
     private KeyboardProcessor keyboardProcessor
     private MouseProcessor mouseProcessor
     private TextInputProcessor textInputProcessor
+    private ResizeProcessor resizeProcessor
 
     Array<KeyboardListener> keyboardListeners
     InputSet keyboardModifiers
+    InputSet mouseButtons
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TextInputListener> textInputListeners
+    Array<ResizeListener> resizeListeners
 
     GameStateManager manager
+
+    BitwiseOperations bits
+
+    /*
+    The target of the last Mouse movement event. This is used to track where the
+    mouse cursor is for the purpose of triggering "BEGIN" and "FINISH" type
+    mouse movement InputSets.
+    */
+    Item lastMouseMoveTarget = undefined
+
+    Array<InputSet> pressedKeys
+
+    /*
+    An array containing "recent" mouse clicks. Clicks are considered recent if
+    they happened within a certain number of seconds, defined by the
+    "multipleClickTimer" value from DesktopConfiguration.
+    */
+    Array<RecentInputTimer> recentClicks
+
+    /*
+    An array containing "recent" key presses. Presses are considered recent if
+    they happened within a certain number of seconds, defined by the
+    "multipleKeyPressTimer" value from DesktopConfiguration.
+    */
+    Array<RecentInputTimer> recentKeyPresses
 
     /*
     This action will identify all input events that have occurred and notify
@@ -48,28 +84,291 @@ class DesktopInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
+
+        UpdateRecentInputTimers()
+
         Array<Layer> layers = parent:GameInput:layers
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
 
+        InputSet set = keyboardModifiers:Copy()
+        InputSet multiSet = undefined
+        InputSet anySet = keyboardModifiers:Copy()
+
+        RecentInputTimer recentInput = undefined
+
+        Item target = undefined
+        Item mouseMoveTarget = undefined
+
         repeat mouseEvents:GetSize() times
             mouseEvent = mouseEvents:RemoveFromFront()
 
+            set:SetMouseInput(mouseEvent:mouseButton)
+            anySet:SetMouseInput(mouseEvent:ANY)
+            if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                set:SetInputType(set:MOUSE_MOVEMENT_INPUT)
+                anySet:SetInputType(set:MOUSE_MOVEMENT_INPUT)
+                set:SetInputTrigger(set:CONTINUE)
+                anySet:SetInputTrigger(set:CONTINUE)
+            elseif mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                set:SetInputTrigger(set:BEGIN)
+                anySet:SetInputTrigger(set:BEGIN)
+
+                recentInput = GetRecentMouseInput(mouseEvent)
+                MouseButtonsChanged(mouseEvent)
+
+                multiSet = set:Copy()
+
+            elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(set:FINISH)
+
+                MouseButtonsChanged(mouseEvent)
+
+            elseif mouseEvent:eventType = mouseEvent:SCROLLED_MOUSE
+                set:SetInputType(set:MOUSE_WHEEL_INPUT)
+                anySet:SetInputType(set:MOUSE_WHEEL_INPUT)
+            end
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetMouseEvent(mouseEvent)
+
+            boolean useDefaultTable = true
+            
             integer counter = layers:GetSize()
-            repeat while counter > 0 and not mouseEvent:WasEventHandled()
+            repeat while not mouseEvent:WasEventHandled() and counter > 0
                 counter = counter - 1
-                layers:Get(counter):ProcessMouseEvent(mouseEvent)
+                Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
+
+                if mouseEvent:GetSource() not= undefined
+                    Item seeker = mouseEvent:GetSource()
+
+                    boolean noMoveTarget = true
+                    if not (mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE)
+                        noMoveTarget = false
+                    end
+
+                    InputSet beginSet = set:Copy()
+                    beginSet:SetInputTrigger(beginSet:BEGIN)
+                    InputSet finishSet = set:Copy()
+                    finishSet:SetInputTrigger(finishSet:FINISH)
+
+                    InputSet beginAnySet = anySet:Copy()
+                    beginAnySet:SetInputTrigger(beginAnySet:BEGIN)
+                    InputSet finishAnySet = anySet:Copy()
+                    finishAnySet:SetInputTrigger(finishAnySet:FINISH)
+
+                    repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
+                        InputTable table = GetInputTable(seeker:GetInputGroup())
+
+                        if useDefaultTable
+                            if table not= undefined
+                                if recentInput not= undefined
+                                    if ItemsAreRelated(seeker, recentInput:item)
+                                        multiSet:SetEventCount(recentInput:count + 1)
+                                    else
+                                        multiSet:SetEventCount(1)
+                                    end
+                                    if table:HasKey(multiSet)
+                                        set = multiSet
+                                    end
+                                end
+                                if table:HasKey(set) or table:HasKey(anySet)
+                                    if recentInput not= undefined
+                                        recentInput:timer = 0
+                                        if recentInput:item not= seeker
+                                            recentInput:item = seeker
+                                            recentInput:count = 1
+                                            mouseEvent:clickCount = 1
+                                        else
+                                            recentInput:count = recentInput:count + 1
+                                            mouseEvent:clickCount = recentInput:count
+                                        end
+                                    end
+
+                                    useDefaultTable = false
+                                    mouseEvent:SetEventHandled(true)
+                                    target = seeker
+                                end
+                            end
+                        end
+
+                        if noMoveTarget
+                            if table not= undefined
+                                boolean valid = table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet)
+                                if (not valid) and mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                                    valid = table:HasKey(beginAnySet) or table:HasKey(anySet) or table:HasKey(finishAnySet)
+                                end
+
+                                if valid
+                                    noMoveTarget = false
+                                    mouseMoveTarget = seeker
+                                end
+                            end
+                        end
+
+                        if seeker is Item2D
+                            Item2D target2D = cast(Item2D, seeker)
+                            seeker = target2D:GetParent()
+                        elseif seeker is Item3D
+                            Item3D target3D = cast(Item3D, seeker)
+                            seeker = target3D:GetParent()
+                        else
+                            seeker = undefined
+                        end
+                    end
+
+                end
             end
 
             if not mouseEvent:WasEventHandled()
                 NotifyMouseListeners(mouseEvent)
             end
+
+            behaviorEvent:SetItem(target)
+            InputTable table = undefined
+
+            if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                if lastMouseMoveTarget not= mouseMoveTarget
+                    BehaviorEvent lastTargetEvent
+                    lastTargetEvent:SetItem(undefined)
+                    lastTargetEvent:SetMouseEvent(mouseEvent)
+
+                    boolean useAnySet = mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+
+                    InputSet finishSet = set:Copy()
+                    finishSet:SetInputTrigger(set:FINISH)
+                    InputSet finishAnySet = anySet:Copy()
+                    finishAnySet:SetInputTrigger(set:FINISH)
+
+                    Item lastTarget = lastMouseMoveTarget
+
+                    repeat while lastTarget not= undefined
+                        InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
+
+                        boolean valid = false
+                        if moveTable not= undefined
+                            valid = moveTable:HasKey(finishSet) or (useAnySet and moveTable:HasKey(finishAnySet))
+                        end
+
+                        if valid
+                            lastTargetEvent:SetItem(lastTarget)
+                            lastTarget = undefined
+                        else
+                            if target is Item2D
+                                Item2D target2D = cast(Item2D, lastTarget)
+                                lastTarget = target2D:GetParent()
+                            elseif target is Item3D
+                                Item3D target3D = cast(Item3D, lastTarget)
+                                lastTarget = target3D:GetParent()
+                            else
+                                lastTarget = undefined
+                            end
+                        end
+                    end
+
+                    if lastTargetEvent:GetItem() = undefined
+                        table = GetDefaultInputTable()
+                    else
+                        table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
+                    end
+
+                    boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
+                    if useAnySet
+                        tableProcessResult = table:ProcessInput(finishAnySet, lastTargetEvent)
+                    end
+
+                    BehaviorEvent newTargetEvent
+                    newTargetEvent:SetItem(undefined)
+                    newTargetEvent:SetMouseEvent(mouseEvent)
+
+                    InputSet beginSet = set:Copy()
+                    beginSet:SetInputTrigger(set:BEGIN)
+                    InputSet beginAnySet = anySet:Copy()
+                    beginAnySet:SetInputTrigger(set:BEGIN)
+
+                    Item newTarget = mouseMoveTarget
+
+                    repeat while newTarget not= undefined
+                        InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
+
+                        // Calculate boolean over multiple steps - necessary to
+                        // circumvent compiler bug.
+                        boolean valid = false
+                        if moveTable not= undefined
+                            valid = moveTable:HasKey(beginSet) or (useAnySet and moveTable:HasKey(beginAnySet))
+                        end
+
+                        if valid
+                            newTargetEvent:SetItem(newTarget)
+                            newTarget = undefined
+                        else
+                            if newTarget is Item2D
+                                Item2D target2D = cast(Item2D, newTarget)
+                                newTarget = target2D:GetParent()
+                            elseif newTarget is Item3D
+                                Item3D target3D = cast(Item3D, newTarget)
+                                newTarget = target3D:GetParent()
+                            else
+                                newTarget = undefined
+                            end
+                        end
+                    end
+
+                    table = undefined
+
+                    if newTargetEvent:GetItem() = undefined
+                        table = GetDefaultInputTable()
+                    else
+                        table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
+                    end
+
+                    table:ProcessInput(beginSet, newTargetEvent)
+                    if useAnySet
+                        table:ProcessInput(beginAnySet, newTargetEvent)
+                    end
+
+                    lastMouseMoveTarget = mouseMoveTarget
+                end
+            end
+
+            if useDefaultTable
+                table = GetDefaultInputTable()
+
+                if recentInput not= undefined
+
+                    if ItemsAreRelated(recentInput:item, mouseEvent:GetSource())
+                        multiSet:SetEventCount(recentInput:count + 1)
+                        recentInput:timer = 0
+                        recentInput:count = recentInput:count + 1
+                        mouseEvent:clickCount = recentInput:count
+                        if table:HasKey(multiSet)
+                            set = multiSet
+                        end
+                    else
+                        recentInput:timer = 0
+                        recentInput:count = 1
+                        mouseEvent:clickCount = 1
+                    end
+
+                    recentInput:item = mouseEvent:GetSource()
+                end
+            else
+                table = GetInputTable(target:GetInputGroup())
+            end
+
+            table:ProcessInput(set, behaviorEvent)
+            table:ProcessInput(anySet, behaviorEvent)
         end
 
+        // After processing all the mouse events, trigger CONTINUE InputSets.
+        ContinueMouseInputSets()
+
+        // Begin processing other event types.
         keyboardProcessor:Update()
         
-        if keyboardProcessor:HasEvents()
-            ProcessKeyboardEvent(keyboardProcessor:GetEvents())
+        if keyboardProcessor:HasEvents() or (not pressedKeys:IsEmpty())
+            ProcessKeyboardEvents(keyboardProcessor:GetEvents())
         end
 
         textInputProcessor:Update()
@@ -77,21 +376,130 @@ class DesktopInput is GameInput
         if textInputProcessor:HasEvents()
             ProcessTextInputEvent(textInputProcessor:GetEvents())
         end
+
+        resizeProcessor:Update()
+        
+        if resizeProcessor:HasEvents()
+            List<ResizeEvent> resizeEvents = resizeProcessor:GetEvents()
+
+            repeat while (not resizeEvents:IsEmpty())
+                ResizeEvent event = resizeEvents:RemoveFromFront()
+                integer counter = 0
+                repeat while counter < resizeListeners:GetSize()
+                    resizeListeners:Get(counter):SizeChanged(event)
+                    counter = counter + 1
+                end
+
+                counter = 0
+                repeat while counter < layers:GetSize()
+                    layers:Get(counter):Resize(event)
+                    counter = counter + 1
+                end
+            end
+        end
+
     end
 
-    private action ProcessKeyboardEvent(List<KeyboardEvent> events)
+    private action UpdateRecentInputTimers
+        number seconds = manager:GetGameDisplay():GetSecondsBetweenFrames()
+        DesktopConfiguration config = manager:GetGame():GetDesktopConfiguration()
+        number clickLimit = config:multipleClickTimer
+        number keyPressLimit = config:multipleKeyPressTimer
+
+        integer recentCounter = recentClicks:GetSize()
+        repeat while recentCounter > 0
+            recentCounter = recentCounter - 1
+            RecentInputTimer value = recentClicks:Get(recentCounter)
+            value:timer = value:timer + seconds
+            if value:timer > clickLimit
+                recentClicks:RemoveAt(recentCounter)
+                recentCounter = recentCounter - 1
+            end
+        end
+
+        recentCounter = recentKeyPresses:GetSize()
+        repeat while recentCounter > 0
+            recentCounter = recentCounter - 1
+            RecentInputTimer value = recentKeyPresses:Get(recentCounter)
+            value:timer = value:timer + seconds
+            if value:timer > keyPressLimit
+                recentKeyPresses:RemoveAt(recentCounter)
+                recentCounter = recentCounter - 1
+            end
+        end
+    end
+
+    private action GetRecentMouseInput(MouseEvent event) returns RecentInputTimer
+        integer counter = 0
+        integer button = event:mouseButton
+        repeat while counter < recentClicks:GetSize()
+            RecentInputTimer timer = recentClicks:Get(counter)
+            if timer:inputValue = button
+                return timer
+            end
+
+            counter = counter + 1
+        end
+
+        RecentInputTimer timer
+        timer:inputValue = button
+        timer:count = 0
+        recentClicks:Add(timer)
+
+        return timer
+    end
+
+    private action ItemsAreRelated(Item elder, Item younger) returns boolean
+        // If both are undefined, return true, otherwise return false.
+        if elder = undefined
+            if younger = undefined
+                return true
+            end
+            return false
+        elseif younger = undefined
+            return false
+        end
+
+        if elder is Item2D
+            Item2D item = cast(Item2D, younger)
+            repeat while item not= undefined
+                if item:Equals(elder)
+                    return true
+                end
+                item = item:GetParent()
+            end
+        else // Assume that both items are Item3D
+            Item3D item = cast(Item3D, younger)
+            repeat while item not= undefined
+                if item:Equals(elder)
+                    return true
+                end
+                item = item:GetParent()
+            end
+        end
+
+        return false
+    end
+
+    private action ProcessKeyboardEvents(List<KeyboardEvent> events)
+
         KeyboardEvent currentEvent = undefined
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
 
-        text inputGroup = ""
-        Item focusedItem = manager:GetFocus()
-        if focusedItem not= undefined
-            inputGroup = focusedItem:GetInputGroup()
-        end
-
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
+
+            InputSet set = keyboardModifiers:Copy()
+            set:SetKeyboardInput(currentEvent:keyCode)
+
+            InputSet anySet = keyboardModifiers:Copy()
+            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
+
+            if currentEvent:eventType = currentEvent:RELEASED_KEY
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(anySet:FINISH)
+            end
 
             if currentEvent:eventType = currentEvent:PRESSED_KEY
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
@@ -103,6 +511,11 @@ class DesktopInput is GameInput
                 elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
                     keyboardModifiers:AddModifier(keyboardModifiers:META)
                 end
+
+                InputSet pressedSet
+                pressedSet:SetKeyboardInput(currentEvent:keyCode)
+                pressedSet:SetInputTrigger(pressedSet:CONTINUE)
+                pressedKeys:Add(pressedSet)
             else
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
                     keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
@@ -113,30 +526,52 @@ class DesktopInput is GameInput
                 elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
                     keyboardModifiers:RemoveModifier(keyboardModifiers:META)
                 end
+
+                InputSet pressedSet
+                pressedSet:SetKeyboardInput(currentEvent:keyCode)
+                pressedSet:SetInputTrigger(pressedSet:CONTINUE)
+                pressedKeys:Remove(pressedSet)
             end
 
-            InputSet set = keyboardModifiers:Copy()
-            set:SetKeyboardInput(currentEvent:keyCode)
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
 
-            if currentEvent:eventType = currentEvent:RELEASED_KEY
-                set:SetInputTrigger(set:RELEASE)
-            end
-            
             BehaviorEvent behaviorEvent
-            behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetKeyboardEvent(currentEvent)
 
-            InputTable table = GetInputTable(inputGroup)
-
             /*
-            Using boolean short-circuit evaluation. If the table is defined,
-            the input is processed - if the input set wasn't found in the table,
-            it returns false. Thus the default table is referenced if there was
-            no table with an identifier matching the input group, or if such a
-            table existed but didn't handle this InputSet.
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
             */
-            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                    processed = processed or table:ProcessInput(anySet, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if not processed
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
+                processed = GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
             end
 
             repeat while listenIterator:HasNext()
@@ -149,6 +584,138 @@ class DesktopInput is GameInput
             end
 
             listenIterator:Rewind()
+        end
+
+        integer counter = 0
+
+        repeat while counter < pressedKeys:GetSize()
+            InputSet set = pressedKeys:Get(counter)
+
+            KeyboardEvent event
+            event:keyCode = set:GetInputValue()
+
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetKeyboardEvent(event)
+
+            /*
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
+            */
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if not processed
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+
+            /*
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetKeyboardEvent(event)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            If the table exists, attempt to trigger behaviors that use that
+            specific input or that trigger on any input of that type. Once both
+            are tested, if neither were successful, try to trigger behaviors
+            from the default input table instead.
+            *
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+            */
+
+            counter = counter + 1
+        end
+
+        if (not pressedKeys:IsEmpty())
+            KeyboardEvent event
+
+            InputSet set
+            set:SetKeyboardInput(event:ANY_KEY)
+            set:SetInputTrigger(set:CONTINUE)
+
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetKeyboardEvent(event)
+            /*
+            InputTable table = GetInputTable(inputGroup)
+
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+            */
+
+            /*
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
+            */
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if not processed
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
         end
     end
 
@@ -166,35 +733,9 @@ class DesktopInput is GameInput
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
-//            if currentEvent:eventType = currentEvent:PRESSED_KEY
-//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
-//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
-//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
-//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:META)
-//                end
-//            else
-//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
-//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
-//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
-//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
-//                end
-//            end
+            InputSet set
+            set:SetInputType(set:TEXT_INPUT)
 
-            InputSet set = keyboardModifiers:Copy()
-//            set:SetKeyboardInput(currentEvent:keyCode)
-
-//            if currentEvent:eventType = currentEvent:RELEASED_KEY
-//                set:SetInputTrigger(set:RELEASE)
-//            end
-            
             BehaviorEvent behaviorEvent
             behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetTextInputEvent(currentEvent)
@@ -208,9 +749,9 @@ class DesktopInput is GameInput
             no table with an identifier matching the input group, or if such a
             table existed but didn't handle this InputSet.
             */
-//            if table = undefined or table:ProcessInput(set, focusedItem) = false
-//                GetDefaultInputTable():ProcessInput(set, focusedItem)
-//            end
+            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
 
             repeat while listenIterator:HasNext()
                 currentListener = listenIterator:Next()
@@ -259,6 +800,154 @@ class DesktopInput is GameInput
                 counter = counter + 1
             end
             
+        end
+    end
+
+    private action MouseButtonsChanged(MouseEvent event)
+        
+        integer newButtons = mouseButtons:GetInputValue()
+
+        if event:eventType = event:CLICKED_MOUSE
+            newButtons = bits:Or(newButtons, event:mouseButton)
+        elseif event:eventType = event:RELEASED_MOUSE
+            newButtons = bits:ExclusiveOr(newButtons, event:mouseButton)
+        else
+            alert("Only CLICKED_MOUSE or RELEASE_MOUSE events can be used to change the mouse buttons. The event type was " + event:eventType)
+        end
+
+        if lastMouseMoveTarget not= undefined
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetMouseEvent(event)
+            behaviorEvent:SetItem(lastMouseMoveTarget)
+
+            InputSet set
+            InputSet anySet
+            InputSet newSet
+
+            set:SetMouseMovementInput(mouseButtons:GetInputValue())
+            set:SetInputTrigger(set:FINISH)
+
+            anySet:SetMouseMovementInput(event:ANY)
+
+            if newButtons = event:NONE
+                anySet:SetInputTrigger(set:FINISH)
+            elseif mouseButtons:GetInputValue() = event:NONE
+                anySet:SetInputTrigger(set:BEGIN)
+            else
+                anySet:SetInputTrigger(set:CONTINUE)
+            end
+
+            newSet:SetMouseMovementInput(newButtons)
+            newSet:SetInputTrigger(set:BEGIN)
+
+            InputTable table = GetInputTable(lastMouseMoveTarget:GetInputGroup())
+
+            // Separately process the new event from the finishing/continuing ones.
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+                processed = table:ProcessInput(anySet, behaviorEvent) or processed
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+            end
+
+            processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(newSet, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(newSet, behaviorEvent)
+            end
+        end
+
+        mouseButtons:SetMouseInput(newButtons)
+    end
+
+    private action ContinueMouseInputSets
+        integer buttons = mouseButtons:GetInputValue()
+        integer counter = 0
+
+        repeat while counter < 8 and buttons not= 0
+            integer mask = bits:And(buttons, bits:ShiftLeft(1, counter))
+
+            if mask not= 0
+                
+                MouseEvent event
+                event:eventType = event:CLICKED_MOUSE
+                event:mouseButton = mask
+
+                RecentInputTimer recentInput = GetRecentMouseInput(event)
+
+                event:clickCount = recentInput:count
+
+                InputTable table = undefined
+                if recentInput:item not= undefined
+                    table = GetInputTable(recentInput:item:GetInputGroup())
+                end
+
+                BehaviorEvent behaviorEvent
+                behaviorEvent:SetMouseEvent(event)
+                behaviorEvent:SetItem(recentInput:item)
+
+                InputSet set = keyboardModifiers:Copy()
+                set:SetInputTrigger(set:CONTINUE)
+                set:SetEventCount(event:clickCount)
+                set:SetMouseInput(mask)
+
+                boolean processed = (table not= undefined)
+                
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if not processed
+                    GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                end
+
+                // Remove this value from the buttons value. Once all buttons
+                // are processed this will set buttons to 0, allowing us to exit
+                // the loop early.
+                buttons = bits:ExclusiveOr(buttons, mask)
+            end
+
+            counter = counter + 1
+        end
+
+        // If the counter is greater than 0, we must have entered the loop at
+        // least once, which only occurs if the buttons value was non-zero (or
+        // in other words, at least one mouse button was down).
+        if counter > 0
+            MouseEvent event
+            event:eventType = event:CLICKED_MOUSE
+            event:mouseButton = event:ANY
+            
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetMouseEvent(event)
+            behaviorEvent:SetItem(lastMouseMoveTarget)
+
+            InputSet set = keyboardModifiers:Copy()
+            set:SetInputTrigger(set:CONTINUE)
+            set:SetMouseInput(event:ANY)
+
+            InputTable table = undefined
+            if lastMouseMoveTarget not= undefined
+                table = GetInputTable(lastMouseMoveTarget:GetInputGroup())
+            end
+
+            boolean processed = (table not= undefined)
+                
+            if table not= undefined
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
         end
     end
 
@@ -374,4 +1063,21 @@ class DesktopInput is GameInput
         // Do nothing - touch isn't supported on Desktop.
     end
 
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    action AddResizeListener(ResizeListener listener)
+        resizeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        resizeListeners:Remove(listener)
+    end
 end

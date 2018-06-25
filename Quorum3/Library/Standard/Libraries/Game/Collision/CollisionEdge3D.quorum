@@ -3,40 +3,74 @@ use Libraries.Interface.Events.CollisionEvent3D
 
 package Libraries.Game.Collision
 
+/*
+This class represents a node to a doubly linked list of collision edges for 3D 
+objects. The doubly linked list is used for every 3D objects that are collidable
+and have collided.
+So an Item3D object will have a head to a CollisionEdge3D doubly linked list.
+*/
 class CollisionEdge3D 
     Item3D other = undefined
     CollisionEvent3D collision = undefined
     CollisionEdge3D previous = undefined
     CollisionEdge3D next = undefined
 
+    /*
+    This action gets the Item3D object that the Item3D object that has the head
+    of this CollisionEdge3D doubly linked list is colliding with.
+    */
     action GetOther returns Item3D
         return other
     end
 
+    /*
+    This action sets the Item3D object that the Item3D object that has the head
+    of this CollisionEdge3D doubly linked list is colliding with.
+    */
     action SetOther(Item3D other)
         me:other = other
     end
 
+    /*
+    This action gets the collision event that the "Item3D other" object and 
+    the current Item3D object is represented in.
+    */
     action GetCollision returns CollisionEvent3D
         return collision
     end
 
+    /*
+    This action sets the collision event that the "Item3D other" object and 
+    the current Item3D object is represented in.
+    */
     action SetCollision(CollisionEvent3D collision)
         me:collision = collision
     end
 
+    /*
+    This action gets the previous node of the doubly linked list.
+    */
     action GetPrevious returns CollisionEdge3D
         return previous
     end
 
+    /*
+    This action sets the previous node of the doubly linked list.
+    */
     action SetPrevious(CollisionEdge3D previous)
         me:previous = previous
     end
 
+    /*
+    This action gets the next node of the doubly linked list.
+    */
     action GetNext returns CollisionEdge3D
         return next
     end
 
+    /*
+    This action sets the next node of the doubly linked list.
+    */
     action SetNext(CollisionEdge3D next)
         me:next = next
     end

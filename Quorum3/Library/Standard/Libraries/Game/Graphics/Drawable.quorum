@@ -277,7 +277,7 @@ class Drawable is TextureRegion, Item2D
         end
 
         SetTexture(newTexture)
-        /*parent:TextureRegion:*/SetRegion(sourceX, sourceY, sourceWidth, sourceHeight)
+        SetRegion(sourceX, sourceY, sourceWidth, sourceHeight)
 
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
@@ -668,6 +668,7 @@ class Drawable is TextureRegion, Item2D
     Attribute: Example
 
         use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
         use Libraries.Game.Game
 
         class Main is Game
@@ -688,6 +689,41 @@ class Drawable is TextureRegion, Item2D
     */
     action GetColor returns Color
         return color
+    end
+
+    /*
+    This action returns the gradient stored in the Drawable. To see if it's
+    currently in use, use the UsingCustomGradient action.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Gradient
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Gradient gradient
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                Gradient gradient
+                gradient:Set(color:Red(), color:Green(), color:Blue(), color:White())
+                drawable:SetGradient(gradient)
+
+                drawGradient = drawable:GetGradient()
+            end
+
+        end
+    */
+    action GetGradient returns Gradient
+        return gradient
     end
 
     /*

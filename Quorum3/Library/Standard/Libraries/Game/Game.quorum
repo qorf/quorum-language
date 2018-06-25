@@ -38,17 +38,35 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
-use Libraries.Game.Behaviors.FocusNextBehavior
-use Libraries.Game.Behaviors.FocusPreviousBehavior
-use Libraries.Game.Behaviors.TextBoxCaretStartMoveBehavior
-use Libraries.Game.Behaviors.TextBoxStartDeleteBehavior
-use Libraries.Game.Behaviors.CancelBehavior
+use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Behaviors.FocusNextBehavior
+use Libraries.Interface.Behaviors.FocusPreviousBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxStartDeleteBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxStartNewLineBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxInsertBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxAddIndentationBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
+use Libraries.Interface.Behaviors.CancelBehavior
+use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
+use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
+use Libraries.Interface.Behaviors.Controls.MouseOnBehavior
+use Libraries.Interface.Behaviors.Controls.MouseOffBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarDownBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarActivateBehavior
+use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
+use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
+use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
+use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
+use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
+use Libraries.Interface.Behaviors.Controls.TreeDownBehavior
+use Libraries.Interface.Behaviors.Controls.TreeUpBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.System.File
 use Libraries.System.Properties
-use Libraries.Interface.Panel
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
@@ -58,15 +76,26 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Events.MenuChangeListener
+use Libraries.Interface.Events.TreeChangeListener
+use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Events.WindowFocusListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
+use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
+use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -101,13 +130,13 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+    AccessibilityManager accessibility = undefined
 
     public boolean exitRequested = false
 
-    // Variables used for Panels and the event system.
+    // An instance of a GameInput, e.g. DesktopInput, WebInput, etc. Handles the
+    // input for the game.
     private GameInput gameInput = undefined
-    private List<Item2D> collisionList
-    private List<CollisionEvent> currentCollisions
 
     // Variables for the Layer system.
     private Array<Layer> layers
@@ -165,20 +194,10 @@ class Game
             display:SetConfiguration(desktopConfig)
             display:SetupDisplay()
         elseif application is AndroidApplication
-            
-            gl20 = manager:GetGameGraphics()
+            manager:SetApplication(application)
+            StartAndroidGame()
+            return now
 
-            // AndroidInput newInput
-            // gameInput = newInput
-            // manager:SetInput(gameInput)
-
-            AndroidDisplay display
-            manager:SetGameDisplay(display)
-            display:SetConfiguration(androidConfig)
-
-            AndroidGraphics graphics
-            manager:SetGameGraphics(graphics)
-            
         elseif application is IOSApplication
 
             gl20 = manager:GetGameGraphics()
@@ -214,6 +233,15 @@ class Game
             gl20 = webGraphics
         end
 
+        CompleteInitialSetup(application)
+    end
+
+    /*
+    Complete game set up and begin the main loop. Used from StartGame, as well
+    as other places that "act like" StartGame for platforms with special timing
+    considerations (e.g., StartAndroidGame).
+    */
+    private action CompleteInitialSetup(Application application)
         /*
         We pass a reference to the layers array to the GameInput. This will 
         allow it to properly test input on items in the game. Because it is an
@@ -225,6 +253,39 @@ class Game
         SetFocusManager(focusManager)
         CreateDefaultInputTables()
         application:Setup(me)
+    end
+
+    /*
+    Attempts to start an Android game. If the screen orientation doesn't match
+    the requested one, this instead sets the screen orientation and awaits the
+    driver Android activity to call it again once the orientation has changed.
+
+    This is due to an issue where changing the screen orientation forcibly
+    restarts the activity. If we didn't do it this way but instead just launched
+    the game directly, we'd initialize and run the game twice due to being in
+    the wrong screen orientation.
+    */
+    private action StartAndroidGame
+        AndroidApplication androidApp = cast(AndroidApplication, manager:GetApplication())
+        
+        if androidApp:RequiresOrientationChange(androidConfig)
+            androidApp:ResetOrientationToDefault(androidConfig)
+            return now
+        end
+
+        AndroidInput newInput
+        gameInput = newInput
+        manager:SetInput(gameInput)
+
+        AndroidDisplay display
+        manager:SetGameDisplay(display)
+        display:SetConfiguration(androidConfig)
+
+        AndroidGraphics graphics
+        manager:SetGameGraphics(graphics)
+        gl20 = graphics
+
+        CompleteInitialSetup(androidApp)
     end
 
     /*
@@ -258,11 +319,27 @@ class Game
         textBoxLeftBehavior:SetDirection(textBoxLeftBehavior:LEFT)
         textBoxTable:Add(leftArrow, textBoxLeftBehavior)
 
+        InputSet shiftLeftArrow
+        shiftLeftArrow:SetKeyboardInput(keys:LEFT)
+        shiftLeftArrow:AddModifier(shiftLeftArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftLeftBehavior
+        textBoxShiftLeftBehavior:SetSelecting(true)
+        textBoxShiftLeftBehavior:SetDirection(textBoxShiftLeftBehavior:LEFT)
+        textBoxTable:Add(shiftLeftArrow, textBoxShiftLeftBehavior)
+
         InputSet rightArrow
         rightArrow:SetKeyboardInput(keys:RIGHT)
         TextBoxCaretStartMoveBehavior textBoxRightBehavior
         textBoxRightBehavior:SetDirection(textBoxRightBehavior:RIGHT)
         textBoxTable:Add(rightArrow, textBoxRightBehavior)
+
+        InputSet shiftRightArrow
+        shiftRightArrow:SetKeyboardInput(keys:RIGHT)
+        shiftRightArrow:AddModifier(shiftRightArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftRightBehavior
+        textBoxShiftRightBehavior:SetSelecting(true)
+        textBoxShiftRightBehavior:SetDirection(textBoxShiftRightBehavior:RIGHT)
+        textBoxTable:Add(shiftRightArrow, textBoxShiftRightBehavior)
 
         InputSet downArrow
         downArrow:SetKeyboardInput(keys:DOWN)
@@ -270,33 +347,73 @@ class Game
         textBoxDownBehavior:SetDirection(textBoxDownBehavior:DOWN)
         textBoxTable:Add(downArrow, textBoxDownBehavior)
 
+        InputSet shiftDownArrow
+        shiftDownArrow:SetKeyboardInput(keys:DOWN)
+        shiftDownArrow:AddModifier(shiftDownArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftDownBehavior
+        textBoxShiftDownBehavior:SetSelecting(true)
+        textBoxShiftDownBehavior:SetDirection(textBoxShiftDownBehavior:DOWN)
+        textBoxTable:Add(shiftDownArrow, textBoxShiftDownBehavior)
+
         InputSet upArrow
         upArrow:SetKeyboardInput(keys:UP)
         TextBoxCaretStartMoveBehavior textBoxUpBehavior
         textBoxUpBehavior:SetDirection(textBoxUpBehavior:UP)
         textBoxTable:Add(upArrow, textBoxUpBehavior)
 
+        InputSet shiftUpArrow
+        shiftUpArrow:SetKeyboardInput(keys:UP)
+        shiftUpArrow:AddModifier(shiftUpArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftUpBehavior
+        textBoxShiftUpBehavior:SetSelecting(true)
+        textBoxShiftUpBehavior:SetDirection(textBoxShiftUpBehavior:UP)
+        textBoxTable:Add(shiftUpArrow, textBoxShiftUpBehavior)
+
         CancelBehavior cancelBehavior
 
         InputSet releaseLeftArrow
         releaseLeftArrow:SetKeyboardInput(keys:LEFT)
-        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:RELEASE)
+        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
         textBoxTable:Add(releaseLeftArrow, cancelBehavior)
+
+        InputSet releaseShiftLeftArrow
+        releaseShiftLeftArrow:SetKeyboardInput(keys:LEFT)
+        releaseShiftLeftArrow:AddModifier(releaseShiftLeftArrow:SHIFT)
+        releaseShiftLeftArrow:SetInputTrigger(releaseShiftLeftArrow:FINISH)
+        textBoxTable:Add(releaseShiftLeftArrow, cancelBehavior)
 
         InputSet releaseRightArrow
         releaseRightArrow:SetKeyboardInput(keys:RIGHT)
-        releaseRightArrow:SetInputTrigger(releaseRightArrow:RELEASE)
+        releaseRightArrow:SetInputTrigger(releaseRightArrow:FINISH)
         textBoxTable:Add(releaseRightArrow, cancelBehavior)
+
+        InputSet releaseShiftRightArrow
+        releaseShiftRightArrow:SetKeyboardInput(keys:RIGHT)
+        releaseShiftRightArrow:AddModifier(releaseShiftRightArrow:SHIFT)
+        releaseShiftRightArrow:SetInputTrigger(releaseShiftRightArrow:FINISH)
+        textBoxTable:Add(releaseShiftRightArrow, cancelBehavior)
 
         InputSet releaseDownArrow
         releaseDownArrow:SetKeyboardInput(keys:DOWN)
-        releaseDownArrow:SetInputTrigger(releaseDownArrow:RELEASE)
+        releaseDownArrow:SetInputTrigger(releaseDownArrow:FINISH)
         textBoxTable:Add(releaseDownArrow, cancelBehavior)
+
+        InputSet releaseShiftDownArrow
+        releaseShiftDownArrow:SetKeyboardInput(keys:DOWN)
+        releaseShiftDownArrow:AddModifier(releaseShiftDownArrow:SHIFT)
+        releaseShiftDownArrow:SetInputTrigger(releaseShiftDownArrow:FINISH)
+        textBoxTable:Add(releaseShiftDownArrow, cancelBehavior)
 
         InputSet releaseUpArrow
         releaseUpArrow:SetKeyboardInput(keys:UP)
-        releaseUpArrow:SetInputTrigger(releaseUpArrow:RELEASE)
+        releaseUpArrow:SetInputTrigger(releaseUpArrow:FINISH)
         textBoxTable:Add(releaseUpArrow, cancelBehavior)
+
+        InputSet releaseShiftUpArrow
+        releaseShiftUpArrow:SetKeyboardInput(keys:UP)
+        releaseShiftUpArrow:AddModifier(releaseShiftUpArrow:SHIFT)
+        releaseShiftUpArrow:SetInputTrigger(releaseShiftUpArrow:FINISH)
+        textBoxTable:Add(releaseShiftUpArrow, cancelBehavior)
 
         InputSet backspace
         backspace:SetKeyboardInput(keys:BACKSPACE)
@@ -312,15 +429,172 @@ class Game
 
         InputSet releaseBackspace
         releaseBackspace:SetKeyboardInput(keys:BACKSPACE)
-        releaseBackspace:SetInputTrigger(releaseBackspace:RELEASE)
+        releaseBackspace:SetInputTrigger(releaseBackspace:FINISH)
         textBoxTable:Add(releaseBackspace, cancelBehavior)
 
         InputSet releaseDelete
         releaseDelete:SetKeyboardInput(keys:FORWARD_DELETE)
-        releaseDelete:SetInputTrigger(releaseDelete:RELEASE)
+        releaseDelete:SetInputTrigger(releaseDelete:FINISH)
         textBoxTable:Add(releaseDelete, cancelBehavior)
 
+        InputSet enter
+        enter:SetKeyboardInput(keys:ENTER)
+        TextBoxStartNewLineBehavior newLineBehavior
+        textBoxTable:Add(enter, newLineBehavior)
+
+        InputSet releaseEnter
+        releaseEnter:SetKeyboardInput(keys:ENTER)
+        releaseEnter:SetInputTrigger(releaseEnter:FINISH)
+        textBoxTable:Add(releaseEnter, cancelBehavior)
+
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        TextBoxInsertBehavior insertBehavior
+        textBoxTable:Add(textInputSet, insertBehavior)
+
+        InputSet tabSet
+        tabSet:SetKeyboardInput(keys:TAB)
+        TextBoxAddIndentationBehavior addIndentBehavior
+        textBoxTable:Add(tabSet, addIndentBehavior)
+
+        InputSet shiftTabSet
+        shiftTabSet:SetKeyboardInput(keys:TAB)
+        shiftTabSet:AddModifier(shiftTabSet:SHIFT)
+        TextBoxRemoveIndentationBehavior removeIndentBehavior
+        textBoxTable:Add(shiftTabSet, removeIndentBehavior)
+
         gameInput:AddInputTable(textBoxTable)
+
+        InputTable tabPaneTable
+        tabPaneTable:SetIdentifier("TabPane")
+
+        TabPaneForwardTabBehavior forward
+        TabPaneBackwardTabBehavior backward
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:LEFT_BRACKET)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        else
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:TAB)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:TAB)
+            backwardTab:AddModifier(forwardTab:SHIFT)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        end
+        
+        gameInput:AddInputTable(tabPaneTable)
+
+        InputTable buttonTable
+        buttonTable:SetIdentifier("Button")
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+        ClickDownBehavior downBehavior
+        buttonTable:Add(clickDown, downBehavior)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:FINISH)
+        ClickUpBehavior upBehavior
+        buttonTable:Add(clickUp, upBehavior)
+
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior onBehavior
+        buttonTable:Add(mouseOn, onBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior offBehavior
+        buttonTable:Add(mouseOff, offBehavior)
+
+        gameInput:AddInputTable(buttonTable)
+
+        InputTable menuItemTable
+        menuItemTable:SetIdentifier("MenuItem")
+
+        menuItemTable:Add(clickDown, downBehavior)
+        menuItemTable:Add(clickUp, upBehavior)
+        menuItemTable:Add(mouseOn, onBehavior)
+
+        gameInput:AddInputTable(menuItemTable)
+
+        InputTable menuBarTable
+        menuBarTable:SetIdentifier("MenuBar")
+
+        MenuBarDownBehavior menuDownBehavior
+        MenuBarUpBehavior menuUpBehavior
+        MenuBarLeftBehavior menuLeftBehavior
+        MenuBarRightBehavior menuRightBehavior
+        MenuBarActivateBehavior menuRunBehavior
+
+        menuBarTable:Add(downArrow, menuDownBehavior)
+        menuBarTable:Add(upArrow, menuUpBehavior)
+        menuBarTable:Add(leftArrow, menuLeftBehavior)
+        menuBarTable:Add(rightArrow, menuRightBehavior)
+
+        InputSet spaceBar
+        spaceBar:SetKeyboardInput(keys:SPACE)
+
+        menuBarTable:Add(spaceBar, menuRunBehavior)
+        menuBarTable:Add(enter, menuRunBehavior)
+
+        gameInput:AddInputTable(menuBarTable)
+
+        InputTable treeItemTable
+        treeItemTable:SetIdentifier("TreeItem")
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(1)
+        doubleClickSet:SetEventCount(2)
+        TreeDoubleClickBehavior doubleClickBehavior
+        treeItemTable:Add(doubleClickSet, doubleClickBehavior)
+
+        InputSet clickSet
+        clickSet:SetMouseInput(1)
+        ClickDownBehavior clickDownBehavior
+        treeItemTable:Add(clickSet, clickDownBehavior)
+
+        AddInputTable(treeItemTable)
+
+        InputTable treeTable
+        treeTable:SetIdentifier("Tree")
+
+        TreeLeftBehavior treeLeftBehavior
+        treeTable:Add(leftArrow, treeLeftBehavior)
+        
+        TreeRightBehavior treeRightBehavior
+        treeTable:Add(rightArrow, treeRightBehavior)
+
+        TreeDownBehavior treeDownBehavior
+        treeTable:Add(downArrow, treeDownBehavior)
+
+        TreeUpBehavior treeUpBehavior
+        treeTable:Add(upArrow, treeUpBehavior)
+
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        TreeActivateBehavior treeActivateBehavior
+        treeTable:Add(enterSet, treeActivateBehavior)
+
+        AddInputTable(treeTable)
     end
 
     /*
@@ -377,7 +651,6 @@ class Game
         end
     */
     action Add(Item2D item)
-        focusManager:Add(item)
         currentLayer2D:Add(item)
     end
 
@@ -408,7 +681,6 @@ class Game
         end
     */
     action Add(Item3D item)
-        focusManager:Add(item)
         currentLayer3D:Add(item)
     end
 
@@ -442,7 +714,6 @@ class Game
         end
     */
     action Remove(Item2D item)
-        focusManager:Remove(item)
         currentLayer2D:Remove(item)
     end
 
@@ -476,7 +747,6 @@ class Game
         end
     */
     action Remove(Item3D item)
-        focusManager:Remove(item)
         currentLayer3D:Remove(item)
     end
 
@@ -496,7 +766,6 @@ class Game
     Clears out the old pixel data. Called from ContinueGame.
     */
     private action ClearScreen
-        gl20:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
         /*
         16640 is the result of an OR operation on GL_COLOR_BUFFER_BIT and 
         GL_DEPTH_BUFFER_BIT from the GraphicsManager. This means that both the
@@ -642,6 +911,61 @@ class Game
     */
     action GetWebConfiguration returns WebConfiguration
         return webConfig
+    end
+
+    /*
+    This action will set the game configuration when run on an Android device.
+    The configuration contains data that affect many technical details of the
+    game, such as whether the device should use portrait or landscape
+    orientation while running the game. This should be set before calling 
+    StartGame().
+
+    Attribute: Parameter config The AndroidConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.AndroidConfiguration
+
+    class Main is Game
+
+        action Main
+            AndroidConfiguration configuration
+            configuration:defaultOrientation = configuration:PORTRAIT
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(AndroidConfiguration config)
+        androidConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for Android devices.
+
+    Attribute: Returns The current AndroidConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.AndroidConfiguration
+
+    class Main is Game
+
+        action Main
+            AndroidConfiguration configuration = GetAndroidConfiguration()
+            configuration:defaultOrientation = configuration:PORTRAIT
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetAndroidConfiguration returns AndroidConfiguration
+        return androidConfig
     end
 
     /*
@@ -889,10 +1213,49 @@ class Game
     end
 
     /*
-    This action updates the active Panel and all of the Items that have been
-    added to the active Panel. This is called automatically by the Game class 
-    as part of the main loop, so most users will never need to use this action
-    directly.
+    The OnExit action is called when the Game is about to close, either because
+    the Exit action was called or because the user requested it (for example, by
+    attempting to close the window on desktop platforms). The action must return
+    a boolean value representing whether or not the application should proceed
+    to shut down. If the returned value is true, the application will shut down.
+    If it is false, the program will continue running instead. Users should
+    always make sure that it is possible for OnExit to return true in some cases
+    to allow the user to close the program.
+
+    This action doesn't prevent the Game from shutting down on all platforms.
+    For example, mobile devices typically don't allow an application to keep
+    itself open after a close has been requested.
+
+    Attribute: Returns True if the Game should be allowed to close, false if the Game should continue running.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+
+    class Main is Game
+        integer countdown = 3
+
+        action Main
+            StartGame()
+        end
+
+        action OnExit returns boolean
+            if countdown <= 0
+                return true
+            end
+            output "Countdown: " + countdown
+            countdown = countdown - 1
+            return false
+        end
+    end
+    */
+    action OnExit returns boolean
+        return true
+    end
+
+    /*
+    This action updates each of the Layers in the Game. This is called 
+    automatically by the Game class as part of the main loop (see ContinueGame).
     */
     private action UpdateAll
         integer counter = 0
@@ -1061,6 +1424,36 @@ class Game
     end
 
     /*
+    This action adds a ResizeListener to the Game. The listener will be 
+    notified when the size of the Game rendering space changes size, such as a
+    window being resized or made fullscreen, or a phone rotating orientation.
+
+    Attribute: Parameter listener The ResizeListener to add to the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.ResizeListener
+
+        class Main is Game
+
+            ResizeListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddResizeListener(listener)
+            end
+            
+        end
+    */
+    action AddResizeListener(ResizeListener listener)
+        gameInput:AddResizeListener(listener)
+    end
+
+    /*
     This action removes a MouseListener from the Game. The mouse listener will 
     no longer receive mouse events from the Game. If the given MouseListener was
     not part of the Game, then this will have no effect.
@@ -1216,6 +1609,37 @@ class Game
     */
     action RemoveTextInputListener(TextInputListener listener)
         gameInput:RemoveTextInputListener(listener)
+    end
+
+    /*
+    This action removes a ResizeListener from the Game. The listener will no
+    longer receive resize events.
+
+    Attribute: Parameter listener The ResizeListener to be removed from the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.ResizeListener
+
+        class Main is Game
+
+            ResizeListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddResizeListener(listener)
+
+                RemoveResizeListener(listener)
+            end
+            
+        end
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        gameInput:RemoveResizeListener(listener)
     end
 
     /*
@@ -2270,7 +2694,6 @@ class Game
     end
     */
     action Add(PointLight light)
-        focusManager:Add(light)
         currentLayer3D:Add(light)
     end
 
@@ -2404,7 +2827,6 @@ class Game
 
     */
     action Remove(PointLight light)
-        focusManager:Remove(light)
         currentLayer3D:Remove(light)
     end
 
@@ -3106,6 +3528,31 @@ class Game
     end
 
     /*
+    This action asks the operating system to give the main application window
+    the focus. This only works on desktop platforms - on other platforms, this
+    call is ignored.
+    */
+    action FocusWindow
+        if manager:GetGameDisplay() is DesktopDisplay
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            display:FocusWindow()
+        end
+    end
+
+    /*
+    This action determines whether or not the main application window has the
+    focus on desktop platforms. On non-desktop platforms, this always returns
+    false.
+    */
+    action IsWindowFocused returns boolean
+        if manager:GetGameDisplay() is DesktopDisplay
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:IsWindowFocused()
+        end
+        return false
+    end
+
+    /*
     This action sets the focus on the given item. This will immediately notify
     all focus listeners on the previous focus that the Item has lost focus, and
     all focus listeners on the new focus that the Item has gained focus.
@@ -3129,7 +3576,7 @@ class Game
 
     */
     action SetFocusManager(FocusManager focus)
-        manager:SetFocus(undefined)
+        focusManager:SetFocus(undefined)
         if focusManager not= undefined
             RemoveKeyboardListener(focusManager)
         end
@@ -3145,17 +3592,134 @@ class Game
     end
 
     /*
+    This action adds a FocusListener to the Game. Whenever the focus changes,
+    the FocusListener will be informed via a FocusEvent.
 
+    Attribute: Parameter listener The FocusListener to add to the Game.
     */
     action AddFocusListener(FocusListener listener)
         focusManager:Add(listener)
     end
 
     /*
+    This action removes a FocusListener from the Game. The given FocusListener
+    will no longer be informed of FocusEvents when the focus changes.
 
+    Attribute: Parameter listener The FocusListener to remove from the Game.
     */
     action RemoveFocusListener(FocusListener listener)
         focusManager:Remove(listener)
+    end
+
+    /*
+    This action adds a SelectionListener to the Game. Whenever a Selection is
+    changed, the SelectionListener will be informed via a SelectionEvent.
+
+    Attribute: Parameter listener The SelectionListener to add to the Game.
+    */
+    action AddSelectionListener(SelectionListener listener)
+        gameInput:AddSelectionListener(listener)
+    end
+
+    /*
+    This action removes a SelectionListener from the Game. The SelectionListener
+    will no longer be informed when Selections change.
+
+    Attribute: Parameter listener The SelectionListener to remove from the Game.
+    */
+    action RemoveSelectionListener(SelectionListener listener)
+        gameInput:RemoveSelectionListener(listener)
+    end
+
+    /*
+    This action adds a TextChangeListener to the Game. When text is changed
+    (such as in a TextBox) the TextChangeListener will be informed via a
+    TextChangeEvent.
+
+    Attribute: Parameter listener The TextChangeListener to add to the Game.
+    */
+    action AddTextChangeListener(TextChangeListener listener)
+        gameInput:AddTextChangeListener(listener)
+    end
+
+    /*
+    This action removes a TextChangeListener from the Game. It will no longer 
+    receive TextChangeEvents.
+
+    Attribute: Parameter listener The TextChangeListener to remove from the Game.
+    */
+    action RemoveTextChangeListener(TextChangeListener listener)
+        gameInput:RemoveTextChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddTabChangeListener(TabChangeListener listener)
+        gameInput:AddTabChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTabChangeListener(TabChangeListener listener)
+        gameInput:RemoveTabChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddMenuChangeListener(MenuChangeListener listener)
+        gameInput:AddMenuChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        gameInput:RemoveMenuChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddTreeChangeListener(TreeChangeListener listener)
+        gameInput:AddTreeChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        gameInput:RemoveTreeChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action AddControlActivationListener(ControlActivationListener listener)
+        gameInput:AddControlActivationListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveControlActivationListener(ControlActivationListener listener)
+        gameInput:RemoveControlActivationListener(listener)
+    end
+
+    /*
+
+    */
+    action AddWindowFocusListener(WindowFocusListener listener)
+        gameInput:AddWindowFocusListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveWindowFocusListener(WindowFocusListener listener)
+        gameInput:RemoveWindowFocusListener(listener)
     end
 
     /*
@@ -3198,4 +3762,20 @@ class Game
     action RemoveInputTable(text key) returns InputTable
         return gameInput:RemoveInputTable(key)
     end
+
+    /*
+
+    */
+    action SetAccessibilityManager(AccessibilityManager accessibilityManager)
+        accessibility = accessibilityManager
+    end
+
+    /*
+
+    */
+    action GetAccessibilityManager returns AccessibilityManager
+        return accessibility
+    end
+
+    
 end

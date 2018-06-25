@@ -292,8 +292,8 @@ class TypeCheckTester
         ExpAssignTextBoolObjField()
         ExpAssignTextIntObj()
         ExpAssignTextIntObjField()
-        ExpAssignTextNumbObj()
-        ExpAssignTextNumbObjField()
+        ExpAssignTextNumObj()
+        ExpAssignTextNumObjField()
         ExpAssignTextObjBoolObj()
         ExpAssignTextObjBoolObjField()
         ExpAssignTextObjBoolean()
@@ -3367,19 +3367,19 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScriptFail(files)
     end
 
-    action ExpAssignTextNumbObj
+    action ExpAssignTextNumObj
         Array<File> files
         File main
-        main:SetPath(path + "ExpAssignTextNumbObj.quorum")
+        main:SetPath(path + "ExpAssignTextNumObj.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end
 
-    action ExpAssignTextNumbObjField
+    action ExpAssignTextNumObjField
         Array<File> files
         File main
-        main:SetPath(path + "ExpAssignTextNumbObjField.quorum")
+        main:SetPath(path + "ExpAssignTextNumObjField.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

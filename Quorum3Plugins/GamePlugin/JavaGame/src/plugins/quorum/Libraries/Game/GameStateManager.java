@@ -13,7 +13,7 @@ import quorum.Libraries.Game.GameInput_;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.DesktopGraphics;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Game.Graphics.AndroidGraphics;
 
 /**
  * A helper class that contains static references to individual components that
@@ -34,7 +34,6 @@ public class GameStateManager
     public static GameDisplay_ display;
     public static GraphicsManager_ graphics;
     public static GameInput_ input;
-    public static Item_ focus;
 
     public static String nativePath;
     public static String operatingSystem;
@@ -51,8 +50,17 @@ public class GameStateManager
         
         if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
         {
-            graphics = new DesktopGraphics();
-            nativeGraphics = ((DesktopGraphics)graphics).plugin_;
+            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+            {
+                graphics = new AndroidGraphics();
+                nativeGraphics = ((AndroidGraphics)graphics).plugin_;
+                operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+            }
+            else
+            {
+                graphics = new DesktopGraphics();
+                nativeGraphics = ((DesktopGraphics)graphics).plugin_;
+            }
         }
         else if (os.contains("iOS"))
         {
@@ -106,7 +114,11 @@ public class GameStateManager
     {
         graphics = aGameGraphics;
         
-        if (operatingSystem.contains("Mac OS X") || operatingSystem.contains("Windows") || operatingSystem.contains("Linux"))
+        if (operatingSystem.contains("Android"))
+        {
+            nativeGraphics = ((AndroidGraphics)graphics).plugin_;
+        }
+        else if (operatingSystem.contains("Mac OS X") || operatingSystem.contains("Windows") || operatingSystem.contains("Linux"))
         {
             nativeGraphics = ((DesktopGraphics)graphics).plugin_;
         }
@@ -145,15 +157,5 @@ public class GameStateManager
     public String GetOperatingSystem()
     {
         return operatingSystem;
-    }
-
-    public void SetFocus(Item_ item)
-    {
-        focus = item;
-    }
-    
-    public Item_ GetFocus()
-    {
-        return focus;
     }
 }

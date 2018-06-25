@@ -11,6 +11,7 @@
 Taken from: https://github.com/LWJGL/lwjgl3-wiki/wiki/1.2.-Install\
 Step 1 was already completed to download the contents of the LWJGL 3 folder.\
 The libraries are LWJGL 3.1.2, downloaded as of 9/20/17.\
+The instructions have been modified somewhat to make the steps used for our needs more obvious.\
 \
 \pard\pardeftab720\partightenfactor0
 
@@ -21,22 +22,24 @@ NetBeans\
 \b0\fs32 \cf2 \kerning1\expnd0\expndtw0 {\listtext	1	}\expnd0\expndtw0\kerning0
 Download LWJGL as a 
 \b ZIP Bundle
-\b0  using the {\field{\*\fldinst{HYPERLINK "https://lwjgl.org/customize"}}{\fldrslt \cf3 build configurator}} and extract the archive to somewhere you will be able to find it later.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\b0  using the {\field{\*\fldinst{HYPERLINK "https://lwjgl.org/customize"}}{\fldrslt \cf3 build configurator}} and extract the archive to somewhere you will be able to find it later. (
+\b NOTE: This step is already completed, skip this. It\'92s left for reference only.
+\b0 )\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	1	}\expnd0\expndtw0\kerning0
 Inside Netbeans, under 
 \b Tools > Libraries
 \b0  press 
 \b New Library...
 \b0  in the bottom left corner.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	3	}\expnd0\expndtw0\kerning0
-Name the library something sensible, such as "LWJGL 3.1.0" and press 
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	2	}\expnd0\expndtw0\kerning0
+Name the library LWJGL 3.1.2\'94 and press 
 \b OK
 \b0 \
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	4	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	3	}\expnd0\expndtw0\kerning0
 The center of the 
 \b Library
 \b0  window should now contain options to configure the library.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	5	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	4	}\expnd0\expndtw0\kerning0
 In the 
 \b Classpath
 \b0  tab add all 
@@ -48,7 +51,7 @@ In the
 \i0  or 
 \i javadoc
 \i0  in their name\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	6	}\expnd0\expndtw0\kerning0
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	5	}\expnd0\expndtw0\kerning0
 (Optional) In the 
 \b Sources
 \b0  tab add all 
@@ -57,26 +60,4 @@ In the
 \i sources
 \i0  in their name. This will give you access to both documentation and the source code directly from NetBeans. Source can be viewed in the editor with 
 \i Ctrl-Left click
-\i0  while hovering over a function or class that belongs to LWJGL.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	7	}\expnd0\expndtw0\kerning0
-Create a new project by choosing 
-\b File > New Project...
-\b0 . Choose 
-\b Java | Java Application
-\b0  as the project type.\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	8	}\expnd0\expndtw0\kerning0
-Find your project in the project window (Can be opened with 
-\i Ctrl-1
-\i0 ). Right click on 
-\b Libraries
-\b0 , choose 
-\b Import
-\b0 , find the previously created library and select 
-\b Import Library
-\b0  and then 
-\b Add Library
-\b0 .\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	9	}\expnd0\expndtw0\kerning0
-Check if everything worked as intended by adding the following line to your main class and running the project: 
-\f2\fs28 System.out.println(org.lwjgl.Version.getVersion());
-\f1\fs32 . This should print the version of LWJGL which you are using.}
+\i0  while hovering over a function or class that belongs to LWJGL.}

@@ -1,0 +1,145 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Glyph
+
+/*
+    The CharacterMap class accomplishes a naive lookup for different chars. 
+    This class provides actions for checking whether a character is in the 
+    character hash table and returning the ASCII code of that character. 
+    This class is not used to add new characters to the character table or 
+    change the value assigned to the character to something other than its
+    ASCII code.
+
+    Upon creation of a CharacterMap, the CharacterMap object creates a Hash Table
+    containing the characters (letter or punctuation) as the keys of the hash nodes
+    and the characters' ASCII codes as their corresponding values of the hash nodes.
+*/
+class CharacterMap 
+    //HashTable<text, integer> characterTable
+    HashTable<text, CharacterInformation> characterTable
+
+    /*
+        Helper action for on create. Adds passed character to class characterTable
+        Hash Table with characterInformation object containing passed character code.
+
+        Attribute: Parameter character - text character to add to character table
+
+        Attribute: Parameter characterCode - integer ASCII code corresponding
+        to character
+    */
+    private action Add(text character, integer characterCode)
+        CharacterInformation characterInformation
+        characterInformation:SetCharacterCode(characterCode)
+        characterTable:Add(character, characterInformation)
+    end
+
+    /*
+        This action gets a value with a given character.
+
+        Attribute: Parameter char - The character whose ASCII value is desired.
+
+        Attribute: Returns the ASCII value that matches given character.
+
+        Note: HashTable<Key, Value>
+    */
+    action GetCharacterCode(text character) returns integer
+        // if HasKey(character)  ? 
+        return characterTable:GetValue(character):GetCharacterCode()
+    end
+
+    /*
+        Used for kerning.
+    */
+    action GetGlyphIndex(text character) returns integer
+        return characterTable:GetValue(character):GetGlyphLocationTableIndex()
+    end
+
+    /*
+        Saves glyph index in glyph offset location table and offset in glyph table.
+
+        Attribute: Parameter character - character whose glyph index and offset need to be saved
+
+        Attribute: Parameter glyphIndex - index of character in the font file's
+        glyph offset location table
+
+        Attribute: Parameter glyphOffset - character's offset in the 
+        font file's glyph table 
+    */
+    action SetGlyphIndexAndOffset(text character, integer glyphIndex, integer glyphOffset)
+    // Error here
+        if characterTable:HasKey(character)
+            characterTable:GetValue(character):SetGlyphIndexAndOffset(glyphIndex, glyphOffset)
+        else
+            Add(character, character:GetUnicodeInteger(0))
+        end
+    end
+
+    /*
+        Retrieves Bezier Curve glyph points of passed character
+
+        Attribute: Parameter character - character whose glyph points are desired
+
+        Attribute: Returns Bezier Curve Glyph Points of character 
+    */
+    action GetGlyphPoints(text character) returns BezierCurveGlyphPoints
+        if characterTable:HasKey(character)
+            return characterTable:GetValue(character):GetGlyphPoints()
+        else
+            BezierCurveGlyphPoints points
+            return points
+        end
+    end
+
+    action GetGlyph(text character) returns Glyph
+        return characterTable:GetValue(character):GetGlyph()
+    end
+
+    /*
+        Saves Bezier Curve Glyph Points for passed character.
+
+        Attribute: Parameter character - character whose glyph points are to be saved
+
+        Attribute: Parameter glyphPoints - character's Bezier Curve glyph points 
+        that were read from file
+    */
+    action SetGlyphPoints(text character, BezierCurveGlyphPoints glyphPoints)
+        characterTable:GetValue(character):SetGlyphPoints(glyphPoints)
+    end
+
+    action SetGlyph(text character, Glyph glyph)
+        characterTable:GetValue(character):SetGlyph(glyph)
+    end
+
+    action HasGlyph(text character) returns boolean
+        return characterTable:GetValue(character):HasGlyph()
+    end
+
+    /*
+        This action determines if the character table contains a certain character.
+
+        Attribute: Parameter character - The character to find.
+        
+        Attribute: Returns True if the character is in the character table and false
+        if it is not.    
+    */
+    action HasKey(text character) returns boolean
+        return characterTable:HasKey(character)
+    end
+
+    /*
+        Checks if character's glyph points have already been read from the file.
+
+        Attribute: Parameter character - character whose glyph points need to be read
+        
+        Attribute: Returns true if character's glyph points have been read from the file and
+        the character map contains the glyph points. Returns false otherwise.
+    */
+    action GlyphPointsHaveBeenRead(text character) returns boolean
+        if characterTable:HasKey(character)
+            return characterTable:GetValue(character):GlyphPointsHaveBeenRead()
+        else
+            return false
+        end
+    end
+end

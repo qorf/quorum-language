@@ -1,0 +1,26 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Compute.BitwiseOperations
+
+class MacStyleFlags 
+    boolean bold = false
+    boolean italic = false
+    boolean underline = false
+    boolean outline = false
+    boolean shadow = false
+    boolean condensed = false
+    boolean extended = false
+
+    action Set (integer flags) 
+        BitwiseOperations ops
+
+        bold = ops:And(flags, 1) > 0
+        italic = ops:And(flags, 2) > 0
+        underline = ops:And(flags, 4) > 0
+        outline = ops:And(flags, 8) > 0
+        shadow = ops:And(flags, 16) > 0
+        condensed = ops:And(flags, 32) > 0
+        extended = ops:And(flags, 64) >0
+        
+    end
+end

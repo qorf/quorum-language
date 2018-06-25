@@ -1,0 +1,174 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+
+class BezierCurveGlyphPoints 
+    
+    integer numberOfContours = 0
+    integer numberOfPoints = 0    // what is the purpose of this variable?
+    Array<integer> contourEndpoints
+    Array<CoordinateVector> points
+
+    FontBoundingBox boundingbox
+
+    /*
+        Font file contains information about the points relative from the last point. 
+        This adds the absolute coordinate to the list, based on the last point
+    */
+    action AddNewPointRelativeToLast(integer changeInX, integer changeInY, boolean onCurve, boolean endpoint)
+        CoordinateVector vector
+        vector:Copy(GetLastPoint())
+        vector:AddNewPointRelativeToLast(changeInX, changeInY, onCurve, endpoint)
+        AddPoint(vector)
+    end
+
+    /* Needs to be called after all points are added
+
+    */
+    action AddVirtualPoints()
+        
+        integer contour = 0
+        repeat while contour < numberOfContours
+            integer endpoint = contourEndpoints:Get(contour)
+            integer lastEndpoint = 0
+            integer i = 0
+            if contour > 0
+                lastEndpoint = contourEndpoints:Get(contour-1)
+                i = 0 + lastEndpoint + 1
+            end
+           
+            repeat while i <= endpoint
+                CoordinateVector next = NextPoint(i, contour)
+                if not points:Get(i):IsOnCurve() and not next:IsOnCurve()
+                    CoordinateVector current = points:Get(i)
+                    CoordinateVector newPoint = ComputeMiddlePoint(current, next)
+                    newPoint:SetComputed(true)
+
+                    points:Add(i+1, newPoint)
+                    // Since there is an additional point, update following contours
+                    IncrementContoursByOne(contour)
+                    endpoint = endpoint + 1
+                    numberOfPoints = numberOfPoints + 1
+                end
+                i = i + 1
+            end
+
+            contour = contour + 1
+        end
+    end
+
+    private action IncrementContoursByOne(integer contour)
+        integer c = contour
+        repeat while c < contourEndpoints:GetSize()
+            contourEndpoints:Set(c, contourEndpoints:Get(c)+1)
+
+            c = c + 1
+        end
+
+    end
+
+    private action ComputeMiddlePoint(CoordinateVector current, CoordinateVector next) returns CoordinateVector
+        
+        integer x = (current:GetX() + next:GetX())/2
+        integer y = (current:GetY() + next:GetY())/2
+
+        CoordinateVector newPoint
+        newPoint:SetX(x)
+        newPoint:SetY(y)
+        newPoint:SetOnCurve(true)
+
+        return newPoint
+    end
+
+    // Next Point in respect to contours
+    private action NextPoint(integer i, integer contour) returns CoordinateVector
+        if contourEndpoints:Get(contour) = i and contour > 0
+            return points:Get(contourEndpoints:Get(contour-1)+1)
+        elseif contourEndpoints:Get(contour) = i and contour = 0
+            return points:Get(0)
+        end
+        return points:Get(i+1)
+    end
+
+    private action GetLastPoint() returns CoordinateVector
+        integer size = me:points:GetSize()
+        if size = 0
+            CoordinateVector cv
+            cv:SetX(0)
+            cv:SetY(0)
+            return cv
+        end
+        return me:points:Get(me:points:GetSize()-1)
+    end
+
+    action SetPoints(Array<CoordinateVector> points)
+        me:points = points
+    end
+    
+    action AddPoint(CoordinateVector point)
+        me:points:Add(point)
+    end
+
+    action AddPoint(integer x, integer y)
+        CoordinateVector cv
+        cv:SetX(x)
+        cv:SetY(y)
+
+        me:points:Add(cv)
+    end
+
+
+    action SetNumberOfPoints(integer numberOfPoints)
+        me:numberOfPoints = numberOfPoints
+    end
+
+
+    action SetNumberOfContours(integer numberOfContours)
+        me:numberOfContours = numberOfContours
+    end
+
+    /*
+        Stores the number of points on each contour of the glyph. 
+        Does not store the coordinates of the points - only the number of points.
+
+        Attribute: Parameter endpoints - array of integers representing the 
+        number of points on the ith contour of the glyph
+    */
+    action SetContourEndpoints(Array<integer> endpoints)
+        me:contourEndpoints = endpoints
+    end
+
+    /*
+        Attribute: Returns integer array containing the number of points on 
+        the ith contour of the glyph
+    */
+    action GetContourEndpoints() returns Array<integer>
+        return me:contourEndpoints
+    end
+    
+    action GetPoints() returns Array<CoordinateVector>
+        return me:points
+    end
+
+    action SetBoundingBox(FontBoundingBox boundingbox)
+        me:boundingbox = boundingbox
+    end
+
+    action SetBoundingBox(integer xMin, integer yMin, integer xMax, integer yMax)
+        me:boundingbox:SetBoundingBox(xMin, yMin, xMax, yMax)
+    end
+
+    action GetBoundingBox() returns FontBoundingBox
+        return me:boundingbox
+    end
+
+    action ToText() returns text
+        text t = ""
+
+        t = t + "Contours: " + contourEndpoints:GetSize()
+        t = t + ", Number of points: " + points:GetSize()
+
+        return t
+    end
+
+end

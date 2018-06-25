@@ -25,27 +25,20 @@ import java.nio.IntBuffer;
 //import com.badlogic.gdx.graphics.Color;
 //import com.badlogic.gdx.graphics.Mesh;
 
-import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.Graphics.Color_;
-import quorum.Libraries.Compute.Vector2_;
 import quorum.Libraries.Compute.Vector2;
-import quorum.Libraries.Compute.Vector3_;
 import quorum.Libraries.Compute.Vector3;
 import quorum.Libraries.Compute.Matrix3_;
-import quorum.Libraries.Compute.Matrix3;
 import quorum.Libraries.Compute.Matrix4_;
-import quorum.Libraries.Compute.Matrix4;
 
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameStateManager;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 
 // libGDX dependencies to eliminate:
 import plugins.quorum.Libraries.Game.libGDX.Array;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import plugins.quorum.Libraries.Game.libGDX.ObjectIntMap;
-import plugins.quorum.Libraries.Game.libGDX.ObjectMap;
 
 /** 
  * This is an adaptation of the libGDX ShaderProgram class. It is used to store
@@ -100,7 +93,7 @@ public class ShaderProgram
     public static boolean pedantic = true;
 
     /** the list of currently available shaders **/
-    private final static ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>> shaders = new ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>>();
+    private final static Array<ShaderProgram> RELOADABLE_SHADERS = new Array<ShaderProgram>();
 
     /** the log **/
     private String log = "";
@@ -846,8 +839,7 @@ public class ShaderProgram
         gl.glDeleteShader(vertexShaderHandle);
         gl.glDeleteShader(fragmentShaderHandle);
         gl.glDeleteProgram(program);
-        if (shaders.get(GameStateManager.application) != null)
-            shaders.get(GameStateManager.application).removeValue(this, true);
+        RELOADABLE_SHADERS.removeValue(this, true);
     }
 
     /** Disables the vertex attribute with the given name
@@ -901,48 +893,28 @@ public class ShaderProgram
     {
         if (app == null)
             throw new GameRuntimeError("The ShaderProgram can't associate a shader with an undefined application.");
-        Array<ShaderProgram> managedResources = shaders.get(app);
-        if (managedResources == null)
-            managedResources = new Array<ShaderProgram>();
-        managedResources.add(shaderProgram);
-        shaders.put(app, managedResources);
+        RELOADABLE_SHADERS.add(shaderProgram);
     }
 
-    /** Invalidates all shaders so the next time they are used new handles are generated
-     * @param app */
-    public static void InvalidateAllShaderPrograms(quorum.Libraries.Game.Application_ app) 
+    /* 
+    Reloads all shaders that are in use. Used after OpenGL context loss to 
+    regenerate information that's been invalidated.  
+    */
+    public static void ReloadShaders() 
     {
         if (GameStateManager.nativeGraphics == null) 
             return;
 
-        Array<ShaderProgram> shaderArray = shaders.get(app);
-        if (shaderArray == null)
-            return;
-
-        for (int i = 0; i < shaderArray.size; i++) 
+        for (int i = 0; i < RELOADABLE_SHADERS.size; i++) 
         {
-            shaderArray.get(i).invalidated = true;
-            shaderArray.get(i).CheckManaged();
+            RELOADABLE_SHADERS.get(i).invalidated = true;
+            RELOADABLE_SHADERS.get(i).CheckManaged();
         }
     }
 
     public static void ClearAllShaderPrograms(quorum.Libraries.Game.Application_ app) 
     {
-        shaders.remove(app);
-    }
-
-    public static String GetManagedStatus() 
-    {
-        StringBuilder builder = new StringBuilder();
-        int i = 0;
-        builder.append("Managed shaders/app: { ");
-        for (quorum.Libraries.Game.Application_ app : shaders.keys()) 
-        {
-            builder.append(shaders.get(app).size);
-            builder.append(" ");
-        }
-        builder.append("}");
-        return builder.toString();
+        RELOADABLE_SHADERS.clear();
     }
 
     /** Sets the given attribute

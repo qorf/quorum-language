@@ -119,11 +119,13 @@ public class IndexArray extends IndexData
         // Do nothing.
     }
 
-    /** Invalidates the IndexArray so a new OpenGL buffer handle is created. Use this in case of a context loss. */
+    /** Reloads the IndexData. Used in case of a context loss, IndexArray 
+        doesn't have any state that needs to be manually recovered after context
+        loss (unlike buffer objects), so this does nothing. */
     @Override
-    public void Invalidate() 
+    public void Reload() 
     {
-        // Do nothing.
+        // Do nothing. The IndexArray doesn't require manual reloading.
     }
 
     public void Clear()

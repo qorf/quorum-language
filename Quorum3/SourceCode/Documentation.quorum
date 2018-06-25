@@ -39,6 +39,9 @@ class Documentation is Location
             end
             i = i + 1
         end
+        if short:IsEmpty()
+            short = description
+        end
         return short
     end
 

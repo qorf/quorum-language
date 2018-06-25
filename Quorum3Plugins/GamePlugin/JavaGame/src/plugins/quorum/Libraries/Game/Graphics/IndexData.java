@@ -44,8 +44,8 @@ public class IndexData
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }
 
-    /** Invalidates the IndexBufferObject so a new OpenGL buffer handle is created. Use this in case of a context loss. */
-    public void Invalidate()
+    /** Manually reloads the IndexData. Use this in case of a context loss. */
+    public void Reload()
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }

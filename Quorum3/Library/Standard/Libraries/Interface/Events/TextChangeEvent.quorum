@@ -1,0 +1,45 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.TextBox
+
+class TextChangeEvent 
+    
+    public constant integer ADDED = 1
+    public constant integer DELETED = 2
+    public constant integer MODIFIED = 3
+
+    TextBox textBox = undefined
+    text addedText = ""
+    text deletedText = ""
+    integer eventType = 0
+
+    action Initialize(TextBox box, text added, text deleted)
+        if added = ""
+            eventType = DELETED
+        elseif deleted = ""
+            eventType = ADDED
+        else
+            eventType = MODIFIED
+        end
+
+        textBox = box
+        addedText = added
+        deletedText = deleted
+    end
+
+    action GetTextBox returns TextBox
+        return textBox
+    end
+
+    action GetEventType returns integer
+        return eventType
+    end
+
+    action GetAddedText returns text
+        return addedText
+    end
+
+    action GetDeletedText returns text
+        return deletedText
+    end
+end

@@ -191,5 +191,15 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 }
                 break;
         }
-    };    
+    };
+    
+    this.AddReloadableMesh = function()
+    {
+        // Do nothing, this isn't necessary on the web.
+    };
+    
+    this.RemoveReloadableMesh = function()
+    {
+        // Do nothing, this isn't necessary on the web.
+    };
 }

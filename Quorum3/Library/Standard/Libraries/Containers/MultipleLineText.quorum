@@ -2,6 +2,29 @@ package Libraries.Containers
 
 use Libraries.Containers.Array
 
+/*
+The MultipleLineText class is used to distribute text across multiple lines.
+This is done for both efficiency and to make certain kinds of operations easier.
+For example, inserting or deleting characters into very large strings of text
+will be much more efficient in a MultipleLineText than in the base text type.
+
+Attribute: Example
+
+use Libraries.Containers.MultipleLineText
+
+MultipleLineText multiLineText
+multiLineText:Initialize("Hello world! ")
+
+text extraText = "This is extra text."
+multiLineText = multiLineText:Concatenate(extraText)
+
+extraText = extraText:GetLineFeed() + "This text is on a second line."
+multiLineText = multiLineText:Concatenate(extraText)
+
+output multiLineText:GetText()
+output "The text contains " + multiLineText:GetLineCount() + " lines."
+
+*/
 class MultipleLineText 
 
     // The children nodes.
@@ -79,18 +102,26 @@ class MultipleLineText
         Array<integer> fibonacci
         fibonacci:Add(1)
         fibonacci:Add(2)
-        Initialize(value, leafSize, fibonacci)
+        Initialize(value, leafSize, fibonacci, true)
     end
 
-    private action Initialize(text value, number leafSize, Array<integer> fibonacci)
+    private action Initialize(text value, number leafSize, Array<integer> fibonacci, boolean keepEmptyEndLine)
         maxLeafSize = leafSize
         fibonacciArray = fibonacci
         if TextFitsInLine(value)
-            characters = value
-            weight = value:GetSize()
-            leafWeight = 0
-            leafCount = 1
-            depth = 0
+            if (keepEmptyEndLine and value:EndsWith(value:GetLineFeed()))
+                MultipleLineText leftChild
+                MultipleLineText rightChild
+                leftChild:Initialize(value, leafSize, fibonacci, false)
+                rightChild:Initialize("", leafSize, fibonacci, false)
+                SetChildren(leftChild, rightChild)
+            else
+                characters = value
+                weight = value:GetSize()
+                leafWeight = 0
+                leafCount = 1
+                depth = 0
+            end
         else
             MultipleLineText leftChild
             MultipleLineText rightChild
@@ -103,13 +134,24 @@ class MultipleLineText
             wouldn't have reached this point in the if/else structure.
             */
             Array<text> lines = SplitIntoLines(value)
-            leftChild:Initialize(lines:RemoveFromFront())
-            rightChild:Initialize(lines:RemoveFromFront())
+            leftChild:Initialize(lines:RemoveFromFront(), leafSize, fibonacci, false)
+
+            text secondLine = lines:RemoveFromFront()
+            if lines:IsEmpty()
+                rightChild:Initialize(secondLine, leafSize, fibonacci, keepEmptyEndLine)
+            else
+                rightChild:Initialize(secondLine, leafSize, fibonacci, false)
+            end
 
             repeat while not lines:IsEmpty()
                 MultipleLineText newNode
-                newNode:Initialize(lines:RemoveFromFront())
-                rightChild = rightChild:Concatenate(newNode)
+                newNode:Initialize(lines:RemoveFromFront(), leafSize, fibonacci, false)
+                if (not keepEmptyEndLine) and lines:IsEmpty() and newNode:GetText():GetSize() = 0
+                    // Don't add the last line if it's empty and we're not
+                    // explicitly asked to keep it.
+                else
+                    rightChild = rightChild:Concatenate(newNode)
+                end
             end
 
             SetChildren(leftChild, rightChild)
@@ -144,7 +186,7 @@ class MultipleLineText
             if rightChild not= undefined
                 left = leftChild
                 right = rightChild
-                weight = left:GetLength()
+                weight = left:GetSize()
                 leafWeight = left:GetLineCount()
                 leafCount = left:GetLineCount() + right:GetLineCount()
                 fibonacciArray = left:GetFibonacciArray()
@@ -260,19 +302,72 @@ class MultipleLineText
 
         integer toFill = CharactersToBackfill(refillText, providingText)
         if toFill = 0
-            return me
+            // If the providing text was empty somehow, delete the empty line and
+            // continue. Most likely this occurs because the last line was empty
+            // (without text wrapping, it's the only line legally allowed to be
+            // empty).
+            if providingText:IsEmpty()
+                MultipleLineText result = RemoveFromLine(lineIndex + 1, 0)
+                return result:RefillLine(lineIndex + 1)
+            else
+                return me
+            end
         end
 
         integer startIndex = CharacterIndexFromLineIndex(lineIndex) + refillText:GetSize()
 
+        MultipleLineText result = AppendToLine(lineIndex, providingText:GetSubtext(0, toFill))
+        result = result:RemoveFromLine(lineIndex + 1, toFill)
+
         // Use an insertion to place it at the end of the correct leaf, then
         // remove the duplicate entry in the next leaf.
-        MultipleLineText result = Insert(startIndex, providingText:GetSubtext(0, toFill))
-        result = result:Delete(startIndex + toFill, startIndex + toFill * 2)
+//        MultipleLineText result = Insert(startIndex, providingText:GetSubtext(0, toFill))
+//        result = result:Delete(startIndex + toFill, startIndex + toFill * 2)
 
         // Repeat this action on the next line - if it needs readjusting, it'll
         // perform it. Otherwise, it just returns the tree.
         return result:RefillLine(lineIndex + 1)
+    end
+
+    /*
+    Appends the given text to the end of the line at the given index.
+    */
+    private action AppendToLine(integer lineIndex, text value) returns MultipleLineText
+        integer weight = GetLeafWeight()
+        if IsLeaf()
+            return RecursiveInsert(characters:GetSize(), value)
+        elseif lineIndex >= weight
+            MultipleLineText newRoot
+            MultipleLineText newRight = right:AppendToLine(lineIndex - weight, value)
+            newRoot:SetChildren(left, newRight)
+            return newRoot
+        else
+            MultipleLineText newRoot
+            MultipleLineText newLeft = left:AppendToLine(lineIndex, value)
+            newRoot:SetChildren(newLeft, right)
+            return newRoot
+        end
+    end
+
+    /*
+    Remove the specified number of characters from the beginning of the line.
+    Doesn't preserve empty lines at the end of the MultipleLineText.
+    */
+    private action RemoveFromLine(integer lineIndex, integer count) returns MultipleLineText
+        integer weight = GetLeafWeight()
+        if IsLeaf()
+            return RecursiveDelete(0, count, false)
+        elseif lineIndex >= weight
+            MultipleLineText newRoot
+            MultipleLineText newRight = right:RemoveFromLine(lineIndex - weight, count)
+            newRoot:SetChildren(left, newRight)
+            return newRoot
+        else
+            MultipleLineText newRoot
+            MultipleLineText newLeft = left:RemoveFromLine(lineIndex, count)
+            newRoot:SetChildren(newLeft, right)
+            return newRoot
+        end
     end
 
     /* 
@@ -404,7 +499,11 @@ class MultipleLineText
     action LineIndexFromCharacterIndex(integer index) returns integer
         integer weight = GetWeight()
         if index >= weight
-            return right:LineIndexFromCharacterIndex(index - weight) + GetLeafWeight()
+            if right not= undefined
+                return right:LineIndexFromCharacterIndex(index - weight) + GetLeafWeight()
+            else
+                return 0
+            end
         elseif left not= undefined
             return left:LineIndexFromCharacterIndex(index)
         else
@@ -487,16 +586,27 @@ class MultipleLineText
     output result:GetText()
     */
     action Concatenate(text value) returns MultipleLineText
-        return RecursiveConcatenate(value)
+        
+        MultipleLineText result = RecursiveConcatenate(value)
+
+        if value:EndsWith(value:GetLineFeed())
+            // Manually insert a blank line at the end of the tree.
+            MultipleLineText newLine
+            newLine:Initialize("", maxLeafSize, fibonacciArray, false)
+            
+            result = result:Concatenate(newLine)
+        end
+
+        return result
     end
 
     private action RecursiveConcatenate(Text value) returns MultipleLineText
         if IsLeaf()
             MultipleLineText newTree
-            newTree:Initialize(characters + value:GetValue(), maxLeafSize, fibonacciArray)
+            newTree:Initialize(characters + value:GetValue(), maxLeafSize, fibonacciArray, false)
             return newTree
         else
-            MultipleLineText newRight = right:Concatenate(value)
+            MultipleLineText newRight = right:RecursiveConcatenate(value)
             MultipleLineText newTree
             newTree:SetChildren(left, newRight)
             return newTree
@@ -637,11 +747,25 @@ class MultipleLineText
         if index < 0
             alert("I can not insert text at a negative index. I was asked to insert at index " + index + ".")
         end
-        if index > GetLength()
-            alert("I can not insert text at the given index because it is too large. I was asked to insert at index " + index + 
-                ", but the last available index to insert at is " + GetLength() + ".")
+        integer length = GetSize()
+        if index > length
+            alert("I can not insert text at the given index because the index is too large. I was asked to insert at index " + index + 
+                ", but the last available index to insert at is " + GetSize() + ".")
         end
-        MultipleLineText newTree = RecursiveInsert(index, value)    
+
+        if index = length
+            return Concatenate(value)
+        end
+
+        integer size = GetLineCount()
+        integer line = LineIndexFromCharacterIndex(index)
+
+        MultipleLineText newTree = RecursiveInsert(index, value)
+
+        integer newSize = newTree:GetLineCount()
+        line = line + (newSize - size)
+        newTree = newTree:RefillLine(line)
+    
         if newTree:NeedsBalancing()
             newTree = newTree:Balance()
         end
@@ -665,18 +789,17 @@ class MultipleLineText
             end
 
             MultipleLineText newTree
-            newTree:Initialize(newText, maxLeafSize, fibonacciArray)
+            newTree:Initialize(newText, maxLeafSize, fibonacciArray, false)
             return newTree
         else
             MultipleLineText newTree
             MultipleLineText leftChild = left
             MultipleLineText rightChild = right
-            if index <= weight
+            if index < weight
                 leftChild = left:RecursiveInsert(index, value)
             else
                 rightChild = right:RecursiveInsert(index - weight, value)
             end
-
             newTree:SetChildren(leftChild, rightChild)
             return newTree
         end
@@ -700,21 +823,21 @@ class MultipleLineText
     MultipleLineText tree
     tree:Initialize("Hello world!")
 
-    MultipleLineText deleteTree = tree:Delete(5, tree:GetLength() - 1)
+    MultipleLineText deleteTree = tree:Delete(5, tree:GetSize() - 1)
     output deleteTree:GetText()
     */
     action Delete(integer startIndex, integer endIndex) returns MultipleLineText
         if startIndex < 0
             alert("I can not delete text at a negative index. I was asked to delete between indices " + startIndex + " and " + endIndex + ".")
         end
-        if endIndex > GetLength()
+        if endIndex > GetSize()
             alert("I couldn't delete the text from this MultipleLineText because I was asked to remove more text than was available. I was asked to delete between indices "  
-                + startIndex + " and " + endIndex + ", but there are only " + GetLength() + " characters available.")
+                + startIndex + " and " + endIndex + ", but there are only " + GetSize() + " characters available.")
         end
-        MultipleLineText newTree = RecursiveDelete(startIndex, endIndex)
+        MultipleLineText newTree = RecursiveDelete(startIndex, endIndex, true)
         if newTree = undefined
             MultipleLineText emptyTree
-            emptyTree:Initialize("", maxLeafSize, fibonacciArray)
+            emptyTree:Initialize("", maxLeafSize, fibonacciArray, false)
             return emptyTree
         else
             newTree = newTree:RefillLine(LineIndexFromCharacterIndex(startIndex))
@@ -729,8 +852,15 @@ class MultipleLineText
     Recursive call that handles deletion. Separated out from the "original"
     delete call so that the recursive call does not handle certain one-time
     checks (i.e. bound checking, tree balancing).
+
+    The "rightTraversal" boolean indicates that the call stack for a particular
+    given delete call only contains calls that traveled to the right. In other
+    words, if a leaf receives this call and the boolean is true, it must be the
+    last leaf in the tree (and therefore has special consideration that it must
+    not declare the tree to be undefined if it is empty - an empty last line
+    is considered valid).
     */
-    private action RecursiveDelete(integer startIndex, integer endIndex) returns MultipleLineText
+    private action RecursiveDelete(integer startIndex, integer endIndex, boolean rightTraversal) returns MultipleLineText
         MultipleLineText newTree
 
         if not IsLeaf()
@@ -738,12 +868,12 @@ class MultipleLineText
             MultipleLineText rightChild = undefined
 
             if left not= undefined and startIndex < weight
-                leftChild = left:RecursiveDelete(startIndex, endIndex)
+                leftChild = left:RecursiveDelete(startIndex, endIndex, false)
             else
                 leftChild = left
             end
             if right not= undefined and endIndex > weight
-                rightChild = right:RecursiveDelete(startIndex - weight, endIndex - weight)
+                rightChild = right:RecursiveDelete(startIndex - weight, endIndex - weight, rightTraversal)
             else
                 rightChild = right
             end
@@ -756,12 +886,21 @@ class MultipleLineText
         else
             integer characterSize = characters:GetSize()
             if startIndex <= 0 and endIndex >= characterSize
-                /*
-                If all characters are deleted, don't return a new MultipleLineText, just
-                return undefined (there should no longer be a leaf at this
-                position in the tree).
-                */
-                return undefined
+                if not rightTraversal
+                    /*
+                    If all characters are deleted, don't return a new MultipleLineText, just
+                    return undefined (there should no longer be a leaf at this
+                    position in the tree).
+                    */
+                    return undefined
+                else
+                    /*
+                    If this is a leaf and rightTraversal = true, then this is
+                    the last leaf in the tree. The last leaf in the tree is
+                    allowed to be empty.
+                    */
+                    newTree:Initialize("", maxLeafSize, fibonacciArray, false)
+                end
             else
                 text newText = ""
                 if startIndex > 0
@@ -770,7 +909,7 @@ class MultipleLineText
                 if endIndex < characterSize
                     newText = newText + characters:GetSubtext(endIndex, characterSize)
                 end
-                newTree:Initialize(newText, maxLeafSize, fibonacciArray)
+                newTree:Initialize(newText, maxLeafSize, fibonacciArray, false)
             end
         end
 
@@ -799,9 +938,9 @@ class MultipleLineText
         if startIndex < 0
             alert("I can not find text at a negative index. I was asked to search between indices " + startIndex + " and " + endIndex + ".")
         end
-        if endIndex > GetLength()
+        if endIndex > GetSize()
             alert("I couldn't return the text from this MultipleLineText because I was asked to provide more text than was available. I was asked to search between indices "  
-                + startIndex + " and " + endIndex + ", but there are only " + GetLength() + " characters available to return.")
+                + startIndex + " and " + endIndex + ", but there are only " + GetSize() + " characters available to return.")
         end
         return RecursiveGetText(startIndex, endIndex)
     end
@@ -879,11 +1018,11 @@ class MultipleLineText
 
     MultipleLineText tree
     tree:Initialize("Hello world!")
-    output "The length of the text in the tree is " + tree:GetLength()
+    output "The length of the text in the tree is " + tree:GetSize()
     */
-    action GetLength returns integer
+    action GetSize returns integer
         if right not= undefined
-            return GetWeight() + right:GetLength()
+            return GetWeight() + right:GetSize()
         end
         return GetWeight()
     end
@@ -970,7 +1109,7 @@ class MultipleLineText
         // TO-DO:
         // Change leaves if necessary, if not return me
         // Changing the leaf size / wrapping style means recreating nodes
-        // (can't reuse any ndoes because they all share the same values)
+        // (can't reuse any nodes because they all share the same values)
         return me
     end
 

@@ -5,26 +5,24 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import java.nio.IntBuffer;
-import org.lwjgl.BufferUtils;
-import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 import org.lwjgl.opengl.GL;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
+import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
 import plugins.quorum.Libraries.Interface.Events.TextInputProcessor;
 import quorum.Libraries.Game.ScreenResolution;
 
@@ -38,13 +36,28 @@ public class DesktopDisplay {
     
     // May only be necessary for development. May be removed later.
     GLFWErrorCallback errorCallback;
-    // Used to capture resize events. Currently does nothing.
-    GLFWFramebufferSizeCallback resizeCallback = new GLFWFramebufferSizeCallback()
+    
+    // Whether or not the window was resized during the last cycle.
+    boolean wasResized = false;
+    
+    GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
             public void invoke(long window, int width, int height)
             {
-                ResizeEvent(window, width, height);
+                wasResized = true;
+                ResizeProcessor.AddResizeEvent(window, width, height);
+                GameStateManager.game.ContinueGame();
+                GLFW.glfwSwapBuffers(window);
+                
+                /* 
+                Draw the game to the other buffer as well. This means we're
+                technically drawing twice on every resize, but this guarantees
+                that if we swap to the other buffer that it won't have junk
+                data. Resizing the screen is a rare operation, so this should
+                have a minor impact on overall perfo
+                */
+                UpdateBuffer();
             }
         };
     
@@ -97,6 +110,20 @@ public class DesktopDisplay {
             for (int i = 0; i < chars.length; i++)
                 s = s + chars[i];
             TextInputProcessor.AddTextInputEvent(window, codepoint, s);
+        }
+    };
+    
+    GLFWWindowFocusCallback windowFocusCallback = new GLFWWindowFocusCallback()
+    {
+        @Override
+        public void invoke(long window, boolean focused) 
+        {
+            quorum.Libraries.Interface.Events.WindowFocusEvent event = 
+                new quorum.Libraries.Interface.Events.WindowFocusEvent();
+            
+            event.Set(focused);
+            
+            GameStateManager.input.NotifyWindowFocusListeners(event);
         }
     };
     
@@ -213,12 +240,13 @@ public class DesktopDisplay {
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
-        GLFW.glfwSetFramebufferSizeCallback(window, resizeCallback);
+        GLFW.glfwSetWindowSizeCallback(window, resizeCallback);
         GLFW.glfwSetKeyCallback(window, keyboardCallback);
         GLFW.glfwSetCursorPosCallback(window, mouseMovementCallback);
         GLFW.glfwSetMouseButtonCallback(window, mouseCallback);
         GLFW.glfwSetScrollCallback(window, scrollCallback);
         GLFW.glfwSetCharCallback(window, textCallback);
+        GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
     }
 
     public void SetVSync(boolean vsync) 
@@ -293,7 +321,12 @@ public class DesktopDisplay {
 
     public boolean IsCloseRequested() {
         // This will need to be revised for a multiple-window system.
-        return GLFW.glfwWindowShouldClose(window);
+        if (GLFW.glfwWindowShouldClose(window))
+        {
+            GLFW.glfwSetWindowShouldClose(window, false);
+            return true;
+        }
+        return false;
     }
 
     public void Destroy() {
@@ -306,8 +339,9 @@ public class DesktopDisplay {
     }
     
     public boolean WasResized() {
-//        return Display.wasResized();
-        return false;
+        boolean resized = wasResized;
+        wasResized = false;
+        return resized;
     }
     
     public void UpdateTime () 
@@ -333,6 +367,12 @@ public class DesktopDisplay {
     public void SetLastTime()
     {
         lastTime = System.nanoTime();
+    }
+    
+    public void UpdateBuffer()
+    {
+        GameStateManager.game.ClearScreen();
+        GameStateManager.game.DrawAll();
     }
     
     public void Update()
@@ -452,12 +492,6 @@ public class DesktopDisplay {
         return value ? org.lwjgl.opengl.GL11.GL_TRUE : org.lwjgl.opengl.GL11.GL_FALSE;
     }
     
-    public void ResizeEvent(long window, int width, int height)
-    {
-        // Handle resizing in a sensible manner.
-        // When the Quorum resizing API is implemented, inform listeners.
-    }
-    
     // Only works on Windows platforms. This will fail on other platforms.
     public static long GetWindowsHandle()
     {
@@ -501,5 +535,15 @@ public class DesktopDisplay {
             GLFW.glfwInit();
             initialized = true;
         }
+    }
+    
+    public void FocusWindow()
+    {
+        GLFW.glfwFocusWindow(window);
+    }
+    
+    public boolean IsWindowFocused()
+    {
+        return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
     }
 }

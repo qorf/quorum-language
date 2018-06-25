@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,7 +44,13 @@ import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
+import quorum.Libraries.Language.Compile.CompilerRequest;
+import quorum.Libraries.Language.Compile.CompilerRequest_;
+import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Documentation.DocumentationGenerator;
+import quorum.Libraries.Language.Compile.Library_;
 import quorum.Libraries.Language.Object_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -57,7 +64,9 @@ public abstract class QuorumAction implements Action {
     private Process process = null;
     InputOutput io;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(QuorumAction.class.getName());
-
+    protected boolean buildDocumentation = false;
+    protected boolean buildLibrary = false;
+    
     QuorumAction(QuorumProject project) {
         this.project = project;
         values.put("popupText", getDisplayName());
@@ -69,6 +78,7 @@ public abstract class QuorumAction implements Action {
         FileObject build = projectDirectory.getFileObject(QuorumProject.BUILD_DIRECTORY);
         FileObject run = projectDirectory.getFileObject(QuorumProject.DISTRIBUTION_DIRECTORY);
 
+        project.setLastCompileResult(null);
         try {
             if (build != null && build.isValid()) {
                 build.delete();
@@ -81,13 +91,38 @@ public abstract class QuorumAction implements Action {
         }
     }
 
+    public static void GetSourceFiles(File file, Array_ files) {
+        FileFilter filter;
+        filter = new FileFilter() {
+            @Override
+            public boolean accept(File name) {
+                String sub = name.getName().substring(name.getName().lastIndexOf(".") + 1);
+                if(sub.equals("quorum") || name.isDirectory()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+        File[] list = file.listFiles(filter);
+        for(int i = 0; i < list.length; i++) {
+            File f = list[i];
+            if(f.isDirectory()) {
+                GetSourceFiles(f, files);
+            } else {
+                quorum.Libraries.System.File quorumFile = getQuorumFile(f);
+                files.Add(quorumFile); 
+            }
+        }
+    }
+    
     /**
      * This method builds a program. It returns true if the build was
      * successful.
      *
      * @return
      */
-    public synchronized boolean build() {
+    public synchronized BuildInformation build() {
         Lookup lookup = project.getLookup();
         final quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
         FileObject projectDirectory = project.getProjectDirectory();
@@ -116,9 +151,11 @@ public abstract class QuorumAction implements Action {
         }
         File directory = FileUtil.toFile(projectDirectory);
 
+        Array_ listing = new quorum.Libraries.Containers.Array();
         File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
-        quorum.Libraries.System.File quorumFile = getQuorumFile(file);
-        Array_ listing = quorumFile.GetDirectoryListing();
+        GetSourceFiles(file, listing);
+        //quorum.Libraries.System.File quorumFile = getQuorumFile(file);
+        //Array_ listing = quorumFile.GetDirectoryListing();
         
         
         Iterator_ it = listing.GetIterator();
@@ -143,23 +180,61 @@ public abstract class QuorumAction implements Action {
                 }
             }
         }
+        BuildInformation info = new BuildInformation();
+        final CompilerRequest request = new CompilerRequest();
+        info.request = request;
         long start = System.currentTimeMillis();
-        compiler.Empty();
+        //compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
-        //A web server (war file) to be used in Tomcat or Glassfish
-        if(type == QuorumProjectType.WEB) {
-            compiler.SetIsWebApplication(true);
-            compiler.SetOutputType(compiler.JAVA_BYTECODE);
-        //A JavaScript application to be run in a web browser
-        } else if(type == QuorumProjectType.WEB_BROWSER) {
-            //tell the compiler it is not compiling to a web server
-            compiler.SetIsWebApplication(false);
-            //then tell it to compile to JavaScript
-            compiler.SetOutputType(compiler.JAVASCRIPT);
-        //A normal console application to be run on Desktop
+        if(!buildDocumentation && !buildLibrary) {
+            //A web server (war file) to be used in Tomcat or Glassfish
+            if(type == QuorumProjectType.WEB) {
+                request.isWebRequest = true;
+                request.SetOutputType(request.JAVA_BYTECODE);
+            //A JavaScript application to be run in a web browser
+            } else if(type == QuorumProjectType.WEB_BROWSER) {
+                //tell the compiler it is not compiling to a web server
+                request.isWebRequest = false;
+                //then tell it to compile to JavaScript
+                request.SetOutputType(request.JAVASCRIPT);
+            //A normal console application to be run on Desktop
+            } else {
+                request.isWebRequest = false;
+                request.SetOutputType(request.JAVA_BYTECODE);
+            }
         } else {
-            compiler.SetIsWebApplication(false);
-            compiler.SetOutputType(compiler.JAVA_BYTECODE);
+            if(buildLibrary) {
+                //we don't even need to compile. Just get the standard library 
+                //from the folder and write it
+                
+                DocumentationGenerator generator = new DocumentationGenerator();
+                Library_ library = project.GetStandardLibrary();
+                generator.SetRunFolder(compiler.GetRunFolder());
+                generator.Write(library);
+                long finish = System.currentTimeMillis();
+                double value = (finish - start);
+                value = value / 1000.0;
+                final double total = value;
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
+                        if(errors != null) {
+                            errors.clear();
+                        }
+                        io.select();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+
+                        io.getOut().println("Documentation Generated at " + dateFormat.format(date) + " in " + total + " seconds.");
+                    }
+                });
+                info.success = true;
+                return info;
+            } else {
+                request.SetOutputType(request.DOCUMENT);
+            }
         }
         
         Iterator<quorum.Libraries.System.File> extras = project.getExtraSourceFiles();
@@ -168,8 +243,36 @@ public abstract class QuorumAction implements Action {
             listing.Add(next);
         }
         
+        final CompilerResult_ result;
+        CompilerErrorManager_ manager;
+        
         try {
-            compiler.Compile(listing);
+            //get the standard library
+            File_ main = project.GetMain();
+            CompilerResult_ previousCompile = project.getLastCompileResult();
+            if(previousCompile != null) {
+                request.symbolTable = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                request.opcodes = previousCompile.Get_Libraries_Language_Compile_CompilerResult__opcodes_();
+            }
+            Library_ library = project.GetStandardLibrary();
+            request.Set_Libraries_Language_Compile_CompilerRequest__files_(listing);
+            request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
+            request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);            
+            result = compiler.Compile(request);
+            info.result = result;
+            manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+            if(manager != null && manager.IsCompilationErrorFree()){
+                if(result != null && project instanceof QuorumProject) {
+                    QuorumProject qp = (QuorumProject) project;
+                    qp.setLastCompileResult(result);
+                    qp.setLastGoodCompileResult(result);
+                }
+            } else {
+                if(result != null && project instanceof QuorumProject) {
+                    QuorumProject qp = (QuorumProject) project;
+                    qp.setLastCompileResult(result);
+                }
+            }
         } catch (final Exception e) {
             if(logExceptionsToConsoleOutput) {
                 SwingUtilities.invokeLater(new Runnable() {
@@ -180,7 +283,7 @@ public abstract class QuorumAction implements Action {
                         Date date = new Date();
                         String format = dateFormat.format(date);
 
-                        if(compiler.GetMainClass() == null) {
+                        if(request.main == null) {
                             String stringDate = dateFormat.format(date);
                             io.getOut().println("I noticed that there is no main file set, which means "
                                     + "I cannot determine where to start your program. "
@@ -200,7 +303,8 @@ public abstract class QuorumAction implements Action {
                     }
                 });
             }
-            return false;
+            info.success = false;
+            return info;
         }
         
         //NetBeans HACK: The NetBeans platform seems to strip away file permissions
@@ -211,8 +315,6 @@ public abstract class QuorumAction implements Action {
         if(run.exists()) {
             run.setExecutable(true);
         }
-        
-        
                         
         long finish = System.currentTimeMillis();
         double value = (finish - start);
@@ -222,33 +324,43 @@ public abstract class QuorumAction implements Action {
             @Override
             public void run() {
                 CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
-                if (!compiler.IsCompilationErrorFree()) {
-                    CompilerErrorManager_ manager = compiler.GetCompilerErrorManager();
-                    errors.resetErrors(manager);
+                
+                if(result != null) {
+                    CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+                    if (!manager.IsCompilationErrorFree()) {
+                        errors.resetErrors(manager);
 
-                    boolean open = errors.isOpened();
-                    if (open) {
-                        errors.requestActive();
+                        boolean open = errors.isOpened();
+                        if (open) {
+                            errors.requestActive();
+                        } else {
+                            errors.open();
+                            errors.requestActive();
+                        }
                     } else {
-                        errors.open();
-                        errors.requestActive();
+                        if(errors != null) {
+                            errors.clear();
+                        }
+                        io.select();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+
+                        if(request.GetOutputType() == request.DOCUMENT) {
+                            io.getOut().println("Documentation Generated at " + dateFormat.format(date) + " in " + total + " seconds.");
+                        } else {
+                            io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
+                        }
                     }
-                } else {
-                    errors.clear();
-                    io.select();
-
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                    Date date = new Date();
-
-                    io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
                 }
+                
             }
         });
         
         //if it's a JavaScript project, we need to get the source and write the 
         //file manually
-        if(type == QuorumProjectType.WEB_BROWSER && compiler.IsCompilationErrorFree()) {
-            String text = compiler.GetCompiledJavaScript();
+        if(type == QuorumProjectType.WEB_BROWSER && result != null && manager.IsCompilationErrorFree()) {
+            String text = result.Get_Libraries_Language_Compile_CompilerResult__convertedJavaScript_();
             File toFile = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY);
             if(!toFile.exists()) {
                 toFile.mkdir();
@@ -260,9 +372,9 @@ public abstract class QuorumAction implements Action {
             writer.Write(text);
         }
         boolean legos = false;
-        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+        if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
-            String loc = project.getExecutableLocation();
+            String loc = project.getExecutableLocation(request);
             File f = new File(loc);
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -273,13 +385,13 @@ public abstract class QuorumAction implements Action {
             legos = adapter.Send(f);
         }
         final boolean legoFound = legos;
-        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+        if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     if(type == QuorumProjectType.LEGO) {
                         if(legoFound) {
-                            io.getOut().println("Successfully output " + project.getExecutableName() + " to your lego robot.");
+                            io.getOut().println("Successfully output " + project.getExecutableName(request) + " to your lego robot.");
                         } else {
                             io.getOut().println("I could not connect to a lego device. Is it plugged in?");
                         }
@@ -296,7 +408,13 @@ public abstract class QuorumAction implements Action {
                 io.getOut().close();
             }
         });
-        return compiler.IsCompilationErrorFree();
+        
+        if(result != null) {
+            info.success = manager.IsCompilationErrorFree();
+            return info;
+        }
+        info.success = false;
+        return info;
     }
 
     @Override
@@ -333,7 +451,7 @@ public abstract class QuorumAction implements Action {
     public void actionPerformed(ActionEvent e) {
     }
 
-    public quorum.Libraries.System.File getQuorumFile(File file) {
+    public static quorum.Libraries.System.File getQuorumFile(File file) {
         quorum.Libraries.System.File quorumFile = new quorum.Libraries.System.File();
         quorumFile.SetWorkingDirectory(file.getParent());
         quorumFile.SetPath(file.getName());

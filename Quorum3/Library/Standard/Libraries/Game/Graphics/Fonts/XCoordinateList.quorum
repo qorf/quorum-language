@@ -1,0 +1,81 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+
+class XCoordinateList
+    Array<PixelIntersection> list
+
+    integer nonzero = 0
+
+    action SetNonzero(integer nonzero)
+        me:nonzero = nonzero
+    end
+
+    action GetNonzero returns integer
+        return me:nonzero
+    end
+
+    action SetList (Array<PixelIntersection> l)
+        me:list = l
+    end
+
+    action GetList () returns Array<PixelIntersection>
+        return me:list
+    end
+    
+    action Get(integer i) returns PixelIntersection
+        return me:list:Get(i)
+    end
+
+    action GetLast() returns PixelIntersection
+        return me:list:Get(me:list:GetSize()-1)
+    end
+
+    action Add(PixelIntersection i)
+        me:list:Add(i)
+    end
+
+    action Add(integer pos, PixelIntersection val)
+        me:list:Add(pos, val)
+    end
+
+    action Remove(integer position)
+        me:list:RemoveAt(position)
+    end
+
+    action GetSize() returns integer
+       return me:list:GetSize()
+    end
+
+    action ToText() returns text
+        integer x = 0
+        text t = ""
+        repeat while x < me:list:GetSize()
+            t = t + ", x" + x+ ": " + me:list:Get(x):ToText()
+            x = x + 1
+        end
+        return t
+    end
+
+    action Sort() 
+        me:list:Sort()
+    end
+
+    action ContainsSame(XCoordinateList l) returns boolean
+
+        integer i = 0
+        repeat while i < l:GetSize()
+            
+            integer j = 0
+            repeat while j < me:list:GetSize()
+                if l:Get(i):GetXPosition() = me:list:Get(j):GetXPosition()
+                    return true
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+end

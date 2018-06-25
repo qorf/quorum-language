@@ -37,7 +37,7 @@ class VertexBufferObject is VertexData
 
     private system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
 
-    system action Invalidate
+    system action Reload
 
     action FillVertexBuffer(Array<number> vertices)
         SendToBridgeArray(vertices)

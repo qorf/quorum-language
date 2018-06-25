@@ -33,6 +33,7 @@ use Libraries.Web.Page.NavigationDivision
 use Libraries.Web.Page.Footer
 use Libraries.Web.Page.WebPageHeader
 use Libraries.Web.Page.HeaderLink
+use Libraries.Language.Compile.Documentation.DocumentationGenerator
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -213,16 +214,21 @@ class ClassOpcode is QuorumOpcode
         //return link
     end
     
-    action WriteToWebPage(NavigationDivision navigation, Footer footer) returns WebPage
+    action WriteToWebPage(DocumentationGenerator generator) returns WebPage
+        //NavigationDivision navigation
+        Footer footer = generator:GetFooter()
         WebPage page
-        //add language headers
-        page:AddAttribute("xml:lang", "en")
-        page:SetLanguage("en")
 
-        //add the meta-data character set
-        MetaData charset
-        charset:SetCharacterSet("UTF-8")
-        page:AddMetaData(charset)
+        generator:AddDefaultHeaders(page)
+        
+        //add language headers
+//        page:AddAttribute("xml:lang", "en")
+//        page:SetLanguage("en")
+//
+//        //add the meta-data character set
+//        MetaData charset
+//        charset:SetCharacterSet("UTF-8")
+//        page:AddMetaData(charset)
 
         //auto-generate some sensible keywords
         MetaData keywords
@@ -238,24 +244,24 @@ class ClassOpcode is QuorumOpcode
         keywords:AddAttribute("content", keywordText)
         page:AddMetaData(keywords)
 
-        MetaData viewport
-        viewport:SetContent("width=device-width, initial-scale=1")
-        viewport:SetName("viewport")
-        page:AddMetaData(viewport)
-
-        page:AddScript("/script/jquery-1.8.3.min.js")
-        page:AddScript("/script/script.js")
-        
-        //add style sheet tags
-        page:AddStylesheet("/style/style.css")
-        page:AddStylesheet("/style/google.css")
-        page:AddIcon("/media/favicon.ico")
-
-        //Add Responsive Stylesheets
-        WebPageHeader webHeader = page:GetWebPageHeader()
-        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
+//        MetaData viewport
+//        viewport:SetContent("width=device-width, initial-scale=1")
+//        viewport:SetName("viewport")
+//        page:AddMetaData(viewport)
+//
+//        page:AddScript("/script/jquery-1.8.3.min.js")
+//        page:AddScript("/script/script.js")
+//        
+//        //add style sheet tags
+//        page:AddStylesheet("/style/style.css")
+//        page:AddStylesheet("/style/google.css")
+//        page:AddIcon("/media/favicon.ico")
+//
+//        //Add Responsive Stylesheets
+//        WebPageHeader webHeader = page:GetWebPageHeader()
+//        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+//        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+//        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
         MetaData metaDataDescription
         metaDataDescription:SetContent("Read documentation for the Quorum programming language's " + clazz:GetStaticKey() + " class.")
@@ -263,7 +269,7 @@ class ClassOpcode is QuorumOpcode
         page:AddMetaData(metaDataDescription)
 
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
-        page:Add(navigation)
+        //page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
@@ -782,7 +788,7 @@ class ClassOpcode is QuorumOpcode
             ActionOpcode act = actionIterator:Next()
             Action method = act:GetAction()
             act:Write()
-            
+
 
             if not clazz:IsError()
                 //write to the interface
@@ -962,6 +968,45 @@ class ClassOpcode is QuorumOpcode
         parentActionWriter:VisitInstruction(opcodes:GetReturnOpcode(returnType))
         parentActionWriter:VisitMaxSize(1,1)
         parentActionWriter:VisitEnd()
+    end
+
+    /* 
+        This action sets the build paths, but does not actually write
+        the files to disk.
+    */
+    action SetBuildPaths
+        File classFile
+        text path = buildFolder:GetPath()
+        if not buildFolder:Exists()
+            buildFolder:CreateDirectories()
+        end
+
+        classFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        if not packageValue:IsEmpty()
+            packagePath = packageValue:GetPath() 
+            path = QUORUM + "/" + packagePath
+        else
+            path = QUORUM 
+        end
+        
+        classFile:SetPath(path)
+        classFile:CreateDirectories()
+        classFile:SetPath(path + "/" + clazz:GetName() + ".class")
+        buildFile = classFile
+
+        if not clazz:IsError()
+            File interfaceFile
+            interfaceFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            if not packageValue:IsEmpty()
+                packagePath = packageValue:GetPath() 
+                path = QUORUM + "/" + packagePath
+            else
+                path = QUORUM 
+            end
+
+            interfaceFile:SetPath(path + "/" + clazz:GetInterfaceName() + ".class")
+            buildInterfaceFile = interfaceFile
+        end
     end
 
     private action WriteBytecodeToDisk 
@@ -1271,7 +1316,7 @@ class ClassOpcode is QuorumOpcode
 
         //if any of the parents have constructors, call them.
         if isParent
-            Iterator<Class> parents = clazz:GetParentClasses()
+            Iterator<Class> parents = clazz:GetParentCreationOrder()
             text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
 
 
@@ -1331,7 +1376,7 @@ class ClassOpcode is QuorumOpcode
     end
 
     private action WriteParents(JavaBytecodeMethodWriter methodWriter)
-        Iterator<Class> parents = clazz:GetParentClasses()
+        Iterator<Class> parents = clazz:GetParentCreationOrder()
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
         
 
@@ -1348,7 +1393,6 @@ class ClassOpcode is QuorumOpcode
                 methodWriter:VisitInstruction(opcodes:GetDuplicate())
 
                 //push false on the parents and call a separate constructor
-                //methodWriter:VisitInstruction(opcodes:GetIntegerZero())
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                 text convertedConstructorParentName = "L" + converted + "_;"
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(" + convertedConstructorParentName + ")V", false)
@@ -1358,7 +1402,7 @@ class ClassOpcode is QuorumOpcode
         
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1575,7 +1619,7 @@ class ClassOpcode is QuorumOpcode
 
         //initialize all of the parent objects as values, if appropriate
         convertedSource = convertedSource + "if(parents == null) {" + EOL
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1586,7 +1630,7 @@ class ClassOpcode is QuorumOpcode
 
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1610,7 +1654,7 @@ class ClassOpcode is QuorumOpcode
 
         //now that all of the parents have had their parent's set, 
         //call their constructors.
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()

@@ -1,18 +1,31 @@
 package Libraries.Game.Collision
 
+/*
+This class identifies the two objects' shapes that are involved in a collision 
+and what type of collision is involved (vertex with vertex collision, vertex
+with face collision, face with face collision).
+This class is used internally by BroadphaseCollision2D and by CollisionPoint2D.
+*/
 class CollisionIdentifier2D 
-    public constant integer VERTEX = 0
-    public constant integer FACE = 1
+    public constant integer VERTEX = 0  //when the vertex of the 2D object is actually getting collided
+    public constant integer FACE = 1    //when the face of the 2D object is getting collided
 
-    integer indexA = 0
-    integer indexB = 0
-    integer typeA = 0
-    integer typeB = 0
+    integer indexA = 0  //the group index that the first 2D object belongs to
+    integer indexB = 0  //the group index that the second 2D object belongs to
+    integer typeA = 0   //stores whether the first 2D object is getting colliding with its VERTEX or FACE
+    integer typeB = 0   //stores whether the second 2D object is getting colliding with its VERTEX or FACE
 
+    /*
+    This action is used to compare between identifiers to see if they are equal.
+    */
     action Equals(CollisionIdentifier2D other) returns boolean
         return indexA = other:indexA and indexB = other:indexB and typeA = other:typeA and typeB = other:typeB
     end
 
+    /*
+    This action sets the current CollisionIdentifier2D using another 
+    CollisionIdentifier2D.
+    */
     action Set(CollisionIdentifier2D other)
         me:indexA = other:indexA
         me:indexB = other:indexB
@@ -20,6 +33,9 @@ class CollisionIdentifier2D
         me:typeB = other:typeB
     end
 
+    /*
+    This action flips the A object with the B object.
+    */
     action Flip
         integer tempA = indexA
         me:indexA = indexB
@@ -29,6 +45,9 @@ class CollisionIdentifier2D
         me:typeB = tempA
     end
 
+    /*
+    This action reset this CollisionIdentifier2D.
+    */
     action Clear
         me:indexA = 0
         me:indexB = 0
@@ -36,34 +55,58 @@ class CollisionIdentifier2D
         me:typeB = 0
     end
 
+    /*
+    This action sets the group index of object A.
+    */
     action SetIndexA(integer indexA)
         me:indexA = indexA
     end
 
+    /*
+    This action gets the group index of object A.
+    */
     action GetIndexA returns integer
         return indexA
     end
 
+    /*
+    This action sets the group index of object B.
+    */
     action SetIndexB(integer indexB)
         me:indexB = indexB
     end
 
+    /*
+    This action gets the group index of object B.
+    */
     action GetIndexB returns integer
         return indexB
     end
 
+    /*
+    This action sets whether object A is colliding with its edge or vertex.
+    */
     action SetTypeA(integer typeA)
         me:typeA = typeA
     end
 
+    /*
+    This action returns whether object A is colliding with its edge or vertex.
+    */
     action GetTypeA returns integer
         return typeA
     end
 
+    /*
+    This action sets whether object B is colliding with its edge or vertex.
+    */
     action SetTypeB(integer typeB)
         me:typeB = typeB
     end
 
+    /*
+    This action returns whether object B is colliding with its edge or vertex.
+    */
     action GetTypeB returns integer
         return typeB
     end

@@ -1,12 +1,10 @@
 package Libraries.Interface.Events
 
+use Libraries.Interface.Events.SelectionEvent
+
 class SelectionListener 
     
-    action Selected(SelectionEvent event)
-
-    end
-
-    action Deselected(SelectionEvent event)
+    action SelectionChanged(SelectionEvent selection)
 
     end
 

@@ -1,0 +1,70 @@
+package Libraries.Game.Graphics.Fonts
+
+class FontBoundingBox 
+
+    integer xMinimum = 0
+    integer xMaximum = 0
+
+    integer yMinimum = 0
+    integer yMaximum = 0
+
+    action SetBoundingBox(integer xMinimum, integer yMinimum, integer xMaximum, integer yMaximum)
+        SetXMinimum(xMinimum)
+        SetYMinimum(yMinimum)
+        SetXMaximum(xMaximum)
+        SetYMaximum(yMaximum)
+    end
+
+    action SetXMinimum (integer xMinimum)
+        me:xMinimum = xMinimum
+    end
+
+    action SetXMaximum (integer xMaximum)
+        me:xMaximum = xMaximum
+    end
+
+    action SetYMinimum (integer yMinimum)
+        me:yMinimum = yMinimum
+    end
+    
+    action SetYMaximum (integer yMaximum)
+        me:yMaximum = yMaximum
+    end
+
+
+    action GetXMinimum returns integer
+        return me:xMinimum
+    end
+
+    action GetXMaximum returns integer
+        return me:xMaximum
+    end
+
+    action GetYMinimum returns integer
+        return me:yMinimum
+    end 
+
+    action GetYMaximum returns integer
+        return me:yMaximum
+    end
+
+    action ToText() returns text
+        text t = "(xMin: " + xMinimum + ", yMin: " + yMinimum + ") (xMax: " + xMaximum + ", yMax: " + yMaximum + ")"
+        return t
+    end
+
+    action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screensize) returns number
+        if screensize = 0
+           return cast(number, gridCoordinate) * pixelSize / emSize
+        end
+        return screensize - cast(number, gridCoordinate) * pixelSize / emSize
+    end
+
+    action ToText(integer pixelSize, integer emSize) returns text
+        number xMinimum = CalculateCoordinate(me:xMinimum, pixelSize, emSize, 0)
+        number yMinimum = CalculateCoordinate(me:yMinimum, pixelSize, emSize, 0)
+        number xMaximum = CalculateCoordinate(me:xMaximum, pixelSize, emSize, 0)
+        number yMaximum = CalculateCoordinate(me:yMinimum, pixelSize, emSize, 0)
+        return "(xMin: " + xMinimum + ", yMin: " + yMinimum + ") (xMax: " + xMaximum + ", yMax: " + yMaximum + ")"
+    end
+end

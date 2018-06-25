@@ -97,6 +97,10 @@ class CollisionSolver3D
         end
     end
 
+    /*
+    This action finds the normal impulse that should be applied to resolve collision
+    for two objects that responds to forces that has friction between their surfaces.
+    */
     action ResolveSingleCollisionCombined(SolverItem3D body1, SolverItem3D body2, SolverConstraint3D contactConstraint, CollisionSolverInformation3D solverInfo) returns number
         number normalImpulse = 0
 
@@ -137,6 +141,12 @@ class CollisionSolver3D
         return normalImpulse
     end
 
+    /*
+    This action finds the frictional impulse that should be applied at a point
+    to separate the two colliding objects.
+    This action is used by the "SolveGroupIterations" action and the "SolveFriction"
+    action.
+    */
     action ResolveSingleFriction(SolverItem3D body1, SolverItem3D body2, SolverConstraint3D contactConstraint, CollisionSolverInformation3D solverInfo, number appliedNormalImpulse) returns number
         number combinedFriction = contactConstraint:GetFriction()
 

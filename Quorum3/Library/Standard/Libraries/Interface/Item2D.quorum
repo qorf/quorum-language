@@ -1,19 +1,21 @@
 package Libraries.Interface
 
 use Libraries.Interface.Item
+use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Views.View2D
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
+use Libraries.Compute.Vector2
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Layer2D
-use Libraries.Compute.Vector2
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.Shapes.all
@@ -27,6 +29,7 @@ use Libraries.Game.Physics.Joints.JointEdge2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.WebApplication
+use Libraries.Game.FocusManager
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -52,9 +55,20 @@ class Item2D is Item
 
     constant text PHYSICS_ERROR_MESSAGE = "Enable physics to use this action"
     
+    /*
+    If this Item2D is a part of a larger Item2D object, then this Item2D
+    is the child of that larger Item2D object.
+    */
     private Item2D parentItem = undefined
+    /*  
+    If this Item2D is made up of different Item2D objects, then those objects
+    that makes up this Item2D would be the children of this Item2D.
+    */
     private Array<Item2D> children
 
+    /*
+    This sets if you can collide with this item.
+    */
     boolean collidable = false
 
     /*
@@ -78,6 +92,9 @@ class Item2D is Item
     boolean flipX = false
     boolean flipY = false
 
+    /*
+    The layer that this Item2D belongs to.
+    */
     Layer2D layer = undefined
 
     private boolean verticesChanged = true
@@ -88,18 +105,47 @@ class Item2D is Item
 
     Array<number> vertices
 
+    //the shape of that bounds this 2D object
     CollisionShape2D shape = undefined
+
+
+    /*
+    Stores the shape of the children and also the bounding boxes of the children.
+    */
     Array<Item2DNode> nodes
+    /*
+    The number of broadphase nodes that are attached to this item.
+    */
     integer nodeCount = 0
 
+    /*
+    Used to record the position of the Item2D object from the previous frame, 
+    estimated position in the next frame, and target positions.
+    */
     Sweep2D sweep
 
+    /*
+    The head of the doubly linked list that records all of the objects
+    that this Item2D is in contact with.
+    */
     CollisionEdge2D collisionList = undefined
     JointEdge2D jointList = undefined
 
+    /*
+    The position of the Item2D object from the previous frame.
+    */
     PhysicsPosition2D transform0
 
+    /*
+    The property holder for this item. You will only have a property holder
+    if the physics is enabled.
+    */
     PhysicsProperties2D properties = undefined
+
+    /*
+    A flag that remembers whether the physics is enabled for this item.
+    If physics is enabled, then this item will be able to collide with other items.
+    */
     boolean physicsEnabled = false
 
     on create
@@ -115,16 +161,42 @@ class Item2D is Item
 
     boolean updateTransform = true
 
-    boolean collideWithChildren = false
+    /*
+    Children: some other shape that this Item2D is composed of.
+    This boolean value sets if the current Item2D object can collide with
+    its own children.
+    */
+    boolean collideWithChildren = false 
 
     boolean shouldTriggerSimulation = true
 
     /* 
     This value is used to determine if the Item's dimensions should be used
-    for pixel clipping of the Item and its children during drawing (via the
-    glScissor function).
+    for pixel clipping of the Item, its children, and visual content during 
+    drawing (via the glScissor function).
     */
     boolean clipPixels = false
+
+    /*
+    Whether or not the Item is currently in the middle of resizing itself (i.e.
+    it has entered the Resize action and hasn't returned from it yet). This is
+    used as a sort of pseudo-lock, ensuring that if the Item is already
+    resizing, it can't call the Resize action again recursively.
+    */
+    boolean isResizing = false
+
+    /*
+    Visual content attached to this Item2D. Visual content is drawn during calls
+    to Draw(Painter2D), but isn't added to the Game in the same way children
+    are, and thus isn't eligible for things like events.
+    */
+    View2D visualView = undefined
+
+    /*
+    Layout objects are used to reactively set the position and dimensions of
+    Items relative to either screen dimensions or parent Item dimensions.
+    */
+    Array<Layout> layouts
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -162,7 +234,20 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        MoveX(setX - position:GetX())
+//        MoveX(setX - position:GetX())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        SetOffsetX(offset:GetX())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -175,7 +260,20 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        MoveY(setY - position:GetY())
+//        MoveY(setY - position:GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetY(setY)
+        SetOffsetY(offset:GetY())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -243,7 +341,21 @@ class Item2D is Item
         myItem:SetPosition(30, 70)
     */
     action SetPosition(number setX, number setY)
-        Move(setX - GetX(), setY - GetY())
+//        Move(setX - GetX(), setY - GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        position:SetY(setY)
+        SetOffset(offset:GetX(), offset:GetY())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -257,7 +369,7 @@ class Item2D is Item
         myItem:SetPosition(30, 70, 3)
     */
     action SetPosition(number setX, number setY, number setZ)
-        Move(setX - GetX(), setY - GetY())
+        SetPosition(setX, setY)
         SetZ(setZ)
     end
 
@@ -271,6 +383,11 @@ class Item2D is Item
         myItem:SetWidth(50)
     */
     action SetWidth(number newWidth)
+        if dimensions:GetX() not= 0
+            number originPercentage = origin:GetX() / dimensions:GetX()
+            SetOrigin(originPercentage * newWidth, origin:GetY())
+        end
+
         dimensions:SetX(newWidth)
         widthSet = true
 
@@ -283,6 +400,28 @@ class Item2D is Item
         if updateTransform
             UpdateTransformX()
         end
+
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        SetOriginCenter()
+
+        if verticesChanged = false
+            if rotation not= 0 or scale:GetX() not= 1
+                verticesChanged = true
+            else
+                number parentX = GetGlobalX()
+                number x2 = parentX + dimensions:GetX()
+
+                vertices:Set(X1, parentX)
+                vertices:Set(X2, parentX)
+                vertices:Set(X3, x2)
+                vertices:Set(X4, x2)
+            end
+        end
+
+        Resize()
     end
 
     /*
@@ -307,6 +446,28 @@ class Item2D is Item
         if updateTransform
             UpdateTransformY()
         end
+
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        SetOriginCenter()
+
+        if verticesChanged = false
+            if rotation not= 0 or scale:GetY() not= 1
+                verticesChanged = true
+            else
+                number parentY = GetGlobalY()
+                number y2 = parentY + dimensions:GetY()
+
+                vertices:Set(Y1, parentY)
+                vertices:Set(Y2, y2)
+                vertices:Set(Y3, y2)
+                vertices:Set(Y4, parentY)
+            end
+        end
+        
+        Resize()
     end
 
     /*
@@ -436,6 +597,10 @@ class Item2D is Item
             UpdateTransformX()
         end
 
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetX(position:GetX() + xAmount)
@@ -469,6 +634,10 @@ class Item2D is Item
 
         if updateTransform
             UpdateTransformY()
+        end
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -547,6 +716,10 @@ class Item2D is Item
             UpdateTransformY()
         end
 
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffset(position:GetX() + xAmount, position:GetY() + yAmount)
@@ -609,32 +782,49 @@ class Item2D is Item
         Item2D myItem
         myItem:SetSize(100, 50)
     */
-    action SetSize(integer newWidth, integer newHeight)
-        SetWidth(newWidth)
-        SetHeight(newHeight)
+    action SetSize(number newWidth, number newHeight)
+        dimensions:Set(newWidth, newHeight)
+
+        Polygon polygon
+        // This may need to consider scale in the future.
+        polygon:SetAsBox(newWidth, newHeight)
+        SetShape(polygon)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
+
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        SetOriginCenter()
 
         if verticesChanged = false
-            number parentX = position:GetX()
-            number parentY = position:GetY()
-            number x2 = parentX + dimensions:GetX()
-            number y2 = parentY + dimensions:GetY()
-
-            vertices:Set(X1, parentX)
-            vertices:Set(Y1, parentY)
-
-            vertices:Set(X2, parentX)
-            vertices:Set(Y2, y2)
-
-            vertices:Set(X3, x2)
-            vertices:Set(Y3, y2)
-
-            vertices:Set(X4, x2)
-            vertices:Set(Y4, parentY)
-
             if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
+            else
+                number parentX = GetGlobalX()
+                number parentY = GetGlobalY()
+                number x2 = parentX + dimensions:GetX()
+                number y2 = parentY + dimensions:GetY()
+
+                vertices:Set(X1, parentX)
+                vertices:Set(Y1, parentY)
+
+                vertices:Set(X2, parentX)
+                vertices:Set(Y2, y2)
+
+                vertices:Set(X3, x2)
+                vertices:Set(Y3, y2)
+
+                vertices:Set(X4, x2)
+                vertices:Set(Y4, parentY)
             end
         end
+
+        Resize()
     end
 
     /*
@@ -659,6 +849,10 @@ class Item2D is Item
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
@@ -687,6 +881,10 @@ class Item2D is Item
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
@@ -741,6 +939,10 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
@@ -797,6 +999,10 @@ class Item2D is Item
     action FlipX
         flipX = not flipX
 
+        if visualView not= undefined
+            visualView:UpdateFlipping(flipX, flipY)
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):FlipX()
@@ -817,6 +1023,10 @@ class Item2D is Item
     */
     action FlipY
         flipY = not flipY
+
+        if visualView not= undefined
+            visualView:UpdateFlipping(flipX, flipY)
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -905,6 +1115,12 @@ class Item2D is Item
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -929,6 +1145,12 @@ class Item2D is Item
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -961,6 +1183,12 @@ class Item2D is Item
 
         if layer not= undefined
             removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(removed)
+            end
         end
         removed:SetCollidable(false)
 
@@ -1002,6 +1230,14 @@ class Item2D is Item
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
+
+        if layer not= undefined
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(temp)
+            end
+        end
 
         return temp
     end
@@ -1085,12 +1321,21 @@ class Item2D is Item
         parentItem:SetItem(0, child2)
     */
     action SetItem(integer index, Item2D newItem)
+        Item oldItem = children:Get(index)
+
         children:Set(index, newItem)
         newItem:SetParent(me)
         newItem:SetLayer(layer)
         newItem:SetOffset(position:GetX() + offset:GetX(), position:GetY() + offset:GetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(oldItem)
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1436,10 +1681,9 @@ class Item2D is Item
         end
 
         if not wasSent
+            event:SetEventHandled(true)
             if parentItem not= undefined
                 parentItem:ProcessMouseEvent(event)
-            else
-                event:SetEventHandled(true)
             end
         end
     end
@@ -1457,6 +1701,8 @@ class Item2D is Item
             return now
         end
 
+        boolean wasSent = false
+
         Iterator<TouchListener> iterator = GetTouchListeners()
         if iterator:HasNext()
             event:SetEventHandled(true)
@@ -1464,16 +1710,19 @@ class Item2D is Item
             if event:eventType = event:BEGAN
                 repeat while iterator:HasNext()
                     iterator:Next():BeganTouch(event)
+                    wasSent = true
                 end
 
             elseif event:eventType = event:MOVED or event:eventType = event:STATIONARY
                 repeat while iterator:HasNext()
                     iterator:Next():ContinuedTouch(event)
+                    wasSent = true
                 end
 
             elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
                 repeat while iterator:HasNext()
                     iterator:Next():EndedTouch(event)
+                    wasSent = true
                 end
 
             end
@@ -1481,8 +1730,11 @@ class Item2D is Item
         end
 
 
-        if not event:WasEventHandled() and parentItem not= undefined
-            parentItem:ProcessTouchEvent(event)
+        if not wasSent
+            event:SetEventHandled(true)
+            if parentItem not= undefined
+                parentItem:ProcessTouchEvent(event)
+            end
         end
     end
 
@@ -1583,9 +1835,10 @@ class Item2D is Item
             UpdateTransformY()
         end
         
-        //Iterator<Item> childIterator = GetItems()
-        
-        //if childIterator:HasNext()
+        if visualView not= undefined
+            visualView:UpdateRotation(rotation)
+        end
+
         if children:GetSize() > 0
 
             Item2D temp = undefined
@@ -1674,9 +1927,10 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        //Iterator<Item> childIterator = GetItems()
-        
-        //if childIterator:HasNext()
+        if visualView not= undefined
+            visualView:UpdateRotation(rotation)
+        end
+
         if children:GetSize() > 0
 
             Item2D temp = undefined
@@ -1738,6 +1992,12 @@ class Item2D is Item
             UpdateTransformY()
         end
 
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        Resize()
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1789,6 +2049,12 @@ class Item2D is Item
             UpdateTransformX()
             UpdateTransformY()
         end
+
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1881,6 +2147,12 @@ class Item2D is Item
             UpdateTransformY()
         end
 
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        Resize()
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1957,6 +2229,12 @@ class Item2D is Item
             UpdateTransformX()
             UpdateTransformY()
         end
+
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -2286,7 +2564,11 @@ class Item2D is Item
                     return now
                 end
 
-                painter:SetClipCoordinates(left, right, bottom, top)
+                painter:SetClipCoordinates(left, bottom, right, top)
+
+                if visualView not= undefined
+                    visualView:Draw(painter)
+                end
 
                 integer counter = 0
                 repeat children:GetSize() times
@@ -2294,10 +2576,14 @@ class Item2D is Item
                     counter = counter + 1
                 end
 
-                painter:SetClipCoordinates(startLeft, startRight, startBottom, startTop)
+                painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
             else
                 painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
+
+                if visualView not= undefined
+                    visualView:Draw(painter)
+                end
 
                 integer counter = 0
                 repeat children:GetSize() times
@@ -2308,6 +2594,11 @@ class Item2D is Item
                 painter:SetClipping(false)
             end
         else
+
+            if visualView not= undefined
+                visualView:Draw(painter)
+            end
+
             integer counter = 0
             repeat children:GetSize() times
                 children:Get(counter):Draw(painter)
@@ -2317,11 +2608,11 @@ class Item2D is Item
     end
 
     /*
-    This is an action used internally to retrieve the head of the liked list of 
+    This is an action used internally to retrieve the head of the linked list of 
     collisions with this item. This action is used internally and users should 
     not need to use this action.
 
-    Attribute: Returns The head of the linked list of collisions
+    Attribute: Returns The head of the doubly linked list of collisions
     */
     action GetCollisionList returns CollisionEdge2D
         return collisionList
@@ -2892,7 +3183,7 @@ class Item2D is Item
                 physicsEnabled = false
                 PhysicsProperties2D properties
                 me:properties = properties
-            else
+            else       
                 SetCollidable(true)
                 sweep:GetLocalCenter():SetZero()
                 sweep:GetCenter0():Set(transform:GetPosition())
@@ -2902,9 +3193,9 @@ class Item2D is Item
                 sweep:SetAlpha0(0)
                 if me:properties = undefined
                     PhysicsProperties2D properties
-                    me:properties = properties
+                    me:properties = properties  //connect the property holder to this item
                 end
-                properties:SetItem(me)
+                properties:SetItem(me)  //connect this item to the property holder
             end
             return now
         end
@@ -2918,8 +3209,8 @@ class Item2D is Item
             sweep:SetAngle(transform:GetAngle())
             sweep:SetAlpha0(0)
             PhysicsProperties2D properties
-            me:properties = properties
-            properties:SetItem(me)
+            me:properties = properties  //connect the property holder to this item
+            properties:SetItem(me)      //connect this item to the property holder
         end
     end
 
@@ -3993,17 +4284,24 @@ class Item2D is Item
         properties:GetLinearVelocity():Add(temp)
     end
 
+
+    /*
+    This action sets the mass, mass moment of inertia, and how the 2D item should 
+    move (via linear velocity) to be at the desired location.
+    */
     action ResetMass
         Mass2D massData
+        //make sure there is a "property holder" attached to this item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
+        //if this item is not governed by dynamics
         if properties:GetResponsiveness() = properties:UNMOVABLE or properties:GetResponsiveness() = properties:NON_RESPONSIVE
-            sweep:GetCenter0():Set(transform:GetPosition())
-            sweep:GetCenter():Set(transform:GetPosition())
-            sweep:SetAngle0(sweep:GetAngle())
-            properties:AssignMass(0)
+            sweep:GetCenter0():Set(transform:GetPosition())  //the postition at which the item will be drawn will be the current physics position of this item
+            sweep:GetCenter():Set(transform:GetPosition())   //the target postition at which the item will be drawn will be the current physics position of this item
+            sweep:SetAngle0(sweep:GetAngle())                //the tilt at which the item will be drawn will be the current physics tilt of this item
+            properties:AssignMass(0)                         //set this object as having no mass
             properties:SetInverseMass(0)
             properties:SetInertia(0)
             properties:SetInverseInertia(0)
@@ -4013,20 +4311,28 @@ class Item2D is Item
 
         Vector2 localCenter
         localCenter:SetZero()
+
         Vector2 temp
-        shape:ComputeMass(massData, properties:GetDensity())
+
+        shape:ComputeMass(massData, properties:GetDensity())    //this will compute the mass based on the shape of the object and density such that the shape's center of mass will also be updated
         properties:AssignMass(massData:GetMass())
-        localCenter:Add(massData:GetCenter())
-        properties:SetInertia(massData:GetInertia())
+        localCenter:Add(massData:GetCenter())                   //obtain the center of mass of the object relative to the object's local coordinate's origin
+        properties:SetInertia(massData:GetInertia())            //obtain the mass moment of inertia of the object and put it in the "property holder"
+                                                                //however, this mass moment of inertia is about the object's local origin (the inertia in Mass2D class)
+                                                                //but, we want the mass moment of inertia about the object's center of mass stored inside the "property holder"
+                                                                //so, we will do calculations later 
 
         if properties:GetMass() > 0
             properties:SetInverseMass(1.0 / properties:GetMass())
-        else
+        else    //if this is a massless object, just assign unit mass to this object
             properties:AssignMass(1)
             properties:SetInverseMass(1)
         end
 
-        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()
+        
+        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()   
+                //if there is an inertia that is physically possible inside the "properties holder" and the object is allowed to rotate
+                //we have to change the inertia that is inside the "properties holder" to the mass moment of inertia about the object's center of mass
             properties:SetInertia(properties:GetRawInertia() - (properties:GetMass() * localCenter:DotProduct(localCenter)))
             properties:SetInverseInertia(1.0 / properties:GetRawInertia())
         else
@@ -4034,16 +4340,25 @@ class Item2D is Item
             properties:SetInverseInertia(0)
         end
 
+        //get the old target global center of the object 
         Vector2 oldCenter
         oldCenter:Set(sweep:GetCenter())
+
+        //change the target local center of the object 
         sweep:GetLocalCenter():Set(localCenter)
+
+        //change the global center of the object of the frame drawn and the target global center of the object
         sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
         sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
         sweep:GetCenter():Set(sweep:GetCenter0())
 
+        //"temp" is the vector whose head is at the current center, whose tail is at the old center 
         temp:Set(sweep:GetCenter()):Subtract(oldCenter)
 
         Vector2 temp2 = oldCenter
+
+        //tangential velocity is the cross product of angular velocity and displacement vector 
+        //this is an approximation
         temp2:SetX(-properties:GetAngularVelocity() * temp:GetY())
         temp2:SetY(properties:GetAngularVelocity() * temp:GetX())
         properties:GetLinearVelocity():Add(temp2)
@@ -4140,4 +4455,80 @@ class Item2D is Item
     action IsClipping returns boolean
         return clipPixels
     end
+
+    action SetView2D(View2D content)
+        visualView = content
+        visualView:SetItem(me)
+        visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        visualView:UpdateFlipping(flipX, flipY)
+        visualView:UpdateRotation(GetRotation())
+    end
+
+    action GetView2D returns View2D
+        return visualView
+    end
+
+    action AddLayout(Layout layout)
+        layouts:Add(layout)
+        layouts:Sort()
+    end
+
+    action RemoveLayout(Layout layout)
+        layouts:Remove(layout)
+    end
+
+    action GetLayouts returns Array<Layout>
+        return layouts
+    end
+
+    action Resize
+        // If we're already resizing, return immediately from a recursive call.
+        if isResizing
+            return now
+        end
+
+        isResizing = true
+
+        if not layouts:IsEmpty()
+            number containerWidth = 0
+            number containerHeight = 0
+            if parentItem not= undefined
+                containerWidth = parentItem:GetWidth()
+                containerHeight = parentItem:GetHeight()
+            else
+                GameStateManager manager
+                containerWidth = manager:GetGameDisplay():GetWidth()
+                containerHeight = manager:GetGameDisplay():GetHeight()
+            end
+
+            Layout layout = undefined
+            integer counter = layouts:GetSize()
+
+            /*
+            Layouts are sorted by minimum width, or minimum height if minimum
+            widths are equal. When we find an invalid layout, it's assumed that
+            all following layouts will also be invalid.
+            */
+            repeat while counter > 0
+                counter = counter - 1
+                Layout temp = layouts:Get(counter)
+                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                    layout = temp
+                end
+            end
+
+            layout:Apply(me, containerWidth, containerHeight)
+        else
+            integer counter = 0
+            Array<Item2D> children = GetChildren()
+            repeat while counter < children:GetSize()
+                children:Get(counter):Resize()
+                counter = counter + 1
+            end
+        end
+
+        isResizing = false
+    end
+
 end

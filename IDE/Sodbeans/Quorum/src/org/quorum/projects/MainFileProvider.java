@@ -11,7 +11,7 @@ import java.util.Properties;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
-import quorum.Libraries.Language.Compile.Compiler;
+//import quorum.Libraries.Language.Compile.Compiler;
 import org.quorum.support.Utility;
 
 /**
@@ -89,7 +89,7 @@ public class MainFileProvider {
                 mainFile = projectDir.getFileObject(path);
                 //Since a main file was found, we can actually compile.
                 //get the rest of the files here and cache them.
-                
+                project.SetMain(Utility.toQuorumFile(mainFile));
             }
         }
         if (mainFile != null && !mainFile.isValid()) {
@@ -137,11 +137,12 @@ public class MainFileProvider {
             //Store the relative path from the project root as the main file
             String relPath = file.getPath().substring(projPath.length());
             props.put(QuorumProject.KEY_MAINFILE, relPath);
-            Compiler compiler = project.getCompiler();
-            if(compiler != null) {
-                File toFile = FileUtil.toFile(file);
-                compiler.SetMain(Utility.toQuorumFile(toFile));
-            }
+            project.SetMain(Utility.toQuorumFile(file));
+//            Compiler compiler = project.getCompiler();
+//            if(compiler != null) {
+//                File toFile = FileUtil.toFile(file);
+//                compiler.SetMain(Utility.toQuorumFile(toFile));
+//            }
         }
     }
 }

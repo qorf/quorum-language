@@ -2,13 +2,16 @@ package Libraries.Game
 
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
+use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Color
@@ -77,6 +80,8 @@ class Layer2D is Layer
     Array<TouchListener> touchListeners
     Camera camera = undefined
     Painter2D painter
+
+    GameStateManager manager
 
     CollisionManager2D collisionManager
     boolean automaticallyClearForces = true
@@ -148,6 +153,11 @@ class Layer2D is Layer
         item:SetLayer(me)
         items:Add(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -197,6 +207,11 @@ class Layer2D is Layer
         item:SetLayer(me)
         items:Add(index, item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -247,6 +262,11 @@ class Layer2D is Layer
         item:SetLayer(me)
         items:AddToFront(item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -373,6 +393,12 @@ class Layer2D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return items:Remove(item)
     end
 
@@ -440,6 +466,12 @@ class Layer2D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end 
 
@@ -506,6 +538,12 @@ class Layer2D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -571,6 +609,12 @@ class Layer2D is Layer
         item:SetCollidable(false)
 
         item:SetLayer(undefined)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Remove(item)
+        end
+
         return item
     end
 
@@ -865,8 +909,21 @@ class Layer2D is Layer
 
     */
     action Set(integer index, Item2D item)
+        if index < items:GetSize()
+            Item oldItem = items:Get(index)
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(oldItem)
+            end
+        end
+
         items:Set(index, item)
         newItemAdded = true
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Add(item)
+        end
     end
 
     /*
@@ -986,12 +1043,14 @@ class Layer2D is Layer
     needed. Most users will never need to use this action directly.
 
     Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
-    action ProcessMouseEvent(MouseEvent event)
+    action ProcessMouseEvent(MouseEvent event) returns Item
     
         boolean processing = true
         integer counter = items:GetSize()
         Item2D temp = undefined
+        Item result = undefined
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
@@ -1003,6 +1062,9 @@ class Layer2D is Layer
                 event:SetSource(temp)
                 temp:ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = temp
+                end
             end
         end
 
@@ -1062,6 +1124,8 @@ class Layer2D is Layer
         if event:GetSource() not= undefined and event:eventType = event:CLICKED_MOUSE
             event:GetSource():Focus()
         end
+
+        return result
     end
 
     /*
@@ -1071,11 +1135,12 @@ class Layer2D is Layer
 
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
-    action ProcessTouchEvent(TouchEvent event)
+    action ProcessTouchEvent(TouchEvent event) returns Item
         
         boolean processing = true
         integer counter = items:GetSize()
         Item2D temp = undefined
+        Item result = undefined
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
@@ -1084,8 +1149,12 @@ class Layer2D is Layer
             temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
 
             if temp not= undefined
+                event:SetSource(temp)
                 temp:ProcessTouchEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = temp
+                end
             end
         end
 
@@ -1124,6 +1193,12 @@ class Layer2D is Layer
             end
 
         end
+
+        if event:GetSource() not= undefined and event:eventType = event:BEGAN
+            event:GetSource():Focus()
+        end
+
+        return result
     end
 
     /*
@@ -2179,5 +2254,24 @@ class Layer2D is Layer
 
     action GetSimulationThreshold returns number
         return island:GetSimulationThreshold()
+    end
+
+    action Resize(ResizeEvent event)
+        number width = event:GetWidth()
+        number height = event:GetHeight()
+        number xAdjust = (width - camera:GetWidth()) / 2
+        number yAdjust = (height - camera:GetHeight()) / 2
+
+        camera:Move(xAdjust, yAdjust, 0)
+        camera:SetWidth(width)
+        camera:SetHeight(height)
+
+        camera:Update()
+
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            items:Get(counter):Resize()
+            counter = counter + 1
+        end
     end
 end

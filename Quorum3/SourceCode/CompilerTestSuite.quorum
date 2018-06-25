@@ -25,6 +25,7 @@ class CompilerTestSuite
     
     boolean testBytecode = true
     boolean testJavaScript = true
+    Library library
   
     CompilerProfiler summaryProfiler
     Math math
@@ -82,14 +83,23 @@ class CompilerTestSuite
         bitwiseChecks:SetCompilerTestSuite(me)
         matrixChecks:SetCompilerTestSuite(me)
         jsonChecks:SetCompilerTestSuite(me)
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        Compiler compiler
+        library:SetLocation(compiler:GetStandardLibraryFolder())
+        library:SetCachingLibraryOpcodes(true)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
     end
 
     action Main
         DateTime date
         start = date:GetEpochTime()
-        output "Starting Quorum 4.0 Test Suite"
+        output "Starting Quorum 6.0 Test Suite"
         output ""
-        output "List of Tests:"
+        output "Scanning Standard Library"
+        output ""
+        output "Starting Test Suite:"
         output expressions:GetName()
         expressions:Test()
         output ""
@@ -228,30 +238,36 @@ class CompilerTestSuite
     end
 
     private action GetDefaultCompiler returns Compiler
-        Compiler compiler
+        Compiler defaultCompiler
         File root
         root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        defaultCompiler:SetOutputFolder(root)
+        defaultCompiler:SetOutputSpeech(false) //don't speak while in test mode
 
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        return compiler
+        //File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        //compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        return defaultCompiler
     end
 
     action RunTestFile (Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler = GetDefaultCompiler()
         
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
         File testFile 
         testFile = files:Get(0)
-        compiler:SetMain(testFile)
-        compiler:Compile(files)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree()
-            File jar = compiler:GetDistributionFile()
+        if manager:IsCompilationErrorFree()
+            File jar = compiler:GetExecutable(request)
             result = RunClassFile(jar)
         else
             CompilerTestResult result2
@@ -295,16 +311,23 @@ class CompilerTestSuite
         CompilerTestResult result = undefined
         Compiler compiler  = GetDefaultCompiler()
         
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:SetOutputType(request:JAVASCRIPT)
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         File testFile 
         testFile = files:Get(0)
-        compiler:SetMain(testFile)
-        compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:Compile(files)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree() //run the program
-            text convertedJavaScript = compiler:GetCompiledJavaScript()
+        if manager:IsCompilationErrorFree() //run the program
+            text convertedJavaScript = compilerResult:convertedJavaScript
             result = RunJavaScript(convertedJavaScript)
         else
             CompilerTestResult result2
@@ -321,17 +344,25 @@ class CompilerTestSuite
         end
         Compiler compiler = GetDefaultCompiler()
         
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:SetOutputType(request:JAVA_BYTECODE)
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerTestResult result
         File testFile
         testFile = files:Get(0)
         result:name = testFile:GetPath()
-        result:isBytecodeTest = true
-        compiler:SetMain(testFile)
-        compiler:Compile(files)        
+        result:isBytecodeTest = true    
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree()
+        if manager:IsCompilationErrorFree()
             result:passed = false
             result:errorMessage = "Compilation was error free"
         else
@@ -345,19 +376,25 @@ class CompilerTestSuite
             return now
         end
         Compiler compiler = GetDefaultCompiler()
-        
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:SetOutputType(request:JAVASCRIPT)
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerTestResult result
         File testFile 
         testFile = files:Get(0)
         result:name = testFile:GetPath()
         result:isJavaScriptTest = true
-        compiler:SetMain(testFile)
-        compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:Compile(files)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree()
+        if manager:IsCompilationErrorFree()
             result:passed = false
             result:errorMessage = "Compilation was error free"
         else
@@ -439,16 +476,23 @@ class CompilerTestSuite
         
         File file
         file:SetPath(source)
-        compiler:SetMain(file)
 
         Array<File> files
         files:Add(file)
-        compiler:Compile(files)
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
         
-        if compiler:IsCompilationErrorFree()
-            File jar = compiler:GetDistributionFile()
+        if manager:IsCompilationErrorFree()
+            File jar = compiler:GetExecutable(request)
             result = RunClassFile(jar)
         else
             CompilerTestResult result2
@@ -591,18 +635,25 @@ class CompilerTestSuite
         
         File file
         file:SetPath(source)
-        compiler:SetMain(file)
 
         Array<File> files
         files:Add(file)
 
-        compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:Compile(files)
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:SetOutputType(request:JAVASCRIPT)
+        request:library = library
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree() //run the program
-            text convertedJavaScript = compiler:GetCompiledJavaScript()
+        if manager:IsCompilationErrorFree() //run the program
+            text convertedJavaScript = compilerResult:convertedJavaScript
             result = RunJavaScript(convertedJavaScript)
         else
             CompilerTestResult result2

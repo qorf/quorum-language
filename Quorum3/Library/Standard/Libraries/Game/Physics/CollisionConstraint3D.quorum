@@ -6,7 +6,14 @@ use Libraries.Containers.Array
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.CollisionPoint3D
 
+/*
+This class contains many actions that will help with solving the constraints that
+a collision has.
+*/
 class CollisionConstraint3D 
+    /*
+    This action is used to solve for the impulse that should be applied to a rolling object.
+    */
     action ResolveSingleBilateralConstraint(Item3D body1, Vector3 position1, Item3D body2, Vector3 position2, number distance, Vector3 normal, Array<number> impulse, number timeStep)
         number normalLenSqr = normal:LengthSquared()
         if normalLenSqr > 1.1
@@ -71,6 +78,12 @@ class CollisionConstraint3D
         impulse:Set(0, velocityImpulse)
     end
 
+
+    /*
+    This action finds the normal impulse that should be applied to bodies that
+    will separate them apart. This action takes into account of the friction 
+    between the two objects.
+    */
     action ResolveSingleCollision(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
@@ -135,6 +148,10 @@ class CollisionConstraint3D
         return normalImpulse
     end
 
+    /*
+    This action finds the impulse that should be applied to simulate friction
+    between the surfaces of two colliding objects.
+    */
     action ResolveSingleFriction(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
@@ -214,6 +231,11 @@ class CollisionConstraint3D
         return cpd:GetAppliedImpulse()
     end
 
+    /*
+    This action finds the impulse that should be applied to separate the two
+    objects colliding based on the friction between the two objects and their
+    linear velocity.
+    */
     action ResolveSingleCollisionCombined(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 

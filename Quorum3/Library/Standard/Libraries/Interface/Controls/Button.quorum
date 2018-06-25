@@ -1,0 +1,169 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.System.File
+use Libraries.Interface.Views.ImageControlView
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlView
+
+class Button is Control
+
+    Behavior activationBehavior = undefined
+
+    on create
+        SetInputGroup("Button")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:BUTTON)
+    end
+
+    /*
+    This action sets the initial width and height of the button using its
+    default appearance, a box with a light gray gradient and a black border.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                Add(button)
+            end
+        end
+    */
+    action Initialize(number width, number height)
+        LabelBoxView content
+        Color color
+        Gradient gradient
+        
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+
+        gradient:Set(gray, gray, lightGray, lightGray)
+        content:SetBorderThickness(2)
+        content:Initialize(gradient, color:Black())
+
+        SetView2D(content)
+        SetSize(width, height)
+    end
+
+    /*
+    This action sets the initial width and height of the button using its
+    default appearance, a box with a light gray gradient, a black border, and
+    a label with the given text.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100, "Quorum!")
+                Add(button)
+            end
+        end
+    */
+    action Initialize(number width, number height, text label)
+        LabelBoxView content
+        Color color
+        Gradient gradient
+        
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+
+        gradient:Set(gray, gray, lightGray, lightGray)
+        content:SetBorderThickness(2)
+        content:Initialize(gradient, color:Black())
+
+        SetView2D(content)
+        SetSize(width, height)
+
+        SetName(label)
+    end
+
+    action Initialize(Drawable drawable)
+        ImageControlView content
+        content:Initialize(drawable)
+        
+        SetView2D(content)
+        SetSize(drawable:GetWidth(), drawable:GetHeight())
+    end
+
+    action Initialize(Texture texture)
+        ImageControlView content
+        content:Load(texture)
+        
+        SetView2D(content)
+        SetSize(texture:GetWidth(), texture:GetHeight())
+    end
+
+    action Initialize(TextureRegion region)
+        ImageControlView content
+        content:Load(region)
+
+        SetView2D(content)
+        SetSize(region:GetRegionWidth(), region:GetRegionHeight())
+    end
+
+    action Initialize(File file)
+        ImageControlView content
+        content:Load(file)
+
+        SetView2D(content)
+        SetSize(content:GetWidth(), content:GetHeight())
+    end
+
+    action Initialize(text filePath)
+        ImageControlView content
+        content:Load(filePath)
+
+        SetView2D(content)
+        SetSize(content:GetWidth(), content:GetHeight())
+    end
+
+    action Initialize(number width, number height, ControlView content)
+        SetView2D(content)
+        SetSize(width, height)
+    end
+
+    action SetBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action GetActivationBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action ReleasedMouse
+        parent:Control:ReleasedMouse()
+        Activate()
+    end
+
+    action SetName(text name)
+        parent:Item2D:SetName(name)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:SetText(name)
+        end
+    end
+end

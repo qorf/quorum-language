@@ -1,42 +1,39 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package plugins.quorum.Libraries.Game;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.os.Debug;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
-
+import java.io.IOException;
+import java.io.InputStream;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.AndroidApplication_;
 import quorum.Libraries.Game.AndroidDisplay_;
-
 import java.lang.reflect.Method;
+import quorum.Libraries.Game.AndroidConfiguration_;
+import quorum.Libraries.System.File_;
 
 /**
  *
  * @author alleew
  */
-public class AndroidApplication extends Activity
+public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
-    static final int MINIMUM_SDK = 8;
+    static final int MINIMUM_SDK = 21;
+    
+    private static Activity androidActivity = null;
+    private static boolean initialized = false;
     
     public AndroidApplication_ quorumApp;
     
@@ -57,11 +54,13 @@ public class AndroidApplication extends Activity
     protected boolean hideStatusBar = false;
     private int wasFocusChanged = -1;
     private boolean isWaitingForAudio = false;
+    private boolean hasBeenOriented = false;
     
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
-        AndroidConfiguration config = (AndroidConfiguration)configuration;
+        initialized = true;
         
+        AndroidConfiguration config = (AndroidConfiguration)configuration;
         /* 
         SetupNative is only called as part of Setup in the Quorum 
         AndroidApplication, which sets itself in the GameStateManager right
@@ -73,7 +72,7 @@ public class AndroidApplication extends Activity
         
         if (GetVersion() < MINIMUM_SDK) 
         {
-            throw new GameRuntimeError("Android API level " + GetVersion() + "was detected, but " + MINIMUM_SDK + " or later is required.");
+            throw new GameRuntimeError("Android API level " + GetVersion() + " was detected, but " + MINIMUM_SDK + " or later is required.");
         }
         
         ((quorum.Libraries.Game.AndroidDisplay)display).plugin_.Initialize(this, config);
@@ -118,14 +117,15 @@ public class AndroidApplication extends Activity
         //if (!isForView) {
         try 
         {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            androidActivity.requestWindowFeature(Window.FEATURE_NO_TITLE);
         } catch (Exception ex) 
         {
-            //log("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
+            Log.d("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
         }
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        androidActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        androidActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         //setContentView(graphics.getView(), createLayoutParams());
+        androidActivity.setContentView(((quorum.Libraries.Game.AndroidDisplay)GameStateManager.display).plugin_.GetView());
         //}
 
         CreateWakeLock(config.preventScreenDimming);
@@ -145,11 +145,56 @@ public class AndroidApplication extends Activity
         */
     }
     
+    public boolean RequiresOrientationChange(AndroidConfiguration_ config)
+    {
+        boolean required = true;
+        
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
+        {
+            if (androidActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+            {
+                required = false;
+            }
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
+            if (androidActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+            {
+                required = false;
+            }        
+        
+        /* 
+        If the AndroidApplication hasn't been oriented yet, orient it once to 
+        prevent it from changing orientation. We only do this if the orientation 
+        is currently correct (if it is currently incorrect, the Game will 
+        already manually reset the orientation itself).
+        */
+        if (hasBeenOriented == false && required == false)
+        {
+            ResetOrientationToDefault(config);
+        }
+        
+        return required;
+    }
+    
+    public void ResetOrientationToDefault(AndroidConfiguration_ config)
+    {
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
+        {
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
+        {
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+        
+        hasBeenOriented = true;
+    }
+    
     public void CreateWakeLock(boolean lock)
     {
         if (lock)
         {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            androidActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
     
@@ -157,7 +202,7 @@ public class AndroidApplication extends Activity
     {
         if (!hide || GetVersion() < 11)
             return;
-        View rootView = getWindow().getDecorView();
+        View rootView = androidActivity.getWindow().getDecorView();
         
         try
         {
@@ -172,10 +217,8 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @Override
     public void onWindowFocusChanged(boolean hasFocus)
     {
-        super.onWindowFocusChanged(hasFocus);
         UseImmersiveMode(this.useImmersiveMode);
         HideStatusBar(this.hideStatusBar);
         if (hasFocus)
@@ -193,13 +236,12 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @TargetApi(19)
     public void UseImmersiveMode(boolean mode)
     {
         if (!mode || GetVersion() < Build.VERSION_CODES.KITKAT)
             return;
         
-        View view = getWindow().getDecorView();
+        View view = androidActivity.getWindow().getDecorView();
         try
         {
             Method m = View.class.getMethod("setSystemUiVisibility", int.class);
@@ -214,8 +256,7 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @Override
-    protected void onPause()
+    public void onPause()
     {
         //boolean isContinuous = graphics.isContinuousRendering();
         //boolean isContinuousEnforced = AndroidGraphics.enforceContinuousRendering;
@@ -230,7 +271,7 @@ public class AndroidApplication extends Activity
         
         //input.onPause();
         
-        if (isFinishing())
+        if (androidActivity.isFinishing())
         {
             //graphics.clearManagedCaches();
             //graphics.destroy();
@@ -240,12 +281,9 @@ public class AndroidApplication extends Activity
         //graphics.setContinuousRendering(isContinuous);
         
         //graphics.onPauseGLSurfaceView();
-        
-        super.onPause();
     }
     
-    @Override
-    protected void onResume()
+    public void onResume()
     {
         GameStateManager.application = quorumApp;
         //Gdx.input = this.getInput();
@@ -273,13 +311,11 @@ public class AndroidApplication extends Activity
             //this.audio.resume();
             this.isWaitingForAudio = false;
         }
-        super.onResume();
     }
     
-    @Override
-    protected void onDestroy()
+    public void onDestroy()
     {
-        super.onDestroy();
+
     }
     
     public Game_ GetGame()
@@ -320,18 +356,103 @@ public class AndroidApplication extends Activity
             @Override
             public void run()
             {
-                AndroidApplication.this.finish();
+                AndroidApplication.androidActivity.finish();
             }
         });
     }
     
     public Context GetContext()
     {
-        return this;
+        return androidActivity;
     }
     
     public Handler GetHandler()
     {
         return this.handler;
+    }
+    
+    public static void SetActivity(Activity activity)
+    {
+        androidActivity = activity;
+    }
+    
+    public static Activity GetActivity()
+    {
+        return androidActivity;
+    }
+    
+    public static boolean IsInitialized()
+    {
+        return initialized;
+    }
+    
+    public static byte[] QuorumFileToBytes(File_ quorumFile)
+    {
+        return AssetAsBytes(quorumFile.GetPath());
+    }
+    
+    public static InputStream QuorumFileToInputStream(File_ quorumFile)
+    {
+        return AssetAsInputStream(quorumFile.GetPath());
+    }
+    
+    public static AssetFileDescriptor QuorumFileToAssetFileDescriptor(File_ quorumFile)
+    {
+        return AssetAsAssetFileDescriptor(quorumFile.GetPath());
+    }
+    
+    public static byte[] AssetAsBytes(String assetName)
+    {
+        try
+        {
+            InputStream stream = androidActivity.getAssets().open(assetName);
+            byte[] bytes = new byte[stream.available()];
+            stream.read(bytes);
+            stream.close();
+            return bytes;
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
+        }
+    }
+    
+    public static InputStream AssetAsInputStream(String assetName)
+    {
+        try
+        {
+            return androidActivity.getAssets().open(assetName);
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
+        }
+    }
+    
+    public static AssetFileDescriptor AssetAsAssetFileDescriptor(String assetName)
+    {
+        try
+        {
+            return GetActivity().getAssets().openFd(assetName);
+        }
+        catch (IOException e)
+        {
+            throw new GameRuntimeError("I couldn't load this file: " + assetName);
+        }
+    }
+    
+    public void Log(String header, String text)
+    {
+        Log.d(header, text);
+    }
+    
+    public void Log(String text)
+    {
+        Log.d("Quorum Game Application", text);
+    }
+    
+    public static void LogStatic(String header, String text)
+    {
+        Log.d(header, text);
     }
 }

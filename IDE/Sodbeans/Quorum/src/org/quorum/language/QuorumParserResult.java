@@ -20,6 +20,7 @@ import quorum.Libraries.Language.Compile.Hints.Hint_;
 public class QuorumParserResult extends ParserResult {
     private boolean valid = true;
     private QuorumParser parser;
+    CompilerResult_ recentResult = null;
     
     QuorumParserResult(Snapshot snapshot, QuorumParser p) {
         super(snapshot);
@@ -36,11 +37,11 @@ public class QuorumParserResult extends ParserResult {
     }
     
     public CompilerResult_ getRecentResult() {
-        return parser.getRecentResult();
+        return recentResult;
     }
-
-    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
-        return parser.getInfo();
+    
+    public void SetRecentResult(CompilerResult_ result) {
+        recentResult = result;
     }
     
     @Override

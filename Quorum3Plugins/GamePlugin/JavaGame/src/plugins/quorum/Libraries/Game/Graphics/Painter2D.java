@@ -276,11 +276,10 @@ public class Painter2D
     
     public void Flush()
     {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        
         if (index == 0)
             return;
+
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         int count = (index / 20) * 6;
         

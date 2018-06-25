@@ -47,6 +47,10 @@ use Libraries.Compute.Vector2
     broadphase:Query(broadphase, queryBox)
 */
 class BroadphaseCollision2D 
+    /*
+    For one broadphase calculation, you would have only one tree to search
+    through for potential collision.
+    */
     DynamicBoundingVolumeTree2D tree
     integer nodeCount = 0
     
@@ -94,7 +98,7 @@ class BroadphaseCollision2D
     given node ID.
     This action is used internally.
     
-    Attribute: Parameter nodeID The integer id number for the node which is to be removed
+    Attribute: Parameter id The integer id number for the node which is to be removed
 
     Attribute: Example
 
@@ -118,18 +122,18 @@ class BroadphaseCollision2D
         tree:DestroyNode(id)
     end
 /*
-    This action moves the Item2DNode contained in the tree node with the given 
+    This action moves the Item2D contained in the tree node with the given 
     node ID by the given displacement vector. If the node moves outside of its 
     existing bounding box, then the object is removed from the tree, a new 
     bounding box is calculated, and it is reinserted into the tree. Otherwise, 
     the node is left where it is in the tree.
     This action is used internally.
 
-    Attribute: Parameter id The id of the node that is to be moved
+    Attribute: Parameter id The id of the node that is to be moved.
     
-    Attribute: Parameter boundingBox The boundingBox of the node to be moved
+    Attribute: Parameter boundingBox The boundingBox of the node to be moved.
     
-    Attribute: Parameter displacement The displacement of the node
+    Attribute: Parameter displacement The displacement of the 2D object.
 
     Attribute: Example
 
@@ -247,11 +251,11 @@ class BroadphaseCollision2D
     This action checks to see if the bounding boxes of two nodes overlap. 
     This action is used internally.
 
-    Attribute: Parameter idA The integer id of one of the nodes to be checked
+    Attribute: Parameter idA The integer id of one of the nodes to be checked.
     
-    Attribute: Parameter idB The integer id of the other node to be checked
+    Attribute: Parameter idB The integer id of the other node to be checked.
 
-    Attribute: Returns whether the two nodes overlap
+    Attribute: Returns a boolean value that indicates whether the two nodes overlap.
 
     Attribute: Example
 
@@ -508,11 +512,19 @@ class BroadphaseCollision2D
         return tree:GetPerimeterRatio()
     end
 
+    /*
+    This action adds the node with the id of "integer id" to a list of nodes
+    that should be moved with a certain displacement.
+    */
     private action BufferMove(integer id)
         moveList:Add(id)
         moveCount = moveCount + 1
     end
 
+    /*
+    This action gets ride of the node with the id of "integer id" from a list of nodes
+    that should be moved with a certain displacement.
+    */
     private action UnbufferMove(integer id)
         integer i = 0
         repeat while i < moveCount

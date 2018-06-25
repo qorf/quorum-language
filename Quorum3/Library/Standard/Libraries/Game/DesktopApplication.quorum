@@ -5,6 +5,7 @@ use Libraries.System.DateTime
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.AccessibilityManager
 
 /*
 This is an internal class used by the Game class to manage several resources
@@ -26,6 +27,12 @@ class DesktopApplication is Application
 
         game:InitializeLayers()
 
+        GameStateManager manager
+        if manager:GetOperatingSystem():Contains("Windows")
+            AccessibilityManager accessibility
+            game:SetAccessibilityManager(accessibility)
+        end
+
         MainLoop()
         
     end 
@@ -33,6 +40,8 @@ class DesktopApplication is Application
     private action MainLoop
 
         DesktopDisplay display = cast(DesktopDisplay, parent:Application:display)
+
+        parent:Application:glmanager:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
 
         parent:Application:game:CreateGame()
         
@@ -69,7 +78,6 @@ class DesktopApplication is Application
 
             boolean shouldrender = false
             if display:GetResize() or display:WasResized() or (display:GetWidth() not= configuration:width) or (display:GetHeight() not= configuration:height)
-
                 display:SetResize(false)
 
                 if configuration:autoResizeTextures
@@ -84,11 +92,14 @@ class DesktopApplication is Application
 
                 display:SetConfiguration(configuration)
 
+                shouldrender = false
+            else
+                shouldrender = true
             end
 
-            if(true)
-                shouldrender = true 
-            end
+//            if(true)
+//                shouldrender = true 
+//            end
 
 //            if(display:shouldrender)
 //                shouldrender = display:shouldrender
@@ -117,9 +128,10 @@ class DesktopApplication is Application
     /*
     This action tells the game to close at the end of the next iteration of
     the MainLoop. It is called automatically by the Game class's Exit action.
+    Exit can be aborted if the Game's OnExit() action returns false.
     */
     action Exit()
-        parent:Application:running = false
+        parent:Application:running = (not parent:Application:game:OnExit())
     end
 
 end

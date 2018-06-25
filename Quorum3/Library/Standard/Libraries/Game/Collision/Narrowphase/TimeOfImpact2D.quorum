@@ -11,6 +11,12 @@ use Libraries.Game.Collision.Narrowphase.DistanceOutput2D
 use Libraries.Game.Collision.Narrowphase.DistanceInput2D
 use Libraries.Game.Collision.Narrowphase.Distance2D
 
+/*
+This class estimates the time of impact between two 2D objects. The time that
+this class returns will not be the exact time that the two objects has collided
+but the time will be such that we know for sure at that time, the two object
+is for sure colliding.
+*/
 class TimeOfImpact2D
     constant integer MAX_ITERATIONS = 20
     constant integer MAX_ROOT_ITERATIONS = 50
@@ -27,7 +33,7 @@ class TimeOfImpact2D
     PhysicsPosition2D xfb
     DistanceOutput2D distanceOutput
     Separation2D separation
-    Array<integer> indexes
+    Array<integer> indexes    //indexA and indexB
     Sweep2D sweepA
     Sweep2D sweepB
 
@@ -41,6 +47,11 @@ class TimeOfImpact2D
         indexes:Add(0)
     end
 
+    /*
+    This action returns the upper bound of when two object has collided by 
+    specifying what percentage into the time period between [0, tMax] that
+    the object has collided.
+    */
     action TimeOfImpact(TimeOfImpactOutput2D out, TimeOfImpactInput2D in)
         toiCalls = toiCalls + 1
 

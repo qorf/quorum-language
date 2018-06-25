@@ -6,6 +6,12 @@ use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Narrowphase.Simplex2D
 use Libraries.Game.Collision.Narrowphase.SimplexVertex2D
 
+
+/*
+This class calculates the closest distance between two objects.
+The algorithm that this class uses is the GJK algorithm, which finds the distance
+between two convex shapes.
+*/
 class Distance2D 
     constant integer MAX_ITERATIONS = 20
 
@@ -13,7 +19,7 @@ class Distance2D
     integer GJK_iterations = 0
     integer GJK_max_iterations = 20
 
-    Simplex2D simplex
+    Simplex2D simplex   //the current simplex used in the GJK algorithm
     Array<integer> saveA
     Array<integer> saveB
     Vector2 closestPoint
@@ -28,6 +34,10 @@ class Distance2D
         end
     end
 
+    /*
+    This calculates the minimum distances between two objects and saves the
+    result in "DistanceOutput2D out."
+    */
     action Distance(DistanceOutput2D out, SimplexCache2D cache, DistanceInput2D in)
         GJK_calls = GJK_calls + 1
 
@@ -58,6 +68,7 @@ class Distance2D
                 i = i + 1
             end
 
+            //find the closest point on the simplex to the origin
             if simplex:GetCount() = 1
                 // nothing
             elseif simplex:GetCount() = 2
@@ -85,6 +96,7 @@ class Distance2D
                 end
             end
 
+            //using support points to find if there is a new simplex vertex to be added
             if not break
                 SimplexVertex2D vertex = vertices:Get(simplex:GetCount())
 

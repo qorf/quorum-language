@@ -36,7 +36,7 @@ public class KeyboardProcessor {
                 InputMonitor.pressedKeys++;
             }
             // Otherwise, a key has just been released.
-            else
+            else if (event.eventType == event.RELEASED_KEY)
             {
                 InputMonitor.pressedKeys--;
             }
@@ -270,11 +270,19 @@ public class KeyboardProcessor {
     {
         quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
         event.keyCode = GetGameKeyCode(key);
-        if (action == GLFW.GLFW_PRESS)
-            event.eventType = event.PRESSED_KEY;
-        else if (action == GLFW.GLFW_RELEASE)
-            event.eventType = event.RELEASED_KEY;
         
+        switch (action)
+        {
+            case GLFW.GLFW_PRESS:
+                event.eventType = event.PRESSED_KEY;
+                break;
+            case GLFW.GLFW_RELEASE:
+                event.eventType = event.RELEASED_KEY;
+                break;
+            default:
+                return;
+        }
+
         keyboardEvents.add(event);
     }
 

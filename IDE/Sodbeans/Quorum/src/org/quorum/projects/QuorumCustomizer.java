@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.swing.JComponent;
@@ -19,8 +18,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.spi.project.ui.CustomizerProvider;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
-import org.openide.filesystems.FileUtil;
-import org.quorum.support.Utility;
 
 /**
  *
@@ -206,6 +203,43 @@ public class QuorumCustomizer implements CustomizerProvider{
                 properties.remove(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
             } else {
                 properties.setProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY, mobilePanel.getiPhoneSigningKey());
+            }
+            
+            //now android
+            if(mobilePanel.getAndroidPath().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_PATH);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_PATH, mobilePanel.getAndroidPath());
+            }
+            
+            if(mobilePanel.getAndroidKeystorePath().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_KEYSTORE_PATH);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PATH, mobilePanel.getAndroidKeystorePath());
+            }
+            
+            if(mobilePanel.getAndroidKeystorePassword().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD, mobilePanel.getAndroidKeystorePassword());
+            }
+            
+            if(mobilePanel.getAndroidKeyAlias().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_KEY_ALIAS);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_KEY_ALIAS, mobilePanel.getAndroidKeyAlias());
+            }
+            
+            if(mobilePanel.getAndroidKeyPassword().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD, mobilePanel.getAndroidKeyPassword());
+            }
+            
+            if(mobilePanel.getAndroidAlternateJDK().isEmpty()) {
+                properties.remove(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK, mobilePanel.getAndroidAlternateJDK());
             }
         }
 

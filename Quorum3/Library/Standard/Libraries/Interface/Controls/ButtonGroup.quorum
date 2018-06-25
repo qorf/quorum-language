@@ -1,0 +1,42 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+
+class ButtonGroup
+    
+    Array<ToggleButton> buttons
+    
+    action AddButton(ToggleButton button)
+        buttons:AddToFront(button)
+        button:SetButtonGroup(me)
+    end
+
+    action RemoveButton(ToggleButton button)
+        buttons:Remove(button)
+        button:SetButtonGroup(undefined)
+    end
+
+    action EmptyGroup()
+        integer i = 0
+        repeat while i < buttons:GetSize()
+            RemoveButton(buttons:Get(i))
+            i = i + 1
+        end
+    end
+
+    action GetButtonAt(integer index) returns ToggleButton
+        return buttons:Get(index)
+    end
+
+    action GetButtons() returns Array<ToggleButton>
+        return buttons
+    end
+
+    action DeselectAll()
+        integer i = 0
+        repeat while i < buttons:GetSize()
+            buttons:Get(i):SetToggleState(false)
+            i = i + 1
+        end
+    end
+end

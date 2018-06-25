@@ -2,6 +2,7 @@ package Libraries.Language.Compile
 
 use Libraries.System.File
 use Libraries.Language.Compile.Symbol.all
+use Libraries.Language.Compile.Library
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -9,31 +10,10 @@ use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
-use Libraries.Web.Page.WebPage
-use Libraries.Web.Page.MetaData
-use Libraries.Web.Page.MainContent
-use Libraries.Web.Page.Header
-use Libraries.Web.Page.WebTable
-use Libraries.Web.Page.TableRow
-use Libraries.Web.Page.TableHeaderCell
-use Libraries.Web.Page.TableData
-use Libraries.Web.Page.Division
-use Libraries.Web.Page.Link
-use Libraries.Web.Page.LineBreak
-use Libraries.Web.Page.ListItem
-use Libraries.Web.Page.UnorderedList
-use Libraries.Web.Page.Input
-use Libraries.Web.Page.Form
-use Libraries.Web.Page.NavigationDivision
-use Libraries.Web.Page.Footer
-use Libraries.Web.Page.SmallText
-use Libraries.Web.Page.StrongText
-use Libraries.Web.Page.WebPageHeader
-use Libraries.Web.Page.HeaderLink
-use Libraries.Web.Page.OrderedList
+use Libraries.Language.Compile.Documentation.DocumentationGenerator
 
 class Compiler
-    public constant number VERSION = 5.0
+    public constant number VERSION = 6.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -52,16 +32,6 @@ class Compiler
     boolean isWebApplication = false
     text name = "Default"
     text convertedJavaScript = ""
-    //Support classes
-    SymbolTable symbolTable
-    CompilerErrorManager compilerErrorManager
-    TypeChecker checker
-    
-
-    //Sandbox classes for the parser
-    SymbolTable sandboxSymbolTable
-    CompilerErrorManager sandboxCompilerErrorManager
-    TypeChecker sandboxTypeChecker
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
@@ -74,10 +44,19 @@ class Compiler
     Array<File> additionalPluginFolders
     Array<File> additionalJarFiles
     boolean hasBeenCompiled = false
-    constant text USE = "use"
-    constant text PACKAGE = "package"
-    HashTable<text, Class> lastGoodCompileHash
     boolean writeJavaScriptToDisk = false
+    CodeCompletionHandler codeCompletionhandler
+    DocumentationGenerator documentationGenerator
+
+    Library standardLibrary
+
+    action GetStandardLibrary returns Library
+        return standardLibrary
+    end
+
+    action SetStandardLibrary(Library library) 
+        standardLibrary = library
+    end
 
     action IsWritingJavaScriptToDisk returns boolean
         return writeJavaScriptToDisk
@@ -89,24 +68,6 @@ class Compiler
 
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
-    end
-
-    /*
-        This action clears out any existing information in the compiler. By
-        default it removes only parse information, but does not alter
-        any parameters (e.g., project directory).
-    */
-    action Empty
-        SymbolTable symbolTable2
-        CompilerErrorManager compilerErrorManager2
-        TypeChecker checker2
-        CompilerProfiler profiler2
-
-        symbolTable = symbolTable2
-        compilerErrorManager = compilerErrorManager2
-        checker = checker2
-        checker:SetSymbolTable(symbolTable)
-        profiler = profiler2
     end
 
     action SetOutputSpeech(boolean doSay)
@@ -150,239 +111,17 @@ class Compiler
         This action scans the system classes available and parses them appropriately.
     */
     action ScanStandardLibrary
-        Array<File> lib = CollectStandardLibrary()
-        integer i = 0
-        repeat lib:GetSize() times
-            File file = lib:Get(i)
-            Parser listener
-            ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-            i = i + 1
-        end
-
-        TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-
-        Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < lib:GetSize()
-                File file = lib:Get(i)
-                QuorumBytecodeListener listener
-                ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                ClassOpcode op = listener:GetClassOpcode()
-                op:SetBuild(buildFolder)
-                classOpcodes:Add(op)
-                i = i + 1
-            end
-        end
-
-        //the sandbox has been created, so let the compiler know this.
-        hasScannedStandardLibrary = true
-    end
-
-    /*
-        This action collects all files in the standard library and places them 
-        into an array for indexing or other purposes.
-    */
-    private action CollectStandardLibrary returns Array<File>
-        Array<File> files
+        Library library
         File standardLibraryFolder = GetStandardLibraryFolder()
-        File f1
-        f1:SetWorkingDirectory(standardLibraryFolder:GetWorkingDirectory())
-        f1:SetPath(standardLibraryFolder:GetPath() + "/Libraries")
-        standardLibraryFolder = f1
+        output standardLibraryFolder:GetAbsolutePath()
 
-        Array<File> folders
-        folders:Add(standardLibraryFolder)
-        integer folderIndex = 0
-        done = false
-        repeat while folderIndex < folders:GetSize()
-            File folder = folders:Get(folderIndex)
-            Array<File> listing = folder:GetDirectoryListing()
-            i = 0
-            repeat listing:GetSize() times
-                File file = listing:Get(i)
-                if file:IsDirectory()
-                    folders:Add(file)
-                else
-                    files:Add(file)
-                end
-                i = i + 1
-            end
-            folderIndex = folderIndex + 1
-        end
 
-        return files
+        library:SetLocation(standardLibraryFolder)
+        library:Scan()
+        standardLibrary = library
     end
 
-    /*
-        This action calls the parsing commands regularly, for example from
-        within in an IDE, in a specialized way. Specifically, it first tries
-        to parse the text passed in. The single file passed in is the file
-        to be parsed, usually stored in memory (not disk). The file location
-        of this text is the location on disk, but its current contents may
-        not be written, so this should be used as a key, not a store.
-    */
-    action ParseRepeat(ProjectInformation information) returns CompilerResult
-        CompilerProfiler sandboxedProfiler
-        CompilerResult result
-        result:compilerErrorManager = sandboxCompilerErrorManager
-        sandboxCompilerErrorManager:Empty()
-        sandboxCompilerErrorManager:EmptyHints()
-        result:symbolTable = sandboxSymbolTable
-        sandboxTypeChecker:SetSymbolTable(sandboxSymbolTable)
-        DateTime time
-        start = time:GetEpochTime()
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        text source = information:source
-        File loc = information:sourceLocation
-        text locPath = loc:GetAbsolutePath()
-
-        //Check if this class is already in there. If so, remove it
-        boolean isSandBoxEmpty = true
-        Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
-        if inFile not= undefined
-            sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
-            //remove all of the location tables from this class
-            inFile:RemoveUseLocations(loc)
-            inFile:RemoveCallLocationsFromActions(loc)
-            inFile:RemoveCallLocationsFromDependencies(loc)
-        else //the file isn't in there. Check if the symbol table has other classes
-            isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
-        end
-        
-        Array<File> files = information:projectFiles
-
-        boolean isInvalidCompile = false
-        if files = undefined
-            isInvalidCompile = true
-        elseif files:IsEmpty()
-            isInvalidCompile = true
-        end
-
-        if isInvalidCompile
-            CompilerError error
-            text message = ""
-            if files = undefined
-                message = "I cannot compile an array of files that is passed to me undefined"
-            elseif files:IsEmpty()
-                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
-            end
-            error:SetErrorMessage(message)
-            CompilerErrorType t
-            t:SetCurrentType(t:MISSING_FILE)
-            error:SetCompilerErrorType(t)
-            error:SetLineNumber(1)
-            error:SetLineNumberEnd(1)
-            error:SetColumnNumber(1)
-            error:SetColumnNumberEnd(1)
-            compilerErrorManager:Add(error)
-            return result
-        end
-
-        text null = undefined
-
-        HashTable<text, File> newValues
-        if inFile = undefined
-            i = 0
-            repeat while i < files:GetSize()
-                File file = files:Get(i)
-                Parser listener
-                text path = file:GetAbsolutePath()
-                if path = locPath
-                    ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                else 
-                    if sandboxSymbolTable:GetClassInFile(path) = undefined
-                        newValues:Add(path, file)
-                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                    end
-                end
-                i = i + 1
-            end
-        else
-            Parser listener
-            ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
-        end
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-        sandboxedProfiler:Add(time:GetEpochTime())
-        if inFile = undefined and isSandBoxEmpty
-            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-        else
-
-            Array<Class> justTheseClasses
-            Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
-            if newParse not= undefined
-                justTheseClasses:Add(newParse)
-            end
-
-            //now check all of the files in the newValues hash and resolve them
-            //the same way
-            Iterator<text> it = newValues:GetKeyIterator()
-            repeat while it:HasNext()
-                text path = it:Next()
-                newParse = sandboxSymbolTable:GetClassInFile(path)
-                if newParse not= undefined
-                    justTheseClasses:Add(newParse)
-                end
-            end
-            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager, justTheseClasses)
-        end
-
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        Array<ClassOpcode> classOpcodes
-        if sandboxCompilerErrorManager:IsCompilationErrorFree()
-            if inFile = undefined
-                i = 0
-                repeat while i < allFiles:GetSize()
-                    File file = allFiles:Get(i)
-                    QuorumBytecodeListener listener
-                    text path = file:GetAbsolutePath()
-                    
-                    if path = locPath
-                        integer errors = sandboxCompilerErrorManager:GetErrorAmount()
-                        ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                        integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
-                        if errors = errors2 //there were no errors during the parse of this file, so cache it
-                            lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
-                        end
-                    else 
-                        //check to see if this is already in the cache. If it is, 
-                        //then we don't need to redo this
-                        if sandboxSymbolTable:GetClassInFile(path) = undefined or newValues:HasKey(path)
-                            ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                        end
-                    end
-                    i = i + 1
-                end
-            else
-                QuorumBytecodeListener listener
-                integer errors = sandboxCompilerErrorManager:GetErrorAmount()
-                ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
-                integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
-                if errors = errors2 //there were no errors during the parse of this file, so cache it
-                    lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
-                end
-            end
-        else 
-            return result
-        end
-        sandboxedProfiler:Add(time:GetEpochTime()) 
-        
-        DateTime time2
-        //integer finish = cast(integer, time2:GetEpochTime())
-        //integer total = cast(integer, (finish - start) / 1000.0)
-        result:time = (time2:GetEpochTime() - start) / 1000.0//total
-        return result
-    end
-
-    private action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
+    action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
         TypeChecker types, File loc)
         listener:SetSymbolTable(table)
         listener:SetCompilerErrorManager(errors)
@@ -399,733 +138,84 @@ class Compiler
     end
     
     action Request(CodeCompletionRequest request) returns CodeCompletionResult
-        CodeCompletionResult result
-
-        text source = request:source
-        integer index = request:caretLocation
-        text line = GetLineBeforeCursor(index, source)
-        result:prefix = line
-        text trimmed = line:Trim()
-        request:line = trimmed
-        boolean isUse = trimmed:StartsWith("use")
-        boolean isPackage = trimmed:StartsWith("package")
-
-        if isUse
-            AddUseResults(request, result, true)
-        elseif not isUse and isPackage
-            AddUseResults(request, result, false)
-        elseif not isUse and not isPackage
-            AddExpressionResults(request, result)
-        end
-
-        return result
+        return codeCompletionhandler:Request(request)
     end
 
-    private action AddExpressionResults(CodeCompletionRequest request, CodeCompletionResult result)
-        text line = request:line //this is already trimmed
-        Array<text> split = line:Split(":")
-
-        //now set the filer for this particular request
-        if split:GetSize() > 0 and not line:IsEmpty()
-            text ch = line:GetCharacter(line:GetSize() - 1)
-            if ch = ":"
-                result:filter = ""
-            else
-                result:filter = split:Get(split:GetSize() - 1)
-            end
-        end
-
-        //the most recent compile may contain errors. Get the most recent
-        //successful compile. Store the error compile as well, as it may
-        //help us determine the right values for code completion.
-        text file = request:fileKey
-        Class clazz = sandboxSymbolTable:GetClassInFile(file)
-
-        //we have tried to get the class from the sandbox. It this is undefined
-        //then check the cache. If there is no cached version of the class,
-        //then likely this class hasn't compiled in a while and there may
-        //be little we can do to detect what the user is doing.
-        Class clazzCached = lastGoodCompileHash:GetValue(file)
-        boolean classNotFound = false
-        if clazz = undefined and clazzCached not= undefined
-            clazz = clazzCached
-            classNotFound = true
-        end
-
-        boolean lastCompileFailed = false
-        if clazz not= undefined and clazzCached not= undefined
-            hash1 = clazz:GetHashCode()
-            hash2 = clazzCached:GetHashCode()
-
-            //if these don't match, the most recent parse did not compile
-            //for this file. Let the code completion library know we
-            //are in an intermediate state.
-            if hash1 not= hash2
-                lastCompileFailed = true
-            end
-        end
-        
-        //now we have checked the cache. If this is still undefined, bail
-        if clazz not= undefined
-            integer start = clazz:GetIndex()
-            integer finish = clazz:GetIndexEnd()
-
-            //is it inside of this class? If not, kill the request, because no syntax is legal
-            if not(request:caretLocation >= start and request:caretLocation <= finish)
-                clazz = undefined
-            end
-
-            if split:IsEmpty()
-                clazz = undefined
-                return now
-            end
-        end
-
-        
-        text left = split:Get(0)
-        text trimmedLeft = left:Trim()
-        if clazz not= undefined
-            text line2 = left
-            integer i = line2:GetSize() - 1
-            repeat while i >= 0
-                text ch = line2:GetCharacter(i)
-                if ch = "(" or ch = ","
-                   or ch = "*" or ch = "/"
-                   or ch = "+" or ch = "-"
-                   or ch = " " or IsMod(line2, i) 
-                    //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
-
-                    //split the line again
-                    line2 = line2:GetSubtext(i + 1, line2:GetSize())
-                    left = line2
-                    line2 = line2:Trim()
-                    split = line2:Split(":")
-                    if split:IsEmpty()
-                        return now
-                    end
-
-                    if split:GetSize() > 1 or line2:Contains(":")
-                        text ch2 = line2:GetCharacter(line2:GetSize() - 1)
-                        if ch2 = ":"
-                            result:filter = ""
-                        else
-                            result:filter = split:Get(split:GetSize() - 1)
-                        end
-                    end
-                    trimmedLeft = line2
-                    i = -1
-                end
-                i = i - 1
-            end
-
-            Action method = GetActionAtIndex(clazz, request:caretLocation)
-            if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
-                AddClassToResult(undefined, request, result, clazz, true, method)
-            elseif left = "parent"
-                //if this is a parent line, get all of the items on it, split
-                //by colons and start chaining through.
-                if split not= undefined and split:GetSize() > 1 and split:GetSize() < 4
-                    text parentName = split:Get(1)
-                    AddParentClassesToResult(parentName, request, result, clazz, true, method)
-                else
-                    AddParentClassesToResult(undefined, request, result, clazz, true, method)
-                end
-            else
-                if method not= undefined
-                    Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
-                    if block not= undefined
-                        Variable variable = block:GetVariable(trimmedLeft)
-                        if variable not= undefined and not lastCompileFailed
-                            AddVariableAsClass(variable, request, result)
-                        //in this case, we've found the variable, but the last compile
-                        //failed. Use the cached version. This assumption needs 
-                        //to be tested carefully to see how well it works in practice.
-                        //It does appear to fix the case where types are being 
-                        //inferred, but not recognized properly in the incomplete
-                        //failed build.
-                        elseif variable not= undefined and lastCompileFailed
-                            Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                            if methodCached = undefined
-                                AddVariableAsClass(variable, request, result)
-                                return now
-                            end
-                            Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                            if blockCached = undefined
-                                AddVariableAsClass(variable, request, result)
-                                return now
-                            end
-                            Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                            if variableCached = undefined
-                                AddVariableAsClass(variable, request, result)
-                                return now
-                            end
-                            AddVariableAsClass(variableCached, request, result)
-                        //if we can't find the variable and the last compile
-                        //failed, check the cache. Maybe it has some information
-                        elseif variable = undefined and lastCompileFailed and classNotFound not= true
-                            Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                            if methodCached = undefined
-                                return now
-                            end
-                            Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                            if blockCached = undefined
-                                return now
-                            end
-                            Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                            if variableCached = undefined
-                                return now
-                            end
-                            AddVariableAsClass(variableCached, request, result)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    private action IsMod(text partial, integer i) returns boolean
-        if i - 3 < 0
-            return false
-        end
-
-        if partial:GetCharacter(i) = "d"
-            and partial:GetCharacter(i - 1) = "o"
-            and partial:GetCharacter(i - 2) = "m"
-            and partial:GetCharacter(i - 3) = " "
-            return true
-        end
-
-        return false
-    end
-
-    private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result)
-        Type type = variable:GetType()
-        if type not= undefined
-            text key = type:GetStaticKey()
-            Class varClass = sandboxSymbolTable:GetClass(key)
-            if varClass not= undefined
-                AddClassToResult(variable, request, result, varClass, false, undefined)
-            elseif type:IsPrimitive() and varClass = undefined
-                Class clazz = undefined
-                if type:IsInteger()
-                    clazz = sandboxSymbolTable:GetClass(type:INTEGER_OBJECT_KEY)
-                elseif type:IsNumber()
-                    clazz = sandboxSymbolTable:GetClass(type:NUMBER_OBJECT_KEY)
-                elseif type:IsBoolean()
-                    clazz = sandboxSymbolTable:GetClass(type:BOOLEAN_OBJECT_KEY)
-                else type:IsText()
-                    clazz = sandboxSymbolTable:GetClass(type:TEXT_OBJECT_KEY)
-                end
-
-                //if this is the current class, load all methods, public or private
-                //if this is a variable, load only its public methods.
-                Iterator<Action> actions = clazz:GetVirtualTable()
-                repeat while actions:HasNext()
-                    Action act = actions:Next()
-                    CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-
-                    //is this action in the base class or the v-table?
-                    if clazz:HasAction(act:GetStaticKey())
-                        item:isBaseClassAction = true
-                    end
-
-                    //unlike other locations, this cannot possibly be
-                    //the "current" class.
-                    if  not act:IsPrivate() and act:GetName() not= "GetValue" and act:GetName() not= "SetValue"
-                        result:Add(item)
-                    end
-                end
-            end
-        end
-    end
-
-    private action GetVariableInBlock() returns Variable
-        Variable variable = undefined
-        
-
-        return variable
-    end
-
-    /*
-        Obtains the logical block located at this index. 
-    */
-    private action GetBlockAtIndex(Block block, integer index) returns Block
-        Block bestBlock = undefined
-
-        if block not= undefined
-            boolean test = IsIndexInLocation(block, index)
-            if test
-                bestBlock = block
-            end
-            //get subblocks and try those
-            //this call recursively calls to subblocks, thus no need
-            //for going deeper in this loop exists
-            Iterator<Block> blocks = block:GetBlocks()
-            repeat while blocks:HasNext()
-                Block b = blocks:Next()
-                Block returnedBlock = GetBlockAtIndex(b, index)
-                if returnedBlock not= undefined
-                    if IsIndexInLocation(returnedBlock, index)
-                        integer start = returnedBlock:GetIndex()
-                        integer finish = returnedBlock:GetIndexEnd()
-                        integer range = finish - start
-
-                        if bestBlock = undefined
-                            bestBlock = returnedBlock
-                        else
-                            integer bestStart = bestBlock:GetIndex()
-                            integer bestFinish = bestBlock:GetIndexEnd()
-                            integer bestRange = bestFinish - bestStart
-                            //this block is nested 
-                            if range < bestRange
-                                bestBlock = returnedBlock
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        return bestBlock
-    end
-
-    private action IsIndexInLocation(Location location, integer index) returns boolean
-        integer start = location:GetIndex()
-        integer finish = location:GetIndexEnd()
-        if index >= start and index <= finish
-            return true
-        end
-
-        return false
-    end
-
-    private action GetActionAtIndex(Class clazz, integer index) returns Action
-        Action act = undefined
-        File file = clazz:GetFile()
-        text classPath = file:GetAbsolutePath()
-
-        Iterator<Action> actions = clazz:GetActions()
-        repeat while actions:HasNext()
-            Action a = actions:Next()
-            integer start = a:GetIndex()
-            integer finish = a:GetIndexEnd()
-            File f = a:GetFile()
-            text actionPath = f:GetAbsolutePath()
-            if index >= start and index <= finish and classPath = actionPath
-                act = a
-                return act
-            end
-        end
-        return act
-    end
-
-    private action AddParentClassesToResult(text parentName, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod)
-
-        if clazz not= undefined
-
-            if parentName = undefined
-                Iterator<Class> value = clazz:GetParentClasses()
-                repeat while value:HasNext()
-                    Class theParent = value:Next()
-
-                    CodeCompletionItem item
-
-                    name = theParent:GetName()
-                    key = theParent:GetStaticKey()
-                    item:displayText = name
-                    item:completionText = key
-
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    result:Add(item)
-                end
-            else //in this case, we have the parent name and are 
-                 //looking for its operations
-                 
-                 //first check if they put in the full static key
-                Class value = clazz:GetParentClass(parentName)
-
-                if value not= undefined
-                    AddParentClassToResult(undefined, request, result, value, insideMethod)
-                else
-                    value = clazz:GetValidUseName(parentName)
-                    if value not= undefined
-                        Class validParent = clazz:GetParentClass(value:GetStaticKey())
-                        if validParent not= undefined
-                            AddParentClassToResult(undefined, request, result, value, insideMethod)
-                        end
-                    end
-                end
-
-            end
-        end
-        
-    end
-
-    private action AddParentClassToResult(Variable variable, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, Action insideMethod)
-
-        if clazz not= undefined
-            //add all of the fields from this class
-            Iterator<Variable> variables = clazz:GetVariables()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    result:Add(item)
-                end
-            end
-
-            //there is no need to load parent information here, because this 
-            //is the parent. Given then, load only the base methods.
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-
-                //In this case, mark the methods in the base class, 
-                //but still show anything in this parent's v-table.
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
-                end
-
-                result:Add(item)
-            end
-        end
-    end
-
-    private action AddClassToResult(Variable variable, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod)
-
-        if clazz not= undefined
-            //add all of the fields from this class
-            Iterator<Variable> variables = clazz:GetVariables()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
-                            result:Add(item)
-                        end
-                    end
-                end
-            end
-
-            //now add all of the parent fields from this class
-            Iterator<Class> parents = clazz:GetParentClasses()
-            repeat while parents:HasNext()
-                Class par = parents:Next()
-                Iterator<Variable> variables2 = par:GetVariables()
-                repeat while variables2:HasNext()
-                    Variable variable2 = variables2:Next()
-                    if variable2:GetType() not= undefined
-                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                        text filter = result:filter
-                        integer size = filter:GetSize()
-                        item:dotOffset = request:caretLocation - size
-                        if isCurrentClass
-                            result:Add(item)
-                        else
-                            if not variable2:IsPrivate()
-                                result:Add(item)
-                            end
-                        end
-                    end
-                end
-            end
-
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-
-                //is this action in the base class or the v-table?
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
-                end
-
-                if isCurrentClass
-                    result:Add(item)
-                else
-                    if not act:IsPrivate()
-                        result:Add(item)
-                    end
-                end
-            end
-        end
-    end
-
-    private action GetLineBeforeCursor(integer loc, text source) returns text
-        if loc - 1 <= source:GetSize()
-            integer i = loc - 1
-            text CR = source:GetLineFeed()
-
-            integer start = 0
-            repeat while i >=0 
-                text ch = source:GetCharacter(i)
-                if ch = CR //this is the end of the line
-                    start = i
-                    i = -1
-                end
-                i = i - 1
-            end
-
-            text sub = source:GetSubtext(start, loc)
-            return sub
-        end
-
-        return undefined
-    end
-
-    private action AddCustomClasses(CodeCompletionRequest request, CodeCompletionResult result, text pack)
-        Iterator<Class> classes = sandboxSymbolTable:GetClassesInPackage(pack)
-
-        if classes not= undefined
-            repeat while classes:HasNext()
-                Class clazz = classes:Next()
-                CodeCompletionItem item = GetClassCompletionItem(clazz)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                result:Add(item)
-            end
-        end
-    end
-
-    private action GetClassCompletionItem(Class clazz) returns CodeCompletionItem
-        CodeCompletionItem item
-        item:SetType(item:CLASS)
-
-        text signature = clazz:GetStaticKey()
-        text name = clazz:GetName()
-
-        text description = ""
-        description = description + "<h1>" + signature + "</h1>"
-//        String[] paragraphs = Documentation.breakStringIntoParagraphArray(clazz.getDocumentation().getDescription());
-//        for (int i = 0; i < paragraphs.length; i++) {
-//            description += "<p>" + paragraphs[i] + "</p>";
-//        }
-//
-//        description += "<h2>" + "Code Example:" + "</h2>";
-//        description += "<PRE><CODE>" + clazz.getDocumentation().getExample()
-//                + "</PRE></CODE>";
-
-        item:displayText = name
-        item:completionText = name
-        item:documentationText = "Test"
-        return item
-    end
-
-    private action GetPackageCompletionItem(text pack) returns CodeCompletionItem
-        CodeCompletionItem item
-        item:SetType(item:PACKAGE)
-
-        text signature = pack
-        text name = pack
-
-        text description = "<h1>" + signature + "</h1>"
-
-        item:displayText = name
-        item:completionText = name
-        item:documentationText = ""
-        return item
-    end
-
-    private action AddSubpackagesAndClasses(CodeCompletionRequest request, CodeCompletionResult result, text name)
-        //first find all of the packages/sub-packages 
-        Iterator<text> packs = sandboxSymbolTable:GetSubpackageNames(name)
-        repeat while packs:HasNext()
-            text pack = packs:Next()
-            integer size = name:GetSize() + 1
-            text subpackName = pack:GetSubtext(0, size)
-            text filteredName = subpackName + result:filter
-            subpackName = pack:GetSubtext(size, pack:GetSize())
-
-            if pack:StartsWith(filteredName)
-                CodeCompletionItem item = GetPackageCompletionItem(subpackName)
-                text filter = result:filter
-                integer size2 = filter:GetSize()
-                item:dotOffset = request:caretLocation - size2
-                result:Add(item)
-            end
-        end
-
-        //next find any classes on the system in the package
-        Iterator<Class> classesInPackage = sandboxSymbolTable:GetClassesInPackage(name)
-        boolean hasAny = false
-        if classesInPackage not= undefined
-            hasAny = classesInPackage:HasNext()
-            repeat while classesInPackage:HasNext()
-                Class pack = classesInPackage:Next()
-                text key = pack:GetStaticKey()
-                CodeCompletionItem item = GetClassCompletionItem(pack)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                result:Add(item)
-            end
-        end
-        
-        //finally, remind the user they can use the "all" keyword
-        if hasAny
-            CodeCompletionItem item
-            item:SetType(item:PACKAGE)
-            text DQ = ""
-            DQ = DQ:GetDoubleQuote()
-            text signature = "Use all classes with the " + DQ + "all" + DQ + " keyword."
-            text itemName = "all"
-
-            text description = "<h1>" + signature + "</h1>"
-                    + "<p align=" + DQ + "justify" + DQ + ">The word "
-                    + "all indicates to quorum that we would like to"
-                    + " have access to all classes in the package. For "
-                    + "example, the phrase Libraries.Containers.all would indicate "
-                    + "that we want to use any class in the Libraries.Containers "
-                    + "package."
-                    + "</p>"
-            description = description + "<h2>" + "Code Example:" + "</h2>"
-            description = description + "<PRE><CODE>"
-                    + "use Libraries.Containers.all\n\n"
-                    + "List&lt;integer&gt; list\n"
-                    + "Array&lt;integer&gt; array"
-                    + "</PRE></CODE>"
-
-            item:displayText = itemName
-            item:documentationText = description
-            item:completionText = "all"
-            text filter = result:filter
-            integer size = filter:GetSize()
-            item:dotOffset = request:caretLocation - size
-            result:Add(item)
-        end
-    end
-
-    private action ReformPackage(Array<text> packs) returns text
-        text result = ""
-        integer i = 0
-        repeat while i < packs:GetSize()
-            text value = packs:Get(i)
-            if i = 0
-                result = result + value
-            else
-                result = result + value + "."
-            end
+    action Compile(CompilerRequest request) returns CompilerResult
+        Array<File> files = request:files
+        HashTable<text, File> originalFileHash
+        //this is only used if the standard library is not pre-scanned
+        HashTable<text, File> standardLibraryFileHash
+        i = 0
+        repeat while i < files:GetSize()
+            File next = files:Get(i)
+            originalFileHash:Add(next:GetAbsolutePath(), next)
             i = i + 1
         end
-        return result
-    end
 
-    private action AddUseResults(CodeCompletionRequest request, CodeCompletionResult result, boolean isUse)
-        text trim = request:line
-        trim = trim:Trim()
-        if isUse
-            trim = trim:GetSubtext(USE:GetSize())
-        else
-            trim = trim:GetSubtext(PACKAGE:GetSize())
+        if request:recompile not= undefined
+            text value = request:recompile:GetAbsolutePath()
+            SymbolTable table = request:symbolTable
+            if table not= undefined
+                Class clazz = table:GetClassInFile(value)
+                table:RemoveFile(value)
+
+                if clazz not= undefined
+                    clazz:RemoveCallLocationsFromDependencies(request:recompile)
+                end
+
+            end
         end
 
-        trim = trim:Trim()
-        Array<text> values = trim:Split("\.")
-
-        integer filterSize = 0
-        if not values:IsEmpty() and not trim:IsEmpty()
-            if trim:GetCharacter(trim:GetSize() - 1) = "."
-                result:filter = ""
-            else
-                result:filter = values:Get(values:GetSize() - 1)
-            end
-
-            text filter = result:filter
-            filterSize = filter:GetSize()
-        end
-
-        constant text root = "Libraries"
-        if values:GetSize() = 1
-            text left = values:Get(0)
-            text leftTrimmed = left:Trim()
-            if leftTrimmed:IsEmpty()
-                CodeCompletionItem item
-                item:SetType(item:PACKAGE)
-                item:displayText = root
-                item:completionText = root
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                result:Add(item)
-                AddCustomClasses(request, result, root)
-            elseif left = root
-                AddSubpackagesAndClasses(request, result, root)
-                AddCustomClasses(request, result, root)
-            elseif root:StartsWith(left)
-                CodeCompletionItem item
-                item:SetType(item:PACKAGE)
-                item:displayText = root
-                item:completionText = root
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                result:Add(item)
-                AddCustomClasses(request, result, root)
-            end
+        Library library = request:library
+        CompilerResult result
+        HashTable<text, ClassOpcode> theOpcodes = undefined
+        if request:opcodes not= undefined
+            theOpcodes = request:opcodes
         else 
-            text valueNoFilter = trim:GetSubtext(0, trim:GetSize() - filterSize - 1)
-            AddSubpackagesAndClasses(request, result, valueNoFilter)
-        end
-    end
-
-
-    private action IsWhiteSpace(text value) returns boolean
-        i = 0
-        repeat while i < value:GetSize()
-            text val = value:GetCharacter(i)
-
-            return true
+            HashTable<text, ClassOpcode> theOpcodes2
+            theOpcodes = theOpcodes2
         end
 
-        return true
-    end
-    /*
-        This action compiles the array of files to Java Bytecode, which
-        it writes to disk. By default, it generates a .jar file into the 
-        folder named Run and the class files into the folder labeled
-        Build.
-    */
-    action Compile(Array<File> files)
-        hasBeenCompiled = true
+        result:opcodes = theOpcodes
+        File myMain = request:main
+
+        
+        text convertedJavaScript = ""
         DateTime time
+        boolean containsSpeechCommandInCompile = false
+        boolean outputSpeechCommands = false
+
+        //setup sandboxed values for compilation. 
+        CompilerProfiler profiler
+        TypeChecker checker
+        SymbolTable table
+
+        SymbolTable previousCompile = request:symbolTable
+        if previousCompile not= undefined
+            table:SetTo(previousCompile)
+        end
+
+        CompilerErrorManager errors
+        SymbolTable standardLibraryTable = undefined
         profiler:Empty()
         profiler:Add(time:GetEpochTime())
+
+        //setup the compiler result to store everything that was done
+        result:compilerErrorManager = errors
+        result:symbolTable = table
+        result:typeChecker = checker
+        result:standardLibrary = library
+        result:profiler = profiler
+
+        //check if the standard library is here and that the files are valid
         boolean isInvalidCompile = false
-        checker:SetSymbolTable(symbolTable)
+        //if the standard library is defined, set it up. Otherwise bail
+        if library = undefined
+            output "I attempted to compile code without a standard library. Please report this to the development team as a bug."
+            return result
+        end
+
         if files = undefined
             isInvalidCompile = true
         elseif files:IsEmpty()
@@ -1148,108 +238,226 @@ class Compiler
             error:SetLineNumberEnd(1)
             error:SetColumnNumber(1)
             error:SetColumnNumberEnd(1)
-            compilerErrorManager:Add(error)
-            return now
+            errors:Add(error)
+            return result
         end
 
-        if hasScannedStandardLibrary
-            symbolTable:SetStandardLibraryCache(sandboxSymbolTable)
+        //if these values are both defined, then the user is requesting
+        //that one source file, from text, be compiled
+        if request:recompile not= undefined and request:recompileValue not= undefined
+            table:RemoveFile(request:recompile:GetAbsolutePath())
         end
 
+        HashTable<text, boolean> needsCompilationSet
+        //parse all of the files for the first time
         i = 0
         repeat while i < files:GetSize()
             File file = files:Get(i)
             Parser listener
-            Parse(file, listener)
+            if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
+                ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                needsCompilationSet:Add(file:GetAbsolutePath(), true)
+            elseif not table:HasFile(file:GetAbsolutePath())
+                ParseSandbox(file:Read(), listener, table, errors, checker, file)
+                needsCompilationSet:Add(file:GetAbsolutePath(), true)
+            end //otherwise ignore it
             i = i + 1
         end
         profiler:Add(time:GetEpochTime())
-
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
+        //if the needs compilation set is null, just return because nothing 
+        //needs to be done
+        if needsCompilationSet:IsEmpty()
+            result:symbolTable = request:symbolTable
+            result:opcodes = request:opcodes
         end
-        profiler:Add(time:GetEpochTime())
 
-        if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(symbolTable, checker, compilerErrorManager)
+        SymbolTable originalTable = table:Copy()
+
+        //if the standard library has already been scanned, just link stuff in
+        //if not, then we need to crawl the transitive dependencies
+        if library:IsScanned()
+            LinkToStandardLibrary(table, checker, errors, library)
         else 
-            return now
-        end
-        profiler:Add(time:GetEpochTime())
-
-        Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
+            //If we haven't scanned the standard library, we need to separately compile
+            //all of those files
+            HashTable<text, File> allFiles = GetAllRequiredFiles(table, checker, errors, library)
+            Array<File> f = allFiles:CopyToValueArray()
+            //because of the standard library, do a separate mini-pass of the files
+            //to compile the standard library ones and to separate the tables.
+            
+            SymbolTable standardLibrarySymbolTable
             i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
+            repeat while i < f:GetSize()
+                File next = f:Get(i)
+                //if it's not in the original hash, it's in the standard library
+                if not originalFileHash:HasKey(next:GetAbsolutePath())
+                    standardLibraryFileHash:Add(next:GetAbsolutePath(), next)
+                    Class clazz = table:GetClassInFile(next:GetAbsolutePath())
+                    if clazz not= undefined
+                        standardLibrarySymbolTable:Add(clazz)
+                    end
+                end
+                i = i + 1
+            end
+
+            if errors:IsCompilationErrorFree()
+                TypeResolution(standardLibrarySymbolTable, checker, errors)
+            else 
+                return result
+            end
+
+            Array<File> standardLibraryFiles = standardLibraryFileHash:CopyToValueArray()
+            Array<ClassOpcode> classOpcodes
+            if errors:IsCompilationErrorFree()
+                i = 0
+                repeat while i < standardLibraryFiles:GetSize()
+                    File file = standardLibraryFiles:Get(i)
+                    QuorumBytecodeListener listener
+                    ParseSandbox(undefined, listener, standardLibrarySymbolTable, errors, checker, file)
+                    i = i + 1
+                end
+            end
+        end
+
+        if errors:IsCompilationErrorFree()
+            SymbolTable needsTable
+            //check that any of the files in the original set actually need parsing
+            Iterator<text> iterator = needsCompilationSet:GetKeyIterator()
+            repeat while iterator:HasNext()
+                text value = iterator:Next()
+                if originalTable:HasFile(value)
+                    needsTable:Add(originalTable:GetClassInFile(value))
+                end
+            end
+
+            TypeResolution(needsTable, checker, errors, table)
+        else 
+            return result
+        end
+        profiler:Add(time:GetEpochTime())
+
+        //tell the type checker to use the merged symbol table on this pass
+        checker:SetSymbolTable(table)
+        
+        if errors:IsCompilationErrorFree()
+            i = 0
+            repeat while i < files:GetSize()
+                File file = files:Get(i)
                 QuorumBytecodeListener listener
                 if not outputSpeechCommands
                     listener:SetOutputSpeech(outputSpeechCommands)
                 end
-
-                Parse(file, listener)
-
-                if listener:HasSayStatementInClass()
-                    containsSpeechCommandInCompile = true
+                if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
+                    ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                    if listener:HasSayStatementInClass()
+                        containsSpeechCommandInCompile = true
+                    end
+                    ClassOpcode op = listener:GetClassOpcode()
+                    op:SetBuild(buildFolder)
+                    theOpcodes:Add(op:GetStaticKey(), op)
+                elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
+                    ParseSandbox(undefined, listener, table, errors, checker, file)
+                    if listener:HasSayStatementInClass()
+                        containsSpeechCommandInCompile = true
+                    end
+                    ClassOpcode op = listener:GetClassOpcode()
+                    op:SetBuild(buildFolder)
+                    theOpcodes:Add(op:GetStaticKey(), op)
                 end
-                ClassOpcode op = listener:GetClassOpcode()
-                op:SetBuild(buildFolder)
-                classOpcodes:Add(op)
                 i = i + 1
             end
         else 
-            return now
+            return result
         end
         profiler:Add(time:GetEpochTime())
 
-        File starter = files:Get(0)
-        CheckMain(starter)
+        Class m = GetMainClass(myMain, table)
+        if m = undefined //no class that had a main method was selected, throw an error
+            AddMainError(myMain, table, errors)
+        elseif m not= undefined and m:HasMainAction() = false
+            AddMainError(myMain, table, errors)
+        else
+            m:SetIsProgramStartingClass(true)
+        end
         
+        boolean isMissingBuildFile = false
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
         //can be issues in the bytecode writing stage.
         //if an error is issued, it is a bug in the compiler and not
         //an intentional design decision.
-        if compilerErrorManager:IsCompilationErrorFree()
-            if currentOutputType = JAVA_BYTECODE
+        if errors:IsCompilationErrorFree()
+            if request:GetOutputType() = JAVA_BYTECODE
                 //open up and begin filling the Jar
                 JarGenerator generator
-                text manifest = GetManifest(generator)
-                File jar = GetDistributionFile()
-                generator:SetManifest(manifest)
-                generator:Open(jar)
+                text manifest = GetManifest(request, generator, table)
+                //text compiledName = request:GetName(name)
+                File jar = GetExecutable(request)
+                if not request:isFastCompileRequest
+                    generator:SetManifest(manifest)
+                    generator:Open(jar)
+                end
 
                 //iterate over all the class opcodes and write them to disk
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                Iterator<ClassOpcode> codes = theOpcodes:GetValueIterator()//classOpcodes:GetIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
-                    code:Write()
 
+                    //we may not need to actually write this file, as it may
+                    //already be written. If so, then toss it in 
+                    //the jar
+                    Class clazz = code:GetClass()
+                    File filePath = clazz:GetFile()
+                    text needsPath = filePath:GetAbsolutePath()
+                    if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                        code:Write()
+                    else 
+                        code:SetBuildPaths()
+                    end
+                    
                     File build = code:GetBuildFile()
                     File buildInterface = code:GetBuildInterfaceFile()
 
                     text key = code:GetStaticKey()
-                    if build not= undefined
-                        if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" + build:GetPath()
-                            generator:Add(build, path)
-                        else 
-                            generator:Add(build)
-                        end
+
+                    //in this case, the build is missing files, which means
+                    //the user may have manually deleted them. We need to tell them
+                    //to issue a clean and build. This error should only be issued once
+                    if  (build not= undefined and not build:Exists()) or
+                        (buildInterface not= undefined and not buildInterface:Exists())
+                        and not isMissingBuildFile
+
+                        CompilerError error
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISSING_FILE)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("The file " + build:GetAbsolutePath() + " was missing, which means it may have been deleted manually. Please do a clean and build.")
+                        error:SetLocation(clazz)
+                        errors:Add(error)
                     end
 
-                    if buildInterface not= undefined
-                        if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
-                            generator:Add(buildInterface, path)
-                        else 
-                            generator:Add(buildInterface)
+                    //if the file is not part of the standard library, 
+                    //generate it
+                    if not request:isFastCompileRequest
+                        if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                            and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
+                            if build not= undefined
+                                if request:IsWebRequest()
+                                    text path = WEB_DIRECTORY + "/" + build:GetPath()
+                                    generator:Add(build, path)
+                                else 
+                                    generator:Add(build)
+                                end
+                            end
+
+                            if buildInterface not= undefined
+                                if request:IsWebRequest()
+                                    text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                                    generator:Add(buildInterface, path)
+                                else 
+                                    generator:Add(buildInterface)
+                                end
+                            end
                         end
                     end
                 end
@@ -1257,19 +465,67 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                WriteDependencies(generator)
-                generator:Close()
+                //only go through this if not a fast compile
+                if not request:isFastCompileRequest
+                    WriteDependencies(generator, library, request)
+                    generator:Close()
+                end
                 profiler:Add(time:GetEpochTime())
                 
-            elseif currentOutputType = JAVASCRIPT
-                convertedJavaScript = CompileToJavaScript(classOpcodes)
+            elseif request:GetOutputType() = JAVASCRIPT
+                //first copy all of the standard library opcodes into the array
+                Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+                Iterator<Class> iterator = table:GetClasses()
+                repeat while iterator:HasNext()
+                    Class value = iterator:Next()
+                    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
+                    if op not= undefined
+                        classOpcodes:Add(op)
+                    end
+                end
+                convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
+                result:convertedJavaScript = convertedJavaScript
                 if IsWritingJavaScriptToDisk()
                     WriteJavaScript(convertedJavaScript)
                 end
                 
-            elseif currentOutputType = DOCUMENT
-                CreateDocumentation(classOpcodes)
+            elseif request:GetOutputType() = request:DOCUMENT
+                CreateDocumentation(library, theOpcodes)
             end
+        end
+        
+        return result
+    end
+
+    private action CreateDocumentation(Library library, HashTable<text, ClassOpcode> opcodes)
+        documentationGenerator:SetRunFolder(runFolder)
+        documentationGenerator:Write(library, opcodes, false)
+    end
+
+    action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors, SymbolTable fullCompilation)
+        Iterator<Class> classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ResolveUseStatements(fullCompilation, errors)
+        end
+        
+        classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+
+            //because of the way the parent flattening algorithm works,
+            //classes may already be resolved
+            if not next:IsResolved()
+                next:ResolveAllTypes(fullCompilation, errors)
+            end
+        end
+
+        classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ComputeVirtualActionTable(errors)
+            next:ComputeGenericsTables(errors)
+            types:Add(next)
         end
     end
 
@@ -1286,281 +542,6 @@ class Compiler
             jsFile:SetPath(GetName() + ".js")
             jsFile:Write(value)
         end
-    end
-
-    private action AddDefaultHeaders returns NavigationDivision
-        NavigationDivision division
-        UnorderedList list
-        division:SetClassAttribute("headerNavBar outermostContainer")
-
-        Division skipDivision
-        skipDivision:SetClassAttribute("skiptocontent")
-
-        Link skipLink
-        skipLink:AddText("skip to main content")
-        skipLink:SetAddress("#main")
-
-        skipDivision:Add(skipLink)
-        division:Add(skipDivision)
-
-        Link logoLink
-        logoLink:SetIdentifier("homePageLink")
-        logoLink:AddImage("/media/QuorumLogoWhite.png", "Home")
-        logoLink:SetAddress("https://www.quorumlanguage.com/")
-        logoLink:AddText("Quorum")
-
-        ListItem item
-        item:Add(logoLink)
-        list:Add(item)
-
-        text extension = ".html"
-        list:AddListItemLink("Learn", "/learn" + extension)
-        list:AddListItemLink("Hour of Code", "/hourofcode/part1" + extension)
-        list:AddListItemLink("Reference", "/reference" + extension)
-        list:AddListItemLink("Libraries", "/libraries" + extension)
-        list:AddListItemLink("Download", "/download" + extension)
-        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
-        division:Add(list)
-        
-        //search bar
-        Form form
-        form:SetFormAction("/search.php")
-        form:AddAttribute("role", "search")
-        form:SetIdentifier("searchForm")
-        form:SetPost(true)
-
-        Input searchInput
-        searchInput:SetTitle("Search Input")
-        searchInput:SetIdentifier("searchFormInput")
-        searchInput:SetPlaceHolder("How do I create an array?")
-        searchInput:SetType("text")
-        searchInput:SetName("search-query")
-        form:Add(searchInput)
-
-        Input searchButton
-        searchButton:SetIdentifier("searchFormButton")
-        searchButton:SetDefaultValue("Search")
-        searchButton:SetType("submit")
-        searchButton:SetTitle("Submit Button")
-        form:Add(searchButton)
-        division:Add(form)
-        return division
-    end
-
-    private action GetFooter returns Footer
-        Footer footer
-        footer:AddText("The Quorum Programming Language")
-        footer:SetIdentifier("footer")
-        SmallText small
-        small:AddText("Copyright &copy; 2014-2017. Art and Design by 
-            Andreas Stefik, Melissa Stefik, and Evan Pierzina")
-        footer:Add(small)
-        return footer
-    end
-
-    private action CreateDocumentation(Array<ClassOpcode> classOpcodes)
-        NavigationDivision navigation = AddDefaultHeaders()
-        Footer footer = GetFooter()
-        text result = ""
-        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-        repeat while codes:HasNext()
-            ClassOpcode code = codes:Next()
-            Class clazz = code:GetClass()
-
-            WebPage page = code:WriteToWebPage(navigation, footer)
-            text web = page:Generate()//code:WriteToWeb()
-            text key = clazz:GetStaticKey()
-            text parentKey = ""
-            Array<text> split = key:Split("\.")
-            i = 0
-            repeat split:GetSize() - 1 times
-                parentKey = parentKey + split:Get(i) + "/"
-                i = i + 1
-            end
-            key = "/" + key:Replace(".", "/") + ".html"
-
-
-            buildFolder:CreateDirectories()
-            File mom
-            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-            mom:CreateDirectories()
-
-            File documentationFile
-            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-            documentationFile:Write(web)
-        end
-
-        WebPage page
-        //add language headers
-        page:AddAttribute("xml:lang", "en")
-        page:SetLanguage("en")
-
-        //add the meta-data character set
-        MetaData charset
-        charset:SetCharacterSet("UTF-8")
-        page:AddMetaData(charset)
-
-        //auto-generate some sensible keywords
-        MetaData keywords
-        text keywordText = "programming for beginners, computer programming,
-        Quorum programming language, Standard Library"
-        keywords:AddAttribute("name", "keywords")
-        keywords:AddAttribute("content", keywordText)
-        page:AddMetaData(keywords)
-
-        MetaData viewport
-        viewport:SetContent("width=device-width, initial-scale=1")
-        viewport:SetName("viewport")
-        page:AddMetaData(viewport)
-
-        page:AddScript("/script/jquery-1.8.3.min.js")
-        page:AddScript("/script/script.js")
-        
-        //add style sheet tags
-        page:AddStylesheet("/style/style.css")
-        page:AddStylesheet("/style/google.css")
-        page:AddIcon("/media/favicon.ico")
-
-        //Add Responsive Stylesheets
-        WebPageHeader webHeader = page:GetWebPageHeader()
-        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
-
-        MetaData metaDataDescription
-        metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
-        metaDataDescription:SetName("description")
-        page:AddMetaData(metaDataDescription)
-
-        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
-        page:Add(navigation)
-        MainContent mainRegion
-        mainRegion:AddAttribute("role","main")
-
-        Header headDiv
-        headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading("Quorum Standard Library", 1)
-        page:Add(headDiv)
-
-        Division bodyDiv
-        bodyDiv:SetClassAttribute("bodyContainer")
-        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
-        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
-            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
-            4) support classes (e.g., arrays, lists, hash tables, math, console, 
-            system). The standard library is expanded in each release.")
-
-        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-        repeat while packages:HasNext()
-            text key = packages:Next()
-            if not key:IsEmpty() //ignore the default package
-                WebTable table
-                table:SetBorder(true)
-
-                TableRow headerRow
-                TableHeaderCell packageNameHeaderCell
-                packageNameHeaderCell:AddText(key)
-                headerRow:Add(packageNameHeaderCell)
-                table:Add(headerRow)
-
-                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                integer i2 = 0
-                repeat classes:GetSize() times
-                    Class clazz = classes:Get(i2)
-                    TableRow row
-
-                    TableData data
-                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
-                    row:Add(data)
-
-                    Documentation doc = clazz:GetDocumentation()
-                    if doc not= undefined
-                        constant integer DOC_SIZE = 120
-                        text description = doc:GetDescription()
-                        if description = undefined
-                            description = ""
-                        end
-                        if description:GetSize() > DOC_SIZE
-                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
-                        end
-                        data:AddText(": " + description)
-                    end
-                    table:Add(row)
-                    i2 = i2 + 1
-                end
-                bodyDiv:Add(table)
-                LineBreak break
-                bodyDiv:Add(break)
-            end
-        end
-
-        mainRegion:Add(bodyDiv)
-        page:Add(mainRegion)
-        page:Add(footer)
-
-        File documentationFile
-        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
-        documentationFile:Write(page:Generate())
-    end
-
-    private action GetMediaStyleSheet(text name, text media) returns HeaderLink
-        HeaderLink link
-        link:SetAddress(name)
-        link:SetType("text/css")
-        link:SetRelationship("stylesheet")
-        link:SetMedia(media)
-        return link
-    end
-
-    private action GetClassLinkFromIndex(Class from) returns text
-        text link = ""
-        text key = from:GetStaticKey()
-        Array<text> fromSplit = key:Split("\.")
-        if fromSplit not= undefined
-            i = 0
-            repeat fromSplit:GetSize() times
-                if i < fromSplit:GetSize() - 1
-                    link = link + fromSplit:Get(i) + "/"
-                else
-                    link = link + fromSplit:Get(i) + ".php"
-                end
-                i = i + 1
-            end
-        end
-        text dq = link:GetDoubleQuote()
-        link = "<a href = " + dq + link + dq + ">" + from:GetName() + "</a>"
-        return link
-    end
-
-    private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
-        Link link
-        text key = from:GetStaticKey()
-        text linkText = ""
-        Array<text> fromSplit = key:Split("\.")
-        if fromSplit not= undefined
-            i = 0
-            repeat fromSplit:GetSize() times
-                if i < fromSplit:GetSize() - 1
-                    linkText = linkText + fromSplit:Get(i) + "/"
-                else
-                    linkText = linkText + fromSplit:Get(i) + ".html"
-                end
-                i = i + 1
-            end
-        end
-        link:SetAddress(linkText)
-        if boldLink
-            StrongText strong
-            strong:AddText(from:GetName())
-            link:Add(strong)
-        else 
-            link:AddText(from:GetName())
-        end
-        
-        return link
     end
 
     /*
@@ -1617,14 +598,13 @@ class Compiler
         end
     end
 
-    private action WriteDependencies(JarGenerator generator)
-        WritePlugins(generator, pluginFolder, pluginFolder)
-
+    private action WriteDependencies(JarGenerator generator, Library library, CompilerRequest request)
+        File libraryLocation = library:GetLocation()
         if not additionalPluginFolders:IsEmpty()
             Iterator<File> it = additionalPluginFolders:GetIterator()
             repeat while it:HasNext()
                 File folder = it:Next()
-                WritePlugins(generator, folder, folder)
+                WritePlugins(generator, folder, folder, request)
             end
         end
 
@@ -1636,214 +616,46 @@ class Compiler
                 WriteJarToDisk(file)
             end
         end
+
+        File compiledStandardLibraryFolder
+        compiledStandardLibraryFolder:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/")
+        compiledStandardLibraryFolder:SetPath("Run")
         
-        // Booleans added for the game/sound plugins.
-        boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
-        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
-            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
-
-        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
-        boolean hasRobots = false
-        if tempIterator not= undefined
-            hasRobots = tempIterator:HasNext()
-        end
-
-        if hasGame or hasAudio
-            File lwjglFolder
-            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            lwjglFolder:SetPath("LWJGL")
-            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-            integer counter = 0
-            repeat while counter < lwjglFiles:GetSize()
-                File file = lwjglFiles:Get(counter)
-                WriteJarToDisk(file)
-                counter = counter + 1
-            end
-        end
-
-        if hasRobots
-            File file1
-            File file2
-            file1:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            file2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            file1:SetPath("dbusjava.jar")
-            file2:SetPath("ev3classes.jar")
-            WriteJarToDisk(file1)
-            WriteJarToDisk(file2)
-        end
-
-        //check the symbol table to see if the user generated any code
-        //used in the compiler
-        boolean hasCompiler = symbolTable:HasClass("Libraries.Language.Compile.Compiler")
-        boolean hasTester = symbolTable:HasClass("Libraries.Language.Compile.Test.CompilerTestSuite")
-        boolean hasClassWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeClassWriter")
-        boolean hasMethodWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter")
-        boolean hasfieldWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter")
-        boolean hasLabel = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeLabel")
-        boolean hasSpeech = symbolTable:HasClass("Libraries.Sound.Speech")
-
-        if hasCompiler or hasTester or hasClassWriter or hasMethodWriter or hasfieldWriter
-            or hasLabel
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            to:SetPath("org")
-
-            File antlr
-            antlr:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            antlr:SetPath("org/antlr")
-            WriteCompilerDependency(generator, antlr, to)
-
-            File abego
-            abego:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            abego:SetPath("org/abego")
-            WriteCompilerDependency(generator, abego, to)
-
-            File objectWeb
-            objectWeb:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            objectWeb:SetPath("org/objectweb")
-            WriteCompilerDependency(generator, objectWeb, to)
-        end
-
-        if hasAudio
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound/")
-            to:SetPath("")
-
-            File soundPlugins
-            soundPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound")
-            soundPlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, soundPlugins, to)
-        end
-
-        // If statement added for the game engine.
-        if hasGame
-            /*  From what I can tell, WriteCompilerDependency only uses the
-                working directory of to, so setting the path is unnecessary. */
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
-            to:SetPath("")
-
-            File gamePlugins
-            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
-            gamePlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, gamePlugins, to)
-        end
-
-        if hasRobots
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
-            to:SetPath("")
-
-            File robotPlugins
-            robotPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
-            robotPlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, robotPlugins, to)
-        end
-
-        if hasAudio or hasGame
-            File gameNative
-            gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            gameNative:SetPath("Libraries.Game")
-
-            File nativeCopy
-            File run = GetRunFolder()
-            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
-            nativeCopy:SetPath("jni")
-
-            CopyMissingFiles(gameNative, nativeCopy)
-
-            File interfaceNative
-            interfaceNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            interfaceNative:SetPath("Libraries.Interface")
-
-            CopyMissingFiles(interfaceNative, nativeCopy)
-        end
-
-        if IsWebApplication()
+        if request:IsWebRequest()
             File servlet
-            servlet:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            servlet:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
             generator:Add(servlet)
 
             File glassfish
-            glassfish:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            glassfish:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             glassfish:SetPath("WEB-INF/glassfish-web.xml")
             generator:Add(glassfish)
 
             File web
-            web:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            web:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             web:SetPath("WEB-INF/web.xml")
             generator:Add(web)
 
             File context
-            context:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            context:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             context:SetPath("META-INF/context.xml")
             generator:Add(context)
+
+            File stdlib
+            stdlib:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/Run/")
+            stdlib:SetPath("QuorumStandardLibrary.jar")
+            generator:Add(stdlib, "WEB-INF/lib/QuorumStandardLibrary.jar")
+
+            File stdplug
+            stdplug:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/Run/")
+            stdplug:SetPath("QuorumStandardPlugins.jar")
+            generator:Add(stdplug, "WEB-INF/lib/QuorumStandardPlugins.jar")
         end
 
-        if hasSpeech or HasSpeechCallInCompile()
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            to:SetPath("org")
-
-            File sapi
-            sapi:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            sapi:SetPath("org/sapi")
-            WriteCompilerDependency(generator, sapi, to)
-
-            File speech
-            speech:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            speech:SetPath("org/sodbeans")
-            WriteCompilerDependency(generator, speech, to)
-
-            File speechNative
-            speechNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            speechNative:SetPath("Libraries.Sound.Speech")
-
-            //copy this to the distribution directory
-            File nativeCopy
-            File run = GetRunFolder()
-            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
-            nativeCopy:SetPath("jni")
-
-            CopyMissingFiles(speechNative, nativeCopy)
-
-//            if not nativeCopy:Exists()
-//                nativeCopy:CreateDirectories()
-//            end
-//            
-//            //get all the files in this folder and copy them over
-//            Array<File> files = speechNative:GetDirectoryListing()
-//            Iterator<File> it = files:GetIterator()
-//            repeat while it:HasNext()
-//                File file = it:Next()
-//                if not file:IsHidden()
-//
-//                    File next
-//                    next:SetWorkingDirectory(nativeCopy:GetAbsolutePath() + "/")
-//                    next:SetPath(file:GetPath())
-//                    if file:IsFile()
-//                        DateTime fileTime = file:GetLastModifiedDate()//1.424560750484E12
-//                        DateTime nextTime = next:GetLastModifiedDate()//1.424560741363E12
-//
-//                        //if it doesn't exist, copy the file
-//                        if not next:Exists()
-//                            file:Copy(next)
-//                        else
-//                            //if it does exist
-//                            if fileTime:GetEpochTime() > nextTime:GetEpochTime()
-//                                file:Copy(next)
-//                            end
-//                        end
-//                    end
-//
-//                    if file:IsDirectory()
-//                        recursiveCopyDirectory(file, next)
-//                    end
-//                end
-//            end
-        end
+        CopyMissingFiles(compiledStandardLibraryFolder, runFolder)
     end
+
 
     /*
     Copy all files from the first directory into the second directory. If the
@@ -1916,32 +728,7 @@ class Compiler
         end
     end
 
-    private action WriteCompilerDependency(JarGenerator generator, File file, File originalLocation)
-        if file:IsDirectory()
-            Array<File> files = file:GetDirectoryListing()
-            Iterator<File> it = files:GetIterator()
-
-            repeat while it:HasNext()
-                File f = it:Next()
-                WritePlugins(generator, f, originalLocation)
-            end
-        else
-            text pluginPath = originalLocation:GetWorkingDirectory()
-            text path = file:GetAbsolutePath()
-            path = path:GetSubtext(pluginPath:GetSize())
-            text wd = file:GetAbsolutePath()
-            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
-
-            File f
-            f:SetWorkingDirectory(wd)
-            f:SetPath(path)
-            
-            //TODO: Optimize this to reduce the amount of copying that goes on
-            generator:Add(f)
-        end
-    end
-
-    private action WritePlugins(JarGenerator generator, File file, File originalLocation)
+    private action WritePlugins(JarGenerator generator, File file, File originalLocation, CompilerRequest request)
         if file:IsDirectory()
             Array<File> files = file:GetDirectoryListing()
             Iterator<File> it = files:GetIterator()
@@ -1949,7 +736,7 @@ class Compiler
             repeat while it:HasNext()
                 File f = it:Next()
                 if not f:IsHidden() and not (f:GetFileExtension() = "DS_Store")
-                    WritePlugins(generator, f, originalLocation)
+                    WritePlugins(generator, f, originalLocation, request)
                 end
             end
         else
@@ -1972,7 +759,7 @@ class Compiler
             File f
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
-            if IsWebApplication()
+            if request:IsWebRequest()
                 text newPath = WEB_DIRECTORY + "/" + f:GetPath()
                 generator:Add(f, newPath)
             else 
@@ -1981,12 +768,7 @@ class Compiler
         end
     end
 
-    /*
-        This action generates a default manifest file for the compiler, if 
-        we are in bytecode format. This separates the logic from the jar 
-        writer.
-    */
-    private action GetManifest(JarGenerator jar) returns text
+    private action GetManifest(CompilerRequest request, JarGenerator jar, SymbolTable table) returns text
         text version = jar:GetManifestVersion() + ": 1.0"
         line = version:GetCarriageReturn() + version:GetLineFeed()
         version = version + line
@@ -1997,12 +779,13 @@ class Compiler
 
         text main = jar:GetManifestMainClass()
 
-        File mainFile = me:GetMain()
-        Class mainClass = me:GetMainClass()
+        File mainFile = request:main
+        Class mainClass = me:GetMainClass(mainFile, table)
         text classKey = "quorum." + mainClass:GetStaticKey()
         main = main + ": " + classKey
         main = main + line
 
+        SymbolTable symbolTable = table
         boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
 
         Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
@@ -2012,82 +795,35 @@ class Compiler
         end
 
         //now write any jar dependencies into the manifest
-        if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
-            Iterator<File> jars = additionalJarFiles:GetIterator()
-            text classpath = "Class-Path: "
-            text libraries = JAR_DEPENDENCY_FOLDER
-            boolean isFirst = true
+        //if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
+        Iterator<File> jars = additionalJarFiles:GetIterator()
+        text classpath = "Class-Path: "
+        text libraries = JAR_DEPENDENCY_FOLDER
+
+        classpath = classpath + "QuorumStandardLibrary.jar"
+        classpath = classpath + " QuorumStandardPlugins.jar"
+
+        boolean isFirst = true
+        if not additionalJarFiles:IsEmpty()
             repeat while jars:HasNext()
                 File file = jars:Next()
-                if isFirst
-                    classpath = classpath + libraries + "/" + file:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
-                end
+                classpath = classpath + " " + libraries + "/" + file:GetFileName()
                 isFirst = false
             end
-
-            if usesLWJGL
-                File lwjglFolder
-                lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                lwjglFolder:SetPath("LWJGL")
-                Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-                integer counter = 0
-                repeat while counter < lwjglFiles:GetSize()
-                    File file = lwjglFiles:Get(counter)
-                    
-                    if isFirst
-                        classpath = classpath + libraries + "/" + file:GetFileName()
-                        isFirst = false
-                    else
-                        classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
-                    end
-
-                    counter = counter + 1
-                end
-            end
-
-            if hasRobots
-                File dbus
-                File ev3
-                dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                dbus:SetPath("dbusjava.jar")
-                if isFirst
-                    classpath = classpath + libraries + "/" + dbus:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
-                end
-
-                ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                ev3:SetPath("ev3classes.jar")
-                classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
-            end
-
-            main = main + classpath + line
         end
+        main = main + classpath + line
 
         total = version + created + main + line
         return total
     end
 
-    private action CheckMain(File starter)
-        Class m = GetMainClass()
-        if m = undefined //no class that had a main method was selected, throw an error
-            AddMainError(starter)
-        elseif m not= undefined and m:HasMainAction() = false
-            AddMainError(starter)
-        else
-            m:SetIsProgramStartingClass(true)
-        end
-    end
-
-    private action AddMainError(File starter)
+    private action AddMainError(File starter, SymbolTable table, CompilerErrorManager errors)
         CompilerError error
         text message = "I noticed that the class " + starter:GetPath() 
             +   " was specified as the starting point for this program, " 
             + "but it does not have an action named Main. " 
 
-        Class clazz = symbolTable:GetClassInFile(starter:GetAbsolutePath())
+        Class clazz = table:GetClassInFile(starter:GetAbsolutePath())
         if clazz not= undefined
             if clazz:GetAction("main") not= undefined
                 message = message + "This class does have an action named "
@@ -2104,117 +840,10 @@ class Compiler
         error:SetLineNumberEnd(1)
         error:SetColumnNumber(1)
         error:SetColumnNumberEnd(1)
-        compilerErrorManager:Add(error)
+        errors:Add(error)
     end
 
-    /*
-        This action parses a single source file at a particular location
-    */ 
-    action ParseSingle(text source, File file)
-        Parser parser
-        parser:SetFile(file)
-        compilerErrorManager:RemoveErrorsAtKey(file:GetAbsolutePath())
-        Parse(source, parser)
-        
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-
-        if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-    end
-
-    action CompileSingle(text source)
-        Parser parser
-        File fakeLocation //set a default. It doesn't matter what it is.
-        text fakePath = "SingleFileCompile.quorum"
-        fakeLocation:SetPath(fakePath)
-        me:SetMain(fakeLocation)
-        parser:SetFile(fakeLocation)
-        Parse(source, parser)
-        
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-
-        if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-
-        CheckMain(fakeLocation)
-
-        Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
-                QuorumBytecodeListener listener
-
-                if listener:HasSayStatementInClass()
-                    containsSpeechCommandInCompile = true
-                end
-
-                if not outputSpeechCommands
-                    listener:SetOutputSpeech(outputSpeechCommands)
-                end
-
-                if file:GetPath() = fakePath
-                    listener:SetFile(file)
-                    Parse(source, listener)
-                else
-                    Parse(file, listener)
-                end
-                ClassOpcode op = listener:GetClassOpcode()
-                classOpcodes:Add(op)
-                i = i + 1
-            end
-        else 
-            return now
-        end
-
-        if compilerErrorManager:IsCompilationErrorFree()
-
-            if currentOutputType = JAVA_BYTECODE
-                //iterate over all the class opcodes and write them to disk
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    code:Write()
-                end
-
-                if compilerErrorManager:IsCompilationErrorFree()
-                    JarGenerator generator
-                    File jar = GetDistributionFile()
-                    //generator:SetCompiler(me)
-                    //generator:Write()
-                end
-            elseif currentOutputType = JAVASCRIPT
-                convertedJavaScript = CompileToJavaScript(classOpcodes)
-            end
-        end
-    end
-
-    /*
-        This is a helper action to compile to JavaScript
-    */
-    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes) returns text
+    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes, CompilerRequest request, Class mainClass) returns text
         text result = ""
         text plugins = ""
         text main = ""
@@ -2222,27 +851,11 @@ class Compiler
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()
             Class clazz = code:GetClass()
-//                    //write a bunch of plugins out
-//                    if clazz:HasSystemAction()
-//                        text value = code:WriteJavaScriptPlugin()
-//                        File myPlugin
-//                        myPlugin:SetWorkingDirectory("/Users/stefika/Desktop/Plugins")
-//                        text path = clazz:GetFile():GetPath()
-//                        path = path:Replace(".quorum", ".js")
-//                        myPlugin:SetPath(path)
-//                        File myPluginParent
-//                        myPluginParent:SetWorkingDirectory("/Users/stefika/Desktop/Plugins")
-//                        text pack = clazz:GetPackage():GetStaticKey()
-//                        pack = "/" + pack:Replace(".", "/")
-//                        myPluginParent:SetPath(pack)
-//                        myPluginParent:CreateDirectories()
-//                        myPlugin:Write(value)
-//                    end
 
-            Class mainClazz = me:GetMainClass()
-            text mainClazzName = mainClazz:GetStaticKey()
+            //Class mainClazz = mainClass
+            text mainClazzName = mainClass:GetStaticKey()
             text clazzName = clazz:GetStaticKey()
-            if mainClazz:GetStaticKey() = clazzName
+            if mainClass:GetStaticKey() = clazzName
                 main = code:WriteJavaScript()
             else
                 result = result + code:WriteJavaScript()
@@ -2275,10 +888,6 @@ class Compiler
             end
         end
         return plugins + result + main
-    end
-
-    action GetCompiledJavaScript returns text
-        return convertedJavaScript
     end
 
     action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors)
@@ -2335,62 +944,201 @@ class Compiler
         end
     end
 
-    action IsCompilationErrorFree returns boolean
-        return compilerErrorManager:IsCompilationErrorFree()
-    end
+    private action LinkToStandardLibrary(SymbolTable table, TypeChecker types, CompilerErrorManager errors, Library library)
+        Iterator<Class> classes = table:GetClasses()
 
-    action GetCompilerErrorManager returns CompilerErrorManager
-        return compilerErrorManager
-    end
+        
+        //gather up all the classes on the system and check their
+        //use statements for classes we don't know about
+        //if there are some, mark them as unparsed
+        HashTable<text, text> resolvedPackages
 
-    action GetCompilerErrorsAsText returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetDisplayName()
-            result = result + EOL + t
+        repeat while classes:HasNext()
+            Class clazz = classes:Next()
+            File classFile = clazz:GetFile()
+            text path = classFile:GetAbsolutePath()
+            Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+            repeat while names:HasNext()
+                QualifiedName qn = names:Next()
+                if qn:IsAll()
+                    ResolveAllClassesInContainer(table, qn, library, resolvedPackages, errors)
+                else
+                    text key = qn:GetStaticKey()
+                    ResolveClass(table, key, clazz, library, errors)
+                end
+            end
+
+            //now check the package we are in to see if there's anything
+            //in this package we need to include
+            QualifiedName pack = clazz:GetPackage()
+            ResolveAllClassesInContainer(table, pack, library, resolvedPackages, errors)
+
+            ResolveQualifiedNames(table, names, clazz, library, resolvedPackages, errors)
+
+            Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+            ResolveParents(table, parents, clazz, library, errors)
+
+            ResolveBlocks(table, clazz, library, errors)
         end
-        return result
+
+        //now get any transitive dependencies in the standard library. There is no need
+        //to resolve them here, we just need to know what they are.
+        Array<Class> dependencies
+        Iterator<Class> iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            dependencies:Add(clazz)
+        end
+
+        i = 0
+        repeat while i < dependencies:GetSize()
+            Class clazz = dependencies:Get(i)
+            text key = clazz:GetStaticKey()
+            if not table:HasClass(key)
+                table:Add(clazz)
+            end
+
+            //now get all the valid uses and add them
+            Iterator<Class> uses = clazz:GetValidUses()
+            repeat while uses:HasNext()
+                Class next = uses:Next()
+                text nextKey = next:GetStaticKey()
+                if not table:HasClass(nextKey)
+                    table:Add(next)
+                    //this wasn't in the list, so check its dependencies as well
+                    dependencies:Add(next)
+                end
+            end
+            i = i + 1
+        end
+
+        //now that we have the table, we need to add everything to the type checker
+        iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            types:Add(clazz)
+        end
     end
 
-    action GetCompilerErrorsAsShortText returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result =  "I found problems:" + EOL
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetShortDisplayName()
-            result = result + EOL + t
+    private action ResolveBlocks(SymbolTable table, Class clazz, Library library, CompilerErrorManager errors)
+        
+        Iterator<Action> actions = clazz:GetActions()
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            //resolve parameters first
+            Iterator<Variable> parameters = act:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable parameter = parameters:Next()
+                Type type = parameter:GetType()
+                ResolveClass(table, type:GetStaticKey(), clazz, library, errors)
+            end
         end
-        return result
     end
 
-    action GetCompilerErrorsAsHTML returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        Division division
-        division:SetClassAttribute("compilerErrorList")
-        division:AddParagraph("I did not understand:")
-        OrderedList list
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetShortDisplayName()
-            list:AddListItem(t)
+    private action ResolveParents(SymbolTable table, Iterator<QualifiedName> names, 
+            Class clazz, Library library, CompilerErrorManager errors)
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            text key = qn:GetStaticKey()
+            ResolveClass(table, key, clazz, library, errors)
         end
-        division:Add(list)
-        return division:Generate()
+    end
+
+    private action ResolveQualifiedNames(SymbolTable table, Iterator<QualifiedName> names, 
+        Class clazz, Library library, HashTable<text, text> resolvedPackages, CompilerErrorManager errors)
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            if qn:IsAll()
+                ResolveAllClassesInContainer(table, qn, library, resolvedPackages, errors)
+            else
+                text key = qn:GetStaticKey()
+                ResolveClass(table, key, clazz, library, errors)
+            end
+        end
+    end
+
+    private action ResolveAllClassesInContainer(SymbolTable table,
+            QualifiedName name, Library library, HashTable<text, text> resolvedPackages, CompilerErrorManager errors)
+        //Get the container name without the "all" at the end
+        text value = ""
+
+        if not name:IsEmpty()
+            value = name:GetStaticKeyNoAll()
+        end
+
+        if resolvedPackages:HasKey(value) //already resolved, so skip it
+            return now
+        else
+            resolvedPackages:Add(value, value)
+        end
+
+
+        SymbolTable standardLibrary = library:GetSymbolTable()
+        Iterator<Class> iterator = table:GetClassesInPackage(value)
+
+        if iterator = undefined
+            //check the standard library
+            iterator = standardLibrary:GetClassesInPackage(value)
+        end
+        if iterator = undefined
+            CompilerError error
+            error:SetErrorMessage("I noticed a package named " + value + 
+                " was referenced, but I cannot find any record of it.")
+            error:SetLocation(name)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_CLASS)
+            error:SetCompilerErrorType(t)
+            errors:Add(error)
+            return now
+        end
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            if not table:HasClass(clazz:GetStaticKey())
+                table:Add(clazz)
+            end
+        end
+    end
+
+    private action ResolveClass(SymbolTable table, text key, Class clazz, Library library, CompilerErrorManager errors)
+        if table:HasClass(key)
+            return now
+        end
+
+        boolean done = false
+        Class c = undefined
+
+        Type typeCheck
+        typeCheck:SetToObject(key)
+        //is this really just a primitive, pretending to be a class?
+        if typeCheck:IsPrimitive()
+            return now
+        end
+
+
+        //first check if it's already valid by looking at the symbol
+        //table
+        c = table:GetClass(key)
+
+        //if it isn't there, check our use table
+        if c = undefined
+            c = clazz:GetValidUseName(key)
+        end
+
+//        //if it isn't there, check the standard library
+        SymbolTable standardLibrary = library:GetSymbolTable()
+        c = standardLibrary:GetClass(key)
+
+        if c not= undefined
+            table:Add(c) //this was already checked to ensure it wasn't in the table.
+        end
     end
 
     /*
         This action is called after the parsing phase, returning an array
         of all files were required for building the project.
     */
-    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, CompilerErrorManager errors) returns Array<File>
+    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, 
+        CompilerErrorManager errors, Library library) returns HashTable<text, File>
         Array<File> files
 
         HashTable<text, File> parsed
@@ -2433,15 +1181,15 @@ class Compiler
                 repeat while parsedClasses:HasNext()
                     Class clazz = parsedClasses:Next()
                     newClasses:Add(clazz)
-                    if not symbolTable:HasClass(clazz:GetStaticKey())
-                        symbolTable:Add(clazz)
+                    if not table:HasClass(clazz:GetStaticKey())
+                        table:Add(clazz)
                     end
                 end
             end
             classes = newClasses:GetIterator()
             unparsed:Empty()
         end
-        return parsed:CopyToValueArray()
+        return parsed
     end
 
     private action ResolveBlocks(SymbolTable table, HashTable<text, File> parsed,
@@ -2643,23 +1391,7 @@ class Compiler
         return undefined
     end
 
-    action Parse(File file, QuorumSourceListener listener)
-        listener:SetSymbolTable(symbolTable)
-        listener:SetCompilerErrorManager(compilerErrorManager)
-        listener:SetFile(file)
-        listener:SetTypeChecker(checker)
-        ParseNative(file, listener)
-    end
-
     private system action ParseNative(File file, QuorumSourceListener listener)
-
-
-    action Parse(text source, QuorumSourceListener listener)
-        listener:SetSymbolTable(symbolTable)
-        listener:SetCompilerErrorManager(compilerErrorManager)
-        listener:SetTypeChecker(checker)
-        ParseNative(source, listener)
-    end
 
     private system action ParseNative(text source, QuorumSourceListener listener)
 
@@ -2667,38 +1399,18 @@ class Compiler
         return name
     end
 
-    action GetNameWithExtension returns text
-        return name + GetFileExtension()
-    end
-
     action SetName(text name)
         me:name = name
     end
 
-    action GetFileExtension returns text
-        if IsWebApplication()
-            return ".war"
-        else
-            return ".jar"
-        end
-    end
-
-    action GetMain returns File
-        return main
-    end
-
-    action GetMainClass returns Class
-        if main not= undefined and symbolTable not= undefined
-            text path = main:GetAbsolutePath()
-            Class c = symbolTable:GetClassInFile(path)
+    action GetMainClass(File theMain, SymbolTable table) returns Class
+        if theMain not= undefined and table not= undefined
+            text path = theMain:GetAbsolutePath()
+            Class c = table:GetClassInFile(path)
             return c
         end
         
         return undefined
-    end
-
-    action SetMain(File file)
-        main = file
     end
 
     action GetVersion returns text
@@ -2759,24 +1471,17 @@ class Compiler
         dependencyFolder = f2
     end
 
-    action GetDistributionFile returns File
+    action GetExecutable(CompilerRequest request) returns File
         File run = GetRunFolder()
         text path = run:GetPath() + "/"
         File newRun
         newRun:SetWorkingDirectory(run:GetWorkingDirectory())
-        newRun:SetPath(path + GetNameWithExtension())
+        text value = request:GetName(name)
+        newRun:SetPath(path + value)
         return newRun
     end
 
     action GetRunFolder returns File
         return runFolder
-    end
-
-    action IsWebApplication returns boolean
-        return isWebApplication
-    end
-
-    action SetIsWebApplication(boolean web)
-        isWebApplication = web
     end
 end

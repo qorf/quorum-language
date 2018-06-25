@@ -1,0 +1,254 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+use Libraries.Compute.BigInteger
+
+class TrueTypeFileInformation 
+    Array<TrueTypeFontTableDirectory> directoryEntries
+    integer scalerType = -1
+    integer numberOfTables = -1
+    integer searchRange = -1
+    integer entrySelector = -1
+    integer rangeShift = -1
+
+    integer glyphOutlineTablePosition = -1
+    integer characterMapTablePosition = -1
+    integer glyphDataLocationTablePosition = -1
+    integer kerningTablePosition = -1
+    integer kerningValuesTablePosition = -1
+    integer characterMapFormat = -1 
+
+    BigInteger createdDate
+    BigInteger lastChangedDate
+
+    integer unitsPerEm = -1
+    Signed16BitFontUnit xMinimum
+    Signed16BitFontUnit yMinimum
+    Signed16BitFontUnit xMaximum
+    Signed16BitFontUnit yMaximum
+
+    integer lowestRecommendedPixelsPerEm = - 1
+    integer fontDirectionHint = -1
+    integer indexToLocationTableFormat = -1
+
+    GlobalFontInformationFlags globalFontInformationFlags
+    MacStyleFlags macStyleFlags
+
+    action SetMacStyleFlags(integer flags) 
+        me:macStyleFlags:Set(flags)
+    end
+
+
+    action SetGlobalFontInformationFlags(integer flags)
+        me:globalFontInformationFlags:Set(flags)
+    end
+
+    action SetIndexToLocationTableFormat(integer indexToLocFormat)
+        me:indexToLocationTableFormat = indexToLocFormat
+    end
+
+    action GetIndexToLocationTableFormat() returns integer
+        return me:indexToLocationTableFormat
+    end
+
+
+    action SetFontDirectionHint(integer fontDirectionHint)
+        me:fontDirectionHint = fontDirectionHint
+    end
+
+    action GetFontDirectionHint() returns integer
+        return me:fontDirectionHint
+    end
+    
+    action SetLowestRecommendedPixelsPerEm(integer lowestRecommendedPixelsPerEm)
+        me:lowestRecommendedPixelsPerEm = lowestRecommendedPixelsPerEm
+    end
+
+    action GetLowestRecommendedPixelsPerEm() returns integer
+        return me:lowestRecommendedPixelsPerEm
+    end
+
+    action SetCreatedDate (BigInteger createdDate) 
+        me:createdDate = createdDate
+    end
+
+    action SetLastChangedDate (BigInteger lastChangedDate)
+        me:lastChangedDate = lastChangedDate
+    end
+
+    action GetCreatedDate() returns BigInteger
+        return me:createdDate
+    end
+
+    action GetLastChangedDate() returns BigInteger
+        return me:lastChangedDate
+    end
+
+    action SetUnitsPerEm (integer unitsperem)
+        me:unitsPerEm = unitsperem
+    end
+    
+    action GetUnitsPerEm () returns integer
+        return me:unitsPerEm
+    end
+
+    action SetXMinimum (Signed16BitFontUnit xmin)
+        me:xMinimum = xmin
+    end
+
+    action GetXMinimum() returns Signed16BitFontUnit
+        return xMinimum
+    end
+
+    action SetYMinimum (Signed16BitFontUnit ymin)
+        me:yMinimum = ymin
+    end
+    
+
+    action GetYMinimum () returns Signed16BitFontUnit
+       return yMinimum
+    end
+
+
+    action SetXMaximum (Signed16BitFontUnit xmax)
+        me:xMaximum = xmax
+    end
+
+    action GetXMaximum () returns Signed16BitFontUnit
+        return me:xMaximum
+    end
+
+
+    action SetYMaximum(Signed16BitFontUnit ymax)
+        me:yMaximum = ymax
+    end
+
+    action GetYMaximum() returns Signed16BitFontUnit
+        return me:yMaximum
+    end
+
+    action SetGlyphOutlineTablePosition (integer glyfPosition) 
+        me:glyphOutlineTablePosition = glyfPosition
+    end
+
+    action SetCharacterMapTablePosition (integer cmapPosition, integer format)
+        me:characterMapTablePosition = cmapPosition
+        SetCharacterMapFormat(format)
+    end
+
+    action SetGlyphDataLocationTablePosition (integer locaPosition)
+        me:glyphDataLocationTablePosition = locaPosition
+    end
+
+    action SetKerningSubtablePosition (integer kernPosition)
+        me:kerningTablePosition = kernPosition
+    end
+
+    action SetKerningValuesTablePosition (integer kerningValuesTablePosition)
+        me:kerningValuesTablePosition = kerningValuesTablePosition
+    end
+
+    action GetGlyphOutlineTablePosition () returns integer
+        return me:glyphOutlineTablePosition
+    end
+
+    action GetCharacterMapTablePosition () returns integer
+        return me:characterMapTablePosition
+    end
+
+    action GetGlyphDataLocationTablePosition () returns integer
+        return me:glyphDataLocationTablePosition
+    end
+
+    action GetKerningSubtablePosition () returns integer
+        return me:kerningTablePosition
+    end
+
+    action GetKerningValuesTablePosition () returns integer
+        return me:kerningValuesTablePosition
+    end
+
+    action AddFontTableDirectoryEntry(text tag, integer checksum, integer offset, integer length)
+        TrueTypeFontTableDirectory entry
+
+        entry:SetTag(tag)
+        entry:SetChecksum(checksum)
+        entry:SetOffset(offset)
+        entry:SetLength(length)
+
+        AddFontTableDirectoryEntry(entry)
+    end
+
+    private action AddFontTableDirectoryEntry(TrueTypeFontTableDirectory entry)
+        directoryEntries:Add(entry)
+    end
+
+
+    action SetScalerType (integer i)
+        scalerType = i
+    end
+
+    action GetScalerType returns integer
+        return scalerType
+    end
+
+    action SetNumberOfTables (integer i)
+        numberOfTables = i
+    end
+
+    action GetNumberOfTables returns integer 
+        return numberOfTables
+    end
+
+    action SetSearchRange (integer i)
+        searchRange= i
+    end
+
+    action GetSearchRange returns integer
+        return searchRange
+    end
+    
+    action SetEntrySelector (integer i)
+        entrySelector = i
+    end
+
+    action GetEntrySelector returns integer
+        return entrySelector
+    end
+    
+    action SetRangeShift (integer i)
+        rangeShift = i
+    end
+
+    action GetRangeShift returns integer
+        return rangeShift
+    end
+
+    action BoundingBoxToText() returns text
+        return "(xMinimum: " + xMinimum:ToText() + ", yMinimum: " + yMinimum:ToText() + ") (xMaximum: " + xMaximum:ToText() + ", yMaximum: " + yMaximum:ToText() + ")"
+    end
+
+    private action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screensize) returns number
+        if screensize = 0
+           return cast(number, gridCoordinate) * pixelSize / emSize
+        end
+        return screensize - cast(number, gridCoordinate) * pixelSize / emSize
+    end
+
+    action BoundingBoxToText(integer pixelSize, integer emSize) returns text
+        number xmin = CalculateCoordinate(xMinimum:GetFontUnit(), pixelSize, emSize, 0)
+        number ymin = CalculateCoordinate(yMinimum:GetFontUnit(), pixelSize, emSize, 0)
+        number xmax = CalculateCoordinate(xMaximum:GetFontUnit(), pixelSize, emSize, 0)
+        number ymax = CalculateCoordinate(yMinimum:GetFontUnit(), pixelSize, emSize, 0)
+        return "(xMinimum: " + xmin + ", yMinimum: " + ymin + ") (xMaximum: " + xmax + ", yMaximum: " + ymax + ")"
+    end
+
+    action GetCharacterMapFormat () returns integer
+        return me:characterMapFormat
+    end
+    
+    action SetCharacterMapFormat (integer format) 
+        me:characterMapFormat = format
+    end
+
+end

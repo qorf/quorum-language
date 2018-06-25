@@ -45,6 +45,8 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
+import org.quorum.projects.QuorumProject;
+import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.System.File_;
@@ -58,7 +60,8 @@ import quorum.Libraries.System.File_;
  */
 public class QuorumSupport {
     private Debugger debugger;
-    private quorum.Libraries.Language.Compile.Compiler compiler;
+    //private quorum.Libraries.Language.Compile.Compiler compiler;
+    private QuorumProject project;
     /**
      * This method adds a breakpoint to the virtual machine running a Quorum
      * program.
@@ -181,7 +184,8 @@ public class QuorumSupport {
      * @return
      */
     public String findJVMClassName(FileObject fo, int targetLine) {
-        SymbolTable_ table = getCompiler().Get_Libraries_Language_Compile_Compiler__symbolTable_();
+        CompilerResult_ result = project.getLastCompileResult();
+        SymbolTable_ table = result.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
         Class_ clazz = table.GetClassInFile(FileUtil.toFile(fo).getAbsolutePath());
         if(clazz != null) {
             return staticKeyToJVMName(clazz.GetStaticKey());
@@ -256,12 +260,16 @@ public class QuorumSupport {
      */
     public FileObject lookupQuorumFile(String staticKey) {
         String key = DotNameToStaticKey(staticKey);
-        SymbolTable_ table = getCompiler().Get_Libraries_Language_Compile_Compiler__symbolTable_();
+        CompilerResult_ result = project.getLastCompileResult();
+        SymbolTable_ table = result.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
         Class_ clazz = table.GetClass(key);
-        File_ f = clazz.GetFile();
-        String path = f.GetAbsolutePath();
-        File file = new File(path);
-        return FileUtil.toFileObject(file);
+        if(clazz != null) {
+            File_ f = clazz.GetFile();
+            String path = f.GetAbsolutePath();
+            File file = new File(path);
+            return FileUtil.toFileObject(file);
+        }
+        return null;
     }
 
     /**
@@ -454,17 +462,31 @@ public class QuorumSupport {
         this.debugger = debugger;
     }
 
+//    /**
+//     * @return the compiler
+//     */
+//    public quorum.Libraries.Language.Compile.Compiler getCompiler() {
+//        return compiler;
+//    }
+//
+//    /**
+//     * @param compiler the compiler to set
+//     */
+//    public void setCompiler(quorum.Libraries.Language.Compile.Compiler compiler) {
+//        this.compiler = compiler;
+//    }
+
     /**
-     * @return the compiler
+     * @return the project
      */
-    public quorum.Libraries.Language.Compile.Compiler getCompiler() {
-        return compiler;
+    public QuorumProject getProject() {
+        return project;
     }
 
     /**
-     * @param compiler the compiler to set
+     * @param project the project to set
      */
-    public void setCompiler(quorum.Libraries.Language.Compile.Compiler compiler) {
-        this.compiler = compiler;
+    public void setProject(QuorumProject project) {
+        this.project = project;
     }
 }

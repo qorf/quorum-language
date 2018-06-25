@@ -17,6 +17,8 @@ use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Layer3D
+use Libraries.Game.GameStateManager
+use Libraries.Game.FocusManager
 use Libraries.Game.Collision.Shapes.all
 use Libraries.Game.Collision.Item3DNode
 use Libraries.Game.Collision.BroadphaseCollision3D
@@ -976,6 +978,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1004,6 +1012,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1045,6 +1059,12 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(removed)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(removed)
+            end
         end
 
         return success
@@ -1089,6 +1109,12 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(temp)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(temp)
+            end
         end
 
         return temp
@@ -1182,6 +1208,12 @@ class Item3D is Item
             oldItem:SetOffset(0, 0, 0)
             if layer not= undefined
                 layer:DisableItemLighting(oldItem)
+                
+                GameStateManager manager
+                AccessibilityManager accessibility = manager:GetAccessibilityManager()
+                if accessibility not= undefined
+                    accessibility:Remove(oldItem)
+                end
             end
         end
 
@@ -1193,6 +1225,12 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 

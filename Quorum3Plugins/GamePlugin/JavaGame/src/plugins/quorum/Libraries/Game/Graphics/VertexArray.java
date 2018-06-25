@@ -227,9 +227,9 @@ public class VertexArray extends VertexData
     }
 
     @Override
-    public void Invalidate() 
+    public void Reload() 
     {
-        // Do nothing.
+        // Do nothing. The VertexArray doesn't require manual reloading.
     }
         
     public void PrepareBridgeArray(int length)

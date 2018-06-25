@@ -4,12 +4,16 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Physics.CollisionPersistentData
 use Libraries.Game.Physics.all
 
+/*
+This class stores one of the points of contact during a collision.
+This class is used by LocalCollisionPoints3D.
+*/
 class CollisionPoint3D 
-    Vector3 localPointA
-    Vector3 localPointB
-    Vector3 positionWorldOnB
-    Vector3 positionWorldOnA
-    Vector3 normalWorldOnB
+    Vector3 localPointA     //useful
+    Vector3 localPointB     //useful
+    Vector3 positionWorldOnB    //global version of localPointB
+    Vector3 positionWorldOnA    //global version of localPointA
+    Vector3 normalWorldOnB      //the normal to the collision
 
     number distance1 = 0
     number combinedFriction = 0
@@ -31,6 +35,10 @@ class CollisionPoint3D
     Vector3 lateralFrictionDirection1
     Vector3 lateralFrictionDirection2
 
+    /*
+    This action changes the values stored inside this CollisionPoint3D class using
+    the points passed in.
+    */
     action Initialize(Vector3 pointA, Vector3 pointB, Vector3 normal, number distance)
         me:localPointA:Set(pointA)
         me:localPointB:Set(pointB)
@@ -38,6 +46,9 @@ class CollisionPoint3D
         me:distance1 = distance
     end
 
+    /*
+    This action sets the current CollisionPoint3D using another CollisionPoint3D.
+    */
     action Set(CollisionPoint3D point)
         me:localPointA:Set(point:localPointA)
         me:localPointB:Set(point:localPointB)
@@ -60,172 +71,344 @@ class CollisionPoint3D
         me:lateralFrictionDirection2:Set(point:lateralFrictionDirection2)
     end
 
+    /*
+    This action returns the contact point on object A in world coordinates.
+    */
     action GetPositionWorldOnA(Vector3 out) returns Vector3
         out:Set(positionWorldOnA)
         return out
     end
 
+    /*
+    This action returns the contact point on object B in world coordinates.
+    */
     action GetPositionWorldOnB(Vector3 out) returns Vector3
         out:Set(positionWorldOnB)
         return out
     end
 
+    /*
+    This action returns the contact point on object A in local coordinates to A.
+    */
     action GetLocalPointA returns Vector3
         return localPointA
     end
 
+    /*
+    This action sets the contact point on object A in local coordinates to A.
+    */
     action SetLocalPointA(Vector3 point)
         me:localPointA = point
     end
 
+    /*
+    This action returns the contact point on object B in local coordinates to B.
+    */
     action GetLocalPointB returns Vector3
         return localPointB
     end
 
+    /*
+    This action sets the contact point on object B in local coordinates to B.
+    */
     action SetLocalPointB(Vector3 point)
         me:localPointB = point
     end
 
+    /*
+    This action returns the contact point on object B in world coordinates but 
+    also allows you to change the contact point on object A in world coordinates
+    stored in this class is you used actions such as SetX() on the returned
+    point.
+    */
     action GetWorldPositionOnB returns Vector3
         return positionWorldOnB
     end
 
+    /*
+    This action sets the contact point on object A in world coordinates.
+    */
     action SetWorldPositionOnB(Vector3 position)
         me:positionWorldOnB = position
     end
 
+    /*
+    This action returns the contact point on object A in world coordinates but 
+    also allows you to change the contact point on object A in world coordinates
+    stored in this class is you used actions such as SetX() on the returned
+    point.
+    */
     action GetWorldPositionOnA returns Vector3
         return positionWorldOnA
     end
 
+    /*
+    This action sets the contact point on object B in world coordinates.
+    */
     action SetWorldPositionOnA(Vector3 position)
         me:positionWorldOnA = position
     end
 
+    /*
+    This action returns the normal vector from A to B that an impulse will be
+    applied to to resolve the collision.
+    */
     action GetWorldNormalOnB returns Vector3
         return normalWorldOnB
     end
 
+    /*
+    This action sets the normal vector from A to B that an impulse will be
+    applied to to resolve the collision.
+    */
     action SetWorldNormalOnB(Vector3 normal)
         me:normalWorldOnB = normal
     end
 
+    /*
+    This action gets the distance between objects A and B.
+    */
     action GetDistance returns number
         return distance1
     end
 
+    /*
+    This action sets the distance between objects A and B.
+    */
     action SetDistance(number distance)
         me:distance1 = distance
     end
 
+    /*
+    This action returns the friction between the surfaces of objects A and B.
+    */
     action GetCombinedFriction returns number
         return combinedFriction
     end
 
+    /*
+    This action sets the friction between the surfaces of objects A and B.
+    */
     action SetCombinedFriction(number friction)
         me:combinedFriction = friction
     end
 
+    /*
+    This action returns the restitution between the surfaces of objects A and B.
+    */
     action GetCombinedRestitution returns number
         return combinedRestitution
     end
 
+    /*
+    This action sets the restitution between the surfaces of objects A and B.
+    */
     action SetCombinedRestitution(number restitution)
         me:combinedRestitution = restitution
     end
 
+    /*
+    This action returns a number that is not 0 if object A is an convex piece
+    of a concave shape because we have to split the concave shape into convex
+    pieces in order to make the calculation for the collision between two objects
+    quicker. The number that is action returns would be used to identify which
+    convex piece of object A we are referring to.
+    */
     action GetPartIDA returns integer
         return partID0
     end
 
+    /*
+    This action sets a number that is not 0 if object A is an convex piece
+    of a concave shape because we have to split the concave shape into convex
+    pieces in order to make the calculation for the collision between two objects
+    quicker. 
+    */
     action SetPartIDA(integer id)
         me:partID0 = id
     end
 
+    /*
+    This action returns a number that is not 0 if object B is an convex piece
+    of a concave shape because we have to split the concave shape into convex
+    pieces in order to make the calculation for the collision between two objects
+    quicker. The number that is action returns would be used to identify which
+    convex piece of object B we are referring to.
+    */
     action GetPartIDB returns integer
         return partID1
     end
 
+    /*
+    This action sets a number that is not 0 if object B is an convex piece
+    of a concave shape because we have to split the concave shape into convex
+    pieces in order to make the calculation for the collision between two objects
+    quicker. 
+    */
     action SetPartIDB(integer id)
         me:partID1 = id
     end
 
+    /*
+    This action returns a number that is not 0 if object A is also getting split
+    into triangle shapes. The number that this action returns identifies which
+    triangle of object A we are referring to.
+    */
     action GetIndexA returns integer
         return index0
     end
 
+    /*
+    This action sets a number that is not 0 if object A is also getting split
+    into triangle shapes.
+    */
     action SetIndexA(integer index)
         me:index0 = index
     end
 
+    /*
+    This action returns a number that is not 0 if object B is also getting split
+    into triangle shapes. The number that this action returns identifies which
+    triangle of object B we are referring to.
+    */
     action GetIndexB returns integer
         return index1
     end
 
+    /*
+    This action returns a number that is not 0 if object B is also getting split
+    into triangle shapes.
+    */
     action SetIndexB(integer index)
         me:index1 = index
     end
 
+    /*
+    This action returns a data holder, which is the class CollisionPersistentData,
+    that records all of the forces, impulses, friction, penetration, and other
+    information about this CollisionPoint3D.
+    */
     action GetPersistentData returns CollisionPersistentData
         return persistentData
     end
 
+    /*
+    This action sets a data holder, which is the class CollisionPersistentData.
+    */
     action SetPersistentData(CollisionPersistentData data)
         me:persistentData = data
     end
 
+    /*
+    This action returns the amount of linear impulse that is applied to this
+    CollisionPoint3D.
+    */
     action GetAppliedImpulse returns number
         return appliedImpulse
     end
 
+    /*
+    This action sets the amount of linear impulse that is applied to this
+    CollisionPoint3D.
+    */
     action SetAppliedImpulse(number impulse)
         me:appliedImpulse = impulse
     end
 
+    /*
+    This action returns true if the friction at this CollisionPoint3D is set.
+    This action is used in the CollisionSolver3D class.
+    */
     action IsLateralFrictionInitialized returns boolean
         return lateralFrictionInitialized
     end
 
+    /*
+    This action either turns on or off the friction at this CollisionPoint3D.
+    */
     action SetLateralFrictionInitialized(boolean flag)
         me:lateralFrictionInitialized = flag
     end
 
+    /*
+    This action returns the impulse that is applied to simulate friction at this
+    CollisionPoint3D to object A.
+    */
     action GetAppliedImpulseLateralA returns number
         return appliedImpulseLateral1
     end
 
+    /*
+    This action sets the impulse that is applied to simulate friction at this
+    CollisionPoint3D to object A.
+    */
     action SetAppliedImpulseLateralA(number lateral)
         me:appliedImpulseLateral1 = lateral
     end
 
+    /*
+    This action returns the impulse that is applied to simulate friction at this
+    CollisionPoint3D to object B.
+    */
     action GetAppliedImpulseLateralB returns number
         return appliedImpulseLateral2
     end
 
+    /*
+    This action sets the impulse that is applied to simulate friction at this
+    CollisionPoint3D to object B.
+    */
     action SetAppliedImpulseLateralB(number lateral)
         me:appliedImpulseLateral2 = lateral
     end
 
+    /*
+    This action returns how many physics simulation iterations that this CollisionPoint3D
+    has been in.
+    */
     action GetLifeTime returns integer
         return lifeTime
     end
 
+    /*
+    This action sets how many physics simulation iterations that this CollisionPoint3D
+    has been in. When this CollisionPoint3D is no longer a collision point 
+    between objects A and B, its life time will degrade to 0.
+    This action is used by the action "RefreshCollisionPoints" inside the
+    LocalCollisionPoints3D class.
+    */
     action SetLifeTime(integer lifeTime)
         me:lifeTime = lifeTime
     end
 
+    /*
+    This action returns which direction the friction impulse is applied to 
+    object A.   
+    */
     action GetLateralFrictionDirectionA returns Vector3
         return lateralFrictionDirection1
     end
 
+    /*
+    This action sets which direction the friction impulse is applied to 
+    object A.   
+    */
     action SetLateralFrictionDirectionA(Vector3 direction)
         me:lateralFrictionDirection1 = direction
     end
 
+    /*
+    This action returns which direction the friction impulse is applied to 
+    object B.   
+    */
     action GetLateralFrictionDirectionB returns Vector3
         return lateralFrictionDirection2
     end
 
+    /*
+    This action sets which direction the friction impulse is applied to 
+    object B.   
+    */
     action SetLateralFrictionDirectionB(Vector3 direction)
         me:lateralFrictionDirection2 = direction
     end

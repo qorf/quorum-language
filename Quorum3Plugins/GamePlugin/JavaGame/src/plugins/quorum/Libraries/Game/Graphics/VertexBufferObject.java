@@ -215,7 +215,7 @@ public class VertexBufferObject extends VertexData
     }
     
     @Override
-    public void Invalidate()
+    public void Reload()
     {
         bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
         isDirty = true;
@@ -247,7 +247,7 @@ public class VertexBufferObject extends VertexData
         isDirty = true;
         BufferUtils.copy(bridgeArray, buffer, bridgeArray.length, 0);
     }
-    
+
     private void BufferChanged() 
     {
         if (isBound) 
@@ -256,5 +256,4 @@ public class VertexBufferObject extends VertexData
             isDirty = false;
         }
     }
-
 }

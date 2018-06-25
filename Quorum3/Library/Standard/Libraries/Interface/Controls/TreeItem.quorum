@@ -1,0 +1,468 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
+use Libraries.Interface.Views.DefaultTreeMenuView
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.ToggleButton
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+
+class TreeItem is Control
+
+    Item2D panel
+    Item2D itemStructure
+    TreeItem parentTreeItem = undefined
+    Tree parentTree = undefined
+    Array<TreeItem> treeItems
+    boolean open = false
+
+    Layout layout = undefined
+    Layout panelLayout = undefined
+
+    ToggleButton expandButton
+    Drawable icon
+    // Replace with something that's a GUI visual content.
+    ControlLabel label
+
+    Behavior activationBehavior = undefined
+
+    on create
+        SetInputGroup("TreeItem")
+        panel:SetName("Tree Panel")
+
+        FlowLayout flow
+        flow:SetWrapping(false)
+        layout = flow
+
+        itemStructure:AddLayout(layout)
+        itemStructure:SetName("TreeItem Elements")
+
+        TreeLayout verticalFlow
+        verticalFlow:SetWrapping(false)
+        verticalFlow:SetPercentageOriginY(1.0)
+        panelLayout = verticalFlow
+
+        panel:AddLayout(panelLayout)
+        SetAccessibilityCode(parent:Item:TREE_ITEM)
+    end
+    
+    action Initialize(text name)
+        Initialize(name, undefined)
+    end
+
+    action Initialize(text name, Texture image)
+        label:Initialize()
+        integer height = label:GetLineHeight()
+
+        if image = undefined
+            Texture texture
+            Color color
+            texture:LoadFilledRectangle(1, 1, color:CustomColor(1, 1, 1, 0))
+            image = texture
+        end
+
+        icon:Load(image)
+        number aspectRatio = icon:GetWidth() / icon:GetHeight()
+        icon:SetSize(aspectRatio * height, height)
+
+        DefaultTreeMenuView content
+        content:Initialize(height, height * 2)
+
+        expandButton:Initialize(height, height, content)
+        ToggleTreeViewBehavior buttonBehavior
+        buttonBehavior:SetTreeItem(me)
+        expandButton:SetBehavior(buttonBehavior)
+
+        expandButton:Hide()
+
+        if layout is FlowLayout
+            FlowLayout flow = cast(FlowLayout, layout)
+            flow:SetPadding(height/2)
+        end
+
+        if panelLayout is TreeLayout
+            TreeLayout flow = cast(TreeLayout, panelLayout)
+            // Hardcoded value sufficient for basic cases. Should be replaced with
+            // something more responsive to design in the future.
+            flow:SetPadding(2)
+            flow:SetOffsetX(height/2 * 3)
+        end
+
+        itemStructure:Add(expandButton)
+        itemStructure:Add(icon)
+        itemStructure:Add(label)
+        parent:Item2D:Add(itemStructure)
+
+        SetName(name)
+        SetSize(itemStructure:GetWidth(), height)
+    end
+
+    action Initialize(text name, Texture image, Array<TreeItem> treeItems)
+        Initialize(name, image)
+        
+        integer counter = 0
+        repeat while counter < treeItems:GetSize()
+            Add(treeItems:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    action SetName(text name)
+        parent:Item:SetName(name)
+        label:SetText(name)
+        Resize()
+    end
+
+    action Add(TreeItem item)
+        if panel:GetChildren():IsEmpty()
+            expandButton:Show()
+        end
+
+        panel:Add(item)
+        treeItems:Add(item)
+        item:SetTree(GetTree())
+        item:SetParentTreeItem(me)
+    end
+
+    action Remove(TreeItem item)
+        panel:Remove(item)
+
+        if panel:GetChildren():IsEmpty()
+            expandButton:Hide()
+        end
+
+        treeItems:Remove(item)
+        item:SetTree(undefined)
+        item:SetParentTreeItem(undefined)
+    end
+
+    action Open
+        if not open
+            parent:Item2D:Add(panel)
+            open = true
+            
+            expandButton:SetToggleState(true)
+
+            Tree tree = GetTree()
+            if tree not= undefined
+                tree:Resize()
+                TreeChangeEvent event
+                event:Set(tree, me, event:OPENED)
+                tree:NotifyTreeChangeListeners(event)
+            end
+        end
+    end
+
+    action Close
+        if open
+            parent:Item2D:Remove(panel)
+            open = false
+
+            expandButton:SetToggleState(false)
+
+            Tree tree = GetTree()
+            if tree not= undefined
+                tree:Resize()
+                TreeChangeEvent event
+                event:Set(tree, me, event:CLOSED)
+                tree:NotifyTreeChangeListeners(event)
+            end
+        end
+    end
+
+    action IsOpen returns boolean
+        return open
+    end
+
+    private action SetParentTreeItem(TreeItem parentItem)
+        parentTreeItem = parentItem
+    end
+
+    action GetParentTreeItem returns TreeItem
+        return parentTreeItem
+    end
+
+    action SetTree(Tree tree)
+        parentTree = tree
+
+        integer counter = 0
+        repeat while counter < treeItems:GetSize()
+            treeItems:Get(counter):SetTree(parentTree)
+            counter = counter + 1
+        end
+    end
+
+    action GetTree returns Tree
+        return parentTree
+    end
+
+    private action GetTreeItem(Array<TreeItem> path) returns TreeItem
+        if path:IsEmpty()
+            return undefined
+        end
+
+        return path:GetFromEnd()
+    end
+
+    action GetTreeItems returns Iterator<TreeItem>
+        return treeItems:GetIterator()
+    end
+
+    action UpdateSelection(Array<TreeItem> oldPath, Array<TreeItem> newPath)
+
+        TreeItem oldItem = undefined
+        TreeItem newItem = undefined
+
+        if not oldPath:IsEmpty()
+            oldItem = oldPath:RemoveFromFront()
+        end
+
+        if not newPath:IsEmpty()
+            newItem = newPath:RemoveFromFront()
+        end
+
+        if oldItem = newItem
+            if oldItem = undefined
+                return now
+            else
+                oldItem:UpdateSelection(oldPath, newPath)
+            end
+        else
+            if oldItem not= undefined
+                oldItem:RecursiveDeselect(oldPath)
+            else
+                LostSelection()
+            end
+            if newItem not= undefined
+                newItem:RecursiveSelect(newPath)
+            else
+                GainedSelection()
+            end
+        end
+    end
+
+    action RecursiveSelect(Array<TreeItem> path)
+        if not path:IsEmpty()
+            TreeItem item = path:RemoveFromFront()
+            if item not= undefined
+                item:RecursiveSelect(path)
+            end
+        else
+            GainedSelection()
+        end
+    end
+
+    action RecursiveDeselect(Array<TreeItem> path)
+        if not path:IsEmpty()
+            TreeItem item = path:RemoveFromFront()
+            if item not= undefined
+                item:RecursiveDeselect(path)
+            end
+        end
+        LostSelection()
+    end
+
+    action GetTreeHeight returns number
+        if open
+            number height = GetHeight()
+            number padding = 0
+
+            if panelLayout is TreeLayout
+                TreeLayout treeLayout = cast(TreeLayout, panelLayout)
+                padding = treeLayout:GetPadding()
+            end
+
+            integer counter = 0
+            Array<Item2D> children = panel:GetChildren()
+            repeat while counter < children:GetSize()
+                Item2D child = children:Get(counter)
+
+                if child is TreeItem
+                    TreeItem item = cast(TreeItem, child)
+                    height = height + item:GetTreeHeight()
+                else
+                    height = height + child:GetHeight()
+                end
+
+                counter = counter + 1
+            end
+
+            height = height + children:GetSize() * padding
+
+            return height
+        else
+            return GetHeight()
+        end
+    end
+
+    action SetBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action GetActivationBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action OnDoubleClick(BehaviorEvent event)
+        if not panel:GetChildren():IsEmpty()
+            if open
+                Close()
+            else
+                Open()
+            end
+        end
+
+        Activate()
+    end
+
+    action ClickedMouse
+        parent:Control:ClickedMouse()
+        Select()
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        label:GainedSelection()
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        label:LostSelection()
+    end
+
+    action Select
+        // Don't actually select here! Go to Tree and ask it to select us.
+        // We do this to allow the Tree to fully update its information,
+        // deselect the previous selection, and prevent infinite loops.
+        if parentTree not= undefined
+            parentTree:Select(GetTreePath())
+        end
+    end
+
+    action Deselect
+        // Don't actually select here! Go to Tree and ask it to deselect us.
+        // We do this to allow the Tree to fully update its information,
+        // deselect this, and prevent infinite loops.
+        if parentTree not= undefined
+            parentTree:Deselect()
+        end
+    end
+
+    action IsSubtree returns boolean
+        return not treeItems:IsEmpty()
+    end
+
+    action GetTreePath returns Array<TreeItem>
+        Array<TreeItem> path
+        path:Add(me)
+        if parentTreeItem not= undefined
+            Array<TreeItem> a = parentTreeItem:GetTreePath(path)
+            return a
+        end
+        return path
+    end
+
+    private action GetTreePath(Array<TreeItem> array) returns Array<TreeItem>
+        array:AddToFront(me)
+        if parentTreeItem not= undefined
+            return parentTreeItem:GetTreePath(array)
+        end
+
+        return array
+    end
+
+    action SelectionDown
+        if IsSubtree() and IsOpen()
+            treeItems:Get(0):Select()
+        elseif parentTreeItem not= undefined
+            parentTreeItem:SelectionDown(GetName())
+        elseif parentTree not= undefined
+            parentTree:SelectionSkipForward()
+        end
+    end
+
+    private action SelectionDown(text name)
+        if IsSubtree() and IsOpen()
+            integer counter = 0
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):GetName() = name
+                    integer select = counter + 1
+
+                    // If the last element was selected, go to the next subtree.
+                    if select >= treeItems:GetSize()
+                        if parentTreeItem not= undefined
+                            parentTreeItem:SelectionDown(GetName())
+                        elseif parentTree not= undefined
+                            parentTree:SelectionSkipForward()
+                        end
+                        return now
+                    end
+
+                    treeItems:Get(select):Select()
+                    return now
+                end
+                counter = counter + 1
+            end
+        elseif parentTreeItem not= undefined
+            parentTreeItem:SelectionDown(GetName())
+        elseif parentTree not= undefined
+            parentTree:SelectionSkipForward()
+        end
+    end
+
+    action SelectionUp
+        if parentTreeItem not= undefined
+            parentTreeItem:SelectionUp(GetName())
+        elseif parentTree not= undefined
+            parentTree:SelectionSkipBackward()
+        end
+    end
+
+    private action SelectionUp(text name)
+        if IsSubtree() and IsOpen()
+            integer counter = 0
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):GetName() = name
+                    integer select = counter - 1
+                    // If this was the first element, select the subtree containing it.
+                    if select < 0
+                        Select()
+                        return now
+                    end
+
+                    treeItems:Get(select):SelectLastElement()
+                    return now
+                end
+                counter = counter + 1
+            end
+        elseif parentTreeItem not= undefined
+            parentTreeItem:SelectionUp(GetName())
+        elseif parentTree not= undefined
+            parentTree:SelectionSkipBackward()
+        end
+    end
+
+    action SelectLastElement
+        if IsSubtree() and IsOpen()
+            treeItems:Get(treeItems:GetSize() - 1):SelectLastElement()
+        else
+            Select()
+        end
+    end
+
+    action GetSize returns integer
+        return treeItems:GetSize()
+    end
+end

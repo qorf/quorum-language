@@ -13,15 +13,24 @@ use Libraries.Game.Physics.Joints.Joint2D
 use Libraries.Game.Physics.Joints.JointSolverData2D
 
 /*
-An internal class used to solve the physical interactions between groups of
-physics bodies
+This class is used to solve the physics between 2D objects that are in the same
+group. For example, a chain of joints would be considered to be in the same group.
+Groups are also known as islands.
 */
 class CollisionGroup2D    
     Array<Item2D> items
     Array<CollisionEvent2D> collisions
     Array<Joint2D> joints
 
+    /*
+    This is a list of the target center of each objects at the end of the 
+    current physics step relative to the global coordinates.
+    */
     Array<Vector2> positions
+    /*
+    This is a list of the target tilt of each object at the end of the current
+    physics step relative to the global coordinates.
+    */
     Array<number> angles
     Array<Vector2> linearVelocities
     Array<number> angularVelocities
@@ -30,10 +39,15 @@ class CollisionGroup2D
     integer jointCount = 0
     integer collisionCount = 0
 
+    //when a body's linear velocity is below the sleepThreashold, then that body
+    //will allowed to continue to sleep
     number sleepThreshold = 3
 
     Math math
 
+    /*
+    This action resets all of the arrays involved in the class to an empty state.
+    */
     action Empty
         itemCount = 0
         items:Empty()
@@ -47,17 +61,28 @@ class CollisionGroup2D
         angularVelocities:Empty()
     end
 
+    /*
+    This action adds a Item2D into the array of existing items to group these
+    the new Item2D into the existing items.
+    */
     action Add(Item2D item)
         items:Add(item)
         item:SetCollisionGroupIndex(itemCount)
         itemCount = itemCount + 1
-        end
+    end
 
+    /*
+    This action adds a CollisionEvent2D that is associated with an item that
+    is inside this CollisionGroup2D.
+    */
     action Add(CollisionEvent2D collision)
         collisions:Add(collision)
         collisionCount = collisionCount + 1
     end
 
+    /*
+    This action adds a contraint to the items.
+    */
     action Add(Joint2D joint)
         joints:Add(joint)
         jointCount = jointCount + 1
@@ -66,7 +91,12 @@ class CollisionGroup2D
     CollisionSolver2D collisionSolver
     JointSolverData2D solverData
 
+    /*
+    This action solves the collision for objects inside this CollisionGroup2D.
+    */
     action Solve(TimeStep step, Vector2 gravity, boolean requireSimulation)
+        //simulation == awake
+        //!requireSimulation == allowSleep
         number h = step:GetTimeStep()
 
         integer i = 0
@@ -233,6 +263,10 @@ class CollisionGroup2D
 
     CollisionSolver2D timeOfImpactCollisionSolver
 
+    /*
+    This action solves the time of impact for the objects that are in this 
+    CollisionGroup2D.
+    */
     action SolveTimeOfImpact(TimeStep subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
         integer i = 0
         repeat while i < itemCount
@@ -319,34 +353,61 @@ class CollisionGroup2D
         end
     end
 
+    /*
+    This action returns how many items are in the collision group.
+    */
     action GetItemCount returns integer
         return itemCount
     end
 
+    /*
+    This action returns how many joints are in this collision group.    
+    */
     action GetJointCount returns integer
         return jointCount
     end
 
+    /*
+    This action returns the number of collision events that is associated with
+    this CollisionGroup2D.
+    */
     action GetCollisionCount returns integer
         return collisionCount
     end
 
+    /*
+    This action returns the Item2D requested at the index passed in.
+    */
     action GetItem(integer index) returns Item2D
         return items:Get(index)
     end
 
+    /*
+    This action returns the Join2D requested at the index passed in.
+    */
     action GetJoint(integer index) returns Joint2D
         return joints:Get(index)
     end
 
+    /*
+    This action returns the CollisionEvent2D requested at the index passed in.
+    */
     action GetCollision(integer index) returns CollisionEvent2D
         return collisions:Get(index)
     end
 
+    /*
+    This action sets the maximum linear velocity that a sleeping object can
+    have.
+    */
     action SetSimulationThreshold(number threshold)
         me:sleepThreshold = threshold
     end
 
+    /*
+    This action returns the maximum linear velocity that a sleeping object can
+    have.
+    */
     action GetSimulationThreshold returns number
         return sleepThreshold
     end

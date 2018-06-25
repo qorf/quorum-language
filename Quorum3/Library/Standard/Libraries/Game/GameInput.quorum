@@ -2,12 +2,28 @@ package Libraries.Game
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Events.TabChangeEvent
+use Libraries.Interface.Events.MenuChangeListener
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.TreeChangeListener
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.WindowFocusListener
+use Libraries.Interface.Events.WindowFocusEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -20,6 +36,16 @@ class GameInput
     Array<Layer> layers = undefined
     HashTable<text, InputTable> inputTables
     InputTable defaultTable
+
+    Array<SelectionListener> selectionListeners
+    Array<TextChangeListener> textChangeListeners
+    Array<TabChangeListener> tabChangeListeners
+    Array<MenuChangeListener> menuChangeListeners
+    Array<TreeChangeListener> treeChangeListeners
+    Array<ControlActivationListener> controlActivationListeners
+    Array<WindowFocusListener> windowFocusListeners
+
+    GameStateManager manager
 
     /*
     This action sets a reference to the layers stored in the Game class that the
@@ -177,4 +203,272 @@ class GameInput
     */
     blueprint action RemoveTextInputListener(TextInputListener listener)
 
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    blueprint action AddResizeListener(ResizeListener listener)
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    blueprint action RemoveResizeListener(ResizeListener listener)
+
+    /*
+    This action will add a SelectionListener to the GameInput. The GameInput
+    will notify the SelectionListener whenever a selection changes.
+
+    Attribute: Parameter listener The SelectionListener to add to the GameInput.
+    */
+    action AddSelectionListener(SelectionListener listener)
+        selectionListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a SelectionListener from the GameInput. The
+    GameInput will no longer notify the given SelectionListener of selection
+    changes.
+
+    Attribute: Parameter listener The SelectionListener to remove from the GameInput.
+    */
+    action RemoveSelectionListener(SelectionListener listener)
+        selectionListeners:Remove(listener)
+    end
+
+    /*
+    This action will notify all SelectionListeners which have been added to the
+    GameInput of the given SelectionEvent.
+
+    Attribute: Parameter event The SelectionEvent to send to all SelectionListeners in the GameInput.
+    */
+    action NotifySelectionListeners(SelectionEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:SelectionChanged(event)
+        end
+
+        integer counter = 0
+        repeat while counter < selectionListeners:GetSize()
+            selectionListeners:Get(counter):SelectionChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will add a TextChangeListener to the GameInput. The GameInput
+    will notify the TextChangeListener whenever text changes, such as in a
+    TextBox.
+
+    Attribute: Parameter listener The TextChangeListener to add to the GameInput.
+    */
+    action AddTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a TextChangeListener from the GameInput. The
+    GameInput will no longer notify the given TextChangeListener of text
+    changes.
+
+    Attribute: Parameter listener The TextChangeListener to remove from the GameInput.
+    */
+    action RemoveTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Remove(listener)
+    end
+
+    /*
+    This action will notify all TextChangeListeners which have been added to the
+    GameInput of the given TextChangeEvent.
+
+    Attribute: Parameter event The TextChangeEvent to send to all TextChangeListeners in the GameInput.
+    */
+    action NotifyTextChangeListeners(TextChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:TextChanged(event)
+        end
+
+        integer counter = 0
+        repeat while counter < textChangeListeners:GetSize()
+            textChangeListeners:Get(counter):TextChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action AddTabChangeListener(TabChangeListener listener)
+        tabChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTabChangeListener(TabChangeListener listener)
+        tabChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyTabChangeListeners(TabChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < tabChangeListeners:GetSize()
+                tabChangeListeners:Get(counter):OpenedTab(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < tabChangeListeners:GetSize()
+                tabChangeListeners:Get(counter):ClosedTab(event)
+                counter = counter + 1
+            end
+        end
+    end
+    
+    /*
+
+    */
+    action AddMenuChangeListener(MenuChangeListener listener)
+        menuChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        menuChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyMenuChangeListeners(MenuChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:MenuChanged(event)
+        end
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < menuChangeListeners:GetSize()
+                menuChangeListeners:Get(counter):OpenedMenu(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < menuChangeListeners:GetSize()
+                menuChangeListeners:Get(counter):ClosedMenu(event)
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+
+    */
+    action AddTreeChangeListener(TreeChangeListener listener)
+        treeChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        treeChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyTreeChangeListeners(TreeChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:TreeChanged(event)
+        end
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < treeChangeListeners:GetSize()
+                treeChangeListeners:Get(counter):OpenedTree(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < treeChangeListeners:GetSize()
+                treeChangeListeners:Get(counter):ClosedTree(event)
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+
+    */
+    action AddControlActivationListener(ControlActivationListener listener)
+        controlActivationListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveControlActivationListener(ControlActivationListener listener)
+        controlActivationListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyControlActivationListeners(ControlActivationEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:ControlActivated(event)
+        end
+
+        integer counter = 0
+        repeat while counter < controlActivationListeners:GetSize()
+            controlActivationListeners:Get(counter):ControlActivated(event)
+            counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action AddWindowFocusListener(WindowFocusListener listener)
+        windowFocusListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveWindowFocusListener(WindowFocusListener listener)
+        windowFocusListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyWindowFocusListeners(WindowFocusEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:WindowFocusChanged(event)
+        end
+
+        if event:IsFocused()
+            integer counter = 0
+            repeat while counter < windowFocusListeners:GetSize()
+                windowFocusListeners:Get(counter):WindowGainedFocus(event)
+                counter = counter + 1
+            end
+        else
+            integer counter = 0
+            repeat while counter < windowFocusListeners:GetSize()
+                windowFocusListeners:Get(counter):WindowLostFocus(event)
+                counter = counter + 1
+            end
+        end
+    end
 end

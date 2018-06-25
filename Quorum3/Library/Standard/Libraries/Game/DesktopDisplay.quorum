@@ -88,9 +88,10 @@ class DesktopDisplay is GameDisplay
     end
 
     /*
-    This action checks for input events and processes them.
+    This action forces the Game to draw its contents to the DesktopDisplay's
+    internal buffer without drawing them to the screen.
     */
-//    system action ProcessMessages
+    system action UpdateBuffer
 
     /*
     This action determines if the user has tried to close the window by clicking
@@ -187,4 +188,18 @@ class DesktopDisplay is GameDisplay
     game engine.
     */
     system action GetScreenResolution returns ScreenResolution
+
+    /*
+    This action asks the operating system to give the main application window
+    the focus. This only works on desktop platforms - on other platforms, this
+    call is ignored.
+    */
+    system action FocusWindow
+
+    /*
+    This action determines whether or not the main application window has the
+    focus on desktop platforms. On non-desktop platforms, this always returns
+    false.
+    */
+    system action IsWindowFocused returns boolean
 end

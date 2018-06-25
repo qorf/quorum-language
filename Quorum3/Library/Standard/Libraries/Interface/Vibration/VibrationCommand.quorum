@@ -1,0 +1,18 @@
+package Libraries.Interface.Vibration
+
+class VibrationCommand 
+
+    action Initialize(integer duration, number intensity)
+        SetDuration(duration)
+        SetIntensity(intensity)
+    end
+
+    system action SetDuration(integer duration)
+
+    system action GetDuration() returns integer
+
+    system action SetIntensity(number intensity)
+
+    system action GetIntensity() returns number
+
+end

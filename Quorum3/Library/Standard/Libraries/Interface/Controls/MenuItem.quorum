@@ -1,0 +1,538 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.VerticalMenuLayout
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.MenuItemView
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Containers.Support.Pair
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.InputSet
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputTable
+use Libraries.Interface.Behaviors.Controls.PassthroughBehavior
+
+class MenuItem is Control
+    
+    /*
+    A panel which contains all of the submenu options for this MenuItem, if this
+    MenuItem is a menu.
+    */
+    Item2D panel
+    Layout panelLayout = undefined
+
+    /*
+    An array containing all elements added to the panel. This is redundant to
+    the children list of the panel, but keeping it in this form makes it easier
+    to retrieve without constant casting.
+    */
+    Array<MenuItem> menuItems
+
+    MenuItem parentMenu = undefined
+    MenuBar menuBar = undefined
+
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer DOWN = 2
+    public constant integer UP = 3
+
+    // The default appearance of MenuItems which are elements of this menu.
+    ControlView submenuView = undefined
+
+    // The default appearance of menu panels for this MenuItem and any submenus.
+    View2D panelView = undefined
+
+    text shortcut = ""
+    boolean open = false
+
+    Behavior activationBehavior = undefined
+
+    on create
+        SetInputGroup("MenuItem")
+        panel:SetName("Menu Panel")
+        SetAccessibilityCode(parent:Item:MENU_ITEM)
+    end
+
+    action Initialize(text name)
+        SetName(name)
+        InitializePanel()
+    end
+
+    action Initialize(text name, text shortcut)
+        SetName(name)
+        SetShortcut(shortcut)
+        InitializePanel()
+    end
+
+    action Initialize(text name, Array<MenuItem> items)
+        Initialize(name)
+        InitializePanel()
+
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            AddMenuItem(items:Get(counter))
+            counter = counter + 1
+        end
+
+        InitializeMenuAppearance()
+    end
+
+    private action InitializePanel
+        panel:SetName(GetName() + " Menu Panel")
+
+        Color color
+
+        LabelBoxView content
+        content:SetBorderThickness(1)
+
+        content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+        panelView = content
+
+        VerticalMenuLayout layout
+        panelLayout = layout
+        panel:AddLayout(layout)
+        panel:SetView2D(panelView)
+    end
+
+    action SetShortcut(InputSet set)
+        text name = set:GetDisplayName()
+        GameStateManager manager
+        InputTable table = manager:GetGame():GetDefaultInputTable()
+        PassthroughBehavior behave
+        behave:SetControl(me)
+        table:Add(set, behave)
+        SetShortcut(name)
+    end
+
+    private action InitializeMenuAppearance
+        MenuBar bar = GetMenuBar()
+        MenuItemView menuView = undefined
+        if bar not= undefined
+            menuView = bar:GetDefaultMenuItemView()
+        end
+
+        SetMenuAppearance(menuView)
+    end
+
+    action AddMenuItem(MenuItem item)
+
+        MenuBar bar = GetMenuBar()
+        MenuItemView menuView = undefined
+        if bar not= undefined
+            menuView = bar:GetDefaultMenuItemView()
+        end
+
+        if menuView not= undefined
+            MenuItemView copy = cast(MenuItemView, menuView:Copy())
+            item:SetAppearance(copy)
+        end
+
+        if menuItems:IsEmpty() and GetMenuBar() not= undefined
+            if GetView2D() is MenuItemView
+                MenuItemView content = cast(MenuItemView, GetView2D())
+                content:EnableMenuArrow(true)
+                SetSize(content:GetViewWidth(), content:GetViewHeight())
+                GetMenuBar():Resize()
+            end
+        end
+
+        item:SetMenuBar(menuBar)
+        item:SetParentMenu(me)
+        panel:Add(item)
+        menuItems:Add(item)
+    end
+
+    action RemoveMenuItem(MenuItem item)
+        menuItems:Remove(item)
+        panel:Remove(item)
+    end
+
+    action SetMenuDirection(integer direction)
+        if panelLayout = undefined
+            VerticalMenuLayout layout
+            panelLayout = layout
+        end
+
+        if direction = LEFT
+            panelLayout:SetPercentageOriginX(1)
+            panelLayout:SetPercentageX(0)
+            panelLayout:SetPercentageY(1)
+        elseif direction = RIGHT
+            panelLayout:SetPercentageOriginX(0)
+            panelLayout:SetPercentageX(1)
+            panelLayout:SetPercentageY(1)
+        elseif direction = DOWN
+            // TO-DO
+        elseif direction = UP
+            // TO-DO
+        end
+    end
+
+    action Open
+        if not open and (not menuItems:IsEmpty())
+            open = true
+            Add(panel)
+            panel:Resize()
+            
+            MenuBar bar = GetMenuBar()
+            if bar not= undefined
+                MenuChangeEvent event
+                event:Set(bar, me, event:OPENED)
+                bar:NotifyMenuChangeListeners(event)
+            end
+        end
+    end
+
+    action Close
+        if open
+            integer counter = 0
+
+            repeat while counter < menuItems:GetSize()
+                MenuItem item = menuItems:Get(counter)
+                item:Close()
+                counter = counter +  1
+            end
+
+            open = false
+            Remove(panel)
+
+            MenuBar bar = GetMenuBar()
+            if bar not= undefined
+                MenuChangeEvent event
+                event:Set(bar, me, event:CLOSED)
+                bar:NotifyMenuChangeListeners(event)
+            end
+        end
+        LostSelection()
+        selectionIndex = 0
+    end
+
+    action IsOpen returns boolean
+        return open
+    end
+
+    action SetShortcut(text shortcut)
+        me:shortcut = shortcut
+    end
+    
+    action GetShortcut returns text
+        return shortcut
+    end
+
+    action SetAppearance(MenuItemView content)
+        content:SetText(GetName())
+        content:SetShortcut(GetShortcut())
+        if not (menuItems:IsEmpty()) and GetMenuBar() not= undefined
+            content:EnableMenuArrow(true)
+            GetMenuBar():Resize()
+        else
+            content:EnableMenuArrow(false)
+        end
+
+        SetView2D(content)
+        SetSize(content:GetViewWidth(), content:GetViewHeight())
+    end
+
+    action SetMenuAppearance(MenuItemView menuView)
+
+        if menuView = undefined
+            return now
+        end
+
+        integer counter = 0
+        repeat while counter < menuItems:GetSize()
+            Item2D i = menuItems:Get(counter)
+            
+            if i is MenuItem
+                MenuItem item = cast(MenuItem, i)
+                MenuItemView copy = cast(MenuItemView, menuView:Copy())
+                item:SetAppearance(copy)
+            end
+            counter = counter + 1
+        end
+    end
+
+    action GetMenuBar returns MenuBar
+        return menuBar
+    end
+
+    action SetMenuBar(MenuBar bar)
+        menuBar = bar
+
+        integer counter = 0
+        repeat while counter < menuItems:GetSize()
+            MenuItem child = menuItems:Get(counter)
+            child:SetMenuBar(bar)
+            counter = counter + 1
+        end
+    end
+
+    action GetParentMenu returns MenuItem
+        return parentMenu
+    end
+
+    action SetParentMenu(MenuItem menu)
+        parentMenu = menu
+    end
+
+    action SetBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action GetActivationBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action ClickedMouse
+        parent:Control:ClickedMouse()
+
+        MenuBar bar = GetMenuBar()
+        if bar not= undefined
+            if bar:IsSelecting()
+                Activate()
+                MenuBar menuBar = GetMenuBar()
+                if menuBar not= undefined
+                    menuBar:Close()
+                end
+            else
+                Select()
+            end
+        else
+            Activate()
+        end
+    end
+
+    action BeginMouseOver
+        MenuBar bar = GetMenuBar()
+        if bar not= undefined and bar:IsSelecting()
+            if not open
+                Open()
+            end
+            Select()
+        end
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        MenuBar menuBar = GetMenuBar()
+        if menuBar not= undefined
+            menuBar:SetSelectingState(true)
+        end
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        if open
+            Close()
+        end
+    end
+
+    action Select
+        // Don't actually select here! Go to MenuBar and ask it to select us.
+        // We do this to allow the MenuBar to fully update its information,
+        // deselect the previous selection, and prevent infinite loops.
+        if menuBar not= undefined
+            menuBar:Select(GetMenuPath())
+        end
+    end
+
+    action Deselect
+        // Don't actually select here! Go to MenuBar and ask it to deselect us.
+        // We do this to allow the MenuBar to fully update its information,
+        // deselect this, and prevent infinite loops.
+        if menuBar not= undefined
+            menuBar:Deselect()
+        end
+    end
+
+    action GetMenuItems returns Iterator<MenuItem>
+        return menuItems:GetIterator()
+    end
+
+    action UpdateSelection(Array<MenuItem> oldPath, Array<MenuItem> newPath)
+
+        MenuItem oldItem = undefined
+        MenuItem newItem = undefined
+
+        if not oldPath:IsEmpty()
+            oldItem = oldPath:RemoveFromFront()
+        end
+
+        if not newPath:IsEmpty()
+            newItem = newPath:RemoveFromFront()
+        end
+
+        if oldItem = newItem
+            if oldItem = undefined
+                return now
+            else
+                if oldItem not= undefined
+                    oldItem:UpdateSelection(oldPath, newPath)
+                end
+            end
+        else
+            if oldItem not= undefined
+                oldItem:RecursiveDeselect(oldPath)
+            end
+            if newItem not= undefined
+                newItem:RecursiveSelect(newPath)
+            end
+        end
+    end
+
+    action RecursiveSelect(Array<MenuItem> path)
+        GainedSelection()
+        if not path:IsEmpty()
+            MenuItem item = path:RemoveFromFront()
+            if item not= undefined
+                item:RecursiveSelect(path)
+            end
+        end
+    end
+
+    action RecursiveDeselect(Array<MenuItem> path)
+        if not path:IsEmpty()
+            MenuItem item = path:RemoveFromFront()
+            if item not= undefined
+                item:RecursiveDeselect(path)
+            end
+        end
+        LostSelection()
+    end
+
+    action GetIconWidth returns number
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
+            return content:GetIconWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetNameWidth returns number
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
+            return content:GetNameWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetShortcutWidth returns number
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
+            return content:GetShortcutWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetSubmenuIconWidth returns number
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
+            return content:GetSubmenuIconWidth()
+        else
+            return 0
+        end
+    end
+
+    action IsMenu returns boolean
+        return not menuItems:IsEmpty()
+    end
+
+    action MenuSelectionDown
+        if GetParentMenu() not= undefined
+            GetParentMenu():MenuSelectionDown(me)
+        elseif menuItems:GetSize() > 0
+            if not open
+                Open()
+            end
+            menuItems:Get(0):Select()
+        end
+    end
+
+    private action MenuSelectionDown(MenuItem previous)
+        integer counter = 0
+        repeat while counter < menuItems:GetSize()
+            Item2D item = menuItems:Get(counter)
+            if item:Equals(previous)
+
+                // Select next item in the list, if there is one.
+                if counter + 1 < menuItems:GetSize()
+                    menuItems:Get(counter + 1):Select()
+                end
+
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+    action MenuSelectionUp
+        if GetParentMenu() not= undefined
+            GetParentMenu():MenuSelectionUp(me)
+        elseif menuItems:GetSize() > 0
+            if not open
+                Open()
+            end
+            menuItems:Get(menuItems:GetSize() - 1):Select()
+        end
+    end
+
+    private action MenuSelectionUp(MenuItem previous)
+        integer counter = 0
+        repeat while counter < menuItems:GetSize()
+            Item2D item = menuItems:Get(counter)
+            if item:Equals(previous)
+
+                // Select the previous element in the menu, if there is one.
+                if counter - 1 >= 0
+                    menuItems:Get(counter - 1):Select()
+                end
+
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+    action GetMenuPath returns Array<MenuItem>
+        Array<MenuItem> path
+        path:Add(me)
+        if parentMenu not= undefined
+            Array<MenuItem> a = parentMenu:GetMenuPath(path)
+            return a
+        end
+        return path
+    end
+
+    private action GetMenuPath(Array<MenuItem> array) returns Array<MenuItem>
+        array:AddToFront(me)
+        if parentMenu not= undefined
+            return parentMenu:GetMenuPath(array)
+        end
+
+        return array
+    end
+
+    action Activate(BehaviorEvent event)
+        if IsMenu()
+            if open
+                Close()
+            else
+                Open()
+            end
+        end
+
+        parent:Control:Activate(event)
+    end
+end

@@ -1,0 +1,285 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeChangeListener
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Selections.TreeSelection
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Game.GameStateManager
+
+class Tree is Item2D
+
+    Item2D panel
+    Layout panelLayout = undefined
+    TreeSelection selection
+    Array<TreeItem> treeItems
+    Array<TreeChangeListener> listeners
+
+    on create
+        SetFocusable(true)
+        SetInputGroup("Tree")
+        TreeLayout flow
+        
+        // Hardcoded value sufficient for basic cases. Should be replaced with
+        // something more responsive to design in the future.
+        flow:SetPadding(2)
+
+        panelLayout = flow
+        panel:AddLayout(flow)
+
+        parent:Item2D:Add(panel)
+
+        selection:Initialize(me)
+        SetAccessibilityCode(parent:Item:TREE)
+    end
+
+    action Add(TreeItem item)
+        item:SetTree(me)
+        treeItems:Add(item)
+        panel:Add(item)
+    end
+
+    action Remove(TreeItem item)
+        panel:Remove(item)
+        treeItems:Remove(item)
+        item:SetTree(undefined)
+    end
+
+    action GetTreeItems returns Iterator<TreeItem>
+        return treeItems:GetIterator()
+    end    
+
+    action GetSelection returns TreeSelection
+        return selection
+    end
+
+    action GetMultipleSelection returns Array<TreeSelection>
+        return undefined
+    end
+
+    action HasMultipleSelection returns boolean
+        return false
+    end
+
+    action Select(Array<TreeItem> path)
+        Array<TreeItem> pathCopy = path:CopyToArray()
+        TreeItem first = undefined
+
+        if not path:IsEmpty()
+            first = pathCopy:RemoveFromFront()
+        end
+
+        Array<TreeItem> selectionPath = selection:GetPath()
+        TreeItem oldFirst = undefined
+
+        if not selectionPath:IsEmpty()
+            oldFirst = selectionPath:RemoveFromFront()
+        end
+
+        if first not= undefined
+            if first = oldFirst
+                first:UpdateSelection(selectionPath, pathCopy)
+            else
+                if oldFirst not= undefined
+                    oldFirst:RecursiveDeselect(selectionPath)
+                end
+                first:RecursiveSelect(pathCopy)
+            end
+        end
+
+        // Set our selection object with the new path, triggering a selection
+        // event.
+        selection:Set(path)
+    end
+
+    action Deselect
+        TreeSelection selection = GetSelection()
+        Deselect(selection:GetPath())
+    end
+
+    private action Deselect(Array<TreeItem> path)
+        TreeItem item = undefined
+        if not path:IsEmpty()
+            item = path:RemoveFromFront()
+        end
+
+        if item not= undefined
+            item:RecursiveDeselect(path)
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(item)
+        Array<TreeItem> newPath
+        selection:Set(newPath)
+    end
+
+    action SelectionRight
+        if selection:GetPath():IsEmpty()
+            if not treeItems:IsEmpty()
+                Array<TreeItem> array
+                array:Add(treeItems:Get(0))
+                Select(array)
+            end
+        else
+            TreeItem item = selection:GetPath():GetFromEnd()
+            if item not= undefined and item:IsSubtree() and not item:IsOpen()
+                item:Open()
+            end
+        end
+    end
+
+    action SelectionLeft
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            TreeItem item = path:GetFromEnd()
+            if item not= undefined
+                if item:IsSubtree() and item:IsOpen()
+                    item:Close()
+                elseif path:GetSize() > 1
+                    path:RemoveFromEnd()
+                    Select(path)
+                end
+            end
+        end
+    end
+
+    action SelectionDown
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            TreeItem item = path:GetFromEnd()
+            if item not= undefined
+                item:SelectionDown()
+            end
+        end
+    end
+
+    action SelectionUp
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            TreeItem item = path:GetFromEnd()
+            if item not= undefined
+                item:SelectionUp()
+            end
+        end
+    end
+
+    action SelectionSkipForward
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            SelectFirst()
+        else
+            integer counter = 0
+            TreeItem first = path:GetFromFront()
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):Equals(first)
+                    integer select = counter + 1
+
+                    if select >= treeItems:GetSize()
+                        return now
+                    end
+
+                    first = treeItems:Get(select)
+                    path:Empty()
+                    path:Add(first)
+                    Select(path)
+                    return now
+                end
+                counter = counter + 1
+            end
+        end
+    end
+
+    action SelectionSkipBackward
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            SelectFirst()
+        else
+            integer counter = 0
+            TreeItem first = path:GetFromFront()
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):Equals(first)
+                    integer select = counter - 1
+
+                    if select < 0
+                        return now
+                    end
+
+                    treeItems:Get(select):SelectLastElement()
+                    return now
+                end
+                counter = counter + 1
+            end
+        end
+    end
+
+    private action SelectFirst
+        if not treeItems:IsEmpty()
+            Array<TreeItem> array
+            array:Add(treeItems:Get(0))
+            Select(array)
+        end
+    end
+
+    /*
+
+    */
+    action GainedFocus(FocusEvent event)
+        if selection:IsEmpty() and not treeItems:IsEmpty()
+            Array<TreeItem> array
+            array:Add(treeItems:Get(0))
+            Select(array)
+        else
+            // Force a selection event.
+            selection:SetDisplayName(selection:GetDisplayName())
+        end
+    end
+
+    /*
+
+    */
+    action LostFocus(FocusEvent event)
+
+    end
+
+    action AddTreeChangeListener(TreeChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveTreeChangeListener(TreeChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    action NotifyTreeChangeListeners(TreeChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedTree(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedTree(event)
+                counter = counter + 1
+            end
+        end
+
+        GameStateManager manager
+        manager:GetInput():NotifyTreeChangeListeners(event)
+    end
+end

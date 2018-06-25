@@ -5,6 +5,10 @@
  */
 package plugins.quorum.Libraries.Sound;
 
+import plugins.quorum.Libraries.Sound.Desktop.WavInputStream;
+import plugins.quorum.Libraries.Sound.Desktop.OggInputStream;
+import plugins.quorum.Libraries.Sound.Desktop.WavData;
+import plugins.quorum.Libraries.Sound.Desktop.OggData;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

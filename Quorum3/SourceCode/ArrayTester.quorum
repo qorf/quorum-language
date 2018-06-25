@@ -77,7 +77,7 @@ class ArrayTester
     //FAIL TESTS
         path = failPath
         ArrayOfMultipleTemplateTypes()
-        ArrayOfTypeBooleanActionsSetGetBooleanObject()
+        ArrayOfTypeBooleanActionSetGetBooleanObject()
         ArrayOfTypeIntegerActionSetGetIntegerObject()
         ArrayOfTypeNumberActionSetGetNumberObject()
         ArrayOfTypeTextActionSetGetTextObject()
@@ -819,10 +819,10 @@ class ArrayTester
         suite:TestJavaScriptFail(files)
     end
 
-    action ArrayOfTypeBooleanActionsSetGetBooleanObject()
+    action ArrayOfTypeBooleanActionSetGetBooleanObject()
         Array<File> files
         File main
-        main:SetPath(path + "ArrayOfTypeBooleanActionsSetGetBooleanObject.quorum")
+        main:SetPath(path + "ArrayOfTypeBooleanActionSetGetBooleanObject.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

@@ -269,7 +269,19 @@ class QuorumBytecodeListener is QuorumSourceListener
                         text returnKey = returnType:GetStaticKey()
                         SymbolTable table = GetSymbolTable()
                         Class clazz = table:GetClass(returnKey)
-                        clazz:AddUseLocation(returnLocation:CreateLocationCopy())
+                        if clazz not= undefined
+                            clazz:AddUseLocation(returnLocation:CreateLocationCopy())
+                        else 
+                            CompilerError e
+                            e:SetErrorMessage("I could not find the class  " + returnKey +
+                                " named in the return statement.")
+                            CompilerErrorType t
+                            t:SetCurrentType(t:MISSING_CLASS)
+                            e:SetCompilerErrorType(t)
+                            e:SetLocation(context:GetLocation())
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(e)
+                        end
                     end
                 end
             end
@@ -1814,7 +1826,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     + ". This means it cannot be accessed from class "
                     + currentClass:GetStaticKey() + " unless " + act:GetName() + " is made public.")
                 CompilerErrorType errorType
-                errorType:SetCurrentType(errorType:OTHER)
+                errorType:SetCurrentType(errorType:ACCESS_ERROR)
                 error:SetCompilerErrorType(errorType)
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
@@ -2319,7 +2331,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                                 + ", but it is private in parent class "
                                 + callingName + ".")
                             CompilerErrorType errorType
-                            errorType:SetCurrentType(errorType:OTHER)
+                            errorType:SetCurrentType(errorType:ACCESS_ERROR)
                             error:SetCompilerErrorType(errorType)
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(error)
@@ -2419,7 +2431,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                                 + ". This means it cannot be accessed from class "
                                 + currentClass:GetStaticKey() + " unless " + name + " is made public.")
                             CompilerErrorType errorType
-                            errorType:SetCurrentType(errorType:OTHER)
+                            errorType:SetCurrentType(errorType:ACCESS_ERROR)
                             error:SetCompilerErrorType(errorType)
                             error:SetFile(GetFile())
                             CompilerErrorManager manager = GetCompilerErrorManager()

@@ -11,11 +11,39 @@ class InputSet
     */
     constant integer VALUE_SIZE = 8
     constant integer TYPE_SIZE = 3
-    constant integer TRIGGER_SIZE = 1
-    public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE
+    constant integer TRIGGER_SIZE = 2
+    constant integer EVENT_COUNT_SIZE = 2
+    public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + EVENT_COUNT_SIZE
     public constant integer CONTROL = SHIFT + 1
     public constant integer ALT = CONTROL + 1
     public constant integer META = ALT + 1
+
+    /*
+    KEYBOARD_INPUT:
+        BEGIN: When the key is first pressed down.
+        CONTINUE: Each frame that the key is held down.
+        FINISH: When the key is released.
+
+    MOUSE_INPUT:
+        BEGIN: When the mouse button is first clicked.
+        CONTINUE: Each frame that the button is held down.
+        FINISH: When the button is released.
+
+    MOUSE_WHEEL_INPUT:
+        BEGIN: When the mouse wheel moves. (Wheel movement is non-continuous - each movement is registered, but there's typically no "smooth transition" as in begin/finish)
+        CONTINUE: N/A
+        FINISH: N/A
+
+    MOUSE_MOVEMENT_INPUT:
+        BEGIN: When the mouse first moves onto an Item.
+        CONTINUE: Each mouse movement, whether on the same Item or not.
+        FINISH: When the mouse moves off of an Item.
+
+    TOUCH_INPUT:
+        BEGIN: When a finger first presses down.
+        CONTINUE: Each frame a finger is touching the screen.
+        FINISH: When the finger is removed from the screen.
+    */
 
     public constant integer KEYBOARD_INPUT = 0
     public constant integer MOUSE_INPUT = 1
@@ -23,8 +51,10 @@ class InputSet
     public constant integer MOUSE_MOVEMENT_INPUT = 3
     public constant integer TOUCH_INPUT = 4
     public constant integer TEXT_INPUT = 5
-    public constant integer PRESS = 0
-    public constant integer RELEASE = 1
+    public constant integer TOUCH_MOVEMENT_INPUT = 6
+    public constant integer BEGIN = 0
+    public constant integer FINISH = 1
+    public constant integer CONTINUE = 2
     constant text SHIFT_TEXT = "Shift"
     constant text CONTROL_TEXT = "Control"
     constant text ALT_TEXT = "Alt"
@@ -40,11 +70,12 @@ class InputSet
     The individual bits represent the following information:
         1st to 8th bits: Integer value of the key or mouse input.
         9th to 11th bits: What kind of input this is. Corresponds to one of the input constants.
-        12th bit: 0 if the input triggers on press, 1 if the input triggers on release.
-        13th bit: Shift key modifier - 1 if required, 0 otherwise.
-        14th bit: Control key modifier - 1 if required, 0 otherwise.
-        15th bit: Alt key modifier - 1 if required, 0 otherwise.
-        16th bit: Meta key modifier - 1 if required, 0 otherwise.
+        12th to 13th bits: How the input is triggered. Can represent an input event beginning, finishing, or continuing.
+        14th to 15th bits: How many previous events should be registered before triggering this one.
+        16th bit: Shift key modifier - 1 if required, 0 otherwise.
+        17th bit: Control key modifier - 1 if required, 0 otherwise.
+        18th bit: Alt key modifier - 1 if required, 0 otherwise.
+        19th bit: Meta key modifier - 1 if required, 0 otherwise.
     */
     integer bitmask = 0
 
@@ -80,18 +111,35 @@ class InputSet
         bitmask = bits:Or(bitmask, mouseButton)
     end
 
+    action SetMouseMovementInput(integer mouseButton)
+        SetInputType(MOUSE_MOVEMENT_INPUT)
+        SetBits(mouseButton, VALUE_SIZE, 0)
+    end
+
     action SetInputType(integer type)
-        integer mask = bits:Or(bits:ShiftLeft(-1, TYPE_SIZE), type)
+        integer mask = bits:ShiftLeft(-1, TYPE_SIZE)
         mask = bits:Or(bits:ShiftLeft(mask, VALUE_SIZE), bits:Negate(bits:ShiftLeft(-1, VALUE_SIZE)))
-        bitmask = bits:And(bitmask, mask)
+        mask = bits:And(bitmask, mask)
+        bitmask = bits:Or(mask, bits:ShiftLeft(type, VALUE_SIZE))
     end
 
     action SetInputTrigger(integer type)
-        if type = 0
-            bitmask = bits:And(bitmask, bits:ShiftLeft(-1, VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + 1))
-        elseif type = 1
-            bitmask = bits:Or(bitmask, bits:ShiftLeft(1, VALUE_SIZE + TYPE_SIZE))
+        SetBits(type, TRIGGER_SIZE, VALUE_SIZE + TYPE_SIZE)
+    end
+
+    action SetEventCount(integer count)
+        // Reduce the value by 1 (effectively, convert a value where counting
+        // begins at 1 into a value where counting starts at 0), and bound it
+        // between 0 and 3.
+        if count < 1
+            count = 0
+        elseif count > 4
+            count = 3
+        else
+            count = count - 1
         end
+
+        SetBits(count, EVENT_COUNT_SIZE, VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE)
     end
 
     action GetInputTrigger returns integer
@@ -146,5 +194,30 @@ class InputSet
 
     action Equals(InputSet set) returns boolean
         return bitmask = set:GetHashCode()
+    end
+
+    /*
+    Take the first "bitCount" many bits from value, and place them at the 
+    "shift" bit. For example, for a value of 3, bitCount of 2, and shift of 8, 
+    place the first two bits of 3 (11) beginning at the 8th bit. 
+    If the previous bitmask was:
+        ...00000000000
+    the result would be:
+        ...01100000000
+    */
+    private action SetBits(integer value, integer bitCount, integer shift)
+        integer zeroBits = bits:Negate(bits:ShiftLeft(-1, bitCount))
+        integer valueBits = bits:And(zeroBits, value)
+        zeroBits = bits:Negate(bits:ShiftLeft(zeroBits, shift))
+        valueBits = bits:ShiftLeft(valueBits, shift)
+        bitmask = bits:Or(bits:And(bitmask, zeroBits), valueBits)
+    end
+
+    action GetDisplayName returns text
+        return ""
+    end
+    
+    action ToText returns text
+        return GetDisplayName()
     end
 end

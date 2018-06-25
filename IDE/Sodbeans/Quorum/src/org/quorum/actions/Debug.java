@@ -51,7 +51,8 @@ public class Debug extends QuorumAction implements ActionListener{
             cancel.progress = progress;
             progress.start();
             
-            boolean success = build();
+            BuildInformation info = build();
+            boolean success = info.success;
             if(!success) {
                 progress.finish();
                 return;
@@ -65,7 +66,7 @@ public class Debug extends QuorumAction implements ActionListener{
                 return;
             }
 
-            String location = project.getExecutableLocation();
+            String location = project.getExecutableLocation(info.request);
             debugger.setExecutable(location);
             debugger.setWorkingDirectory(project.getRunDirectory().getParentFile().getAbsolutePath());
             debugger.launch();

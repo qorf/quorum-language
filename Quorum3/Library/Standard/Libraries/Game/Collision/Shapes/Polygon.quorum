@@ -8,11 +8,18 @@ use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
+/*
+This class extends the CollisionShape2D by rewritting specific actions that
+are blueprint actions in CollisionShape2D for the shape of a polygon.
+This class records all of the geometric properties that a polygon should have.
+To display the polygon with the properties that you've set, you have to use
+"Libraries.Game.Graphics.Drawable".
+*/
 class Polygon is CollisionShape2D
     public constant integer MAXIMUM_POLYGON_VERTICES = 8
-    Vector2 centroid
-    Array<Vector2> vertices
-    Array<Vector2> normals
+    Vector2 centroid  //centroid of the polygon relative to the polygon's local coordinate's origin
+    Array<Vector2> vertices   //stores the vertices points
+    Array<Vector2> normals    //stores the vectors that points normal to each edges of the polygon
     integer vertexCount = 0
 
     boolean isBox = false
@@ -32,6 +39,10 @@ class Polygon is CollisionShape2D
         end
     end
 
+
+    /*
+    This action sets another polygon shape using the current polygon shape.
+    */
     action Copy returns CollisionShape2D
         Polygon shape
         shape:centroid:Set(me:centroid)
@@ -47,6 +58,10 @@ class Polygon is CollisionShape2D
         return shape
     end
 
+
+    /*
+    This action shrinks or expands the polygon shape.
+    */
     action Scale(number scaleX, number scaleY)
         integer i = 0
         repeat vertexCount times
@@ -57,6 +72,11 @@ class Polygon is CollisionShape2D
         end
     end
 
+    /*
+    This action records the passed vertices to this class and also calculate 
+    the normal vectors to the edges from the polygon created using the vertices
+    passed.
+    */
     action Set(Array<Vector2> passedVertices, integer count)
         if count < 3
             SetAsBox(1, 1)
@@ -187,6 +207,9 @@ class Polygon is CollisionShape2D
         centroid = ComputeCentroid(vertices, vertexCount)
     end
 
+    /*
+    This action sets the polygon shape to an untilted box centered at the origin.
+    */
     action SetAsBox(number width, number height)
         number halfWidth = width / 2
         number halfHeight = height / 2
@@ -203,7 +226,14 @@ class Polygon is CollisionShape2D
         isBox = true
     end
 
+
+
+    /*
+    This action creates a polygon as a rectangle with present center point and 
+    tilted angle.
+    */
     action SetAsBox(number width, number height, Vector2 center, number angle)
+        //set the box as if it wasn't tilted or translated
         number halfWidth = width / 2
         number halfHeight = height / 2
         vertexCount = 4
@@ -220,6 +250,7 @@ class Polygon is CollisionShape2D
         PhysicsPosition2D transform
         transform:Set(center, angle)
 
+        //now, transform both the vertices points and normal vectors using the tranformation matrices stored in "transform". 
         integer i = 0
         repeat while i < vertexCount
             transform:MultiplyToOut(transform, vertices:Get(i), vertices:Get(i))
@@ -232,10 +263,19 @@ class Polygon is CollisionShape2D
         isBox = true
     end
 
+
+
+    /*
+    Because each polygon can be seen as an primitive shape, therefore, 
+    a polygon is its own child and parent.
+    */
     action GetChildCount returns integer
         return 1
     end
 
+    /*
+    Attribute: Parameter point The point of interest in global coordinates.
+    */
     action TestPoint(PhysicsPosition2D transform, Vector2 point) returns boolean
         number tempX = 0
         number tempY = 0
@@ -243,8 +283,10 @@ class Polygon is CollisionShape2D
         number sine = transform:GetSine()
         number cosine = transform:GetCosine()
 
+        //find the vector (in global coordinates) whose head is at the point of interest and whose tail is at the origin of the local coordinates attached to the polygon
         tempX = point:GetX() - transform:GetPosition():GetX()
         tempY = point:GetY() - transform:GetPosition():GetY()
+        //now, we need to find the points of that vector in local coordinates of the polygon
         number pLocalx = cosine * tempX + sine * tempY
         number pLocaly = -1 * sine * tempX + cosine * tempY
 
@@ -252,9 +294,13 @@ class Polygon is CollisionShape2D
         repeat while i < vertexCount
             Vector2 vertex = vertices:Get(i)
             Vector2 normal = normals:Get(i)
+            //find the vector whose head is at the point of interest and whose tail is at the vertex
             tempX = pLocalx - vertex:GetX()
             tempY = pLocaly - vertex:GetY()
             number dot = normal:GetX() * tempX + normal:GetY() * tempY
+            //if the <tempX, tempY> vector forms an angle that is >180 degrees with the corresponding normal vector
+            //then, this means that <tempX, tempY> points outward from the vertex instead of pointing inward
+            //which implies that the point (pLocalx, pLocaly) is outside the boundary of the polygon
             if dot > 0
                 return false
             end
@@ -263,6 +309,9 @@ class Polygon is CollisionShape2D
         return true
     end
 
+    /*
+    This action calculates the BoundingBox2D for the polygon shape.
+    */
     action ComputeBoundingBox(BoundingBox2D boundingBox, PhysicsPosition2D transform, integer childIndex)
         Vector2 minimum
         Vector2 maximum
@@ -312,14 +361,24 @@ class Polygon is CollisionShape2D
         boundingBox:Set(minimum, maximum)
     end
 
+    /*
+    This action returns how many vertices the polygon has.
+    */
     action GetVertexCount returns integer
         return vertexCount
     end
 
+    /*
+    This action gets the point at which the vertex of interest is at.
+    */
     action GetVertex(integer index) returns Vector2
         return vertices:Get(index)
     end
 
+    /*
+    This action finds the closest distance between the point of interest and the 
+    polygon.
+    */
     action ComputeDistance(PhysicsPosition2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
@@ -383,6 +442,10 @@ class Polygon is CollisionShape2D
         return distance
     end
 
+    /*
+    This action finds the centroid of the polygon based on the geometry of the 
+    polygon.
+    */
     action ComputeCentroid(Array<Vector2> vectors, integer count) returns Vector2
         Vector2 result
         result:Set(0, 0)
@@ -425,6 +488,10 @@ class Polygon is CollisionShape2D
         return result
     end
 
+    /*
+    This action finds ths mass and mass rotational of inertia of the polygon based
+    on the density of the polygon passed in and the geometry of the polygon.    
+    */
     action ComputeMass(Mass2D mass, number density)
         Vector2 center
         center:SetZero()
@@ -482,11 +549,16 @@ class Polygon is CollisionShape2D
         center:Scale(1.0 / area)
         mass:GetCenter():Set(center):Add(s)
 
+        //find the inertia of the mass about its own center of mass
         mass:SetInertia(I * density)
 
+        //find the inertia of the mass about its local origin
         mass:SetInertia(mass:GetInertia() + (mass:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter())))
     end
 
+    /*
+    This action checks whether the polygon is convex.
+    */
     action Validate returns boolean
         integer i = 0
         repeat while i < vertexCount
@@ -520,26 +592,46 @@ class Polygon is CollisionShape2D
         return true
     end
 
+    /*
+    This action returns all of the vertices of the current polygon.
+    */
     action GetVertices returns Array<Vector2>
         return vertices
     end
-
+    
+    /*
+    This action returns all of the normals to the edges of the current polygon.
+    */
     action GetNormals returns Array<Vector2>
         return normals
     end
 
+    /*
+    This action returns the centroid of the polygon in the global coordinates.
+    */
     action Centroid(PhysicsPosition2D transform) returns Vector2
         return transform:Multiply(transform, centroid)
     end
 
+    /*
+    This action returns the centroid of the polygon in the local coordinates of
+    that polygon.
+    */
     action GetCentroid returns Vector2
         return centroid
     end
 
+    /*
+    This action returns whether the polygon is a box or not.
+    */
     action IsBox returns boolean
         return isBox
     end
 
+    /*
+    This action computes the area of the polygon based on the geometry of the
+    polygon that is stored inside this Polygon class.
+    */
     action ComputeArea returns number
         number area = 0
 

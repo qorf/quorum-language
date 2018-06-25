@@ -21,14 +21,16 @@ import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
+import org.quorum.actions.QuorumAction;
 import org.quorum.projects.QuorumProject;
-import org.quorum.support.Utility;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerError_;
+import quorum.Libraries.Language.Compile.CompilerRequest;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Hints.Hint_;
+import quorum.Libraries.Language.Compile.Library_;
 /**
  *
  * @author stefika
@@ -39,9 +41,7 @@ public class QuorumParser extends Parser{
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
     private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
-    private quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
-    CompilerResult_ recentResult = null;
     
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
@@ -62,7 +62,7 @@ public class QuorumParser extends Parser{
             
             Project project = FileOwnerQuery.getOwner(fo);
             
-            if(project != null) {
+            if(project != null && project instanceof QuorumProject) {
                 Lookup lookup = project.getLookup();
                 quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
 
@@ -81,34 +81,59 @@ public class QuorumParser extends Parser{
                     FileObject projectDirectory = project.getProjectDirectory();
                     File directory = FileUtil.toFile(projectDirectory);
                     File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
-                    quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
-                    Array_ listing = sourceFolder.GetDirectoryListing();
+                    //quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
+                    Array_ listing = new quorum.Libraries.Containers.Array();
+                    QuorumAction.GetSourceFiles(file, listing);
+                    //Array_ listing = sourceFolder.GetDirectoryListing();
+                    
+                    
+                    
                     Iterator<quorum.Libraries.System.File> extras = ((QuorumProject) project).getExtraSourceFiles();
                     while(extras.hasNext()) {
                         quorum.Libraries.System.File next = extras.next();
                         listing.Add(next);
                     }
                     
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
-                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
-                    recentResult = result;
+                    Library_ library = ((QuorumProject) project).GetStandardLibrary();
+                    CompilerRequest request = new CompilerRequest();
+                    CompilerResult_ previousCompile = ((QuorumProject) project).getLastCompileResult();
                     
-                    CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+                    if(previousCompile != null) {
+                        request.symbolTable = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                        request.opcodes = previousCompile.Get_Libraries_Language_Compile_CompilerResult__opcodes_();
+                    }
+                    request.library = library;
+                    request.files = listing;
+                    request.isFastCompileRequest = true;
+                    request.main = ((QuorumProject) project).GetMain();
+                    request.recompile = quorumFile;
+                    request.recompileValue = string;
+                    CompilerResult_ result = compiler.Compile(request);
+                    ((QuorumProject) project).setLastCompileResult(result);
+                    
+                    result.Set_Libraries_Language_Compile_CompilerResult__source_(string);
+                    result.Set_Libraries_Language_Compile_CompilerResult__sourceLocation_(quorumFile);
+                    result.Set_Libraries_Language_Compile_CompilerResult__projectFiles_(listing);
+                    
+                    CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
                     
                     //regardless of compiler errors, we could have hints. Handle that
-                    handleHints(errors);
+                    handleHints(manager);
                     
-                    if(errors.IsCompilationErrorFree()) {
+                    if(manager.IsCompilationErrorFree()) {
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
                             QuorumProject qp = (QuorumProject) project;
-                            qp.setSandboxCompilerResult(result);
+                            qp.setLastCompileResult(result);
+                            qp.setLastGoodCompileResult(result);
                         }
                     } else {
+                        if(result != null && project instanceof QuorumProject) {
+                            QuorumProject qp = (QuorumProject) project;
+                            qp.setLastCompileResult(result);
+                        }
                         fileErrors.clear();
-                        Iterator_ it = errors.GetIterator();
+                        Iterator_ it = manager.GetIterator();
                         while(it.HasNext()) {
                             CompilerError_ next = (CompilerError_) it.Next();
                             String displayName = next.GetDisplayName();
@@ -145,7 +170,27 @@ public class QuorumParser extends Parser{
     
     @Override
     public Result getResult(Task task) throws ParseException {
-        return new QuorumParserResult(snapshot, this);
+        FileObject fo = snapshot.getSource().getFileObject();
+            if(fo == null) {
+                return null;
+            }
+            String extension = fo.getExt();
+            
+            if(extension.compareTo("quorum") != 0) {
+                return null;
+            }
+            
+            Project project = FileOwnerQuery.getOwner(fo);
+            
+            if(project != null && project instanceof QuorumProject) {
+                QuorumProject qp = (QuorumProject) project;
+                CompilerResult_ lastCompileResult = qp.getLastCompileResult();
+                QuorumParserResult pr = new QuorumParserResult(snapshot, this);
+                pr.SetRecentResult(lastCompileResult);
+                return pr;
+            }
+        
+        return null;
     }
 
     @Override
@@ -157,7 +202,24 @@ public class QuorumParser extends Parser{
     }
 
     public CompilerResult_ getRecentResult() {
-        return recentResult;
+        FileObject fo = snapshot.getSource().getFileObject();
+        if(fo == null) {
+            return null;
+        }
+        String extension = fo.getExt();
+
+        if(extension.compareTo("quorum") != 0) {
+            return null;
+        }
+
+        Project project = FileOwnerQuery.getOwner(fo);
+
+        if(project != null && project instanceof QuorumProject) {
+            QuorumProject qp = (QuorumProject) project;
+            CompilerResult_ lastCompileResult = qp.getLastCompileResult();
+            return lastCompileResult;
+        }
+        return null;
     }
     
     /**
@@ -169,12 +231,5 @@ public class QuorumParser extends Parser{
     
     public ArrayList<Hint_> getFileHints() {
         return fileHints;
-    }
-
-    /**
-     * @return the info
-     */
-    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
-        return info;
     }
 }

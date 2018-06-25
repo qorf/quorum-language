@@ -4,6 +4,12 @@ use Libraries.Containers.Array
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Vector2
 
+/*
+This class records a point (count = 1), a line (count = 2), or a triangle
+(count = 3), which are all simplexes.
+This class is used internally by the class Distance2D to store the current simplex
+that the GJK algorithm is focusing on.
+*/
 class Simplex2D 
     SimplexVertex2D vertex1
     SimplexVertex2D vertex2
@@ -17,6 +23,10 @@ class Simplex2D
         vertices:Add(vertex3)
     end
 
+    /*
+    This action load the Simplex2D that was calculated at the end of the previous
+    iteration of GJK algorithm from the SimplexCache2D object.
+    */
     action ReadCache(SimplexCache2D cache, DistanceProxy2D distanceA, PhysicsPosition2D transformA, DistanceProxy2D distanceB, PhysicsPosition2D transformB)
         count = cache:GetCount()
 
@@ -59,6 +69,11 @@ class Simplex2D
         end
     end
 
+    /*
+    When an interation of the GJK distance calculation is done, the Simplex2D
+    used to calculate the distance is updated. This action temporarity stores
+    the updated Simplex2D object into a SimplexCache2D object. 
+    */
     action WriteCache(SimplexCache2D cache)
         cache:SetMetric(GetMetric())
         cache:SetCount(count)
@@ -73,6 +88,11 @@ class Simplex2D
 
     Vector2 e12
 
+    /*
+    This action finds the direction to look for a simplex vertex to be added to
+    find the closest point between the Minkowski difference of shape A and B
+    and the origin.
+    */
     action GetSearchDirection(Vector2 direction)
         if count = 1
             direction:Set(vertex1:GetSupport()):Scale(-1)
@@ -96,12 +116,15 @@ class Simplex2D
     Vector2 case2
     Vector2 case22
 
+    /*
+    This action finds the closest point on the Minkowski difference to the origin.
+    */
     action GetClosestPoint(Vector2 point)
         if count = 0
             point:SetZero()
-        elseif count = 1
+        elseif count = 1    //when the current simplex is a point
             point:Set(vertex1:GetSupport())
-        elseif count = 2
+        elseif count = 2    //when the current simplex is an edge
             case22:Set(vertex2:GetSupport()):Scale(vertex2:GetBarycentricCoordinate())
             case2:Set(vertex1:GetSupport()):Scale(vertex1:GetBarycentricCoordinate()):Add(case22)
             point:Set(case2)
@@ -115,13 +138,18 @@ class Simplex2D
     Vector2 case3
     Vector2 case33
 
+    /*
+    This action finds the "pointA" and "pointB" variables of the DistanceOutput2D
+    class.
+    */
     action GetWitnessPoints(Vector2 pointA, Vector2 pointB)
         if count = 0
             //nothing
-        elseif count = 1
-            pointA:Set(vertex1:GetSupportA())
+        elseif count = 1    //if simplex is just one point on the Minkowski difference, then the vertex already records support on shape A and shape B 
+            pointA:Set(vertex1:GetSupportA())   
             pointB:Set(vertex1:GetSupportB())
-        elseif count = 2
+        elseif count = 2    //if the simplex is an edge, then closest point on shape A would be a sum of the edge points using barycentric coordinates
+                            //same goes for shape B
             case2:Set(vertex1:GetSupportA()):Scale(vertex1:GetBarycentricCoordinate())
             pointA:Set(vertex2:GetSupportA()):Scale(vertex2:GetBarycentricCoordinate()):Add(case2)
 
@@ -138,6 +166,12 @@ class Simplex2D
         end
     end
 
+    /*
+    This action finds the denominator to normalize the barycentric coordinates with.
+    For a point, don't need to normalize.
+    For a line, the barycentric coordinates are normalized by the length of the line.
+    For a triangle, the barycentric coordinates are normalized by the area of the triangle.
+    */
     action GetMetric returns number
         if count = 0
             return 0
@@ -154,6 +188,9 @@ class Simplex2D
         end
     end
 
+    /*
+    This action finds the closest point on an edge to the origin.
+    */
     action Solve2
         // Solve a line segment using barycentric coordinates.
         //
@@ -214,6 +251,9 @@ class Simplex2D
     Vector2 w2
     Vector2 w3
 
+    /*
+    This action finds the closest point on a triangle to the origin.
+    */
     action Solve3
         w1:Set(vertex1:GetSupport())
         w2:Set(vertex2:GetSupport())
@@ -315,14 +355,23 @@ class Simplex2D
         count = 3
     end
 
+    /*
+    This action gets all of the vertices of the current simplex as an array.
+    */
     action GetVertices returns Array<SimplexVertex2D>
         return vertices
     end
 
+    /*
+    This action returns the number of vertices is in this simplex.
+    */
     action GetCount returns integer
         return count
     end
 
+    /*
+    This action sets the number of vertices in this simplex.
+    */
     action SetCount(integer count)
         me:count = count
     end

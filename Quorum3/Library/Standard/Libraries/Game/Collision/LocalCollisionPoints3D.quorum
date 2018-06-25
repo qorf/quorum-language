@@ -10,10 +10,16 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Physics.CollisionPersistentData
 use Libraries.Game.Physics.all
 
+/*
+This class records at max 4 collision points during one collision between two 
+objects. When more collision points are calculated by the program, the program
+will keep the collision points that causes the deepest penetration.
+This class is also known as the persistent manifold.
+*/
 class LocalCollisionPoints3D
     public constant integer MAX_COLLISION_POINTS = 4
 
-    Array<CollisionPoint3D> points
+    Array<CollisionPoint3D> points  //this array tells you what kind of tact was made
 
     Item3D body0
     Item3D body1
@@ -28,6 +34,12 @@ class LocalCollisionPoints3D
         end
     end
 
+    /*
+    This action records the 3D objects that are involved in the collision into
+    this LocalCollisionPoints3D class and reset the number of collision points
+    recorded to 0 and the index of this LocalCollisionPoints3D (if there is ever
+    an array of LocalCollisionPoints3D) to 0.
+    */
     action Set(Item3D body0, Item3D body1)
         me:body0 = body0
         me:body1 = body1
@@ -35,6 +47,11 @@ class LocalCollisionPoints3D
         index1A = 0
     end
 
+    /*
+    This action returns the CollisionPoint3D and its index that will be replaced
+    when there are more than 4 CollisionPoint3Ds that needs to be stored inside
+    this LocalCollisionPoints3D.
+    */
     private action SortCachedPoints(CollisionPoint3D point) returns integer
         integer maxPenetrationIndex = -1
         number maxPenetration = point:GetDistance()
@@ -149,27 +166,52 @@ class LocalCollisionPoints3D
         return maxIndex
     end
 
+    /*
+    This action returns the first 3D object that is involved in the collision
+    recorded in this LocalCollisionPoints3D.
+    */
     action GetBody0 returns Item3D
         return body0
     end
 
+    /*
+    This action returns the second 3D object that is involved in the collision
+    recorded in this LocalCollisionPoints3D.
+    */
     action GetBody1 returns Item3D
         return body1
     end
 
+    /*
+    This action records the 3D objects that are involved in the collision into
+    this LocalCollisionPoints3D class.
+    */
     action SetBodies(Item3D body0, Item3D body1)
         me:body0 = body0
         me:body1 = body1
     end
 
+    /*
+    This action returns number of collision points being recorded by this
+    LocalCollisionPoints3D.
+    */
     action GetPointCount returns integer
         return pointCount
     end
 
+    /*
+    This action returns a specific collision point based on the array index
+    that you passed in.
+    */
     action GetCollisionPoint(integer index) returns CollisionPoint3D
         return points:Get(index)
     end
 
+    /*
+    This action returns the index of a collision point stored inside this
+    LocalCollisionPoints3D that is closest to the "CollisionPoint3D newPoint"
+    that you passed in.
+    */
     action GetCacheEntry(CollisionPoint3D newPoint) returns integer
         number shortestDistance = GetCollisionBreakingThreshold() * GetCollisionBreakingThreshold()
         integer size = GetPointCount()
@@ -195,6 +237,10 @@ class LocalCollisionPoints3D
         return nearestPoint
     end
 
+    /*
+    This action clears all of the data about forces, impulses, etc. applied at
+    a collision point.
+    */
     action ClearPersistentData(CollisionPoint3D point)
         CollisionPersistentData cpd = point:GetPersistentData()
         if cpd not= undefined
@@ -202,6 +248,9 @@ class LocalCollisionPoints3D
         end
     end
 
+    /*
+    This action adds a new collision point to this LocalCollisionPoints3D.
+    */
     action AddCollisionPoint(CollisionPoint3D newPoint) returns integer
         integer insertIndex = GetPointCount()
         if insertIndex = MAX_COLLISION_POINTS
@@ -219,6 +268,9 @@ class LocalCollisionPoints3D
         return insertIndex
     end
 
+    /*
+    This action deletes a collision point from this LocalCollisionPoints3D.
+    */
     action RemoveCollisionPoint(integer index)
         ClearPersistentData(points:Get(index))
 
@@ -236,6 +288,10 @@ class LocalCollisionPoints3D
         pointCount = pointCount - 1
     end
 
+    /*
+    This action switches out a collision point stored at the "insertIndex" of this
+    LocalCollisionPoints3D with a "newPoint" that you passed in.
+    */
     action ReplaceCollisionPoint(CollisionPoint3D newPoint, integer insertIndex)
         integer lifeTime = points:Get(insertIndex):GetLifeTime()
         number appliedImpulse = points:Get(insertIndex):GetAppliedImpulse()
@@ -253,10 +309,18 @@ class LocalCollisionPoints3D
         points:Get(insertIndex):SetLifeTime(lifeTime)
     end
 
+    /*
+    This action checks whether the distances between objects A and B is small
+    enough for these two objects to be considered as colliding.
+    */
     private action ValidCollisionDistance(CollisionPoint3D point) returns boolean
         return point:GetDistance() <= GetCollisionBreakingThreshold()
     end
 
+    /*
+    This action changes the global coordinates of the collision points on objects
+    A and B.
+    */
     action RefreshCollisionPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB)
         Vector3 tmp
         integer i = GetPointCount() - 1
@@ -306,6 +370,10 @@ class LocalCollisionPoints3D
         end
     end
 
+    /*
+    This action deletes all of the collision points that is stored inside this
+    LocalCollisionPoints3D class.
+    */
     action ClearCollisionPoints
         integer i = 0
         repeat while i < pointCount
@@ -315,14 +383,26 @@ class LocalCollisionPoints3D
         pointCount = 0
     end
 
+    /*
+    This action returns the maximum distance between the two objects for the 
+    two objects to still be considered as touching or colliding.
+    */
     action GetCollisionBreakingThreshold returns number
         return 0.2
     end
 
+    /*
+    This action returns what index this LocalCollisionPoints3D resides in an array
+    if this LocalCollisionPoints3D was ever push into an array of LocalCollisionPoints3Ds.
+    */
     action GetIndexA returns integer
         return index1A
     end
 
+    /*
+    This action sets what index this LocalCollisionPoints3D resides in an array
+    when this LocalCollisionPoints3D is inserted into an array of LocalCollisionPoints3D.
+    */
     action SetIndexA(integer index)
         index1A = index
     end

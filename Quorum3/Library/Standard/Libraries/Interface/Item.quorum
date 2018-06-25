@@ -9,11 +9,13 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.GameStateManager
-use Libraries.Game.Behaviors.Behavior
+use Libraries.Game.InputTable
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Compute.Math
 
 
@@ -26,6 +28,23 @@ use Libraries.Compute.Math
     Attribute: Author William Allee
 */
 class Item 
+    public constant integer ITEM = 0
+    public constant integer CUSTOM = 1
+    public constant integer CHECKBOX = 2
+    public constant integer RADIO_BUTTON = 3
+    public constant integer BUTTON = 4
+    public constant integer TOGGLE_BUTTON = 5
+    public constant integer TEXTBOX = 6
+    public constant integer MENU_BAR = 7
+    public constant integer MENU_ITEM = 8
+    public constant integer PANE = 9
+    public constant integer TREE = 10
+    public constant integer TREE_ITEM = 11
+    public constant integer TOOLBAR = 12
+    public constant integer TAB = 13
+    public constant integer TABPANE = 14
+
+    private integer accessibilityCode = 0
 
     text name = "Unnamed"
     text description = ""
@@ -39,6 +58,9 @@ class Item
     Array<TouchListener> touchListeners
     Array<FocusListener> focusListeners
     Array<Behavior> behaviors
+
+    Item nextFocus = undefined
+    Item previousFocus = undefined
 
     /*
     This action is used internally to allow the Item class to pass actions to
@@ -512,6 +534,7 @@ class Item
     */
     action UpdateAll(number secondsSinceUpdate)
         Update(secondsSinceUpdate)
+        UpdateBehaviors(secondsSinceUpdate)
 
         integer counter = 0
         repeat GetItemCount() times
@@ -527,7 +550,7 @@ class Item
 
             if behavior:IsFinished()
                 behaviors:RemoveAt(counter)
-                behavior:Finish()
+                behavior:Dispose()
             else
                 behavior:Update(seconds)
                 counter = counter + 1
@@ -721,25 +744,13 @@ class Item
         return inputGroup
     end
 
-//    action GetItemAt(number x, number y, number z) returns Item
-//        integer counter = children:GetSize()
-//        Item temp = undefined
-//        boolean found = false
-//        repeat while counter > 0 and not found
-//            counter = counter - 1
-//            temp = children:Get(counter)
-//            temp = temp:GetItemAt(x, y, z)
-//            if temp not= undefined
-//                found = true
-//            end
-//        end
-//
-//        if not found and Contains(x, y, z)
-//            return me
-//        else
-//            return temp
-//        end
-//    end
+    /*
+
+    */
+    action GetInputTable returns InputTable
+        GameStateManager manager
+        return manager:GetGame():GetInputTable(GetInputGroup())
+    end
 
     /*
     This action is used to free up any additional memory that is being used by
@@ -885,7 +896,7 @@ class Item
         event:SetItem(me)
 
         behaviors:Add(behavior)
-        behavior:Begin(event)
+        behavior:Run(event)
     end
 
     /*
@@ -896,4 +907,124 @@ class Item
         behaviors:Empty()
     end
 
+
+    /*
+        This action returns the current accessiblity code for this Item
+    */
+    action GetAccessibilityCode() returns integer
+        return accessibilityCode
+    end
+
+    /*
+        This action changes the accessibility code for this Item. This should be
+        done with care because setting the accessiblity code to the incorrect 
+        type can cause accessibility to stop functioning or, in some cases,
+        cause the program to crash.
+        
+        Attribute: Parameter newAccessibilityCode the new accessibility code for this Item.
+                                                  
+    */
+    action SetAccessibilityCode(integer newAccessibilityCode)
+        if ( newAccessibilityCode < TABPANE + 1 and newAccessibilityCode >= 0)
+            accessibilityCode = newAccessibilityCode
+        end
+    end
+
+    /*
+        This action returns the name of the accessiblity code for this Item as Text
+    */
+    action GetAccessibilityType() returns text
+        if (accessibilityCode = ITEM)
+            return "ITEM"
+        elseif (accessibilityCode = CUSTOM)
+            return "CUSTOM"
+        elseif (accessibilityCode = CHECKBOX)
+            return "CHECKBOX"
+        elseif (accessibilityCode = RADIO_BUTTON)
+            return "RADIO_BUTTON"
+        elseif (accessibilityCode = BUTTON)
+            return "BUTTON"
+        elseif (accessibilityCode = TOGGLE_BUTTON)
+            return "TOGGLE_BUTTON"
+        elseif (accessibilityCode = TEXTBOX)
+            return "TEXTBOX"
+        elseif (accessibilityCode = MENU_BAR)
+            return "MENU_BAR"
+        elseif (accessibilityCode = MENU_ITEM)
+            return "MENU_ITEM"
+        elseif (accessibilityCode = PANE)
+            return "PANE"
+        elseif (accessibilityCode = TREE)
+            return "TREE"
+        elseif (accessibilityCode = TREE_ITEM)
+            return "TREE_ITEM"
+        elseif (accessibilityCode = TOOLBAR)
+            return "TOOLBAR"
+        elseif (accessibilityCode = TAB)
+            return "TAB"
+        elseif (accessibilityCode = TABPANE)
+            return "TABPANE"
+        else
+            return "ITEM"
+        end
+    end
+
+    /*
+    This action sets the next focus item. When this Item has the focus and the
+    user requests the focus to advance (e.g. by pressing the tab key), the focus
+    will move to the next focus item, if it is defined.
+
+    Attribute: Parameter next The next Item to receive focus after this one.
+    */
+    action SetNextFocus(Item next)
+        nextFocus = next
+    end
+
+    /*
+    This action returns the next focus item. When this Item has the focus and 
+    the user requests the focus to advance (e.g. by pressing the tab key), the
+    returned value is the next item to receive that focus, if it is defined.
+    If it isn't defined, the focus can not advance from this Item.
+
+    Attribute: Returns The next Item to receive focus after this one.
+    */
+    action GetNextFocus returns Item
+        return nextFocus
+    end
+
+    /*
+    This action sets the previous focus item. When this Item has the focus and 
+    the user requests the focus to move backwards (e.g. by pressing shift & 
+    tab), the focus will move to the previous focus item, if it is defined.
+
+    Attribute: Parameter previous The previous Item to receive focus before this one.
+    */
+    action SetPreviousFocus(Item previous)
+        previousFocus = previous
+    end
+
+    /*
+    This action returns the previous focus item. When this Item has the focus 
+    and the user requests the focus to move backwards (e.g. by pressing shift & 
+    tab), the returned value is the previous item to receive that focus, if it 
+    is defined. If it isn't defined, the focus can not move backwards from this 
+    Item.
+
+    Attribute: Returns The previous Item to receive focus before this one.
+    */
+    action GetPreviousFocus returns Item
+        return previousFocus
+    end
+
+    /*
+        This action is fired if the item received the focus.
+    */
+    action GainedFocus(FocusEvent event)
+    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+    action LostFocus(FocusEvent event)
+    end
 end

@@ -1,0 +1,606 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Format
+use Libraries.Compute.Math
+
+class FontRasterizer 
+
+    integer pixelSize = 14  // pixel size differs based on resolution, may have to change this
+
+    // Size of EM square
+    integer emSize = 2048  //2048 is standard in TrueType
+    
+    // Dots/points per inch on x axis
+    integer xDotsPerInch = 96   // 96 default 
+    // Dots/points per inch on y axis
+    integer yDotsPerInch = 96   // 96 default
+    // maximum pixelmap size on y axis
+    integer maximumSizeYAxis = 40   // 40 default
+    // maxium pixelmap size on x axis
+    integer maximumSizeXAxis = 40   // 40 default
+
+    integer int = 1337
+    integer xMinimum = int:GetMaximumValue()
+    integer xMaximum = int:GetMinimumValue()
+    integer yMinimum = int:GetMaximumValue()
+    integer yMaximum = int:GetMinimumValue()
+
+    /*
+        returns a drawable to use to display glyph
+    */ 
+    /*
+    action GetDrawable(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns Drawable
+        Format format = SetupFormat()
+        PixelMap pixelmap = SetupPixelMap(format)
+
+        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)
+        pixelmap = RenderCalculatedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false)
+
+        Texture tex
+        tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
+        Drawable d
+        d:Load(tex)
+
+        return d
+    end
+*/
+
+    action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns FontDrawable
+        Format format = SetupFormat()
+        PixelMap pixelmap = SetupPixelMap(format)
+
+        //pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)          // fills in the glyphs
+        pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false)  // draws the glyph outline
+        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)          // fills in the glyphs
+
+        Texture tex
+        tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
+        Drawable d
+        d:Load(tex)
+
+        FontDrawable glyph
+        glyph:SetDrawable(d)
+        glyph:SetXMaximum(xMaximum)
+        glyph:SetYMaximum(yMaximum)
+        glyph:SetXMinimum(xMinimum)
+        glyph:SetYMinimum(yMinimum)
+
+        return glyph
+    end
+
+    // This function fills in the actual glyphs, based on the outline.
+    action RenderRasterizedGlyph(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsperEM, Color color) returns PixelMap
+        Array<Line> linesToDraw = GetLinesToDraw(outline, unitsperEM, offsety)
+        
+        integer i = 0
+        repeat while i < linesToDraw:GetSize()
+            Line line = linesToDraw:Get(i)
+
+            pixelmap:DrawLine(line:GetX1() + offsetx, line:GetY1() - offsety, line:GetX2()+ offsetx, line:GetY2() - offsety, color)
+           
+            i = i + 1
+        end
+
+        return pixelmap
+    end
+
+    /*
+        Renders the outline used for rasterizing the glyph
+
+        Can be used to debug when debug is set to true (shows differently colored outlines) or
+        to add antialiasing to the glyph
+    */
+    action RenderAntiAliasedOutline(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsPerEM, Color color, boolean debug) returns PixelMap
+        
+        GlyphProfile profiles = CreateAntiAliasedGlyphProfile(outline, unitsPerEM)
+
+        HashTable<integer, CoordinateContainer> value = profiles:GetXIntercepts()
+        Iterator<integer> iterator = value:GetKeyIterator()
+        repeat while iterator:HasNext() 
+            integer key = iterator:Next()
+            if key > yMaximum 
+                yMaximum = key
+            end
+            
+            if key < yMinimum
+                yMinimum = key
+            end
+            
+            CoordinateContainer v = value:GetValue(key)
+            //v:RemoveDuplicates()
+            //output v:ToText() // for debugging
+
+            integer i = 0
+            repeat while i < v:GetSize()
+                XCoordinateList xc = v:Get(i)
+                integer j = 0
+                repeat while j < xc:GetSize()
+                    PixelIntersection currentX = xc:Get(j)
+                    if currentX:GetXPosition() > xMaximum
+                        xMaximum = currentX:GetXPosition()
+                    end
+                    if currentX:GetXPosition() < xMinimum
+                        xMinimum = currentX:GetXPosition()
+                    end
+                    if debug
+                        //output "y: " + key + ", x: " + currentX:GetXPosition() + " nonzero: " + xc:GetNonzero()
+                        if xc:GetNonzero() < 0
+                            pixelmap:SetPixel(currentX:GetXPosition()+offsetx, key-offsety, color:Teal())   // teal is negative
+                        end
+                        if xc:GetNonzero() > 0 
+                            pixelmap:SetPixel(currentX:GetXPosition()+offsetx, key-offsety, color:Blue())   // blue is positive
+                        end
+                        if xc:GetNonzero() = 0
+                            pixelmap:SetPixel(currentX:GetXPosition()+offsetx, key-offsety, color:Red())    // red is 0
+                        end
+                    else
+                        Color individualColor 
+                        individualColor:CopyColor(color)
+                        individualColor:SetAlpha(currentX:GetIntensity())
+                        pixelmap:SetPixel(xc:Get(j):GetXPosition()+offsetx, key-offsety, individualColor)  
+                    end
+                    j = j +1
+                end
+                i = i + 1
+            end
+
+        end
+
+        return pixelmap
+    end
+
+    /* 
+        Renders actual outline as contained in font file
+    */
+    action RenderGlyphOutline(integer offsetx, integer offsety,PixelMap pixelmap, BezierCurveGlyphPoints outline, TrueTypeFileInformation file) returns PixelMap
+        
+        Array<CoordinateVector> vectorArray = outline:GetPoints()
+        
+        FontBoundingBox boundingBox = outline:GetBoundingBox()
+        Color color
+
+        integer yCoord = -1
+        integer xCoord = -1
+
+        Array<integer> endpoints = outline:GetContourEndpoints()
+        integer contour = 0
+        repeat while contour < endpoints:GetSize()
+            integer endpoint = endpoints:Get(contour)
+            integer lastEndpoint = 0
+            integer i = 0
+            if contour > 0
+                lastEndpoint = endpoints:Get(contour-1)
+                i = 0 + lastEndpoint + 1
+            end
+            
+
+            repeat while i <= endpoint
+                CoordinateVector tempVec = vectorArray:Get(i)
+
+                xCoord = CalculateCoordinate (tempVec:GetX(), pixelSize, file:GetUnitsPerEm(), 0) +offsetx
+                yCoord = CalculateCoordinate (tempVec:GetY(), pixelSize, file:GetUnitsPerEm(), maximumSizeYAxis) -offsety
+
+                CoordinateVector nextPoint = NextPoint(i, contour, vectorArray, endpoints)
+                integer xNext = CalculateCoordinate (nextPoint:GetX(), pixelSize, file:GetUnitsPerEm(), 0) +offsetx
+                integer yNext = CalculateCoordinate (nextPoint:GetY(), pixelSize, file:GetUnitsPerEm(), maximumSizeYAxis) -offsety
+                if not tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                    // quadratic curve
+                    CoordinateVector lastPoint = PreviousPoint(vectorArray, i)
+
+                    integer xPast = CalculateCoordinate (lastPoint:GetX(), pixelSize, file:GetUnitsPerEm(), 0) +offsetx
+                    integer yPast = CalculateCoordinate (lastPoint:GetY(), pixelSize, file:GetUnitsPerEm(), maximumSizeYAxis) -offsety
+                    // xPast/yPast are start points of the curve, xCoord/yCoord are control points of the curve, xNext/yNext are end points of the curve
+                    DrawFlatCurve(pixelmap, xPast, yPast, xCoord, yCoord, xNext, yNext)
+
+
+                elseif not tempVec:IsOnCurve() and not nextPoint:IsOnCurve()
+                    alert( "This shouldn't be happening, two points not on curve")
+                    // this shouldn't happen because this should be handled while reading the data from file (fill in one point)
+                elseif tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                    // straight line case
+                    pixelmap:DrawLine(xCoord, yCoord, xNext, yNext, color:Yellow())            
+                end
+
+                i = i + 1
+            end
+
+            contour = contour + 1
+        end
+
+        return pixelmap
+    end
+
+    /*
+        called by RenderGlyphOutline (non-anti-aliasing) action to calculate 
+        <x, y> coordinate with respect to screen size 
+    */
+    private action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screenSize) returns integer
+        if screenSize = 0
+           return gridCoordinate * pixelSize / emSize
+        end
+        return screenSize - gridCoordinate * pixelSize / emSize
+    end
+
+    /*
+        returns next point on contour relative to last
+    */
+    private action NextPoint(integer i, integer contour, Array<CoordinateVector> vectorArray, Array<integer> endpoints) returns CoordinateVector
+        if endpoints:Get(contour) = i and contour > 0
+            return vectorArray:Get(endpoints:Get(contour-1)+1)
+        elseif endpoints:Get(contour) = i and contour = 0
+            return vectorArray:Get(0)
+        end
+        return vectorArray:Get(i+1)
+    end
+    
+    /* This may be the new function to implement de Casteljau's algorithm
+    General idea:
+        create an array
+        get the midpoints of the line
+        check if the line is curved enough
+        if it is, add the points to the array
+            otherwise, recursively subdivide the line until it is curved enough
+    */
+    private action FlatCurveAlgorithm(number startX, number startY, number controlX, number controlY, number endX, number endY, Array<CoordinateVector> vals)
+        Math absoluteValue
+
+        // Midpoints of the lines between start/end and control points
+        number xStartToxControlMid = (startX + controlX) / 2
+        number yStartToyControlMid = (startY + controlY) / 2
+        number xControlToxEndMid = (controlX + endX) / 2
+        number yControlToyEndMid = (controlY + endY) / 2
+        number xMidToxMid = (xStartToxControlMid + xControlToxEndMid) /2
+        number yMidToyMid = (yStartToyControlMid + yControlToyEndMid) /2
+
+        number dx = endX-startX
+        number dy = endY-startY
+        number d = absoluteValue:AbsoluteValue(((controlX-endX)*dy-(controlY-endY)*dx))
+        
+        // need to add end points to the array
+        if(d*d <= (dx*dx + dy*dy))
+            CoordinateVector vector
+            vector:SetX(cast(integer, endX))
+            vector:SetY(cast(integer, endY))
+            vals:Add(vector)
+        else
+            FlatCurveAlgorithm(startX, startY, xStartToxControlMid, yStartToyControlMid, xMidToxMid, yMidToyMid, vals)
+            FlatCurveAlgorithm(xMidToxMid, yMidToyMid, xControlToxEndMid, yControlToyEndMid, endX, endY, vals)
+        end
+    end
+
+    action GetLinesToDraw(BezierCurveGlyphPoints outline, integer unitsPerEM, integer offsety) returns Array<Line>
+        GlyphProfile profile = CreateAntiAliasedGlyphProfile(outline, unitsPerEM)
+
+        Array<Line> linesToDraw
+
+
+        integer ypixel = 0
+        Iterator<integer> ite = profile:GetKeyIterator()
+        repeat while ite:HasNext()
+            ypixel = ite:Next()
+
+
+            if profile:HasY(ypixel)
+                CoordinateContainer matches = profile:GetXInterceptAtY(ypixel)
+                integer nonzerorule = 0
+                integer i = 0
+                repeat while i < matches:GetSize()
+
+                    XCoordinateList current = matches:Get(i)
+                    XCoordinateList next
+                   
+                    if current:GetNonzero() = 0
+                        Line l
+                        l:SetPoint1(current:Get(0):GetXPosition()+1, ypixel)    // REMOVE THE +1 AND -1 FROM THE X COORDINATES, POSSIBLY
+                        l:SetPoint2(current:GetLast():GetXPosition()-1, ypixel)
+                        linesToDraw:Add(l)
+                    end
+
+                    nonzerorule = nonzerorule + current:GetNonzero()
+
+                    if not (nonzerorule = 0)
+                        Line l
+
+                        l:SetPoint1(current:Get(0):GetXPosition()+1, ypixel) // first in list because left side
+                        if not (matches:GetSize() <= i + 1)
+                            next = matches:Get(i+1)
+
+                            l:SetPoint2(next:GetLast():GetXPosition()-1, ypixel) //last in list because right side
+                            linesToDraw:Add(l)
+                        end
+                    end
+
+
+                    i = i + 1
+                end
+
+            end
+        end
+
+        return linesToDraw
+    end
+
+    // Uses anti-aliased line algorithm
+    action CreateAntiAliasedGlyphProfile(BezierCurveGlyphPoints outline, integer unitsPerEM) returns GlyphProfile
+        GlyphProfile profile
+        
+        Array<Line> lines = FlattenOutline(outline) // this currently has some erroneous lines, such as from (0, 0) to (0, 0). Removing doesn't seem to fix anything, though.
+        integer oldNonZero = 1
+
+        // testing converting the outline coordinates to smaller coordinates before doing any work on them
+        // does not seem to be beneficial at all, no difference in the outline
+        /*
+        integer k = 0
+        repeat while k < lines:GetSize()
+            Line l = lines:Get(k)
+            l:SetX1(l:CalculateCoordinate(l:GetX1(), pixelSize, emSize, 0))
+            l:SetX2(l:CalculateCoordinate(l:GetX2(), pixelSize, emSize, 0))
+            l:SetY1(l:CalculateCoordinate(l:GetY1(), pixelSize, emSize, maximumSizeYAxis))
+            l:SetY2(l:CalculateCoordinate(l:GetY2(), pixelSize, emSize, maximumSizeYAxis))
+            k = k + 1
+        end
+        */
+        // end testing
+
+        integer i = 0
+        repeat while i < lines:GetSize() and lines:GetSize() < 10000
+            Line line = lines:Get(i)
+            //output line:ToText()
+
+
+            //HashTable<integer, XCoordinateList> xintercepts = line:BresenhamLineAlgorithm(line:GetX1(), line:GetY1(), line:GetX2(), line:GetY2())
+            HashTable<integer, XCoordinateList> xintercepts = line:GetXInterceptsNumber(pixelSize, pixelSize, unitsPerEM, maximumSizeYAxis, oldNonZero)   
+            Iterator<integer> keyiterator = xintercepts:GetKeyIterator()
+            repeat while keyiterator:HasNext()
+                integer key = keyiterator:Next()
+                XCoordinateList value = xintercepts:GetValue(key)
+                boolean test = profile:AddCoordinatesAt(key, value)
+                oldNonZero = xintercepts:GetValue(key):GetNonzero()
+            end
+
+            i = i + 1
+        end
+
+        return profile
+    end
+
+    action FlattenOutline (BezierCurveGlyphPoints outline) returns Array<Line>
+        Array<Line> lines
+        
+        Array<CoordinateVector> vectorArray = outline:GetPoints()
+
+        Array<integer> endpoints = outline:GetContourEndpoints()
+        integer contour = 0
+        repeat while contour < endpoints:GetSize()
+            integer endpoint = endpoints:Get(contour)
+            integer lastEndpoint = 0
+            integer i = 0
+            if contour > 0
+                lastEndpoint = endpoints:Get(contour-1)
+                i = 0 + lastEndpoint + 1
+            end
+            
+
+            repeat while i <= endpoint
+                CoordinateVector tempVec = vectorArray:Get(i)
+
+                xCoord = tempVec:GetX()
+                yCoord = tempVec:GetY()
+
+                CoordinateVector nextPoint = NextPoint(i, contour, vectorArray, endpoints)
+                xNext = nextPoint:GetX()
+                yNext = nextPoint:GetY()
+
+                if not tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                    // quadratic curve
+                    CoordinateVector lastPoint = PreviousPoint(vectorArray, i)
+
+                    integer xPast = lastPoint:GetX()
+                    integer yPast = lastPoint:GetY()
+                    AddAll(lines, GetFlatCurve(xPast, yPast, xCoord, yCoord, xNext, yNext))
+
+                elseif not tempVec:IsOnCurve() and not nextPoint:IsOnCurve()
+                    // this shouldn't happen because this should be handled while reading the data from file (fill in one point)
+                elseif tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                    // straight line case
+                    Line l
+                    l:SetPoint1(xCoord, yCoord)
+                    l:SetPoint2(xNext, yNext)
+                    lines:Add(l)
+                end
+
+                i = i + 1
+            end
+
+            contour = contour + 1
+        end
+
+        
+        return lines
+    end
+    
+
+    action AddAll(Array<Line> original, Array<Line> toAdd)
+        integer i = 0
+        repeat while i < toAdd:GetSize() 
+            original:Add(toAdd:Get(i))
+            i = i + 1 
+        end
+    end
+
+    action GetFlatCurve(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3) returns Array<Line>
+        Array<CoordinateVector> vals
+        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals)
+        Array<Line> lines
+    
+        Line l0
+        l0:SetPoint1(x1,y1)
+        l0:SetPoint2(vals:Get(0):GetX(), vals:Get(0):GetY())
+        lines:Add(l0)
+
+        integer i = 0
+        repeat while i < vals:GetSize()
+            integer xCoord = vals:Get(i):GetX()
+            integer yCoord = vals:Get(i):GetY()
+            
+            integer xNext = -1
+            integer yNext = -1
+
+            if i < vals:GetSize() - 1
+                CoordinateVector next = vals:Get(i+1)
+                xNext = next:GetX()
+                yNext = next:GetY()
+            else 
+                xNext = x3
+                yNext = y3
+            end
+
+
+            Line l
+            l:SetPoint1(xCoord,yCoord)
+            l:SetPoint2(xNext, yNext)
+            lines:Add(l)
+            //output "Line has start and finish coordinates: (" + xCoord + ", " + yCoord + "), (" + xNext + ", " + yNext + ")."
+        
+            i = i + 1 
+        end 
+        return lines
+    end
+
+
+    action DrawFlatCurve(PixelMap pixelmap, integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
+        Array<CoordinateVector> vals
+        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals)
+        Color color
+        pixelmap:DrawLine(x1, y1, vals:Get(0):GetX(), vals:Get(0):GetY(), color:Yellow())
+
+        integer i = 0
+        repeat while i < vals:GetSize()
+            integer xCoord = vals:Get(i):GetX()
+            integer yCoord = vals:Get(i):GetY()
+            
+            integer xNext = -1
+            integer yNext = -1
+
+            if i < vals:GetSize() - 1
+                CoordinateVector next = vals:Get(i+1)
+                xNext = next:GetX()
+                yNext = next:GetY()
+            else 
+                xNext = x3
+                yNext = y3
+            end
+
+            pixelmap:DrawLine(xCoord, yCoord, xNext, yNext, color:Yellow())
+        
+            i = i + 1 
+        end
+    end
+
+    action BezierCoordinate(number t, integer c1, integer c2, integer c3) returns number
+        number tSq = t * t
+        number mt = 1 - t
+        number mtSq = mt * mt
+        return c1 * mtSq + c2 * 2 * mt * t + c3 * tSq
+    end
+
+    action PreviousPoint(Array<CoordinateVector> array, integer i) returns CoordinateVector
+        if i = 0
+            return array:Get(array:GetSize()-1)
+        end
+
+        return array:Get(i-1)
+    end
+
+    action NextPoint (Array<CoordinateVector> array, integer i) returns CoordinateVector
+        
+        if i = array:GetSize()-1
+            return array:Get(0)
+        end
+
+        return array:Get(i+1)
+    end
+
+
+    action SetupPixelMap (Format format) returns PixelMap
+        Color color
+        PixelMap map
+    
+        integer width = maximumSizeXAxis
+        integer height = maximumSizeYAxis
+
+        map:SetColor(color:Black())
+        map:CreatePixelMap(width, height, format)
+        //map:FillRectangle(0, 0, width, height, color:CustomColor(1, 1, 1, 0.2))
+
+        return map
+    end
+
+    action SetupFormat () returns Format
+        Format format
+        format:SetValue(format:RGBA8888)
+        return format
+    end
+
+    action SetEmSize(integer emSize) 
+        me:emSize = emSize
+    end
+
+    action GetEmSize() returns integer
+        return me:emSize
+    end
+
+    action SetMaxYSize(integer maxSizeY)
+        me:maximumSizeYAxis = maxSizeY
+    end
+    
+    action GetMaxYSize() returns integer
+        return me:maximumSizeYAxis
+    end
+
+    action SetMaxXSize(integer maxSizeX)
+        me:maximumSizeXAxis = maxSizeX
+    end
+
+    action GetMaxXSize() returns integer
+        return me:maximumSizeXAxis
+    end
+
+    action SetXDotsPerInch (integer xdpi)
+        me:xDotsPerInch = xdpi
+    end
+
+    action GetXDotsPerInch() returns  integer
+        return me:xDotsPerInch
+    end
+
+    action SetYDotsPerInch (integer ydpi)
+        me:yDotsPerInch = ydpi
+    end
+
+    action GetYDotsPerInch () returns integer
+        return me:yDotsPerInch
+    end
+
+    action SetSize(integer size)
+       me:pixelSize = size  
+       me:maximumSizeXAxis = cast(integer, 2*size)
+       me:maximumSizeYAxis = cast(integer, 1.5*size)
+    end
+
+    action GetSize returns integer
+        return me:pixelSize
+    end
+
+    action SetPointSize(integer pointSize) 
+       SetSize(cast(integer,(pointSize*yDotsPerInch)/72))
+    end
+
+end

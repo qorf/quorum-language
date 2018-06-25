@@ -6,6 +6,7 @@ use Libraries.Language.Compile.Location
 use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Library
 
 /*
     Ths SymbolTable class stores all pertinent information about a compile 
@@ -20,7 +21,30 @@ class SymbolTable
     HashTable<text, Source> files
     HashTable<text, Class> classes
     HashTable<text, HashTable<text, Class>> packages
+    Library library = undefined
     SymbolTable standardLibraryCache = undefined
+    
+    /*
+        This action gathers all of the classes from the table variable and puts
+        them into this symbol table, clearing out the table before starting. This
+        action only copies the classes.
+    */
+    action SetTo(SymbolTable table)
+        Empty()
+        Iterator<Class> iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            Add(clazz)
+        end
+    end
+
+    action Empty
+        files:Empty()
+        classes:Empty()
+        packages:Empty()
+        library = undefined
+        standardLibraryCache = undefined
+    end
 
     /*
         This stores the standard library cache. It contains any classes 
@@ -109,6 +133,20 @@ class SymbolTable
         HashTable<text, Class> thePackage = packages:GetValue(pack)
         thePackage:Add(clazz:GetName(), clazz)
         return undefined
+    end
+
+    /*
+        This action returns a copy of the symbol table. Each class object 
+        inside of the table is a shallow copy of the original.
+    */
+    action Copy returns SymbolTable
+        SymbolTable table
+        Iterator<Class> iterator = GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            table:Add(clazz)
+        end
+        return table
     end
 
     action GetClasses returns Iterator<Class>

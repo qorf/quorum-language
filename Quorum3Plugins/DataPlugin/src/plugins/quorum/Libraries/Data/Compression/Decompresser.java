@@ -46,8 +46,10 @@ public class Decompresser {
     }
     
     public void DecompressZip(File_ input) {
+        File myFile = new File(input.GetAbsolutePath());
+        String parent = myFile.getParent() + "/";
         try {
-            String path = input.GetAbsolutePath();
+            String path = myFile.getAbsolutePath();
             ZipFile zip = new ZipFile(path);
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while(entries.hasMoreElements()) {
@@ -55,10 +57,18 @@ public class Decompresser {
                 String name = next.getName();
                 //ignore the junk on mac if it exists
                 if(!name.startsWith("__MACOSX")) {
-                    String entryPath = input.GetWorkingDirectory() + "/" + next.getName();
-                    InputStream stream = zip.getInputStream(next);
-                    write(entryPath, stream);
-                    stream.close();
+                    String entryPath = parent + name;
+                    if(next.isDirectory()) {
+                        File file = new File(entryPath);
+                        if(!file.exists()) {
+                            file.mkdirs();
+                        }
+                    } else {
+                        File file = new File(entryPath);
+                        InputStream stream = zip.getInputStream(next);
+                        write(entryPath, stream);
+                        stream.close();
+                    }
                 }
             }
         } catch (FileNotFoundException ex) {

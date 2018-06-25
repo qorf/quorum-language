@@ -17,7 +17,6 @@ import org.netbeans.modules.parsing.spi.SchedulerEvent;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
-import quorum.Libraries.Language.Compile.ProjectInformation;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
@@ -47,10 +46,13 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
         }
         
         CompilerResult_ quorumResult = parserResult.getRecentResult();
-        ProjectInformation info = parserResult.getInfo();
-        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
-        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
         if(quorumResult == null) {
+            return;
+        }
+        //ProjectInformation info = parserResult.getInfo();
+        String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();//info.Get_Libraries_Language_Compile_ProjectInformation__source_();
+        File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();//info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
+        if(quorumResult == null || loc == null) {
             return;
         }
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();

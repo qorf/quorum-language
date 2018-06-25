@@ -5,6 +5,8 @@ use Libraries.Containers.List
 use Libraries.System.File
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Hints.Hint
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.OrderedList
 
 class CompilerErrorManager
     integer numberOfErrors = 0
@@ -120,5 +122,35 @@ class CompilerErrorManager
     action EmptyHints
         numberOfHints = 0
         hintsPerFile:Empty()
+    end
+
+    action GetCompilerErrorsAsText returns text
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
+        Iterator<CompilerError> errors = GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetDisplayName()
+            result = result + EOL + t
+        end
+        return result
+    end
+
+    action GetCompilerErrorsAsHTML returns text
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        Iterator<CompilerError> errors = GetIterator()
+        Division division
+        division:SetClassAttribute("compilerErrorList")
+        division:AddParagraph("I did not understand:")
+        OrderedList list
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetShortDisplayName()
+            list:AddListItem(t)
+        end
+        division:Add(list)
+        return division:Generate()
     end
 end

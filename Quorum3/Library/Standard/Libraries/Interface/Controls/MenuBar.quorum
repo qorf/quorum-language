@@ -1,0 +1,372 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.MenuSelection
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.MenuItemView
+use Libraries.Interface.Views.DefaultMenuItemView
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.MenuChangeListener
+use Libraries.Containers.Array
+use Libraries.Containers.Support.Pair
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Color
+use Libraries.Game.GameStateManager
+
+class MenuBar is Item2D
+    Layout defaultLayout = undefined
+    MenuItemView defaultMenuAppearance = undefined
+    MenuItemView defaultItemAppearance = undefined
+    View2D panelAppearance = undefined
+    Array<MenuItem> menus
+
+    boolean isSelecting = false
+
+    MenuSelection selection
+
+    Array<MenuChangeListener> listeners
+
+    on create
+        FlowLayout layout
+        layout:SetWrapping(true)
+        defaultLayout = layout
+        defaultLayout:SetPercentageWidth(1)
+        defaultLayout:SetWidthOffset(2)
+        defaultLayout:SetOffsetX(-1)
+        defaultLayout:SetPercentageY(1)
+        defaultLayout:SetOffsetY(1)
+        defaultLayout:SetOffsetY(-GetHeight() + 1)
+        AddLayout(defaultLayout)
+
+        SetInputGroup("MenuBar")
+
+        // Necessary for keyboard input to work correctly.
+        SetFocusable(true)
+
+        selection:Initialize(me)
+        SetAccessibilityCode(parent:Item:MENU_BAR)
+    end
+
+    action Initialize
+        LabelBoxView defaultBar
+        defaultBar:SetBorderThickness(1)
+        defaultBar:SetText("")
+        Color color
+        Gradient gradient
+        
+        Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+
+        gradient:Set(gray, gray, lightGray, lightGray)
+        defaultBar:Initialize(gradient, color:Black())
+
+        SetView2D(defaultBar)
+        Resize()
+
+        DefaultMenuItemView menuView
+        menuView:Initialize("Unnamed")
+        defaultMenuAppearance = menuView
+
+        LabelBoxView panelView
+        panelView:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Gray())
+        panelView:SetBorderThickness(1)
+        panelAppearance = panelView
+
+        DefaultMenuItemView itemView
+        itemView:Initialize("Unnamed")
+        defaultItemAppearance = itemView
+    end
+
+    action Initialize(Array<MenuItem> menuHeaders)
+        Initialize()
+        
+        integer counter = 0
+        repeat while counter < menuHeaders:GetSize()
+            MenuItem menu = menuHeaders:Get(counter)
+
+            AddMenuItem(menu)
+
+            counter = counter + 1
+        end
+
+        Resize()
+    end
+
+    action Initialize(View2D bar, MenuItemView menus, View2D panels, MenuItemView items)
+        SetView2D(bar)
+        defaultMenuAppearance = menus
+        defaultItemAppearance = items
+        panelAppearance = panels
+        Resize()
+    end
+
+    action Resize
+        if defaultLayout not= undefined
+            defaultLayout:SetOffsetY(-GetHeight() + 1)
+            defaultLayout:SetHeightOffset(GetHeight())
+        end
+        parent:Item2D:Resize()
+    end
+
+    action AddMenuItem(MenuItem item)
+        if item:GetView2D() = undefined
+            MenuItemView content = cast(MenuItemView, defaultMenuAppearance:Copy())
+            item:SetAppearance(content)
+        end
+
+        menus:Add(item)
+        Add(item)
+        item:SetMenuBar(me)
+
+        item:SetMenuAppearance(defaultItemAppearance)
+    end
+
+    action GetSelection returns MenuSelection
+        return selection
+    end
+
+    action GetMultipleSelection returns Array<MenuSelection>
+        return undefined
+    end
+
+    action HasMultipleSelection returns boolean
+        return false
+    end
+
+    action Close
+        integer counter = 0
+        repeat while counter < menus:GetSize()
+            menus:Get(counter):Close()
+            counter = counter + 1
+        end
+        SetSelectingState(false)
+    end
+
+    action Select(Array<MenuItem> path)
+        if path:IsEmpty()//if the user sent an empty path, deselect everything 
+            Deselect()
+            return now
+        end
+        Array<MenuItem> pathCopy = path:CopyToArray()
+        MenuItem item = undefined
+
+        if not path:IsEmpty()
+            item = path:RemoveFromFront()
+        end
+
+        Array<MenuItem> selectionPath = selection:GetPath()
+        MenuItem oldItem = undefined
+
+        if not selectionPath:IsEmpty()
+            oldItem = selectionPath:RemoveFromFront()
+        end
+
+        if item not= undefined
+            if item = oldItem
+                item:UpdateSelection(selectionPath, path)
+            else
+                if oldItem not= undefined
+                    oldItem:RecursiveDeselect(selectionPath)
+                end
+                item:RecursiveSelect(path)
+            end
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(item)
+
+        // Set our selection object with the new path, triggering a selection
+        // event.
+        selection:Set(pathCopy)
+    end
+
+    action Deselect
+        MenuSelection selection = GetSelection()
+        Deselect(selection:GetPath())
+    end
+
+    private action Deselect(Array<MenuItem> path)
+        MenuItem item = undefined
+        if not path:IsEmpty()
+            item = path:RemoveFromFront()
+        end
+
+        if item not= undefined
+            item:RecursiveDeselect(path)
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(item)
+
+        Array<MenuItem> newPath
+        selection:Set(newPath)
+    end
+
+    private action GetMenuItem(Array<MenuItem> path) returns MenuItem
+        if not path:IsEmpty()
+            return path:GetFromEnd()
+        end
+        return undefined
+    end
+
+    action GetDefaultMenuHeaderView returns MenuItemView
+        return defaultMenuAppearance
+    end
+
+    action GetDefaultMenuItemView returns MenuItemView
+        return defaultItemAppearance
+    end
+
+    action IsSelecting returns boolean
+        return isSelecting
+    end
+
+    action SetSelectingState(boolean selecting)
+        if selecting = false
+            selection:Empty()
+        end
+        isSelecting = selecting
+    end
+
+    action MoveSelectionLeft
+        Array<MenuItem> path = selection:GetPath()
+        if path:GetSize() <= 2
+            MenuItem name = path:Get(0)
+            boolean shouldOpen = name:IsOpen()
+            integer counter = 0
+            repeat while counter < menus:GetSize()
+                Item2D menu = menus:Get(counter)
+                if menu:Equals(name)
+                    integer index = counter - 1
+                    if index < 0
+                        index = menus:GetSize() - 1
+                    end
+                    path:Set(0, menus:Get(index))
+                    if shouldOpen
+                        menus:Get(index):Open()
+                    else
+                        menus:Get(index):Close()
+                    end
+                    Select(path)
+                    return now
+                end
+                counter = counter + 1
+            end
+        else
+            path:RemoveFromEnd()
+            Select(path)
+        end
+    end
+
+    action MoveSelectionRight
+        // Do a copy so modifying it here doesn't have side effects on the
+        // original selection (we need to preserve it for Select to use).
+        Array<MenuItem> path = selection:GetPath():CopyToArray()
+        if path:GetSize() = 1
+            MenuItem name = path:Get(0)
+            boolean shouldOpen = name:IsOpen()
+            integer counter = 0
+            repeat while counter < menus:GetSize()
+                Item2D menu = menus:Get(counter)
+                if menu:Equals(name)
+                    integer index = (counter + 1) mod menus:GetSize()
+                    path:Set(0, menus:Get(index))
+                    if shouldOpen
+                        menus:Get(index):Open()
+                    else
+                        menus:Get(index):Close()
+                    end
+                    Select(path)
+                    return now
+                end
+                counter = counter + 1
+            end
+        elseif path:GetSize() > 1
+            MenuItem item = GetMenuItem(path)
+            if item:IsMenu()
+                if not item:IsOpen()
+                    item:Open()
+                end
+                item:GetMenuItems():Next():Select()
+            else
+                MenuItem name = path:Get(0)
+                integer counter = 0
+                boolean shouldOpen = name:IsOpen()
+                repeat while counter < menus:GetSize()
+                    Item2D menu = menus:Get(counter)
+                    if menu:Equals(name)
+                        integer index = (counter + 1) mod menus:GetSize()
+                        path:Empty()
+                        path:Add(menus:Get(index))
+                        if shouldOpen
+                            menus:Get(index):Open()
+                        else
+                            menus:Get(index):Close()
+                        end
+                        Select(path)
+                        return now
+                    end
+                    counter = counter + 1
+                end
+            end
+        elseif not menus:IsEmpty()
+            Array<MenuItem> array
+            array:Add(menus:Get(0))
+            Select(array)
+        end
+    end
+
+    action MoveSelectionDown
+        MenuItem item = GetMenuItem(selection:GetPath())
+        item:MenuSelectionDown()
+    end
+
+    action MoveSelectionUp
+        MenuItem item = GetMenuItem(selection:GetPath())
+        item:MenuSelectionUp()
+    end
+
+    action ActivateSelection
+        if IsSelecting()
+            MenuItem item = GetMenuItem(selection:GetPath())
+            if item:IsMenu()
+                item:Open()
+            else
+                item:Activate()
+                Close()
+            end
+        end
+    end
+
+    action AddMenuChangeListener(MenuChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveMenuChangeListener(MenuChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    action NotifyMenuChangeListeners(MenuChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedMenu(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedMenu(event)
+                counter = counter + 1
+            end
+        end
+
+        GameStateManager manager
+        manager:GetInput():NotifyMenuChangeListeners(event)
+    end
+end

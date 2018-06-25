@@ -25,6 +25,7 @@ import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Source;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.quorum.projects.QuorumProject;
 import quorum.Libraries.Language.Compile.CodeCompletionItem_;
 import quorum.Libraries.Language.Compile.CodeCompletionRequest;
 import quorum.Libraries.Language.Compile.CodeCompletionResult_;
@@ -67,6 +68,9 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
             int caretOffset = context.getCaretOffset();
             request.caretLocation = caretOffset;
             request.source = string;
+            QuorumProject qp = (QuorumProject) project;
+            request.result = qp.getLastCompileResult();
+            request.lastCompiledResult = qp.getLastGoodCompileResult();
             String prefix = context.getPrefix();
             boolean caseSensitive = context.isCaseSensitive();
                 

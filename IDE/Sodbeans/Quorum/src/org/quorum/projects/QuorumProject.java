@@ -43,10 +43,16 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
+import org.quorum.actions.SendToAndroidApplication;
 import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
+import org.quorum.actions.SendToSignedAndroidApplication;
 import org.quorum.support.Utility;
+import quorum.Libraries.Language.Compile.CompilerRequest;
+import quorum.Libraries.Language.Compile.CompilerRequest_;
+import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.System.File_;
+import quorum.Libraries.Language.Compile.Library_;
 
 /**
  *
@@ -73,7 +79,14 @@ public class QuorumProject implements Project {
     public static final String QUORUM_IPHONE_PROVISION = "Quorum_IPhone_Provision";
     public static final String QUORUM_IPHONE_SIGNING_KEY = "Quorum_IPhone_Signing_Key";
     public static final String QUORUM_MOBILE_ASSETS_FOLDER = "Quorum_Mobile_Assets_Folder";
-
+    
+    public static final String QUORUM_ANDROID_PATH = "Quorum_Android_Path";
+    public static final String QUORUM_ANDROID_KEYSTORE_PATH = "Quorum_Android_Keystore_Path";
+    public static final String QUORUM_ANDROID_KEYSTORE_PASSWORD = "Quorum_Android_Keystore_Password";
+    public static final String QUORUM_ANDROID_KEY_ALIAS = "Quorum_Android_Key_Alias";
+    public static final String QUORUM_ANDROID_KEY_PASSWORD = "Quorum_Android_Key_Password";
+    public static final String QUORUM_ANDROID_ALTERNATE_JDK = "Quorum_Android_Alternate_JDK";
+    
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";
 
@@ -88,6 +101,13 @@ public class QuorumProject implements Project {
     private String iPhoneProvisioningKey = "";
     private String iPhoneSigningKey = "";
     
+    private String androidPath = "";
+    private String androidKeystorePath = "";
+    private String androidKeystorePassword = "";
+    private String androidKeyAlias = "";
+    private String androidKeyPassword = "";
+    private String androidAlternateJDK = "";
+    
     public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
@@ -98,6 +118,8 @@ public class QuorumProject implements Project {
     private Document document;
     private Debug debug;
     private SendToIPhoneApplication sendToIPhoneApplication;
+    private SendToAndroidApplication sendToAndroidApplication;
+    private SendToSignedAndroidApplication sendToSignedAndroidApplication;
     private SendToIPhoneSimulator sendToIPhoneSimulator;
     private Build build;
     private Clean clean;
@@ -108,6 +130,11 @@ public class QuorumProject implements Project {
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
     private quorum.Libraries.Language.Compile.CompilerResult_ sandboxResult = null;
     private ArrayList<quorum.Libraries.System.File> extraSourceFiles = new ArrayList<quorum.Libraries.System.File>();
+    private static quorum.Libraries.Language.Compile.Library_ quorumStandardLibrary = null;
+    private Library_ myProjectsLibrary = null;
+    private File_ mainFile = null;
+    private CompilerResult_ lastCompileResult;
+    private CompilerResult_ lastGoodCompileResult;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -133,15 +160,37 @@ public class QuorumProject implements Project {
         debug = new Debug(this);
         build = new Build(this);
         sendToIPhoneApplication = new SendToIPhoneApplication(this);
+        sendToAndroidApplication = new SendToAndroidApplication(this);
+        sendToSignedAndroidApplication = new SendToSignedAndroidApplication(this);
         sendToIPhoneSimulator = new SendToIPhoneSimulator(this);
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
         run = new Run(this);
         
         //now index the standard library
-        compiler.ScanStandardLibrary();
+        //ask the compiler for a copy of its standard library
+        //if it's not been scanned, scan it. Otherwise, use a pre-scanned one.
+        if(quorumStandardLibrary == null) {
+            //compiler.ScanStandardLibrary();
+            quorumStandardLibrary = new quorum.Libraries.Language.Compile.Library();
+            quorumStandardLibrary.SetCachingLibraryOpcodes(true);
+            quorumStandardLibrary.SetLocation(standardLibrary);
+            
+            quorum.Libraries.System.File outputLocation = new quorum.Libraries.System.File();
+            outputLocation.SetWorkingDirectory(standardInNB.getAbsolutePath());
+            outputLocation.SetPath("Compiled");
+            quorumStandardLibrary.SetOutputFolder(outputLocation);
+            quorumStandardLibrary.Scan();
+            myProjectsLibrary = quorumStandardLibrary;
+        } else {
+            myProjectsLibrary = quorumStandardLibrary;
+        }
     }
 
+    public Library_ GetStandardLibrary() {
+        return myProjectsLibrary;
+    }
+    
     public QuorumProjectType getProjectType() {
         return projectType;
     }
@@ -150,13 +199,13 @@ public class QuorumProject implements Project {
         projectType = type;
     }
     
-    public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
-        return sandboxResult;
-    }
-    
-    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult_ result) {
-        sandboxResult = result;
-    }
+//    public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
+//        return sandboxResult;
+//    }
+//    
+//    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult_ result) {
+//        sandboxResult = result;
+//    }
     
     @Override
     public FileObject getProjectDirectory() {
@@ -198,15 +247,15 @@ public class QuorumProject implements Project {
         return lookup;
     }
 
-    public String getExecutableLocation() {
+    public String getExecutableLocation(CompilerRequest_ request) {
         File_ output = getCompiler().GetRunFolder();
         String path = output.GetAbsolutePath();
         
-        return path + "/" + getCompiler().GetName() + getCompiler().GetFileExtension();
+        return path + "/" + getExecutableName(request);
     }
     
-    public String getExecutableName() {
-        return getCompiler().GetName() + getCompiler().GetFileExtension();
+    public String getExecutableName(CompilerRequest_ request) {
+        return request.GetName(getCompiler().GetName());
     }
     
     public String getExecutableNameNoExtension() {
@@ -235,7 +284,8 @@ public class QuorumProject implements Project {
             try {
                 properties.load(fob.getInputStream());
             } catch (Exception e) {
-                Exceptions.printStackTrace(e);
+                //this seems to throw an error on various kinds of loads. Just ignore it.
+                //Exceptions.printStackTrace(e);
             }
         }
         
@@ -275,11 +325,26 @@ public class QuorumProject implements Project {
         setiPhoneProvisioningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION));
         setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
         
+        setAndroidPath(properties.getProperty(QuorumProject.QUORUM_ANDROID_PATH));
+        setAndroidKeystorePath(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PATH));
+        setAndroidKeystorePassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEYSTORE_PASSWORD));
+        setAndroidKeyAlias(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_ALIAS));
+        setAndroidKeyPassword(properties.getProperty(QuorumProject.QUORUM_ANDROID_KEY_PASSWORD));
+        setAndroidAlternateJDK(properties.getProperty(QuorumProject.QUORUM_ANDROID_ALTERNATE_JDK));
+        
         return properties;
     }
     
     public Iterator<quorum.Libraries.System.File> getExtraSourceFiles() {
         return extraSourceFiles.iterator();
+    }
+    
+    public File_ GetMain() {
+        return mainFile;
+    }
+    
+    public void SetMain(File_ main) {
+        mainFile = main;
     }
     
     public void resetSources(String sources) {
@@ -352,6 +417,14 @@ public class QuorumProject implements Project {
      */
     public SendToIPhoneApplication getSendToIPhoneApplication() {
         return sendToIPhoneApplication;
+    }
+    
+    public SendToAndroidApplication getSendToAndroidApplication() {
+        return sendToAndroidApplication;
+    }
+    
+    public SendToSignedAndroidApplication getSendToSignedAndroidApplication() {
+        return sendToSignedAndroidApplication;
     }
     
     /**
@@ -764,5 +837,117 @@ public class QuorumProject implements Project {
         public Project getProject() {
             return QuorumProject.this;
         }
+    }
+
+    /**
+     * @return the lastCompileResult
+     */
+    public CompilerResult_ getLastCompileResult() {
+        return lastCompileResult;
+    }
+
+    /**
+     * @param lastCompileResult the lastCompileResult to set
+     */
+    public void setLastCompileResult(CompilerResult_ lastCompileResult) {
+        this.lastCompileResult = lastCompileResult;
+    }
+    
+    /**
+     * @return the lastCompileResult
+     */
+    public CompilerResult_ getLastGoodCompileResult() {
+        return lastGoodCompileResult;
+    }
+
+    /**
+     * @param lastCompileResult the lastCompileResult to set
+     */
+    public void setLastGoodCompileResult(CompilerResult_ lastCompileResult) {
+        this.lastGoodCompileResult = lastCompileResult;
+    }
+
+    /**
+     * @return the androidPath
+     */
+    public String getAndroidPath() {
+        return androidPath;
+    }
+
+    /**
+     * @param androidPath the androidPath to set
+     */
+    public void setAndroidPath(String androidPath) {
+        this.androidPath = androidPath;
+    }
+
+    /**
+     * @return the androidKeystorePath
+     */
+    public String getAndroidKeystorePath() {
+        return androidKeystorePath;
+    }
+
+    /**
+     * @param androidKeystorePath the androidKeystorePath to set
+     */
+    public void setAndroidKeystorePath(String androidKeystorePath) {
+        this.androidKeystorePath = androidKeystorePath;
+    }
+
+    /**
+     * @return the androidKeystorePassword
+     */
+    public String getAndroidKeystorePassword() {
+        return androidKeystorePassword;
+    }
+
+    /**
+     * @param androidKeystorePassword the androidKeystorePassword to set
+     */
+    public void setAndroidKeystorePassword(String androidKeystorePassword) {
+        this.androidKeystorePassword = androidKeystorePassword;
+    }
+
+    /**
+     * @return the androidKeyAlias
+     */
+    public String getAndroidKeyAlias() {
+        return androidKeyAlias;
+    }
+
+    /**
+     * @param androidKeyAlias the androidKeyAlias to set
+     */
+    public void setAndroidKeyAlias(String androidKeyAlias) {
+        this.androidKeyAlias = androidKeyAlias;
+    }
+
+    /**
+     * @return the androidKeyPassword
+     */
+    public String getAndroidKeyPassword() {
+        return androidKeyPassword;
+    }
+
+    /**
+     * @param androidKeyPassword the androidKeyPassword to set
+     */
+    public void setAndroidKeyPassword(String androidKeyPassword) {
+        this.androidKeyPassword = androidKeyPassword;
+    }
+
+    /**
+     * @return the androidAlternateJDK
+     */
+    public String getAndroidAlternateJDK() {
+        return androidAlternateJDK;
+    }
+
+    /**
+     * @param androidAlternateJDK the androidAlternateJDK to set
+     */
+    public void setAndroidAlternateJDK(String androidAlternateJDK) {
+        this.androidAlternateJDK = androidAlternateJDK;
     }
 }

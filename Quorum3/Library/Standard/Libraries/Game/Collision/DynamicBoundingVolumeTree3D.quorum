@@ -110,7 +110,7 @@ class DynamicBoundingVolumeTree3D
     is calculated, and it is reinserted into the tree. Otherwise, the node
     is left where it is in the tree.
     
-    Attribute: Returns whether the item is reinserted into the tree
+    Attribute: Returns Returns whether the item is reinserted into the tree
     */
     action MoveNode(integer nodeID, BoundingBox boundingBox, Vector3 displacement) returns boolean
         if 0 <= nodeID and nodeID < nodesCapacity
@@ -223,10 +223,18 @@ class DynamicBoundingVolumeTree3D
         return nodeCount
     end
 
+    /*
+    This action returns the number of nodes in the DynamicBoundingVolumeTree3D
+    tree.
+    */
     action CountNodes returns integer
         return CountNodes(root)
     end
 
+    /*
+    This action counts the number of nodes in the DynamicBoundingVolumeTree3D
+    recursively.
+    */
     action CountNodes(DynamicBoundingVolumeTreeNode3D node) returns integer
         if node:IsLeaf()
             return 1

@@ -1,10 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package plugins.quorum.Libraries.Sound;
 
+import plugins.quorum.Libraries.Sound.Android.AndroidLoader;
+import plugins.quorum.Libraries.Sound.Desktop.DesktopAudioManager;
+import plugins.quorum.Libraries.Sound.Desktop.DesktopLoader;
+import plugins.quorum.Libraries.Sound.Desktop.AudioData;
 import plugins.quorum.Libraries.Sound.IOS.IOSLoader;
 import quorum.Libraries.System.File_;
 
@@ -13,6 +12,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import plugins.quorum.Libraries.Sound.Android.AndroidAudioManager;
+import plugins.quorum.Libraries.Sound.IOS.IOSAudioManager;
 import quorum.Libraries.Sound.AudioSamples_;
 
 /**
@@ -26,6 +27,7 @@ public class Audio {
     Data data;
     
     public static final DataLoader loader;
+    public static final AudioManager audioManager;
     
     static
     {
@@ -35,31 +37,42 @@ public class Audio {
         We only need to find LWJGL if we are on a Desktop. If we are on Mac, 
         OpenAL will be accessed via static library.
         */
-        if (os.contains("Windows") || os.contains("Mac"))
+        if (os.contains("Windows") || os.contains("Mac") || os.contains("Linux"))
         {
-            try 
+            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
             {
-                URI uri = Audio.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-                String uriPath = uri.getPath();
-                
-                if (uri.getAuthority() != null)
-                    uriPath = "\\\\" + uri.getAuthority() + uriPath;
-
-                java.io.File file = new java.io.File(uriPath);
-                
-                String runLocation = file.getParentFile().getAbsolutePath();
-                String lwjgl = runLocation + "/jni";
-                System.setProperty("org.lwjgl.librarypath", lwjgl);
-            } 
-            catch (URISyntaxException ex) 
-            {
-                Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+                System.loadLibrary("GameEngineCPlugins");
+                audioManager = new AndroidAudioManager();
+                loader = new AndroidLoader((AndroidAudioManager)audioManager);
             }
-            loader = new DesktopLoader();
+            else
+            {
+                try 
+                {
+                    URI uri = Audio.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+                    String uriPath = uri.getPath();
+
+                    if (uri.getAuthority() != null)
+                        uriPath = "\\\\" + uri.getAuthority() + uriPath;
+
+                    java.io.File file = new java.io.File(uriPath);
+
+                    String runLocation = file.getParentFile().getAbsolutePath();
+                    String lwjgl = runLocation + "/jni";
+                    System.setProperty("org.lwjgl.librarypath", lwjgl);
+                } 
+                catch (URISyntaxException ex) 
+                {
+                    Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                loader = new DesktopLoader();
+                audioManager = new DesktopAudioManager();
+            }
         }
         else
         {
             loader = new IOSLoader();
+            audioManager = new IOSAudioManager();
         }
     }
     
@@ -454,126 +467,126 @@ public class Audio {
     
     public void SetListenerPosition(double x, double y, double z)
     {
-        AudioManager.SetListenerPosition(x, y, z * -1);
+        audioManager.SetListenerPosition(x, y, z * -1);
     }
     
     public void SetListenerX(double x)
     {
-        AudioManager.SetListenerPosition(x, AudioManager.GetListenerY(), AudioManager.GetListenerZ());
+        audioManager.SetListenerPosition(x, audioManager.GetListenerY(), audioManager.GetListenerZ());
     }
     
     public void SetListenerY(double y)
     {
-        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), y, AudioManager.GetListenerZ());
+        audioManager.SetListenerPosition(audioManager.GetListenerX(), y, audioManager.GetListenerZ());
     }
     
     public void SetListenerZ(double z)
     {
-        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), AudioManager.GetListenerY(), z * -1);
+        audioManager.SetListenerPosition(audioManager.GetListenerX(), audioManager.GetListenerY(), z * -1);
     }
     
     public double GetListenerX()
     {
-        return AudioManager.GetListenerX();
+        return audioManager.GetListenerX();
     }
     
     public double GetListenerY()
     {
-        return AudioManager.GetListenerY();
+        return audioManager.GetListenerY();
     }
     
     public double GetListenerZ()
     {
-        return AudioManager.GetListenerZ() * -1;
+        return audioManager.GetListenerZ() * -1;
     }
     
     public void SetListenerVelocity(double x, double y, double z)
     {
-        AudioManager.SetListenerVelocity(x, y, z * -1);
+        audioManager.SetListenerVelocity(x, y, z * -1);
     }
     
     public void SetListenerVelocityX(double x)
     {
-        SetListenerVelocity(x, AudioManager.GetListenerVelocityY(), AudioManager.GetListenerVelocityZ());
+        SetListenerVelocity(x, audioManager.GetListenerVelocityY(), audioManager.GetListenerVelocityZ());
     }
     
     public void SetListenerVelocityY(double y)
     {
-        SetListenerVelocity(AudioManager.GetListenerVelocityX(), y, AudioManager.GetListenerVelocityZ());
+        SetListenerVelocity(audioManager.GetListenerVelocityX(), y, audioManager.GetListenerVelocityZ());
     }
     
     public void SetListenerVelocityZ(double z)
     {
-        SetListenerVelocity(AudioManager.GetListenerVelocityX(), AudioManager.GetListenerVelocityY(), z * -1);
+        SetListenerVelocity(audioManager.GetListenerVelocityX(), audioManager.GetListenerVelocityY(), z * -1);
     }
     
     public double GetListenerVelocityX()
     {
-        return AudioManager.GetListenerVelocityX();
+        return audioManager.GetListenerVelocityX();
     }
     
     public double GetListenerVelocityY()
     {
-        return AudioManager.GetListenerVelocityY();
+        return audioManager.GetListenerVelocityY();
     }
     
     public double GetListenerVelocityZ()
     {
-        return AudioManager.GetListenerVelocityZ() * -1;
+        return audioManager.GetListenerVelocityZ() * -1;
     }
     
     public void EnableListenerDoppler()
     {
-        AudioManager.EnableListenerDoppler();
+        audioManager.EnableListenerDoppler();
     }
     
     public void DisableListenerDoppler()
     {
-        AudioManager.DisableListenerDoppler();
+        audioManager.DisableListenerDoppler();
     }
     
     public boolean IsListenerDopplerEnabled()
     {
-        return AudioManager.IsListenerDopplerEnabled();
+        return audioManager.IsListenerDopplerEnabled();
     }
     
     public void SetListenerDirection(double x, double y, double z)
     {
-        AudioManager.SetListenerDirection(x, y, z * -1);
+        audioManager.SetListenerDirection(x, y, z * -1);
     }
     
     public void SetListenerUp(double x, double y, double z)
     {
-        AudioManager.SetListenerUp(x, y, z * -1);
+        audioManager.SetListenerUp(x, y, z * -1);
     }
     
     public double GetListenerDirectionX()
     {
-        return AudioManager.GetListenerDirectionX();
+        return audioManager.GetListenerDirectionX();
     }
     
     public double GetListenerDirectionY()
     {
-        return AudioManager.GetListenerDirectionY();
+        return audioManager.GetListenerDirectionY();
     }
     
     public double GetListenerDirectionZ()
     {
-        return AudioManager.GetListenerDirectionZ() * -1;
+        return audioManager.GetListenerDirectionZ() * -1;
     }
     
     public double GetListenerUpX()
     {
-        return AudioManager.GetListenerUpX();
+        return audioManager.GetListenerUpX();
     }
     
     public double GetListenerUpY()
     {
-        return AudioManager.GetListenerUpY();
+        return audioManager.GetListenerUpY();
     }
     
     public double GetListenerUpZ()
     {
-        return AudioManager.GetListenerUpZ() * -1;
+        return audioManager.GetListenerUpZ() * -1;
     }
 }
