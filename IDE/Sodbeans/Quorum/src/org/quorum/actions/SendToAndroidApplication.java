@@ -10,10 +10,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Properties;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
-import org.openide.filesystems.FileUtil;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.util.Exceptions;
 import org.quorum.android.AndroidSetup;
@@ -69,8 +67,8 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 // Compute the location of the project's root directory.
                 File runDirectory = project.getRunDirectory();
                 File parentFile = runDirectory.getParentFile();
-               //File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
-                File media = new File(parentFile.getAbsolutePath() + "/media");
+                File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
+                
                 String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
                 
                 /* NOTE: 
@@ -81,7 +79,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 */
                 String androidSDKPath = project.getAndroidPath();
                 String androidAlternateJDK = project.getAndroidAlternateJDK();
-                String jarName = project.getExecutableName(info.request);
+                String jarName = project.getExecutableNameNoExtension();
                 String applicationName = jarName;
                 String[] nameComponents = jarName.split("\\.");
                 if (nameComponents.length >= 1) {
@@ -101,11 +99,11 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 setup.copyAndRename(androidLocation.getAbsolutePath(), runDirectory.getAbsolutePath(), applicationName, androidAlternateJDK);
                 //get all the properties, in case they are there.
                 
-               
                 droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
                 
-                droid.copyAssets(media);
-                        
+                if(media.exists()) {
+                    droid.copyAssets(media);
+                }     
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();
                 QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getErrorStream());
