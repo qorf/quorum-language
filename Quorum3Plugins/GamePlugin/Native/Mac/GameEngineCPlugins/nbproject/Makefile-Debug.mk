@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/Source/BufferUtils.o \
+	${OBJECTDIR}/Source/FreeTypeStrategy.o \
 	${OBJECTDIR}/Source/Matrix4.o \
 	${OBJECTDIR}/Source/PixelMap.o \
 	${OBJECTDIR}/Source/gdx2d.o \
@@ -57,11 +58,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=libfreetype.a
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk dist/libGameEngineCPlugins.so
+
+dist/libGameEngineCPlugins.so: libfreetype.a
 
 dist/libGameEngineCPlugins.so: ${OBJECTFILES}
 	${MKDIR} -p dist
@@ -70,32 +73,37 @@ dist/libGameEngineCPlugins.so: ${OBJECTFILES}
 ${OBJECTDIR}/Source/BufferUtils.o: Source/BufferUtils.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/BufferUtils.o Source/BufferUtils.cpp
+	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/BufferUtils.o Source/BufferUtils.cpp
+
+${OBJECTDIR}/Source/FreeTypeStrategy.o: Source/FreeTypeStrategy.c
+	${MKDIR} -p ${OBJECTDIR}/Source
+	${RM} "$@.d"
+	$(COMPILE.c) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/FreeTypeStrategy.o Source/FreeTypeStrategy.c
 
 ${OBJECTDIR}/Source/Matrix4.o: Source/Matrix4.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/Matrix4.o Source/Matrix4.cpp
+	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/Matrix4.o Source/Matrix4.cpp
 
 ${OBJECTDIR}/Source/PixelMap.o: Source/PixelMap.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/PixelMap.o Source/PixelMap.cpp
+	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/PixelMap.o Source/PixelMap.cpp
 
 ${OBJECTDIR}/Source/gdx2d.o: Source/gdx2d.c
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.c) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/gdx2d.o Source/gdx2d.c
+	$(COMPILE.c) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/gdx2d.o Source/gdx2d.c
 
 ${OBJECTDIR}/Source/jpgd.o: Source/jpgd.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd.o Source/jpgd.cpp
+	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd.o Source/jpgd.cpp
 
 ${OBJECTDIR}/Source/jpgd_c.o: Source/jpgd_c.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd_c.o Source/jpgd_c.cpp
+	$(COMPILE.cc) -g -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin -I../freetype-2.5.5/include -I../freetype-2.5.5/include/config -I../freetype-2.5.5/include/internal -I../freetype-2.5.5/include/internal/services -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd_c.o Source/jpgd_c.cpp
 
 # Subprojects
 .build-subprojects:
