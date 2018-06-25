@@ -433,10 +433,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         UpdatePaneView(horizontal, newVertical)
     end
 
-    private action EmptySelectionEvent
+    private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
-        selection:Set(index, index, true)
+        selection:Set(index, index, true, textChanged)
 
         // Report the new selection here.
         UpdateVisualSelection()
@@ -448,10 +448,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
             integer endIndex = selection:GetEndIndex()
-            selection:Set(index, endIndex, (index = endIndex))
+            selection:Set(index, endIndex, (index = endIndex), false)
         else
             integer startIndex = selection:GetStartIndex()
-            selection:Set(startIndex, index, true)
+            selection:Set(startIndex, index, true, false)
         end
 
         // Report the new selection here.
@@ -464,10 +464,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
             integer startIndex = selection:GetStartIndex()
-            selection:Set(startIndex, index, true)
+            selection:Set(startIndex, index, true, false)
         else
             integer endIndex = selection:GetEndIndex()
-            selection:Set(index, endIndex, (index = endIndex))
+            selection:Set(index, endIndex, (index = endIndex), false)
         end
 
         // Report the new selection here.
@@ -486,9 +486,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 endIndex = selection:GetStartIndex()
             end
 
-            selection:Set(index, endIndex, false)
+            selection:Set(index, endIndex, false, false)
         else
-            selection:Set(selection:GetStartIndex(), index, true)
+            selection:Set(selection:GetStartIndex(), index, true, false)
         end
 
         // Report the new selection here.
@@ -507,9 +507,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 startIndex = selection:GetEndIndex()
             end
 
-            selection:Set(startIndex, index, true)
+            selection:Set(startIndex, index, true, false)
         else
-            selection:Set(index, selection:GetEndIndex(), false)
+            selection:Set(index, selection:GetEndIndex(), false, false)
         end
 
         // Report the new selection here.
@@ -531,7 +531,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretCharacter = index
         caretX = PositionCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(false)
     end
 
     /*
@@ -555,7 +555,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretCharacter = 0
             if caretLine = 0
                 if (not selecting) and (not selection:IsEmpty())
-                    EmptySelectionEvent()
+                    EmptySelectionEvent(false)
                 end
 
                 return now
@@ -581,7 +581,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if selecting
             SelectionMoveLeft()
         else
-            EmptySelectionEvent()
+            EmptySelectionEvent(false)
         end
     end
 
@@ -600,7 +600,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretCharacter >= size
             if caretLine + 1 = textValue:GetLineCount()
                 if (not selecting) and (not selection:IsEmpty())
-                    EmptySelectionEvent()
+                    EmptySelectionEvent(false)
                 end
 
                 return now
@@ -622,7 +622,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if selecting
             SelectionMoveRight()
         else
-            EmptySelectionEvent()
+            EmptySelectionEvent(false)
         end
     end
 
@@ -750,7 +750,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if selecting
             SelectionMoveDown()
         else
-            EmptySelectionEvent()
+            EmptySelectionEvent(false)
         end
     end
 
@@ -781,7 +781,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if selecting
             SelectionMoveUp()
         else
-            EmptySelectionEvent()
+            EmptySelectionEvent(false)
         end
     end
 
@@ -879,7 +879,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText)
@@ -940,7 +940,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
     end
 
     action Delete(integer startIndex, integer endIndex)
@@ -962,7 +962,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
     end
 
     // For debugging purposes only.
@@ -1027,7 +1027,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText)
@@ -1184,7 +1184,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 end
             end
         else
-            EmptySelectionEvent()
+            EmptySelectionEvent(false)
         end
         ShowCaret()
     end
@@ -1442,7 +1442,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)
     end
 
@@ -1463,7 +1463,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        EmptySelectionEvent()
+        EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)
     end
 
@@ -1518,7 +1518,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             endIndex = textValue:GetSize()
         end
 
-        selection:Set(startIndex, endIndex, caretAtEnd)
+        selection:Set(startIndex, endIndex, caretAtEnd, false)
         UpdateVisualSelection()
     end
 

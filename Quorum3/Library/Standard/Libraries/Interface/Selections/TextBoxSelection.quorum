@@ -23,6 +23,7 @@ class TextBoxSelection is Selection
     Pair<integer> lines
     Pair<integer> lineIndices
     boolean caretAtEnd = true
+    boolean textChanged = false
 
     /* A default constructor for the object. */
     on create
@@ -49,7 +50,7 @@ class TextBoxSelection is Selection
         Attribute: Parameter endIndex The end index
         Attribute: Parameter caretAtEnd Whether the caret is at the end of the text value.
     */
-    action Set(integer startIndex, integer endIndex, boolean caretAtEnd)
+    action Set(integer startIndex, integer endIndex, boolean caretAtEnd, boolean textChanged)
         TextBox textBox = GetTextBox()
         if textBox not= undefined
             MultipleLineText multi = textBox:GetLines()
@@ -64,6 +65,7 @@ class TextBoxSelection is Selection
             lineIndices:Set(startLinePosition, endLinePosition)
 
             me:caretAtEnd = caretAtEnd
+            me:textChanged = textChanged
 
             SetDisplayName(multi:GetText(startIndex, endIndex))
         end
@@ -140,10 +142,21 @@ class TextBoxSelection is Selection
 
     /* 
         This action returns true if the caret is at the end of the text value. 
-        Attribute: Returns Attribute: Returns Whether the caret is at the end.
+        Attribute: Returns Whether the caret is at the end.
     */
     action IsCaretAtEnd returns boolean
         return caretAtEnd
+    end
+
+    /* 
+        This action returns true if the current selection was the result of
+        insertion or deletion into the TextBox, or false if the selection moved
+        without changing the text.
+
+        Attribute: Returns Whether this selection was the result of TextBox insertion or deletion.
+    */
+    action IsTextChanging returns boolean
+        return textChanged
     end
 
     /* 

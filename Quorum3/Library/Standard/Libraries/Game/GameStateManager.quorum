@@ -136,7 +136,10 @@ class GameStateManager
     This action returns the current Item that is focused.
     */
     action GetFocus returns Item
-        return GetFocusManager():GetFocus()
+        if GetFocusManager() not= undefined
+            return GetFocusManager():GetFocus()
+        end
+        return undefined
     end
 
 end

@@ -188,4 +188,18 @@ class DesktopDisplay is GameDisplay
     game engine.
     */
     system action GetScreenResolution returns ScreenResolution
+
+    /*
+    This action asks the operating system to give the main application window
+    the focus. This only works on desktop platforms - on other platforms, this
+    call is ignored.
+    */
+    system action FocusWindow
+
+    /*
+    This action determines whether or not the main application window has the
+    focus on desktop platforms. On non-desktop platforms, this always returns
+    false.
+    */
+    system action IsWindowFocused returns boolean
 end

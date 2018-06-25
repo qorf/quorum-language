@@ -22,6 +22,8 @@ use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Events.ControlActivationListener
 use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.WindowFocusListener
+use Libraries.Interface.Events.WindowFocusEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -41,6 +43,7 @@ class GameInput
     Array<MenuChangeListener> menuChangeListeners
     Array<TreeChangeListener> treeChangeListeners
     Array<ControlActivationListener> controlActivationListeners
+    Array<WindowFocusListener> windowFocusListeners
 
     GameStateManager manager
 
@@ -283,6 +286,11 @@ class GameInput
     Attribute: Parameter event The TextChangeEvent to send to all TextChangeListeners in the GameInput.
     */
     action NotifyTextChangeListeners(TextChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:TextChanged(event)
+        end
+
         integer counter = 0
         repeat while counter < textChangeListeners:GetSize()
             textChangeListeners:Get(counter):TextChanged(event)
@@ -423,6 +431,44 @@ class GameInput
         repeat while counter < controlActivationListeners:GetSize()
             controlActivationListeners:Get(counter):ControlActivated(event)
             counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action AddWindowFocusListener(WindowFocusListener listener)
+        windowFocusListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveWindowFocusListener(WindowFocusListener listener)
+        windowFocusListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyWindowFocusListeners(WindowFocusEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:WindowFocusChanged(event)
+        end
+
+        if event:IsFocused()
+            integer counter = 0
+            repeat while counter < windowFocusListeners:GetSize()
+                windowFocusListeners:Get(counter):WindowGainedFocus(event)
+                counter = counter + 1
+            end
+        else
+            integer counter = 0
+            repeat while counter < windowFocusListeners:GetSize()
+                windowFocusListeners:Get(counter):WindowLostFocus(event)
+                counter = counter + 1
+            end
         end
     end
 end

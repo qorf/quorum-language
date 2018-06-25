@@ -83,6 +83,7 @@ use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Events.WindowFocusListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -3527,6 +3528,31 @@ class Game
     end
 
     /*
+    This action asks the operating system to give the main application window
+    the focus. This only works on desktop platforms - on other platforms, this
+    call is ignored.
+    */
+    action FocusWindow
+        if manager:GetGameDisplay() is DesktopDisplay
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            display:FocusWindow()
+        end
+    end
+
+    /*
+    This action determines whether or not the main application window has the
+    focus on desktop platforms. On non-desktop platforms, this always returns
+    false.
+    */
+    action IsWindowFocused returns boolean
+        if manager:GetGameDisplay() is DesktopDisplay
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:IsWindowFocused()
+        end
+        return false
+    end
+
+    /*
     This action sets the focus on the given item. This will immediately notify
     all focus listeners on the previous focus that the Item has lost focus, and
     all focus listeners on the new focus that the Item has gained focus.
@@ -3680,6 +3706,20 @@ class Game
     */
     action RemoveControlActivationListener(ControlActivationListener listener)
         gameInput:RemoveControlActivationListener(listener)
+    end
+
+    /*
+
+    */
+    action AddWindowFocusListener(WindowFocusListener listener)
+        gameInput:AddWindowFocusListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveWindowFocusListener(WindowFocusListener listener)
+        gameInput:RemoveWindowFocusListener(listener)
     end
 
     /*

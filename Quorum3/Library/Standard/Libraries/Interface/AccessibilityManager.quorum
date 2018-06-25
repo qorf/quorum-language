@@ -7,6 +7,8 @@ use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.WindowFocusEvent
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Selections.TabPaneSelection
@@ -17,6 +19,7 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.TextBox
+use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
 
@@ -263,6 +266,28 @@ class AccessibilityManager
     action ControlActivated(ControlActivationEvent event)
         if (debugOutput)
             output "Control activated: " + event:GetControl():GetName()
+        end
+    end
+
+    action TextChanged(TextChangeEvent event)
+        if (debugOutput)
+            output "Text added: " + event:GetAddedText() + ", text deleted: " + event:GetDeletedText()
+        end
+    end
+
+    action WindowFocusChanged(WindowFocusEvent event)
+        if (debugOutput)
+            if event:IsFocused()
+                GameStateManager manager
+                Item item = manager:GetFocus()
+                if item not= undefined
+                    output "Window gained focus. Currently focused item is " + item:GetName()
+                else
+                    output "Window gained focus. Current focus is UNDEFINED"
+                end
+            else
+                output "Window lost focus."
+            end
         end
     end
 end
