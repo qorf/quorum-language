@@ -5,12 +5,8 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import java.nio.IntBuffer;
-import org.lwjgl.BufferUtils;
-import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 import org.lwjgl.opengl.GL;
 import org.lwjgl.glfw.GLFW;
@@ -22,6 +18,7 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
@@ -113,6 +110,20 @@ public class DesktopDisplay {
             for (int i = 0; i < chars.length; i++)
                 s = s + chars[i];
             TextInputProcessor.AddTextInputEvent(window, codepoint, s);
+        }
+    };
+    
+    GLFWWindowFocusCallback windowFocusCallback = new GLFWWindowFocusCallback()
+    {
+        @Override
+        public void invoke(long window, boolean focused) 
+        {
+            quorum.Libraries.Interface.Events.WindowFocusEvent event = 
+                new quorum.Libraries.Interface.Events.WindowFocusEvent();
+            
+            event.Set(focused);
+            
+            GameStateManager.input.NotifyWindowFocusListeners(event);
         }
     };
     
@@ -235,6 +246,7 @@ public class DesktopDisplay {
         GLFW.glfwSetMouseButtonCallback(window, mouseCallback);
         GLFW.glfwSetScrollCallback(window, scrollCallback);
         GLFW.glfwSetCharCallback(window, textCallback);
+        GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
     }
 
     public void SetVSync(boolean vsync) 
@@ -523,5 +535,15 @@ public class DesktopDisplay {
             GLFW.glfwInit();
             initialized = true;
         }
+    }
+    
+    public void FocusWindow()
+    {
+        GLFW.glfwFocusWindow(window);
+    }
+    
+    public boolean IsWindowFocused()
+    {
+        return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
     }
 }
