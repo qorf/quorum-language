@@ -1,4 +1,5 @@
 #include <UIAutomation.h>
+#include "../IQuorumAccessibility/Header/jni.h"
 #include <string>
 
 #include "CustomMessages.h"
@@ -66,9 +67,9 @@ class TextBoxProvider;
 class TextBoxControl : public Item
 {
 	public:
-		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex);
-
-		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* lines, _In_ Range caretIndex);
+		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject self);
+		virtual ~TextBoxControl();
+		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject self);
 
 		int GetLineLength();
 
@@ -83,6 +84,8 @@ class TextBoxControl : public Item
 		// If they are equal than the selection is empty.
 		EndPoint GetStartIndex();
 		EndPoint GetEndIndex();
+
+		jobject* GetSelf();
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
@@ -117,7 +120,7 @@ class TextBoxControl : public Item
 		const int m_lineCount = 1;
 		
 		TextBoxProvider* m_pTextBoxProvider;
-
+		jobject m_jSelf;
 
 };
 

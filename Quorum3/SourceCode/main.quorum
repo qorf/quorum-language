@@ -202,23 +202,23 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/SourceCode")
+        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/Library/Tests/Expressions/Pass/")
         //main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
         //main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
         //main:SetPath("Library/Tests/Templating/Fail/DoubleTest.quorum")
-        main:SetPath("main.quorum")
+        main:SetPath("ConstructorOr.quorum")
         Array<File> files
         //files:Add(main)
         //compiler:SetMain(main)
 
-        files = main:GetParentDirectory():GetDirectoryListing()
-        
+        //files = main:GetParentDirectory():GetDirectoryListing()
+        files:Add(main)
 
         CompilerRequest request
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
-        request:isWebRequest = true
+        //request:isWebRequest = true
 
         start = time:GetEpochTime()
         CompilerResult result = compiler:Compile(request)

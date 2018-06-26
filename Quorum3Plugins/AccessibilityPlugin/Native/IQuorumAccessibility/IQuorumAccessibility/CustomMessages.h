@@ -1,3 +1,5 @@
+#include "../IQuorumAccessibility/Header/jni.h"
+
 #ifndef CustomMessages_HEADER
 #define CustomMessages_HEADER
 
@@ -38,6 +40,8 @@
 // If new windows can be created by Quorum then messages will need to be forwarded to those instead.
 // Its defined in IQuorumAccessibility.cpp
 HWND GetMainWindowHandle();
+
+JavaVM* GetJVM();
 
 // ForwardMessage: Sends unhandled messages to either the main GLFW window or the Default Window Procedure
 inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
