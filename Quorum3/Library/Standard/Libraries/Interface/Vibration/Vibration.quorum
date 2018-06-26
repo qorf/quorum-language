@@ -10,14 +10,15 @@ use Libraries.Interface.Vibration.VibrationArray
 
     Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -25,11 +26,11 @@ use Libraries.Interface.Vibration.VibrationArray
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(1000)
+                vibration:VibrateLinearPattern(1000)
             end
 
         end
@@ -43,14 +44,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -58,11 +60,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize() // initialize here in CreateGame
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(1000) 
+                vibration:VibrateLinearPattern(1000) 
             end
 
         end
@@ -77,14 +79,15 @@ class Vibration
         
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -92,12 +95,12 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
-                hm:SetTimeSlice(5) // sets timeslices to 5ms
+                vibration:Initialize()
+                vibration:SetTimeSlice(5) // sets timeslices to 5ms
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(1000) 
+                vibration:VibrateLinearPattern(1000) 
             end
 
         end
@@ -109,9 +112,24 @@ class Vibration
 
         Attribute: Example
 
-        Vibration hm
-        hm:Initialize()
-        output hm:GetTimeslice()
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Vibration vibration
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                vibration:Initialize()
+                output hm:GetTimeslice()
+            end
+
+        end
     */
     system action GetTimeslice() returns integer
 
@@ -126,14 +144,15 @@ class Vibration
 
        Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -141,7 +160,7 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
@@ -153,7 +172,7 @@ class Vibration
                 pattern:Add(1000)
                 pattern:Add(500) 
 
-                hm:PlayPattern(pattern, 4) // plays through once and then repeats the last two commands
+                vibration:VibratePattern(pattern) 
             end
 
         end
@@ -174,14 +193,15 @@ class Vibration
 
        Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -189,7 +209,7 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
@@ -201,7 +221,7 @@ class Vibration
                 pattern:Add(1000)
                 pattern:Add(500) 
 
-                hm:VibratePattern(pattern, 4) // plays through once and then repeats the last two commands
+                vibration:VibratePattern(pattern, 4) // plays through once and then repeats the last two commands
             end
 
         end
@@ -217,14 +237,15 @@ class Vibration
 
        Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -232,13 +253,13 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
                 VibrationArray pattern
                 pattern:LongStrong()
-                hm:VibratePattern(pattern)
+                vibration:VibratePattern(pattern)
             end
 
         end
@@ -256,14 +277,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
         class Main is Game
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -271,11 +293,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateGeneratedPattern(0.5, 500)
+                vibration:VibrateGeneratedPattern(0.5, 500)
             end
 
         end
@@ -290,14 +312,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -305,11 +328,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(600)
+                vibration:VibrateLinearPattern(600)
             end
 
         end
@@ -327,14 +350,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -342,11 +366,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(600)
+                vibration:VibrateLinearPattern(600)
             end
 
         end
@@ -364,14 +388,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -379,11 +404,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateWavePattern(1000)
+                vibration:VibrateWavePattern(1000)
             end
 
         end
@@ -398,14 +423,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -413,11 +439,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateWavePattern(1000)
+                vibraton:VibrateWavePattern(1000)
             end
 
         end
@@ -432,14 +458,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -447,11 +474,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(600)
+                vibration:VibrateLinearPattern(600)
             end
 
         end
@@ -469,14 +496,15 @@ class Vibration
 
         Attribute: Example
 
-        use Libraries.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            HapticManager hm
+            Vibration vibration
 
             action Main
                 StartGame()
@@ -484,11 +512,11 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                hm:Initialize()
+                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                hm:VibrateLinearPattern(600)
+                vibration:VibrateLinearPattern(600)
             end
 
         end
@@ -496,7 +524,41 @@ class Vibration
     */ 
     system action VibrateExponentialPattern (integer duration)
 
+    /* 
+        Stops any ongoing vibration
 
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener4
+
+            Vibration vibration
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+                vibration:Initialize()
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibration:VibrateLinearPattern(600)
+            end
+
+            action EndedTouch(TouchEvent event)
+                vibration:Stop()
+            end
+
+        end
+
+    */
     system action Stop()
 
 end
