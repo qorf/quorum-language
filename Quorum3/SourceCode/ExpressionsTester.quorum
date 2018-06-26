@@ -34,6 +34,7 @@ class ExpressionsTester
         CastTest()
         CompareTextTextField()
         ComplexExpression()
+        ConstructorOr()
         DivDoubleDouble()
         DivDoubleInt()
         DivIntDouble()
@@ -337,6 +338,17 @@ class ExpressionsTester
         main:SetPath(path + "ComplexExpression.quorum")
         files:Add(main)
         results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ConstructorOr
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ConstructorOr.quorum")
+        files:Add(main)
+        results:Add(0, "Passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

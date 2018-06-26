@@ -7,7 +7,7 @@ class BinaryAndOrOpcode is QuorumOpcode
     public boolean isAnd = true
     public QuorumOpcode left = undefined
     public QuorumOpcode right = undefined
-    public JavaBytecodeMethodWriter methodWriter = undefined
+    //public JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeLabel trueLabel = undefined
     JavaBytecodeLabel falseLabel = undefined
     JavaBytecodeLabel finalLabel = undefined
@@ -41,6 +41,10 @@ class BinaryAndOrOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
+        Libraries.Language.Compile.Location value = GetLocation()
+        if value:GetFile():GetFileName() = "ConstructorOr.quorum"
+            output "Method: " + GetMethodWriter():GetHashCode()
+        end
         if left not= undefined
             left:SetMethodWriterToAllChildren(writer)
         end
@@ -134,6 +138,7 @@ class BinaryAndOrOpcode is QuorumOpcode
         end
 
         //visit the left hand side
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         methodWriter:VisitLabel(leftHandSideLabel)
         left:Write()
 
