@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.util.ArrayList;
 
 
 public class RunAndroid {
@@ -227,18 +228,34 @@ public class RunAndroid {
     public Process GetAPKDebugBuildProcess() throws IOException, InterruptedException  {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleDebug & exit");
-            return proc;
+            
+            String[] list = {"cmd", "/c", "\"\"", pathToBuildAndroidFolder+"\\gradlew.bat", "-p", pathToBuildAndroidFolder, "assembleDebug", "&" ,"exit" };
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         } else if(isMac()) {
             //mac JDK's typically remove executable properties after a copy. Restore them.
             File file = new File(pathToBuildAndroidFolder + "/gradlew");
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
-            return proc;
+            
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         } else {
-            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
-            return proc;
+                        
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         }
     }
     

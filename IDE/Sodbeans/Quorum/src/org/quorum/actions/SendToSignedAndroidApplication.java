@@ -84,11 +84,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 String androidAlternateJDK = project.getAndroidAlternateJDK();
                 
                 String jarName = project.getExecutableName(info.request);
-                String applicationName = jarName;
-                String[] nameComponents = jarName.split("\\.");
-                if (nameComponents.length >= 1) {
-                   applicationName = nameComponents[0];
-                }
+                String applicationName = project.getExecutableNameNoExtension();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
@@ -122,7 +118,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 
             try {
                 Process assembleReleaseProcess = droid.GetAssembleReleaseProcess();
-                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(assembleReleaseProcess.getErrorStream());
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(assembleReleaseProcess.getInputStream());
                 OutputStream outputStream = assembleReleaseProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
@@ -135,7 +131,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 assembleReleaseProcess.destroy();
                 
                 Process zipalignProcess = droid.GetZipalignProcess();
-                watch = new QuorumAction.QuorumProcessWatcher(zipalignProcess.getErrorStream());
+                watch = new QuorumAction.QuorumProcessWatcher(zipalignProcess.getInputStream());
                 outputStream = zipalignProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
@@ -148,7 +144,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 zipalignProcess.destroy();
                 
                 Process apkSignerProcess = droid.GetAPKSignerProcess();
-                watch = new QuorumAction.QuorumProcessWatcher(apkSignerProcess.getErrorStream());
+                watch = new QuorumAction.QuorumProcessWatcher(apkSignerProcess.getInputStream());
                 outputStream = apkSignerProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
