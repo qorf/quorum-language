@@ -15,6 +15,10 @@ use Libraries.Game.Physics.OrderIndex
 use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Physics.CollisionConstraint3D
 
+/*
+This class contains actions that is necessary to compute how objects will react
+after a collision.
+*/
 class CollisionSolver3D
     constant integer MAX_SOLVER_POINTS = 16384
     Array<OrderIndex> gOrder
@@ -242,6 +246,9 @@ class CollisionSolver3D
         solverConstraint:SetJacobianDiagonalABInverse(denom)
     end
 
+    /*
+    This action computes how objects inside a CollisionGroup3D will react after a collision.
+    */
     action SolveGroupSetup(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, 
                          Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
         if numJoints + numManifolds = 0
