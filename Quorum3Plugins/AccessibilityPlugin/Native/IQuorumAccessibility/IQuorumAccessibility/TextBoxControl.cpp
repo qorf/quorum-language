@@ -8,8 +8,12 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex)
-	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex)
+TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject self)
+	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex), m_jSelf(self)
+{
+}
+
+TextBoxControl::~TextBoxControl()
 {
 }
 
@@ -47,7 +51,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex, _In_ jobject self)
 {
 
 	if (!Initialized)
@@ -57,7 +61,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex);
+		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex, self);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
@@ -324,6 +328,11 @@ EndPoint TextBoxControl::GetStartIndex()
 EndPoint TextBoxControl::GetEndIndex()
 {
 	return m_caretPosition.end;
+}
+
+jobject * TextBoxControl::GetSelf()
+{
+	return &m_jSelf;
 }
 
 
