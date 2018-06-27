@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/Source/BufferUtils.o \
+	${OBJECTDIR}/Source/FreeTypeStrategy.o \
 	${OBJECTDIR}/Source/Matrix4.o \
 	${OBJECTDIR}/Source/PixelMap.o \
 	${OBJECTDIR}/Source/gdx2d.o \
@@ -71,6 +72,11 @@ ${OBJECTDIR}/Source/BufferUtils.o: Source/BufferUtils.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/BufferUtils.o Source/BufferUtils.cpp
+
+${OBJECTDIR}/Source/FreeTypeStrategy.o: Source/FreeTypeStrategy.c
+	${MKDIR} -p ${OBJECTDIR}/Source
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/FreeTypeStrategy.o Source/FreeTypeStrategy.c
 
 ${OBJECTDIR}/Source/Matrix4.o: Source/Matrix4.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source

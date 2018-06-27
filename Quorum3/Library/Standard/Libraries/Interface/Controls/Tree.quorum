@@ -12,7 +12,6 @@ use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
 
 class Tree is Item2D
-
     Item2D panel
     Layout panelLayout = undefined
     TreeSelection selection
@@ -281,5 +280,11 @@ class Tree is Item2D
 
         GameStateManager manager
         manager:GetInput():NotifyTreeChangeListeners(event)
+    end
+
+    action Empty 
+        panel:Empty()
+        treeItems:Empty()
+        selection:Empty()
     end
 end

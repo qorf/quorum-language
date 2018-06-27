@@ -69,6 +69,8 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 // Compute the location of the project's root directory.
                 File runDirectory = project.getRunDirectory();
                 String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
+                File parentFile = runDirectory.getParentFile();
+                File media = new File(parentFile.getAbsolutePath() + "/" + project.getMobileAssetsFolder());
                 
                 /* NOTE: 
                 
@@ -84,11 +86,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 String androidAlternateJDK = project.getAndroidAlternateJDK();
                 
                 String jarName = project.getExecutableName(info.request);
-                String applicationName = jarName;
-                String[] nameComponents = jarName.split("\\.");
-                if (nameComponents.length >= 1) {
-                   applicationName = nameComponents[0];
-                }
+                String applicationName = project.getExecutableNameNoExtension();
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
@@ -117,12 +115,19 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 
                 // Nothing should happen without keystore info. Error message!
                 boolean hasKeyStoreInfo = droid.hasKeystoreInfo();
+                if (!hasKeyStoreInfo) {
+                    throw new IOException("Couldn't load keystore because no information was provided");
+                }
                 
+                droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
                 
+                if(media.exists()) {
+                    droid.copyAssets(media);
+                }     
                 
             try {
                 Process assembleReleaseProcess = droid.GetAssembleReleaseProcess();
-                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(assembleReleaseProcess.getErrorStream());
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(assembleReleaseProcess.getInputStream());
                 OutputStream outputStream = assembleReleaseProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();

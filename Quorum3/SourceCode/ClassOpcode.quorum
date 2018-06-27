@@ -1348,14 +1348,14 @@ class ClassOpcode is QuorumOpcode
 
         //create a new fake constructor that can be called by another class
 
-        if clazz:HasConstructor()
-            methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "constructor_", signature, null, undefined)
-            methodWriter:VisitCode()
+        if clazz:HasConstructor() and isParent
+            JavaBytecodeMethodWriter methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "constructor_", signature, null, undefined)
+            //methodWriter:VisitCode()
             constructor:SetMethodWriterToAllChildren(methodWriter)
             constructor:Write()
-            methodWriter:VisitInstruction(opcodes:GetReturn())
-            methodWriter:VisitMaxSize(1, 1)
-            methodWriter:VisitEnd()
+//            methodWriter:VisitInstruction(opcodes:GetReturn())
+//            methodWriter:VisitMaxSize(1, 1)
+//            methodWriter:VisitEnd()
         end
     end
 

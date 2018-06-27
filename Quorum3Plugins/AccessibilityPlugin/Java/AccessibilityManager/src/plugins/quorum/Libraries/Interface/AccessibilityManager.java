@@ -145,7 +145,7 @@ public class AccessibilityManager
 
     // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateTextBox(String name, String description, String fullText, int caretIndex);
+    private native long NativeWin32CreateTextBox(String name, String description, String fullText, int caretIndex, TextBox_ quorumSelf);
 
     // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
     //
@@ -258,7 +258,7 @@ public class AccessibilityManager
                 break;
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
-                nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
+                nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex(), textbox);
                 break;
             case MENU_BAR:
                 nativePointer = NativeWin32CreateMenuBar(item.GetName());
@@ -541,5 +541,6 @@ public class AccessibilityManager
             NativeWin32UpdateCaretPosition(nativePointer, textbox.GetText(), textbox.GetCaretIndex());
         }
     }
+    
     
 }

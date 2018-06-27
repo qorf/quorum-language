@@ -18,6 +18,10 @@ public class Vibration extends VibrationManager {
         super(timeslice);
     }
     
+    public void Initialize() {
+        initialize();
+    }
+    
     public Activity getActivity() {
         Activity activity = plugins.quorum.Libraries.Game.AndroidApplication.GetActivity();
         return activity;
@@ -53,11 +57,11 @@ public class Vibration extends VibrationManager {
         vibratePattern(longpattern, repeat);
     }
         
-    public void VibrateGeneratedPattern(float intensity, int duration) {
+    public void VibrateGeneratedPattern(double intensity, int duration) {
         VibrateGeneratedPattern(intensity, duration, -1);
     }
 
-    public void VibrateGeneratedPattern(float intensity, int duration, int repeat) {
+    public void VibrateGeneratedPattern(double intensity, int duration, int repeat) {
         vibrateGeneratedPattern(intensity, duration, repeat);
     }
     

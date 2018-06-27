@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.util.ArrayList;
 
 
 public class RunAndroid {
@@ -19,7 +20,7 @@ public class RunAndroid {
     String keyStorePassword = "";
     String keyAlias = "key0";
     String keyPassword = "";
-    String androiSDKPath;
+    String androidSDKPath;
     
     String toolPath = File.separator +  "build-tools" + File.separator + "27.0.3" + File.separator;
     String zipalignPath = toolPath + "zipalign";
@@ -34,7 +35,7 @@ public class RunAndroid {
     public static final String FOLDER_NAME = "Android";
 
     public RunAndroid(String pathToRunFolder, String jarName) {
-        this.androiSDKPath = getDefaultAndroidSDKPath();
+        this.androidSDKPath = getDefaultAndroidSDKPath();
         this.pathToBuildAndroidFolder = pathToRunFolder + File.separator + FOLDER_NAME;
         this.librarySources = new String[] {
             pathToRunFolder + File.separator + jarName,
@@ -122,7 +123,7 @@ public class RunAndroid {
             return proc;
         } else if(isMac()) {
             //mac JDK's typically remove executable properties after a copy. Restore them.
-            File file = new File(androiSDKPath + zipalignPath);
+            File file = new File(androidSDKPath + zipalignPath);
             if(file.exists()) {
                 file.setExecutable(true);
             }
@@ -156,7 +157,7 @@ public class RunAndroid {
             return proc;
         } else if(isMac()) {
             //mac JDK's typically remove executable properties after a copy. Restore them.
-            File file = new File(androiSDKPath + apksignerPath);
+            File file = new File(androidSDKPath + apksignerPath);
             if(file.exists()) {
                 file.setExecutable(true);
             }
@@ -227,18 +228,34 @@ public class RunAndroid {
     public Process GetAPKDebugBuildProcess() throws IOException, InterruptedException  {
         if (isWindows()) {
             Process proc = Runtime.getRuntime().exec("cmd /c \"\" " + pathToBuildAndroidFolder + "\\gradlew.bat -p " + pathToBuildAndroidFolder + " assembleDebug & exit");
-            return proc;
+            
+            String[] list = {"cmd", "/c", "\"\"", pathToBuildAndroidFolder+"\\gradlew.bat", "-p", pathToBuildAndroidFolder, "assembleDebug", "&" ,"exit" };
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         } else if(isMac()) {
             //mac JDK's typically remove executable properties after a copy. Restore them.
             File file = new File(pathToBuildAndroidFolder + "/gradlew");
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
-            return proc;
+            
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         } else {
-            Process proc =  Runtime.getRuntime().exec(pathToBuildAndroidFolder + "/gradlew -p " + pathToBuildAndroidFolder + " assembleDebug");
-            return proc;
+                        
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            
+            ProcessBuilder pb = new ProcessBuilder(list);
+            pb.redirectErrorStream(true);
+            
+            return pb.start();
         }
     }
     
@@ -282,11 +299,11 @@ public class RunAndroid {
     }
     
     private String buildAPKSignerCommand() {
-        return androiSDKPath + apksignerPath + " sign --ks " + keyStorePath + " --ks-pass pass:" + keyStorePassword + " --ks-key-alias " + keyAlias + " --key-pass pass:" + keyPassword + " --out ." + File.separator + "Run" + File.separator + "ReleaseReady.apk" + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk" ;
+        return androidSDKPath + apksignerPath + " sign --ks " + keyStorePath + " --ks-pass pass:" + keyStorePassword + " --ks-key-alias " + keyAlias + " --key-pass pass:" + keyPassword + " --out ." + File.separator + "Run" + File.separator + "ReleaseReady.apk" + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk" ;
     }
     
     private String buildZipalignCommand() {  
-        return androiSDKPath + zipalignPath + " " + zipalignOptions + " " + pathToBuildAndroidFolder + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
+        return androidSDKPath + zipalignPath + " " + zipalignOptions + " " + pathToBuildAndroidFolder + ASSEMBLED_APK_FOR_RELEASE + " ." + File.separator + "Run" + File.separator + "ReleaseAssembled.apk";
                 
     }
     
@@ -357,7 +374,7 @@ public class RunAndroid {
     }
     
     public String getAndroidPath() {
-        return androiSDKPath;
+        return androidSDKPath;
     }
     
     public void setKeyStorePath(String keyStorePath) {
@@ -377,7 +394,7 @@ public class RunAndroid {
     }
     
     public void setAndroidSDKPath(String androidSDKPath) {
-        this.androiSDKPath = androidSDKPath;
+        this.androidSDKPath = androidSDKPath;
     }
     
     public void setProjectPath(String projectPath) {

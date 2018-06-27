@@ -68,11 +68,17 @@ class ActionOpcode is QuorumOpcode
         //if this is a constructor, pretend this is just a block
         //and ignore the rest.
         if isConstructor
+            //methodWriter:VisitCode()
             Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
             repeat while iterator:HasNext()
                 QuorumOpcode opcode = iterator:Next()
                 opcode:Write()
             end
+            methodWriter:VisitInstruction(opcodes:GetReturn())
+            methodWriter:VisitLabel(finish)
+            WriteParameterDebuggingTable(start, finish)
+            methodWriter:VisitMaxSize(0,0)
+            methodWriter:VisitEnd()
             return now
         end
 

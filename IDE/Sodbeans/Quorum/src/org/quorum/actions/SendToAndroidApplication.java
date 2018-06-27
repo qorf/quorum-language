@@ -79,12 +79,9 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 */
                 String androidSDKPath = project.getAndroidPath();
                 String androidAlternateJDK = project.getAndroidAlternateJDK();
-                String jarName = project.getExecutableNameNoExtension();
-                String applicationName = jarName;
-                String[] nameComponents = jarName.split("\\.");
-                if (nameComponents.length >= 1) {
-                   applicationName = nameComponents[0];
-                }
+                String jarName = project.getExecutableName(info.request);
+                String applicationName = project.getExecutableNameNoExtension();
+               
                 
                 AndroidSetup setup = new AndroidSetup();
                 InstalledFileLocator locator = InstalledFileLocator.getDefault();
@@ -106,7 +103,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 }     
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();
-                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getErrorStream());
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getInputStream());
                 OutputStream outputStream = buildProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
@@ -119,7 +116,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 buildProcess.destroy();
                 
                 Process installProcess = droid.GetDebugInstallProcess();
-                watch = new QuorumAction.QuorumProcessWatcher(installProcess.getErrorStream());
+                watch = new QuorumAction.QuorumProcessWatcher(installProcess.getInputStream());
                 outputStream = installProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();

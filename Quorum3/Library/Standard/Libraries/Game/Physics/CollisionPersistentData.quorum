@@ -3,6 +3,10 @@ package Libraries.Game.Physics
 use Libraries.Compute.Vector3
 use Libraries.Game.Physics.CollisionConstraint3D
 
+/*
+This class is used to record data of the forces, impulses, friction, penetration,
+and other information about a certain CollisionPoint3D.
+*/
 class CollisionPersistentData 
     number appliedImpulse = 0
     number previousAppliedImpulse = 0
@@ -30,6 +34,9 @@ class CollisionPersistentData
     CollisionConstraint3D contactSolver
     CollisionConstraint3D frictionSolver
 
+    /*
+    This action sets all of the variables in this class to 0.   
+    */
     action Reset
         me:appliedImpulse = 0
         me:previousAppliedImpulse = 0
@@ -55,22 +62,38 @@ class CollisionPersistentData
         me:angularComponentB:Set(0, 0, 0)
     end
 
+    /*
+    This action change the impulse applied at a certain CollisionPoint3D to the
+    number that you pass in.
+    */
     action SetAppliedImpulse(number impulse)
         me:appliedImpulse = impulse
     end
 
+    /*
+    This action returns the impulse that is currently being applied at a certain CollisionPoint3D.
+    */
     action GetAppliedImpulse returns number
         return appliedImpulse
     end
 
+    /*
+    This action sets the impulse applied at a certain CollisionPoint3D before you
+    calculated a new impulse to be applied at that CollisionPoint3D.
+    */
     action SetPreviousAppliedImpulse(number impulse)
         me:previousAppliedImpulse = impulse
     end
 
+    /*
+    This action returns the impulse applied at a certain CollisionPoint3D before you
+    calculated a new impulse to be applied at that CollisionPoint3D.
+    */
     action GetPreviousAppliedImpulse returns number
         return previousAppliedImpulse
     end
 
+    
     action SetAccumulatedTangentImpulse0(number impulse)
         me:accumulatedTangentImpulse0 = impulse
     end
