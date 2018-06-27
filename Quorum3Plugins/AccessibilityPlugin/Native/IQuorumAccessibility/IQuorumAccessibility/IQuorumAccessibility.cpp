@@ -20,10 +20,16 @@
 
 // This is the handle to the main game window. It is set during initialization and must never be changed.
 HWND GLFWParentWindow = NULL;
+JavaVM* jvm = NULL;
 
 HWND GetMainWindowHandle()
 {
 	return GLFWParentWindow;
+}
+
+JavaVM* GetJVM()
+{
+	return jvm;
 }
 
 // CreateWideStringFromUTF8Win32: converts a const char* to a WCHAR*.
@@ -66,11 +72,10 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
-	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
-	
+	env->GetJavaVM(&jvm);
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
@@ -187,7 +192,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 }
 
 // NativeWin32CreateTextBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jstring textboxName, jstring description, jstring fullText, jint caretIndex)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jstring textboxName, jstring description, jstring fullText, jint caretIndex, jobject self)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char* nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
@@ -198,9 +203,13 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 	WCHAR* wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
 
+	jclass textboxClass = env->GetObjectClass(self);
+
+	env->NewGlobalRef(textboxClass);
+
 	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
 	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
-	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, wFullText, Range(caretIndex,caretIndex));
+	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, wFullText, Range(caretIndex,caretIndex), static_cast<jobject>(textboxClass));
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);

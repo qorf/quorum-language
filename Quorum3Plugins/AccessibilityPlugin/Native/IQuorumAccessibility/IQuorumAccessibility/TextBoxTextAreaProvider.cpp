@@ -1,4 +1,5 @@
 #include <UIAutomation.h>
+#include "../IQuorumAccessibility/Header/jni.h"
 
 #include "TextBoxTextAreaProvider.h"
 #include "TextBoxControl.h"
@@ -339,7 +340,21 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
+	//JavaVM* jvm = GetJVM();
+	//JNIEnv* env;
+	//jvm->AttachCurrentThread((void**)&env, NULL);
+	//jobject* jTextbox = m_pTextBoxControl->GetSelf();
+	//jclass textboxClass = static_cast<jclass>(*jTextbox);
+	//jmethodID methodId = env->GetMethodID(textboxClass, "GetCaretIndex", "()I");
+
+	//if (methodId)
+	//	env->CallIntMethod(textboxClass, methodId);
+	//else
+	//	std::cout << "methodId wasn't set properly..." << std::endl;
+
 	Range caretRange = { m_pTextBoxControl->GetStartIndex(), m_pTextBoxControl->GetEndIndex() };
+
+
 	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange);
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)

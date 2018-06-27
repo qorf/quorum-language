@@ -62,6 +62,14 @@ class TreeItem is Control
         Initialize(name, undefined)
     end
 
+    action HideExpandButton
+        expandButton:Hide()
+    end
+
+    action ShowExpandButton
+        expandButton:Show()
+    end
+
     action Initialize(text name, Texture image)
         label:Initialize()
         integer height = label:GetLineHeight()

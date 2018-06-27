@@ -6,6 +6,7 @@ import android.os.Vibrator;
 import android.util.Log;
 
 public class VibrationManager {
+    
     private long endTimeLastRun;
     private Vibrator vibrationUnit;
     private int timeslice;
@@ -22,6 +23,7 @@ public class VibrationManager {
     }
     
     private Vibrator getVibrationUnit() {
+        Log.v(TAG, "Got vibration unit");
         return (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
     }
     
@@ -116,14 +118,14 @@ public class VibrationManager {
         }
     }
     
-    public void vibrateGeneratedPattern(float intensity, int duration) {
-        VibrationManager.this.vibrateGeneratedPattern(intensity, duration, -1);
+    public void vibrateGeneratedPattern(double intensity, int duration) {
+        this.vibrateGeneratedPattern(intensity, duration, -1);
     }
 
-    public void vibrateGeneratedPattern(float intensity, int duration, int repeat) {
+    public void vibrateGeneratedPattern(double intensity, int duration, int repeat) {
         initializeIfNecessary();
         long now = System.currentTimeMillis();
-        long[] pattern = VibrationManager.this.generateVibrationPattern(intensity, duration);
+        long[] pattern = this.generateVibrationPattern(intensity, duration);
         logVibrationPattern(pattern);
         if (now >= endTimeLastRun) {
             if (vibrationUnit.hasVibrator()) {

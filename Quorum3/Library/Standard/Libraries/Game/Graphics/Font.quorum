@@ -45,9 +45,21 @@ class Font
     FontStrategy strategy = undefined
     
     on create
+        Setup()
+    end
+    
+    private action Setup
         Properties properties
         text os = properties:GetOperatingSystemName()
-        if os:Contains("Windows")// or os:Contains("Mac OS X") or os:Contains("iOS Simulator") or os:Contains("iOS Device")
+
+        boolean useFreeType = os:Contains("Windows")
+        mac = os:Contains("Mac OS X")
+        sim = os:Contains("iOS Simulator")
+        device = os:Contains("iOS Device")
+
+        useFreeType = useFreeType or mac or sim or device
+
+        if useFreeType
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy
         else    // Linux and Android
@@ -58,7 +70,16 @@ class Font
         color = color:Black()
         SetColor(color)
     end
-    
+
+    /*
+    This action forces the Font to use the QuorumStrategy class while loading
+    fonts and creating glyphs.
+    */
+    action UseQuorumStrategy
+        QuorumStrategy quorumStrategy
+        strategy = quorumStrategy
+    end
+
     /*
     This action loads a font from a given font file. 
 

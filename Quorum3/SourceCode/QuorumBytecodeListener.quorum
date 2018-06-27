@@ -2703,7 +2703,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         BinaryAndOrOpcode binary
         binary:SetLocation(context:GetLocation())
         binary:isAnd = context:isAnd
-        binary:methodWriter = methodWriter
+        binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
         binary:SetOperation(op)
         binary:left = left
