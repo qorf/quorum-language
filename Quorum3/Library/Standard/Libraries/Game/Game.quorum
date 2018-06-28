@@ -798,7 +798,9 @@ class Game
     */
     action ContinueGame
         gameInput:ProcessInputEvents()
-
+        if accessibility not= undefined
+            accessibility:Update()
+        end
         UpdateAll()
         number seconds = GetSecondsBetweenFrames()
         Update(seconds)

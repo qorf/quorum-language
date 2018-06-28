@@ -2,6 +2,7 @@
 #include <UIAutomation.h>
 
 #include "CustomMessages.h"
+#include "Resources.h"
 #include "Item.h"
 
 class ButtonProvider;

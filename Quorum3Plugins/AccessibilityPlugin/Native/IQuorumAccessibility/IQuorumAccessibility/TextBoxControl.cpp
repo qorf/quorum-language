@@ -8,13 +8,16 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject self)
-	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex), m_jSelf(self)
+TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject me)
+	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex), m_JO_me(me)
 {
 }
 
 TextBoxControl::~TextBoxControl()
 {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+		env->DeleteGlobalRef(m_JO_me);
 }
 
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
@@ -51,7 +54,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex, _In_ jobject self)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex, _In_ jobject me)
 {
 
 	if (!Initialized)
@@ -61,7 +64,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex, self);
+		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex, me);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
@@ -109,12 +112,30 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 std::wstring TextBoxControl::GetText()
 {
-	return m_fullText;
+	JNIEnv* env = GetJNIEnv();
+
+	env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+	
+	jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
+	
+	const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
+	std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
+	
+	env->ReleaseStringUTFChars(fullText, nativeFullText);
+
+	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(GetHWND(), this);
+	if (eventControl != NULL && UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
+		eventControl->Release();
+	}
+
+	return wFullText;
 }
 
 int TextBoxControl::GetLineLength()
 {
-	return static_cast<int>(m_fullText.size());
+	return static_cast<int>(GetText().size());
 }
 
 int TextBoxControl::GetLineCount()
@@ -127,6 +148,76 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 	EndPoint endOfText;
 	endOfText.character = GetLineLength();
 	return endOfText;
+}
+
+TextBoxProvider* TextBoxControl::GetTextBoxProvider()
+{
+	if (m_pTextBoxProvider == NULL)
+	{
+		m_pTextBoxProvider = new TextBoxProvider(GetHWND(), this);
+	}
+	return m_pTextBoxProvider;
+}
+
+void TextBoxControl::SetControlFocus(_In_ bool focused)
+{
+	m_focused = focused;
+	if (focused)
+		NotifyFocusGained(GetHWND(), this);
+}
+
+bool TextBoxControl::HasFocus()
+{
+	return m_focused;
+}
+
+Range TextBoxControl::GetSelectionRange()
+{
+	JNIEnv* env = GetJNIEnv();
+	Range selectionRange = { {0}, {0} };
+
+	if (env != NULL)
+	{
+		jint index = 0;
+		jobject JO_selection;
+
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		
+		JO_selection = env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetSelection);
+
+		bool isEmpty = static_cast<bool>(env->CallBooleanMethod(JO_selection, JavaClass_TextBoxSelection.IsEmpty));
+
+		// Since we don't have proper locks for the quorum side
+		// I'm trying to minimize the amount of calls made to it
+		// that way I can hope that C++ will still win the race.
+		if (isEmpty)
+		{
+			index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
+			selectionRange.begin.character = (int)index;
+			selectionRange.end.character = (int)index;
+		}
+		else
+		{
+			index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
+			selectionRange.begin.character = (int)index;
+			
+			index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetEndIndex);
+			selectionRange.end.character = (int)index;
+		}
+	}
+
+	return selectionRange;
+}
+
+void TextBoxControl::UpdateCaret()
+{
+	NotifyCaretPositionChanged(GetHWND(), this);
+}
+
+jobject TextBoxControl::GetMe()
+{
+	return m_JO_me;
 }
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
@@ -306,36 +397,6 @@ bool TextBoxControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_
 	return true;
 }
 
-TextBoxProvider* TextBoxControl::GetTextBoxProvider()
-{
-	if (m_pTextBoxProvider == NULL)
-	{
-		m_pTextBoxProvider = new TextBoxProvider(GetHWND(), this);
-	}
-	return m_pTextBoxProvider;
-}
-
-bool TextBoxControl::HasFocus()
-{
-	return m_focused;
-}
-
-EndPoint TextBoxControl::GetStartIndex()
-{
-	return m_caretPosition.begin;
-}
-
-EndPoint TextBoxControl::GetEndIndex()
-{
-	return m_caretPosition.end;
-}
-
-jobject * TextBoxControl::GetSelf()
-{
-	return &m_jSelf;
-}
-
-
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 
@@ -412,7 +473,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case QUORUM_UPDATESELECTION:
 	{
 
-		Range indices =  *(Range*)(lParam);
+		Range indices = *(Range*)(lParam);
 		m_caretPosition = indices;
 
 		UpdateCaret();
@@ -430,21 +491,11 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		break;
 	}
 	default:
+
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;
+
 	}
 
 	return lResult;
-}
-
-void TextBoxControl::SetControlFocus(_In_ bool focused)
-{
-	m_focused = focused;
-	if (focused)
-		NotifyFocusGained(GetHWND(), this);
-}
-
-void TextBoxControl::UpdateCaret()
-{
-	NotifyCaretPositionChanged(GetHWND(), this);
 }

@@ -65,11 +65,14 @@ class AccessibilityManager
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
+    system action Update
+
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
         if selection is TextBoxSelection
             
             TextBoxSelection textSelection = cast(TextBoxSelection, selection)
+
             TextSelectionChanged(textSelection)
 
         elseif selection is TabPaneSelection
