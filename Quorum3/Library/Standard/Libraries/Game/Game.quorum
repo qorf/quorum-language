@@ -47,6 +47,7 @@ use Libraries.Interface.Behaviors.Controls.TextBoxStartNewLineBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxAddIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxOpenKeyboardBehavior
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
@@ -463,6 +464,11 @@ class Game
         TextBoxRemoveIndentationBehavior removeIndentBehavior
         textBoxTable:Add(shiftTabSet, removeIndentBehavior)
 
+        InputSet touchSet
+        touchSet:SetInputType(touchSet:TOUCH_INPUT)
+        TextBoxOpenKeyboardBehavior openKeyboardBehavior
+        textBoxTable:Add(touchSet, openKeyboardBehavior)
+
         gameInput:AddInputTable(textBoxTable)
 
         InputTable tabPaneTable
@@ -792,7 +798,9 @@ class Game
     */
     action ContinueGame
         gameInput:ProcessInputEvents()
-
+        if accessibility not= undefined
+            accessibility:Update()
+        end
         UpdateAll()
         number seconds = GetSecondsBetweenFrames()
         Update(seconds)

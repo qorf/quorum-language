@@ -1,4 +1,4 @@
-#include "../IQuorumAccessibility/Header/jni.h"
+#include "Resources.h"
 
 #ifndef CustomMessages_HEADER
 #define CustomMessages_HEADER
@@ -34,14 +34,6 @@
 #define QUORUM_ADDTREEITEM WM_USER + 8
 #define QUORUM_REMOVETREEITEM WM_USER + 9
 #define QUORUM_SELECTTREEITEM WM_USER + 10
-
-
-// This returns the main game engine window handle for Quorum which messages must be forwarded to.
-// If new windows can be created by Quorum then messages will need to be forwarded to those instead.
-// Its defined in IQuorumAccessibility.cpp
-HWND GetMainWindowHandle();
-
-JavaVM* GetJVM();
 
 // ForwardMessage: Sends unhandled messages to either the main GLFW window or the Default Window Procedure
 inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)

@@ -95,20 +95,20 @@ class CollisionConstraint3D
 
         Vector3 normal = contactPoint:GetWorldNormalOnB()
 
-        Vector3 relpos1
+        Vector3 relpos1     //vector from CollisionPoint3D tp COM
         relpos1:Set(pos1):Subtract(body1:GetCenterOfMassPosition())
 
         Vector3 relpos2
         relpos2:Set(pos2):Subtract(body2:GetCenterOfMassPosition())
 
         Vector3 vel1
-        vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))
+        vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))      //linear velocity of object 1, also taking into account the rotation of 1
         Vector3 vel2
         vel2:Set(body2:GetLinearVelocityAtLocalPoint(relpos2))
         Vector3 vel
-        vel:Set(vel1):Subtract(vel2)
+        vel:Set(vel1):Subtract(vel2)    //velocity of 1 relative to 2
 
-        number relvel = normal:DotProduct(vel)
+        number relvel = normal:DotProduct(vel)  //the "magnitude" relative velocity projected onto the contact normal
 
         number kfps = 1.0 / solverInfo:GetTimeStep()
 

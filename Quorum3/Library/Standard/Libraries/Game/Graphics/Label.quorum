@@ -50,6 +50,9 @@ class Label is Item2D
         elseif font:FontIsAvailable("Times New Roman")
             font:LoadFont("Times New Roman")
             SetFont(font)
+        elseif font:FontIsAvailable("Roboto-Black")
+            font:LoadFont("Roboto-Black")
+            SetFont(font)
         else
             Array<File> availableFontFiles = font:GetAvailableFonts()
             if availableFontFiles:GetSize() > 0

@@ -298,20 +298,14 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 
 	HRESULT hr = S_OK;
 
-
 	std::wstring text = m_pTextBoxControl->GetText();
-	int startPosition = m_range.begin.character - 1;
+	int startPosition = m_range.begin.character;
 	int length = m_range.end.character - m_range.begin.character;
-
+	
 	if (length <= 0)
 		length = 1;
 
-	if (startPosition < 0)
-		startPosition = 1;
-
 	*pRetVal = SysAllocString(text.substr(startPosition, length).c_str());
-
-	//*pRetVal = SysAllocString(L"");
 
 	if (*pRetVal == NULL)
 	{

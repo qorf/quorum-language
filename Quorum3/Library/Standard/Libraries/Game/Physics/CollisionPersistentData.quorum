@@ -6,6 +6,8 @@ use Libraries.Game.Physics.CollisionConstraint3D
 /*
 This class is used to record data of the forces, impulses, friction, penetration,
 and other information about a certain CollisionPoint3D.
+Note that at a CollisionPoint3D, since we are in 3D space, we would have a
+normal vector and two tangential vectors.
 */
 class CollisionPersistentData 
     number appliedImpulse = 0
@@ -93,147 +95,295 @@ class CollisionPersistentData
         return previousAppliedImpulse
     end
 
-    
+    /*
+    This action sets the the total amount of impulse that is applied to the 
+    first tangent of collision at a certain CollisionPoint3D.
+    */
     action SetAccumulatedTangentImpulse0(number impulse)
         me:accumulatedTangentImpulse0 = impulse
     end
 
+    /*
+    This action returns the the total amount of impulse that is applied to the 
+    first tangent of collision at a certain CollisionPoint3D.
+    */
     action GetAccumulatedTangentImpulse0 returns number
         return accumulatedTangentImpulse0
     end
 
+    /*
+    This action sets the the total amount of impulse that is applied to the 
+    second tangent of collision at a certain CollisionPoint3D.
+    */
     action SetAccumulatedTangentImpulse1(number impulse)
         me:accumulatedTangentImpulse1 = impulse
     end
 
+    /*
+    This action returns the the total amount of impulse that is applied to the 
+    second tangent of collision at a certain CollisionPoint3D.
+    */
     action GetAccumulatedTangentImpulse1 returns number
         return accumulatedTangentImpulse1
     end
 
+    /*
+    This action sets a number that is used to scale the impulse that is used
+    to avoid penetration of the two objects and the impulse that is used to
+    move the two objects apart. These impulses will be applied along the collision
+    normal between the two objects.
+    */
     action SetJacobianDiagonalABInverse(number inverse)
         me:jacobianDiagonalABInverse = inverse
     end
 
+    /*
+    This action gets a number that is used to scale the impulse that is used
+    to avoid penetration of the two objects and the impulse that is used to
+    move the two objects apart. These impulses will be applied along the collision
+    normal between the two objects.
+    */
     action GetJacobianDiagonalABInverse returns number
         return jacobianDiagonalABInverse
     end
 
+    /*
+    This action sets a number that is used to scale the velocity of object A seen
+    from the perspective of object B such that this relative velocity will become
+    closer to 0 in the first tangent direction.
+    */
     action SetJacobianDiagonalABInverseTangent0(number tangent)
         me:jacobianDiagonalABInverseTangent0 = tangent
     end
 
+    /*
+    This action returns a number that is used to scale the velocity of object A seen
+    from the perspective of object B such that this relative velocity will become
+    closer to 0 in the first tangent direction.
+    */
     action GetJacobianDiagonalABInverseTangent0 returns number
         return jacobianDiagonalABInverseTangent0
     end
 
+    /*
+    This action sets a number that is used to scale the velocity of object A seen
+    from the perspective of object B such that this relative velocity will become
+    closer to 0 in the second tangent direction.
+    */
     action SetJacobianDiagonalABInverseTangent1(number tangent)
         me:jacobianDiagonalABInverseTangent1 = tangent
     end
 
+    /*
+    This action returns a number that is used to scale the velocity of object A seen
+    from the perspective of object B such that this relative velocity will become
+    closer to 0 in the second tangent direction.
+    */
     action GetJacobianDiagonalABInverseTangent1 returns number
         return jacobianDiagonalABInverseTangent1
     end
 
+    /*
+    This action sets how many times this CollisionPersistentData has been changed
+    by the action "PrepareConstraints" in the class CollisionSolver3D.
+    */
     action SetPersistentLifeTime(integer lifeTime)
         me:persistentLifeTime = lifeTime
     end
 
+    /*
+    This action returns how many times this CollisionPersistentData has been changed
+    by the action "PrepareConstraints" in the class CollisionSolver3D.
+    */
     action GetPersistentLifeTime returns integer
         return persistentLifeTime
     end
 
+    /*
+    This action sets the effective resistution at the CollisionPoint3D between
+    the two objects.
+    */
     action SetRestitution(number restitution)
         me:restitution = restitution
     end
 
+
+    /*
+    This action returns the effective resistution at the CollisionPoint3D between
+    the two objects.
+    */
     action GetRestitution returns number
         return restitution
     end
 
+    /*
+    This action sets the effective friction at the CollisionPoint3D between
+    the two objects.
+    */
     action SetFriction(number friction)
         me:friction = friction
     end
 
+    /*
+    This action returns the effective friction at the CollisionPoint3D between
+    the two objects.
+    */
     action GetFriction returns number
         return friction
     end
 
+    /*
+    This action records what the current penetration between the two objects is.
+    */
     action SetPenetration(number penetration)
         me:penetration = penetration
     end
 
+    /*
+    This action returns what the current penetration between the two objects is.
+    */
     action GetPenetration returns number
         return penetration
     end
-
+    
+    /*
+    This action sets the first tangent direction in global coordinates.
+    */
     action SetFrictionWorldTangential0(Vector3 tangential)
         me:frictionWorldTangential0 = tangential
     end
 
+    /*
+    This action returns the first tangent direction in global coordinates.
+    */
     action GetFrictionWorldTangential0 returns Vector3
         return frictionWorldTangential0
     end
 
+    /*
+    This action sets the second tangent direction in global coordinates.
+    */
     action SetFrictionWorldTangential1(Vector3 tangential)
         me:frictionWorldTangential1 = tangential
     end
 
+    /*
+    This action returns the second tangent direction in global coordinates.
+    */
     action GetFrictionWorldTangential1 returns Vector3
         return frictionWorldTangential1
     end
 
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the first tangent direction on object A.
+    */
     action SetFrictionAngularComponent0A(Vector3 angularComponent)
         me:frictionAngularComponent0A = angularComponent
     end
 
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the first tangent direction on object A.
+    */
     action GetFrictionAngularComponent0A returns Vector3
         return frictionAngularComponent0A
     end
 
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the first tangent direction on object B.
+    */
     action SetFrictionAngularComponent0B(Vector3 angularComponent)
         me:frictionAngularComponent0B = angularComponent
     end
 
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the first tangent direction on object B.
+    */
     action GetFrictionAngularComponent0B returns Vector3
         return frictionAngularComponent0B
     end
 
+
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the second tangent direction on object A.
+    */
     action SetFrictionAngularComponent1A(Vector3 angularComponent)
         me:frictionAngularComponent1A = angularComponent
     end
 
+
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the second tangent direction on object A.
+    */
     action GetFrictionAngularComponent1A returns Vector3
         return frictionAngularComponent1A
     end
 
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the second tangent direction on object B.
+    */
     action SetFrictionAngularComponent1B(Vector3 angularComponent)
         me:frictionAngularComponent1B = angularComponent
     end
 
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the friction in the second tangent direction on object B.
+    */
     action GetFrictionAngularComponent1B returns Vector3
         return frictionAngularComponent1B
     end
 
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the normal impulse on object A.
+    */
     action SetAngularComponentA(Vector3 angularComponent)
         me:angularComponentA = angularComponent
     end
 
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the normal impulse on object A.
+    */
     action GetAngularComponentA returns Vector3
         return angularComponentA
     end
 
+    /*
+    This action sets the direction (global coordinates) at which an angular impulse should be applied
+    due to the normal impulse on object B.
+    */
     action SetAngularComponentB(Vector3 angularComponent)
         me:angularComponentB = angularComponent
     end
 
+    /*
+    This action returns the direction (global coordinates) at which an angular impulse should be applied
+    due to the normal impulse on object B.
+    */
     action GetAngularComponentB returns Vector3
         return angularComponentB
     end
 
+    /*
+    This action returns the container for all of the actions that can be used to
+    bounce the two objects away from each other after they have collided.
+    */
     action GetContactSolver returns CollisionConstraint3D
         return contactSolver
     end
 
+    /*
+    This action returns the container for all of the actions that can be used to
+    solve for the correct tangential impulse to simulate friction.
+    */
     action GetFrictionSolver returns CollisionConstraint3D
         return frictionSolver
     end

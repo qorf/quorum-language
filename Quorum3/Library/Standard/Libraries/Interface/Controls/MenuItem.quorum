@@ -40,10 +40,13 @@ class MenuItem is Control
     MenuItem parentMenu = undefined
     MenuBar menuBar = undefined
 
-    public constant integer LEFT = 0
-    public constant integer RIGHT = 1
-    public constant integer DOWN = 2
-    public constant integer UP = 3
+    public constant integer DEFAULT = 0
+    public constant integer LEFT = 1
+    public constant integer RIGHT = 2
+    public constant integer DOWN = 3
+    public constant integer UP = 4
+
+    integer direction = DEFAULT
 
     // The default appearance of MenuItems which are elements of this menu.
     ControlView submenuView = undefined
@@ -70,12 +73,10 @@ class MenuItem is Control
     action Initialize(text name, text shortcut)
         SetName(name)
         SetShortcut(shortcut)
-        InitializePanel()
     end
 
     action Initialize(text name, Array<MenuItem> items)
         Initialize(name)
-        InitializePanel()
 
         integer counter = 0
         repeat while counter < items:GetSize()
@@ -97,9 +98,9 @@ class MenuItem is Control
         content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
         panelView = content
 
-        VerticalMenuLayout layout
-        panelLayout = layout
-        panel:AddLayout(layout)
+        SetMenuDirection(direction)
+        
+        panel:AddLayout(panelLayout)
         panel:SetView2D(panelView)
     end
 
@@ -134,6 +135,7 @@ class MenuItem is Control
         if menuView not= undefined
             MenuItemView copy = cast(MenuItemView, menuView:Copy())
             item:SetAppearance(copy)
+            item:SetMenuAppearance(copy)
         end
 
         if menuItems:IsEmpty() and GetMenuBar() not= undefined
@@ -149,6 +151,10 @@ class MenuItem is Control
         item:SetParentMenu(me)
         panel:Add(item)
         menuItems:Add(item)
+
+        if item:GetMenuDirection() = DEFAULT
+            item:SetMenuDirection(DEFAULT)
+        end
     end
 
     action RemoveMenuItem(MenuItem item)
@@ -162,19 +168,41 @@ class MenuItem is Control
             panelLayout = layout
         end
 
+        me:direction = direction
+
+        if direction = DEFAULT
+            if GetParentMenu() = undefined
+                direction = DOWN
+            else
+                direction = RIGHT
+            end
+        end
+
         if direction = LEFT
             panelLayout:SetPercentageOriginX(1)
+            panelLayout:SetPercentageOriginY(1)
             panelLayout:SetPercentageX(0)
             panelLayout:SetPercentageY(1)
         elseif direction = RIGHT
             panelLayout:SetPercentageOriginX(0)
+            panelLayout:SetPercentageOriginY(1)
             panelLayout:SetPercentageX(1)
             panelLayout:SetPercentageY(1)
         elseif direction = DOWN
-            // TO-DO
+            panelLayout:SetPercentageOriginX(0)
+            panelLayout:SetPercentageOriginY(1)
+            panelLayout:SetPercentageY(0)
+            panelLayout:SetPercentageX(0)
         elseif direction = UP
-            // TO-DO
+            panelLayout:SetPercentageOriginX(0)
+            panelLayout:SetPercentageOriginY(0)
+            panelLayout:SetPercentageX(0)
+            panelLayout:SetPercentageY(1)
         end
+    end
+
+    action GetMenuDirection returns integer
+        return direction
     end
 
     action Open
@@ -256,6 +284,7 @@ class MenuItem is Control
                 MenuItem item = cast(MenuItem, i)
                 MenuItemView copy = cast(MenuItemView, menuView:Copy())
                 item:SetAppearance(copy)
+                item:SetMenuAppearance(menuView)
             end
             counter = counter + 1
         end
