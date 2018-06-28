@@ -18,7 +18,8 @@ public class AndroidSetup {
 
     public static final String PATH_TO_MAIN = File.separator + "app" + File.separator + "src" + File.separator + "main" + File.separator;
     public static final String PATH_TO_MAIN_XML = PATH_TO_MAIN + "AndroidManifest.xml";
-
+    public static final String PATH_TO_APP_BUILD_GRADLE = File.separator + "app" + File.separator  + "build.gradle";
+    
     public static final String PATH_TO_LAYOUT = PATH_TO_MAIN + "res" + File.separator + "layout" + File.separator;
     public static final String PATH_TO_LAYOUT_XML = PATH_TO_LAYOUT + "activity_main.xml";
 
@@ -102,7 +103,10 @@ public class AndroidSetup {
     
      public void changeApplicationName(String projectPath, String applicationName) throws FileNotFoundException, IOException {
         String pathToMain = projectPath + PATH_TO_MAIN_XML;
-        replaceLineText(pathToMain, "android:label=\"Android\"", "android:label=\""+applicationName+"\"");
+        replaceLineText(pathToMain, "android:label=\"Android\"", "        android:label=\""+applicationName+"\"");
+        
+        String pathToBuild = projectPath + PATH_TO_APP_BUILD_GRADLE;
+        replaceLineText(pathToBuild, "api files('libs/Default.jar')", "    api files('libs/"+applicationName+".jar')");
     }
 
     public void cleanGeneratedFiles(String projectPath) throws IOException, InterruptedException {
