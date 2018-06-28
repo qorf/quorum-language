@@ -220,6 +220,7 @@ class QuorumStrategy is FontStrategy
         if initialized
             fontRasterizer:SetSize(newSize)
             height = GetHeight()//WTF
+            //output "Height is: " + height
             EmptyGlyphTable()
         end
     end
@@ -482,25 +483,31 @@ class QuorumStrategy is FontStrategy
             integer horizontalOffset = 0                                        // TODO - based on kerning?
             
             /*
-            To-do: This is a bandaid fix at best, but it currently works for all
-            font sizes tested between 8 and 200. There is a problem with this
-            approach and that is that it does not consistently position the
-            glyphs on the label. For example, at 8 point font they will be
-            close to the top of the pixel grid, but at 80 point font they will
-            be close to the bottom of the pixel grid. This should only really be
-            an issue when mixing font sizes on the same line or on lines that
-            are close together. Ideally we would like to position every character
-            so that they have the same baseline.
+            Currently unused, the fix was to calculate this relative to the pixelmap.
+            Pixel maps are always from (0, 0) to height * width-1. Coordinates for
+            glyphs are calculated in an arbitrary grid where positions are unknown
+            until they are calculated. To solve this, I found the maximum values
+            of the glyph and then took the absolute value of the upperbound
+            for the pixelmap - the highest point of the glyph, and used this as
+            the offset. There may be cases where glyphs are below the lowest point
+            of the pixel grid, and there would need to be work done there to fix those
+            cases, but it should be straightforward.
+
+            Keeping this variable here for now as it may need to be calculated here
+            to compute the heightFromBaseLine value. But, its actual value set
+            here is irrelevant at this time.
             */
-            integer verticalOffset = math:AbsoluteValue(fontMinimumY) + size/4  
-            
+            integer verticalOffset = math:AbsoluteValue(fontMinimumY) + size
+
             integer glyphWidth = glyphMaximumX //- glyphMinimumX
-            integer verticalAdvance = 0
+            integer verticalAdvance = 0 // this seems wrong to me
             integer extraHorizontalAdvance = size/20                             // TODO - based on kerning?
             //extraHorizontalAdvance = fileReader:GetKerningValue(
             // ^ change to read from fileInformation instead of fileReader
 
             FontDrawable glyphDrawable = fontRasterizer:DrawGlyph(glyphOutline, horizontalOffset, verticalOffset, color)
+            Drawable d = glyphDrawable:GetDrawable()
+            //output "From Strategy, the drawable has height: " + d:GetHeight()
             integer glyphActualWidth = glyphDrawable:GetXMaximum() - glyphDrawable:GetXMinimum()      
             integer horizontalAdvance = cast(integer, horizontalOffset+glyphWidth+extraHorizontalAdvance)
 
@@ -511,9 +518,10 @@ class QuorumStrategy is FontStrategy
 
             // scale bounding box to pixel size
             // compute height and advance from scaled bounding box (use sensible default)
-            integer heightFromBaseLine = verticalAdvance - verticalOffset     // this moves the pixelmap up/down based on the offset. Need to make this consistent.
+            //integer heightFromBaseLine = verticalAdvance - verticalOffset     // this moves the pixelmap up/down based on the offset. Need to make this consistent.
             //integer halfSize = cast(integer, size * 0.25)
             //integer heightFromBaseLine = size + halfSize // need to move it up a bit from just size
+            integer heightFromBaseLine = cast(integer, d:GetHeight())
 
             Glyph glyph
             glyph:drawable = glyphDrawable:GetDrawable()

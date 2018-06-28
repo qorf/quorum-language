@@ -32,34 +32,84 @@ class FontRasterizer
     integer yMinimum = int:GetMaximumValue()
     integer yMaximum = int:GetMinimumValue()
 
-    /*
-        returns a drawable to use to display glyph
-    */ 
-    /*
-    action GetDrawable(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns Drawable
-        Format format = SetupFormat()
-        PixelMap pixelmap = SetupPixelMap(format)
+    private action CalculateGlyphHeight(Array<Line> lines, Array<integer> maximums) returns integer
+        integer lowestPoint = 0
+        integer highestPoint = 0
+        Math math
 
-        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)
-        pixelmap = RenderCalculatedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false)
-
-        Texture tex
-        tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
-        Drawable d
-        d:Load(tex)
-
-        return d
+        if lines:GetSize() > 0
+            Line line = lines:Get(0)
+            lowestPoint = line:GetY1()
+            highestPoint = line:GetY2()
+        end
+         
+        integer i = 0
+        repeat while i < lines:GetSize()
+            Line line = lines:Get(i)
+            if line:GetY1() < lowestPoint
+                lowestPoint = line:GetY1()
+            elseif line:GetY2() < lowestPoint
+                lowestPoint = line:GetY2()
+            end
+    
+            if line:GetY1() > highestPoint
+                highestPoint = line:GetY1()
+            elseif line:GetY2() > highestPoint
+                highestPoint = line:GetY2()
+            end
+            i = i + 1
+        end    
+        
+        integer height = math:AbsoluteValue(lowestPoint - highestPoint)
+        maximums:Add(0, lowestPoint)
+        maximums:Add(1, highestPoint)
+        return height
     end
-*/
+
+    private action CalculateGlyphWidth(Array<Line> lines) returns integer
+        integer leftPoint = 0
+        integer rightPoint = 0
+        Math math
+
+        if lines:GetSize() > 0
+            Line line = lines:Get(0)
+            leftPoint = line:GetX1()
+            rightPoint = line:GetX2()
+        end
+
+        integer i = 0
+        repeat while i < lines:GetSize()
+            Line line = lines:Get(i)
+            if line:GetX1() < leftPoint
+                leftPoint = line:GetX1()
+            elseif line:GetX2() < leftPoint
+                leftPoint = line:GetX2()
+            end
+
+            if line:GetX1() > rightPoint
+                rightPoint = line:GetX1()
+            elseif line:GetX2() > rightPoint
+                rightPoint = line:GetX2()
+            end
+            i = i + 1
+        end
+        //output "Leftpoint: " + leftPoint + ", Rightpoint: " + rightPoint
+        integer width = math:AbsoluteValue(leftPoint - rightPoint) + 20 // arbitrary addition to fix characters being cut off, not sure what to add here
+        return width
+    end
 
     action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns FontDrawable
         Format format = SetupFormat()
-        PixelMap pixelmap = SetupPixelMap(format)
+        Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)  // make sure to pass this in to other functions that previously made this same call
+        Array<integer> maximums
+        integer height = CalculateGlyphHeight(linesToDraw, maximums)
+        //integer width = CalculateGlyphWidth(linesToDraw)
+        //output "Width using new function is: " + width
+        PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height+1, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
 
-        //pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)          // fills in the glyphs
-        pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false)  // draws the glyph outline
-        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color)          // fills in the glyphs
-
+        pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false, maximums)  // draws the glyph outline
+        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color, linesToDraw, maximums)          // fills in the glyphs
+        
         Texture tex
         tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
         Drawable d
@@ -76,9 +126,15 @@ class FontRasterizer
     end
 
     // This function fills in the actual glyphs, based on the outline.
-    action RenderRasterizedGlyph(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsperEM, Color color) returns PixelMap
-        Array<Line> linesToDraw = GetLinesToDraw(outline, unitsperEM, offsety)
-        
+    action RenderRasterizedGlyph(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsperEM, Color color, Array<Line> linesToDraw, Array<integer> maximums) returns PixelMap
+        integer lowerX = 0
+        integer lowerY = 0
+        integer upperX = pixelmap:GetWidth()
+        integer upperY = pixelmap:GetHeight()
+        //output "upperX: " + upperX + ", upperY: " + upperY
+        Math math
+        offsety = math:AbsoluteValue(upperY-maximums:Get(1)-1)
+
         integer i = 0
         repeat while i < linesToDraw:GetSize()
             Line line = linesToDraw:Get(i)
@@ -97,8 +153,14 @@ class FontRasterizer
         Can be used to debug when debug is set to true (shows differently colored outlines) or
         to add antialiasing to the glyph
     */
-    action RenderAntiAliasedOutline(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsPerEM, Color color, boolean debug) returns PixelMap
-        
+    action RenderAntiAliasedOutline(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsPerEM, Color color, boolean debug, Array<integer> maximums) returns PixelMap
+        integer lowerX = 0
+        integer lowerY = 0
+        integer upperX = pixelmap:GetWidth()
+        integer upperY = pixelmap:GetHeight()
+        Math math
+        offsety = math:AbsoluteValue(upperY-maximums:Get(1)-1)
+
         GlyphProfile profiles = CreateAntiAliasedGlyphProfile(outline, unitsPerEM)
 
         HashTable<integer, CoordinateContainer> value = profiles:GetXIntercepts()
@@ -275,7 +337,7 @@ class FontRasterizer
         end
     end
 
-    action GetLinesToDraw(BezierCurveGlyphPoints outline, integer unitsPerEM, integer offsety) returns Array<Line>
+    action GetLinesToDraw(BezierCurveGlyphPoints outline, integer unitsPerEM) returns Array<Line>
         GlyphProfile profile = CreateAntiAliasedGlyphProfile(outline, unitsPerEM)
 
         Array<Line> linesToDraw
@@ -529,12 +591,9 @@ class FontRasterizer
     end
 
 
-    action SetupPixelMap (Format format) returns PixelMap
+    action SetupPixelMap (integer width, integer height, Format format) returns PixelMap
         Color color
         PixelMap map
-    
-        integer width = maximumSizeXAxis
-        integer height = maximumSizeYAxis
 
         map:SetColor(color:Black())
         map:CreatePixelMap(width, height, format)
