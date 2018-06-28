@@ -26,20 +26,11 @@ class Main
         JavaScriptObjectNotation json
         json:Read(myValue)
         output json:ToText()
-   end
-
-   action Main
-        text dq = ""
-        dq = dq:GetDoubleQuote()
-        text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
-        JavaScriptObjectNotation json
-        json:Read(myValue)
+        output json:GetValue("data")
         i = 0
         repeat while i < json:GetSize()
-            JavaScriptObjectNotation next = json:Get(i)
-            if next:GetKey() = "data"
-                output "data"
-                JavaScriptObjectNotation array = next:Get(0)
+            JavaScriptObjectNotation array = json:Get(i)
+            if array:GetKey() = "data"
                 j = 0
                 repeat while j < array:GetSize()
                     JavaScriptObjectNotation item = array:Get(j)
@@ -869,6 +860,7 @@ class JavaScriptObjectNotation
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
+
     class Main
         action Main
             JavaScriptObjectNotation json
