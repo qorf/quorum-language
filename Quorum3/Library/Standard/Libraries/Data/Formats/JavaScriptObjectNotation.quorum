@@ -51,26 +51,75 @@ class JavaScriptObjectNotation
     private integer integerValue = 0
     private boolean booleanValue = false
     private integer type = 0
+    private constant integer UNDEFINED = 0
     private constant integer INTEGER = 1
     private constant integer NUMBER = 2
     private constant integer TEXT = 3
     private constant integer BOOLEAN = 4
-    private constant integer UNDEFINED = 5
     private constant integer ARRAY = 6
     private constant integer OBJECT = 7
     private constant integer PARENT = 8
     private text key = ""
     private boolean object = false
     private integer spaces = 4
-    private boolean prettyPrint = true
+    private boolean prettyPrint = false
+    private boolean arrayItem = false
+
+    private action HasKey() returns boolean
+        return key not= ""
+    end
+
+    private action IsPrimitive() returns boolean
+        return IsInteger() or IsNumber() or IsBoolean() or IsText()
+    end
+
+    private action IsArrayItem() returns boolean
+        return arrayItem
+    end
+
+    private action SetArrayItem(boolean value)
+        arrayItem = value
+    end
+    /*
+    Use this method to add a nested JavaScriptObjectNotation object. The object must already have a key set.
+
+    Attribute: Parameter value The JavaScriptObjectNotation value object to add.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation data
+            data:Add("item1", "a")
+            data:Add("item2", "b")
+            data:Add("item3", "c")
+            data:SetKey("detail")
+
+            JavaScriptObjectNotation json
+            json:Add("data1", "A")
+            json:Add("data2", "B")
+            json:Add(data)
+
+            output json:ToText()
+       end
+    end
+    */
 
     action Add(JavaScriptObjectNotation object)
         object:SetPrettyPrint(IsPrettyPrint())
+        if IsUndefined()
+            SetObject()
+        end
+        if IsArray()
+            object:SetArrayItem(true)
+        end
         array:Add(object)
     end
 
     /*
-    Use this method to add a nested JavaScriptObjectNotation object with a key.
+    Use this method to add a nested JavaScriptObjectNotation object with a key. If the object you pass as a parameter already has a key, it will be nested inside the new key.
 
     Attribute: Parameter key The key value to add.
     Attribute: Parameter value The JavaScriptObjectNotation value object to add.
@@ -96,13 +145,21 @@ class JavaScriptObjectNotation
     end
     */
 
-    action Add(text key, JavaScriptObjectNotation value)
-        JavaScriptObjectNotation object
-        object:SetPrettyPrint(IsPrettyPrint())
-        object:SetObject()
-        object:Add(value)
-        object:SetKey(key)
-        array:Add(object)
+    action Add(text key, JavaScriptObjectNotation object)
+        if object:HasKey()
+            JavaScriptObjectNotation objectToAdd
+            objectToAdd:SetPrettyPrint(IsPrettyPrint())
+            objectToAdd:SetObject()
+            objectToAdd:SetKey(key)
+            objectToAdd:Add(object)
+            array:Add(objectToAdd)
+        else
+            if object:IsUndefined()
+                object:SetObject()
+            end
+            object:SetKey(key)
+            array:Add(object)
+        end
     end
 
     /*
@@ -125,7 +182,7 @@ class JavaScriptObjectNotation
     end
     */
 
-    action Add(text key, boolean value) 
+    action Add(text key, boolean value)
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetBoolean(value)
@@ -181,7 +238,7 @@ class JavaScriptObjectNotation
     end
     */
 
-    action Add(text key, number value) 
+    action Add(text key, number value)
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetNumber(value)
@@ -208,12 +265,135 @@ class JavaScriptObjectNotation
        end
     end
     */
-
     action Add(text key, text value) 
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetText(value)
         object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a integer item to a JavaScriptObjectNotation array object.
+
+    Attribute: Parameter value The integer value to add.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:SetKey("myArray")
+            json:SetArray()
+            json:Add(1)
+            json:Add(2)
+            json:Add(3)
+            output json:ToText()
+       end
+    end
+    */
+    action Add(integer value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetInteger(value)
+        if IsArray()
+            object:SetArrayItem(true)
+        end
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a number item to a JavaScriptObjectNotation array object.
+
+    Attribute: Parameter value The number value to add.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:SetKey("myArray")
+            json:SetArray()
+            json:Add(1.1)
+            json:Add(2.1)
+            json:Add(3.1)
+            output json:ToText()
+       end
+    end
+    */
+    action Add(number value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetNumber(value)
+        if IsArray()
+            object:SetArrayItem(true)
+        end
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a boolean item to a JavaScriptObjectNotation array object.
+
+    Attribute: Parameter value The boolean value to add.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:SetKey("myArray")
+            json:SetArray()
+            json:Add(true)
+            json:Add(true)
+            json:Add(false)
+            output json:ToText()
+       end
+    end
+    */
+    action Add(boolean value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetBoolean(value)
+        if IsArray()
+            object:SetArrayItem(true)
+        end
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a text item to a JavaScriptObjectNotation array object.
+
+    Attribute: Parameter value The text value to add.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:SetKey("myArray")
+            json:SetArray()
+            json:Add("one")
+            json:Add("two")
+            json:Add("three")
+            output json:ToText()
+       end
+    end
+    */
+    action Add(text value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetText(value)
+        if IsArray()
+            object:SetArrayItem(true)
+        end
         array:Add(object)
     end
 
@@ -1177,6 +1357,9 @@ class JavaScriptObjectNotation
 
     action SetKey(text key)
         me:key = key
+        if IsUndefined()
+            SetObject()
+        end
     end
 
     /*
@@ -1241,6 +1424,12 @@ class JavaScriptObjectNotation
 
     action SetArray
         type = ARRAY
+        i = 0
+        repeat array:GetSize() times
+            JavaScriptObjectNotation child = array:Get(i)
+            child:SetArrayItem(true)
+            i = i + 1
+        end
     end
 
     private action GetSpaces(integer level) returns text
@@ -1286,53 +1475,62 @@ class JavaScriptObjectNotation
             line = result:GetCarriageReturn()
         end
         
-        if key not= undefined and not key:IsEmpty()
-            result = result + space + dq + key + dq + ": " 
-        end
-
         if IsParent() or level = 0
-            if IsPrettyPrint()
-                result = result + "{" + line
-            else
-                result = result + "{"
+            result = result + "{"
+            if IsArray() 
+                result = result + dq + key + dq + ": [" 
+            elseif HasKey()
+                result = result + dq + key + dq + ": {" 
             end
-        end
-
-        if IsObject()
-            if array:GetSize() = 1 and array:Get(0):IsArray()
-                // do nothing, nested JSON object is an array
+            if IsPrettyPrint()
+               result = result + line
+            end
+        else
+            if IsObject()
+                if IsPrettyPrint()
+                    result = result + space
+                end
+                result = result + dq + key + dq + ": {" 
+                if IsPrettyPrint()
+                    result = result + line
+                end
             else
-                if level > 0
-                    result = result + space + "{" + line
-                else
-                    result = result + "{" + line
+                if HasKey() or not IsArrayItem()
+                    if IsPrettyPrint()
+                        result = result + space
+                    end
+                    result = result + dq + key + dq + ": "
+                end
+                if IsArray() 
+                    result = result + "["
+                elseif IsText()
+                    result = result + dq + textValue + dq
+                elseif IsBoolean()
+                    result = result + booleanValue
+                elseif IsNumber()
+                    result = result + numberValue
+                elseif IsInteger()
+                    result = result + integerValue
+                elseif IsUndefined()
+                    result = result + "null"
                 end
             end
-        elseif IsArray() 
-            result = result + "["
-        elseif IsText()
-            result = result + dq + textValue + dq
-        elseif IsBoolean()
-            result = result + booleanValue
-        elseif IsNumber()
-            result = result + numberValue
-        elseif IsInteger()
-            result = result + integerValue
-        elseif IsUndefined()
-            result = result + "null"
         end
-        
         //get all children
         i = 0
         repeat while i < array:GetSize()
-            JavaScriptObjectNotation value = array:Get(i)
-            value:SetPrettyPrint(IsPrettyPrint())
-            if IsArray()
-                result = result + value:ToText(level)
-            elseif IsObject()
-                result = result + value:ToText(level)
+            JavaScriptObjectNotation child = array:Get(i)
+            child:SetPrettyPrint(IsPrettyPrint())
+                
+            if IsArray() and child:IsObject()
+                result = result + "{" 
+                    if IsPrettyPrint()
+                        result = result + line
+                    end
+                result = result + child:ToText(level + 1)
+                result = result + "}"
             else
-                result = result + value:ToText(level + 1)
+                result = result + child:ToText(level + 1)
             end
 
             if i not= array:GetSize() - 1
@@ -1345,21 +1543,25 @@ class JavaScriptObjectNotation
             i = i + 1
         end
 
-        if IsObject()
-            if array:GetSize() = 1 and array:Get(0):IsArray()
-                // do nothing, nested JSON object is an array
-            else
-                result = result + line + space + "}"
-            end
-        elseif IsArray() 
-            result = result + "]"
-        end
-
         if IsParent() or level = 0
             if IsPrettyPrint()
-                result = result + line + "}"
-            else
+                result = result + line
+            end
+            if IsArray()
+                result = result + "]"
+            end
+            result = result + "}"
+            if HasKey() and not IsArray()
                 result = result + "}"
+            end
+        else
+            if IsObject()
+                if IsPrettyPrint()
+                    result = result + line + space
+                end
+                result = result + "}"
+            elseif IsArray() 
+                result = result + "]"
             end
         end
 
