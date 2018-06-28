@@ -6,7 +6,7 @@ class Main
     action Main
         text dq = ""
         dq = dq:GetDoubleQuote()
-        text myValue = "{" + dq + "text" + dq + ": true}"
+        text myValue = "{" + dq + "text" + dq + ": " + dq + "blah" + dq + "}"
         JavaScriptObjectNotation json
         json:Read(myValue)
 
