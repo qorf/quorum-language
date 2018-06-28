@@ -591,6 +591,7 @@ class Skynet is NetworkRequestListener
         request:SetBodyAsFormEncodedData(GetObservationParametersByName())
         NetworkConnection http
         http:AddListener(me)
+        http:SetServerNameIdentification(false)
         repeat while status not= STATUS_NO_REQUEST_MADE
             output "waiting for previous request"
             SystemHelper sys
@@ -649,6 +650,7 @@ class Skynet is NetworkRequestListener
         request:SetBodyAsFormEncodedData(GetObservationParametersByCoordinates())
         NetworkConnection http
         http:AddListener(me)
+        http:SetServerNameIdentification(false)
         repeat while status not= STATUS_NO_REQUEST_MADE
             output "waiting for previous request"
             SystemHelper sys

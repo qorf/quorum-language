@@ -36,6 +36,7 @@ class NetworkConnection
     private List<NetworkRequestListener> listeners
     private NetworkRequest request = undefined
     private NetworkResponseEvent response = undefined
+    private boolean sni = true
 
     private system action Request()
 
@@ -102,6 +103,75 @@ class NetworkConnection
     */
     action GetNetworkRequest() returns NetworkRequest
         return request
+    end
+
+    /*
+    This action enables or disables the ServerNameIdentification (SNI) extension in java for Quorum using the desktop. SNI is a security feature that checks if the name of the web server you are accessing matches the name on its authentication certificate. Normally you should keep this setting on the default (which is true), but many third party web servers are misconfigured and require a work around. If you receive an error when trying to connect such as "SSLProtocolException: handshake alert: unrecognized_name" you can set this to false and it will bypass the warning and connect anyway. Note that this only affects the java plugin on the desktop and does not affect the connection through the JavaScript plugin used by the online interactive development environment.
+
+    Attribute: Parameter value A boolean setting to enable or disable the SNI extension in java.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequest
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Network.NetworkRequestListener
+
+    class Main is NetworkRequestListener
+        action Main
+            NetworkRequest request
+            request:SetRequestTypeToGet()
+            request:SetWebAddress("https://quorumlanguage.com/GETtest.php")
+            NetworkConnection http
+            http:SetServerNameIdentification(false)
+            http:AddListener(me)
+            http:SendRequest(request)
+            NetworkRequest copy
+            copy = http:GetNetworkRequest()
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+    end
+    */
+    action SetServerNameIdentification(boolean value)
+        me:sni = value
+    end
+
+    /*
+    This action retrieves the value of the ServerNameIdentification (SNI) check for Quorum using the desktop. The default value is true. See the SetServerNameIdentification action for a further description.
+
+    Attribute: Returns value The value of the SNI setting for the connection.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequest
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Network.NetworkRequestListener
+
+    class Main is NetworkRequestListener
+        action Main
+            NetworkRequest request
+            request:SetRequestTypeToGet()
+            request:SetWebAddress("https://quorumlanguage.com/GETtest.php")
+            NetworkConnection http
+            output http:GetServerNameIdentification()
+            http:AddListener(me)
+            http:SendRequest(request)
+            NetworkRequest copy
+            copy = http:GetNetworkRequest()
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+    end
+    */
+
+    action GetServerNameIdentification() returns boolean
+        return sni
     end
 
     /*

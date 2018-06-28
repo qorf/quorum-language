@@ -6,11 +6,14 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import javax.net.ssl.HttpsURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 import quorum.Libraries.Network.NetworkRequest_;
 import quorum.Libraries.Network.NetworkResponseEvent_;
 
@@ -45,10 +48,14 @@ public class NetworkConnection {
         try {
             URL Url = new URL(request.GetWebAddress());
             HttpURLConnection conn;
-            if (request.GetWebAddress().contains("https://")){
-                conn = (HttpsURLConnection) Url.openConnection();
+            
+            URLConnection urlConnection = Url.openConnection();
+            if (urlConnection instanceof HttpsURLConnection) {
+                HttpsURLConnection https = (HttpsURLConnection) urlConnection;
+                System.setProperty("jsse.enableSNIExtension", String.valueOf(connection.GetServerNameIdentification()));
+                conn = (HttpURLConnection) https;
             } else {
-                conn = (HttpURLConnection)  Url.openConnection();
+                conn = (HttpURLConnection) urlConnection;
             }
             conn.setRequestMethod(request.GetRequestType());
             conn.setReadTimeout(request.GetReadTimeout());
@@ -126,10 +133,14 @@ public class NetworkConnection {
         try {
             URL Url = new URL(request.GetWebAddress());
             HttpURLConnection conn;
-            if (request.GetWebAddress().contains("https://")){
-                conn = (HttpsURLConnection) Url.openConnection();
+            
+            URLConnection urlConnection = Url.openConnection();
+            if (urlConnection instanceof HttpsURLConnection) {
+                HttpsURLConnection https = (HttpsURLConnection) urlConnection;
+                System.setProperty("jsse.enableSNIExtension", String.valueOf(connection.GetServerNameIdentification()));
+                conn = (HttpURLConnection) https;
             } else {
-                conn = (HttpURLConnection)  Url.openConnection();
+                conn = (HttpURLConnection) urlConnection;
             }
             conn.setRequestMethod(request.GetRequestType());
             conn.setReadTimeout(request.GetReadTimeout());
