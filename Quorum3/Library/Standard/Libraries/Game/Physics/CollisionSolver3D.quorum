@@ -38,6 +38,10 @@ class CollisionSolver3D
         end
     end
 
+    /*
+    This action stores properties inside an Item3D class into a SolverItem3D
+    so that you can access these properties quicker from the SolverItem3D.
+    */
     action InitializeSolverItem(SolverItem3D solverItem, Item3D originalItem)
         if originalItem:IsPhysicsEnabled()
             solverItem:GetAngularVelocity():Set(originalItem:GetAngularVelocity())
@@ -61,10 +65,16 @@ class CollisionSolver3D
         solverItem:GetTurnVelocity():Set(0, 0, 0)
     end
     
+    /*
+    This action returns a restitution value that is correlated with the relative velocity and negated.
+    */
     action RestitutionCurve(number relativeVelocity, number restitution) returns number
         return restitution * -relativeVelocity
     end
 
+    /*
+    This action finds the impulse to stop the two 3D objects from penetrating each other.
+    */
     action ResolveSplitPenetrationImpulse(SolverItem3D body1, SolverItem3D body2, SolverConstraint3D contactConstraint, CollisionSolverInformation3D solverInfo)
         if contactConstraint:GetPenetration() < solverInfo:GetSplitImpulsePenetrationThreshold()
             number normalImpulse = 0
@@ -102,8 +112,8 @@ class CollisionSolver3D
     end
 
     /*
-    This action finds the normal impulse that should be applied to resolve collision
-    for two objects that responds to forces that has friction between their surfaces.
+    This action finds the impulse that should be applied to resolve collision
+    for two objects taking into account of friction and normal force.
     */
     action ResolveSingleCollisionCombined(SolverItem3D body1, SolverItem3D body2, SolverConstraint3D contactConstraint, CollisionSolverInformation3D solverInfo) returns number
         number normalImpulse = 0
@@ -190,6 +200,10 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action makes a solver to take into account of the effects of friction during
+    a collision.
+    */
     action AddFrictionConstraint(Vector3 normalAxis, integer solverBodyIDA, integer solverBodyIDB, integer frictionIndex, CollisionPoint3D cp, Vector3 relativePosition1, 
                                  Vector3 relativePosition2, Item3D body0, Item3D body1, number relaxation)
         SolverConstraint3D solverConstraint
@@ -247,7 +261,7 @@ class CollisionSolver3D
     end
 
     /*
-    This action computes how objects inside a CollisionGroup3D will react after a collision.
+    This action computes the constraints of objects inside a CollisionGroup3D during a collision.
     */
     action SolveGroupSetup(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, 
                          Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
@@ -551,6 +565,10 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action is used by the action "SolveGroupInternal" to randomize the collision points
+    and the constraints at these collision points in arrays.
+    */
     action SolveGroupIterations(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
         integer numConstraintPool = tempSolverConstraintPool:GetSize()
         integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
@@ -649,6 +667,10 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action is used to solve collision of objects inside a CollisionGroup3D.
+    This action is used by the action "SolveGroup."
+    */
     action SolveGroupInternal(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
         SolveGroupSetup(bodies, numBodies, manifoldPtr, manifold_offset, numManifolds, joints, joints_offset, numJoints, infoGlobal)
         SolveGroupIterations(bodies, numBodies, manifoldPtr, manifold_offset, numManifolds, joints, joints_offset, numJoints, infoGlobal)
@@ -688,6 +710,9 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action solves the collision for a collision group.
+    */
     action SolveGroup(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
         if infoGlobal:CacheFriendly()
             return SolveGroupInternal(bodies, numBodies, manifoldPtr, manifold_offset, numManifolds, joints, joints_offset, numJoints, infoGlobal)
@@ -698,7 +723,7 @@ class CollisionSolver3D
 
         integer numIter = infoGlobal:GetNumberIterations()
 
-        integer totalPoints = 0
+        integer totalPoints = 0 //total number of collision points in this group
         integer j = 0
         repeat while j < numManifolds
             LocalCollisionPoints3D manifold = manifoldPtr:Get(manifold_offset + j)
@@ -767,6 +792,10 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action calculates the constraints between two colliding bodies that share
+    the same LocalCollisionPoints3D.
+    */
     action PrepareConstraints(LocalCollisionPoints3D manifold, CollisionSolverInformation3D info)
         Item3D body0 = manifold:GetBody0()
         Item3D body1 = manifold:GetBody1()
@@ -936,6 +965,10 @@ class CollisionSolver3D
         end
     end
 
+    /*
+    This action finds the impulse that should be applied to resolve collision
+    for two objects taking into account of friction and normal force such that the impulse can only be greater than or equal to 0.
+    */
     action SolveCombinedContactFriction(Item3D body0, Item3D body1, CollisionPoint3D cp, CollisionSolverInformation3D info, integer iteration) returns number
         number maxImpulse = 0
 
@@ -951,6 +984,11 @@ class CollisionSolver3D
         return maxImpulse
     end
 
+    /*
+    This action finds the impulse that should be applied to resolve collision
+    for two objects without taking into account of friction such that the impulse
+    can only be greater than 0.
+    */
     action Solve(Item3D body0, Item3D body1, CollisionPoint3D cp, CollisionSolverInformation3D info, integer iteration) returns number
         number maxImpulse = 0
 
@@ -966,6 +1004,10 @@ class CollisionSolver3D
         return maxImpulse
     end
 
+    /*
+    This action finds the frictional impulse that should be applied at a point
+    to separate the two colliding objects.
+    */
     action SolveFriction(Item3D body0, Item3D body1, CollisionPoint3D cp, CollisionSolverInformation3D info, integer iteration) returns number
         if cp:GetDistance() <= 0
             CollisionPersistentData cpd = cp:GetPersistentData()
@@ -975,6 +1017,9 @@ class CollisionSolver3D
         return 0
     end
 
+    /*
+    This action sets the starting point of a bunch of random numbers is 0.
+    */
     action Reset
         seed = 0
     end
@@ -982,11 +1027,17 @@ class CollisionSolver3D
     Math math
     BitwiseOperations bo
 
+    /*
+    This action returns a random integer.
+    */
     private action Random returns integer
         seed = bo:And((1664525 * seed + 1013904223), seed:GetMaximumValue())
         return seed
     end
 
+    /*
+    This action returns a random integer that is between 0 and "integer n"-1.
+    */
     private action RandomInteger(integer n) returns integer
         integer un = n
         integer r = Random()

@@ -9,14 +9,17 @@ for one body, which all depends on which action you used to initialize/change
 the values stored inside this ConstraintDescription3D.
 */
 class ConstraintDescription3D 
-    Vector3 linearJointAxis
+    Vector3 linearJointAxis //this class can be seen as Jacobian matrix breaking into vectors
     Vector3 aJ
     Vector3 bJ
     Vector3 minvJt0
     Vector3 minvJt1
     number diag = 0
     
-    //constraint between two different rigid bodies
+    /*
+    This action intializeds the description such that this ConstraintDescription3D is used for
+    the constraint between two different rigid bodies.
+    */
     action Initialize(Matrix3 world2A, Matrix3 world2B, Vector3 relativePosition1, 
                       Vector3 relativePosition2, Vector3 jointAxis, Vector3 inertiaInverseA,
                       number massInverseA, Vector3 inertiaInverseB, number massInverseB)
@@ -41,7 +44,10 @@ class ConstraintDescription3D
         diag = massInverseA + minvJt0:DotProduct(aJ) + massInverseB + minvJt1:DotProduct(bJ)
     end
 
-    //angular constraint between two rigid bodies
+    /*
+    This action initializes this ConstraintDescription3D such that this class is
+    used to store the angular constraint between two rigid bodies.
+    */
     action Initialize(Vector3 jointAxis, Matrix3 world2A, Matrix3 world2B, Vector3 inertiaInverseA, Vector3 inertiaInverseB)
         linearJointAxis:Set(0, 0, 0)
         
@@ -61,7 +67,10 @@ class ConstraintDescription3D
         diag = minvJt0:DotProduct(aJ) + minvJt1:DotProduct(bJ)
     end
 
-    //angular constraint between two rigid bodies
+    /*
+    This action initializes this ConstraintDescription3D such that this class is
+    used to store the angular constraint between two rigid bodies.
+    */
     action Initialize(Vector3 axisInA, Vector3 axisInB, Vector3 inertiaInverseA, Vector3 inertiaInverseB)
         linearJointAxis:Set(0, 0, 0)
         aJ:Set(axisInA)
@@ -78,7 +87,10 @@ class ConstraintDescription3D
         diag = minvJt0:DotProduct(aJ) + minvJt1:DotProduct(bJ)
     end
 
-    //constraint on one rigid body
+    /*
+    This action initializes this ConstraintDescription3D such that this class is
+    used to store one constraitn on one rigid body.
+    */
     action Initialize(Matrix3 world2A, Vector3 relativePosition1, Vector3 relativePosition2,
                       Vector3 jointAxis, Vector3 inertiaInverseA, number massInverseA)
         linearJointAxis:Set(jointAxis)
@@ -100,11 +112,19 @@ class ConstraintDescription3D
         diag = massInverseA + minvJt0:DotProduct(aJ)
     end
 
+    /*
+    This action returns a number whose reciprocal will be used to scale the 
+    impulse change applied to linear velocity.
+    */
     action GetDiagonal returns number
         return diag
     end
 
-    //return the non diagonal entries for two constraints on the same rigid body
+    /*
+    This action returns a number whose reciprocal will be used to scale the 
+    impulse change applied to angular velocity if this ConstraintDescription3D
+    describes 2 constraints on the same rigid body.
+    */
     action GetNonDiagonal(ConstraintDescription3D descriptionB, number massInverseA) returns number
         ConstraintDescription3D jacA = me
         number lin = massInverseA * jacA:linearJointAxis:DotProduct(descriptionB:linearJointAxis)
@@ -112,7 +132,11 @@ class ConstraintDescription3D
         return lin + ang
     end
 
-    //2 constraints shared by two different rigid bodies (ex. 2 contact points)
+    /*
+    This action returns a number whose reciprocal will be used to scale the 
+    impulse change applied to angular velocity if this ConstraintDescription3D
+    describes 2 constraints shared by two different rigid bodies.
+    */
     action GetNonDiagonal(ConstraintDescription3D descriptionB, number massInverseA, number massInverseB) returns number
         ConstraintDescription3D jacA = me
 
@@ -143,6 +167,10 @@ class ConstraintDescription3D
         return sum:GetX() + sum:GetY() + sum:GetZ()        
     end
 
+    /*
+    This action returns the relative velocities between two 3D objects whose constraints
+    are stored inside this ConstraintDescription3D.
+    */
     action GetRelativeVelocity(Vector3 linearVelocityA, Vector3 angularVelocityA, Vector3 linearVelocityB, Vector3 angularVelocityB) returns number
         Vector3 linrel
         linrel:Set(linearVelocityA):Subtract(linearVelocityB)
