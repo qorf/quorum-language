@@ -99,7 +99,7 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
                 
                 if(media.exists()) {
-                    droid.copyAssets(media);
+                    droid.copyAssets(media, project.getMobileAssetsFolder());
                 }     
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();

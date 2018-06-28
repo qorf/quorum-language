@@ -321,7 +321,11 @@ public class QuorumProject implements Project {
             compiler.SetName(name);
         }
         
-        setMobileAssetsFolder(properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER));
+        String media = properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
+        if(media == null) {
+            media = "media";
+        }
+        setMobileAssetsFolder(media);
         setiPhoneProvisioningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION));
         setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
         

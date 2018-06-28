@@ -307,8 +307,11 @@ public class RunAndroid {
                 
     }
     
-    public void copyAssets(File mediaFolder) throws IOException {        
-        File assetsFolder = new File(this.pathToBuildAndroidFolder + File.separator + "app"+ File.separator + "src" + File.separator + "main" + File.separator+ "assets");
+    public void copyAssets(File mediaFolder, String value) throws IOException {        
+        File assetsFolder = new File(this.pathToBuildAndroidFolder + File.separator + "app"+ File.separator + "src" + File.separator + "main" + File.separator+ "assets" + File.separator + value);
+        if(!mediaFolder.exists()) {
+            mediaFolder.mkdirs();
+        }
         
         if (mediaFolder.exists()) {
             copyDirectory(mediaFolder, assetsFolder);

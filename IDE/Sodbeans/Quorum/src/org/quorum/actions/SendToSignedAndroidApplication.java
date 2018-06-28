@@ -122,7 +122,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 droid.copyLibraries(droid.getLibrarySources(), droid.getLibraryDestinations());
                 
                 if(media.exists()) {
-                    droid.copyAssets(media);
+                    droid.copyAssets(media, project.getMobileAssetsFolder());
                 }     
                 
             try {
