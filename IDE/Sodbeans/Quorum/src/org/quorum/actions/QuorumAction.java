@@ -375,6 +375,10 @@ public abstract class QuorumAction implements Action {
         if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
             String loc = project.getExecutableLocation(request);
+            File parentSpot = new File(loc);
+            parentSpot = parentSpot.getParentFile();
+            File library = new File(parentSpot.getAbsolutePath() + "/" + "QuorumStandardLibrary.jar");
+            File plugins = new File(parentSpot.getAbsolutePath() + "/" + "QuorumStandardPlugins.jar");
             File f = new File(loc);
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -382,6 +386,8 @@ public abstract class QuorumAction implements Action {
                     io.getOut().println("Trying to connect to lego robot.");
                 }
             });
+            adapter.Send(library);
+            adapter.Send(plugins);
             legos = adapter.Send(f);
         }
         final boolean legoFound = legos;
