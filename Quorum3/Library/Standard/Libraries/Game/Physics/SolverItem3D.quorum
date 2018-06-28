@@ -6,6 +6,10 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Math
 
+/*
+This class is a temporary storage location for the properties of a 3D item so that
+the actions inside CollisionSolver3D can run a little quicker.
+*/
 class SolverItem3D
     Vector3 angularVelocity
     number angularFactor = 1
@@ -20,12 +24,21 @@ class SolverItem3D
 
     Math math
 
+    /*
+    This action lets you know the linear velocity of a point "Vector3 relativePosition"
+    on this 3D object.
+    */
     action GetVelocityInLocalPoint(Vector3 relativePosition, Vector3 velocity)
         Vector3 temp
         temp:Set(angularVelocity):CrossProduct(relativePosition)
         velocity:Set(linearVelocity):Add(temp)
     end
 
+    /*
+    This action allows you to add linear velocity, "Vector3 linearComponent," and
+    add angular velocity, "Vector3 angularComponent," both scaled by
+    "number impulseMagnitude" to the current linear velocity and angular velocity of this 3D object.
+    */
     action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
             Vector3 temp
@@ -36,6 +49,11 @@ class SolverItem3D
         end
     end
 
+    /*
+    This action allows you to add linear velocity, "Vector3 linearComponent," and
+    add angular velocity, "Vector3 angularComponent," both scaled by
+    "number impulseMagnitude" to the current push linear velocity and push angular velocity of this 3D object.
+    */
     action InternalApplyPushImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
             Vector3 temp
@@ -46,6 +64,10 @@ class SolverItem3D
         end
     end
 
+    /*
+    This action updates the angular and linear velocities in the 3D object that
+    is attached to this SolverItem3D.
+    */
     action WriteBackVelocity
         if inverseMass not= 0
             originalItem:SetLinearVelocity(linearVelocity)
@@ -53,6 +75,11 @@ class SolverItem3D
         end
     end
 
+    /*
+    This action updates the angular and linear velocities in the 3D object that
+    is attached to this SolverItem3D using a predicted angular and linear velocities.
+    This also updates that 3D object's position with a predicted position.
+    */
     action WriteBackVelocity(number timeStep)
         if inverseMass not= 0
             originalItem:SetLinearVelocity(linearVelocity)
@@ -94,6 +121,12 @@ class SolverItem3D
         end
     end
 
+    /*
+    This action stores the linear and angular velocities of the 3D item that is 
+    attached to this SolverItem3D inside this SolverItem3D so that if we need the
+    same linear and angular velocities again, we don't have to as the Item3D class
+    to give us these velocities, which will make our program quicker.
+    */
     action ReadVelocity
         if inverseMass not= 0
             linearVelocity:Set(originalItem:GetLinearVelocity())
@@ -101,74 +134,129 @@ class SolverItem3D
         end
     end
 
+    /*
+    This action returns the angular velocity stored inside this SolverItem3D class.
+    */
     action GetAngularVelocity returns Vector3
         return angularVelocity
     end
 
+    /*
+    This action sets the angular velocity stored inside this SolverItem3D class.
+    */
     action SetAngularVelocity(Vector3 velocity)
         me:angularVelocity = velocity
     end
 
+    /*
+    This action returns the 1/mass value stored inside this SolverItem3D class.
+    */
     action GetInverseMass returns number
         return inverseMass
     end
 
+    /*
+    This action sets the 1/mass value stored inside this SolverItem3D class.
+    */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
     end
 
+    /*
+    This action returns the friction stored inside this SolverItem3D class.
+    */
     action GetFriction returns number
         return friction
     end
 
+    /*
+    This action sets the friction stored inside this SolverItem3D class.
+    */
     action SetFriction(number friction)
         me:friction = friction
     end
 
+    /*
+    This action returns which 3D object is attached to this SolverItem3D.
+    */
     action GetOriginalItem returns Item3D
         return originalItem
     end
 
+    /*
+    This action sets which 3D object is attached to this SolverItem3D.
+    */
     action SetOriginalItem(Item3D item)
         me:originalItem = item
     end
 
+    /*
+    This action returns the linear velocity stored inside this SolverItem3D class.
+    */
     action GetLinearVelocity returns Vector3
         return linearVelocity
     end
 
+    /*
+    This action sets the linear velocity stored inside this SolverItem3D class.
+    */
     action SetLinearVelocity(Vector3 velocity)
         me:linearVelocity = velocity
     end
 
+    /*
+    This action returns where the center of the 3D object is.
+    */
     action GetCenterOfMassPosition returns Vector3
         return centerOfMassPosition
     end
 
+
+    /*
+    This action sets where the center of the 3D object is.
+    */
     action SetCenterOfMassPosition(Vector3 position)
         me:centerOfMassPosition = position
     end
 
+    /*
+    This action returns the push velocity.
+    */
     action GetPushVelocity returns Vector3
         return pushVelocity
     end
 
+    /*
+    This action sets the push velocity.
+    */
     action SetPushVelocity(Vector3 velocity)
         me:pushVelocity = velocity
     end
 
+    /*
+    This action returns the turn velocity.
+    */
     action GetTurnVelocity returns Vector3
         return turnVelocity
     end
 
+    /*
+    This action sets the turn velocity.
+    */
     action SetTurnVelocity(Vector3 velocity)
         me:turnVelocity = velocity
     end
 
+    /*
+    This action returns the angular factor.
+    */
     action GetAngularFactor returns number
         return angularFactor
     end
 
+    /*
+    This action sets the angular factor.
+    */
     action SetAngularFactor(number factor)
         me:angularFactor = factor
     end

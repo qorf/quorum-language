@@ -189,6 +189,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             font:LoadFont("Courier")
         elseif font:FontIsAvailable("cour")
             font:LoadFont("cour")
+        elseif font:FontIsAvailable("Roboto-Black")
+            font:LoadFont("Roboto-Black")
         elseif font:FontIsAvailable("Arial")
             font:LoadFont("Arial")
         else

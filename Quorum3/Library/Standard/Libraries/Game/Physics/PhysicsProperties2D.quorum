@@ -597,8 +597,13 @@ class PhysicsProperties2D
         return friction
     end
 
+
     /*
-    This action sets the restitutiton that is stored inside this property holder.
+    This action sets how much energy that this 3D object will loose after a collision.
+    If you want the object to not loose any energy, then you can pass in 1.0. If
+    you want the object to loose a lot of energy (meaning, they would probably
+    move a lot slower after the collision), then you can pass in a 0.0.
+    You can also use the values between 0 and 1.
     */
     action SetRestitution(number restitution)
         me:restitution = restitution
@@ -606,7 +611,7 @@ class PhysicsProperties2D
 
 
     /*
-    This action gets the restitutiton that is stored inside this property holder.
+    This action returns how much energy that this 3D object will loose after a collision.
     */
     action GetRestitution returns number
         return restitution
@@ -646,7 +651,9 @@ class PhysicsProperties2D
 
     
     /*
-    This action tells you whether if this object will be moving fast.
+    This action tells you whether if this object will be moving fast. If the object will be moving fast, then there 
+    will be more careful of a calculation of how this object collides with other 
+    objects.
     */
     action IsFastMoving returns boolean
         return fastMoving
@@ -656,7 +663,8 @@ class PhysicsProperties2D
     /*
     This action sets whether if the object attached to this property holder
     will be moving fast. If the object will be moving fast, then there 
-    will be more intensity collision resolution process for this object.
+    will be more careful of a calculation of how this object collides with other 
+    objects.
     */
     action FastMoving(boolean flag)
         fastMoving = flag
@@ -664,7 +672,7 @@ class PhysicsProperties2D
 
     /*
     This action sets whether if the object attached to this property holder
-    will require simulation.
+    will require its position to be moved.
     */
     action RequireSimulation(boolean flag)
         simulationRequired = flag
@@ -675,7 +683,7 @@ class PhysicsProperties2D
 
 
     /*
-    This action tells you whether simulation is required of the object that is 
+    This action tells you whether if you need to move the object that is 
     attached to this property holder.
     */
     action IsSimulationRequired returns boolean
@@ -732,7 +740,7 @@ class PhysicsProperties2D
 
     /*
     This action sets how much time that the 2D object attached to this 
-    property holder will remain unsimulated.
+    property holder will remain in its current position.
     */
     action SetSleepTime(number time)
         sleepTime = time
@@ -740,7 +748,7 @@ class PhysicsProperties2D
 
     /*
     This action gets how much time that the 2D object attached to this 
-    property holder will remain unsimulated.
+    property holder will remain in its current position.
     */
     action GetSleepTime returns number
         return sleepTime

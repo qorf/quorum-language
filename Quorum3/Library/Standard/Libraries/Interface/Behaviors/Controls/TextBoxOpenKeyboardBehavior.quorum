@@ -1,0 +1,14 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.TextBox
+
+class TextBoxOpenKeyboardBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is TextBox
+            TextBox box = cast(TextBox, event:GetItem())
+            box:SetSize(1000, 1000)
+        end
+    end
+end

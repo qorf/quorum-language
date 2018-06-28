@@ -19,6 +19,11 @@ use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Physics.all
 
+/*
+This class records which 3D objects are involved in the collision, can connect to
+other CollisionEvent3D like a doubly linked list, and records what happend during
+the collision via the class CollisionPointsResult3D.
+*/
 class CollisionEvent3D
     public constant number EPSILON = 0.00000011920928955078125
 
