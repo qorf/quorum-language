@@ -124,21 +124,24 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     */
     action EnterObject
         JavaScriptObjectNotation newObject
+
         //this is the root, which is a special object
         if object = undefined
             newObject:SetParent()
             object = newObject
-            
+            objects:Push(newObject)
+
         //this is a new object being pushed on. This object is the 
         //value of another JSON element, so make the "parent" the object
         else 
-            JavaScriptObjectNotation value = objects:Peek()
-            value:SetObject()
-            newObject:SetParent()
-            value:Add(newObject)
+            if opStack:Peek() not= inValue
+                JavaScriptObjectNotation value = objects:Peek()
+                newObject:SetObject()
+                value:Add(newObject)
+                objects:Push(newObject)
+            end
         end
 
-        objects:Push(newObject)
         opStack:Push(inObject)
     end
 
@@ -155,8 +158,10 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
     */
     action ExitObject
-        objects:Pop()
         opStack:Pop()
+        if not opStack:IsEmpty() and opStack:Peek() not= inValue
+            objects:Pop()
+        end
     end
 
     /*
@@ -172,20 +177,16 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
     */
     action EnterArray
-        JavaScriptObjectNotation newObject
-        newObject:SetArray()
         //this is the root, which is a special object
         if object = undefined
-            object = newObject
+            object:SetArray()
             
-        //this is a new object being pushed on. This object is the 
-        //value of another JSON element, so make the "parent" the object
+        //this element is an array, so set it's type as array
         else 
             JavaScriptObjectNotation value = objects:Peek()
-            value:Add(newObject)
+            value:SetArray()
         end
 
-        objects:Push(newObject)
         opStack:Push(inArray)
     end
 
@@ -202,12 +203,11 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
     */
     action ExitArray
-        objects:Pop()
         opStack:Pop()
     end
 
     /*
-    This method is called by the JavaScriptObjectNotationParser on an ExitStart event.
+    This method is called by the JavaScriptObjectNotationParser on an EnterPair event.
 
     Attribute: Example
 
@@ -311,9 +311,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotation newObject
-                newObject:SetText(token:value)
-                obj:Add(newObject)
+                obj:Add(token:value)
             else
                 obj:SetText(token:value)
             end
@@ -357,9 +355,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             opStack:Push(peek)
             number val = cast(number, token:value)
             if peekBehind = inArray
-                JavaScriptObjectNotation newObject
-                newObject:SetNumber(val)
-                obj:Add(newObject)
+                obj:Add(val)
             else
                 obj:SetNumber(val)
             end
@@ -404,9 +400,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             number numeric = cast(number, token:value)
             integer val = cast(integer, numeric)
             if peekBehind = inArray
-                JavaScriptObjectNotation newObject
-                newObject:SetInteger(val)
-                obj:Add(newObject)
+                obj:Add(val)
             else
                 obj:SetInteger(val)
             end
@@ -449,9 +443,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotation newObject
-                newObject:SetBoolean(true)
-                obj:Add(newObject)
+                obj:Add(true)
             else
                 obj:SetBoolean(true)
             end
@@ -494,9 +486,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotation newObject
-                newObject:SetBoolean(false)
-                obj:Add(newObject)
+                obj:Add(false)
             else
                 obj:SetBoolean(false)
             end

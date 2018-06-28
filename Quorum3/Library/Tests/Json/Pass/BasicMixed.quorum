@@ -12,9 +12,7 @@ class Main
         Iterator<text> iterator = projects:GetValueIterator()
         repeat while iterator:HasNext()
             text value = iterator:Next()
-            JavaScriptObjectNotation item
-            item:SetText(value)
-            array:Add(item)
+            array:Add(value)
         end
 
         JavaScriptObjectNotation json
@@ -27,15 +25,13 @@ class Main
     end
 
     action CheckResult(text result)
-        text answer = ""
-        text cr = answer:GetCarriageReturn()
-        text dq = answer:GetDoubleQuote()
-        answer = "{"+cr+"    "+dq+"item1"+dq+": 1, "+cr+"    "+dq+"item2"+dq+": "+dq+"2"+dq+", "+cr+"    "+dq+"item3"+dq+": 3.0, "+cr+"    "+dq+"item4"+dq+": true, "+cr+"    "+dq+"item5"+dq+": ["+dq+"project1"+dq+", "+dq+"project2"+dq+"]"+cr+"}"
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text answer = "{"+dq+"item1"+dq+": 1, "+dq+"item2"+dq+": "+dq+"2"+dq+", "+dq+"item3"+dq+": 3.0, "+dq+"item4"+dq+": true, "+dq+"item5"+dq+": ["+dq+"project1"+dq+", "+dq+"project2"+dq+"]}"
         if answer = result
             output "pass"
         else
             output "fail"
         end
     end
-
 end
