@@ -111,6 +111,8 @@ public class AccessibilityManager
     public AccessibilityManager(){};
     public java.lang.Object me_ = null;
     
+    private static volatile long frameCount = 0;
+    
     // Container to associate the Quorum item with its respective native pointer.
     private static final HashMap<Item_, Long> ITEM_MAP = new HashMap<>();
 
@@ -542,5 +544,20 @@ public class AccessibilityManager
         }
     }
     
+    public void Update()
+    {
+        frameCount++;
+    }
+    
+    public static void WaitForUpdate() throws InterruptedException
+    {
+        long currentCount = frameCount;
+        while (currentCount == frameCount)
+        { 
+            // Do nothing.
+            Thread.sleep(1);
+        }
+
+    }
     
 }

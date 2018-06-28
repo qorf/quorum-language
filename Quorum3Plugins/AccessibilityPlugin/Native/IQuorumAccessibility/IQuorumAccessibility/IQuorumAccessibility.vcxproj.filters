@@ -25,6 +25,18 @@
     <Filter Include="Source Files\TextBox">
       <UniqueIdentifier>{1231d1f3-a212-49d1-8bd9-da99b8e5beed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{3e51fcd5-d2a9-4329-883d-49c6425cb2a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Menu">
+      <UniqueIdentifier>{64d93ed0-805a-437a-aefd-48e8e7ceabcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tree">
+      <UniqueIdentifier>{ba7571d8-504e-48ea-b6ae-0338bb8ab8e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Menu">
+      <UniqueIdentifier>{ce6ba081-8080-47a1-aa66-42c199a65b1b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IQuorumAccessibility.cpp">
@@ -36,22 +48,10 @@
     <ClCompile Include="ItemProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PushButtonControl.cpp">
-      <Filter>Source Files\Button</Filter>
-    </ClCompile>
-    <ClCompile Include="PushButtonProvider.cpp">
-      <Filter>Source Files\Button</Filter>
-    </ClCompile>
     <ClCompile Include="RadioButtonControl.cpp">
       <Filter>Source Files\Button</Filter>
     </ClCompile>
     <ClCompile Include="RadioButtonProvider.cpp">
-      <Filter>Source Files\Button</Filter>
-    </ClCompile>
-    <ClCompile Include="ToggleButtonControl.cpp">
-      <Filter>Source Files\Button</Filter>
-    </ClCompile>
-    <ClCompile Include="ToggleButtonProvider.cpp">
       <Filter>Source Files\Button</Filter>
     </ClCompile>
     <ClCompile Include="TextBoxTextRange.cpp">
@@ -66,6 +66,54 @@
     <ClCompile Include="TextBoxProvider.cpp">
       <Filter>Source Files\TextBox</Filter>
     </ClCompile>
+    <ClCompile Include="ButtonControl.cpp">
+      <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonProvider.cpp">
+      <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBoxControl.cpp">
+      <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBoxProvider.cpp">
+      <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu.cpp">
+      <Filter>Source Files\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBarControl.cpp">
+      <Filter>Source Files\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBarProvider.cpp">
+      <Filter>Source Files\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItemControl.cpp">
+      <Filter>Source Files\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItemProvider.cpp">
+      <Filter>Source Files\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Subtree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeControl.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeItemControl.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeItemProvider.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeProvider.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustomMessages.h">
@@ -77,22 +125,10 @@
     <ClInclude Include="ItemProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PushButtonControl.h">
-      <Filter>Header Files\Button</Filter>
-    </ClInclude>
-    <ClInclude Include="PushButtonProvider.h">
-      <Filter>Header Files\Button</Filter>
-    </ClInclude>
     <ClInclude Include="RadioButtonControl.h">
       <Filter>Header Files\Button</Filter>
     </ClInclude>
     <ClInclude Include="RadioButtonProvider.h">
-      <Filter>Header Files\Button</Filter>
-    </ClInclude>
-    <ClInclude Include="ToggleButtonControl.h">
-      <Filter>Header Files\Button</Filter>
-    </ClInclude>
-    <ClInclude Include="ToggleButtonProvider.h">
       <Filter>Header Files\Button</Filter>
     </ClInclude>
     <ClInclude Include="TextBoxTextRange.h">
@@ -106,6 +142,54 @@
     </ClInclude>
     <ClInclude Include="TextBoxProvider.h">
       <Filter>Header Files\TextBox</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxControl.h">
+      <Filter>Header Files\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxProvider.h">
+      <Filter>Header Files\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonControl.h">
+      <Filter>Header Files\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonProvider.h">
+      <Filter>Header Files\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBarControl.h">
+      <Filter>Header Files\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBarProvider.h">
+      <Filter>Header Files\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItemControl.h">
+      <Filter>Header Files\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItemProvider.h">
+      <Filter>Header Files\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu.h">
+      <Filter>Header Files\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Subtree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeControl.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeItemControl.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeItemProvider.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeProvider.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

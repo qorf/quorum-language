@@ -340,19 +340,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	//JavaVM* jvm = GetJVM();
-	//JNIEnv* env;
-	//jvm->AttachCurrentThread((void**)&env, NULL);
-	//jobject* jTextbox = m_pTextBoxControl->GetSelf();
-	//jclass textboxClass = static_cast<jclass>(*jTextbox);
-	//jmethodID methodId = env->GetMethodID(textboxClass, "GetCaretIndex", "()I");
-
-	//if (methodId)
-	//	env->CallIntMethod(textboxClass, methodId);
-	//else
-	//	std::cout << "methodId wasn't set properly..." << std::endl;
-
-	Range caretRange = { m_pTextBoxControl->GetStartIndex(), m_pTextBoxControl->GetEndIndex() };
+	Range caretRange = m_pTextBoxControl->GetSelectionRange();
 
 
 	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange);
@@ -420,7 +408,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	}
 
 	/*
-	This implementation will always report the closest range from a given screen coordinate point as just after the
+	This implementation will always report the closest range from a given screen coordinate point as before the
 	first character on the first line of text. This will stop narrator from saying "No item in view" instead of
 	the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
 	within the textbox won't ever result in the character to the right of the caret being read aloud.
@@ -432,7 +420,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-	Range closestRange = { { 1 },{ 1 } };
+	Range closestRange = { { 0 },{ 0 } };
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
