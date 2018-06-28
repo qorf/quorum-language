@@ -25,6 +25,15 @@ class Main
         text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
         JavaScriptObjectNotation json
         json:Read(myValue)
+        output json:ToText()
+   end
+
+   action Main
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
+        JavaScriptObjectNotation json
+        json:Read(myValue)
         i = 0
         repeat while i < json:GetSize()
             JavaScriptObjectNotation next = json:Get(i)
@@ -774,7 +783,18 @@ class JavaScriptObjectNotation
         elseif IsObject()
             return me:array:Get(0):ToText()
         elseif IsArray()
-            return me:array:Get(0):ToText()
+            text result = ""
+            result = result + "["
+            i = 0
+            repeat array:GetSize() times
+                result = result + array:Get(i):GetValue()
+                if i < array:GetSize() - 1
+                    result = result + ", "
+                end
+                i = i + 1
+            end
+            result = result + "]"
+            return result
         elseif IsUndefined()
             return "null"
         elseif type = 0
