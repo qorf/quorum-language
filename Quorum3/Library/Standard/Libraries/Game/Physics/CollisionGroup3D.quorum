@@ -11,6 +11,10 @@ use Libraries.Game.Physics.Joints.Joint3D
 use Libraries.Game.Collision.LocalCollisionPoints3D
 use Libraries.Game.Physics.all
 
+/*
+This class groups items/joints together so that collisions between these items/joints in this
+group can be treated differently.
+*/
 class CollisionGroup3D 
     Array<Item3D> items
     Array<CollisionEvent3D> collisions
@@ -28,6 +32,9 @@ class CollisionGroup3D
     number linearSleepingThreshold = 0.8
     number angularSleepingThreshold = 1
 
+    /*
+    This action sets all of the class variables to 0.
+    */
     action Empty
         itemCount = 0
         items:Empty()
@@ -36,50 +43,91 @@ class CollisionGroup3D
         jointCount = 0
     end
 
+    /*
+    This action adds a 3D object to this CollisionGroup3D.
+    */
     action Add(Item3D item)
         items:Add(item)
         item:SetCollisionGroupIndex(-1)
         itemCount = itemCount + 1
         end
 
+    /*
+    This action records a collision that involves one of the items/joints in this
+    CollisionGroup3D.
+    */
     action Add(CollisionEvent3D collision)
         collisions:Add(collision)
         collisionCount = collisionCount + 1
     end
 
+    /*
+    This action adds a joint to this CollisionGroup3D.
+    */
     action Add(Joint3D joint)
         joints:Add(joint)
         jointCount = jointCount + 1
     end
 
+    /*
+    This action returns how many 3D objects are inside this CollisionGroup3D.
+    */
     action GetItemCount returns integer
         return itemCount
     end
 
+    /*
+    This action returns how many collisions have been recorded that involves an
+    item/joint that is inside this CollisionGroup3D.
+    */
     action GetCollisionCount returns integer
         return collisionCount
     end
 
+    /*
+    This action returns how many joints are inside this CollisionGroup3D.
+    */
     action GetJointCount returns integer
         return jointCount
     end
 
+    /*
+    This action returns a 3D object that is inside this CollisionGroup3D at an array
+    index of "integer index."
+    */
     action GetItem(integer index) returns Item3D
         return items:Get(index)
     end
 
+    /*
+    This action returns a container for all of the properties of a collision
+    involving one of the items/joints in this CollisionGroup3D at an array
+    index of "integer index."
+    */
     action GetCollision(integer index) returns CollisionEvent3D
         return collisions:Get(index)
     end
 
+    /*
+    This action returns a Joint3D that is inside this CollisionGroup3D at an array
+    index of "integer index."
+    */
     action GetJoint(integer index) returns Joint3D
         return joints:Get(index)
     end
 
+    /*
+    This action connects a container for all of the constants/variables that a solver needs
+    to this CollisionGroup3D to be used by this CollisionGroup3D.
+    */
     action SetSolverInformation(CollisionSolverInformation3D solverInformation)
         me:solverInfo = solverInformation
     end
 
+    /*
+    This action computes how objects inside this CollisionGroup3D will react after a collision
+    with the help of the action "SolveGroupSetup" in the class CollisionSolver3D.
+    */
     action Solve(number seconds, Vector3 gravity, boolean requireSimulation)
         Array<LocalCollisionPoints3D> manifolds
         integer manifoldCount = 0
