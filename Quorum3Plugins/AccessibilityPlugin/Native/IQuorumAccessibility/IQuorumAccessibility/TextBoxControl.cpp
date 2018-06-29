@@ -171,6 +171,19 @@ bool TextBoxControl::HasFocus()
 	return m_focused;
 }
 
+int TextBoxControl::GetCaretPosition()
+{
+	JNIEnv* env = GetJNIEnv();
+	jint index;
+
+	// Wait for Quorum to write
+	env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+	index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
+
+	return (int)index;
+}
+
 Range TextBoxControl::GetSelectionRange()
 {
 	JNIEnv* env = GetJNIEnv();
@@ -185,26 +198,16 @@ Range TextBoxControl::GetSelectionRange()
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		
 		JO_selection = env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetSelection);
+		
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		bool isEmpty = static_cast<bool>(env->CallBooleanMethod(JO_selection, JavaClass_TextBoxSelection.IsEmpty));
+		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
+		selectionRange.begin.character = (int)index;
 
-		// Since we don't have proper locks for the quorum side
-		// I'm trying to minimize the amount of calls made to it
-		// that way I can hope that C++ will still win the race.
-		if (isEmpty)
-		{
-			index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
-			selectionRange.begin.character = (int)index;
-			selectionRange.end.character = (int)index;
-		}
-		else
-		{
-			index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
-			selectionRange.begin.character = (int)index;
-			
-			index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetEndIndex);
-			selectionRange.end.character = (int)index;
-		}
+		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetEndIndex);
+		selectionRange.end.character = (int)index;
+		
 	}
 
 	return selectionRange;

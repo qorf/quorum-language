@@ -160,7 +160,7 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		m_range.begin.character = 0;
-		m_range.end.character = m_pTextBoxControl->GetLineLength();
+		m_range.end.character = m_pTextBoxControl->GetLineLength(); // TODO: Fix line change issue
 	}
 	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
@@ -301,6 +301,9 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	std::wstring text = m_pTextBoxControl->GetText();
 	int startPosition = m_range.begin.character;
 	int length = m_range.end.character - m_range.begin.character;
+
+	std::cout << "Range: (" << m_range.begin.character << ", " <<  m_range.end.character << ")" << std::endl;
+	fflush(stdout);
 	
 	if (length <= 0)
 		length = 1;
@@ -314,7 +317,7 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	return hr;
 }
 
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
+IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
@@ -342,7 +345,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int co
 }
 
 
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
+IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
@@ -375,7 +378,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternR
 }
 
 
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint)
+IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
@@ -432,27 +435,27 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByRange(_In_ TextPattern
 }
 
 // This control does not support selection yet
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::Select()
+IFACEMETHODIMP TextBoxTextRange::Select()
 {
 	return UIA_E_INVALIDOPERATION;
 }
 
 
 // This control does not support selection yet
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::AddToSelection()
+IFACEMETHODIMP TextBoxTextRange::AddToSelection()
 {
 	return UIA_E_INVALIDOPERATION;
 }
 
 
 // This control does not support selection yet
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::RemoveFromSelection()
+IFACEMETHODIMP TextBoxTextRange::RemoveFromSelection()
 {
 	return UIA_E_INVALIDOPERATION;
 }
 
 
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
+IFACEMETHODIMP TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
@@ -465,7 +468,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
 }
 
 
-HRESULT STDMETHODCALLTYPE TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
 	{

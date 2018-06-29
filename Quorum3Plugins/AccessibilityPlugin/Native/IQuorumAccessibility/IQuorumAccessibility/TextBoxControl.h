@@ -82,6 +82,7 @@ class TextBoxControl : public Item
 
 		TextBoxProvider* GetTextBoxProvider();
 
+		int GetCaretPosition();
 		Range GetSelectionRange();
 
 		jobject GetMe();

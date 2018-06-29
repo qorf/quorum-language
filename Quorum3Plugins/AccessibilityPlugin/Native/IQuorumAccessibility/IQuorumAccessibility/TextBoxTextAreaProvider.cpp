@@ -408,19 +408,15 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	}
 
 	/*
-	This implementation will always report the closest range from a given screen coordinate point as before the
-	first character on the first line of text. This will stop narrator from saying "No item in view" instead of
-	the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
-	within the textbox won't ever result in the character to the right of the caret being read aloud.
-
-	If we wanted to get rid of that trade off then that'd be a fairly tricky implementation because we'd need to solve
-	the problem that this function is supposed to solve in Quorum, pass that down along with a mouse click event, and then
-	this function would look for it in the textbox control down here instead of solving the problem itself.
-
-	TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
+	*	Since the textbox control is a 1x1 pixel box the given UiaPoint isn't going to be correct. So if UIA calls this
+	*	function then we'll report the caret position as the closest RangeFromPoint since Quorum handles mouse events.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-	Range closestRange = { { 0 },{ 0 } };
+
+
+	int caretPosition = m_pTextBoxControl->GetCaretPosition();
+	Range closestRange(caretPosition, caretPosition);
+
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 

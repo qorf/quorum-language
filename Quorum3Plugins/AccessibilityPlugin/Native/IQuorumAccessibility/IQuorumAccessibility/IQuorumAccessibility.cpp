@@ -4,6 +4,8 @@
 #include <Windows.h>
 #include <UIAutomation.h>
 
+#include "Resources.h"
+
 #include "ItemControl.h"
 #include "ButtonControl.h"
 #include "RadioButtonControl.h"
@@ -18,41 +20,6 @@
 #include <iostream>
 #include <string>
 
-// This is the handle to the main game window. It is set during initialization and must never be changed.
-HWND GLFWParentWindow = NULL;
-JavaVM* jvm = NULL;
-
-HWND GetMainWindowHandle()
-{
-	return GLFWParentWindow;
-}
-
-JavaVM* GetJVM()
-{
-	return jvm;
-}
-
-// CreateWideStringFromUTF8Win32: converts a const char* to a WCHAR*.
-WCHAR* CreateWideStringFromUTF8Win32(const char* source)
-{
-	// newsize describes the length of the   
-	// wchar_t string called wcstring in terms of the number   
-	// of wide characters, not the number of bytes. 
-	size_t newsize = strlen(source) + 1;
-
-	// The following creates a buffer large enough to contain   
-	// the exact number of characters in the original string  
-	// in the new format.
-	WCHAR* target = new wchar_t[newsize];
-
-	// Convert char* string to a wchar_t* string.  
-	size_t convertedChars = 0;
-	mbstowcs_s(&convertedChars, target, newsize, source, _TRUNCATE);
-
-	return target;
-
-}
-
 // DllMain: Entry point for dll. Nothing to do here.
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
@@ -62,30 +29,10 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 	return TRUE;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
-////////////				   JNI Functions
+////////////				 JNI Export Functions
 ////////////
 ////////////////////////////////////////////////////////////////////////////
-
-// NativeWin32InitializeAccessibility: Calls CoInitialize so that COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
-//									   CoUninitialize must be called the same number of times as CoInitialize.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
-{
-	UNREFERENCED_PARAMETER(obj);
-	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
-	GLFWParentWindow = (HWND)parentWindowHWND;
-	env->GetJavaVM(&jvm);
-}
-
-// NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
-// TODO: More work needs to be done in this function to ensure clean shutdown of the library.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
-{
-	UNREFERENCED_PARAMETER(env);
-	UNREFERENCED_PARAMETER(obj);
-	CoUninitialize();
-}
 
 // TODO: REMOVE this method from here, the JNI header file, the Java AccessibilityManager, and the Quorum AccessibilityManager.
 // NativePrint: Solely used to test whether a call from Java or Quorum can make it down to C++.
@@ -203,13 +150,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 	WCHAR* wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
 
-	jclass textboxClass = env->GetObjectClass(self);
-
-	env->NewGlobalRef(textboxClass);
+	jobject nativeSelf = env->NewGlobalRef(self);
 
 	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
 	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
-	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, wFullText, Range(caretIndex,caretIndex), static_cast<jobject>(textboxClass));
+	TextBoxControl* pTextboxControl = TextBoxControl::Create(GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, wFullText, Range(caretIndex,caretIndex), nativeSelf);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);

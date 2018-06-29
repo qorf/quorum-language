@@ -48,5 +48,4 @@ private:
 	HWND m_TextBoxControlHWND;				// The HWND for this object
 	TextBoxControl* m_pTextBoxControl;		// The control object that this UIA object is referring to
 	Range m_range;							// The range for this instance of TextAreaTextRange
-	//std::wstring m_Text;					// The text that is encompassed by this text range.
 };
