@@ -62,8 +62,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextBox.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
 	// Load the method ids
+	JavaClass_TextBox.GetCaretLine = env->GetMethodID(JavaClass_TextBox.me, "GetCaretLine", "()I");
 	JavaClass_TextBox.GetCaretIndex = env->GetMethodID(JavaClass_TextBox.me, "GetCaretIndex", "()I");
+	JavaClass_TextBox.GetIndexOfLine = env->GetMethodID(JavaClass_TextBox.me, "GetIndexOfLine", "(I)I");
 	JavaClass_TextBox.GetText = env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
+	JavaClass_TextBox.GetCurrentLineText = env->GetMethodID(JavaClass_TextBox.me, "GetCurrentLineText", "()Ljava/lang/String;");
 	JavaClass_TextBox.GetSelection = env->GetMethodID(JavaClass_TextBox.me, "GetSelection", "()Lquorum/Libraries/Interface/Selections/TextBoxSelection_;");
 
 	// Delete local reference
