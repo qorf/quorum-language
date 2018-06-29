@@ -102,7 +102,7 @@ class AndroidInput is GameInput
             Item target = undefined
             Item touchMoveTarget = undefined
 
-            repeat touchEvents:GetSize() times
+            repeat while not (touchEvents:IsEmpty())
                 touchEvent = touchEvents:RemoveFromFront()
 
                 set:SetInputType(set:TOUCH_INPUT)
@@ -200,138 +200,137 @@ class AndroidInput is GameInput
                                 seeker = undefined
                             end
                         end
-
                     end
+                end
 
-                    if not touchEvent:WasEventHandled()
-                        NotifyTouchListeners(touchEvent)
-                    end
+                if not touchEvent:WasEventHandled()
+                    NotifyTouchListeners(touchEvent)
+                end
 
-                    behaviorEvent:SetItem(target)
-                    InputTable table = undefined
+                behaviorEvent:SetItem(target)
+                InputTable table = undefined
 
-                    if touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY
-                        if lastTouchMoveTarget not= touchMoveTarget
-                            BehaviorEvent lastTargetEvent
-                            lastTargetEvent:SetItem(undefined)
-                            lastTargetEvent:SetTouchEvent(touchEvent)
+                if touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY
+                    if lastTouchMoveTarget not= touchMoveTarget
+                        BehaviorEvent lastTargetEvent
+                        lastTargetEvent:SetItem(undefined)
+                        lastTargetEvent:SetTouchEvent(touchEvent)
 
-                            InputSet finishSet = set:Copy()
-                            finishSet:SetInputTrigger(set:FINISH)
+                        InputSet finishSet = set:Copy()
+                        finishSet:SetInputTrigger(set:FINISH)
 
-                            Item lastTarget = lastTouchMoveTarget
+                        Item lastTarget = lastTouchMoveTarget
 
-                            repeat while lastTarget not= undefined
-                                InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
+                        repeat while lastTarget not= undefined
+                            InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
 
-                                boolean valid = false
-                                if moveTable not= undefined
-                                    valid = moveTable:HasKey(finishSet)
-                                end
+                            boolean valid = false
+                            if moveTable not= undefined
+                                valid = moveTable:HasKey(finishSet)
+                            end
 
-                                if valid
-                                    lastTargetEvent:SetItem(lastTarget)
+                            if valid
+                                lastTargetEvent:SetItem(lastTarget)
+                                lastTarget = undefined
+                            else
+                                if target is Item2D
+                                    Item2D target2D = cast(Item2D, lastTarget)
+                                    lastTarget = target2D:GetParent()
+                                elseif target is Item3D
+                                    Item3D target3D = cast(Item3D, lastTarget)
+                                    lastTarget = target3D:GetParent()
+                                else
                                     lastTarget = undefined
-                                else
-                                    if target is Item2D
-                                        Item2D target2D = cast(Item2D, lastTarget)
-                                        lastTarget = target2D:GetParent()
-                                    elseif target is Item3D
-                                        Item3D target3D = cast(Item3D, lastTarget)
-                                        lastTarget = target3D:GetParent()
-                                    else
-                                        lastTarget = undefined
-                                    end
                                 end
                             end
+                        end
 
-                            if lastTargetEvent:GetItem() = undefined
-                                table = GetDefaultInputTable()
+                        if lastTargetEvent:GetItem() = undefined
+                            table = GetDefaultInputTable()
+                        else
+                            table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
+                        end
+
+                        boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
+
+                        BehaviorEvent newTargetEvent
+                        newTargetEvent:SetItem(undefined)
+                        newTargetEvent:SetTouchEvent(touchEvent)
+
+                        InputSet beginSet = set:Copy()
+                        beginSet:SetInputTrigger(set:BEGIN)
+
+                        Item newTarget = touchMoveTarget
+
+                        repeat while newTarget not= undefined
+                            InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
+
+                            // Calculate boolean over multiple steps - necessary to
+                            // circumvent compiler bug.
+                            boolean valid = false
+                            if moveTable not= undefined
+                                valid = moveTable:HasKey(beginSet)
+                            end
+
+                            if valid
+                                newTargetEvent:SetItem(newTarget)
+                                newTarget = undefined
                             else
-                                table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
-                            end
-
-                            boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
-
-                            BehaviorEvent newTargetEvent
-                            newTargetEvent:SetItem(undefined)
-                            newTargetEvent:SetTouchEvent(touchEvent)
-
-                            InputSet beginSet = set:Copy()
-                            beginSet:SetInputTrigger(set:BEGIN)
-
-                            Item newTarget = touchMoveTarget
-
-                            repeat while newTarget not= undefined
-                                InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
-
-                                // Calculate boolean over multiple steps - necessary to
-                                // circumvent compiler bug.
-                                boolean valid = false
-                                if moveTable not= undefined
-                                    valid = moveTable:HasKey(beginSet)
-                                end
-
-                                if valid
-                                    newTargetEvent:SetItem(newTarget)
+                                if newTarget is Item2D
+                                    Item2D target2D = cast(Item2D, newTarget)
+                                    newTarget = target2D:GetParent()
+                                elseif newTarget is Item3D
+                                    Item3D target3D = cast(Item3D, newTarget)
+                                    newTarget = target3D:GetParent()
+                                else
                                     newTarget = undefined
-                                else
-                                    if newTarget is Item2D
-                                        Item2D target2D = cast(Item2D, newTarget)
-                                        newTarget = target2D:GetParent()
-                                    elseif newTarget is Item3D
-                                        Item3D target3D = cast(Item3D, newTarget)
-                                        newTarget = target3D:GetParent()
-                                    else
-                                        newTarget = undefined
-                                    end
                                 end
                             end
-
-                            table = undefined
-
-                            if newTargetEvent:GetItem() = undefined
-                                table = GetDefaultInputTable()
-                            else
-                                table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
-                            end
-
-                            table:ProcessInput(beginSet, newTargetEvent)
-
-                            lastTouchMoveTarget = touchMoveTarget
                         end
-                    end
 
-                    if useDefaultTable
-                        table = GetDefaultInputTable()
+                        table = undefined
 
-                        if recentInput not= undefined
-
-                            if ItemsAreRelated(recentInput:item, touchEvent:GetSource())
-                                multiSet:SetEventCount(recentInput:count + 1)
-                                recentInput:timer = 0
-                                recentInput:count = recentInput:count + 1
-                                touchEvent:tapCount = recentInput:count
-                                if table:HasKey(multiSet)
-                                    set = multiSet
-                                end
-                            else
-                                recentInput:timer = 0
-                                recentInput:count = 1
-                                touchEvent:tapCount = 1
-                            end
-
-                            recentInput:item = touchEvent:GetSource()
+                        if newTargetEvent:GetItem() = undefined
+                            table = GetDefaultInputTable()
+                        else
+                            table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
                         end
-                    else
-                        table = GetInputTable(target:GetInputGroup())
-                    end
 
-                    table:ProcessInput(set, behaviorEvent)
+                        table:ProcessInput(beginSet, newTargetEvent)
 
-                    if touchEvent:eventType = touchEvent:BEGAN or touchEvent:eventType = touchEvent:ENDED
-                        UpdateCurrentTouches(touchEvent)
+                        lastTouchMoveTarget = touchMoveTarget
                     end
+                end
+
+                if useDefaultTable
+                    table = GetDefaultInputTable()
+
+                    if recentInput not= undefined
+
+                        if ItemsAreRelated(recentInput:item, touchEvent:GetSource())
+                            multiSet:SetEventCount(recentInput:count + 1)
+                            recentInput:timer = 0
+                            recentInput:count = recentInput:count + 1
+                            touchEvent:tapCount = recentInput:count
+                            if table:HasKey(multiSet)
+                                set = multiSet
+                            end
+                        else
+                            recentInput:timer = 0
+                            recentInput:count = 1
+                            touchEvent:tapCount = 1
+                        end
+
+                        recentInput:item = touchEvent:GetSource()
+                    end
+                else
+                    table = GetInputTable(target:GetInputGroup())
+                end
+
+                table:ProcessInput(set, behaviorEvent)
+
+                if touchEvent:eventType = touchEvent:BEGAN or touchEvent:eventType = touchEvent:ENDED
+                    UpdateCurrentTouches(touchEvent)
                 end
                 // End of repeat statement over size of touch events.
             end

@@ -3,12 +3,15 @@ package Libraries.Interface.Behaviors.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Mobile.AndroidKeyboard
 
 class TextBoxOpenKeyboardBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is TextBox
-            TextBox box = cast(TextBox, event:GetItem())
-            box:SetSize(1000, 1000)
+//            TextBox box = cast(TextBox, event:GetItem())
+//            box:SetSize(1000, 1000)
+            AndroidKeyboard keyboard
+            keyboard:DisplayKeyboard(keyboard:TEXT_NO_CORRECTIONS, keyboard:LINEFEED)
         end
     end
 end

@@ -520,6 +520,15 @@ class Game
         ClickUpBehavior upBehavior
         buttonTable:Add(clickUp, upBehavior)
 
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+        buttonTable:Add(touchDown, downBehavior)
+
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+        buttonTable:Add(touchUp, upBehavior)
+
         InputSet mouseOn
         mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
         mouseOn:SetInputTrigger(mouseOn:BEGIN)
@@ -539,6 +548,8 @@ class Game
 
         menuItemTable:Add(clickDown, downBehavior)
         menuItemTable:Add(clickUp, upBehavior)
+        menuItemTable:Add(touchDown, downBehavior)
+        menuItemTable:Add(touchUp, upBehavior)
         menuItemTable:Add(mouseOn, onBehavior)
 
         gameInput:AddInputTable(menuItemTable)
@@ -568,15 +579,20 @@ class Game
         InputTable treeItemTable
         treeItemTable:SetIdentifier("TreeItem")
         InputSet doubleClickSet
-        doubleClickSet:SetMouseInput(1)
+        doubleClickSet:SetMouseInput(mouse:LEFT)
         doubleClickSet:SetEventCount(2)
+        InputSet doubleTouchSet
+        doubleTouchSet:SetInputType(doubleTouchSet:TOUCH_INPUT)
+        doubleTouchSet:SetEventCount(2)
         TreeDoubleClickBehavior doubleClickBehavior
         treeItemTable:Add(doubleClickSet, doubleClickBehavior)
+        treeItemTable:Add(doubleTouchSet, doubleClickBehavior)
 
         InputSet clickSet
-        clickSet:SetMouseInput(1)
+        clickSet:SetMouseInput(mouse:LEFT)
         ClickDownBehavior clickDownBehavior
         treeItemTable:Add(clickSet, clickDownBehavior)
+        treeItemTable:Add(touchDown, clickDownBehavior)
 
         AddInputTable(treeItemTable)
 
