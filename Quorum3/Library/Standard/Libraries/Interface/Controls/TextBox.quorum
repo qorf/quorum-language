@@ -1415,6 +1415,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         return caretCharacter
     end
 
+    action GetIndexOfLine(integer line) returns integer
+        return textValue:CharacterIndexFromLineIndex(line)
+    end
+
     action GetLines returns MultipleLineText
         return textValue
     end
