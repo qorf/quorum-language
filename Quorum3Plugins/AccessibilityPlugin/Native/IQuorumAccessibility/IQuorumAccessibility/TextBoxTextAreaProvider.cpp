@@ -148,7 +148,6 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_EditControlTypeId;
-		//pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{
@@ -159,18 +158,13 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	}
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
-		// Tells the screen reader that this control is capable of getting keyboard focus.
-		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
-		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
-		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = m_pTextBoxControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_IsPasswordPropertyId)
 	{
@@ -414,7 +408,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 
 
-	int caretPosition = m_pTextBoxControl->GetCaretPosition();
+	int caretPosition = m_pTextBoxControl->GetCaretIndex();
 	Range closestRange(caretPosition, caretPosition);
 
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);

@@ -7,6 +7,10 @@ use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 use Libraries.Game.Collision.Narrowphase.ConvexConvexVertex
 
+/*
+This class contains actions that will help solve how much one shape has penetrated
+into another shape.
+*/
 class ConvexConvexPenetrationSolver
     ConvexConvexDistanceSolver gjk = undefined
 
@@ -172,10 +176,16 @@ class ConvexConvexPenetrationSolver
         hexahedron_eidx:Add(8, 3, 1)
     end
 
+    /*
+    This action connects this ConvexConvexPenetrationSolver to a ConvexConvexDistanceSolver.
+    */
     action Set(ConvexConvexDistanceSolver gjk)
         me:gjk = gjk
     end
 
+    /*
+    This action finds where the point of interest is relative to a face.
+    */
     action GetCoordinates(ConvexConvexFace face, Vector3 out) returns Vector3
         Vector3 tmp
         Vector3 tmp1
@@ -213,6 +223,9 @@ class ConvexConvexPenetrationSolver
         return out
     end
 
+    /*
+    This action returns the face that is closest to a point of interest.
+    */
     action FindBest returns ConvexConvexFace
         ConvexConvexFace bf = undefined
 
@@ -231,6 +244,10 @@ class ConvexConvexPenetrationSolver
         return bf
     end
 
+    /*
+    This action sets up the convex face that is made up of the 3 vertices that you passed in
+    and returning if these 3 vertices can actually make up a face.
+    */
     action Set(ConvexConvexFace f, ConvexConvexVertex a, ConvexConvexVertex b, ConvexConvexVertex c) returns boolean
         Vector3 tmp1
         Vector3 tmp2
@@ -238,8 +255,8 @@ class ConvexConvexPenetrationSolver
 
         Vector3 nrm
         tmp1:Set(b:GetVertex()):Subtract(a:GetVertex())
-        tmp2:Set(c:GetVertex()):Subtract(a:GetVertex())
-        nrm:Set(tmp1):CrossProduct(tmp2)
+        tmp2:Set(c:GetVertex()):Subtract(a:GetVertex())   
+        nrm:Set(tmp1):CrossProduct(tmp2)          //normal to the face
 
         number length = nrm:Length()
 
@@ -251,7 +268,7 @@ class ConvexConvexPenetrationSolver
                         tmp2:DotProduct(nrm) >= - EpaInfaceEps and
                         tmp3:DotProduct(nrm) >= - EpaInfaceEps
 
-        f:GetVertices():Set(0, a)
+        f:GetVertices():Set(0, a)       //set up the convex face that is made up of the 3 vertices
         f:GetVertices():Set(1, b)
         f:GetVertices():Set(2, c)
         f:SetMark(0)
@@ -269,6 +286,9 @@ class ConvexConvexPenetrationSolver
         return valid
     end
 
+    /*
+    This action creates a new face using the 3 vertices that is passed in.
+    */
     action NewFace(ConvexConvexVertex a, ConvexConvexVertex b, ConvexConvexVertex c) returns ConvexConvexFace
         ConvexConvexFace pf
         if Set(pf, a, b, c)
@@ -287,6 +307,9 @@ class ConvexConvexPenetrationSolver
         return pf
     end
 
+    /*
+    This action deletes a face of a polyhedron.
+    */
     action Detach(ConvexConvexFace face)
         if face:GetPrevious() not= undefined or face:GetNext() not= undefined
             nFaces = nFaces - 1
@@ -306,6 +329,9 @@ class ConvexConvexPenetrationSolver
         end
     end
 
+    /*
+    This action links two faces of a polyhedron together.
+    */
     action Link(ConvexConvexFace f0, integer e0, ConvexConvexFace f1, integer e1)
         f0:GetFaces():Set(e0, f1)
         f1:GetEdges():Set(e1, e0)
@@ -313,12 +339,19 @@ class ConvexConvexPenetrationSolver
         f0:GetEdges():Set(e0, e1)
     end
 
+    /*
+    This action finds the support for w.
+    */
     action Support(Vector3 w) returns ConvexConvexVertex
         ConvexConvexVertex v
         gjk:Support(w, v)
         return v
     end
 
+    /*
+    This action builds a polytope that will be used to calculate the direction that we will need to separate the two 
+    colliding objects (penetration direction).
+    */
     action BuildHorizon(integer markid, ConvexConvexVertex w, ConvexConvexFace f, integer e, Array<ConvexConvexFace> cf, Array<ConvexConvexFace> ff) returns integer
         integer ne = 0
         if f:GetMark() not= markid
@@ -345,10 +378,16 @@ class ConvexConvexPenetrationSolver
         return ne
     end
 
+    /*
+    This action finds how much did one object has penetrated into another object.
+    */
     action EvaluatePenetrationDepth returns number
         return EvaluatePenetrationDepth(EpaAccuracy)
     end
 
+    /*
+    This action finds how much did one object has penetrated into another object.
+    */
     action EvaluatePenetrationDepth(number accuracy) returns number
         Vector3 tmp
 
@@ -517,18 +556,31 @@ class ConvexConvexPenetrationSolver
         return depth
     end
 
+    /*
+    This action returns how many iterations did this solver run for.
+    */
     action GetIterations returns integer
         return iterations
     end
 
+    /*
+    This action returns the direction that you need to push the two objects away to separate the two objects.
+    */
     action GetNormal returns Vector3
         return normal
     end
 
+    /*
+    This action returns the vertices that makes up a face of a polyhedron that is closest to the origin.
+    */
     action GetNearest returns Array<Vector3>
         return nearest
     end
 
+    /*
+    This action returns whether if the penetration solver has successfully found a direction that you should push the two objects
+    so that they are not penetrating anymore.
+    */
     action Failed returns boolean
         return failed
     end

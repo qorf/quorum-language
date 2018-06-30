@@ -15,6 +15,9 @@ use Libraries.Game.Collision.Narrowphase.ConvexConvexPenetrationSolver
 use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolverResults
 use Libraries.Game.Collision.PhysicsPosition3D
 
+/*
+This class contains actions that lets you know if two objects have collided or not.
+*/
 class ConvexConvexCollisionSolver
     BitwiseOperations bo
 // ****************************************************************************
@@ -34,6 +37,9 @@ class ConvexConvexCollisionSolver
     constant number EpaInfaceEps = 0.01
     constant number EpaAccuracy = 0.001
 
+    /*
+    This action lets you know if two objects have collided or not.
+    */
     action Collide(CollisionShape3D shape0, PhysicsPosition3D wtrs0, CollisionShape3D shape1, PhysicsPosition3D wtrs1,
                 number radialMargin, ConvexConvexCollisionSolverResults results) returns boolean
 

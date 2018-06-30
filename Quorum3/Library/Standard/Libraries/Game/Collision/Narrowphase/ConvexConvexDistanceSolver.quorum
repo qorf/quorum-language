@@ -10,6 +10,9 @@ use Libraries.Compute.Quaternion
 use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Math
 
+/*
+This class solves for the distance between the two colliding objects.
+*/
 class ConvexConvexDistanceSolver
     BitwiseOperations bo
     Math math
@@ -50,6 +53,9 @@ class ConvexConvexDistanceSolver
         me:shapes:SetSize(2)
     end
 
+    /*
+    This action initializes the variables in this ConvexConvexDistanceSolver with variables that you passed in.
+    */
     action Initialize(Matrix3 wrot0, Vector3 pos0, CollisionShape3D shape0, Matrix3 wrot1, Vector3 pos1, CollisionShape3D shape1, number pmargin)
         me:wrotations:Get(0):Set(wrot0)
         me:positions:Get(0):Set(pos0)
@@ -61,6 +67,9 @@ class ConvexConvexDistanceSolver
         me:failed = false
     end
 
+    /*
+    This action returns a number that is an index to an array that contains randome vectors.
+    */
     action Hash(Vector3 vector) returns integer
         integer h = bo:ExclusiveOr(bo:ExclusiveOr(cast(integer, vector:GetX() * 15461), cast(integer, vector:GetY() * 83003)), cast(integer, vector:GetZ() * 15473))
         return bo:And(h * 169639, GJK_hashmask)
@@ -78,6 +87,9 @@ class ConvexConvexDistanceSolver
         return out
     end
 
+    /*
+    This action finds and saves an vertex that could potentially be a part of a tetrahedron that will enclose the origin.
+    */
     action Support(Vector3 d, ConvexConvexVertex v)
         v:GetRay():Set(d)
 
@@ -96,6 +108,9 @@ class ConvexConvexDistanceSolver
         v:GetVertex():Set(d):Scale(margin):Add(vec)
     end
 
+    /*
+    This action finds a support point in an arbituarily given direction.
+    */
     action FetchSupport returns boolean
         integer h = Hash(ray)
         ConvexConvexCollisionSolverNode e = table:Get(h)
@@ -178,6 +193,7 @@ class ConvexConvexDistanceSolver
         end
     end
 
+
     action SolveSimplex4(Vector3 ao, Vector3 ab, Vector3 ac, Vector3 ad) returns boolean
         Vector3 crs
         
@@ -214,12 +230,18 @@ class ConvexConvexDistanceSolver
         end
     end
 
+    /*
+    This action returns whether the two objects has collided or not.
+    */
     action SearchOrigin returns boolean
         Vector3 tmp
         tmp:Set(1, 0, 0)
         return SearchOrigin(tmp)
     end
 
+    /*
+    This action returns whether the two objects has collided or not.
+    */
     action SearchOrigin(Vector3 initray) returns boolean
         Vector3 tmp1
         Vector3 tmp2
@@ -280,6 +302,9 @@ class ConvexConvexDistanceSolver
         return false
     end
 
+    /*
+    This action returns whether the simplex that you built contains the origin or not.
+    */
     action EncloseOrigin returns boolean
         Vector3 tmp
         Vector3 tmp1
@@ -367,6 +392,10 @@ class ConvexConvexDistanceSolver
         return false
     end
 
+    /*
+    This action multiplies a matrix with a vector.
+    Mathematically, this is vec = mat * vec.
+    */
     private action Transform(Matrix3 mat, Vector3 vec)
         number x = mat:row0column0 * vec:GetX() + mat:row0column1 * vec:GetY() + mat:row0column2 * vec:GetZ()
         number y = mat:row1column0 * vec:GetX() + mat:row1column1 * vec:GetY() + mat:row1column2 * vec:GetZ()
@@ -374,6 +403,10 @@ class ConvexConvexDistanceSolver
         vec:Set(x, y, z)
     end
 
+    /*
+    This action multiplies a matrix with a vector.
+    Mathematically it is dest = mat * vec.
+    */
     private action TransposeTransform(Vector3 dest, Vector3 vec, Matrix3 mat)
         number x = tdotx(mat, vec)
         number y = tdoty(mat, vec)
@@ -383,24 +416,39 @@ class ConvexConvexDistanceSolver
         dest:SetZ(z)
     end
 
+    /*
+    This action multiplies the first column of a matrix with a vector (dot product).
+    */
     private action tdotx(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column0 * vec:GetX() + mat:row1column0 * vec:GetY() + mat:row2column0 * vec:GetZ()
     end
 
+    /*
+    This action multiplies the second column of a matrix with a vector (dot product).
+    */
     private action tdoty(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column1 * vec:GetX() + mat:row1column1 * vec:GetY() + mat:row2column1 * vec:GetZ()
     end
 
+    /*
+    This action multiplies the third column of a matrix with a vector (dot product).
+    */
     private action tdotz(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column2 * vec:GetX() + mat:row1column2 * vec:GetY() + mat:row2column2 * vec:GetZ()
     end
 
+    /*
+    This action updates a quaternion "q" with the axis and angle of rotation that you passed in.
+    */
     private action SetRotation(Quaternion q, Vector3 axis, number angle)
         number d = axis:Length()
         number s = math:Sine(angle * 0.5) / d
         q:Set(axis:GetX() * s, axis:GetY() * s, axis:GetZ() * s, math:Cosine(angle * 0.5))
     end
 
+    /*
+    This action updates a rotation matrix with the quaternion that you passed in.
+    */
     private action SetRotation(Matrix3 dest, Quaternion q)
         number d = q:GetX() * q:GetX() + q:GetY() * q:GetY() + q:GetZ() * q:GetZ() + q:GetW() * q:GetW()
         number s = 2 / d
@@ -427,22 +475,37 @@ class ConvexConvexDistanceSolver
         dest:row2column2 = 1 - (xx + yy)
     end
 
+    /*
+    This action returns what type of simplex you are using currently.
+    */
     action GetOrder returns integer
         return order
     end
 
+    /*
+    This action sets what type of simplex you are using currently.
+    */
     action SetOrder(integer order)
         me:order = order
     end
 
+    /*
+    This action returns the simplex that you are using currently using an array of vertices.
+    */
     action GetSimplex returns Array<ConvexConvexVertex>
         return simplex
     end
 
+    /*
+    This action returns how many iterations the distance solver has gone through.
+    */
     action GetIterations returns integer
         return iterations
     end
 
+    /*
+    This action returns whether the distance solver has failed or not.
+    */
     action Failed returns boolean
         return failed
     end
