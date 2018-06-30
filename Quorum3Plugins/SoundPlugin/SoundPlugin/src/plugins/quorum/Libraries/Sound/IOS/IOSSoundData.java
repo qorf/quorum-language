@@ -336,4 +336,10 @@ public class IOSSoundData extends Data
 		return newItems;
 	}
     }
+    
+    @Override
+    public int GetSampleOffset()
+    {
+        return 0;
+    }
 }
