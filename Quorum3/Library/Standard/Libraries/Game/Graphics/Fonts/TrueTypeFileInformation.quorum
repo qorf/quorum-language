@@ -17,6 +17,7 @@ class TrueTypeFileInformation
     integer kerningTablePosition = -1
     integer kerningValuesTablePosition = -1
     integer characterMapFormat = -1 
+    integer horizontalHeaderTablePosition = -1
 
     BigInteger createdDate
     BigInteger lastChangedDate
@@ -138,6 +139,14 @@ class TrueTypeFileInformation
 
     action SetGlyphDataLocationTablePosition (integer locaPosition)
         me:glyphDataLocationTablePosition = locaPosition
+    end
+
+    action SetHorizontalHeaderTablePosition(integer horizontalPosition)
+        me:horizontalHeaderTablePosition = horizontalPosition
+    end
+
+    action GetHorizontalHeaderTablePosition() returns integer
+        return me:horizontalHeaderTablePosition
     end
 
     action SetKerningSubtablePosition (integer kernPosition)

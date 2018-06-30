@@ -500,7 +500,7 @@ class QuorumStrategy is FontStrategy
             integer verticalOffset = math:AbsoluteValue(fontMinimumY) + size
 
             integer glyphWidth = glyphMaximumX //- glyphMinimumX
-            integer verticalAdvance = 0 // this seems wrong to me
+            integer verticalAdvance = 0     // this seems wrong to me, and it doesn't seem to affect the fonts at all
             integer extraHorizontalAdvance = size/20                             // TODO - based on kerning?
             //extraHorizontalAdvance = fileReader:GetKerningValue(
             // ^ change to read from fileInformation instead of fileReader
@@ -519,8 +519,6 @@ class QuorumStrategy is FontStrategy
             // scale bounding box to pixel size
             // compute height and advance from scaled bounding box (use sensible default)
             //integer heightFromBaseLine = verticalAdvance - verticalOffset     // this moves the pixelmap up/down based on the offset. Need to make this consistent.
-            //integer halfSize = cast(integer, size * 0.25)
-            //integer heightFromBaseLine = size + halfSize // need to move it up a bit from just size
             integer heightFromBaseLine = cast(integer, d:GetHeight())
 
             Glyph glyph

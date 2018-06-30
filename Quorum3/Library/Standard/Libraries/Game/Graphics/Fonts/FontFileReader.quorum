@@ -91,7 +91,7 @@ class FontFileReader
                 integer length = byteReader:NextIntegerConvertFromUnsigned()
 
                 fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
-
+                //output "Tag is: " + tag
                 if tag = "cmap"
                     // reads character map table into hash table from CharacterMap class
                     ReadCharacterMapTable(byteReader, offset)
@@ -107,6 +107,8 @@ class FontFileReader
                 elseif tag = "loca"
                     // saves offset in file where loca table begins
                     fileInformation:SetGlyphDataLocationTablePosition(offset)
+                elseif tag = "hhea"
+                    ReadHorizontalHeaderTable(byteReader, offset)
                 end
                 
                 i = i + 1
@@ -598,6 +600,28 @@ class FontFileReader
         byteReader:SetPosition(previousPosition)
     end
 
+    action ReadHorizontalHeaderTable(ByteReader byteReader, integer horizontalHeaderPosition)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(horizontalHeaderPosition)
+        if iteratorIsValid
+            //output "HorizontalHeaderPosition is: " + horizontalHeaderPosition
+            fileInformation:SetHorizontalHeaderTablePosition(horizontalHeaderPosition)
+            //output "Match? " + fileInformation:GetHorizontalHeaderTablePosition()
+
+            integer version = byteReader:NextTwoByteUnsignedInteger()
+            integer versionDecimal = byteReader:NextTwoByteUnsignedInteger()
+            output "Version: " + version + "." + versionDecimal
+            integer ascent = byteReader:NextTwoByteInteger()
+            output "Ascent: " + ascent
+            integer descent = byteReader:NextTwoByteInteger()
+            output "Descent: " + descent
+            integer lineGap = byteReader:NextTwoByteInteger()
+            output "lineGap: " + lineGap
+        end
+
+        byteReader:SetPosition(previousPosition)
+    end
+
     /* 
         called by: 
         ReadKernTables in FontFileReader (above).
@@ -757,100 +781,4 @@ class FontFileReader
         end
         byteReader:SetPosition(previousPosition)
     end
-
-/*
-    private action ReadCharacterMapFormat(ByteReader byteReader, integer charcode) 
-        integer length = byteReader:NextTwoByteUnsignedInteger()
-        integer language = byteReader:NextTwoByteUnsignedInteger()
-        integer segmentCountTimes2 = byteReader:NextTwoByteUnsignedInteger()
-        integer searchRange = byteReader:NextTwoByteUnsignedInteger()
-        integer entrySelector = byteReader:NextTwoByteUnsignedInteger()
-        integer rangeShift = byteReader:NextTwoByteUnsignedInteger()
-
-//        output "Length: " + length
-//        output "Language: " + language
-//        output "SegCountX2: " + segmentCountTimes2
-//        output "SearchRange: " + searchRange
-//        output "EntrySelector: " + entrySelector
-//        output "RangeShift: " + rangeShift
-
-        
-        Array<integer> endcodes
-        integer count = 0
-        integer segmentcount = segmentCountTimes2/2
-        
-        repeat while count < segmentcount
-            integer endCode = byteReader:NextTwoByteUnsignedInteger()
-
-            endcodes:Add(endCode)
-            count = count + 1
-        end
-        
-        integer reservedPad = byteReader:NextTwoByteUnsignedInteger()
- //       output "ReservedPad: " + reservedPad
-        
-        Array<integer> startcodes
-        integer startcount = 0
-        repeat while startcount < segmentcount
-            integer startCode = byteReader:NextTwoByteUnsignedInteger()
-
-            startcodes:Add(startCode)
-            
-            
-            startcount = startcount + 1
-        end
-
-        Array<integer> idDeltas
-        integer deltacount = 0
-        repeat while deltacount < segmentcount
-            integer idDelta = byteReader:NextTwoByteInteger()
-
-            idDeltas:Add(idDelta)
-            
-            deltacount = deltacount + 1
-        end
-
-        Array<integer> idRangeOffsets
-        integer offsetcount = 0
-        repeat while offsetcount < segmentcount
-            integer idRangeOffset = byteReader:NextTwoByteUnsignedInteger()
-
-            idRangeOffsets:Add(idRangeOffset)
-  //          output "Start: " + startcodes:Get(offsetcount) + " | End: " + endcodes:Get(offsetcount) + " | Delta: " + idDeltas:Get(offsetcount) + " | Offset: " + idRangeOffsets:Get(offsetcount)
-            offsetcount = offsetcount + 1
-        end
-
-        // Rest of table is actual mapping.
-        
-    end
-*/
-
-/*
-    action FindCharacterSegment(integer charcode, Array<integer> endcodes) returns integer
-        integer i = 0
-
-        repeat while i < endcodes:GetSize()
-            if endcodes:Get(i) >= charcode
-                return i
-            else
-                i = i + 1
-            end
-        end
-
-        return -1
-    end
-
-    private action ReadGlyphTable(ByteReader byteReader) 
-        // TODO
-    end
-
-    action GetByteIterator() returns ByteReader
-        return byteReader
-    end
-
-    action GetIterator returns Iterator<TypeFace>
-        return records:GetIterator()
-    end
-*/
-    
 end

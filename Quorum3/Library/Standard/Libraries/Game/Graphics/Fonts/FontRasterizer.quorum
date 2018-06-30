@@ -99,6 +99,9 @@ class FontRasterizer
     end
 
     action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns FontDrawable
+        FontBoundingBox box = outline:GetBoundingBox()
+        output box:ToText()
+
         Format format = SetupFormat()
         Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)  // make sure to pass this in to other functions that previously made this same call
         Array<integer> maximums
@@ -597,7 +600,7 @@ class FontRasterizer
 
         map:SetColor(color:Black())
         map:CreatePixelMap(width, height, format)
-        //map:FillRectangle(0, 0, width, height, color:CustomColor(1, 1, 1, 0.2))
+        map:FillRectangle(0, 0, width, height, color:CustomColor(1, 1, 1, 0.2))
 
         return map
     end
