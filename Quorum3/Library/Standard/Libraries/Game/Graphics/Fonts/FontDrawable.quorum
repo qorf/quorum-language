@@ -8,8 +8,17 @@ class FontDrawable
     integer xMinimum = 0
     integer yMaximum = 0
     integer yMinimum = 0
+    integer heightFromBaseline = 0
 
     Drawable drawable
+
+    action GetHeightFromBaseline() returns integer
+        return me:heightFromBaseline
+    end
+
+    action SetHeightFromBaseline(integer value)
+        heightFromBaseline = value
+    end
 
     action GetXMaximum () returns integer
         return me:xMaximum

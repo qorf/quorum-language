@@ -28,6 +28,10 @@ class TrueTypeFileInformation
     Signed16BitFontUnit xMaximum
     Signed16BitFontUnit yMaximum
 
+    integer maximumAscent = -1
+    integer maximumDescent = -1
+    integer lineGap = -1
+
     integer lowestRecommendedPixelsPerEm = - 1
     integer fontDirectionHint = -1
     integer indexToLocationTableFormat = -1
@@ -35,10 +39,33 @@ class TrueTypeFileInformation
     GlobalFontInformationFlags globalFontInformationFlags
     MacStyleFlags macStyleFlags
 
+    action SetLineGap(integer value)
+        me:lineGap = value
+    end
+
+    action GetLineGap() returns integer
+        return me:lineGap
+    end
+
+    action SetMaximumAscent(integer value)
+        me:maximumAscent = value
+    end
+
+    action GetMaximumAscent() returns integer
+        return me:maximumAscent
+    end
+
+    action SetMaximumDescent(integer value)
+        me:maximumDescent = value
+    end
+
+    action GetMaximumDescent() returns integer
+        return me:maximumDescent
+    end
+
     action SetMacStyleFlags(integer flags) 
         me:macStyleFlags:Set(flags)
     end
-
 
     action SetGlobalFontInformationFlags(integer flags)
         me:globalFontInformationFlags:Set(flags)
@@ -51,7 +78,6 @@ class TrueTypeFileInformation
     action GetIndexToLocationTableFormat() returns integer
         return me:indexToLocationTableFormat
     end
-
 
     action SetFontDirectionHint(integer fontDirectionHint)
         me:fontDirectionHint = fontDirectionHint
@@ -105,11 +131,9 @@ class TrueTypeFileInformation
         me:yMinimum = ymin
     end
     
-
     action GetYMinimum () returns Signed16BitFontUnit
        return yMinimum
     end
-
 
     action SetXMaximum (Signed16BitFontUnit xmax)
         me:xMaximum = xmax
@@ -118,7 +142,6 @@ class TrueTypeFileInformation
     action GetXMaximum () returns Signed16BitFontUnit
         return me:xMaximum
     end
-
 
     action SetYMaximum(Signed16BitFontUnit ymax)
         me:yMaximum = ymax

@@ -505,7 +505,7 @@ class QuorumStrategy is FontStrategy
             //extraHorizontalAdvance = fileReader:GetKerningValue(
             // ^ change to read from fileInformation instead of fileReader
 
-            FontDrawable glyphDrawable = fontRasterizer:DrawGlyph(glyphOutline, horizontalOffset, verticalOffset, color)
+            FontDrawable glyphDrawable = fontRasterizer:DrawGlyph(glyphOutline, horizontalOffset, verticalOffset, color, fileInformation)
             Drawable d = glyphDrawable:GetDrawable()
             //output "From Strategy, the drawable has height: " + d:GetHeight()
             integer glyphActualWidth = glyphDrawable:GetXMaximum() - glyphDrawable:GetXMinimum()      
@@ -516,10 +516,7 @@ class QuorumStrategy is FontStrategy
                 horizontalAdvance = horizontalAdvance + extraSpaceHorizontalAdvance
             end
 
-            // scale bounding box to pixel size
-            // compute height and advance from scaled bounding box (use sensible default)
-            //integer heightFromBaseLine = verticalAdvance - verticalOffset     // this moves the pixelmap up/down based on the offset. Need to make this consistent.
-            integer heightFromBaseLine = cast(integer, d:GetHeight())
+            integer heightFromBaseLine = glyphDrawable:GetHeightFromBaseline()
 
             Glyph glyph
             glyph:drawable = glyphDrawable:GetDrawable()

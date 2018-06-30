@@ -610,13 +610,12 @@ class FontFileReader
 
             integer version = byteReader:NextTwoByteUnsignedInteger()
             integer versionDecimal = byteReader:NextTwoByteUnsignedInteger()
-            output "Version: " + version + "." + versionDecimal
             integer ascent = byteReader:NextTwoByteInteger()
-            output "Ascent: " + ascent
+            fileInformation:SetMaximumAscent(ascent)
             integer descent = byteReader:NextTwoByteInteger()
-            output "Descent: " + descent
+            fileInformation:SetMaximumDescent(descent)
             integer lineGap = byteReader:NextTwoByteInteger()
-            output "lineGap: " + lineGap
+            fileInformation:SetLineGap(lineGap)
         end
 
         byteReader:SetPosition(previousPosition)
