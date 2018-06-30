@@ -32,6 +32,10 @@ class FontRasterizer
     integer yMinimum = int:GetMaximumValue()
     integer yMaximum = int:GetMinimumValue()
 
+    private action CalculateScaledCoordinate(integer coordinate, integer pixelSize, integer emSize) returns integer
+        return coordinate * pixelSize / emSize
+    end
+
     private action CalculateGlyphHeight(Array<Line> lines, Array<integer> maximums) returns integer
         integer lowestPoint = 0
         integer highestPoint = 0
@@ -98,14 +102,19 @@ class FontRasterizer
         return width
     end
 
-    action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color) returns FontDrawable
+    action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color, TrueTypeFileInformation information) returns FontDrawable
+        FontBoundingBox box = outline:GetBoundingBox()
+        integer highPoint = CalculateScaledCoordinate(box:GetYMaximum(), pixelSize, information:GetUnitsPerEm()) + 1
+        integer lowPoint = CalculateScaledCoordinate(box:GetYMinimum(), pixelSize, information:GetUnitsPerEm()) -1
+
         Format format = SetupFormat()
         Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)  // make sure to pass this in to other functions that previously made this same call
         Array<integer> maximums
-        integer height = CalculateGlyphHeight(linesToDraw, maximums)
+        integer height = CalculateGlyphHeight(linesToDraw, maximums) + 1
         //integer width = CalculateGlyphWidth(linesToDraw)
         //output "Width using new function is: " + width
-        PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height+1, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
+        integer heightFromBaseline = highPoint
+        PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
 
         pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false, maximums)  // draws the glyph outline
         pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color, linesToDraw, maximums)          // fills in the glyphs
@@ -121,6 +130,7 @@ class FontRasterizer
         glyph:SetYMaximum(yMaximum)
         glyph:SetXMinimum(xMinimum)
         glyph:SetYMinimum(yMinimum)
+        glyph:SetHeightFromBaseline(heightFromBaseline)
 
         return glyph
     end
@@ -283,7 +293,7 @@ class FontRasterizer
         called by RenderGlyphOutline (non-anti-aliasing) action to calculate 
         <x, y> coordinate with respect to screen size 
     */
-    private action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screenSize) returns integer
+    private action CalculateCoordinate(integer gridCoordinate, integer pixelSize, integer emSize, integer screenSize) returns integer 
         if screenSize = 0
            return gridCoordinate * pixelSize / emSize
         end
