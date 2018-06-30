@@ -32,7 +32,7 @@ class FontRasterizer
     integer yMinimum = int:GetMaximumValue()
     integer yMaximum = int:GetMinimumValue()
 
-    private action CalculateScaledCoordinate(integer coordinate, integer pixelSize, integer emSize) returns integer
+    action CalculateScaledCoordinate(integer coordinate, integer pixelSize, integer emSize) returns integer
         return coordinate * pixelSize / emSize
     end
 

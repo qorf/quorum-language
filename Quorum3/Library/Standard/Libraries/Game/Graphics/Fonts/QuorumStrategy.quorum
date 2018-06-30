@@ -24,6 +24,7 @@ class QuorumStrategy is FontStrategy
     private Color color
 
     private integer fontHeight = 0
+    private integer lineHeight = 0
     private integer fontWidth = 0
     private integer fontEmSize = 0
     private integer fontMaximumX = 0
@@ -471,6 +472,7 @@ class QuorumStrategy is FontStrategy
             //output "glyphTable has key " + character 
             return glyphTable:GetValue(character):CopyGlyph()
         else
+            Math math
             BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints(character)
             // ^ change to read from fileInformation instead of fileReader 
 
@@ -479,9 +481,13 @@ class QuorumStrategy is FontStrategy
             integer glyphMinimumY = Round(CalculateCoordinate(glyphOutline:GetBoundingBox():GetYMinimum(), size, fontEmSize, 0))
             integer glyphMaximumY = Round(CalculateCoordinate(glyphOutline:GetBoundingBox():GetYMaximum(), size, fontEmSize, 0))
 
-            Math math
+            integer scaledUpper = fontRasterizer:CalculateScaledCoordinate(fileInformation:GetMaximumAscent(), size, fileInformation:GetUnitsPerEm())
+            integer scaledLower = fontRasterizer:CalculateScaledCoordinate(fileInformation:GetMaximumDescent(), size, fileInformation:GetUnitsPerEm())
+            integer scaledLineGap = fontRasterizer:CalculateScaledCoordinate(fileInformation:GetLineGap(), size, fileInformation:GetUnitsPerEm())
+            lineHeight = math:AbsoluteValue(scaledUpper) + math:AbsoluteValue(scaledLower) + scaledLineGap
+
             integer horizontalOffset = 0                                        // TODO - based on kerning?
-            
+
             /*
             Currently unused, the fix was to calculate this relative to the pixelmap.
             Pixel maps are always from (0, 0) to height * width-1. Coordinates for
@@ -517,7 +523,7 @@ class QuorumStrategy is FontStrategy
             end
 
             integer heightFromBaseLine = glyphDrawable:GetHeightFromBaseline()
-
+            
             Glyph glyph
             glyph:drawable = glyphDrawable:GetDrawable()
             glyph:horizontalAdvance = horizontalAdvance
@@ -692,7 +698,7 @@ class QuorumStrategy is FontStrategy
         end
     */
     action GetLineHeight returns integer
-        return fontHeight
+        return lineHeight
     end
 
     /*
