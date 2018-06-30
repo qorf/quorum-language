@@ -238,6 +238,24 @@ class Audio
 
 
     /*
+    The IsLoaded action returns true if the Audio has been loaded with some data
+    from either a file or from AudioSamples, and false if it hasn't been loaded
+    yet.
+
+    Attribute: Returns True if the Audio has been loaded, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    output "Has audio been loaded yet? " + audio:IsLoaded()
+    audio:Load("My_Song.wav")
+    output "Has the audio been loaded now? " + audio:IsLoaded()
+    */
+    system action IsLoaded returns boolean
+
+    /*
     The AddToQueue action adds AudioSamples to the end of the data stored in
     this Audio object. To use this, the Audio must have been initialized using
     LoadToStream using an AudioSamples object, or must not have been initialized
@@ -2646,5 +2664,25 @@ class Audio
     output "Now the default rolloff rate is " + audio1:GetDefaultRolloffRate()
     */
     system action GetDefaultRolloffRate returns number
+
+
+    /*
+    This action returns how many samples have been played from the Audio. This
+    is supported if a file has been loaded for non-streaming Audio, or if the
+    Audio is streaming AudioSample objects. If the file is not playing or paused
+    then this will return 0.
+
+    Attribute: Returns The number of samples that have been played.
+    */
+    system action GetSampleOffset returns integer
+
+    
+    /*
+    This action returns which AudioSample is currently queued when used on an
+    Audio object that is streaming AudioSamples. 
+
+    Attribute: Returns The currently queued AudioSamples.
+    */
+    system action GetCurrentAudioSamples returns AudioSamples
 
 end
