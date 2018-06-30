@@ -76,6 +76,9 @@ class LocalCollisionPoints2D
         end
     end
 
+    /*
+    This action sets the current LocalCollisionPoints2D with another LocalCollisionPoints2D.
+    */
     action Set(LocalCollisionPoints2D other)
         localNormal:Set(other:localNormal)
         localPoint:Set(other:localPoint)
@@ -92,38 +95,100 @@ class LocalCollisionPoints2D
         end
     end
 
+    /*
+    This action returns all of the collision points stored inside this LocalCollisionPoints2D from the point of view of the 
+    reference object that is involved in the collision. The amount of items in 
+    the returning array tells you whether the contact is a line (2 CollisionPoint2D) or
+    just a point (1 CollisionPoint2D object in the array).
+    Attribute: Returns all of the collision points stored inside this LocalCollisionPoints2D.
+    */
     action GetPoints returns Array<CollisionPoint2D>
             return points
     end
 
+    /*
+    This action returns the actual direction (with respect to the reference object) at which
+    you should apply the normal impulse to the objects to separate the objects.
+    In the case where the reference object is a circle (circleA), localNormal
+    can't be used.
+    In the case where the reference object is a polygon, localNormal would be
+    the direction of normal impulse in reference to that polygon pointing away
+    from the polygon.
+
+    Attribute: Returns the direction that you should apply the normal impulse to the objects to separate the objects.
+    */
     action GetLocalNormal returns Vector2
         return localNormal
     end
 
+    /*
+    This action sets the direction that you should apply the normal impulse to the objects to separate the objects.
+
+    Attribute: Parameter normal The direction that you should apply the normal impulse to the objects to separate the objects.
+    */
     action SetLocalNormal(Vector2 normal)
         localNormal = normal
     end
 
+    /*
+    This action returns the estimated point of contact.
+    In the case where the reference object is a circle, this would be the local
+    center of circleA.
+    In the case where the reference object is a polygon, this would be the local
+    center of that polygon.
+    Attribute: Returns the estimated point of contact.
+    */
     action GetLocalPoint returns Vector2
         return localPoint
     end
 
+    /*
+    This action sets the estimated point of contact.
+    Attribute: Parameter point The estimated point of contact.
+    */
     action SetLocalPoint(Vector2 point)
         localPoint = point
     end
 
+    /*
+    This action returns how many collision points there is between two objects.
+    1 indicates that the collision caused a point contact, and
+    2 indicates that the collision caused a line contact.
+    Attribute: Returns how many collision points there is between two objects.
+    */
     action GetPointCount returns integer
         return pointCount
     end
 
+    /*
+    This action sets how many collision points there is between two objects.
+    Attribute: Parameter count How many collision points there is between two objects.
+    */
     action SetPointCount(integer count)
         pointCount = count
     end
 
+    /*
+    This action returns the type of the collision. 
+    Here are possible types in a code box for better viewing:
+    Attribute: Example
+        CIRCLES = 0 //when two circles collide, both 2D objects are going to be circles
+                        //the reference object will be selected as circleA
+        FACE_A = 1  //when circle collide with polygon -OR- polygon collide with polygon
+                        //the "type" of the LocalCollisionPoints2D is selected as FACE_A when A is the reference polygon
+                        //in a circle-polygon collision, the polygon will be selected as the reference object
+
+        FACE_B = 2  //when polygon collides with polygon
+                        //the "type" of the LocalCollisionPoints2D is selected as FACE_B when B is the reference polygon
+    */
     action GetType returns integer
         return type
     end
 
+    /*
+    This action sets the type of collision.
+    Attribute: Parameter type The type of collision.
+    */
     action SetType(integer type)
         me:type = type
     end

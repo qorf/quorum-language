@@ -3,6 +3,9 @@ package Libraries.Game.Physics.Joints
 use Libraries.Interface.Item2D
 use Libraries.Compute.Vector2
 
+/*
+This class has all of the possible joint types and blueprint actions for all 2D joints.
+*/
 class Joint2D 
     public constant integer UNKNOWN = 0
     public constant integer REVOLUTEJOINT = 1
@@ -34,34 +37,58 @@ class Joint2D
     boolean collisionGroupFlag = false
     integer state = 0
 
+    /*
+    This action returns the type of joint that you have.
+    */
     action GetType returns integer
         return jointType
     end
     
+    /*
+    This action sets the type of joint that you have.
+    */   
     action SetType(integer type)
         jointType = type
     end
 
+    /*
+    This action returns the first 2D item that is joined by this Joint2D.
+    */
     action GetItemA returns Item2D
         return itemA
     end
     
+    /*
+    This action sets the first 2D item that is joined by this Joint2D.
+    */
     action SetItemA(Item2D item)
         itemA = item
     end
 
+    /*
+    This action returns the second 2D item that is joined by this Joint2D.
+    */
     action GetItemB returns Item2D
         return itemB
     end
 
+    /*
+    This action sets the second 2D item that is joined by this Joint2D.
+    */
     action SetItemB(Item2D item)
         itemB = item
     end
 
+    /*
+    This action returns whether this joint is INACTIVE, AT_LOWER, AT_UPPER, or EQUAL.
+    */
     action GetState returns integer
         return state
     end
     
+    /*
+    This action sets whether this joint is INACTIVE, AT_LOWER, AT_UPPER, or EQUAL.
+    */
     action SetState(integer newState)
         state = newState
     end
@@ -74,10 +101,16 @@ class Joint2D
 
     blueprint action GetReactionTorque(number inverseTimeStep) returns number
 
+    /*
+    This action returns whether the connected joints can collide or not.
+    */
     action GetCollideConnected returns boolean
         return collideConnected
     end
     
+    /*
+    This action sets whether the connected joints can collide or not.
+    */
     action SetCollideConnected(boolean collide)
         collideConnected = collide
     end
@@ -88,42 +121,72 @@ class Joint2D
 
     blueprint action SolvePositionConstraints(JointSolverData2D data) returns boolean
 
+    /*
+    This action returns whether the items in this joint is in a collision group with other items.
+    */
     action InCollisionGroup returns boolean
         return collisionGroupFlag
     end
 
+    /*
+    This action sets whether the items in this joint is in a collision group with other items.
+    */
     action SetInCollisionGroup(boolean flag)
         collisionGroupFlag = flag
     end
 
+    /*
+    This action gets you the previous information about a joint (stored in another Joint2D) inside a linked list of Joint2Ds.
+    */
     action GetPrevious returns Joint2D
         return previous
     end
 
+    /*
+    This action lets you store another information about a joint (stored in another Joint2D) as a previous link to the current Joint2D.
+    */
     action SetPrevious(Joint2D previous)
         me:previous = previous
     end
 
+    /*
+    This action gets you the next information about a joint (stored in another Joint2D) inside a linked list of Joint2Ds.
+    */
     action GetNext returns Joint2D
         return next
     end
 
+    /*
+    This action lets you store another information about a joint (stored in another Joint2D) as a next link to the current Joint2D.
+    */
     action SetNext(Joint2D next)
         me:next = next
     end
 
+    /*
+    This action returns the first JointEdge2D stored inside this Joint2D.
+    */
     action GetEdgeA returns JointEdge2D
         return edgeA
     end
 
+    /*
+    This action sets the first JointEdge2D stored inside this Joint2D.
+    */
     action SetEdgeA(JointEdge2D edgeA)
         me:edgeA = edgeA
     end
 
+    /*
+    This action returns the second JointEdge2D stored inside this Joint2D.
+    */
     action GetEdgeB returns JointEdge2D
         return edgeB
     end
 
+    /*
+    This action sets the second JointEdge2D stored inside this Joint2D.
+    */
     action SetEdgeB(JointEdge2D edgeB)
         me:edgeB = edgeB
     end

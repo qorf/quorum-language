@@ -5,6 +5,9 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Game.Collision.Narrowphase.ConvexConvexSubSimplexClosestResult
 
+/*
+This action finds the closest point on a object to the origin.
+*/
 class ConvexConvexSimplexSolver
 // ****************************************************************************
 // VoroniSimplexSolver class fields and actions
@@ -45,6 +48,9 @@ class ConvexConvexSimplexSolver
         end
     end
 
+    /*
+    This action removes a vertex from a simplex (which is the umbrella term for a point, a line, a triangle, or a tetrahedron).
+    */
     action RemoveVertex(integer index)
         numVertices = numVertices - 1
         simplexVectorW:Get(index):Set(simplexVectorW:Get(numVertices))
@@ -52,6 +58,9 @@ class ConvexConvexSimplexSolver
         simplexPointsQ:Get(index):Set(simplexPointsQ:Get(numVertices))
     end
 
+    /*
+    This action ignores the vertices that are unused inside a ConvexConvesSubSimplexClosestResult class, which can hold up to 4 vertices.
+    */
     action ReduceVertices(ConvexConvexSubSimplexClosestResult usedVerts)
         if numVertices >= 4 and not usedVerts:UsedVertexD()
             RemoveVertex(3)
@@ -70,6 +79,10 @@ class ConvexConvexSimplexSolver
         end
     end
 
+    /*
+    This action updates the vertex on the current simplex that is closest to the origin and also updates the 
+    closest point from the current simplex to the origin.
+    */
     action UpdateClosestVectorAndPoints returns boolean
         if needsUpdate
             cachedBC:Reset()
@@ -219,6 +232,9 @@ class ConvexConvexSimplexSolver
         return cachedValidClosest
     end
 
+    /*
+    This action finds the closest point on a triangle to the origin.
+    */
     private action ClosestPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ConvexConvexSubSimplexClosestResult result) returns boolean
         result:UsedVerticesReset()
         
@@ -319,6 +335,10 @@ class ConvexConvexSimplexSolver
         return true
     end
     
+    /*
+    This action calculates whether the two points, p and d, are on the same side of the plane
+    that contains the points a, b, and c.
+    */
     private action PointOutsideOfPlane(Vector3 p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) returns integer
         Vector3 tmp
 
@@ -333,17 +353,20 @@ class ConvexConvexSimplexSolver
         tmp:Set(d):Subtract(a)
         number signd = tmp:DotProduct(normal)
 
-        if signd * signd < ((0.0001 * 0.0001))
+        if signd * signd < ((0.0001 * 0.0001))      //if they are both on the plane
             return -1
         end
 
-        if signp * signd < 0
+        if signp * signd < 0        //if they are on opposite sides of the plane
             return 1
         else
-            return 0
+            return 0        //if they are on the same side of the plane
         end
     end
 
+    /*
+    This action calculates the closest point from a tetrahedron to the origin.
+    */
     private action ClosestPointTetrahedron(Vector3 p, Vector3 a, Vector3 b, Vector3 c, Vector3 d, ConvexConvexSubSimplexClosestResult finalResult) returns boolean
         ConvexConvexSubSimplexClosestResult tempResult
         tempResult:Reset()
@@ -463,6 +486,9 @@ class ConvexConvexSimplexSolver
         return true
     end
 
+    /*
+    This action resets the ConvexConvexSimplexSolver.
+    */
     action Reset
         number value = math:RaiseToPower(10, 30)
         cachedValidClosest = false
@@ -472,6 +498,9 @@ class ConvexConvexSimplexSolver
         cachedBC:Reset()
     end
 
+    /*
+    This action updates the simplex.
+    */
     action AddVertex(Vector3 w, Vector3 p, Vector3 q)
         lastW:Set(w)
         needsUpdate = true
@@ -483,12 +512,18 @@ class ConvexConvexSimplexSolver
         numVertices = numVertices + 1
     end
 
+    /*
+    This action temporarily stores a vertex on the current simplex that is closest to the origin.
+    */
     action Closest(Vector3 v) returns boolean
         boolean success = UpdateClosestVectorAndPoints()
         v:Set(cachedV)
         return success
     end
 
+    /*
+    This action returns the maximum distance from the origin to a vertex in the simplex.
+    */
     action MaxVertex returns number
         integer i = 0
         integer numverts = numVertices
@@ -505,10 +540,16 @@ class ConvexConvexSimplexSolver
         return maxV
     end
 
+    /*
+    This action returns whether you have a tetrahedron as your current simplex.
+    */
     action FullSimplex returns boolean
         return numVertices = 4
     end
     
+    /*
+    This action tests whether a vertex is inside the current simplex.
+    */
     action InSimplex(Vector3 w) returns boolean
         boolean found = false
         integer i = 0
@@ -529,24 +570,41 @@ class ConvexConvexSimplexSolver
         return found
     end
 
+    /*
+    This action saves the closest vertex to the origin inside the "Vector3 v."
+    */
     action BackupClosest(Vector3 v)
         v:Set(cachedV)
     end
     
+    /*
+    This action returns whether you have a simplex currently or not.
+    */
     action EmptySimplex returns boolean
         return numVertices = 0
     end
 
+    /*
+    This action calls the action UpdateClosestVectorAndPoints and stores two different
+    points temporarily to be used later. These two points can be anything that you know
+    you will need later.
+    */
     action ComputePoints(Vector3 p1, Vector3 p2)
         UpdateClosestVectorAndPoints()
         p1:Set(cachedP1)
         p2:Set(cachedP2)
     end
 
+    /*
+    This action returns the number of vertices there is in a simplex.
+    */
     action GetNumberOfVertices returns number
         return numVertices
     end
 
+    /*
+    This action sets the number of vertices there is in a simplex.
+    */
     action SetNumberOfVertices(integer numberOfVertices)
         numVertices = numberOfVertices
     end

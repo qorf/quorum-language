@@ -189,6 +189,8 @@ class GlobalCollisionPoints2D
     /*
     This action obtains the direction of the normal impulse that should be 
     applied object B from object A in global coordinates.
+
+    Attribute: Returns the direction of the normal impulse that should be applied.
     */
     action GetNormal returns Vector2
         return normal
@@ -196,6 +198,8 @@ class GlobalCollisionPoints2D
 
     /*
     This action returns all of the collision points in global coodinates.
+
+    Attribute: Returns all of the collision points.
     */
     action GetPoints returns Array<Vector2>
         return points
@@ -203,6 +207,8 @@ class GlobalCollisionPoints2D
 
     /*
     This action returns how much separation is between object A and object B.
+
+    Attribute: Returns how much separation is between object A and object B.
     */
     action GetSeparations returns Array<number>
         return separations

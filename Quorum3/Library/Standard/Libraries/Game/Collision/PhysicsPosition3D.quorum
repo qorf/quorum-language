@@ -20,6 +20,7 @@ class PhysicsPosition3D
     /*
     This action sets the location and the tilt of the 3D object using another
     PhysicsPosition3D.
+    Attribute: Parameter the other PhysicsPosition3D.
     */
     action Set(PhysicsPosition3D transform)
         basis:Set(transform:basis)
@@ -31,6 +32,7 @@ class PhysicsPosition3D
     object (the 3D object's local origin) to the global coordinate's origin.
     If you don't want the origin of the 3D object to be reset, please use the 
     action "Set(Matrix3 basis, Vector3 origin)."
+    Attribute: Parameter matrix The tilt of the 3D object.
     */
     action Set(Matrix3 matrix)
         basis:Set(matrix)
@@ -41,6 +43,7 @@ class PhysicsPosition3D
     This action sets the position of a 3D object using a matrix that contains
     both the tilt of the object and the position of the 3D object's center
     with respect to the world center.  
+    Attribute: Parameter matrix The tilt of the object and the position of the 3D object.
     */
     action Set(Matrix4 matrix)
         basis:Set(matrix)
@@ -50,6 +53,8 @@ class PhysicsPosition3D
     /*
     This action sets the tilt of the 3D object using "Matrix3 basis" and sets
     the location of the 3D object using "Vector3 origin."
+    Attribute: Parameter basis The tilt of the 3D object.
+    Attribute: Parameter origin The center of the 3D object.
     */
     action Set(Matrix3 basis, Vector3 origin)
         me:basis:Set(basis)
@@ -59,6 +64,7 @@ class PhysicsPosition3D
     /*
     This action gets the tilt of the 3D object (the rotational part of the 
     transformation matrix).
+    Attribute: Returns the tilt of the 3D object.
     */
     action GetBasis returns Matrix3
         return basis
@@ -67,6 +73,7 @@ class PhysicsPosition3D
     /*
     This action gets the position of the 3D object (the 3D object's local origin
     with respect to the global coordinates).
+    Attribute: Returns the center of the 3D object.
     */
     action GetOrigin returns Vector3
         return origin
@@ -76,6 +83,7 @@ class PhysicsPosition3D
     This action turns a point/vector (Vector3 vector) that is described relative
     to the 3D object and change it so that the point/vector is described in
     the global coordinates.
+    Attribute: Parameter vector The vector to be transformed.
     */
     action Transform(Vector3 vector)
         vector:Multiply(basis)
@@ -104,6 +112,7 @@ class PhysicsPosition3D
 
     /*
     This action stores the inverse of the transformation matrix passed in.
+    Attribute: Parameter transform The transformation matrix that you want to find the inverse for.
     */
     action Inverse(PhysicsPosition3D transform)
         Set(transform)
@@ -113,7 +122,8 @@ class PhysicsPosition3D
     /*
     This action changes the current PhysicsPosition3D with respect to the
     current PhysicsPosition3D using the "PhysicsPosition3D transform" passed in.
-    A mathematical representation is: [currT] = [currT][passedInT]
+    A mathematical representation is: [currT] = [currT][passedInT].
+    Attribute: Parameter transform The transformation matrix that you want to multiply by.
     */
     action Multiply(PhysicsPosition3D transform)
         Vector3 vector
@@ -133,7 +143,9 @@ class PhysicsPosition3D
     /*
     This action multiplies two transformation matrices together and store the 
     result in the current PhysicsPosition3D.
-    Mathematically: [currT] = [T_1][T_2]
+    Mathematically: [currT] = [T_1][T_2].
+    Attribute: Parameter transform1 The first transformation matrix.
+    Attribute: Parameter transform2 The second transformation matrix.
     */
     action Multiply(PhysicsPosition3D transform1, PhysicsPosition3D transform2)
         Vector3 vector
@@ -149,6 +161,8 @@ class PhysicsPosition3D
     This action multiplies "Vector3 in" with the inverse of the current PhysicsPosition3D
     and store the result in "Vector3 out."
     Mathematically: out = [currT]^(-1) * in
+    Attribute: Parameter in A point described in global coordinates.
+    Attribute: Parameter out The same point described relative to the 3D object.
     */
     action InverseTransform(Vector3 in, Vector3 out)
         out:Set(in)
@@ -163,6 +177,7 @@ class PhysicsPosition3D
     /*
     This action returns a quaternion (another holder of the position and tilt 
     information) that represents the current PhysicsPosition3D.
+    Attribute: Returns The current position and tilt of the 3D object represented in the form of a quaternion.
     */
     action GetRotation returns Quaternion
         Quaternion quaternion
@@ -216,6 +231,7 @@ class PhysicsPosition3D
     /*
     This action sets the current PhysicsPosition3D using a quaternion that is
     passed in.
+    Attribute: Parameter quaternion The current position and tilt of the 3D object.
     */
     action SetRotation(Quaternion quaternion)
         number d = quaternion:GetX() * quaternion:GetX() + quaternion:GetY() * quaternion:GetY() + quaternion:GetZ() * quaternion:GetZ() + quaternion:GetW() * quaternion:GetW()
@@ -246,6 +262,10 @@ class PhysicsPosition3D
 
     /*
     This action returns a 4x4 transformation matrix representation of this
+    PhysicsPosition3D.
+    Attribute: Parameter matrix A 4x4 transformation matrix representation of this
+    PhysicsPosition3D.
+    Attribute: Returns a 4x4 transformation matrix representation of this
     PhysicsPosition3D.
     */
     action GetMatrix(Matrix4 matrix) returns Matrix4

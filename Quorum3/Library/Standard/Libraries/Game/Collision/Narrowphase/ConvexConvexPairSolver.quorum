@@ -9,6 +9,9 @@ use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
 use Libraries.Game.Collision.PhysicsPosition3D
 
+/*
+This class contains actions that will help you solve for the closest points between two objects and the distance between these closest points.
+*/
 class ConvexConvexPairSolver
     // this class is an implementation of the JBullet class GjkPairDetector
     constant number REL_ERROR2 = 0.0000010
@@ -31,6 +34,9 @@ class ConvexConvexPairSolver
         me:cachedSeparatingAxis:Set(0, 0, 1)
     end
     
+    /*
+    This action stores the shapes of object A and B that might be colliding and different solvers that are used to solve this collision.
+    */
     action Initialize(CollisionShape3D objectA, CollisionShape3D objectB, ConvexConvexSimplexSolver simplexSolver, ConvexConvexPenetrationDepthSolver penetrationDepthSolver)
         me:cachedSeparatingAxis:Set(0, 0, 1)
         me:penetrationDepthSolver = penetrationDepthSolver
@@ -39,6 +45,9 @@ class ConvexConvexPairSolver
         me:minkowskiB = objectB
     end
 
+    /*
+    This action finds the closest points on object A to B and on object B to A.
+    */
     action GetClosestPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB, number maximumDistanceSquared, CollisionPointsResult3D result, boolean swapResults)
         Vector3 tmp
 
@@ -261,26 +270,47 @@ class ConvexConvexPairSolver
         end
     end
 
+    /*
+    This action stores the shape of the first object that might be involved in the collision.
+    */
     action SetMinkowskiA(CollisionShape3D minkowskiA)
         me:minkowskiA = minkowskiA
     end
 
+    /*
+    This action stores the shape of the second object that might be involved in the collision.
+    */
     action SetMinkowskiB(CollisionShape3D minkowskiB)
         me:minkowskiB = minkowskiB
     end
 
+    /*  
+    This action stores a vector that could tell you whether the two objects are colliding or not.
+    */
     action SetCachedSeparatingAxis(Vector3 separatingAxis)
         me:cachedSeparatingAxis:Set(separatingAxis)
     end
 
+    /*
+    This action connects this ConvexConvexPairSolver to a ConvexConvexPenetrationDepthSolver 
+    for the actions inside ConvexConvexPenetrationDepthSolver to help with this ConvexConvexPairSolver.
+    */
     action SetPenetrationDepthSolver(ConvexConvexPenetrationDepthSolver penetrationDepthSolver)
         me:penetrationDepthSolver = penetrationDepthSolver
     end
 
+    /*
+    This action sets whether if you want to have an invisible shell around the objects that might collide or not.
+    Having an invisible shell can make computations faster and more accurate.
+    */
     action SetIgnoreMargin(boolean ignoreMargin)
         me:ignoreMargin = ignoreMargin
     end
 
+    /*
+    This action multiplies a matrix with a vector.
+    Mathematically it is dest = mat * vec.
+    */
     private action TransposeTransform(Vector3 dest, Vector3 vec, Matrix3 mat)
         number x = tdotx(mat, vec)
         number y = tdoty(mat, vec)
@@ -290,14 +320,23 @@ class ConvexConvexPairSolver
         dest:SetZ(z)
     end
 
+    /*
+    This action multiplies the first column of a matrix with a vector (dot product).
+    */
     private action tdotx(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column0 * vec:GetX() + mat:row1column0 * vec:GetY() + mat:row2column0 * vec:GetZ()
     end
 
+    /*
+    This action multiplies the second column of a matrix with a vector (dot product).
+    */
     private action tdoty(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column1 * vec:GetX() + mat:row1column1 * vec:GetY() + mat:row2column1 * vec:GetZ()
     end
 
+    /*
+    This action multiplies the third column of a matrix with a vector (dot product).
+    */
     private action tdotz(Matrix3 mat, Vector3 vec) returns number
         return mat:row0column2 * vec:GetX() + mat:row1column2 * vec:GetY() + mat:row2column2 * vec:GetZ()
     end

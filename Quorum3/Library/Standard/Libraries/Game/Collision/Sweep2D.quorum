@@ -26,7 +26,7 @@ class Sweep2D
 
 
     /*
-    normalize the angles in radius between -pi and pi
+    This action normalizes the angles in radians between -pi and pi.
     */
     action Normalize    
         // take the floor of angle0 / (2 * pi)
@@ -43,7 +43,7 @@ class Sweep2D
 
 
     /*
-    setting a sweep using another sweep object
+    This action is setting a sweep using another sweep object.
     */
     action Set(Sweep2D sweep)
         localCenter:Set(sweep:localCenter)
@@ -56,9 +56,10 @@ class Sweep2D
 
 
     /*
-    tells you what the transformed object will look like some time between the time intervals of physics updates
-    this will not change the orientation of the object yet
-    Range for beta: [0,1]
+    This action tells you what the transformed object will look like some time between the time intervals of physics updates.
+    This will not change the orientation of the object yet.
+    Attribute: Parameter transform The current position of the 2D object.
+    Attribute: Parameter beta The fraction of time between physics updates. Range for beta: [0,1]
     */
     action GetTransform(PhysicsPosition2D transform, number beta)
         transform:GetPosition():SetX((1.0 - beta) * center0:GetX() + beta * center:GetX())
@@ -73,12 +74,12 @@ class Sweep2D
     end
 
     /*
-    this will actually set where the object is for sure, however, the object won't be drawn in the new position until the next frame update
-    this is useful when the time step of your physics updates are larger than the frame rate
+    This action will actually set where the object is for sure, however, the object won't be drawn in the new position until the next frame update.
+    This action is useful when the time step of your physics updates are larger than the frame rate.
 
-    center0, angle0 is what will be drawn to the screen
+    Note: center0, angle0 is what will be drawn to the screen. 
 
-    alpha = a fraction of the time step that is > than alpha0
+    Attribute: Parameter alpha A fraction of the time step that is > than alpha0. 
     */
     action Advance(number alpha)
         number beta = (alpha - alpha0) / (1.0 - alpha0)
@@ -93,9 +94,10 @@ class Sweep2D
     This action returns the center of the object relative to the local coordinates of the object.
     You can change the local center of the object from the vector that is returned.
 
+    Attribute: Returns the center of the object relative to the local coordinates of the object.
     Attribute: Example
-    
-    sweep:GetLocalCenter():SetLocalCenter(center)
+        use Libraries.Game.Collision.Sweep2D
+        sweep:GetLocalCenter():SetLocalCenter(center)
     */
     action GetLocalCenter returns Vector2
         return localCenter
@@ -104,6 +106,7 @@ class Sweep2D
 
     /*
     This action sets the center of the object relative to the local coordinates of the object.
+    Attribute: Parameter center The center of the object relative to the local coordinates of the object.
     */
     action SetLocalCenter(Vector2 center)
         localCenter = center
@@ -112,6 +115,7 @@ class Sweep2D
 
     /*
     This action gets the target center of the object relative to the global coordinates.
+    Attribute: Parameter returns the target center of the object relative to the global coordinates.
     */
     action GetCenter returns Vector2
         return center
@@ -119,6 +123,7 @@ class Sweep2D
 
     /*
     This action sets the target center of the object relative to the global coordinates.
+    Attribute: Parameter center The target center of the object relative to the global coordinates.
     */
     action SetCenter(Vector2 center)
         me:center = center
@@ -126,6 +131,7 @@ class Sweep2D
 
     /*
     This action gets the current center of the object relative to the global coordinates.
+    Attribute: Returns the current center of the object relative to the global coordinates.
     */
     action GetCenter0 returns Vector2
         return center0
@@ -133,6 +139,7 @@ class Sweep2D
 
     /*
     This action sets the current center of the object relative to the global coordinates.
+    Attribute: Parameter center The current center of the object relative to the global coordinates.
     */
     action SetCenter0(Vector2 center)
         center0 = center
@@ -140,6 +147,7 @@ class Sweep2D
 
     /*
     This action gets the target tilt of the 2D object relative to the global coordinates.
+    Attribute: Returns the target tilt of the 2D object relative to the global coordinates.
     */
     action GetAngle returns number
         return angle
@@ -147,6 +155,7 @@ class Sweep2D
 
     /*
     This action sets the target tilt of the 2D object relative to the global coordinates.
+    Attribute: Parameter angle The target tilt of the 2D object relative to the global coordinates.
     */
     action SetAngle(number angle)
         me:angle = angle
@@ -154,6 +163,7 @@ class Sweep2D
 
     /*  
     This action gets the current tilt of the 2D object relative to the global coordinates.
+    Attribute: Returns the current tilt of the 2D object relative to the global coordinates.
     */
     action GetAngle0 returns number
         return angle0
@@ -161,6 +171,7 @@ class Sweep2D
 
     /*
     This action sets the current tilt of the 2D obejct relative to the global coordinates.
+    Attribute: Parameter angle0 The current tilt of the 2D obejct relative to the global coordinates.
     */
     action SetAngle0(number angle0)
         me:angle0 = angle0
@@ -168,6 +179,7 @@ class Sweep2D
 
     /*
     This action gets the percentage of how much of the current time step your physics are evaluated at.
+    Attribute: Returns the percentage of how much of the current time step your physics are evaluated at.
     */
     action GetAlpha0 returns number
         return alpha0
@@ -175,6 +187,7 @@ class Sweep2D
 
     /*
     This action sets the percentage of how much of the current time step your physics are evaluated at.
+    Attribute: Parameter alpha0 The percentage of how much of the current time step your physics are evaluated at.
     */
     action SetAlpha0(number alpha0)
         me:alpha0 = alpha0
