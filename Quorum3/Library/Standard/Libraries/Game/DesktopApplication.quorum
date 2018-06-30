@@ -28,7 +28,7 @@ class DesktopApplication is Application
         game:InitializeLayers()
 
         GameStateManager manager
-        if manager:GetOperatingSystem():Contains("Windows")
+        if manager:GetOperatingSystem():Contains("Windows 10")
             AccessibilityManager accessibility
             game:SetAccessibilityManager(accessibility)
         end
