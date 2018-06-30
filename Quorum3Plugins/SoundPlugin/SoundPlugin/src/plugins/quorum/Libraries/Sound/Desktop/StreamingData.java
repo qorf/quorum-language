@@ -538,6 +538,12 @@ public abstract class StreamingData extends DesktopData
         throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
     }
     
+    @Override
+    public int GetSampleOffset()
+    {
+        return 0;
+    }
+    
     public String GetFilePath()
     {
         if (file != null)

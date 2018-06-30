@@ -27,6 +27,7 @@ public class RawStreamingData extends DesktopData
     protected IntBuffer buffers;
     protected int bufferCount = 5;
     protected ArrayList<Integer> unusedBuffers = new ArrayList<>();
+    protected ArrayList<Integer> bufferQueue = new ArrayList<>();
     protected int sourceID = -1;
     
     /* 
@@ -99,7 +100,7 @@ public class RawStreamingData extends DesktopData
             int i = buffersProcessed;
             while (i > 0) 
             {
-                int currentID = AL10.alSourceUnqueueBuffers(sourceID);
+                int currentID = UnqueueBuffer(sourceID);
                 if (currentID == AL10.AL_INVALID_VALUE) 
                     break;
                 
@@ -117,7 +118,7 @@ public class RawStreamingData extends DesktopData
                 else
                 {
                     // This buffer should be requeued.
-                    AL10.alSourceQueueBuffers(sourceID, currentID);
+                    QueueBuffer(sourceID, currentID);
                 }
             }
             
@@ -153,7 +154,7 @@ public class RawStreamingData extends DesktopData
         int buffersProcessed = AL10.alGetSourcei(sourceID, AL10.AL_BUFFERS_PROCESSED);
         while (buffersProcessed-- > 0) 
         {
-            int bufferID = AL10.alSourceUnqueueBuffers(sourceID);
+            int bufferID = UnqueueBuffer(sourceID);
             if (bufferID == AL10.AL_INVALID_VALUE) 
                 break;
             unusedBuffers.add(bufferID);
@@ -214,8 +215,6 @@ public class RawStreamingData extends DesktopData
 	}
     }
     
-    boolean wasEmpty = true;
-    
     @Override
     public void Update()
     {
@@ -232,7 +231,7 @@ public class RawStreamingData extends DesktopData
         while (!samplesArray.isEmpty() && (bufferID = GetAvailableBuffer()) != -1)
         {
             FillBuffer(bufferID, samplesArray.remove(0));
-            AL10.alSourceQueueBuffers(sourceID, bufferID);
+            QueueBuffer(sourceID, bufferID);
         }
     }
     
@@ -476,5 +475,52 @@ public class RawStreamingData extends DesktopData
             return;
 	if (sourceID != -1) 
             AL10.alSourcef(sourceID, AL10.AL_ROLLOFF_FACTOR, rate);
+    }
+    
+    @Override
+    public int GetSampleOffset()
+    {
+        if (sourceID == -1)
+            return 0;
+        
+        return AL10.alGetSourcei(sourceID, AL11.AL_SAMPLE_OFFSET);
+    }
+    
+    public AudioSamples_ GetCurrentAudioSamples()
+    {
+        if (sourceID == -1)
+            return null;
+            
+        try
+        {
+            RecycleBuffers();
+            Update();
+            if (bufferQueue.size() > 0)
+                return buffersToSamples.get(bufferQueue.get(0));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /*
+    Unqueue the first buffer and return its buffer ID.
+    */
+    private int UnqueueBuffer(int sourceID)
+    {
+        if (bufferQueue.size() > 0)
+            bufferQueue.remove(0);
+        return AL10.alSourceUnqueueBuffers(sourceID);
+    }
+    
+    /*
+    Add to the queue.
+    */
+    private void QueueBuffer(int sourceID, int bufferID)
+    {
+        bufferQueue.add(bufferID);
+        AL10.alSourceQueueBuffers(sourceID, bufferID);
     }
 }

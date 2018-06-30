@@ -211,4 +211,6 @@ public abstract class Data {
     public abstract void QueueSamples(quorum.Libraries.Sound.AudioSamples_ samples);
     
     public abstract void UnqueueSamples(quorum.Libraries.Sound.AudioSamples_ samples);
+    
+    public abstract int GetSampleOffset();
 }

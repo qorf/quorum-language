@@ -5,14 +5,13 @@ import plugins.quorum.Libraries.Sound.Desktop.DesktopAudioManager;
 import plugins.quorum.Libraries.Sound.Desktop.DesktopLoader;
 import plugins.quorum.Libraries.Sound.Desktop.AudioData;
 import plugins.quorum.Libraries.Sound.IOS.IOSLoader;
-import quorum.Libraries.System.File_;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import plugins.quorum.Libraries.Sound.Android.AndroidAudioManager;
+import plugins.quorum.Libraries.Sound.Desktop.RawStreamingData;
 import plugins.quorum.Libraries.Sound.IOS.IOSAudioManager;
 import quorum.Libraries.Sound.AudioSamples_;
 
@@ -106,6 +105,11 @@ public class Audio {
             throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
         data = loader.LoadToStream(samples);
+    }
+    
+    public boolean IsLoaded()
+    {
+        return data != null;
     }
     
     public void Play()
@@ -588,5 +592,20 @@ public class Audio {
     public double GetListenerUpZ()
     {
         return audioManager.GetListenerUpZ() * -1;
+    }
+    
+    public int GetSampleOffset()
+    {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
+        return data.GetSampleOffset();
+    }
+    
+    public AudioSamples_ GetCurrentAudioSamples()
+    {
+        if (data instanceof RawStreamingData)
+            return ((RawStreamingData)data).GetCurrentAudioSamples();
+        
+        throw new RuntimeException("GetCurrentAudioSamples is only supported for audio that is streaming AudioSamples on desktop platforms.");
     }
 }

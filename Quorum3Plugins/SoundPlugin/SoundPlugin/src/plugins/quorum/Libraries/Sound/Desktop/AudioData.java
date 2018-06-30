@@ -11,6 +11,7 @@ import java.nio.ByteOrder;
 import plugins.quorum.Libraries.Sound.AudioSamples;
 import quorum.Libraries.Sound.AudioSamples_;
 import static org.lwjgl.openal.AL10.*;
+import org.lwjgl.openal.AL11;
 
 /**
  *
@@ -434,5 +435,11 @@ public abstract class AudioData extends DesktopData
     public void UnqueueSamples(AudioSamples_ samples)
     {
         throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
+    }
+    
+    @Override
+    public int GetSampleOffset()
+    {
+        return MANAGER.GetSampleOffset(soundID);
     }
 }

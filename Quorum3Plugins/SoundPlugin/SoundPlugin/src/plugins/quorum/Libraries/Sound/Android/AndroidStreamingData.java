@@ -369,4 +369,10 @@ public class AndroidStreamingData extends Data
     {
         AndroidApplication.LogStatic("Quorum Audio", "Ignored call to UnqueueSamples() -- this functionality isn't supported yet on Android.");
     }
+    
+    @Override
+    public int GetSampleOffset()
+    {
+        return 0;
+    }
 }

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 import static org.lwjgl.openal.AL10.*;
+import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALCCapabilities;
@@ -371,6 +372,16 @@ public class DesktopAudioManager implements AudioManager
         int sourceID = (int)soundIDToSource.get(soundID);
         
         AL10.alSource3f(sourceID, AL10.AL_VELOCITY, newX, newY, newZ);
+    }
+    
+    public int GetSampleOffset(long soundID)
+    {
+        if (!SoundIDIsActive(soundID))
+            return 0;
+        
+        int sourceID = (int)soundIDToSource.get(soundID);
+        
+        return AL10.alGetSourcei(sourceID, AL11.AL_SAMPLE_OFFSET);
     }
 
     public void Dispose () 
