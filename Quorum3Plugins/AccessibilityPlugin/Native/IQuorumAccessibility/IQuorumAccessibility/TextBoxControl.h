@@ -69,20 +69,23 @@ class TextBoxProvider;
 class TextBoxControl : public Item
 {
 	public:
-		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject me);
+		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me);
 		virtual ~TextBoxControl();
-		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject me);
+		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me);
 
-		int GetLineLength();
-
-		std::wstring GetText();
-
-		int GetLineCount();
-		EndPoint GetTextboxEndpoint();
 
 		TextBoxProvider* GetTextBoxProvider();
 
-		int GetCaretPosition();
+		// WARNING: Because of the current busy waiting solution these function calls will
+		//			end up making the native code fall behind Quorum at times. It also causes
+		//			Quorum to slow down.
+		// TODO: Fix the busy waiting solution.
+		int GetCaretIndex();
+		int GetCaretLine();
+		int GetIndexOfLine(int line);
+		int GetLineLength();
+		std::wstring GetText();
+		EndPoint GetTextboxEndpoint();
 		Range GetSelectionRange();
 
 		jobject GetMe();
@@ -104,21 +107,8 @@ class TextBoxControl : public Item
 
 		void UpdateCaret();
 
-		Range m_caretPosition;
 		bool m_focused;
 
-		/* This is the text of the entire Textbox control. From this we will pull out the information
-		*  we need to report to the screen readers using Ranges and Endpoints.
-		*/
-		std::wstring m_fullText;
-
-		/* With the current approach to handling text from the textbox we are holding a
-		 * string that contains the entire contents of the textbox instead of using the TextLine struct.
-		 * So, m_lineCount should always be 1 since as far as the rest of the control is concerned there is
-		 * only one line.
-		 */
-		const int m_lineCount = 1;
-		
 		TextBoxProvider* m_pTextBoxProvider;
 		jobject m_JO_me;
 

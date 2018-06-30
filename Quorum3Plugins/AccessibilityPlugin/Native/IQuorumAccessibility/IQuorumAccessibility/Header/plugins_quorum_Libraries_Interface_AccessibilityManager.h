@@ -79,7 +79,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // ===== Textbox
 //
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *, jobject, jstring, jstring, jstring, jint, jobject);
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *, jobject, jstring, jstring, jobject);
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *, jobject, jlong, jstring, jint, jint);
 

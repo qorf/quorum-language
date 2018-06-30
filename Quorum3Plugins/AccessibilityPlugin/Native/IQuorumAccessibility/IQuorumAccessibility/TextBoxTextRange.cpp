@@ -159,8 +159,9 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	}
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
-		m_range.begin.character = 0;
-		m_range.end.character = m_pTextBoxControl->GetLineLength(); // TODO: Fix line change issue
+		m_range.begin.character =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
+		m_range.end.character = m_range.begin.character + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
+		std::cout << "Range (" << m_range.begin.character << ", " << m_range.end.character << ")" << std::endl;
 	}
 	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
@@ -301,9 +302,6 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	std::wstring text = m_pTextBoxControl->GetText();
 	int startPosition = m_range.begin.character;
 	int length = m_range.end.character - m_range.begin.character;
-
-	std::cout << "Range: (" << m_range.begin.character << ", " <<  m_range.end.character << ")" << std::endl;
-	fflush(stdout);
 	
 	if (length <= 0)
 		length = 1;

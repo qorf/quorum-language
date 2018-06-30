@@ -8,8 +8,8 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ WCHAR* lines, _In_ Range caretIndex, _In_ jobject me)
-	: Item(name, description), m_focused(false), m_fullText(lines), m_pTextBoxProvider(NULL), m_caretPosition(caretIndex), m_JO_me(me)
+TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me)
+	: Item(name, description), m_focused(false), m_pTextBoxProvider(NULL), m_JO_me(me)
 {
 }
 
@@ -54,7 +54,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ WCHAR* fullText, _In_ Range caretIndex, _In_ jobject me)
+TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me)
 {
 
 	if (!Initialized)
@@ -64,7 +64,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, fullText, caretIndex, me);
+		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, me);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
@@ -110,46 +110,6 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 }
 
-std::wstring TextBoxControl::GetText()
-{
-	JNIEnv* env = GetJNIEnv();
-
-	env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-	
-	jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
-	
-	const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
-	std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
-	
-	env->ReleaseStringUTFChars(fullText, nativeFullText);
-
-	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(GetHWND(), this);
-	if (eventControl != NULL && UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
-		eventControl->Release();
-	}
-
-	return wFullText;
-}
-
-int TextBoxControl::GetLineLength()
-{
-	return static_cast<int>(GetText().size());
-}
-
-int TextBoxControl::GetLineCount()
-{
-	return m_lineCount;
-}
-
-EndPoint TextBoxControl::GetTextboxEndpoint()
-{
-	EndPoint endOfText;
-	endOfText.character = GetLineLength();
-	return endOfText;
-}
-
 TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 {
 	if (m_pTextBoxProvider == NULL)
@@ -171,17 +131,115 @@ bool TextBoxControl::HasFocus()
 	return m_focused;
 }
 
-int TextBoxControl::GetCaretPosition()
+std::wstring TextBoxControl::GetText()
 {
 	JNIEnv* env = GetJNIEnv();
-	jint index;
+	if (env != NULL)
+	{
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-	// Wait for Quorum to write
-	env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
 
-	index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
+		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
+		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
+
+		env->ReleaseStringUTFChars(fullText, nativeFullText);
+
+		TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(GetHWND(), this);
+		if (eventControl != NULL && UiaClientsAreListening())
+		{
+			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
+			eventControl->Release();
+		}
+
+		return wFullText;
+	}
+
+	return L"";
+}
+
+EndPoint TextBoxControl::GetTextboxEndpoint()
+{
+	EndPoint endOfText(0);
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
+
+		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
+
+		endOfText.character = strlen(nativeFullText);
+
+		env->ReleaseStringUTFChars(fullText, nativeFullText);
+	}
+	return endOfText;
+}
+
+int TextBoxControl::GetCaretLine()
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint index = 0;
+	if (env != NULL)
+	{
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretLine);
+	}
 
 	return (int)index;
+}
+
+int TextBoxControl::GetCaretIndex()
+{
+	JNIEnv* env = GetJNIEnv();
+	
+	jint index = 0;
+	if (env != NULL)
+	{
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
+	}
+	return (int)index;
+}
+
+int TextBoxControl::GetIndexOfLine(int line)
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint index = 0;
+	if (env != NULL)
+	{
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetIndexOfLine, (jint)line);
+	}
+	return (int)index;
+}
+
+int TextBoxControl::GetLineLength()
+{
+	int length = 0;
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
+
+		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+
+		length = strlen(nativeCurrentLineText);
+
+		env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+	}
+	return length;
 }
 
 Range TextBoxControl::GetSelectionRange()
@@ -357,11 +415,11 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_CaretPositionAttributeId)
 	{
 		retval.vt = VT_I4;
-		if (m_caretPosition.begin.character == 0)
+		if (GetCaretIndex() == 0)
 		{
 			retval.lVal = CaretPosition_BeginningOfLine;
 		}
-		else if (m_caretPosition.begin.character == GetLineLength())
+		else if (GetCaretIndex() == GetLineLength())
 		{
 			retval.lVal = CaretPosition_EndOfLine;
 		}
@@ -475,11 +533,11 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case QUORUM_UPDATESELECTION:
 	{
+		
+		//Range indices = *(Range*)(lParam);
+		//m_caretPosition = indices;
 
-		Range indices = *(Range*)(lParam);
-		m_caretPosition = indices;
-
-		UpdateCaret();
+		//UpdateCaret();
 
 		break;
 	}
@@ -490,7 +548,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case QUORUM_SETTEXT:
 	{
-		m_fullText = (WCHAR*)lParam;
+		//m_fullText = (WCHAR*)lParam;
 		break;
 	}
 	default:
