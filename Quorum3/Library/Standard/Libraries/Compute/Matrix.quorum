@@ -912,6 +912,8 @@ class Matrix
 
     Attribute Parameter fillValue The value to place in each element in the matrix.
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -919,22 +921,25 @@ class Matrix
     class Main 
         action Main
             Matrix matrix
-            matrix:SetSize(2,3)
-            matrix:Fill(1.1)
+            matrix:Fill(3, 3, 0)
+            matrix = matrix:Fill(1.1)
             output matrix:ToText()
         end
     end
     */
-    action Fill(number fillValue)
+    action Fill(number fillValue) returns Matrix
+        Matrix resultMatrix
+        resultMatrix:SetSize(GetRows(), GetColumns())
         row = 0
         repeat GetRows() times
             col = 0
             repeat GetColumns() times
-                table:Set(row, col, fillValue) 
+                resultMatrix:Set(row, col, fillValue) 
                 col = col + 1
             end
             row = row + 1
         end
+        return resultMatrix
     end
 
     /*
@@ -1130,7 +1135,7 @@ class Matrix
         action Main
             Matrix matrix
             matrix:Fill(1, 3, 1.1)
-            matrix:SetLowerThreshold(2.0, 3.0)
+            matrix = matrix:SetLowerThreshold(2.0, 3.0)
             output matrix:ToText()
         end
     end
@@ -1172,7 +1177,7 @@ class Matrix
         action Main
             Matrix matrix
             matrix:Fill(1, 3, 1.1)
-            matrix:SetUpperThreshold(1.0, 0.5)
+            matrix = matrix:SetUpperThreshold(1.0, 0.5)
             output matrix:ToText()
         end 
     end
