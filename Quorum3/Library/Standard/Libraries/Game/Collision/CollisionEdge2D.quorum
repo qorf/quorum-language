@@ -31,8 +31,9 @@ class CollisionEdge2D
     CollisionEdge2D next = undefined
 
     /*
-    This action gets the Item2D object that the Item2D object that has the head
+    This action gets the Item2D object that has the head
     of this CollisionEdge3D doubly linked list is colliding with.
+    Attribute: Returns the Item2D object the head Item2D object is colliding with.
     */
     action GetOther returns Item2D
         return other
@@ -41,6 +42,7 @@ class CollisionEdge2D
     /*
     This action sets the Item2D object that the Item2D object that has the head
     of this CollisionEdge3D doubly linked list is colliding with.
+    Attribute: Parameter other The Item2D object the head Item2D object is colliding with.
     */
     action SetOther(Item2D other)
         me:other = other
@@ -49,6 +51,7 @@ class CollisionEdge2D
     /*
     This action gets the collision event that the "Item2D other" object and 
     the current Item2D object is represented in.
+    Attribute: Returns the collision event that the "Item2D other" object and the current Item2D object is represented in.
     */
     action GetCollision returns CollisionEvent2D
         return collision
@@ -57,6 +60,7 @@ class CollisionEdge2D
     /*
     This action sets the collision event that the "Item2D other" object and 
     the current Item2D object is represented in.
+    Attribute: Parameter collision The collision event that the "Item2D other" object and the current Item2D object is represented in.
     */
     action SetCollision(CollisionEvent2D collision)
         me:collision = collision
@@ -64,6 +68,7 @@ class CollisionEdge2D
 
     /*
     This action gets the previous node of the doubly linked list.
+    Attribute: Returns the previous CollisionEdge2D.
     */
     action GetPrevious returns CollisionEdge2D
         return previous
@@ -71,6 +76,7 @@ class CollisionEdge2D
 
     /*
     This action sets the previous node of the doubly linked list.
+    Attribute: Parameter previous The previous CollisionEdge2D.
     */
     action SetPrevious(CollisionEdge2D previous)
         me:previous = previous
@@ -79,6 +85,7 @@ class CollisionEdge2D
 
     /*
     This action sets the next node of the doubly linked list.
+    Attribute: Returns the next CollisionEdge2D.
     */
     action GetNext returns CollisionEdge2D
         return next
@@ -86,6 +93,7 @@ class CollisionEdge2D
 
     /*
     This action sets the next node of the doubly linked list.
+    Attribute: Parameter next The next CollisionEdge2D.
     */
     action SetNext(CollisionEdge2D next)
         me:next = next

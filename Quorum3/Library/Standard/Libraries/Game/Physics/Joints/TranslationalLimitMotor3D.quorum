@@ -7,6 +7,9 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math  
 use Libraries.Compute.Vector3 
 
+/*
+This class stores information of how much a 3D joint (so that the body can slide along an axis and also rotate around this axis) can slide and rotate.
+*/ 
 class TranslationalLimitMotor3D
 
     Math math
@@ -35,6 +38,10 @@ class TranslationalLimitMotor3D
         end
     end 
     
+    /*
+    This action sets the values inside this TranslationalLimitMotor3D using another TranslationalLimitMotor3D.
+    Attribute: Parameter other The other TranslationalLimitMotor3D.
+    */
     action Set(TranslationalLimitMotor3D other) 
 	lowerLimit:Set(other:GetLowerLimit())
 	upperLimit:Set(other:GetUpperLimit())
@@ -45,6 +52,11 @@ class TranslationalLimitMotor3D
 	restitution = other:GetRestitution()
     end    
 
+    /*
+    This action lets you know if any of the sliding has been limited.
+    Attribute: Parameter limitIndex The indicator of which axis you want to check, 0 for x, 1 for y, and 2 for z.
+    Attrubute: Returns 0 there is no limit, 1 the axis that you are checking has a limit set.
+    */
     action IsLimited(integer limitIndex) returns boolean
         if limitIndex = 0
             return upperLimit:GetX() >= lowerLimit:GetX()
@@ -56,6 +68,11 @@ class TranslationalLimitMotor3D
         return false
     end   
 
+    /*
+    This action tells you whether you need to apply forces to the objects that is constrained by this joint.
+    Attribute: Parameter index The axis that you want to check, 0 for x, 1 for y, and 2 for z.
+    Attribute: Returns 0 for you don't need to apply forces on the axis that you check, 1 you do need to apply forces.
+    */
     action NeedApplyForces(integer index) returns boolean
         if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false
             return false
@@ -63,6 +80,12 @@ class TranslationalLimitMotor3D
         return true
     end
 
+    /*
+    This action tests whether the current position of the object is within the limit of the range of how much that object can slide.
+    Attribute: Parameter limitIndex 0, 1, 2 that denotes x, y, or z coordinate.
+    Attribute: Parameter testValue The current position of the object in either 0, 1, or 2 direction.
+    Attribute: Returns 0 if the limits aren't set in the first place or test value is within limit, 1 if test value is lower than the lowest limit, 2 if the test value is higher than the highest limit.
+    */
     action TestLimitValue(integer limitIndex, number testValue) returns integer
         number loLimit = 0
         number hiLimit = 0
@@ -122,6 +145,10 @@ class TranslationalLimitMotor3D
         return 0
     end
 
+    /*
+    This action makes sure that the bodies joined together by this TranslationalLimitMotor is at where they are supposed to be.
+    Attribute: Returns the velocity that you want to add to the current velocity to make sure that the slider is within the position range that we want it to be.
+    */
     action SolveLinearAxis(number timeStep, number jacDiagABInv, Item3D body1, Vector3 pointInA, Item3D body2, Vector3 pointInB, integer limitIndex, Vector3 axisNormalOnA, Vector3 anchorPos) returns number
 	Vector3 tmp
 	Vector3 tmpVec
@@ -255,46 +282,98 @@ class TranslationalLimitMotor3D
 	return normalImpulse
     end 
     
+    /*
+    This action sets the total amount of impulse that is applied to the objects to make sure that this joint stays intact. 
+    Attribute: Parameter x The x direction of impulse.
+    Attribute: Parameter y The y direction of impulse.
+    Attribute: Parameter z The z direction of impulse.
+    */
     action SetAccumulatedImpulse(number x, number y, number z)
         accumulatedImpulse:Set(x, y, z)
     end
 
+    /*
+    This action returns the minimum position that the sliding object can be at.
+    Attribute: Returns the minimum position that the sliding object can be at.
+    */
     action GetLowerLimit() returns Vector3
         return lowerLimit
     end
 
+    /*
+    This action sets the minimum position that the sliding object can be at.
+    Attribute: Parameter limit The minimum position that the sliding object can be at.
+    */
     action SetLowerLimit(Vector3 limit)
         lowerLimit:Set(limit)
     end
     
+    /*
+    This action returns the maximum position that the sliding object can be at.
+    Attribute: Returns the maximum position that the sliding object can be at.
+    */
     action GetUpperLimit() returns Vector3
         return upperLimit
     end
 
+    /*
+    This action sets the maximum position that the sliding object can be at.
+    Attribute: Parameter limit The maximum position that the sliding object can be at.
+    */
     action SetUpperLimit(Vector3 limit)
         upperLimit:Set(limit)
     end
 
+    /*
+    This action returns how much impulse has been applied to the object because of this joint.
+    Attribute: Returns how much impulse has been applied to the object because of this joint.
+    */
     action GetAccumulatedImpulse() returns Vector3
         return accumulatedImpulse
     end
 
+    /*
+    This action returns how much you care about if the slider goes out of the range of the position limit.
+    A number that is closer to 1 means that you really don't want the slider to go out of the range.
+    A number that is closer to 0 means that you don't care if the slider goes out of the position limit.
+    Attribute: Returns the limit softness value.
+    */
     action GetLimitSoftness() returns number
         return limitSoftness
     end
 
+    /*
+    This action returns how fast you want the slider to stop oscillating when the slider is trying to reach the target position.
+    A number that is closer to 1 means that you don't want the slider to ever oscillate.
+    A number that is closer to 0 means that you are allowing the slider to oscillate forever in the extreme case.
+    Attribute: Returns the damping value.
+    */
     action GetDamping() returns number
         return damping
     end
 
+    /*
+    This action returns a number that tells you how fast you would want the slider to correct its velocity.
+    0 means that you will ignore the velocity error between the slider and our desired velocity for the slider to go, 1 means that 
+    you want to correct the velocity right away.
+    Attribute: Returns how fast you would want the slider to correct its velocity.
+    */
     action GetRestitution() returns number
         return restitution
     end
 
+    /*
+    This action returns how far you are from the range of the positions that the slider can be in.
+    Attribute: Returns the position error.
+    */
     action GetCurrentLinearDiff() returns Vector3
         return currentLinearDiff
     end
     
+    /*
+    This action sets how far you are from the range of the positions that the slider can be in.
+    Attribute: Parameter diff The position error.
+    */
     action SetCurrentLinearDiff(Vector3 diff) 
         currentLinearDiff:Set(diff)
     end

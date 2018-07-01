@@ -8,6 +8,9 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Math
 
+/*
+This class contains information for a joint that makes two objects to be attached to each other.
+*/
 class WeldJoint2D is Joint2D
     Vector2 localAnchorA
     Vector2 localAnchorB
@@ -39,6 +42,12 @@ class WeldJoint2D is Joint2D
         impulse:SetZero()
     end
     
+    /*
+    This action stores the variables passed in inside this WeldJoint2D.
+    Attribute: Parameter itemA The first item joined inside this joint.
+    Attribute: Parameter itemB The second item joined inside this joint.
+    Attribute: Parameter anchor The position in global coordinates that the two object will be connected with each other to.
+    */
     action Initialize(Item2D itemA, Item2D itemB, Vector2 anchor)
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
@@ -48,34 +57,66 @@ class WeldJoint2D is Joint2D
     end
 
     
+    /*
+    This action returns the angle difference between object B and object A.
+    Attribute: Returns the angle difference between object B and object A.
+    */
     action GetReferenceAngle returns number
         return referenceAngle
     end
     
+    /*
+    This action sets the angle difference between object B and object A.
+    Attribute: Parameter angle The angle difference between object B and object A.
+    */
     action SetReferenceAngle(number angle)
         referenceAngle = angle
     end
 
+    /*
+    This action returns where the second object will be attached to the first object seen from the perspective of the first object.
+    Attribute: Returns where the second object will be attached to the first object seen from the perspective of the first object.
+    */
     action GetLocalAnchorA returns Vector2
         return localAnchorA
     end
 
+    /*
+    This action sets where the second object will be attached to the first object seen from the perspective of the first object.
+    Attribute: Parameter anchor Where the second object will be attached to the first object seen from the perspective of the first object.
+    */
     action SetLocalAnchorA(Vector2 anchor)
         localAnchorA = anchor
     end
 
+    /*
+    This action returns where the first object will be attached to the second object seen from the perspective of the second object.
+    Attribute: Returns where the first object will be attached to the second object seen from the perspective of the second object.
+    */
     action GetLocalAnchorB returns Vector2
         return localAnchorB
     end
 
+    /*
+    This action sets where the first object will be attached to the second object seen from the perspective of the second object.
+    Attribute: Parameter anchor Where the first object will be attached to the second object seen from the perspective of the second object.
+    */
     action SetLocalAnchorB(Vector2 anchor)
         localAnchorB = anchor
     end
 
+    /*
+    This action returns how fast the two objects will oscillate relative to each other because of this joint.
+    Attribute: Returns frequency.
+    */
     action GetFrequency returns number
         return frequency
     end
 
+    /*
+    This action sets how fast the two objects will oscillate relative to each other because of this joint.
+    Attribute: Parameter hz Frequency in Hertz.
+    */
     action SetFrequency(number hz)
         if hz < 0
             frequency = 0
@@ -84,10 +125,18 @@ class WeldJoint2D is Joint2D
         end
     end
 
+    /*
+    This action returns a number that tells you how fast the two objects that are joined with the WeldJoint2D will stop oscillating.
+    Attribute: Returns the damping ratio.
+    */
     action GetDampingRatio returns number
         return dampingRatio
     end
-        
+     
+    /*
+    This action sets a number that tells you how fast the two objects that are joined with the WeldJoint2D will stop oscillating.
+    Attribute: Parameter ratio The damping ratio, range: [0 (oscillate forever), 1 (no oscillation at all)].
+    */   
     action SetDampingRatio(number ratio)
         if ratio < 0
             dampingRatio = 0
@@ -96,14 +145,27 @@ class WeldJoint2D is Joint2D
         end
     end
 
+    /*
+    This action returns the point that the two objects are attached together in world coordinates.
+    Attribute: Returns anchor point in global coordinates.
+    */
     action GetAnchorA returns Vector2
         return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
     end
 
+    /*
+    This action returns the point that the two objects are attached together in world coordinates.
+    Attribute: Returns anchor point in global coordinates.
+    */
     action GetAnchorB returns Vector2
         return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
     end
 
+    /*
+    This action returns the amount of force that is exerted on the two items joined together because of the joint constraints. 
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction force. 
+    */
     action GetReactionForce(number inverseTimeStep) returns Vector2
         Vector2 reactionForce
         reactionForce:Set(impulse:GetX(), impulse:GetY())
@@ -111,10 +173,19 @@ class WeldJoint2D is Joint2D
         return reactionForce
     end
 
+    /*
+    This action returns the amount of torque that is exerted on the two items joined together because of the joint constraints.
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction torque.
+    */
     action GetReactionTorque(number inverseTimeStep) returns number
         return inverseTimeStep * impulse:GetZ()
     end
 
+    /*
+    This action sends in velocity constraints to a JointSolverData2D so that a joint solver can solve for the limitations that this joint has exerted on the two objects.
+    Attribute: Parameter data The JointSolverData2D that we are going to store the velocity constraints to.
+    */
     action InitializeVelocityConstraints(JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
@@ -273,6 +344,10 @@ class WeldJoint2D is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)                
     end
 
+    /*
+    This action makes sure that the velocity constraints on the two items joined together are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the velocity constraints from.
+    */
     action SolveVelocityConstraints (JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
@@ -362,6 +437,11 @@ class WeldJoint2D is Joint2D
 
     end
     
+    /*
+    This action makes sure that the position constraints on the two items are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the position constraints from.
+    Attribute: Returns if the position constraints has been met through this solver.
+    */
     action SolvePositionConstraints(JointSolverData2D data) returns boolean
         Vector2 positionA = data:GetPositions():Get(indexA)
         number angleA = data:GetAngles():Get(indexA)

@@ -57,24 +57,34 @@ class CollisionSolverInformation3D
         me:timestep = timestep
     end
 
+    /*
+    This action returns the Baumgarte factor that is used to make sure we can 
+    surely push two colliding objects apart.
+    */
     action GetErp returns number
         return erp
     end
 
     /*
-    This action returns the Baumgarte factor that is used to make sure we can 
+    This action sets the Baumgarte factor that is used to make sure we can 
     surely push two colliding objects apart.
     */
     action SetErp(number erp)
         me:erp = erp
     end
 
+    /*
+    This action returns a factor to multiply to the position error in another 
+    action that solves the position error first so that the two objects won't
+    penetrate each other. Then, the other action will also calculate the necessary
+    impulse so that we can get the objects to move with the velocity that we want.
+    */
     action GetErp2 returns number
         return erp2
     end
 
     /*
-    This action returns a factor to multiply to the position error in another 
+    This action sets a factor to multiply to the position error in another 
     action that solves the position error first so that the two objects won't
     penetrate each other. Then, the other action will also calculate the necessary
     impulse so that we can get the objects to move with the velocity that we want.

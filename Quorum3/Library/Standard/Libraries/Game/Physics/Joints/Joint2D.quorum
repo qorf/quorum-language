@@ -39,6 +39,7 @@ class Joint2D
 
     /*
     This action returns the type of joint that you have.
+    Attribute: Returns the type of joint that you have.
     */
     action GetType returns integer
         return jointType
@@ -46,13 +47,15 @@ class Joint2D
     
     /*
     This action sets the type of joint that you have.
+    Attribute: Parameter type The type of joint that you have.
     */   
     action SetType(integer type)
         jointType = type
     end
 
     /*
-    This action returns the first 2D item that is joined by this Joint2D.
+    This action returns the first 2D item that is joined by this Joint2D.   
+    Attribute: Returns the first 2D item that is joined by this Joint2D. 
     */
     action GetItemA returns Item2D
         return itemA
@@ -60,6 +63,7 @@ class Joint2D
     
     /*
     This action sets the first 2D item that is joined by this Joint2D.
+    Attribute: Parameter item The first 2D item that is joined by this Joint2D. 
     */
     action SetItemA(Item2D item)
         itemA = item
@@ -67,6 +71,7 @@ class Joint2D
 
     /*
     This action returns the second 2D item that is joined by this Joint2D.
+    Attribute: Returns the second 2D item that is joined by this Joint2D.
     */
     action GetItemB returns Item2D
         return itemB
@@ -74,6 +79,7 @@ class Joint2D
 
     /*
     This action sets the second 2D item that is joined by this Joint2D.
+    Attribute: Parameter item The second 2D item that is joined by this Joint2D.
     */
     action SetItemB(Item2D item)
         itemB = item
@@ -81,6 +87,7 @@ class Joint2D
 
     /*
     This action returns whether this joint is INACTIVE, AT_LOWER, AT_UPPER, or EQUAL.
+    Attribute: Returns the state of the joint.
     */
     action GetState returns integer
         return state
@@ -88,6 +95,7 @@ class Joint2D
     
     /*
     This action sets whether this joint is INACTIVE, AT_LOWER, AT_UPPER, or EQUAL.
+    Attribute: Parameter newState The state of the joint.
     */
     action SetState(integer newState)
         state = newState
@@ -103,6 +111,7 @@ class Joint2D
 
     /*
     This action returns whether the connected joints can collide or not.
+    Attribute: Returns whether the connected joints can collide or not.
     */
     action GetCollideConnected returns boolean
         return collideConnected
@@ -110,6 +119,7 @@ class Joint2D
     
     /*
     This action sets whether the connected joints can collide or not.
+    Attribute: Parameter collide Whether the connected joints can collide or not.
     */
     action SetCollideConnected(boolean collide)
         collideConnected = collide
@@ -123,6 +133,7 @@ class Joint2D
 
     /*
     This action returns whether the items in this joint is in a collision group with other items.
+    Attribute: Returns true if the items in this joint is in a collision group with other items.
     */
     action InCollisionGroup returns boolean
         return collisionGroupFlag
@@ -130,6 +141,7 @@ class Joint2D
 
     /*
     This action sets whether the items in this joint is in a collision group with other items.
+    Attribute: Parameter flag Whether the items in this joint is in a collision group with other items.
     */
     action SetInCollisionGroup(boolean flag)
         collisionGroupFlag = flag
@@ -137,6 +149,7 @@ class Joint2D
 
     /*
     This action gets you the previous information about a joint (stored in another Joint2D) inside a linked list of Joint2Ds.
+    Attribute: Returns the previous joint.
     */
     action GetPrevious returns Joint2D
         return previous
@@ -144,6 +157,7 @@ class Joint2D
 
     /*
     This action lets you store another information about a joint (stored in another Joint2D) as a previous link to the current Joint2D.
+    Attribute: Parameter previous The previous joint.
     */
     action SetPrevious(Joint2D previous)
         me:previous = previous
@@ -151,6 +165,7 @@ class Joint2D
 
     /*
     This action gets you the next information about a joint (stored in another Joint2D) inside a linked list of Joint2Ds.
+    Attribute: Returns the next joint.
     */
     action GetNext returns Joint2D
         return next
@@ -158,6 +173,7 @@ class Joint2D
 
     /*
     This action lets you store another information about a joint (stored in another Joint2D) as a next link to the current Joint2D.
+    Attribute: Parameter next The next joint.
     */
     action SetNext(Joint2D next)
         me:next = next
@@ -165,6 +181,7 @@ class Joint2D
 
     /*
     This action returns the first JointEdge2D stored inside this Joint2D.
+    Attribute: Returns the first JointEdge2D stored inside this Joint2D.
     */
     action GetEdgeA returns JointEdge2D
         return edgeA
@@ -172,6 +189,7 @@ class Joint2D
 
     /*
     This action sets the first JointEdge2D stored inside this Joint2D.
+    Attribute: Parameter edgeA The first JointEdge2D stored inside this Joint2D.s
     */
     action SetEdgeA(JointEdge2D edgeA)
         me:edgeA = edgeA
@@ -179,6 +197,7 @@ class Joint2D
 
     /*
     This action returns the second JointEdge2D stored inside this Joint2D.
+    Attribute: Returns the second JointEdge2D stored inside this Joint2D.
     */
     action GetEdgeB returns JointEdge2D
         return edgeB
@@ -186,6 +205,7 @@ class Joint2D
 
     /*
     This action sets the second JointEdge2D stored inside this Joint2D.
+    Attribute: Parameter The second JointEdge2D stored inside this Joint2D.
     */
     action SetEdgeB(JointEdge2D edgeB)
         me:edgeB = edgeB

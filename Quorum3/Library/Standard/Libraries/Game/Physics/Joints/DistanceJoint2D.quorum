@@ -6,6 +6,7 @@ use Libraries.Compute.Math
 
 /*
 This action records a joint that sets a fixed distance between two objects.
+The two objects are allowed to oscillate relative to each other.
 */
 class DistanceJoint2D is Joint2D
     Vector2 localAnchorA
@@ -173,14 +174,27 @@ class DistanceJoint2D is Joint2D
         length = distance:Length()  
     end
 
+    /*
+    This action returns the point that the first item will rotate about relative to the first item, but the whole system of objects A and B can move as they please.
+    Parameter: Returns the point that the first item will rotate about relative to the first item, but the whole system of objects A and B can move as they please.
+    */
     action GetLocalAnchorA returns Vector2
         return localAnchorA
     end
 
+    /*
+    This action returns the point that the second item will rotate about relative to the second item, but the whole system of objects A and B can move as they please.
+    Parameter: Returns the point that the second item will rotate about relative to the second item, but the whole system of objects A and B can move as they please.
+    */
     action GetLocalAnchorB returns Vector2
         return localAnchorB
     end
     
+    /*
+    This action returns the amount of force that is exerted on the two items joined together because of the joint constraints. 
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction force. 
+    */
     action GetReactionForce(number inverseTimeStep) returns Vector2
         Vector2 reactionForce
         reactionForce:SetX(impulse * u:GetX() * inverseTimeStep)
@@ -188,10 +202,19 @@ class DistanceJoint2D is Joint2D
         return reactionForce
     end
 
+    /*
+    This action returns 0 for DistanceJoint2D because a distance joint will not rotate the objects.
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction torque.
+    */
     action GetReactionTorque(number inverseTimeStep) returns number
         return 0
     end
 
+    /*
+    This action sends in velocity constraints to a JointSolverData2D so that a joint solver can solve for the limitations that this joint has exerted on the two objects.
+    Attribute: Parameter data The JointSolverData2D that we are going to store the velocity constraints to.
+    */
     action InitializeVelocityConstraints (JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
@@ -300,6 +323,10 @@ class DistanceJoint2D is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)
     end
 
+    /*
+    This action makes sure that the velocity constraints on the two items joined together are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the velocity constraints from.
+    */
     action SolveVelocityConstraints(JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
@@ -338,6 +365,11 @@ class DistanceJoint2D is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)   
     end
 
+    /*
+    This action makes sure that the position constraints on the two items are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the position constraints from.
+    Attribute: Returns if the position constraints has been met through this solver.
+    */
     action SolvePositionConstraints(JointSolverData2D data) returns boolean
         if frequency > 0
             return true

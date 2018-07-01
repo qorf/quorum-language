@@ -93,22 +93,40 @@ class CollisionSolver2D
         me:count = collisionList:GetSize()
     end
 
+    /*
+    This action sets a list of the target center of each objects at the end of the 
+    current physics step relative to the global coordinates.
+    */
     action SetPositionsList(Array<Vector2> positionsList)
         me:positions = positionsList
     end
 
+    /*
+    This action sets a list of the target tilt of each object at the end of the current
+    physics step relative to the global coordinates.
+    */
     action SetAnglesList(Array<number> anglesList)
         me:angles = anglesList
     end
 
+    /*
+    This action sets a list of linear velocities of each object currently with respect to
+    the global coordinates.
+    */
     action SetLinearVelocitiesList(Array<Vector2> linearVelocitiesList)
         me:velocities = linearVelocitiesList
     end
 
+    /*
+    This action sets a list of angular velocities of each object.
+    */
     action SetAngularVelocitiesList(Array<number> angularVelocitiesList)
         me:ws = angularVelocitiesList
     end
 
+    /*
+    This action initializes the arrays that are inside this CollisionSolver2D class.
+    */
     action Initialize
         if me:count >= resizeCount * INITIAL_NUM_CONSTRAINTS
             repeat INITIAL_NUM_CONSTRAINTS times
@@ -193,6 +211,9 @@ class CollisionSolver2D
         end
     end
 
+    /*
+    This action solves the collision using an initial guess.
+    */
     action WarmStart
         integer i = 0
         repeat while i < count
@@ -245,6 +266,9 @@ class CollisionSolver2D
     */
     GlobalCollisionPoints2D globalCollisionPoints
 
+    /*
+    This action stores all of the velocity constraints.
+    */
     action InitializeVelocityConstraints
         integer i = 0
         repeat while i < count
@@ -372,6 +396,9 @@ class CollisionSolver2D
         end
     end
 
+    /*
+    This action makes sure that all of the velocity constraints are met.
+    */
     action SolveVelocityConstraints
         integer i = 0
         repeat while i < count
@@ -614,6 +641,9 @@ class CollisionSolver2D
         end
     end
 
+    /*
+    This action stores the impulses that will satisfy the velocity constraints. 
+    */
     action StoreImpulses
         integer i = 0
         repeat while i < count
@@ -631,6 +661,9 @@ class CollisionSolver2D
         end
     end
 
+    /*
+    This action makes sure that all of the position constraints are met.
+    */
    action SolvePositionConstraints returns boolean
         number minSeparation = 0
         
@@ -720,6 +753,9 @@ class CollisionSolver2D
         return minSeparation >= -3.0 * 0.005
     end
 
+    /*
+    This action calculates when the two objects will collide, and makes sure that these two objects don't penetrate each other.
+    */
     action SolveTimeOfImpactPositionConstraints(integer timeOfImpactIndexA, integer timeOfImpactIndexB) returns boolean
         number minSeparation = 0
         

@@ -5,6 +5,11 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Math
 
+/*
+This action records a joint that sets a fixed distance between two objects.
+The two objects are not allowed to oscillate relative to each other but a straight rope
+can become a curved rope with the rope maximum length not changed.
+*/
 class RopeJoint2D is Joint2D
     Vector2 localAnchorA
     Vector2 localAnchorB
@@ -34,6 +39,14 @@ class RopeJoint2D is Joint2D
     number mass = 0
     Math math
 
+    /*
+    This action stores the variables passed in inside this RopeJoint2D.
+    Attribute: Parameter itemA The first item joined inside this joint.
+    Attribute: Parameter itemB The second item joined inside this joint.
+    Attribute: Parameter anchorA The point that the first item will rotate about, but the whole system of objects A and B can move as they please.
+    Attribute: Parameter anchorB The point that the second item will rotate about, but the whole system of objects A and B can move as they please.
+    Attribute: Parameter maxLength The maximum length of the rope.
+    */
     action Initialize(Item2D itemA, Item2D itemB, Vector2 anchorA, Vector2 anchorB, number maxLength) 
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
@@ -42,6 +55,10 @@ class RopeJoint2D is Joint2D
         maximumLength = maxLength       
     end
 
+    /*
+    This action sends in velocity constraints to a JointSolverData2D so that a joint solver can solve for the limitations that this joint has exerted on the two objects.
+    Attribute: Parameter data The JointSolverData2D that we are going to store the velocity constraints to.
+    */
     action InitializeVelocityConstraints(JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
@@ -127,6 +144,10 @@ class RopeJoint2D is Joint2D
             data:SetAngularVelocity(angularVelocityB, indexB)         
     end
     
+    /*
+    This action makes sure that the velocity constraints on the two items joined together are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the velocity constraints from.
+    */
     action SolveVelocityConstraints(JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
@@ -176,6 +197,11 @@ class RopeJoint2D is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)
     end
 
+    /*
+    This action makes sure that the position constraints on the two items are met.
+    Attribute: Parameter data The JointSolverData2D that we are getting the position constraints from.
+    Attribute: Returns false if the position constraints are not met, true if the solver successfully met the position constraints.
+    */
     action SolvePositionConstraints (JointSolverData2D data) returns boolean
         Vector2 positionA = data:GetPositions():Get(indexA)
         number angleA = data:GetAngles():Get(indexA)
@@ -231,52 +257,103 @@ class RopeJoint2D is Joint2D
         return localLength - maximumLength < 0.005    
     end
 
+    /*
+    This action returns where the rope will be attached to the first object seen from the perspective of the first object.
+    Attribute: Returns where the rope will be attached to the first object seen from the perspective of the first object.
+    */
     action GetLocalAnchorA returns Vector2
         return localAnchorA
     end
 
+    /*
+    This action sets where the rope will be attached to the first object seen from the perspective of the first object.
+    Attribute: Parameter localAnchor Where the rope will be attached to the first object seen from the perspective of the first object.
+    */
     action SetLocalAnchorA(Vector2 localAnchor)
         localAnchorA = localAnchor
     end
 
+    /*
+    This action returns where the rope will be attached to the second object seen from the perspective of the second object.
+    Attribute: Returns where the rope will be attached to the second object seen from the perspective of the second object.
+    */
     action GetLocalAnchorB returns Vector2
         return localAnchorB
     end
 
+    /*
+    This action sets where the rope will be attached to the second object seen from the perspective of the second object.
+    Attribute: Parameter localAnchor Where the rope will be attached to the second object seen from the perspective of the second object.
+    */
     action SetLocalAnchorB(Vector2 localAnchor)
         localAnchorB = localAnchor
     end
 
+    /*
+    This action returns the maximum length of the rope.
+    Attribute: Returns the maximum length of the rope.
+    */
     action GetMaxLength returns number
         return maximumLength
     end
 
+    /*
+    This action sets the maximum length of the rope.
+    Attribute: Parameter maxLength The maximum length of the rope.
+    */
     action SetMaxLength(number maxLength)
         maximumLength = maxLength
     end
 
+    /*
+    This action returns where the rope will be attached to the first object in global coordinates.
+    Attribute: Returns where the rope will be attached to the first object in global coordinates.
+    */
     action GetAnchorA returns Vector2
         return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
     end
 
+    /*
+    This action sets where the rope will be attached to the first object in global coordinates.
+    Attribute: Parameter anchor Where the rope will be attached to the first object in global coordinates.
+    */
     action SetAnchorA(Vector2 anchor)
         localAnchorA:Set(parent:Joint2D:itemA:GetLocalPoint(anchor))
     end
 
+    /*
+    This action returns where the rope will be attached to the second object in global coordinates.
+    Attribute: Returns where the rope will be attached to the second object in global coordinates.
+    */
     action GetAnchorB returns Vector2
         return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
     end
 
+    /*
+    This action sets where the rope will be attached to the second object in global coordinates.
+    Attribute: Parameter anchor Where the rope will be attached to the second object in global coordinates.
+    */
     action SetAnchorB(Vector2 anchor)
         localAnchorB:Set(parent:Joint2D:itemB:GetLocalPoint(anchor))
     end
 
+    
+    /*
+    This action returns the amount of force that is exerted on the two items joined together because of the joint constraints. 
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction force.
+    */ 
     action GetReactionForce(number inverseTimeStep) returns Vector2
         Vector2 temp
         temp:Set(u):Scale(inverseTimeStep):Scale(impulse)
         return temp        
     end
 
+    /*
+    This action returns 0 for RopeJoint2D because a rope joint will not rotate the objects.
+    Attribute: Parameter inverseTimeStep The reciprocal of the inverse of the time step.
+    Attribute: Returns the reaction torque.
+    */
     action GetReactionTorque(number inverseTimeStep) returns number
         return 0
     end
