@@ -14,17 +14,15 @@ Attribute: Example
 
 use Libraries.Compute.Random
 
-    class Main
-        action main
-            // Print a list of ten random integers, each within the range
-            // 5 to 9.
-            Random random
-
-            repeat 10 times
-                output random:RandomIntegerBetween(5, 9)
-            end
+class Main
+    action Main
+        // Print a list of ten random integers, each within the range 5 to 9.
+        Random random
+        repeat 10 times
+            output random:RandomIntegerBetween(5, 9)
         end
     end
+end
 */
 
 class Random

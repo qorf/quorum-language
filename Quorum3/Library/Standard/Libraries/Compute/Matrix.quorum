@@ -908,6 +908,41 @@ class Matrix
     end
 
     /*
+    This method fills the matrix with the specified value.
+
+    Attribute Parameter fillValue The value to place in each element in the matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0)
+            matrix = matrix:Fill(1.1)
+            output matrix:ToText()
+        end
+    end
+    */
+    action Fill(number fillValue) returns Matrix
+        Matrix resultMatrix
+        resultMatrix:SetSize(GetRows(), GetColumns())
+        row = 0
+        repeat GetRows() times
+            col = 0
+            repeat GetColumns() times
+                resultMatrix:Set(row, col, fillValue) 
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return resultMatrix
+    end
+
+    /*
     This method fills a matrix with a specified number of rows and columns with the same value.
 
     Attribute Parameter rows The number of rows for the matrix.
@@ -1100,7 +1135,7 @@ class Matrix
         action Main
             Matrix matrix
             matrix:Fill(1, 3, 1.1)
-            matrix:SetLowerThreshold(2.0, 3.0)
+            matrix = matrix:SetLowerThreshold(2.0, 3.0)
             output matrix:ToText()
         end
     end
@@ -1142,9 +1177,9 @@ class Matrix
         action Main
             Matrix matrix
             matrix:Fill(1, 3, 1.1)
-            matrix:SetUpperThreshold(1.0, 0.5)
+            matrix = matrix:SetUpperThreshold(1.0, 0.5)
             output matrix:ToText()
-        end
+        end 
     end
     */
     action SetUpperThreshold(number cutoffValue, number fillValue) returns Matrix
