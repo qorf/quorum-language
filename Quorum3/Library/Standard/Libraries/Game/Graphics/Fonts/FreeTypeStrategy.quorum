@@ -11,7 +11,8 @@ use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
 
 /*
-The Font class is used to load a font from the system. 
+The FreeTypeStrategy class is used to load fonts on the system using the FreeType
+font engine. 
 
 Attribute: Example
 
@@ -20,7 +21,6 @@ Attribute: Example
     use Libraries.Game.Game
 
     class Main is Game
-
         action Main
             StartGame()
         end
@@ -41,7 +41,6 @@ Attribute: Example
     end
 */
 class FreeTypeStrategy is FontStrategy 
-    
     private integer size = 14
     private number angle = 0
     private integer height = 0
@@ -57,6 +56,8 @@ class FreeTypeStrategy is FontStrategy
     /*
     This action loads a font from a given font file. 
 
+    Attribute: Parameter fontFile The font file to load.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
@@ -64,7 +65,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -75,7 +75,6 @@ class FreeTypeStrategy is FontStrategy
                 file:SetPath("CustomFont.ttf")
                 font:LoadFont(file)
             end
-
         end
     */
     action LoadFont(File fontFile)
@@ -93,6 +92,8 @@ class FreeTypeStrategy is FontStrategy
     This action will load a font by name from the system. On Windows, this will
     search for fonts in "C:\Windows\Fonts". On Mac, this will search for fonts
     in "/Library/Fonts".
+
+    Attribute: Parameter fontName The name of the font to load.
 
     Attribute: Example
 
@@ -182,13 +183,16 @@ class FreeTypeStrategy is FontStrategy
     of the given name. If a font is found with the same name, the action will
     return true. Otherwise, it returns false.
 
+    Attribute: Parameter fontName The name of the font to check for on the system.
+
+    Attribute: Returns Returns true if the font is on the system, and false otherwise.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -197,7 +201,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 boolean hasFont = font:FontIsAvailable("Times New Roman")
             end
-
         end
     */
     action FontIsAvailable(text fontName) returns boolean
@@ -211,13 +214,14 @@ class FreeTypeStrategy is FontStrategy
     /*
     This action will set the size of the font. The default font size is 14.
 
+    Attribute: Parameter newSize The size to change the font to.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -226,7 +230,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 font:SetSize(16)
             end
-
         end
     */
     action SetSize (integer newSize)
@@ -245,13 +248,14 @@ class FreeTypeStrategy is FontStrategy
     This action will return the current size of the font. The default font size
     is 14.
 
+    Attribute: Returns Returns the current size of the font.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -260,7 +264,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 output "The default font size is " + font:GetSize()
             end
-
         end
     */
     action GetSize returns integer
@@ -270,6 +273,8 @@ class FreeTypeStrategy is FontStrategy
     /*
     This action will rotate the characters produced by this font by the given
     number of degrees.
+
+    Attribute: Parameter rotation The number of degrees to rotate the font.
 
     Attribute: Example
 
@@ -296,6 +301,8 @@ class FreeTypeStrategy is FontStrategy
     /*
     This action will set the angle in degrees of the characters produced by this
     font.
+
+    Attribute: Parameter newAngle The number of degrees to angle the font by.
 
     Attribute: Example
 
@@ -350,7 +357,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -360,7 +366,6 @@ class FreeTypeStrategy is FontStrategy
                 Color color
                 font:SetColor(color:Orange())
             end
-
         end
     */
     action SetColor(Color newColor)
@@ -385,7 +390,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -394,7 +398,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 Color color = font:GetColor()
             end
-
         end
     */
     system action GetColor returns Color
@@ -403,13 +406,14 @@ class FreeTypeStrategy is FontStrategy
     This action will return the current angle of the font. The default angle is
     0 degrees.
 
+    Attribute: Returns Returns the current angle of the font.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -418,7 +422,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 output "The font has an angle of " + font:GetAngle() + " degrees."
             end
-
         end
     */
     action GetAngle returns number
@@ -459,6 +462,10 @@ class FreeTypeStrategy is FontStrategy
     This action will return a Glyph object for this font's representation of the
     given character. 
 
+    Attribute: Parameter character The character to create a glyph of.
+
+    Attribute: Returns Returns a glyph representation of the character.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
@@ -466,7 +473,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -476,7 +482,6 @@ class FreeTypeStrategy is FontStrategy
                 font:LoadFont("Arial")
                 Glyph a = font:GetGlyph("a")
             end
-
         end
     */
     action GetGlyph(text character) returns Glyph
@@ -492,6 +497,33 @@ class FreeTypeStrategy is FontStrategy
 
     private system action GetGlyphNative(text character) returns Glyph
 
+    /*
+    This action calculates the kerning value between a pair of characters and then
+    returns it.
+
+    Attribute: Parameter currentCharacter The first character in the pair.
+
+    Attribute: Parameter nextCharacter The second character in the pair.
+
+    Attribute: Returns Returns the kerning value between these two characters.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                integer kerning = font:GetKerning("A", "V")
+            end
+        end
+    */
     action GetKerning(text currentCharacter, text nextCharacter) returns integer
         return 0
     end
@@ -500,13 +532,14 @@ class FreeTypeStrategy is FontStrategy
     This action will check if the font has been loaded yet. If the font has
     been loaded, this will return true. Otherwise, it will return false.
 
+    Attribute: Returns Returns true if the font is loaded, and false if it is not.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -516,7 +549,6 @@ class FreeTypeStrategy is FontStrategy
                 font:LoadFont("Arial")
                 boolean loaded = font:IsLoaded()
             end
-
         end
     */
     action IsLoaded returns boolean
@@ -526,7 +558,9 @@ class FreeTypeStrategy is FontStrategy
     private system action GetHeight returns integer
 
     /*
-    This action will the height of each line of text produced by this font.
+    This action will return the height of each line of text produced by this font.
+
+    Attribute: Returns Returns the height of a line of text for this font.
 
     Attribute: Example
 
@@ -534,7 +568,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -544,7 +577,6 @@ class FreeTypeStrategy is FontStrategy
                 font:LoadFont("Arial")
                 integer height = font:GetLineHeight()
             end
-
         end
     */
     action GetLineHeight returns integer
@@ -555,6 +587,8 @@ class FreeTypeStrategy is FontStrategy
     This action will return an array of all files found in the system's default
     font folder.
 
+    Attribute: Returns Returns an array with all the font files on the system.
+
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
@@ -563,7 +597,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -579,7 +612,6 @@ class FreeTypeStrategy is FontStrategy
                     index = index + 1
                 end
             end
-
         end
     */
     action GetAvailableFonts returns Array<File>
@@ -629,5 +661,4 @@ class FreeTypeStrategy is FontStrategy
         end
         glyphTable:Empty()
     end
-
 end

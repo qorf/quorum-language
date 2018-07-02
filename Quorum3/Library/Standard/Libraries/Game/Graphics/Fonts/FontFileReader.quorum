@@ -355,7 +355,7 @@ class FontFileReader
                 glyphPoints:SetContourEndpoints(endPointsOfContours)
 
                 numberOfPoints = numberOfPoints + 1
-                glyphPoints:SetNumberOfPoints(numberOfPoints)
+                //glyphPoints:SetNumberOfPoints(numberOfPoints)
                 
                 integer numberOfInstructions = byteReader:NextTwoByteUnsignedInteger()
                 
@@ -446,7 +446,6 @@ class FontFileReader
                     glyphPoints:AddNewPointRelativeToLast(relativeXCoordinates:Get(pointIterator), relativeYCoordinates:Get(pointIterator), glyphCoordinateFlagsArray:Get(pointIterator):IsOnCurve(), IsEndpoint(pointIterator, endPointsOfContours))
                     pointIterator = pointIterator + 1
                 end
-                //output "Just before AddVirtualPoints."
                 glyphPoints:AddVirtualPoints()
 
 
