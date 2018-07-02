@@ -2,18 +2,67 @@ package Libraries.Game.Graphics.Fonts
 
 use Libraries.Containers.Array
 
-class BezierCurveGlyphPoints 
-    
-    integer numberOfContours = 0
-    integer numberOfPoints = 0    // what is the purpose of this variable?
-    Array<integer> contourEndpoints
-    Array<CoordinateVector> points
+/*
+The BezierCurveGlyphPoints class is used to store the Bezier point information
+for a given character, as well as to create virtual points needed when scaling
+the glyph to a given size. Most users will never use this class directly.
 
+Attribute: Example
+
+    use Libraries.Game.Graphics.Font
+    use Libraries.Game.Game
+
+    class Main is Game
+        FontFileReader fileReader
+            
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+        end
+    end
+*/
+class BezierCurveGlyphPoints 
+    /*The number of contours the glyph has.*/
+    integer numberOfContours = 0
+    /*Contains the number of points for each contour of the glyph.*/
+    Array<integer> contourEndpoints
+    /*Contains all of the coordinates for the Bezier curve.*/
+    Array<CoordinateVector> points
+    /*The coordinate space for which the points are restricted to.*/
     FontBoundingBox boundingbox
 
     /*
-        Font file contains information about the points relative from the last point. 
-        This adds the absolute coordinate to the list, based on the last point
+    This action adds the absolute coordinate position of the next point relative
+    to the last point that was read from the file. 
+    
+    Attribute: Parameter changeInX The amount of change on the x-axis.
+
+    Attribute: Parameter changeInY The amount of change on the y-axis.
+
+    Attribute: Parameter onCurve True if the point is on the curve, and false if it falls outside of the curve.
+
+    Attribute: Parameter endpoint True if the point is an endpoint, and false if it is not.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            FontFileReader fileReader
+            
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+                glyphOutline:AddNewPointRelativeToLast(1, 1, true, false)
+            end
+        end
     */
     action AddNewPointRelativeToLast(integer changeInX, integer changeInY, boolean onCurve, boolean endpoint)
         CoordinateVector vector
@@ -22,11 +71,31 @@ class BezierCurveGlyphPoints
         AddPoint(vector)
     end
 
-    /* Needs to be called after all points are added
+    /*
+    This action adds virtual points between the actual points of a Bezier curve.
+    Virtual points are points between actual points and are useful in calculating
+    lines when creating the outlines of characters. Note that this function must
+    be called every time actual points are added.
 
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            FontFileReader fileReader
+       
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+                glyphOutline:AddVirtualPoints()
+            end
+        end
     */
     action AddVirtualPoints()
-        
         integer contour = 0
         repeat while contour < numberOfContours
             integer endpoint = contourEndpoints:Get(contour)
@@ -48,11 +117,9 @@ class BezierCurveGlyphPoints
                     // Since there is an additional point, update following contours
                     IncrementContoursByOne(contour)
                     endpoint = endpoint + 1
-                    numberOfPoints = numberOfPoints + 1
                 end
                 i = i + 1
             end
-
             contour = contour + 1
         end
     end
@@ -101,14 +168,91 @@ class BezierCurveGlyphPoints
         return me:points:Get(me:points:GetSize()-1)
     end
 
+    /*
+    This action sets the array of coordinate points for this Bezier curve.
+
+    Attribute: Parameter points The array of CoordinateVector points that make up
+    this Bezier curve's points.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                Array<CoordinateVector> points
+                CoordinateVector vector
+                vector:SetX(1)
+                vector:SetY(1)
+                points:Add(vector)
+                glyphOutline:SetPoints(points)
+            end
+        end
+    */
     action SetPoints(Array<CoordinateVector> points)
         me:points = points
     end
     
+    /*
+    This action adds a CoordinateVector set of points to the Bezier curve point
+    array.
+
+    Attribute: Parameter point The CoordinateVector points to add to the curve.
+
+    Attribute: Example
+        
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                CoordinateVector vector
+                vector:SetX(1)
+                vector:SetY(1)
+                glyphOutline:AddPoint(vector)
+            end
+        end
+    */
     action AddPoint(CoordinateVector point)
         me:points:Add(point)
     end
 
+    /*
+    This action adds a point to the Bezier curve's point array by creating
+    a CoordinateVector, setting its values and then adding it to the array.
+
+    Attribute: Parameter x The x position of the point.
+
+    Attribute: Parameter y The y position of the point.
+
+    Attribute: Example
+        
+        use Libraries.Game.Graphics.Font 
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                glyphOutline:AddPoint(1, 1)
+            end
+        end
+    */
     action AddPoint(integer x, integer y)
         CoordinateVector cv
         cv:SetX(x)
@@ -117,51 +261,220 @@ class BezierCurveGlyphPoints
         me:points:Add(cv)
     end
 
+    /* 
+    This action sets the number of contours for the Bezier curve.
+    
+    Attribute: Parameter numberOfContours The number of contours for the Bezier curve.
 
-    action SetNumberOfPoints(integer numberOfPoints)
-        me:numberOfPoints = numberOfPoints
-    end
+    Attribute: Example
 
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
 
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                glyphOutline:SetNumberOfContours(1)
+            end
+        end
+    */
     action SetNumberOfContours(integer numberOfContours)
         me:numberOfContours = numberOfContours
     end
 
     /*
-        Stores the number of points on each contour of the glyph. 
-        Does not store the coordinates of the points - only the number of points.
+    This action sets the number of points that are on each contour of the glyph.
+    Note that these are not the coordinates for each point, only how many points
+    there are.
 
-        Attribute: Parameter endpoints - array of integers representing the 
-        number of points on the ith contour of the glyph
+    Attribute: Parameter endpoints Array of integers representing the 
+    number of points on the ith contour of the glyph.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                Array<integer> count
+                count:Add(1)
+                glyphOutline:SetContourEndpoints(count)
+            end
+        end
     */
     action SetContourEndpoints(Array<integer> endpoints)
         me:contourEndpoints = endpoints
     end
 
     /*
-        Attribute: Returns integer array containing the number of points on 
-        the ith contour of the glyph
+    This action returns the array containing the number of points on the ith
+    contour of the glyph.
+
+    Attribute: Returns Returns the array containing the number of points on every contour of the glyph.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                Array<integer> count = glyphOutline:GetContourEndPoints()
+            end
     */
     action GetContourEndpoints() returns Array<integer>
         return me:contourEndpoints
     end
     
+    /*
+    This action returns the array containing the points that make up the Bezier curve.
+
+    Attribute: Returns Returns the array containing the coordinates of every point
+    on the Bezier curve.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraires.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                Array<CoordinateVector> points = glyphOutline:GetPoints()
+            end
+    */
     action GetPoints() returns Array<CoordinateVector>
         return me:points
     end
 
+    /*
+    This action sets the BoundingBox of the Bezier curve to an already defined
+    bounding box.
+
+    Attribute: Parameter boundingbox The BoundingBox to constrain the Bezier curve to.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                FontBoundingBox boundingBox
+                glyphOutline:SetBoundingBox(boundingBox)
+            end
+        end
+    */
     action SetBoundingBox(FontBoundingBox boundingbox)
         me:boundingbox = boundingbox
     end
 
+    /*
+    This action sets the BoundingBox of the Bezier curve to the dimensions specified.
+
+    Attribute: Parameter xMin The left-most x-coordinate of the box.
+
+    Attribute: Parameter yMin The bottom-most y-coordinate of the box.
+
+    Attribute: Parameter xMax The right-most x-coordinate of the box.
+
+    Attribute: Parameter yMax The top-most y-coordinate of the box.
+
+    Attribute: Example
+    
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end 
+                
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                glyphOutline:SetBoundingBox(0, 0, 100, 100)
+            end
+        end
+    */
     action SetBoundingBox(integer xMin, integer yMin, integer xMax, integer yMax)
         me:boundingbox:SetBoundingBox(xMin, yMin, xMax, yMax)
     end
 
+    /*
+    This action returns the BoundingBox of the Bezier curve.
+
+    Attribute: Returns Returns the bounding box of the Bezier curve.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                FontBoundingBox box = glyphOutline:GetBoundingBox()
+            end
+        end
+    */
     action GetBoundingBox() returns FontBoundingBox
         return me:boundingbox
     end
 
+    /*
+    This actions prints to the screen the number of contours and the number
+    of points for the Bezier curve.
+
+    Attribute: Returns Returns a string of characters containing the number
+    of contours and the number of points for the Bezier curve.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action main
+                StartGame()
+            end 
+
+            action CreateGame
+                BezierCurveGlyphPoints glyphOutline
+                output glyphOutline:ToText()
+            end
+        end
+    */
     action ToText() returns text
         text t = ""
 
@@ -170,5 +483,4 @@ class BezierCurveGlyphPoints
 
         return t
     end
-
 end
