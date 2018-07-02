@@ -64,6 +64,7 @@ class CollisionGroup2D
     /*
     This action adds a Item2D into the array of existing items to group these
     the new Item2D into the existing items.
+    Attribute: Parameter item The item to add.
     */
     action Add(Item2D item)
         items:Add(item)
@@ -74,6 +75,7 @@ class CollisionGroup2D
     /*
     This action adds a CollisionEvent2D that is associated with an item that
     is inside this CollisionGroup2D.
+    Attribute: Parameter collision The CollisionEvent2D to add.
     */
     action Add(CollisionEvent2D collision)
         collisions:Add(collision)
@@ -82,6 +84,7 @@ class CollisionGroup2D
 
     /*
     This action adds a contraint to the items.
+    Attribute: Parameter joint The joint to add.
     */
     action Add(Joint2D joint)
         joints:Add(joint)
@@ -93,6 +96,9 @@ class CollisionGroup2D
 
     /*
     This action solves the collision for objects inside this CollisionGroup2D.
+    Attribute: Parameter step The length of time step.
+    Attribute: Parameter gravity The force of gravity.
+    Attribute: Parameter requireSimulation Whether this object will be stationary or not.
     */
     action Solve(TimeStep step, Vector2 gravity, boolean requireSimulation)
         //simulation == awake
@@ -355,13 +361,15 @@ class CollisionGroup2D
 
     /*
     This action returns how many items are in the collision group.
+    Attribute: Returns the number of items are in the collision group.
     */
     action GetItemCount returns integer
         return itemCount
     end
 
     /*
-    This action returns how many joints are in this collision group.    
+    This action returns how many joints are in this collision group. 
+    Attribute: Returns the number of joints are in this collision group. 
     */
     action GetJointCount returns integer
         return jointCount
@@ -369,7 +377,8 @@ class CollisionGroup2D
 
     /*
     This action returns the number of collision events that is associated with
-    this CollisionGroup2D.
+    this CollisionGroup2D.  
+    Attribute: Returns the number of collision events.
     */
     action GetCollisionCount returns integer
         return collisionCount
@@ -377,6 +386,8 @@ class CollisionGroup2D
 
     /*
     This action returns the Item2D requested at the index passed in.
+    Attribute: Parameter index The index of interest.
+    Attribute: Returns a 2D item.
     */
     action GetItem(integer index) returns Item2D
         return items:Get(index)
@@ -384,6 +395,8 @@ class CollisionGroup2D
 
     /*
     This action returns the Join2D requested at the index passed in.
+    Attribute: Parameter index The index of interest.
+    Attribute: Returns a 2D joint.
     */
     action GetJoint(integer index) returns Joint2D
         return joints:Get(index)
@@ -391,6 +404,8 @@ class CollisionGroup2D
 
     /*
     This action returns the CollisionEvent2D requested at the index passed in.
+    Attribute: Parameter index The index of interest.
+    Attribute: Returns a 2D collision event.
     */
     action GetCollision(integer index) returns CollisionEvent2D
         return collisions:Get(index)
@@ -399,6 +414,7 @@ class CollisionGroup2D
     /*
     This action sets the maximum linear velocity that a sleeping object can
     have.
+    Attribute: Parameter threshold The maximum linear velocity.
     */
     action SetSimulationThreshold(number threshold)
         me:sleepThreshold = threshold
@@ -407,6 +423,7 @@ class CollisionGroup2D
     /*
     This action returns the maximum linear velocity that a sleeping object can
     have.
+    Attribute: Returns the maximum linear velocity.
     */
     action GetSimulationThreshold returns number
         return sleepThreshold

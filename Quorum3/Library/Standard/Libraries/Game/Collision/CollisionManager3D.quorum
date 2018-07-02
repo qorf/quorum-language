@@ -27,7 +27,8 @@ class CollisionManager3D
     Layer3D myLayer = undefined
 
     /*
-    This action sets the 3D layer at which the objects lie on.
+    This action sets the 3D layer which the objects lie on.
+    Attribute: Parameter layer The 3D layer which the objects lie on.
     */
     action SetLayer(Layer3D layer)
         myLayer = layer
@@ -38,6 +39,8 @@ class CollisionManager3D
     to determine whether the items in the two nodes collide. If the items in the
     two nodes do collide, then the collision will be recorded inside this
     CollisionManager3D.
+    Attribute: Parameter nodeA The first node.
+    Attribute: Parameter nodeB The second node.
     */
     action AddPair(Item3DNode nodeA, Item3DNode nodeB)
         Item3D itemA = nodeA:GetItem()
@@ -117,6 +120,7 @@ class CollisionManager3D
     /*
     This action tests deletes a CollisionEvent3D in a doubly linked list of
     CollisionEvent3D. 
+    Attribute: Parameter collision The CollisionEvent3D to be deleted.
     */
     action Destroy(CollisionEvent3D collision)
         Item3D itemA = collision:GetItemA()
@@ -220,7 +224,7 @@ class CollisionManager3D
     /*
     This action returns the BroadphaseCollision3D that is used by this CollisionManager3D.
 
-    Attribute: Returns The BroadphaseCollision3D that is used to solve a collision.
+    Attribute: Returns the BroadphaseCollision3D that is used to solve a collision.
     */
     action GetBroadphase returns BroadphaseCollision3D
         return broadphase
@@ -229,6 +233,7 @@ class CollisionManager3D
     /*
     This action returns the first event in the doubly linked list of 
     CollisionEvent2D.
+    Attribute: Returns the first CollisionEvent2D.
     */
     action GetCollisionList returns CollisionEvent3D
         return collisionList
@@ -237,6 +242,7 @@ class CollisionManager3D
     /*
     This class returns how many CollisionEvent3D is available in this 
     CollisionManager3D.
+    Attribute: Returns the number of CollisionEvent3Ds.
     */
     action GetCollisionCount returns integer
         return collisionCount
@@ -244,6 +250,7 @@ class CollisionManager3D
 
     /*
     This action adds a CollisionListener3D to the current CollisionManager3D.
+    Attribute: Parameter listener The CollisionListener3D to be added.
     */
     action AddCollisionListener(CollisionListener3D listener)
         listeners:Add(listener)
@@ -251,6 +258,7 @@ class CollisionManager3D
 
     /*
     This action removes a CollisionListener3D from the current CollisionManager3D.
+    Attribute: Parameter listener The CollisionListener3D to be deleted.
     */
     action RemoveCollisionListener(CollisionListener3D listener)
         listeners:Remove(listener)

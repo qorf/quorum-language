@@ -15,6 +15,7 @@ class OrderIndex
     /*
     This action sets the index of the LocalCollisionPoints3D that
     you are interested in in an array of LocalCollisionPoints3Ds. 
+    Attribute: Parameter index The index of interest.
     */
     action SetPointsIndex(integer index)
         me:pointsIndex = index
@@ -23,6 +24,7 @@ class OrderIndex
     /*
     This action returns the index of the LocalCollisionPoints3D that
     you are interested in in an array of LocalCollisionPoints3Ds. 
+    Attribute: Returns the index of interest.
     */
     action GetPointsIndex returns integer
         return pointsIndex
@@ -31,6 +33,7 @@ class OrderIndex
     /*
     This action sets which CollisionPoint3D inside that LocalCollisionPoints3D of interest that
     you are interested in.
+    Attribute: Parameter index The index of interest.
     */
     action SetPointIndex(integer index)
         me:pointIndex = index
@@ -39,6 +42,7 @@ class OrderIndex
     /*
     This action returns which CollisionPoint3D inside that LocalCollisionPoints3D of interest that
     you are interested in.
+    Attribute: Returns the index of interest.
     */
     action GetPointIndex returns integer
         return pointIndex

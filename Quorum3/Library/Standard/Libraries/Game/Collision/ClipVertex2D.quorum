@@ -14,6 +14,7 @@ class ClipVertex2D
     /*
     This action sets the variables in this ClipVertex2D class using another
     ClipVertex2D class.
+    Attribute: Parameter clipVertex The other ClipVertex2D.
     */
     action Set(ClipVertex2D clipVertex)
         Vector2 v1 = clipVertex:vertex
@@ -29,6 +30,8 @@ class ClipVertex2D
     /*
     This action returns best estimate of the point of contact of a shape with
     another shape.
+    Attribute: Returns the best estimate of the point of contact of a shape with
+    another shape.
     */
     action GetVertex returns Vector2
         return vertex
@@ -38,6 +41,8 @@ class ClipVertex2D
     This action sets the best estimate of the point of contact of a shape with
     another shape, which is calculated in actions inside the CollisionEvent2D
     class.
+    Attribute: Parameter vertex The best estimate of the point of contact of a shape with
+    another shape.
     */
     action SetVertex(Vector2 vertex)
         me:vertex = vertex
@@ -46,6 +51,8 @@ class ClipVertex2D
     /*
     This action returns the type of collision that happened to the shape that 
     is associated with this ClipVertex2D.
+    Attribute: Returns the type of collision that happened to the shape that 
+    is associated with this ClipVertex2D.
     */
     action GetIdentifier returns CollisionIdentifier2D
         return id
@@ -53,6 +60,8 @@ class ClipVertex2D
 
     /*
     This action sets the type of collision that happened to the shape that 
+    is associated with this ClipVertex2D.
+    Attribute: Parameter identifier the type of collision that happened to the shape that 
     is associated with this ClipVertex2D.
     */
     action SetIdentifier(CollisionIdentifier2D identifier)

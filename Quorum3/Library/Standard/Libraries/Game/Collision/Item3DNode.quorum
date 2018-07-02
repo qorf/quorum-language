@@ -35,6 +35,7 @@ class Item3DNode
 
     /*
     This action returns the Item3D this node represents. 
+    Attribute: Returns The Item3D represented by this Item3DNode. 
     */
     action GetItem returns Item3D
         return item
@@ -42,6 +43,7 @@ class Item3DNode
 
     /*
     This action sets the Item3D this node represents to be the passed item. 
+    Attribute: Parameter item The Item3D to be represented by this Item3DNode. 
     */
     action SetItem(Item3D item)
         me:item = item
@@ -49,6 +51,7 @@ class Item3DNode
 
     /*
     This action returns the child index of this node within its tree. 
+    Attribute: Returns The child index of this Item3DNode. 
     */
     action GetChildIndex returns integer
         return childIndex
@@ -56,6 +59,7 @@ class Item3DNode
 
     /*
     This action sets the child index of this node within its tree. 
+    Attribute: Parameter index The child index of this Item3DNode.
     */
     action SetChildIndex(integer index)
         childIndex = index
@@ -63,6 +67,7 @@ class Item3DNode
 
     /*
     This action gets the id of this node.
+    Attribute: Returns the id of this node.
     */
     action GetNodeID returns integer
         return nodeID
@@ -70,6 +75,7 @@ class Item3DNode
 
     /*
     This action sets the id of this node.
+    Attribute: Paramter id The id of this node.
     */
     action SetNodeID(integer id)
         nodeID = id

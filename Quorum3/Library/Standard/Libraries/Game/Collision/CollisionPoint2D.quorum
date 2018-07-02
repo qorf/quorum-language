@@ -24,6 +24,7 @@ class CollisionPoint2D
 
     /*
     This action sets the current CollisionPoint2D using another CollisionPoint2D.
+    Attribute: Parameter point The other CollisionPoint2D.
     */
     action Set(CollisionPoint2D point)
         me:localPoint:Set(point:localPoint)
@@ -34,6 +35,7 @@ class CollisionPoint2D
 
     /*
     This action sets the local point.
+    Attribute: Parameter localPoint One collision point with respect to the object that is not the reference object.
     */
     action SetLocalPoint(Vector2 localPoint)
         me:localPoint:Set(localPoint)
@@ -41,6 +43,7 @@ class CollisionPoint2D
 
     /*
     This action returns the local point.
+    Attribute: Returns one collision point with respect to the object that is not the reference object.
     */
     action GetLocalPoint returns Vector2
         return localPoint
@@ -48,6 +51,7 @@ class CollisionPoint2D
 
     /*
     This action sets the normal impulse.
+    Attribute: Parameter normalImpulse The magnitude of the impulse that should be applied to separate the two objects in collision.
     */
     action SetNormalImpulse(number normalImpulse)
         me:normalImpulse = normalImpulse
@@ -55,6 +59,7 @@ class CollisionPoint2D
 
     /*
     This action returns the normal impulse.
+    Attribute: Returns the magnitude of the impulse that should be applied to separate the two objects in collision.
     */
     action GetNormalImpulse returns number
         return normalImpulse
@@ -62,6 +67,7 @@ class CollisionPoint2D
 
     /*
     This action sets the tangential impulse.
+    Attribute: Parameter tangentImpulse The magnitude of impulse that should be applied to simulate the friction between the two objects during collision.
     */
     action SetTangentImpulse(number tangentImpulse)
         me:tangentImpulse = tangentImpulse
@@ -69,6 +75,7 @@ class CollisionPoint2D
 
     /*
     This action returns the tangential impulse.
+    Attribute: Returns the magnitude of impulse that should be applied to simulate the friction between the two objects during collision.
     */
     action GetTangentImpulse returns number
         return tangentImpulse
@@ -76,6 +83,7 @@ class CollisionPoint2D
 
     /*
     This action returns what type of collision was involved.
+    Attribute: Returns what type of collision was involved stored inside CollisionIdentifier2D.
     */
     action GetIdentifier returns CollisionIdentifier2D
         return id

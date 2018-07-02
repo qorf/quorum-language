@@ -8,7 +8,7 @@ package Libraries.Game.Physics
 
 
 /*
-This class is used internally by CollisionSolver2D.
+This class is used internally by CollisionSolver2D to record the information that will help solve the velocity constraint.
 */
 class CollisionVelocityConstraint 
     Array<VelocityConstraintPoint> points
@@ -49,6 +49,10 @@ class CollisionVelocityConstraint
         end
     end
 
+    /*
+    This action initializes a table of values that represents the properties of the 2D object
+    that we can derive from the mass and shape of the 2D object.
+    */
     action InitializeNormalMass
         integer i = 0
         repeat 2 times
@@ -61,6 +65,10 @@ class CollisionVelocityConstraint
         end
     end
 
+    /*
+    This action initializes a table of values that represents the inverse properties of the 2D object
+    that we can derive from the mass and shape of the 2D object.
+    */
     action InitializeInverseNormalMass
         integer i = 0
         repeat 2 times
@@ -73,110 +81,225 @@ class CollisionVelocityConstraint
         end
     end
 
+    /*
+    This action returns all of the velocity constraint points.
+    Attribute: Returns an array containing velocity constraint points.
+    */
     action GetPoints returns Array<VelocityConstraintPoint>
         return points
     end
 
+    /*
+    This action returns the normal of collision.
+    Attribute: Returns a vector representing the normal direction of collision.
+    */
     action GetNormal returns Vector2
         return normal
     end
 
+    /*
+    This action sets the normal of collision.
+    Attribute: Parameter normal A vector representing the normal direction of collision.
+    */
     action SetNormal(Vector2 normal)
         me:normal = normal
     end
 
+    /*
+    This action returns a table of values that represents the properties of the 2D object
+    that we can derive from the mass and shape of the 2D object.
+    Attribute: Returns a table of normal masses.
+    */
     action GetNormalMass returns Table<number>
         return normalMass
     end
 
+    /*
+    This action returns a table of values that represents the inverse properties of the 2D object
+    that we can derive from the mass and shape of the 2D object.
+    Attribute: Returns a table of inverse normal masses.
+    */
     action GetInverseNormalMass returns Table<number>
         return inverseNormalMass
     end
 
+    /*
+    This action returns the group index of object A.
+    Attribute: Returns the group index of object A.
+    */
     action GetIndexA returns integer
         return indexA
     end
 
+    /*
+    This action sets the group index of object A.
+    Attribute: Parameter index The group index of object A.
+    */
     action SetIndexA(integer index)
         me:indexA = index
     end
 
+    /*
+    This action returns the group index of object B.
+    Attribute: Returns the group index of object B.
+    */
     action GetIndexB returns integer
         return indexB
     end
 
+    /*
+    This action sets the group index of object B.
+    Attribute: Parameter index The group index of object B.
+    */
     action SetIndexB(integer index)
         me:indexB = index
     end
 
+    /*
+    This action returns (1/massA).
+    Attribute: Returns (1/massA).
+    */
     action GetInverseMassA returns number
         return inverseMassA
     end
 
+    /*
+    This action sets (1/massA).
+    Attribute: Parameter inverseMass The (1/massA) value.
+    */
     action SetInverseMassA(number inverseMass)
         me:inverseMassA = inverseMass
     end
 
+    /*
+    This action returns (1/massB).
+    Attribute: Returns the (1/massB) value.
+    */
     action GetInverseMassB returns number
         return inverseMassB
     end
 
+    /*
+    This action sets (1/massB).
+    Attribute: Parameter inverseMass The (1/massB) value. 
+    */
     action SetInverseMassB(number inverseMass)
         me:inverseMassB = inverseMass
     end
 
+    /*
+    This action returns (1/mass moment of inertia of A).
+    Attribute: Returns the (1/mass moment of inertia of A) value.
+    */
     action GetInverseInertiaA returns number
         return inverseInertiaA
     end
 
+    /*
+    This action sets (1/mass moment of inertia of A).
+    Attribute: Parameter inverseInertia The (1/mass moment of inertia of A) value.
+    */
     action SetInverseInertiaA(number inverseInertia)
         me:inverseInertiaA = inverseInertia
     end
 
+    /*
+    This action returns (1/mass moment of inertia of B).
+    Attribute: Returns (1/mass moment of inertia of B) value.
+    */
     action GetInverseInertiaB returns number
         return inverseInertiaB
     end
 
+    /*
+    This action sets (1/mass moment of inertia of B).
+    Attribute: Parameter inverseInertia The (1/mass moment of inertia of B) value.
+    */
     action SetInverseInertiaB(number inverseInertia)
         me:inverseInertiaB = inverseInertia
     end
 
+    /*
+    This action returns the friction between the two objects.
+    Attribute: Returns coefficient of friction.
+    */
     action GetFriction returns number
         return friction
     end
 
+    /*
+    This action sets the friction between the two objects.
+    Attribute: Parameter friction The coefficient of friction.
+    */
     action SetFriction(number friction)
         me:friction = friction
     end
 
+    /*
+    This action returns the restitution between the two objects.
+    Attribute: Returns coefficient of restitution.
+    */
     action GetRestitution returns number
         return restitution
     end
 
+    /*
+    This action sets the restitution between the two objects.
+    Attribute: Parameter restitution The coefficient of restitution.
+    */
     action SetRestitution(number restitution)
         me:restitution = restitution
     end
 
+    /*
+    This action returns the relative speeds of the point of collision between the two objects
+    a time step prior to the current time step.
+    Attribute: Returns the old tangent speed.
+    */
     action GetTangentSpeed returns number
         return tangentSpeed
     end
 
+    /*
+    This action sets the relative speeds of the point of collision in the current time step.
+    Attribute: Parameter tangentSpeed The current tangent speed.
+    */
     action SetTangentSpeed(number tangentSpeed)
         me:tangentSpeed = tangentSpeed
     end
 
+    /*
+    This action returns the number of velocity constraint points.
+    Attribute: Returns the number of velocity constraint points.
+    */
     action GetPointCount returns integer
         return pointCount
     end
 
+    /*
+    This action sets the number of velocity constraint points.
+    Attribute: Parameter pointCount The number of velocity constraint points.
+    */
     action SetPointCount(integer pointCount)
         me:pointCount = pointCount
     end
 
+    /*
+    This action returns the index on an array of LocalCollisionPoints2D that is
+    associated with this CollisionVelocityConstraint.
+    This is used by the CollisionSolver2D class.
+    Attribute: Returns the index of interest.
+    */
     action GetCollisionIndex returns integer
         return collisionIndex
     end
 
+    /*
+    This action sets the index on an array of LocalCollisionPoints2D that is
+    associated with this CollisionVelocityConstraint.
+    This is used by the CollisionSolver2D class.
+    Attribute: Parameter index The index of interest.
+    */
     action SetCollisionIndex(integer index)
         me:collisionIndex = index
     end

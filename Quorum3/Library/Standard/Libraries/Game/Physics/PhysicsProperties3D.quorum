@@ -75,6 +75,7 @@ class PhysicsProperties3D
     physics on the item when a "PhysicsProperties3D" property holder will be 
     created so that Item3D will be attached to that property holder and the
     property holder will be attached to the Item3D.
+    Attribute: Parameter item The Item3D to be stored.
     */
     action SetItem(Item3D item)
         me:item = item
@@ -112,6 +113,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the Item3D that is attached to these physical properties.
+    Attribute: Returns the Item3D that is attached to these physical properties.
     */
     action GetItem returns Item3D
         return item
@@ -119,7 +121,8 @@ class PhysicsProperties3D
 
     /*
     This action allows another PhysicsProperties3D object to be assigned by
-    the values stored inside the current PhysicsProperties3D object.
+    the values stored inside the current PhysicsProperties3D object.    
+    Attribute: Returns the other PhysicsProperties3D to copy from.
     */
     action Copy returns PhysicsProperties3D
         PhysicsProperties3D new
@@ -156,6 +159,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the linear velocity of the 3D object.
+    Attribute: Parameter linearVelocity the linear velocity of the 3D object.
     */
     action SetLinearVelocity(Vector3 linearVelocity)
         if type = UNMOVABLE
@@ -170,6 +174,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the x component of the linear velocity of the 3D object.
+    Attribute: Parameter linearVelocityX The x component of the linear velocity of the 3D object.
     */
     action SetLinearVelocityX(number linearVelocityX)
         if type = UNMOVABLE
@@ -184,6 +189,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the y component of the linear velocity of the 3D object.
+    Attribute: Parameter linearVelocityY The y component of the linear velocity of the 3D object.
     */
     action SetLinearVelocityY(number linearVelocityY)
         if type = UNMOVABLE
@@ -198,6 +204,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the z component of the linear velocity of the 3D object.
+    Attribute: Parameter linearVelocityZ The z component of the linear velocity of the 3D object.
     */
     action SetLinearVelocityZ(number linearVelocityZ)
         if type = UNMOVABLE
@@ -213,6 +220,7 @@ class PhysicsProperties3D
     /*
     This action returns the linear velocity of the 3D object that is attached to 
     this PhysicsProperties3D property holder.
+    Attribute: Returns the linear velocity.
     */
     action GetLinearVelocity returns Vector3
         return linearVelocity
@@ -220,6 +228,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the angular velocity of the 3D object.
+    Attribute: Parameter angularVelocity How fast the 3D object will rotate.
     */
     action SetAngularVelocity(Vector3 angularVelocity)
         if type = UNMOVABLE
@@ -233,6 +242,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the angular velocity of the 3D object.
+    Attribute: Returns how fast the 3D object will rotate.
     */
     action GetAngularVelocity returns Vector3
         return angularVelocity
@@ -240,6 +250,7 @@ class PhysicsProperties3D
 
     /*
     This action sets the force that will be applied to the object.
+    Attribute: Parameter force The force that will be applied to the object.
     */
     action SetForce(Vector3 force)
         me:force = force
@@ -248,6 +259,7 @@ class PhysicsProperties3D
     /*
     This action gets the force that is stored inside thie PhysicsProperties3D 
     property holder.
+    Attribute: Returns the force that will be applied to the object.
     */
     action GetForce returns Vector3
         return force
@@ -256,6 +268,7 @@ class PhysicsProperties3D
     /*
     This action sets the torque that could potentially be applied to the
     center of mass of this object.
+    Attribute: Parameter torque The torque that could potentially be applied to this object to rotate this object.
     */
     action SetTorque(Vector3 torque)
         me:torque = torque
@@ -263,6 +276,7 @@ class PhysicsProperties3D
 
     /*
     This action gets the torque that is stored inside this object.
+    Attribute: Returns torque.
     */
     action GetTorque returns Vector3
         return torque
@@ -314,6 +328,7 @@ class PhysicsProperties3D
     This action applies a torque to the center of mass of the object, which means
     this torque will only affect the angular velocity of the object but not
     the linear velocity of the object.
+    Attribute: Parameter torque The torque that could potentially be applied to this object to rotate this object.
     */
     action ApplyTorque(Vector3 torque)
         if type not= RESPONSIVE
@@ -368,7 +383,8 @@ class PhysicsProperties3D
 
     /*
     This action applied an angular impulse to the object which will cause the
-    object to have a sudden change in angular velocity.
+    object to have a sudden change in angular velocity.    
+    Attribute: Parameter impulse The  angular impulse.
     */
     action ApplyAngularImpulse(Vector3 impulse)
         if type not= RESPONSIVE
@@ -387,6 +403,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the mass of the object.
+    Attribute: Returns the mass of the object.
     */
     action GetMass returns number
         return mass
@@ -395,6 +412,7 @@ class PhysicsProperties3D
     /*
     This action sets the mass of the this property holder, which will also 
     set the density if a 3D item has been attached to this property holder. 
+    Attribute: Parameter mass The mass of the object.
     */
     action SetMass(number mass)
         me:mass = mass
@@ -412,6 +430,7 @@ class PhysicsProperties3D
     /*
     This action returns the reciprocal of the mass (1/mass) inside this 
     property holder. 
+    Attribute: Returns the (1/mass) value.
     */
     action GetInverseMass returns number
         return inverseMass
@@ -420,6 +439,7 @@ class PhysicsProperties3D
     /*
     This action sets the reciprocal of the mass (1/mass) inside this 
     property holder. 
+    Attribute: Parameter inverseMass The (1/mass) value.
     */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
@@ -429,6 +449,8 @@ class PhysicsProperties3D
     This action returns the inverse mass moment of inertia of the 3D object relative to 
     the local origin of the 3D object, where the components of the inverse mass moment of inertia
     is just the reciprocal of the local mass moment of inertia.
+    Attribute: Returns the inverse mass moment of inertia of the 3D object relative to 
+    the local origin of the 3D object.
     */
     action GetInverseInertiaLocal returns Vector3
         return inverseInertiaLocal
@@ -438,6 +460,8 @@ class PhysicsProperties3D
     This action sets the inverse mass moment of inertia of the 3D object relative to 
     the local origin of the 3D object, where the components of the inverse mass moment of inertia
     is just the reciprocal of the local mass moment of inertia.
+    Attribute: Parameter inverseInertia the inverse mass moment of inertia of the 3D object relative to 
+    the local origin of the 3D object.
     */
     action SetInverseInertiaLocal(Vector3 inverseInertia)
         me:inverseInertiaLocal:Set(inverseInertia)
@@ -445,6 +469,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the inertia tensor in global coordinates.
+    Attribute: Returns the inertia tensor in global coordinates.
     */
     action GetInverseInertiaWorld returns Matrix3
         return inverseInertiaWorld
@@ -453,6 +478,7 @@ class PhysicsProperties3D
     /*
     This action returns a number that will be used to decrease the linear velocity
     to ensure that our linear velocity calculation isn't too big.
+    Attribute: Returns linear damping.
     */
     action GetLinearDamping returns number
         return linearDamping
@@ -461,6 +487,7 @@ class PhysicsProperties3D
     /*
     This action sets a number that will be used to decrease the linear velocity
     to ensure that our linear velocity calculation isn't too big.
+    Attribute: Parameter linearDamping the linear damping.
     */
     action SetLinearDamping(number linearDamping)
         me:linearDamping = linearDamping
@@ -469,6 +496,7 @@ class PhysicsProperties3D
     /*
     This action returns a number that will be used to decrease the angular velocity
     to ensure that our linear velocity calculation isn't too big.
+    Attribute: Returns the angular damping.
     */
     action GetAngularDamping returns number
         return angularDamping
@@ -477,6 +505,7 @@ class PhysicsProperties3D
     /*
     This action sets a number that will be used to decrease the angular velocity
     to ensure that our linear velocity calculation isn't too big.
+    Attribute: Parameter angularDamping The angular damping.
     */
     action SetAngularDamping(number angularDamping)
         me:angularDamping = angularDamping
@@ -505,6 +534,7 @@ class PhysicsProperties3D
     /*
     This action sets how physics (linear velocity, angular velocity, force, 
     torque) will affect the object.
+    Attribute: Parameter type The responsiveness of the object.
     */
     action SetResponsiveness(integer type)
         if me:type = type
@@ -541,6 +571,7 @@ class PhysicsProperties3D
     This action sets how smooth the surface of this object is. If the surface of this
     object is smooth, then you can pass in a number 0.0, if you want the surface of
     this object to be rough, then you can pass in a number 1.0.
+    Attribute: Parameter friction The coefficient of friction.
     */
     action SetFriction(number friction)
         me:friction = friction
@@ -549,6 +580,7 @@ class PhysicsProperties3D
     /*
     This action returns a number that lets you know how smooth thhe surface of 
     this object is.
+    Attribute: Returns the coefficient of friction.
     */
     action GetFriction returns number
         return friction
@@ -560,6 +592,7 @@ class PhysicsProperties3D
     you want the object to loose a lot of energy (meaning, they would probably
     move a lot slower after the collision), then you can pass in a 0.0.
     You can also use the values between 0 and 1.
+    Attribute: Parameter restitution The coefficient of restitution.
     */
     action SetRestitution(number restitution)
         me:restitution = restitution
@@ -567,6 +600,7 @@ class PhysicsProperties3D
 
     /*
     This action returns how much energy that this 3D object will loose after a collision.
+    Attribute: Returns the coefficient of restitution.
     */
     action GetRestitution returns number
         return restitution
@@ -574,6 +608,8 @@ class PhysicsProperties3D
 
     /*
     This action sets whether the object attached to this property holder will
+    be inside a collision group.
+    Attribute: Parameter flag Whether the object attached to this property holder will
     be inside a collision group.
     */
     action SetCollisionGroupFlag(boolean flag)
@@ -583,6 +619,7 @@ class PhysicsProperties3D
     /*
     This action gets whether the object attached to this property holder will
     be inside a collision group.
+    Attribute: Returns false if the object is not in a collision group.
     */
     action GetCollisionGroupFlag returns boolean
         return collisionGroupFlag
@@ -590,6 +627,7 @@ class PhysicsProperties3D
 
     /*
     This action sets which collision group that this object will be in.
+    Attribute: Parameter index The collision group that this object will be in. 
     */
     action SetCollisionGroupIndex(integer index)
         collisionGroupIndex = index
@@ -597,6 +635,7 @@ class PhysicsProperties3D
 
     /*
     This action gets which collision group that this object will be in.
+    Attribute: Returns the collision group that this object will be in. 
     */
     action GetCollisionGroupIndex returns integer
         return collisionGroupIndex
@@ -606,6 +645,7 @@ class PhysicsProperties3D
     This action tells you whether if this object will be moving fast. If the object will be moving fast, then there 
     will be more careful of a calculation of how this object collides with other 
     objects.
+    Attribute: Returns true if this object will be moving quickly.
     */
     action IsFastMoving returns boolean
         return fastMoving
@@ -616,6 +656,7 @@ class PhysicsProperties3D
     will be moving fast. If the object will be moving fast, then there 
     will be more careful of a calculation of how this object collides with other 
     objects.
+    Attribute: Parameter flag True if this object will be moving quickly.
     */
     action FastMoving(boolean flag)
         fastMoving = flag
@@ -624,6 +665,7 @@ class PhysicsProperties3D
     /*
     This action sets whether if the object attached to this property holder
     will require its position to be moved.
+    Attribute: Parameter flag True if will require its position to be moved.
     */
     action RequireSimulation(boolean flag)
         simulationRequired = flag
@@ -635,6 +677,7 @@ class PhysicsProperties3D
     /*
     This action tells you whether if you need to move the object that is 
     attached to this property holder.
+    Attribute: Returns true if will require its position to be moved.
     */
     action IsSimulationRequired returns boolean
         return simulationRequired
@@ -645,6 +688,7 @@ class PhysicsProperties3D
     simulation is required of the object that is attached to this property holder.
     If simulation is not required, then this means that the object's position will
     not change.
+    Attribute: Parameter flag True if you want to simulate the object.
     */
     action Simulate(boolean flag)
         if flag
@@ -665,6 +709,7 @@ class PhysicsProperties3D
     /*
     This action tells you if the object attached to this property holder
     is being simulated.
+    Attribute: Returns True if you want to simulate the object.
     */
     action IsSimulated returns boolean
         return simulated
@@ -673,6 +718,7 @@ class PhysicsProperties3D
     /*
     This action sets whether the 3D object attached to this property holder
     will be able to rotate or not.
+    Attribute: Parameter flag True if this object can rotate.
     */
     action CanRotate(boolean flag)
         canRotate = flag
@@ -684,6 +730,7 @@ class PhysicsProperties3D
     /*
     This action tells you if the 3D object attached to this property holder
     will be able to rotate. 
+    Attribute: Returns True if this object can rotate.
     */
     action IsRotationAllowed returns boolean
         return canRotate
@@ -691,6 +738,8 @@ class PhysicsProperties3D
 
     /*
     This action sets how much time that the 3D object attached to this 
+    property holder will remain in its current position.
+    Attribute: Parameter time How much time that the 2D object attached to this 
     property holder will remain in its current position.
     */
     action SetSleepTime(number time)
@@ -700,6 +749,8 @@ class PhysicsProperties3D
     /*
     This action gets how much time that the 3D object attached to this 
     property holder will remain in its current position.
+    Attribute: Returns how much time that the 2D object attached to this 
+    property holder will remain in its current position.
     */
     action GetSleepTime returns number
         return sleepTime
@@ -708,6 +759,7 @@ class PhysicsProperties3D
     /*
     This action estimates what the linear and angular velocities would be after
     a certain amount of time.
+    Attribute: Parameter seconds The amount of time in the future.
     */
     action IntegrateVelocities(number seconds)
         if type not= RESPONSIVE
@@ -731,6 +783,7 @@ class PhysicsProperties3D
     /*
     This action applies the scale factors that will decrease the linear and angular
     velocities that we calculated.
+    Attribute: Parameter seconds The amount of time in the future.
     */
     action ApplyDamping(number seconds)
         linearVelocity:Scale(math:RaiseToPower(1 - linearDamping, seconds))
@@ -775,6 +828,9 @@ class PhysicsProperties3D
 
     /*
     This action calculates where the 3D object would be after a certain amount of time.
+    Attribute: Parameter currentTransform The current position of the 3D object.
+    Attribute: Parameter seconds The amount of time in the future.
+    Attribute: Parameter predictedTransform The predicted position of the 3D object.
     */
     action IntegrateTransform(PhysicsPosition3D currentTransform, number seconds, PhysicsPosition3D predictedTransform)
         Vector3 temp
@@ -809,6 +865,7 @@ class PhysicsProperties3D
     /*
     This action recalculates the mass moment of inertia relative to the world
     axis.
+    Attribute: Parameter basis The local axis of the 3D object.
     */
     action UpdateInertia(Matrix3 basis)
         Matrix3 mat1
@@ -832,6 +889,8 @@ class PhysicsProperties3D
     /*
     This action lets you know the linear velocity of a point "Vector3 relativePosition"
     on this 3D object.
+    Attribute: Parameter relativePosition A point in object's local coodinate.
+    Attribute: Returns the linear velocity. 
     */
     action GetLinearVelocityAtLocalPoint(Vector3 relativePosition) returns Vector3
         Vector3 vec
@@ -842,6 +901,7 @@ class PhysicsProperties3D
 
     /*
     This action stores an approximation of linear velocity of the 3D object.
+    Attribute: Parameter velocity The approximation of linear velocity of the 3D object.
     */
     action SetInterpolatedLinearVelocity(Vector3 velocity)
         interpolatedLinearVelocity:Set(velocity)
@@ -849,6 +909,7 @@ class PhysicsProperties3D
 
     /*
     This action returns an approximation of linear velocity of the 3D object.
+    Attribute: Returns the approximation of linear velocity of the 3D object.
     */
     action GetInterpolatedLinearVelocity returns Vector3
         return interpolatedLinearVelocity
@@ -856,13 +917,15 @@ class PhysicsProperties3D
 
     /*
     This action stores an approximation of angular velocity of the 3D object.
+    Attribute: Parameter velocity an approximation of angular velocity of the 3D object.
     */
     action SetInterpolatedAngularVelocity(Vector3 velocity)
         interpolatedAngularVelocity:Set(velocity)
     end
 
     /*
-    This action returns an approximation of angular velocity of the 3D object.
+    This action returns an approximation of angular velocity of the 3D object.  
+    Attribute: Returns an approximation of angular velocity of the 3D object.s
     */
     action GetInterpolatedAngularVelocity returns Vector3
         return interpolatedAngularVelocity
@@ -872,6 +935,9 @@ class PhysicsProperties3D
     This action allows you to add linear velocity, "Vector3 linearComponent," and
     add angular velocity, "Vector3 angularComponent," both scaled by
     "number impulseMagnitude" to the current linear velocity and angular velocity of this 3D object.
+    Attribute: Parameter linearComponent Linear impulse.
+    Attribute: Parameter angularComponent Angular impulse.
+    Attribute: Parameter impulseMagnitude Magnitude of the impulse.
     */
     action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
@@ -887,6 +953,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the push velocity that is used in a Split Impulse solver.
+    Attribute: Returns the push velocity that is used in a Split Impulse solver.
     */
     action GetPushVelocity returns Vector3
         return pushVelocity
@@ -894,6 +961,7 @@ class PhysicsProperties3D
 
     /*
     This action returns the turn velocity that is used in a Split Impulse solver.
+    Attribute: Returns the turn velocity that is used in a Split Impulse solver.
     */
     action GetTurnVelocity returns Vector3
         return turnVelocity
@@ -901,7 +969,8 @@ class PhysicsProperties3D
 
     /*
     This action returns a number that scales the torque applied to the 3D object.
-    Having an angular factor less than 1 makes the object less sensitive to the torque applied to it.
+    Having an angular factor less than 1 makes the object less sensitive to the torque applied to it.   
+    Attribute: Returns the angular factor.
     */
     action GetAngularFactor returns number
         return angularFactor
@@ -910,6 +979,7 @@ class PhysicsProperties3D
     /*
     This action stores the angular, linear velocities of the 3D object before
     its angular and linear velocities are updated.
+    Attribute: Parameter timeStep The amount of time to simulate.
     */
     action SaveKinematicState(number timeStep)
         PhysicsPosition3D transform0 = item:GetInterpolationWorldTransform()
@@ -952,6 +1022,9 @@ class PhysicsProperties3D
 
     /*
     This action updates the mass of the 3D object and the inertia of the 3D
+    object relative to the local origin.
+    Attribute: Parameter mass The mass of the 3D object.
+    Attribute: Parameter inertia the inertia of the 3D
     object relative to the local origin.
     */
     action SetMassProperties(number mass, Vector3 inertia)

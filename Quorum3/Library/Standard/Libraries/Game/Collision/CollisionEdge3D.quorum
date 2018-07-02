@@ -18,6 +18,7 @@ class CollisionEdge3D
     /*
     This action gets the Item3D object that the Item3D object that has the head
     of this CollisionEdge3D doubly linked list is colliding with.
+    Attribute: Returns the other 3D object in the collision.
     */
     action GetOther returns Item3D
         return other
@@ -26,6 +27,7 @@ class CollisionEdge3D
     /*
     This action sets the Item3D object that the Item3D object that has the head
     of this CollisionEdge3D doubly linked list is colliding with.
+    Attribute: Parameter other The other 3D object in the collision.
     */
     action SetOther(Item3D other)
         me:other = other
@@ -34,6 +36,7 @@ class CollisionEdge3D
     /*
     This action gets the collision event that the "Item3D other" object and 
     the current Item3D object is represented in.
+    Attribute: Returns the collision event that records which object is colliding.
     */
     action GetCollision returns CollisionEvent3D
         return collision
@@ -42,6 +45,7 @@ class CollisionEdge3D
     /*
     This action sets the collision event that the "Item3D other" object and 
     the current Item3D object is represented in.
+    Attribute: Parameter collision The collision event that records which object is colliding.
     */
     action SetCollision(CollisionEvent3D collision)
         me:collision = collision
@@ -49,6 +53,7 @@ class CollisionEdge3D
 
     /*
     This action gets the previous node of the doubly linked list.
+    Attribute: Returns the previous node of the doubly linked list.
     */
     action GetPrevious returns CollisionEdge3D
         return previous
@@ -56,6 +61,7 @@ class CollisionEdge3D
 
     /*
     This action sets the previous node of the doubly linked list.
+    Attribute: Parameter previous The previous node of the doubly linked list.
     */
     action SetPrevious(CollisionEdge3D previous)
         me:previous = previous
@@ -63,6 +69,7 @@ class CollisionEdge3D
 
     /*
     This action gets the next node of the doubly linked list.
+    Attribute: Returns the next node of the doubly linked list.
     */
     action GetNext returns CollisionEdge3D
         return next
@@ -70,6 +77,7 @@ class CollisionEdge3D
 
     /*
     This action sets the next node of the doubly linked list.
+    Attribute: Parameter next The next node of the doubly linked list.
     */
     action SetNext(CollisionEdge3D next)
         me:next = next

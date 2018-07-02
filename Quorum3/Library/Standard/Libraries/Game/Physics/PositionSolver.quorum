@@ -5,6 +5,10 @@ use Libraries.Game.Physics.CollisionPositionConstraint
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.LocalCollisionPoints2D
 
+/*
+This class contains variables and actions to help solving for the position constraint.
+This class is used by the CollisionSolver2D class.
+*/
 class PositionSolver
     Vector2 normal
     Vector2 point
@@ -12,6 +16,13 @@ class PositionSolver
 
     LocalCollisionPoints2D collisionPoints
 
+    /*
+    This action initializes the variables stored inside this class.
+    Attribute: Parameter pc The position constraint for a particular collision.
+    Attribute: Parameter xfA The position and tilt of object A.
+    Attribute: Parameter xfB The position and tilt of object B.
+    Attribute: Parameter index The number of collision points was recorded in this collision.
+    */
     action Initialize(CollisionPositionConstraint pc, PhysicsPosition2D xfA, PhysicsPosition2D xfB, integer index)
         number xfAqc = xfA:GetCosine()
         number xfAqs = xfA:GetSine()
@@ -71,14 +82,26 @@ class PositionSolver
         end
     end
 
+    /*
+    This action returns the clipping point of this collision.
+    Attribute: Returns the clipping point of this collision.
+    */
     action GetPoint returns Vector2
         return point
     end
 
+    /*
+    This action returns the normal vector of this collision.
+    Attribute: Returns the normal vector of this collision.
+    */
     action GetNormal returns Vector2
         return normal
     end
 
+    /*
+    This action returns the minimum distance between the two objects colliding.
+    Attribute: Returns the minimum distance between the two objects colliding.
+    */
     action GetSeparation returns number
         return separation
     end

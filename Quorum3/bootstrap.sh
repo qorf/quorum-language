@@ -48,6 +48,8 @@ cp -r Library ../../../quorumstudio/QuorumStudio
 echo "Copying Quorum to its final form."
 mkdir ../Quorum
 cp Run/Quorum.jar ../Quorum/Quorum.jar
+cp Run/QuorumStandardLibrary.jar ../Quorum/QuorumStandardLibrary.jar
+cp Run/QuorumStandardPlugins.jar ../Quorum/QuorumStandardPlugins.jar
 
 cp -r Library ../Quorum/Library
 

@@ -6,7 +6,10 @@ use Libraries.Interface.Item3D
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.PhysicsPosition3D
 
-
+/*
+This class stores the collision points between the two objects colliding in addition to
+providing functions that calculates the friction and restitution between these two objects.
+*/
 class CollisionPointsResult3D 
     LocalCollisionPoints3D collisionPoints
 
@@ -19,6 +22,11 @@ class CollisionPointsResult3D
     integer index0 = 0
     integer index1 = 0
 
+    /*
+    This action adds the bodies that are colliding into this CollisionPointsResult3D class.
+    Attribute: Parameter body0 The first body that is colliding.
+    Attribute: Parameter body1 The second body that is colliding.
+    */
     action Initialize(Item3D body0, Item3D body1)
         me:body0 = body0
         me:body1 = body1
@@ -26,14 +34,31 @@ class CollisionPointsResult3D
         rootTransformB:Set(body1:GetCollisionTransform())
     end
 
+    /*
+    This action returns a bundle of collision points to this CollisionPointsResult3D 
+    using the collision points bundled inside LocalCollisionPoints3D.
+    Attribute: Returns the collision points.
+    */
     action GetCollisionPoints returns LocalCollisionPoints3D
         return collisionPoints
     end
 
+    /*
+    This action allows you to add a bundle of collision points to this CollisionPointsResult3D 
+    using the collision points bundled inside LocalCollisionPoints3D.
+    Attribute: Paramter collisionPoints The collision points.
+    */
     action SetCollisionPoints(LocalCollisionPoints3D collisionPoints)
         me:collisionPoints = collisionPoints
     end
 
+    /*
+    This action allows you to set if objects A and B are a convex part of a larger object or is in a triangular mesh.
+    Attribute: Parameter partID0 The part ID of object A.
+    Attribute: Parameter index0 The index of object A.
+    Attribute: Parameter partID1 The part ID of object B.
+    Attribute: Parameter index1 The index of object B.
+    */
     action SetShapeIdentifiers(integer partID0, integer index0, integer partID1, integer index1)
         me:partID0 = partID0
         me:index0 = index0
@@ -41,6 +66,12 @@ class CollisionPointsResult3D
         me:index1 = index1
     end
 
+    /*
+    This action adds a collision point to this CollisionPointsResult3D class.
+    Attribute: Paramter normalOnBInWorld The vector from the collision point on B to the collision point on A.
+    Attribute: Parameter pointInWorld The collision point on B in world coordinates.
+    Attribute: Parameter depth The shortest distance from the collision point on B to the collision point on A.
+    */
     action AddCollisionPoint(Vector3 normalOnBInWorld, Vector3 pointInWorld, number depth)
         if depth > collisionPoints:GetCollisionBreakingThreshold()
             return now
@@ -87,6 +118,12 @@ class CollisionPointsResult3D
         end
     end
 
+    /*
+    This action calculates the friction between the two objects.
+    Attribute: Paramter body0 The first Item3D that is involved in the collision.
+    Attribute: Paramter body1 The second Item3D that is involved in the collision.
+    Attribute: Returns the friction between the two objects.
+    */
     action CalculateCombinedFriction(Item3D body0, Item3D body1) returns number
         if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
             return 0
@@ -105,6 +142,12 @@ class CollisionPointsResult3D
         return friction
     end
 
+    /*
+    This action calculates the restitution between the two objects.
+    Attribute: Paramter body0 The first Item3D that is involved in the collision.
+    Attribute: Paramter body1 The second Item3D that is involved in the collision.
+    Attribute: Returns the restitution between the two objects.
+    */
     action CalculateCombinedRestitution(Item3D body0, Item3D body1) returns number
         if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
             return 0
@@ -117,6 +160,9 @@ class CollisionPointsResult3D
         return max
     end
 
+    /*
+    This action changes the collision points between the two objects to new points calculated.
+    */
     action RefreshCollisionPoints
         if collisionPoints:GetPointCount() = 0
             return now
