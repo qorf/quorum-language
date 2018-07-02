@@ -42,9 +42,9 @@ RequestExecutionLevel admin
  ;------------------------------
 ; Bundling configuration
 !define NETInstaller "dotNetFx35setup.exe" ; .NET 3.5.
-!define JDKInstaller "jdk-8u131-windows-i586.exe" ; JDK 8 update 131, 32-bit.
+!define JDKInstaller "jdk-8u171-windows-i586.exe" ; JDK 8 update 131, 32-bit.
 ;!define CPPInstaller "vcredist_x86.exe" ; VS 2010 redistributable 32-bit.
-!define JDKInstaller64 "jdk-8u131-windows-x64.exe" ; JDK 8 update 131, 64-bit.
+!define JDKInstaller64 "jdk-8u171-windows-x64.exe" ; JDK 8 update 131, 64-bit.
 ;!define CPPInstaller64 "vcredist_x64.exe" ; VS 2010 redistributable 64-bit.
 
 ; Macros
