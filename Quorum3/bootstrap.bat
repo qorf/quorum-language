@@ -42,6 +42,8 @@ robocopy Library ../../../quorumstudio/QuorumStudio /s /e /NFL /NDL /NJH /NJS /n
 echo "Copying Quorum to its final form."
 mkdir ..\Quorum
 copy Run\Quorum.jar ..\Quorum\Quorum.jar
+copy Run\QuorumStandardLibrary.jar ..\Quorum\QuorumStandardLibrary.jar
+copy Run\QuorumStandardPlugins.jar ..\Quorum\QuorumStandardPlugins.jar
 
 robocopy Library ..\Quorum\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
 
