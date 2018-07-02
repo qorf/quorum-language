@@ -158,6 +158,8 @@ class BroadphaseCollision3D
     /*
     This action returns number of nodes in the DynamicBoundingVolumeTree3D
     tree.
+    Attribute: Returns the number of nodes in the DynamicBoundingVolumeTree3D
+    tree.
     */
     action CountNodes returns integer
         return tree:CountNodes()
@@ -254,6 +256,7 @@ class BroadphaseCollision3D
     /*
     This action adds the node with the id of "integer id" to a list of nodes
     that should be moved with a certain displacement.
+    Attribute: Parameter id Identifier for a node.
     */
     private action BufferMove(integer id)
         moveList:Add(id)
@@ -263,6 +266,7 @@ class BroadphaseCollision3D
     /*
     This action gets ride of the node with the id of "integer id" from a list of nodes
     that should be moved with a certain displacement.
+    Attribute: Parameter id Identifier for a node.
     */
     private action UnbufferMove(integer id)
         integer i = 0

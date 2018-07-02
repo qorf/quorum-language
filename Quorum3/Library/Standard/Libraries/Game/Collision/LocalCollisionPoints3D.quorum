@@ -39,6 +39,8 @@ class LocalCollisionPoints3D
     this LocalCollisionPoints3D class and reset the number of collision points
     recorded to 0 and the index of this LocalCollisionPoints3D (if there is ever
     an array of LocalCollisionPoints3D) to 0.
+    Attribute: Parameter body0 The first item.
+    Attribute: Parameter body1 The second item.
     */
     action Set(Item3D body0, Item3D body1)
         me:body0 = body0
@@ -51,6 +53,8 @@ class LocalCollisionPoints3D
     This action returns the CollisionPoint3D and its index that will be replaced
     when there are more than 4 CollisionPoint3Ds that needs to be stored inside
     this LocalCollisionPoints3D.
+    Attribute: Parameter point The collision point that will be replaced.
+    Attribute: Returns the index of the collision point that will be replaced.
     */
     private action SortCachedPoints(CollisionPoint3D point) returns integer
         integer maxPenetrationIndex = -1
@@ -330,6 +334,8 @@ class LocalCollisionPoints3D
     /*
     This action checks whether the distances between objects A and B is small
     enough for these two objects to be considered as colliding.
+    Attribute: Parameter point The collision point to check.
+    Attribute: Returns true if the objcts are colliding at the collision point.
     */
     private action ValidCollisionDistance(CollisionPoint3D point) returns boolean
         return point:GetDistance() <= GetCollisionBreakingThreshold()

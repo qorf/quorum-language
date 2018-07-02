@@ -17,6 +17,8 @@ class CollisionIdentifier2D
 
     /*
     This action is used to compare between identifiers to see if they are equal.
+    Attribute: Parameter other The other identifier to be compared to.
+    Attribute: Returns true if they are equal, false if they are not equal.
     */
     action Equals(CollisionIdentifier2D other) returns boolean
         return indexA = other:indexA and indexB = other:indexB and typeA = other:typeA and typeB = other:typeB
@@ -24,7 +26,8 @@ class CollisionIdentifier2D
 
     /*
     This action sets the current CollisionIdentifier2D using another 
-    CollisionIdentifier2D.
+    CollisionIdentifier2D.  
+    Attribute: Parameter other The other CollisionIdentifier2D to be copied from.
     */
     action Set(CollisionIdentifier2D other)
         me:indexA = other:indexA
@@ -57,6 +60,7 @@ class CollisionIdentifier2D
 
     /*
     This action sets the group index of object A.
+    Attribute: indexA The group index of object A.
     */
     action SetIndexA(integer indexA)
         me:indexA = indexA
@@ -64,6 +68,7 @@ class CollisionIdentifier2D
 
     /*
     This action gets the group index of object A.
+    Attribute: Returns the group index of object A.
     */
     action GetIndexA returns integer
         return indexA
@@ -71,6 +76,7 @@ class CollisionIdentifier2D
 
     /*
     This action sets the group index of object B.
+    Attribute: Parameter indexB The group index of object B.
     */
     action SetIndexB(integer indexB)
         me:indexB = indexB
@@ -78,6 +84,7 @@ class CollisionIdentifier2D
 
     /*
     This action gets the group index of object B.
+    Attribute: Returns the group index of object B.
     */
     action GetIndexB returns integer
         return indexB
@@ -85,6 +92,7 @@ class CollisionIdentifier2D
 
     /*
     This action sets whether object A is colliding with its edge or vertex.
+    Attribute: Parameter typeA The type of collision.
     */
     action SetTypeA(integer typeA)
         me:typeA = typeA
@@ -92,6 +100,7 @@ class CollisionIdentifier2D
 
     /*
     This action returns whether object A is colliding with its edge or vertex.
+    Attribute: Returns the type of collision.
     */
     action GetTypeA returns integer
         return typeA
@@ -99,6 +108,7 @@ class CollisionIdentifier2D
 
     /*
     This action sets whether object B is colliding with its edge or vertex.
+    Attribute: Parameter typeB The type of collision.
     */
     action SetTypeB(integer typeB)
         me:typeB = typeB
@@ -106,6 +116,7 @@ class CollisionIdentifier2D
 
     /*
     This action returns whether object B is colliding with its edge or vertex.
+    Attribute: Returns the type of collision.
     */
     action GetTypeB returns integer
         return typeB

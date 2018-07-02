@@ -27,6 +27,8 @@ class SolverItem3D
     /*
     This action lets you know the linear velocity of a point "Vector3 relativePosition"
     on this 3D object.
+    Attribute: Parameter relativePosition A point on the 3D object.
+    Attribute: Parameter velocity Where velocity will be stored.
     */
     action GetVelocityInLocalPoint(Vector3 relativePosition, Vector3 velocity)
         Vector3 temp
@@ -38,6 +40,9 @@ class SolverItem3D
     This action allows you to add linear velocity, "Vector3 linearComponent," and
     add angular velocity, "Vector3 angularComponent," both scaled by
     "number impulseMagnitude" to the current linear velocity and angular velocity of this 3D object.
+    Attribute: Parameter linearComponent Linear impulse.
+    Attribute: Parameter angularComponent Angular impulse.
+    Attribute: Parameter impulseMagnitude Magnitude of the impulse.
     */
     action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
@@ -53,6 +58,9 @@ class SolverItem3D
     This action allows you to add linear velocity, "Vector3 linearComponent," and
     add angular velocity, "Vector3 angularComponent," both scaled by
     "number impulseMagnitude" to the current push linear velocity and push angular velocity of this 3D object.
+    Attribute: Parameter linearComponent Linear push impulse.
+    Attribute: Parameter angularComponent Angular turn impulse.
+    Attribute: Parameter impulseMagnitude Magnitude of the impulse.
     */
     action InternalApplyPushImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
@@ -79,6 +87,7 @@ class SolverItem3D
     This action updates the angular and linear velocities in the 3D object that
     is attached to this SolverItem3D using a predicted angular and linear velocities.
     This also updates that 3D object's position with a predicted position.
+    Attribute: Parameter timeStep The time of simulation.
     */
     action WriteBackVelocity(number timeStep)
         if inverseMass not= 0
@@ -136,6 +145,7 @@ class SolverItem3D
 
     /*
     This action returns the angular velocity stored inside this SolverItem3D class.
+    Attribute: Returns the angular velocity stored inside this SolverItem3D class.
     */
     action GetAngularVelocity returns Vector3
         return angularVelocity
@@ -143,6 +153,7 @@ class SolverItem3D
 
     /*
     This action sets the angular velocity stored inside this SolverItem3D class.
+    Attribute: Parameter velocity the angular velocity stored inside this SolverItem3D class.
     */
     action SetAngularVelocity(Vector3 velocity)
         me:angularVelocity = velocity
@@ -150,6 +161,7 @@ class SolverItem3D
 
     /*
     This action returns the 1/mass value stored inside this SolverItem3D class.
+    Attribute: Returns the 1/mass value stored inside this SolverItem3D class.
     */
     action GetInverseMass returns number
         return inverseMass
@@ -157,6 +169,7 @@ class SolverItem3D
 
     /*
     This action sets the 1/mass value stored inside this SolverItem3D class.
+    Attribute: Parameter the 1/mass value stored inside this SolverItem3D class.
     */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
@@ -164,6 +177,7 @@ class SolverItem3D
 
     /*
     This action returns the friction stored inside this SolverItem3D class.
+    Attribute: Returns the coefficient of friction.
     */
     action GetFriction returns number
         return friction
@@ -171,6 +185,7 @@ class SolverItem3D
 
     /*
     This action sets the friction stored inside this SolverItem3D class.
+    Attribute: Parameter friction The coefficient of friction.
     */
     action SetFriction(number friction)
         me:friction = friction
@@ -178,6 +193,7 @@ class SolverItem3D
 
     /*
     This action returns which 3D object is attached to this SolverItem3D.
+    Attribute: Returns the 3D object is attached to this SolverItem3D.
     */
     action GetOriginalItem returns Item3D
         return originalItem
@@ -185,6 +201,7 @@ class SolverItem3D
 
     /*
     This action sets which 3D object is attached to this SolverItem3D.
+    Attribute: Parameter item The 3D object to be attached to this SolverItem3D.
     */
     action SetOriginalItem(Item3D item)
         me:originalItem = item
@@ -192,6 +209,7 @@ class SolverItem3D
 
     /*
     This action returns the linear velocity stored inside this SolverItem3D class.
+    Attribute: Returns the linear velocity of the 3D object.
     */
     action GetLinearVelocity returns Vector3
         return linearVelocity
@@ -199,6 +217,7 @@ class SolverItem3D
 
     /*
     This action sets the linear velocity stored inside this SolverItem3D class.
+    Attribute: Parameter velocity the linear velocity of the 3D object.
     */
     action SetLinearVelocity(Vector3 velocity)
         me:linearVelocity = velocity
@@ -206,6 +225,7 @@ class SolverItem3D
 
     /*
     This action returns where the center of the 3D object is.
+    Attribute: Returns the center of the 3D object.
     */
     action GetCenterOfMassPosition returns Vector3
         return centerOfMassPosition
@@ -213,7 +233,8 @@ class SolverItem3D
 
 
     /*
-    This action sets where the center of the 3D object is.
+    This action sets where the center of the 3D object is.  
+    Attribute: Parameter position The center of the 3D object.
     */
     action SetCenterOfMassPosition(Vector3 position)
         me:centerOfMassPosition = position
@@ -221,6 +242,7 @@ class SolverItem3D
 
     /*
     This action returns the push velocity.
+    Attribute: Returns the push velocity.
     */
     action GetPushVelocity returns Vector3
         return pushVelocity
@@ -228,6 +250,7 @@ class SolverItem3D
 
     /*
     This action sets the push velocity.
+    Attribute: Parameter velocity The push velocity.
     */
     action SetPushVelocity(Vector3 velocity)
         me:pushVelocity = velocity
@@ -235,6 +258,7 @@ class SolverItem3D
 
     /*
     This action returns the turn velocity.
+    Attribute: Returns the turn velocity.
     */
     action GetTurnVelocity returns Vector3
         return turnVelocity
@@ -242,6 +266,7 @@ class SolverItem3D
 
     /*
     This action sets the turn velocity.
+    Attribute: Parameter velocity the turn velocity.
     */
     action SetTurnVelocity(Vector3 velocity)
         me:turnVelocity = velocity
@@ -249,6 +274,7 @@ class SolverItem3D
 
     /*
     This action returns the angular factor.
+    Attribute: Returns the angular factor.
     */
     action GetAngularFactor returns number
         return angularFactor
@@ -256,6 +282,7 @@ class SolverItem3D
 
     /*
     This action sets the angular factor.
+    Attribute: Parameter The angular factor.
     */
     action SetAngularFactor(number factor)
         me:angularFactor = factor

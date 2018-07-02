@@ -59,6 +59,7 @@ class PhysicsProperties2D
     physics on the item when a "PhysicsProperties2D" property holder will be 
     created so that Item2D will be attached to that property holder and the
     property holder will be attached to the Item2D.
+    Attribute: Parameter item The other Item2D to be copied from.
     */
     action SetItem(Item2D item)
         me:item = item
@@ -113,7 +114,8 @@ class PhysicsProperties2D
 
 
     /*
-    This action returns the Item2D that is attached to these physical properties.
+    This action returns the Item2D that is attached to this physical properties.
+    Attribute: Returns the Item2D that is has this physical properties.
     */
     action GetItem returns Item2D
         return item
@@ -123,6 +125,7 @@ class PhysicsProperties2D
     /*
     This action allows another PhysicsProperties2D object to be assigned by
     the values stored inside the current PhysicsProperties2D object.
+    Attribute: Returns another PhysicsProperties2D that has the same value as the current PhysicsProperties2D.
     */
     action Copy returns PhysicsProperties2D
         PhysicsProperties2D new
@@ -156,6 +159,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the linear velocity of the 2D object.
+    Attribute: Parameter linearVelocity The linear velocity of the 2D object.
     */
     action SetLinearVelocity(Vector2 linearVelocity)
         if type = UNMOVABLE
@@ -173,6 +177,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the x component of the linear velocity of the 2D object.
+    Attribute: Parameter linearVelocityX The x component of the linear velocity of the 2D object.
     */
     action SetLinearVelocityX(number linearVelocityX)
         if type = UNMOVABLE
@@ -188,6 +193,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the y component of the linear velocity of the 2D object.
+    Attribute: Parameter linearVelocityY The y component of the linear velocity of the 2D object.
     */
     action SetLinearVelocityY(number linearVelocityY)
         if type = UNMOVABLE
@@ -204,6 +210,7 @@ class PhysicsProperties2D
     /*
     This action returns both the x and y components of the linear velocity as 
     a 2D vector.
+    Attribute: Returns the x and y components of the linear velocity.
     */
     action GetLinearVelocity returns Vector2
         return linearVelocity
@@ -212,6 +219,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the angular velocity of the 2D object.
+    Attribute: Parameter angularVelocity How fast the 2D object will rotate.
     */
     action SetAngularVelocity(number angularVelocity)
         if type = UNMOVABLE     //static object doesn't move 
@@ -227,6 +235,7 @@ class PhysicsProperties2D
 
     /*
     This action returns the angular velocity of the 2D object.
+    Attribute: Returns how fast the 2D object will rotate.
     */
     action GetAngularVelocity returns number
         return angularVelocity
@@ -243,6 +252,7 @@ class PhysicsProperties2D
     a specific force that you want to apply to the object. To apply a force
     that you want to an object, use "ApplyForce(Vector2 force, Vector2 point)"
     or "ApplyForceToCenter(Vector2 force)".
+    Attribute: Parameter force The force that will be applied to the object
     */
     action SetForce(Vector2 force)
         me:force = force
@@ -254,6 +264,7 @@ class PhysicsProperties2D
 
     /*
     This action gets the force that is stored in this object.
+    Attribute: Returns the force that will be applied to the object.
     */
     action GetForce returns Vector2
         return force
@@ -261,6 +272,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the torque that could potentially be applied to this object.
+    Attribute: Parameter torque The magnitude of torque that could potentially be applied to this object to rotate this object.
     */
     action SetTorque(number torque)
         me:torque = torque
@@ -271,6 +283,7 @@ class PhysicsProperties2D
 
     /*
     This action gets the torque that is stored inside this object.
+    Attribute: Returns torque.
     */
     action GetTorque returns number
         return torque
@@ -328,6 +341,7 @@ class PhysicsProperties2D
     This action applies a torque to the center of mass of the object, which means
     this torque will only affect the angular velocity of the object but not
     the linear velocity of the object.
+    Attribute: Parameter torque The magnitude of torque to the center of mass of the object.
     */
     action ApplyTorque(number torque)
         if type not= RESPONSIVE
@@ -375,6 +389,7 @@ class PhysicsProperties2D
     /*
     This action applied an angular impulse to the object which will cause the
     object to have a sudden change in angular velocity.
+    Attribute: Parameter impulse The magnitude of the angular impulse.
     */
     action ApplyAngularImpulse(number impulse)
         if type not= RESPONSIVE
@@ -392,6 +407,7 @@ class PhysicsProperties2D
 
     /*
     This action returns the mass of the object.
+    Attribute: Returns the mass of the object.
     */
     action GetMass returns number
         return mass
@@ -400,6 +416,7 @@ class PhysicsProperties2D
     /*
     This action sets the mass of the this property holder, which will also 
     set the density if a 2D item has been attached to this property holder. 
+    Attribute: Parameter mass The mass of the object.
     */
     action SetMass(number mass)
         me:mass = mass
@@ -412,6 +429,7 @@ class PhysicsProperties2D
     /*
     This action changes the mass of this property holder, this will not
     change the density of this property holder.
+    Attribute: Parameter mass The mass of the object.
     */
     action AssignMass(number mass)
         me:mass = mass
@@ -420,6 +438,7 @@ class PhysicsProperties2D
     /*
     This action returns the reciprocal of the mass (1/mass) inside this 
     property holder. 
+    Attribute: Returns the (1/mass) value.
     */
     action GetInverseMass returns number
         return inverseMass
@@ -429,6 +448,7 @@ class PhysicsProperties2D
     /*
     This action sets the reciprocal of the mass (1/mass) inside this 
     property holder without changing mass and density.
+    Attribute: Parameter inverseMass The (1/mass) value.
     */
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
@@ -438,6 +458,8 @@ class PhysicsProperties2D
     This action returns the mass moment of inertia about the object's local
     origin (NOTE: not the mass moment of inertia about the object's center of
     mass).
+    Attribute: Returns the mass moment of inertia about the object's local
+    origin.
     */
     action GetInertia returns number
         Sweep2D sweep = item:GetSweep()
@@ -446,8 +468,10 @@ class PhysicsProperties2D
 
 
     /*
-    This action sets the mass moment of inertia about the about the center 
-    of mass of the 2D object.
+    This action sets the mass moment of inertia about the about the object's local
+    origin.
+    Attribute: Parameter inertia The mass moment of inertia about the object's local
+    origin.
     */
     action SetInertia(number inertia)
         me:inertia = inertia
@@ -455,6 +479,8 @@ class PhysicsProperties2D
 
     /*
     This action returns the mass moment of inertia about the object's center
+    of mass.
+    Attribute: Returns the mass moment of inertia about the object's center
     of mass.
     */
     action GetRawInertia returns number
@@ -464,6 +490,8 @@ class PhysicsProperties2D
     /*
     This action returns the reciprocal of the mass moment of inertia about
     the object's center of mass.
+    Attribute: Returns the reciprocal of the mass moment of inertia about
+    the object's center of mass.
     */
     action GetInverseInertia returns number
         return inverseInertia
@@ -472,6 +500,8 @@ class PhysicsProperties2D
     /*
     This action sets the reciprocal of the mass moment of inertia about
     the object's center of mass.
+    Attribute: Parameter inverseInertia The reciprocal of the mass moment of inertia about
+    the object's center of mass.
     */
     action SetInverseInertia(number inverseInertia)
         me:inverseInertia = inverseInertia
@@ -479,6 +509,7 @@ class PhysicsProperties2D
 
     /*
     This action gets the linear damping inside this property holder.
+    Attribute: Return linear damping coefficient.
     */
     action GetLinearDamping returns number
         return linearDamping
@@ -486,6 +517,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the linear damping inside this property holder.
+    Attribute: Parameter linearDamping The linear damping coefficient.
     */
     action SetLinearDamping(number linearDamping)
         me:linearDamping = linearDamping
@@ -493,6 +525,7 @@ class PhysicsProperties2D
 
     /*
     This action gets the angular damping inside this property holder.
+    Attribute: Return angular damping coefficient.
     */
     action GetAngularDamping returns number
         return angularDamping
@@ -500,6 +533,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the angular damping inside this property holder.
+    Attribute: Parameter angularDamping The angular damping coefficient.
     */
     action SetAngularDamping(number angularDamping)
         me:angularDamping = angularDamping
@@ -528,6 +562,7 @@ class PhysicsProperties2D
     /*
     This action sets how physics (linear velocity, angular velocity, force, 
     torque) will affect the object.
+    Attribute: Parameter type How physics will affect the object. 
     */
     action SetResponsiveness(integer type)
         if me:type = type
@@ -566,6 +601,7 @@ class PhysicsProperties2D
     holder. With the density changed, if there is a mass attached to this
     property holder, then the mass of the 2D object will also change based 
     on the object's shape.
+    Attribute: Parameter density The density of the object.
     */
     action SetDensity(number density)
         if density >= 0
@@ -578,6 +614,7 @@ class PhysicsProperties2D
 
     /*
     This action returns the density that is stored inside this property holder.
+    Attribute: Returns the density of the object.
     */
     action GetDensity returns number
         return density
@@ -585,6 +622,7 @@ class PhysicsProperties2D
 
     /*
     This action sets the friction that is stored inside this property holder.
+    Attribute: Parameter friction The coefficient of friction.
     */
     action SetFriction(number friction)
         me:friction = friction
@@ -592,6 +630,7 @@ class PhysicsProperties2D
 
     /*
     This action gets the friction that is stored inside this property holder.
+    Attribute: Returns the coefficient of friction.
     */
     action GetFriction returns number
         return friction
@@ -604,6 +643,7 @@ class PhysicsProperties2D
     you want the object to loose a lot of energy (meaning, they would probably
     move a lot slower after the collision), then you can pass in a 0.0.
     You can also use the values between 0 and 1.
+    Attribute: Parameter restitution The coefficient of restitution.
     */
     action SetRestitution(number restitution)
         me:restitution = restitution
@@ -612,6 +652,7 @@ class PhysicsProperties2D
 
     /*
     This action returns how much energy that this 3D object will loose after a collision.
+    Attribute: Returns the coefficient of restitution.
     */
     action GetRestitution returns number
         return restitution
@@ -621,6 +662,8 @@ class PhysicsProperties2D
     /*
     This action sets whether the object attached to this property holder will
     be inside a collision group.
+    Attribute: Parameter flag Whether the object attached to this property holder will
+    be inside a collision group.
     */
     action SetCollisionGroupFlag(boolean flag)
         collisionGroupFlag = flag
@@ -629,13 +672,15 @@ class PhysicsProperties2D
     /*
     This action gets whether the object attached to this property holder will
     be inside a collision group.
+    Attribute: Returns false if the object is not in a collision group.
     */
     action GetCollisionGroupFlag returns boolean
         return collisionGroupFlag
     end
 
     /*
-    This action sets which collision group that this object will be in.
+    This action sets which collision group that this object will be in. 
+    Attribute: Parameter index The collision group that this object will be in. 
     */
     action SetCollisionGroupIndex(integer index)
         collisionGroupIndex = index
@@ -644,6 +689,7 @@ class PhysicsProperties2D
 
     /*
     This action gets which collision group that this object will be in.
+    Attribute: Returns the collision group that this object will be in. 
     */
     action GetCollisionGroupIndex returns integer
         return collisionGroupIndex
@@ -651,9 +697,10 @@ class PhysicsProperties2D
 
     
     /*
-    This action tells you whether if this object will be moving fast. If the object will be moving fast, then there 
+    This action tells you whether if this object will be moving quickly. If the object will be moving fast, then there 
     will be more careful of a calculation of how this object collides with other 
     objects.
+    Attribute: Returns true if this object will be moving quickly.
     */
     action IsFastMoving returns boolean
         return fastMoving
@@ -662,9 +709,10 @@ class PhysicsProperties2D
 
     /*
     This action sets whether if the object attached to this property holder
-    will be moving fast. If the object will be moving fast, then there 
+    will be moving quickly. If the object will be moving fast, then there 
     will be more careful of a calculation of how this object collides with other 
     objects.
+    Attribute: Parameter flag True if this object will be moving quickly.
     */
     action FastMoving(boolean flag)
         fastMoving = flag
@@ -673,6 +721,7 @@ class PhysicsProperties2D
     /*
     This action sets whether if the object attached to this property holder
     will require its position to be moved.
+    Attribute: Parameter flag True if will require its position to be moved.
     */
     action RequireSimulation(boolean flag)
         simulationRequired = flag
@@ -685,6 +734,7 @@ class PhysicsProperties2D
     /*
     This action tells you whether if you need to move the object that is 
     attached to this property holder.
+    Attribute: Returns true if will require its position to be moved.
     */
     action IsSimulationRequired returns boolean
         return simulationRequired
@@ -695,6 +745,7 @@ class PhysicsProperties2D
     simulation is required of the object that is attached to this property holder.
     If simulation is not required, then this means that the object's position will
     not change.
+    Attribute: Parameter flag True if you want to simulate the object.
     */
     action Simulate(boolean flag)
         if flag //"awake"
@@ -715,6 +766,7 @@ class PhysicsProperties2D
     /*
     This action tells you if the object attached to this property holder
     is being simulated.
+    Attribute: Returns True if you want to simulate the object.
     */
     action IsSimulated returns boolean
         return simulated
@@ -725,6 +777,7 @@ class PhysicsProperties2D
     /*
     This action sets whether the 2D object attached to this property holder
     will be able to rotate or not.
+    Attribute: Parameter flag True if this object can rotate.
     */
     action CanRotate(boolean flag)
         canRotate = flag
@@ -733,6 +786,7 @@ class PhysicsProperties2D
     /*
     This action tells you if the 2D object attached to this property holder
     will be able to rotate. 
+    Attribute: Returns True if this object can rotate.
     */
     action IsRotationAllowed returns boolean
         return canRotate
@@ -741,6 +795,8 @@ class PhysicsProperties2D
     /*
     This action sets how much time that the 2D object attached to this 
     property holder will remain in its current position.
+    Attribute: Parameter time How much time that the 2D object attached to this 
+    property holder will remain in its current position.
     */
     action SetSleepTime(number time)
         sleepTime = time
@@ -748,6 +804,8 @@ class PhysicsProperties2D
 
     /*
     This action gets how much time that the 2D object attached to this 
+    property holder will remain in its current position.
+    Attribute: Returns how much time that the 2D object attached to this 
     property holder will remain in its current position.
     */
     action GetSleepTime returns number
