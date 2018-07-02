@@ -38,7 +38,8 @@ class Main is WebResponder
     Library sharedLibrary = undefined
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
+        CompileTest()
     end
 
     action GenerateDocumentation(Array<text> fileNames)
@@ -179,17 +180,17 @@ class Main is WebResponder
         output "Scanning"
         number start = time:GetEpochTime()
         Library library
-        library:SetCachingLibraryOpcodes(true)
+        //library:SetCachingLibraryOpcodes(true)
         library:SetLocation(standardLibraryFolder)
-        library:SetOutputFolder(outputLocation)
-        library:Scan()
+        //library:SetOutputFolder(outputLocation)
+        //library:Scan()
         output ""
         number finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
 
         output "Writing Standard Library"
         start = time:GetEpochTime()
-        library:Write()
+        //library:Write()
         finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
 
@@ -202,17 +203,21 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/Library/Tests/Expressions/Pass/")
+        main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplicationwerwer/SourceCode")
+        File main2
+        main2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplicationwerwer/SourceCode")
         //main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
         //main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
         //main:SetPath("Library/Tests/Templating/Fail/DoubleTest.quorum")
-        main:SetPath("ConstructorOr.quorum")
+        main:SetPath("main.quorum")
+        main2:SetPath("ButtonBehavior.quorum")
         Array<File> files
         //files:Add(main)
         //compiler:SetMain(main)
 
         //files = main:GetParentDirectory():GetDirectoryListing()
         files:Add(main)
+        files:Add(main2)
 
         CompilerRequest request
         request:files = files

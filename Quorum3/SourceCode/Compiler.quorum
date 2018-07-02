@@ -1163,6 +1163,7 @@ class Compiler
                 ResolveParents(table, parents, parsed, unparsed, clazz)
 
                 ResolveBlocks(table, parsed, unparsed, clazz)
+                ResolveFields(table, parsed, unparsed, clazz)
             end
 
             //make list of any new classes that need to be analyzed
@@ -1192,6 +1193,17 @@ class Compiler
         return parsed
     end
 
+    private action ResolveFields(SymbolTable table, HashTable<text, File> parsed,
+        HashTable<text, File> unparsed, Class clazz)
+        
+        Iterator<Variable> variables = clazz:GetVariables()
+        repeat while variables:HasNext()
+            Variable var = variables:Next()
+            Type type = var:GetType()
+            ResolveClass(table, type:GetStaticKey(), clazz, parsed, unparsed)
+        end
+    end
+
     private action ResolveBlocks(SymbolTable table, HashTable<text, File> parsed,
         HashTable<text, File> unparsed, Class clazz)
         
@@ -1205,9 +1217,32 @@ class Compiler
                 Type type = parameter:GetType()
                 ResolveClass(table, type:GetStaticKey(), clazz, parsed, unparsed)
             end
+
+            Block value = act:GetBlock()
+            if value not= undefined
+                ResolveBlock(value, table, parsed, unparsed, clazz)
+            end
         end
     end
 
+    private action ResolveBlock(Block block, SymbolTable table, HashTable<text, File> parsed,
+        HashTable<text, File> unparsed, Class clazz)
+        
+        Iterator<Variable> variables = block:GetVariables()
+        repeat while variables:HasNext()
+            Variable var = variables:Next()
+            Type type = var:GetType()
+            if type not= undefined
+                ResolveClass(table, type:GetStaticKey(), clazz, parsed, unparsed)
+            end
+        end
+
+        Iterator<Block> blocks = block:GetBlocks()
+        repeat while blocks:HasNext()
+            Block nestedBlock = blocks:Next()
+            ResolveBlock(nestedBlock, table, parsed, unparsed, clazz)
+        end
+    end
     /*
         This action handles resolving a class or otherwise scheduling a parse
         from the standard library. If a class is returned, then it has
