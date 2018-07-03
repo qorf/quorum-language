@@ -22,7 +22,6 @@ Attribute: Example
     use Libraries.Game.Game
 
     class Main is Game
-
         action Main
             StartGame()
         end
@@ -39,7 +38,6 @@ Attribute: Example
             label:SetFont(font)
             Add(label)
         end
-
     end
 */
 class FontStrategy 
@@ -55,7 +53,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -66,7 +63,6 @@ class FontStrategy
                 file:SetPath("CustomFont.ttf")
                 font:LoadFont(file)
             end
-
         end
     */
     blueprint action LoadFont(File fontFile)
@@ -84,7 +80,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -93,7 +88,6 @@ class FontStrategy
                 Font font
                 font:LoadFont("Arial")
             end
-
         end
     */
     blueprint action LoadFont(text fontName)
@@ -113,7 +107,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -122,7 +115,6 @@ class FontStrategy
                 Font font
                 boolean hasFont = font:FontIsAvailable("Times New Roman")
             end
-
         end
     */
     blueprint action FontIsAvailable(text fontName) returns boolean
@@ -138,7 +130,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -147,7 +138,6 @@ class FontStrategy
                 Font font
                 font:SetSize(16)
             end
-
         end
     */
     blueprint action SetSize (integer newSize)
@@ -164,7 +154,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -173,7 +162,6 @@ class FontStrategy
                 Font font
                 output "The default font size is " + font:GetSize()
             end
-
         end
     */
     blueprint action GetSize returns integer
@@ -190,7 +178,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -199,7 +186,6 @@ class FontStrategy
                 Font font
                 font:Rotate(45)
             end
-
         end
     */
     blueprint action Rotate(number rotation)
@@ -216,7 +202,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -225,7 +210,6 @@ class FontStrategy
                 Font font
                 font:SetAngle(90)
             end
-
         end
     */
     blueprint action SetAngle(number newAngle)
@@ -242,7 +226,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -252,7 +235,6 @@ class FontStrategy
                 Color color
                 font:SetColor(color:Orange())
             end
-
         end
     */
     blueprint action SetColor(Color newColor)
@@ -269,7 +251,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -278,7 +259,6 @@ class FontStrategy
                 Font font
                 Color color = font:GetColor()
             end
-
         end
     */
     blueprint action GetColor returns Color
@@ -295,7 +275,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -304,7 +283,6 @@ class FontStrategy
                 Font font
                 output "The font has an angle of " + font:GetAngle() + " degrees."
             end
-
         end
     */
     blueprint action GetAngle returns number
@@ -319,7 +297,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -329,7 +306,6 @@ class FontStrategy
                 font:LoadFont("Arial")
                 font:Dispose()
             end
-
         end
     */
     blueprint action Dispose
@@ -349,7 +325,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -359,7 +334,6 @@ class FontStrategy
                 font:LoadFont("Arial")
                 Glyph a = font:GetGlyph("a")
             end
-
         end
     */
     blueprint action GetGlyph(text character) returns Glyph
@@ -404,7 +378,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -414,7 +387,6 @@ class FontStrategy
                 font:LoadFont("Arial")
                 boolean loaded = font:IsLoaded()
             end
-
         end
     */
     blueprint action IsLoaded returns boolean
@@ -430,7 +402,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -440,7 +411,6 @@ class FontStrategy
                 font:LoadFont("Arial")
                 integer height = font:GetLineHeight()
             end
-
         end
     */
     blueprint action GetLineHeight returns integer
@@ -459,7 +429,6 @@ class FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -475,7 +444,6 @@ class FontStrategy
                     index = index + 1
                 end
             end
-
         end
     */
     blueprint action GetAvailableFonts returns Array<File>

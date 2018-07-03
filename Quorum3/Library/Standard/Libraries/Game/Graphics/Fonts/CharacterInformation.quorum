@@ -9,7 +9,7 @@ and ways to retrieve that information.
 
 Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
+    use Libraries.Game.Graphics.Fonts.all
     use Libraries.Game.Game
     use Libraries.Containers.HashTable
 
@@ -49,19 +49,19 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
 
-    class Main is Game
-        action main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                info:SetCharacterCode(97)
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            info:SetCharacterCode(97)
-        end
-    end
     */ 
     action SetCharacterCode(integer charCode)
         me:characterCode = charCode
@@ -77,19 +77,19 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
 
-    class Main is Game
-        action Main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                info:SetGlyphIndexAndOffset(0, 0)
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            info:SetGlyphIndexAndOffset(0, 0)
-        end
-    end
     */
     action SetGlyphIndexAndOffset(integer glyphIndex, integer glyphOffset) 
         me:glyphLocationTableIndex = glyphIndex
@@ -103,21 +103,20 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Graphics.Fonts.BezierCurveGlyphPoints
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
 
-    class Main is Game
-        action Main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                BezierCurveGlyphPoints glyphOutline
+                info:SetGlyphPoints(glyphOutline)
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            BezierCurveGlyphPoints glyphOutline
-            info:SetGlyphPoints(glyphOutline)
-        end
-    end
     */
     action SetGlyphPoints(BezierCurveGlyphPoints glyphPoints)
         me:glyphPoints = glyphPoints
@@ -131,21 +130,21 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Graphics.Glyph
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Graphics.Glyph
+        use Libraries.Game.Game
 
-    class Main is Game
-        action Main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                Glyph glyph
+                info:SetGlyph(glyph)
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            Glyph glyph
-            info:SetGlyph(glyph)
-        end
-    end
     */
     action SetGlyph(Glyph glyph)
         me:glyph = glyph
@@ -159,19 +158,19 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
 
-    class Main is Game
-        action Main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                integer characterCode = info:GetCharacterCode()
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            integer characterCode = info:GetCharacterCode()
-        end
-    end
     */  
     action GetCharacterCode returns integer
         return me:characterCode
@@ -184,41 +183,151 @@ class CharacterInformation
 
     Attribute: Example
 
-    use Libraries.Game.Graphics.Fonts.CharacterInformation
-    use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
 
-    class Main is Game
-        action Main
-            StartGame()
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                integer location = info:GetGlyphLocationTableIndex()
+            end
         end
-        
-        action CreateGame
-            CharacterInformation info
-            integer location = info:GetGlyphLocationTableIndex()
-        end
-    end
     */
     action GetGlyphLocationTableIndex returns integer 
         return me:glyphLocationTableIndex
     end
 
-    
+    /*
+    This action returns the offset for the location of the glyph table within
+    the file.
+
+    Attribute: Returns Returns the offset for the location of the glyph table.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                integer offset = info:GetGlyphTableOffset()
+            end
+        end    
+    */
     action GetGlyphTableOffset returns integer
         return me:glyphTableOffset
     end
 
+    /*
+    This action returns the Bezier curve glyph points for a given character.
+
+    Attribute: Returns Returns the Bezier curve glyph points for a given character.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                BezierCurveGlyphPoints glyphPoints = info:GetGlyphPoints()
+            end
+        end
+    */
     action GetGlyphPoints returns BezierCurveGlyphPoints
         return me:glyphPoints
     end
 
+    /*
+    This action returns the glyph for a given character.
+
+    Attribute: Returns Returns the glyph for a given character.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Graphics.Glyph
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end 
+
+            action CreateGame
+                CharacterInformation info
+                Glyph glyph = info:GetGlyph()
+            end
+        end
+    */
     action GetGlyph returns Glyph
         return me:glyph
     end
 
+    /*
+    This action returns whether or not the Bezier curve glyph points have been
+    read from the file.
+
+    Attribute: Returns Returns true if the Bezier curve glyph points have been
+    read from the file, and false if they have not.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+       
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                output info:GlyphPointsHaveBeenRead()
+            end
+        end
+    */
     action GlyphPointsHaveBeenRead() returns boolean
         return me:glyphPointsHaveBeenRead
     end
 
+    /*
+    This action returns whether or not the glyph has been created for a given
+    character. 
+
+    Attribute: Returns Returns true if the glyph for a given character has been
+    created, and false if it has not.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                CharacterInformation info
+                output info:HasGlyph()
+            end
+        end
+    */
     action HasGlyph returns boolean
         return me:glyphHasBeenMade
     end

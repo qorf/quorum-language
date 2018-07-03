@@ -28,11 +28,11 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Veranda")
+            if not font:FontIsAvailable("Verdana")
                 output "The font could not be found!"
                 return now
             end
-            font:LoadFont("Veranda")
+            font:LoadFont("Verdana")
             font:SetSize(18)
             label:SetFont(font)
             Add(label)
@@ -72,6 +72,10 @@ class Font
     /*
     This action forces the Font to use the QuorumStrategy class while loading
     fonts and creating glyphs.
+
+    Attribute: Example
+
+        
     */
     action UseQuorumStrategy
         QuorumStrategy quorumStrategy
@@ -90,18 +94,17 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
 
             action CreateGame
                 Font font
+                font:UseQuorumStrategy()
                 File file
                 file:SetPath("CustomFont.ttf")
                 font:LoadFont(file)
             end
-
         end
     */
     action LoadFont(File fontFile)
@@ -121,7 +124,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -130,7 +132,6 @@ class Font
                 Font font
                 font:LoadFont("Arial")
             end
-
         end
     */
     action LoadFont(text fontName)
@@ -152,16 +153,14 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
 
             action CreateGame
                 Font font
-                boolean hasFont = font:FontIsAvailable("Times New Roman")
+                output font:FontIsAvailable("Times New Roman")
             end
-
         end
     */
     action FontIsAvailable(text fontName) returns boolean
@@ -179,7 +178,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -188,7 +186,6 @@ class Font
                 Font font
                 font:SetSize(16)
             end
-
         end
     */
     action SetSize (integer newSize)
@@ -207,7 +204,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -216,7 +212,6 @@ class Font
                 Font font
                 output "The default font size is " + font:GetSize()
             end
-
         end
     */
     action GetSize returns integer
@@ -235,7 +230,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -244,7 +238,6 @@ class Font
                 Font font
                 font:Rotate(45)
             end
-
         end
     */
     action Rotate(number rotation)
@@ -263,7 +256,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -272,7 +264,6 @@ class Font
                 Font font
                 font:SetAngle(90)
             end
-
         end
     */
     action SetAngle(number newAngle)
@@ -291,7 +282,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -301,7 +291,6 @@ class Font
                 Color color
                 font:SetColor(color:Orange())
             end
-
         end
     */
     action SetColor(Color newColor)
@@ -320,7 +309,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -329,7 +317,6 @@ class Font
                 Font font
                 Color color = font:GetColor()
             end
-
         end
     */
     action GetColor returns Color
@@ -348,7 +335,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -357,7 +343,6 @@ class Font
                 Font font
                 output "The font has an angle of " + font:GetAngle() + " degrees."
             end
-
         end
     */
     action GetAngle returns number
@@ -374,7 +359,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -384,7 +368,6 @@ class Font
                 font:LoadFont("Arial")
                 font:Dispose()
             end
-
         end
     */
     action Dispose
@@ -406,7 +389,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -416,7 +398,6 @@ class Font
                 font:LoadFont("Arial")
                 Glyph a = font:GetGlyph("a")
             end
-
         end
     */
     action GetGlyph(text character) returns Glyph
@@ -435,7 +416,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -445,7 +425,6 @@ class Font
                 font:LoadFont("Arial")
                 boolean loaded = font:IsLoaded()
             end
-
         end
     */
     action IsLoaded returns boolean
@@ -463,7 +442,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -473,7 +451,6 @@ class Font
                 font:LoadFont("Arial")
                 integer height = font:GetLineHeight()
             end
-
         end
     */
     action GetLineHeight returns integer
@@ -494,7 +471,6 @@ class Font
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -510,10 +486,40 @@ class Font
                     index = index + 1
                 end
             end
-
         end
     */
     action GetAvailableFonts returns Array<File>
         return strategy:GetAvailableFonts()
+    end
+    
+    /*
+    This action calculates the kerning value between a pair of characters and then
+    returns it.
+
+    Attribute: Parameter currentCharacter The first character in the pair.
+
+    Attribute: Parameter nextCharacter The second character in the pair.
+
+    Attribute: Returns Returns the kerning value between these two characters.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                integer kerning = font:GetKerning("A", "V")
+            end
+        end
+    */
+    action GetKerning(text currentCharacter, text nextCharacter) returns integer
+        return strategy:GetKerning(currentCharacter, nextCharacter)
     end
 end

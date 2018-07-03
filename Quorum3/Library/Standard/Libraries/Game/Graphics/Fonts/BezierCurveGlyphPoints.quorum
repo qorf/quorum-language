@@ -10,7 +10,7 @@ the glyph to a given size. Most users will never use this class directly.
 
 Attribute: Example
 
-    use Libraries.Game.Graphics.Font
+    use Libraries.Game.Graphics.Fonts.all
     use Libraries.Game.Game
 
     class Main is Game
@@ -49,7 +49,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -80,7 +80,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -177,7 +177,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
         use Libraries.Containers.Array
 
@@ -209,7 +209,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
         
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
         
         class Main is Game
@@ -240,7 +240,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
         
-        use Libraries.Game.Graphics.Font 
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -269,7 +269,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -297,7 +297,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
         use Libraries.Containers.Array
 
@@ -326,7 +326,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
         use Libraries.Containers.Array
 
@@ -337,8 +337,9 @@ class BezierCurveGlyphPoints
 
             action CreateGame
                 BezierCurveGlyphPoints glyphOutline
-                Array<integer> count = glyphOutline:GetContourEndPoints()
+                Array<integer> count = glyphOutline:GetContourEndpoints()
             end
+        end
     */
     action GetContourEndpoints() returns Array<integer>
         return me:contourEndpoints
@@ -352,8 +353,8 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
-        use Libraires.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
         use Libraries.Containers.Array
 
         class Main is Game
@@ -365,6 +366,7 @@ class BezierCurveGlyphPoints
                 BezierCurveGlyphPoints glyphOutline
                 Array<CoordinateVector> points = glyphOutline:GetPoints()
             end
+        end    
     */
     action GetPoints() returns Array<CoordinateVector>
         return me:points
@@ -378,7 +380,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -410,7 +412,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
     
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -435,7 +437,7 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
@@ -462,11 +464,11 @@ class BezierCurveGlyphPoints
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
 
         class Main is Game
-            action main
+            action Main
                 StartGame()
             end 
 

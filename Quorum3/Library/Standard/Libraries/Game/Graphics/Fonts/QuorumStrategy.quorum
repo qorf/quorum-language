@@ -10,12 +10,6 @@ use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.Fonts.all
-//use Libraries.Game.Graphics.Fonts.FontFileReader
-//use Libraries.Game.Graphics.Fonts.FontRasterizer
-//use Libraries.Game.Graphics.Fonts.TrueTypeFileInformation
-//use Libraries.Game.Graphics.Fonts.KerningTable
-//use Libraries.Game.Graphics.Fonts.FontDrawable
-//use Libraries.Game.Graphics.Fonts.BezierCurveGlyphPoints
 
 /*
 The QuorumStrategy class is used to load fonts on the system using the QuorumFont
@@ -39,7 +33,7 @@ Attribute: Example
                 output "The font could not be found!"
                 return now
             end
-            font:LoadFont("Veranda")
+            font:LoadFont("Verdana")
             font:SetSize(18)
             label:SetFont(font)
             Add(label)
@@ -125,7 +119,6 @@ class QuorumStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -134,7 +127,6 @@ class QuorumStrategy is FontStrategy
                 Font font
                 font:LoadFont("Arial")
             end
-
         end
     */
     action LoadFont(text fontName)
@@ -325,7 +317,6 @@ class QuorumStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -334,7 +325,6 @@ class QuorumStrategy is FontStrategy
                 Font font
                 font:Rotate(45)
             end
-
         end
     */
     action Rotate(number rotation)
@@ -353,7 +343,6 @@ class QuorumStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -362,7 +351,6 @@ class QuorumStrategy is FontStrategy
                 Font font
                 font:SetAngle(90)
             end
-
         end
     */
     action SetAngle(number newAngle)
@@ -461,7 +449,6 @@ class QuorumStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -471,7 +458,6 @@ class QuorumStrategy is FontStrategy
                 font:LoadFont("Arial")
                 font:Dispose()
             end
-
         end
     */
     private action Dispose

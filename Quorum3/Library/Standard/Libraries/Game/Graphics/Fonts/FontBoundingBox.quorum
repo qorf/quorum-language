@@ -2,14 +2,66 @@ package Libraries.Game.Graphics.Fonts
 
 use Libraries.Game.Graphics.Fonts.all
 
+/*
+The FontBoundingBox class is used to maintain information about the size of the
+bounding box for a given font file. The bounding box is the maximum width and
+height of a font.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Fonts.all
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FontBoundingBox box
+            box:SetBoundingBox(0, 0, 100, 100)
+            output box:ToText()
+        end
+    end
+*/
 class FontBoundingBox 
-
+    /*Leftmost x-coordinate position of the box.*/
     integer xMinimum = 0
+    /*Rightmost x-coordinate position of the box.*/
     integer xMaximum = 0
-
+    /*Lowest y-coordinate position of the box.*/
     integer yMinimum = 0
+    /*Highest y-coordinate position of the box.*/
     integer yMaximum = 0
 
+    /*
+    This action sets the dimensions of the bounding box.
+
+    Attribute: Parameter xMinimum The leftmost x-coordinate position of the box.
+
+    Attribute: Parameter yMinimum The lowest y-coordinate position of the box.
+
+    Attribute: Parameter xMaximum The rightmost x-coordinate position ofthe box.
+
+    Attribute: Parameter yMaximum The highest y-coordinate position of the box.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontBoundingBox box
+                box:SetBoundingBox(0, 0, 100, 100)
+                output box:ToText()
+            end
+        end
+    */
     action SetBoundingBox(integer xMinimum, integer yMinimum, integer xMaximum, integer yMaximum)
         SetXMinimum(xMinimum)
         SetYMinimum(yMinimum)
@@ -32,7 +84,6 @@ class FontBoundingBox
     action SetYMaximum (integer yMaximum)
         me:yMaximum = yMaximum
     end
-
 
     action GetXMinimum returns integer
         return me:xMinimum

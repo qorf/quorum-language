@@ -28,16 +28,15 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Veranda")
+            if not font:FontIsAvailable("Verdana")
                 output "The font could not be found!"
                 return now
             end
-            font:LoadFont("Veranda")
+            font:LoadFont("Verdana")
             font:SetSize(18)
             label:SetFont(font)
             Add(label)
         end
-
     end
 */
 class FreeTypeStrategy is FontStrategy 
@@ -101,7 +100,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -110,7 +108,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 font:LoadFont("Arial")
             end
-
         end
     */
     action LoadFont(text fontName)
@@ -282,7 +279,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -291,7 +287,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 font:Rotate(45)
             end
-
         end
     */
     action Rotate(number rotation)
@@ -310,7 +305,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -319,7 +313,6 @@ class FreeTypeStrategy is FontStrategy
                 Font font
                 font:SetAngle(90)
             end
-
         end
     */
     action SetAngle(number newAngle)
@@ -438,7 +431,6 @@ class FreeTypeStrategy is FontStrategy
         use Libraries.Game.Game
 
         class Main is Game
-
             action Main
                 StartGame()
             end
@@ -448,7 +440,6 @@ class FreeTypeStrategy is FontStrategy
                 font:LoadFont("Arial")
                 font:Dispose()
             end
-
         end
     */
     action Dispose
