@@ -180,11 +180,10 @@ class AccessibilityManager
             end
 
         elseif item is Item3D
-                        Item3D temp = cast(Item3D, item)
+            Item3D temp = cast(Item3D, item)
             Iterator<Item3D> children = temp:GetItems()
-            
-            Item child = children:GetCurrent()
-            Add(child)
+
+            Item3D child = undefined
 
             repeat while children:HasNext()
                 child = children:Next()
@@ -213,8 +212,7 @@ class AccessibilityManager
             Item3D temp = cast(Item3D, item)
             Iterator<Item3D> children = temp:GetItems()
             
-            Item child = children:GetCurrent()
-            Remove(child)
+            Item child = undefined
 
             repeat while children:HasNext()
                 child = children:Next()
