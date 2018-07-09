@@ -10,39 +10,111 @@ use Libraries.Compute.BigInteger
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Graphics.Fonts.all
 
+/*
+The FontFileReader class is used to read font files. Currently it only supports
+TrueType files (.ttf extension). TrueType files come in different formats, and
+not all of these formats are supported at the moment. As a result, some TrueType
+files will load and be read, but they will not display characters correctly.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Fonts.all
+    use Libraries.Game.Game
+    use Libraries.System.File
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FontFileReader reader
+            File file
+            // This is the directory for fonts on Mac
+            file:SetWorkingDirectory("/Library/Fonts")
+            file:SetPath("Arial.ttf")
+            reader:Load(file)
+        end
+    end
+*/
 class FontFileReader
- 
+    /*ByteArray to store information read from the font file.*/
     ByteArray byteArray = undefined
+    /*ByteReader that reads through the font file.*/
     ByteReader byteReader = undefined
-    //Array<TypeFace> records
+    /*Termination null character.*/
     text NULL_TERMINATOR = ""
-    //integer version = 0
-    //text title = ""
-    //integer nesting = 0
-
+    /*TrueTypeFileInformation that maintains information about the font, as read from the file.*/
     TrueTypeFileInformation fileInformation
+    /*CharacterMap that maintains individual character information, such as its UNICODE
+    value, its glyph, and so on.*/
     CharacterMap characterMap
+    /*KerningTable that maintains the kerning values between any two pairs of characters*/
     KerningTable kerningTable
-
-    //integer currentRecord = 0
 
     on create
         NULL_TERMINATOR = NULL_TERMINATOR:GetUnicodeValue(0)
     end
 
     /*
-        Attribute: Returns TrueTypeFileInformation data structure containing 
-        all information read from .ttf file
+    This action returns all the information read from the TrueType file.
+
+    Attribute: Returns Returns a TrueTypeFileInformation containing all of the
+    contents from the TrueType file.
+
+    Attribute: Example
+    
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader reader
+                File file
+                TrueTypeFileInformation information
+                // This is the directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                reader:Load(file)
+                information = reader:GetFileInformation()
+            end
+        end
     */
     action GetFileInformation() returns TrueTypeFileInformation
         return me:fileInformation
     end
 
     /*
-        If file exists, initializes a binary file reader, opens file to be read,
-        and calls private GetRecords() action to read information from file.
-            
-        Attribute: Parameter fileInformation - the TrueType (.ttf) font file to read from
+    This action will load the font file if it is found on the system and then read
+    all information from the file.
+
+    Attribute: Parameter fileInformation The TrueType font file to read.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader reader
+                File file
+                // This is the directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                reader:Load(file)
+            end
+        end
     */
     action Load(File fileInformation)
         if not fileInformation:Exists()
@@ -55,9 +127,7 @@ class FontFileReader
         // True type font format (ttf) is big endian
         byteArray:SetBigEndian(true)
         byteReader = byteArray:GetByteReader()
-
         GetRecords()
-        
     end
 
     /*
@@ -111,27 +181,42 @@ class FontFileReader
                 elseif tag = "hhea"
                     ReadHorizontalHeaderTable(byteReader, offset)
                 end
-                
                 i = i + 1
             end
- 
         end
     end
 
     /*
-        called by:
-        DrawCharacter in MainGame 
-        GetGlyph in QuorumFont
+    This action will return the Bezier curve glyph points of a given character. 
+    If the character has already been read, it gets the points from the character
+    map. Otherwise, it will get the data from the font file.
 
-        If character map has passed character, finds and returns Bezier curve outline
-        of character. Otherwise, returns default empty BezierCurveGlyphPoints object 
-        (containing empty point arrays). 
+    Attribute: Parameter character The character to get the Bezier curve glyph points of.
 
-        Attribute: Parameter character - target character whose Bezier curve outline
-        is to be found
+    Attribute: Returns Returns the Bezier curve glyph points of the character.
 
-        Attribute: Returns BezierCurveGlyphPoints object containing information
-        about a glyph's Bezier Curve outline
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader reader
+                File file
+                BezierCurveGlyphPoints points
+                // This is the directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                reader:Load(file)
+                points = reader:GetCharacterGlyphPoints("a")
+            end
+        end
     */
     action GetCharacterGlyphPoints(text character) returns BezierCurveGlyphPoints
         if not (character:GetSize() = 1)
@@ -186,11 +271,9 @@ class FontFileReader
 
         characterMap:SetGlyphIndexAndOffset(character, glyphLocationTableIndex, glyphTableOffset)
 
-        check   // error here?
+        check 
             glyphPoints = ReadGlyphPoints(byteReader, glyphTableOffset + fileInformation:GetGlyphOutlineTablePosition())
         detect e is Error
-            //output e:GetErrorMessage()
-            //output e:GetStackTraceMessage()
             return glyphPoints
         end
         characterMap:SetGlyphPoints(character, glyphPoints)
@@ -562,20 +645,14 @@ class FontFileReader
 
         kerning table reference: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
     */
-    action ReadKerningTable (ByteReader byteReader, integer kernTablePosition)
+    private action ReadKerningTable (ByteReader byteReader, integer kernTablePosition)
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(kernTablePosition)
         if iteratorIsValid
             fileInformation:SetKerningSubtablePosition(kernTablePosition)
             
-            // format of newer versions 
-            //integer version = byteReader:NextIntegerConvertFromUnsigned()                                 // fixed32
-            //integer numberOfSubtables = byteReader:NextIntegerConvertFromUnsigned()    // uint32
-            // format of older versions
             integer version = byteReader:NextTwoByteUnsignedInteger()
             integer numberOfSubtables = byteReader:NextTwoByteUnsignedInteger()
-            //output "version: " + version
-            //output "numberOfSubtables: " + numberOfSubtables
 
             integer kerningSubtable = 0            
             repeat while kerningSubtable < numberOfSubtables
@@ -584,9 +661,6 @@ class FontFileReader
                 integer length = byteReader:NextIntegerConvertFromUnsigned()
                 integer coverage = byteReader:NextTwoByteUnsignedInteger()
                 integer format = bitwiseOperation:And(coverage, 65280)            // use mask value 0x00ff
-                //output "length: " + length
-                //output "coverage: " + coverage
-                //output "format: " + format
                 
                 // Format 0: Ordered List of Kerning Pairs
                 if format = 0
@@ -600,13 +674,14 @@ class FontFileReader
         byteReader:SetPosition(previousPosition)
     end
 
-    action ReadHorizontalHeaderTable(ByteReader byteReader, integer horizontalHeaderPosition)
+    /*
+    This action reads the Horizontal Header (hhea) table from the font file.
+    */  
+    private action ReadHorizontalHeaderTable(ByteReader byteReader, integer horizontalHeaderPosition)
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(horizontalHeaderPosition)
         if iteratorIsValid
-            //output "HorizontalHeaderPosition is: " + horizontalHeaderPosition
             fileInformation:SetHorizontalHeaderTablePosition(horizontalHeaderPosition)
-            //output "Match? " + fileInformation:GetHorizontalHeaderTablePosition()
 
             integer version = byteReader:NextTwoByteUnsignedInteger()
             integer versionDecimal = byteReader:NextTwoByteUnsignedInteger()
@@ -662,19 +737,36 @@ class FontFileReader
     end
 
     /*
-        called by:
-        GetKerning in QuorumFont
+    This action returns the kerning value between two given characters.
 
-        Gets kerning value between two characters from kerning values stored in 
-        class kerningTable object.
+    Attribute: Parameter lefthandCharacter The lefthand character of the pair.
 
-        Attribute: Parameter lefthandCharacter - text character on lefthand side
-        of kerning pair
+    Attribute: Parameter righthandCharacter The righthand character of the pair.
 
-        Attribute: Parameter righthandCharacter - text character on righthand side
-        of kerning pair
+    Attribute: Returns Returns the kerning value between two given characters.
 
-        Attribute: Returns integer - value of kerning pair between two passed characters
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader reader
+                File file
+                // This is the directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                reader:Load(file)
+                integer kerning = reader:GetKerningValue("A", "V")
+                output kerning
+            end
+        end
     */
     action GetKerningValue(text lefthandCharacter, text righthandCharacter) returns integer
         integer kerningValue = 0
@@ -700,14 +792,40 @@ class FontFileReader
         // retrieve kerning value from kerning table
         if leftCharacterGlyphIndex > -1 and rightCharacterGlyphIndex > -1 and kerningTable:HasPair(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
             kerningValue = me:kerningTable:GetKerningValue(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
-            //output "kerning value WAS found for " + lefthandCharacter + "(" + leftCharacterGlyphIndex + ")-" + righthandCharacter + "(" + rightCharacterGlyphIndex + "): " + kerningValue            
-        else
-            //output "kerning value not found for " + lefthandCharacter + "(" + leftCharacterGlyphIndex + ")-" + righthandCharacter + "(" + rightCharacterGlyphIndex + "): " + kerningValue
         end
 
         return kerningValue
     end
 
+    /*
+    This action returns the kerning table, containing kerning values for all
+    characters, of the font.
+
+    Attribute: Returns Returns the kerning table of the font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader reader
+                File file
+                KerningTable table
+                // This is the directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                reader:Load(file)
+                table = reader:GetKerningTable()
+            end
+        end
+    */
     action GetKerningTable() returns KerningTable
         return me:kerningTable
     end

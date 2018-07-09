@@ -11,32 +11,96 @@ use Libraries.Game.Graphics.Format
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.Fonts.all
 
+/*
+The FontRasterizer class is used to rasterize characters. This means creating
+a character's outline, filling it in, and saving the drawable for display, scaled
+to the desired size.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Fonts.all
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.System.File
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FontFileReader fileReader
+            File file
+            // This is the working directory for fonts on Mac
+            file:SetWorkingDirectory("/Library/Fonts")
+            file:SetPath("Arial.ttf")
+            fileReader:Load(file)
+            TrueTypeFileInformation fileInformation = fileReader:GetFileInformation()
+            FontRasterizer fontRasterizer
+            Color color
+            BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+            FontDrawable fontDrawable = fontRasterizer:DrawGlyph(glyphOutline, 0, 0, color, fileInformation) 
+        end
+    end
+*/
 class FontRasterizer 
-
+    /*Size of a pixel on the display.*/
     integer pixelSize = 14  // pixel size differs based on resolution, may have to change this
-
-    // Size of EM square
+    /*Size of the EM Square.*/
     integer emSize = 2048  //2048 is standard in TrueType
-    
-    // Dots/points per inch on x axis
-    integer xDotsPerInch = 96   // 96 default 
-    // Dots/points per inch on y axis
-    integer yDotsPerInch = 96   // 96 default
-    // maximum pixelmap size on y axis
-    integer maximumSizeYAxis = 40   // 40 default
-    // maxium pixelmap size on x axis
-    integer maximumSizeXAxis = 40   // 40 default
-
-    integer int = 1337
+    /*Dots per inch on the x-axis.*/
+    integer xDotsPerInch = 96
+    /*Dots per inch on the y-axis.*/
+    integer yDotsPerInch = 96
+    /*Maximum height of the pixelmap.*/
+    integer maximumSizeYAxis = 40
+    /*Maximum width of the pixelmap.*/
+    integer maximumSizeXAxis = 40
+    private integer int = 1337
+    /*Leftmost coordinate position, on the x-axis, of the pixelmap.*/
     integer xMinimum = int:GetMaximumValue()
+    /*Rightmost coordinate position, on the x-axis, of the pixelmap.*/
     integer xMaximum = int:GetMinimumValue()
+    /*Lowermost coordinate position, on the y-axis, of the pixelmap.*/
     integer yMinimum = int:GetMaximumValue()
+    /*Uppermost coordinate position, on the y-axis, of the pixelmap.*/
     integer yMaximum = int:GetMinimumValue()
 
+    /*
+    This action calculates and returns a scaled coordinate position of a coordinate, based
+    on the font and screen size.
+
+    Attribute: Parameter coordinate The coordinate to scale.
+
+    Attribute: Parameter pixelSize The font size.
+
+    Attribute: Parameter emSize The size of the EM Square.
+
+    Attribute: Returns Returns the scaled coordinate position of a coordinate.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontRasterizer rasterizer
+                output rasterizer:CalculateScaledCoordinate(10000, 12, 2048)
+            end
+        end
+    */
     action CalculateScaledCoordinate(integer coordinate, integer pixelSize, integer emSize) returns integer
         return coordinate * pixelSize / emSize
     end
 
+    /* 
+    This action calculates the height of the glyph.
+    */
     private action CalculateGlyphHeight(Array<Line> lines, Array<integer> maximums) returns integer
         integer lowestPoint = 0
         integer highestPoint = 0
@@ -71,6 +135,9 @@ class FontRasterizer
         return height
     end
 
+    /*
+    This action calculates the width of the glyph.
+    */
     private action CalculateGlyphWidth(Array<Line> lines) returns integer
         integer leftPoint = 0
         integer rightPoint = 0
@@ -98,27 +165,68 @@ class FontRasterizer
             end
             i = i + 1
         end
-        //output "Leftpoint: " + leftPoint + ", Rightpoint: " + rightPoint
         integer width = math:AbsoluteValue(leftPoint - rightPoint) + 20 // arbitrary addition to fix characters being cut off, not sure what to add here
         return width
     end
 
+    /*
+    This action creates a pixel map of the character so that it may be drawn to
+    the screen. It returns a FontDrawable which contains this pixel map, as well
+    as information pertaining to the glyph.
+
+    Attribute: Parameter outline The Bezier curve glyph points of the character to draw.
+
+    Attribute: Parameter offsetx The horizontal offset to use when calculating points.
+
+    Attribute: Parameter offsety The vertical offset to use when calculating points.
+
+    Attribute: Parameter color The color to draw the character in.
+
+    Attribute: Parameter information The TrueTypeFileInformation for the font.
+
+    Attribute: Returns Returns a FontDrawable of the character, including its pixelmap.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Color
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader fileReader
+                File file
+                // This is the working directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                fileReader:Load(file)
+                TrueTypeFileInformation fileInformation = fileReader:GetFileInformation()
+                FontRasterizer fontRasterizer
+                Color color
+                BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+                FontDrawable fontDrawable = fontRasterizer:DrawGlyph(glyphOutline, 0, 0, color, fileInformation) 
+            end
+        end
+    */
     action DrawGlyph(BezierCurveGlyphPoints outline, integer offsetx, integer offsety, Color color, TrueTypeFileInformation information) returns FontDrawable
         FontBoundingBox box = outline:GetBoundingBox()
         integer highPoint = CalculateScaledCoordinate(box:GetYMaximum(), pixelSize, information:GetUnitsPerEm()) + 1
         integer lowPoint = CalculateScaledCoordinate(box:GetYMinimum(), pixelSize, information:GetUnitsPerEm()) -1
 
         Format format = SetupFormat()
-        Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)  // make sure to pass this in to other functions that previously made this same call
+        Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)
         Array<integer> maximums
         integer height = CalculateGlyphHeight(linesToDraw, maximums) + 1
-        //integer width = CalculateGlyphWidth(linesToDraw)
-        //output "Width using new function is: " + width
         integer heightFromBaseline = highPoint
         PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
 
         pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false, maximums)  // draws the glyph outline
-        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, emSize, color, linesToDraw, maximums)          // fills in the glyphs
+        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, color, linesToDraw, maximums) // fills in the glyphs
         
         Texture tex
         tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
@@ -136,13 +244,63 @@ class FontRasterizer
         return glyph
     end
 
-    // This function fills in the actual glyphs, based on the outline.
-    action RenderRasterizedGlyph(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, integer unitsperEM, Color color, Array<Line> linesToDraw, Array<integer> maximums) returns PixelMap
+    /*
+    This action fills in the glyphs, based on the outline. It scans line by line
+    on the y-axis, and when it enters a glyph outline it starts drawing, and it
+    stops once it exits a glyph outline. It then returns the pixelmap of a
+    character.
+
+    Attribute: Parameter offsetx The horizontal offset to use when calculating points.
+
+    Attribute: Parameter offsety The vertical offset to use when calculating points.
+
+    Attribute: Parameter pixelmap The pixelmap to draw the character to.
+
+    Attribute: Parameter outline The Bezier curve glyph points of the character.
+
+    Attribute: Parameter color The color to draw the character.
+    
+    Attribute: Parameter linesToDraw An array of all the lines to draw for the character.
+
+    Attribute: Parameter maximums An array containing the maximum values of the glyph,
+    including its highest y-axis coordinate position and its rightmost x-axis
+    coordinate position.
+
+    Attribute: Returns Returns a pixelmap of the character.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Color
+        use Libraries.System.File
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                FontFileReader fileReader
+                File file
+                // This is the working directory for fonts on Mac
+                file:SetWorkingDirectory("/Library/Fonts")
+                file:SetPath("Arial.ttf")
+                fileReader:Load(file)
+                TrueTypeFileInformation fileInformation = fileReader:GetFileInformation()
+                FontRasterizer fontRasterizer
+                Color color
+                PixelMap pixelmap
+                BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints("a")
+                //pixelmap = fontRasterizer:RenderRasterizedGlyph(0, 0, pixelmap, glyphOutlint, color, 
+            end
+        end
+    */
+    action RenderRasterizedGlyph(integer offsetx, integer offsety, PixelMap pixelmap, BezierCurveGlyphPoints outline, Color color, Array<Line> linesToDraw, Array<integer> maximums) returns PixelMap
         integer lowerX = 0
         integer lowerY = 0
         integer upperX = pixelmap:GetWidth()
         integer upperY = pixelmap:GetHeight()
-        //output "upperX: " + upperX + ", upperY: " + upperY
         Math math
         offsety = math:AbsoluteValue(upperY-maximums:Get(1)-1)
 
@@ -672,5 +830,4 @@ class FontRasterizer
     action SetPointSize(integer pointSize) 
        SetSize(cast(integer,(pointSize*yDotsPerInch)/72))
     end
-
 end
