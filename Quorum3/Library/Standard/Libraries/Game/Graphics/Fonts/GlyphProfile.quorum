@@ -6,63 +6,184 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
 
+/*
+The GlyphProfile class is used to maintain information about a glyph's outline
+which is used in the rasterization process. Specifically, it saves the maximum
+and minimum y values of the glyph, which is the range of performing scanlines
+for the glyph, as well as where a given y-coordinate intersects with the glyph
+outline, which are the x-intercepts.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Fonts.all
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            XCoordinateList item
+            PixelIntersection intersection
+            GlyphProfile glyphProfile
+            intersection:SetXPosition(0)
+            intersection:SetIntensity(1)
+            item:Add(intersection)
+            // This will add an x-intercept for y = 0, where it intercepts
+            // the outline at x = 0
+            glyphProfile:AddCoordinatesAt(0, item)
+        end
+    end
+*/
 class GlyphProfile 
-
+    /*The highest point on the y-axis of the glyph.*/
     integer yMaximum = -1
+    /*The lowest point on the y-axis of the glyph.*/
     integer yMinimum = -1
-
+    /*Hash table that maps each y-coordinate to x intercepts.*/
     HashTable<integer, CoordinateContainer> xIntercepts
-
+    /*Nonzero rule is used to determine when a coordinate signifies you have
+    entered the glyph outline and need to start filling in, or when you have
+    exited the glyph outline and need to stop drawing. Nonzero means you are
+    inside, 0 means you are outside.*/
     integer nonzero = 0
 
+    /*
+    This action returns an iterator for the hash table of x-intercepts.
+
+    Attribute: Returns Returns an iterator for the hash table of x-intercepts.
+    
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                GlyphProfile glyphProfile
+                Iterator<integer> iterator = glyphProfile:GetKeyIterator()
+            end
+        end
+    */
     action GetKeyIterator() returns Iterator<integer>
         return me:xIntercepts:GetKeyIterator()
     end
 
+    /*
+    This action returns the current nonzero value of the line.
+
+    Attribute: Returns Returns the current nonzero value of the line.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                GlyphProfile glyphProfile
+                output glyphProfile:GetNonzero()
+            end
+        end 
+    */
     action GetNonzero() returns integer
         return me:nonzero
     end
 
+    /*
+    This action sets the current nonzero value of the line.
+
+    Attribute: Parameter nonzero The nonzero value of the line.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                GlyphProfile glyphProfile
+                glyphProfile:SetNonzero(1)
+            end
+        end
+    */
     action SetNonzero(integer nonzero)
         me:nonzero = nonzero
     end
 
-    action SetXIntercepts ( HashTable<integer, CoordinateContainer> intercepts) 
+    /*
+
+    */
+    action SetXIntercepts (HashTable<integer, CoordinateContainer> intercepts) 
         me:xIntercepts = intercepts
     end
 
+    /*
+
+    */
     action GetXInterceptAtY(integer y) returns CoordinateContainer
         return me:xIntercepts:GetValue(y)
     end
 
+    /*
+
+    */
     action HasY(integer y) returns boolean
         return me:xIntercepts:HasKey(y)
     end
 
+    /*
+
+    */
     action GetXIntercepts returns HashTable<integer, CoordinateContainer>
         return me:xIntercepts
     end
 
+    /*
 
+    */
     action SetYMaximum (integer ymax)
         me:yMaximum = ymax
     end
 
+    /*
+
+    */
     action SetYMinimum (integer ymin)
         me:yMinimum = ymin
     end
 
+    /*
+
+    */
     action GetYMaximum returns integer
        return me:yMaximum
     end
 
+    /*
+
+    */
     action GetYMininmum returns integer
         return me:yMinimum
     end
 
-    action XInterceptsToText (integer y) returns text
+    /*
 
-       
+    */
+    action XInterceptsToText (integer y) returns text
         text  t = ""
         CoordinateContainer xl = xIntercepts:GetValue(y)
         integer i = 0
@@ -74,6 +195,9 @@ class GlyphProfile
         return t
     end
 
+    /*
+
+    */
     action AddCoordinatesAt(integer y, XCoordinateList coordinates) returns boolean
         CoordinateContainer value 
         if xIntercepts:HasKey(y)
@@ -105,6 +229,9 @@ class GlyphProfile
         return true
     end
 
+    /*
+
+    */
     action AddCoordinates(XCoordinateList m, XCoordinateList l)
         integer i = 0
         if (m:GetNonzero() < 0 and l:GetNonzero() > 0) or (m:GetNonzero() > 0 and l:GetNonzero() < 0)   // this may need to be changed
