@@ -1,5 +1,6 @@
 #include "../IQuorumAccessibility/Header/jni.h"
 #include <UIAnimation.h>
+#include <string>
 
 #ifndef Resources_HEADER
 #define Resources_HEADER
@@ -41,10 +42,17 @@ struct JClass_TextBoxSelection
 	jmethodID GetStartIndex;
 	jmethodID GetEndIndex;
 };
+struct JClass_Item
+{
+	jclass me;
+	jmethodID GetName;
+	jmethodID GetDescription;
+};
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
 extern JClass_TextBoxSelection JavaClass_TextBoxSelection;
+extern JClass_Item JavaClass_Item;
 
 
 

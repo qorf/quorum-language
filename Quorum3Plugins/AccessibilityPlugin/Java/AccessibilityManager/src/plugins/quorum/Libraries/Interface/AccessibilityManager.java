@@ -131,19 +131,36 @@ public class AccessibilityManager
     
     // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateItem(String name, String description);
+    private native long NativeWin32CreateItem(String name, String description, Item_ item);
+//    private long NativeWin32CreateItem(String name, String description, Item_ item)
+//    {
+//        System.out.println("CREATE ITEM - HELP");
+//        /*
+//        
+//        AADSFLAKSDFJSD
+//        ADSLKFJASDF
+//        ASDLFKNASDFLK
+//        ASDFLASDKFALSDKFJ
+//        ASDFLKJASDFLJASD
+//        ASDFLKJADSLFKJA
+//        ADLFKASDLFKJ
+//        ASDLFKJSDLKFJ
+//        FLDKNLKCXJFASD
+//        */
+//        return 0l;
+//    }
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateButton(String name, String description);
+    private native long NativeWin32CreateButton(String name, String description, Item_ item);
     
     // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateCheckBox(String name, String description);
+    private native long NativeWin32CreateCheckBox(String name, String description, Item_ item);
     
     // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateRadioButton(String name, String description);
+    private native long NativeWin32CreateRadioButton(String name, String description, Item_ item);
 
     // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
@@ -151,16 +168,16 @@ public class AccessibilityManager
 
     // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
     //
-    private native long NativeWin32CreateMenuBar(String name);
+    private native long NativeWin32CreateMenuBar(String name, Item_ item);
 
-    private native long NativeWin32CreateTree(String name);
+    private native long NativeWin32CreateTree(String name, Item_ item);
 
     
     // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
     //
-    private native long NativeWin32CreateMenuItem(String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar);
+    private native long NativeWin32CreateMenuItem(String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
     
-    private native long NativeWin32CreateTreeItem(String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar);
+    private native long NativeWin32CreateTreeItem(String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     
     
     // NativeWin32Remove: Removes a item control from UI Automation hierarchy.
@@ -237,33 +254,33 @@ public class AccessibilityManager
         switch(code)
         {
             case ITEM:
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
                 break;
             case CUSTOM:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
                 break;
             case CHECKBOX:
                 // This Create function will need more parameters for state information
                 // Since checkboxes don't exist some assumptions are made on the native level
                 // that won't be accurate if the correct info isn't passed down.
-                nativePointer = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription(), item);
                 break;
             case RADIO_BUTTON:
                 // This Create function will need more parameters for state information
                 // Since dedicated radio buttons don't exist some assumptions are made 
                 // on the native level that won't be accurate if the correct info isn't passed down.
-                nativePointer = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription(), item);
                 break;
             case BUTTON:
-                nativePointer = NativeWin32CreateButton(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateButton(item.GetName(), item.GetDescription(), item);
                 break;
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
                 nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox);
                 break;
             case MENU_BAR:
-                nativePointer = NativeWin32CreateMenuBar(item.GetName());
+                nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -283,10 +300,10 @@ public class AccessibilityManager
                 if (menuBar == null)
                     return false;
                 
-                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar);
+                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item);
                 break;
             case TREE:
-                nativePointer = NativeWin32CreateTree(item.GetName());
+                nativePointer = NativeWin32CreateTree(item.GetName(), item);
                 break;
             case TREE_ITEM:
                 TreeItem_ treeItem = (TreeItem_)item;
@@ -306,10 +323,10 @@ public class AccessibilityManager
                 if (parentTree == null)
                     return false;
                     
-                nativePointer = NativeWin32CreateTreeItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree);
+                nativePointer = NativeWin32CreateTreeItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
                 break;
             default: // Assume Item
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription());
+                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
                 break;
         }
         

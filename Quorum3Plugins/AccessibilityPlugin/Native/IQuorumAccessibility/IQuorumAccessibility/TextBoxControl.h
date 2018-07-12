@@ -69,9 +69,9 @@ class TextBoxProvider;
 class TextBoxControl : public Item
 {
 	public:
-		TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me);
+		TextBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me);
 		virtual ~TextBoxControl();
-		static TextBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me);
+		static TextBoxControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me);
 
 
 		TextBoxProvider* GetTextBoxProvider();

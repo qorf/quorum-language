@@ -1,5 +1,7 @@
 #include "Resources.h"
 #include "../IQuorumAccessibility/Header/plugins_quorum_Libraries_Interface_AccessibilityManager.h"
+#include <iostream>
+#include <fstream>
 /**************************************************************
 * Declare JNI_VERSION for use in JNI_Onload/JNI_OnUnLoad
 * Change value if a Java upgrade requires it
@@ -16,13 +18,15 @@ JNIEnv* thisEnv = NULL;
 JClass_AccessibilityManager JavaClass_AccessibilityManager;
 JClass_TextBox JavaClass_TextBox;
 JClass_TextBoxSelection JavaClass_TextBoxSelection;
+JClass_Item JavaClass_Item;
 
+int outputCounter = 0;
 
 /**************************************************************
 * Initialize the static Java Classes and Method Id variables
 * When the library is loaded in Java this method is called automatically.
 **************************************************************/
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
 	// Obtain the JNIEnv from the VM and confirm JNI_VERSION
 	JNIEnv* env;
@@ -92,6 +96,25 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
 
+	/******
+	* Item
+	******/
+	#pragma region Item
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Item_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_Item.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
+	JavaClass_Item.GetName = env->GetMethodID(JavaClass_Item.me, "GetName", "()Ljava/lang/String;");
+	JavaClass_Item.GetDescription = env->GetMethodID(JavaClass_Item.me, "GetDescription", "()Ljava/lang/String;");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+	#pragma endregion
+
 	// Required to return the JNI Version
 	return JNI_VERSION;
 }
@@ -100,7 +123,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 * Destroy the global static Class Id variables
 * When the library is unloaded in Java this method is called automatically.
 **************************************************************/
-void JNI_OnUnload(JavaVM *vm, void *reserved)
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 {
 
 	// Obtain the JNIEnv from the VM
@@ -143,9 +166,8 @@ JNIEnv* GetJNIEnv()
 	int getEnvStat = jvm->GetEnv((void **)&thisEnv, JNI_VERSION_1_6);
 	if (getEnvStat == JNI_EDETACHED)
 	{
-		/*std::cout << "GetEnv: not attached" << std::endl;*/
 		if (jvm->AttachCurrentThread((void **)&thisEnv, NULL) != 0)
-			/*std::cout << "Failed to attach" << std::endl*/;
+			;//	OutputToFile("Failed to attach");
 
 	}
 	else if (getEnvStat == JNI_OK)
@@ -154,7 +176,7 @@ JNIEnv* GetJNIEnv()
 	}
 	else if (getEnvStat == JNI_EVERSION)
 	{
-		/*std::cout << "GetEnv: version not supported" << std::endl*/;
+		//OutputToFile("GetEnv: version not supported");
 	}
 
 	return NULL;

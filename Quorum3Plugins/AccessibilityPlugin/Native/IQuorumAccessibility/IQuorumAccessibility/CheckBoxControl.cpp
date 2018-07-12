@@ -9,7 +9,7 @@ bool CheckBoxControl::Initialized = false;
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
+CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
 {
 }
 
@@ -82,7 +82,7 @@ bool CheckBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+CheckBoxControl* CheckBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -91,7 +91,7 @@ CheckBoxControl* CheckBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND pare
 
 	if (Initialized)
 	{
-		CheckBoxControl * control = new CheckBoxControl(buttonName, buttonDescription);
+		CheckBoxControl * control = new CheckBoxControl(env, buttonName, buttonDescription, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_CHECKBOX",

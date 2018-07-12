@@ -12,10 +12,10 @@ class TreeItemControl;
 class TreeControl : public Subtree, public Item
 {
 public:
-	TreeControl(_In_ WCHAR* treeName);
+	TreeControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem);
 	virtual ~TreeControl();
 
-	static TreeControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName);
+	static TreeControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, jobject jItem);
 
 	TreeProvider* GetTreeProvider();
 

@@ -9,7 +9,7 @@ bool RadioButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false), m_isOn(false)
+RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false), m_isOn(false)
 {
 }
 
@@ -81,7 +81,7 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+RadioButtonControl* RadioButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -90,7 +90,7 @@ RadioButtonControl* RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ HWN
 
 	if (Initialized)
 	{
-		RadioButtonControl * control = new RadioButtonControl(buttonName, buttonDescription);
+		RadioButtonControl * control = new RadioButtonControl(env, buttonName, buttonDescription, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_RADIOBUTTON",

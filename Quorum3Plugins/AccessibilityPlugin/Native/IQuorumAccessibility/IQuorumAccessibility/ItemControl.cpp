@@ -9,8 +9,8 @@ bool ItemControl::Initialized = false;
 
 /**** ItemControl methods ***/
 
-ItemControl::ItemControl(_In_ WCHAR* name, _In_ WCHAR* description) 
-	: Item(name, description), m_pItemProvider(NULL), m_focused(false)
+ItemControl::ItemControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) 
+	: Item(env, name, description, jItem), m_pItemProvider(NULL), m_focused(false)
 {
 }
 
@@ -67,7 +67,7 @@ bool ItemControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
+ItemControl* ItemControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -76,7 +76,7 @@ ItemControl* ItemControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow
 
 	if (Initialized)
 	{
-		ItemControl * control = new ItemControl(itemName, itemDescription);
+		ItemControl * control = new ItemControl(env, itemName, itemDescription, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_ITEM",
