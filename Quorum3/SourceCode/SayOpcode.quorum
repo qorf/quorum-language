@@ -7,12 +7,10 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
 class SayOpcode is QuorumOpcode
-
     QuorumOpcode opcode = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     QuorumBytecodeConverter converter
-    boolean outputSpeechCommands = true
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -36,14 +34,6 @@ class SayOpcode is QuorumOpcode
         opcode = op
     end
 
-    action SetOutputSpeech(boolean doSay)
-        outputSpeechCommands = doSay
-    end
-
-    action GetOutputSpeech returns boolean
-        return outputSpeechCommands
-    end
-
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
     end
@@ -53,24 +43,18 @@ class SayOpcode is QuorumOpcode
     end
 
     action Write
-        if outputSpeechCommands
-            VisitLineNumber()
-            Type type = opcode:GetType()
-            opcode:Write()
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Sound/Speech", "StaticSay",
-                    "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
-        end
+        VisitLineNumber()
+        Type type = opcode:GetType()
+        opcode:Write()
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Sound/Speech", "StaticSay",
+                "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
     action WriteJavaScript returns text
-        if outputSpeechCommands
-            text rhs = opcode:WriteJavaScript()
-            text utterance = "$utterance = new SpeechSynthesisUtterance(" + rhs + ");"
-            JSOutput = utterance + "speechSynthesis.speak($utterance);"
-            return JSOutput
-        else
-            return ""
-        end
+        text rhs = opcode:WriteJavaScript()
+        text utterance = "$utterance = new SpeechSynthesisUtterance(" + rhs + ");"
+        JSOutput = utterance + "speechSynthesis.speak($utterance);"
+        return JSOutput
     end
 
     action GetTemplateCopy returns QuorumOpcode

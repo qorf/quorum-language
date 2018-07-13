@@ -344,9 +344,7 @@ class Compiler
             repeat while i < files:GetSize()
                 File file = files:Get(i)
                 QuorumBytecodeListener listener
-                if not outputSpeechCommands
-                    listener:SetOutputSpeech(outputSpeechCommands)
-                end
+
                 if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
                     ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
                     if listener:HasSayStatementInClass()
