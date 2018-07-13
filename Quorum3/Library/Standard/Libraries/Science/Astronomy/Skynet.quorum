@@ -66,7 +66,7 @@ class Skynet is NetworkRequestListener
     // default parameters
     private integer priority = 1
     private integer mode = 0
-    private integer binningRequested = 2
+    private integer binningRequested = 1
     private boolean isToo = false
     private integer ownerId = 6
 
@@ -229,7 +229,7 @@ class Skynet is NetworkRequestListener
     end
 
     /*
-    This method is used to set the binning value of your Skynet request object.  The default value is 2.
+    This method is used to set the binning value of your Skynet request object.  The default value is 1.
 
     Attribute: Parameter binningRequested The binning value for your request.
 
@@ -741,7 +741,9 @@ class Skynet is NetworkRequestListener
         params:Add("maxSun", me:maxSun)
         params:Add("minEl", me:minElevation)
         params:Add("mode", me:mode)
-        params:Add("timeAccountId", me:timeAccount)
+        if timeAccount > 0
+            params:Add("timeAccountId", me:timeAccount)
+        end
         params:Add("priority", me:priority)
         params:Add("teleOwnerId", me:ownerId)
         params:Add("isToo", me:isToo)
@@ -771,7 +773,9 @@ class Skynet is NetworkRequestListener
         params:Add("maxSun", me:maxSun)
         params:Add("minEl", me:minElevation)
         params:Add("mode", me:mode)
-        params:Add("timeAccountId", me:timeAccount)
+        if timeAccount > 0
+            params:Add("timeAccountId", me:timeAccount)
+        end
         params:Add("priority", me:priority)
         params:Add("teleOwnerId", me:ownerId)
         params:Add("isToo", me:isToo)
