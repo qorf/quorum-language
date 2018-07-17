@@ -772,7 +772,7 @@ class JavaScriptObjectNotation
         elseif IsBoolean()
             return cast(text, booleanValue)
         elseif IsObject()
-            return me:array:Get(0):ToText()
+            return me:ToText()
         elseif IsArray()
             text result = ""
             result = result + "["
@@ -789,7 +789,7 @@ class JavaScriptObjectNotation
         elseif IsUndefined()
             return "null"
         elseif type = 0
-            return me:array:Get(0):ToText()
+            return me:ToText()
         end
         return ""
     end
