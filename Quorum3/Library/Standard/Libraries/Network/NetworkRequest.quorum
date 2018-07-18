@@ -39,8 +39,9 @@ class NetworkRequest
     private boolean doInput = true
     private boolean doOutput = true
     private text body = ""
-    private boolean fixedLengthStreamingMode = true
+    private boolean fixedLengthStreamingMode = false
     private integer chunkLength = 1000
+    private text parameters = ""
 
     private Iterator<text> headerIterator = undefined
     private text nextHeader = ""
@@ -120,6 +121,10 @@ class NetworkRequest
     */
     action SetRequestTypeToPost
         me:type:SetToPost()
+        text parameterString = GetParameters()
+        if parameterString not= ""
+            SetBody(parameterString)
+        end
     end
 
     /*
@@ -539,7 +544,7 @@ class NetworkRequest
     end
 
     /*
-    This method sets the body of the NetworkRequest object as form encoded data from a HashTable
+    This method sets the parameters of the NetworkRequest object as form encoded data from a HashTable.
 
     Attribute: data The HashTable container with the key value pairs
 
@@ -558,16 +563,18 @@ class NetworkRequest
             data:Add(key1, value1)
             data:Add(key2, value2)
             NetworkRequest request
-            request:SetBodyAsFormEncodedData(data)
-            output request:GetBody()
+            request:SetRequestTypeToPost()
+            request:SetParameters(data)
+            output request:GetParameters()
         end
     end
     */
-    action SetBodyAsFormEncodedData(HashTable<text, text> data)
-        AddHeader("Content-type", "application/x-www-form-urlencoded")
-        me:body = FormEncodeData(data)
+    action SetParameters(HashTable<text, text> data)
+        me:parameters = FormEncodeData(data)
+        if type:IsPost()
+            SetBodyAsFormEncodedData(data)
+        end
     end
-
     /*
     This method sets the body of the NetworkRequest object as form encoded data from a JavaScriptObjectNotation object.
 
@@ -588,12 +595,32 @@ class NetworkRequest
             data:Add(key1, value1)
             data:Add(key2, value2)
             NetworkRequest request
-            request:SetBodyAsFormEncodedData(data)
+            request:SetRequestTypeToGet()
+            request:SetParameters(data)
             output request:GetBody()
         end
     end
     */
-    action SetBodyAsFormEncodedData(JavaScriptObjectNotation data)
+
+    action SetParameters(JavaScriptObjectNotation data)
+        me:parameters = FormEncodeData(data)
+        if type:IsPost()
+            SetBodyAsFormEncodedData(data)
+        end
+    end
+
+    /*
+        This method is used for a POST request where the parameters are sent in the body of the request and not in the URL.
+    */
+    private action SetBodyAsFormEncodedData(HashTable<text, text> data)
+        AddHeader("Content-type", "application/x-www-form-urlencoded")
+        me:body = FormEncodeData(data)
+    end
+
+    /*
+        This method is used for a POST request where the parameters are sent in the body of the request and not in the URL.
+    */
+    private action SetBodyAsFormEncodedData(JavaScriptObjectNotation data)
         AddHeader("Content-type", "application/x-www-form-urlencoded")
         me:body = FormEncodeData(data)
     end
@@ -657,6 +684,7 @@ class NetworkRequest
     action SetBodyAsJavaScriptObjectNotation(JavaScriptObjectNotation data)
         me:body = data:ToText()
     end
+
     /*
     This method gets the body of the NetworkRequest object.
 
@@ -678,6 +706,31 @@ class NetworkRequest
     */
     action GetBody() returns text
         return body
+    end
+
+    /*
+    This method gets the parameters of the NetworkRequest object.
+
+    Attribute: Returns The parameters of the request object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation data
+            data:Add("first", "John")
+            data:Add("last", "Doe")
+            NetworkRequest request
+            request:SetParameters(data)
+            output request:GetParameters()
+        end
+    end
+    */
+    action GetParameters() returns text
+        return me:parameters
     end
 
     /*
