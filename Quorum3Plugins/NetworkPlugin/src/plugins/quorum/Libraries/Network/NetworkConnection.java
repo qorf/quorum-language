@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
 import quorum.Libraries.Network.NetworkRequest_;
 import quorum.Libraries.Network.NetworkResponseEvent_;
 
@@ -60,7 +58,12 @@ public class NetworkConnection {
             conn.setRequestMethod(request.GetRequestType());
             conn.setReadTimeout(request.GetReadTimeout());
             String body = request.GetBody();
-            conn.setFixedLengthStreamingMode(body.getBytes(StandardCharsets.UTF_8).length);
+            if (request.IsFixedLengthStreamingMode()) {
+                conn.setFixedLengthStreamingMode(body.getBytes(StandardCharsets.UTF_8).length);
+            } else {
+            // Note: the HttpURLConnection object handles the mode. Removed for now, but kept here for future reference.
+            //     conn.setChunkedStreamingMode(connection.GetChunkLength());
+            }
             request.ResetHeaderIterator();
             while (request.HasNextHeader()) {
                 String key = request.GetNextHeaderKey();
@@ -70,11 +73,13 @@ public class NetworkConnection {
             conn.setDoInput(request.GetDoInput());
             conn.setDoOutput(request.GetDoOutput());
             conn.connect();
+            
             try(DataOutputStream os = new DataOutputStream(conn.getOutputStream())) {
                 os.writeBytes(body);
                 os.flush();
                 os.close();
             }
+            
             DataInputStream is = new DataInputStream(conn.getInputStream());
             BufferedReader in = null;
             if ("gzip".equals(conn.getContentEncoding())) {
@@ -130,8 +135,10 @@ public class NetworkConnection {
     }
     
     private void Get(NetworkRequest_ request) {
+        // Note: Get Request does not send body. Parameters are attached to the URL.
         try {
-            URL Url = new URL(request.GetWebAddress());
+            String url = request.GetWebAddress() + "?" + request.GetParameters();
+            URL Url = new URL(url);
             HttpURLConnection conn;
             
             URLConnection urlConnection = Url.openConnection();
@@ -144,8 +151,6 @@ public class NetworkConnection {
             }
             conn.setRequestMethod(request.GetRequestType());
             conn.setReadTimeout(request.GetReadTimeout());
-            String body = request.GetBody();
-            conn.setFixedLengthStreamingMode(body.getBytes(StandardCharsets.UTF_8).length);
             request.ResetHeaderIterator();
             while (request.HasNextHeader()) {
                 String key = request.GetNextHeaderKey();
@@ -155,11 +160,7 @@ public class NetworkConnection {
             conn.setDoInput(request.GetDoInput());
             conn.setDoOutput(request.GetDoOutput());
             conn.connect();
-            try(DataOutputStream os = new DataOutputStream(conn.getOutputStream())) {
-                os.writeBytes(body);
-                os.flush();
-                os.close();
-            }
+            
             DataInputStream is = new DataInputStream(conn.getInputStream());
             BufferedReader in = null;
             if ("gzip".equals(conn.getContentEncoding())) {
