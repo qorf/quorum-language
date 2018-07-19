@@ -145,13 +145,13 @@ public class RunAndroid {
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            String[] list = {pathToBuildAndroidFolder + "/gradlew.bat",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
             return pb.start();
         } else {
-            String[] list = {pathToBuildAndroidFolder + "/gradlew.bat",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
@@ -173,13 +173,13 @@ public class RunAndroid {
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            String[] list = {pathToBuildAndroidFolder + "/gradlew.bat",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
             return pb.start();
         } else {
-            String[] list = {pathToBuildAndroidFolder + "/gradlew.bat",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
@@ -234,14 +234,14 @@ public class RunAndroid {
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            String[] list = {pathToBuildAndroidFolder+"/gradlew.bat", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "installDebug"};
             
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
             return pb.start();
         } else {
-            String[] list = {pathToBuildAndroidFolder+"/gradlew.bat", "-p", pathToBuildAndroidFolder, "assembleDebug"};
+            String[] list = {pathToBuildAndroidFolder+"/gradlew", "-p", pathToBuildAndroidFolder, "installDebug"};
             
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
