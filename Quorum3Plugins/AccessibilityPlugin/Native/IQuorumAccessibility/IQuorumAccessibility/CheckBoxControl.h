@@ -9,10 +9,10 @@ class CheckBoxProvider;
 class CheckBoxControl : public Item
 {
 public:
-	CheckBoxControl(_In_ WCHAR* name, _In_ WCHAR* description);
+	CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem);
 	virtual ~CheckBoxControl();
 
-	static CheckBoxControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static CheckBoxControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem);
 
 	CheckBoxProvider* GetButtonProvider(_In_ HWND hwnd);
 	

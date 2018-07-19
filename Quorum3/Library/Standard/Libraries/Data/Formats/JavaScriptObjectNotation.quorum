@@ -73,11 +73,43 @@ class JavaScriptObjectNotation
         return IsInteger() or IsNumber() or IsBoolean() or IsText()
     end
 
-    private action IsArrayItem() returns boolean
+    /*
+        This item is used internally by the parser to check if an object as an array item.
+
+    Attribute: Returns A boolean value to indicate if the object is an array item.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:IsArrayItem()
+       end
+    end
+    */
+    action IsArrayItem() returns boolean
         return arrayItem
     end
+    
+    /*
+        This item is used internally by the parser to designate an object as an array item.
 
-    private action SetArrayItem(boolean value)
+    Attribute: Parameter value A boolean value to indicate if the object is an array item.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:SetArrayItem(true)
+       end
+    end
+    */
+    action SetArrayItem(boolean value)
         arrayItem = value
     end
     /*
@@ -772,7 +804,16 @@ class JavaScriptObjectNotation
         elseif IsBoolean()
             return cast(text, booleanValue)
         elseif IsObject()
-            return me:array:Get(0):ToText()
+            if not HasKey()
+                return me:ToText()
+            else
+                JavaScriptObjectNotation copy
+                copy:Read(me:ToText())
+                copy = copy:Get(0)
+                copy:SetParent()
+                copy:SetKey("")
+                return copy:ToText()
+            end
         elseif IsArray()
             text result = ""
             result = result + "["
@@ -789,7 +830,7 @@ class JavaScriptObjectNotation
         elseif IsUndefined()
             return "null"
         elseif type = 0
-            return me:array:Get(0):ToText()
+            return me:ToText()
         end
         return ""
     end
@@ -1126,7 +1167,11 @@ class JavaScriptObjectNotation
     action Read(text data)
         // load object with JSON formatted text data 
         JavaScriptObjectNotation json = ReadToObject(data)
-        me:type = PARENT
+        if json:GetType() = ARRAY
+            me:type = ARRAY
+        else
+            me:type = PARENT
+        end
         Iterator<JavaScriptObjectNotation> it = json:GetIterator()
         repeat while it:HasNext()
             JavaScriptObjectNotation object = it:Next()
@@ -1502,7 +1547,9 @@ class JavaScriptObjectNotation
                 if IsPrettyPrint()
                     result = result + space
                 end
-                result = result + dq + key + dq + ": {" 
+                if not IsArrayItem() or (IsArrayItem() and HasKey())
+                    result = result + dq + key + dq + ": {"
+                end
                 if IsPrettyPrint()
                     result = result + line
                 end
@@ -1571,7 +1618,10 @@ class JavaScriptObjectNotation
                 if IsPrettyPrint()
                     result = result + line + space
                 end
-                result = result + "}"
+                if not IsArrayItem() or (IsArrayItem() and HasKey())
+                    result = result + "}"
+                end
+                
             elseif IsArray() 
                 result = result + "]"
             end

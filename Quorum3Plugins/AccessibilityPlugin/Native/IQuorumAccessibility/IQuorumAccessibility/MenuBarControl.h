@@ -2,6 +2,8 @@
 #include <UIAutomation.h>
 #include <deque>
 
+#include "../IQuorumAccessibility/Header/jni.h"
+
 #include "CustomMessages.h"
 #include "Menu.h"
 #include "Item.h"
@@ -12,10 +14,10 @@ class MenuItemControl;
 class MenuBarControl : public Menu, public Item
 {
 public:
-	MenuBarControl(_In_ WCHAR* menuBarName);
+	MenuBarControl(JNIEnv* env, _In_ WCHAR* menuBarName, jobject jItem);
 	virtual ~MenuBarControl();
 
-	static MenuBarControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* menuBarName);
+	static MenuBarControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* menuBarName, jobject jItem);
 
 	MenuBarProvider* GetMenuBarProvider();
 

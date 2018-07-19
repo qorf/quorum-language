@@ -62,7 +62,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer loopCounter = 0
     integer ifCount = 0
     integer checkCount = 0
-    boolean outputSpeechCommands = true
     boolean isInAlwaysBlock = false
     boolean recentStatementWasReturn = false
     boolean hasSayStatement = false
@@ -95,14 +94,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action GetBuildInterfaceFile returns File
         return buildInterfaceFile
-    end
-
-    action SetOutputSpeech(boolean doSay)
-        outputSpeechCommands = doSay
-    end
-
-    action GetOutputSpeech returns boolean
-        return outputSpeechCommands
     end
     
     private action SetNormalAction 
@@ -527,9 +518,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             SayOpcode out
             out:SetLocation(context:GetLocation())
             hasSayStatement = true
-            if not outputSpeechCommands
-                out:SetOutputSpeech(outputSpeechCommands)
-            end
 
             out:SetOpcode(op)
             out:SetMethodWriter(methodWriter)

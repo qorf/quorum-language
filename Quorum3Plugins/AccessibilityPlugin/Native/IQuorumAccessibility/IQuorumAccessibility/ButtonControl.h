@@ -10,10 +10,10 @@ class ButtonProvider;
 class ButtonControl : public Item
 {
 public:
-	ButtonControl(_In_ WCHAR* name, _In_ WCHAR* description);
+	ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem);
 	virtual ~ButtonControl();
 
-	static ButtonControl* Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static ButtonControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem);
 
 	ButtonProvider* GetButtonProvider();
 	void InvokeButton();

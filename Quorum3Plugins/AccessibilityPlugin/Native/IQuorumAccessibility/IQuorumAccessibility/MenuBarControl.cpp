@@ -11,8 +11,8 @@
 
 bool MenuBarControl::Initialized = false;
 
-MenuBarControl::MenuBarControl(_In_ WCHAR* menuBarName) 
-	: Item(menuBarName, L""), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
+MenuBarControl::MenuBarControl(JNIEnv* env, _In_ WCHAR* menuBarName, jobject jItem) 
+	: Item(env, menuBarName, L"", jItem), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
 {
 }
 
@@ -20,7 +20,7 @@ MenuBarControl::~MenuBarControl()
 {
 }
 
-MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * menuBarName)
+MenuBarControl* MenuBarControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * menuBarName, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -29,7 +29,7 @@ MenuBarControl* MenuBarControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 	if (Initialized)
 	{
-		MenuBarControl * control = new MenuBarControl(menuBarName);
+		MenuBarControl * control = new MenuBarControl(env, menuBarName, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_MENU_BAR",

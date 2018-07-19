@@ -1,12 +1,13 @@
 #include "Item.h"
+#include <iostream>
 
-
-Item::Item(std::wstring controlName, std::wstring controlDescription) 
-	: m_ControlName(controlName), m_ControlDescription(controlDescription), m_ControlHWND(NULL)
+Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem) 
+	: m_ControlName(/*controlName*/CreateWideStringFromUTF8Win32("STUPID THING")), m_ControlDescription(/*controlDescription*/CreateWideStringFromUTF8Win32("STUPID DESCRIPTION")), m_ControlHWND(NULL)
 {
+	javaItem = env->NewGlobalRef(jItem);
 }
 
-void Item::SetControlFocus(_In_ bool Focused)
+void Item::SetControlFocus(_In_ bool focused)
 {
 }
 
@@ -27,6 +28,21 @@ void Item::SetName(_In_ std::wstring name)
 
 const WCHAR* Item::GetName()
 {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jclass itemReference = env->GetObjectClass(javaItem);
+		jmethodID method = env->GetMethodID(itemReference, "GetName", "()Ljava/lang/String;");
+
+		jstring fullName = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, method));
+		const char* nativeName = env->GetStringUTFChars(fullName, 0);
+		WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeName);
+
+		env->ReleaseStringUTFChars(fullName, nativeName);
+
+		return wItemName;
+	}
+
 	return m_ControlName.c_str();
 }
 
@@ -37,5 +53,23 @@ void Item::SetDescription(_In_ std::wstring description)
 
 const WCHAR* Item::GetDescription()
 {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring fullDescription = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_Item.GetDescription));
+
+		const char* nativeDescription = env->GetStringUTFChars(fullDescription, 0);
+		WCHAR* wItemDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+		env->ReleaseStringUTFChars(fullDescription, nativeDescription);
+
+		return wItemDescription;
+	}
+
 	return m_ControlDescription.c_str();
+}
+
+jobject Item::GetMe()
+{
+	return javaItem;
 }

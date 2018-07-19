@@ -11,8 +11,8 @@
 
 bool TreeControl::Initialized = false;
 
-TreeControl::TreeControl(_In_ WCHAR* treeName) 
-	: Item(treeName, L""), m_treeProvider(NULL), m_focused(false), m_pSelectedTreeItem(NULL)
+TreeControl::TreeControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem) 
+	: Item(env, treeName, L"", jItem), m_treeProvider(NULL), m_focused(false), m_pSelectedTreeItem(NULL)
 {
 }
 
@@ -20,7 +20,7 @@ TreeControl::~TreeControl()
 {
 }
 
-TreeControl* TreeControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * treeName)
+TreeControl* TreeControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR * treeName, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -29,7 +29,7 @@ TreeControl* TreeControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow
 
 	if (Initialized)
 	{
-		TreeControl * control = new TreeControl(treeName);
+		TreeControl * control = new TreeControl(env, treeName, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TREE",

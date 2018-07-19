@@ -4,47 +4,120 @@ use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Fonts.all
 
 /*
-    Each lefthandCharacter in the KerningTable class is paired 
-    with a KerningValuesList object. The KerningValuesList class contains 
-    a hash table of righthand character of kerning pairs and the kerning value.
+The KerningValuesList class maintains a hash table which maps a right-hand
+character to a kerning value. This hash table is mapped to a given left-hand
+character in the KerningTable class.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Fonts.all
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end 
+
+        action CreateGame
+            KerningValuesList values
+            // Gets the kerning value of the glyph at glyph table index 0
+            output values:GetKerningValue(0)
+        end
+    end
 */ 
 class KerningValuesList 
-
+    /*Hash table that maps a glyph table character index to a kerning value*/
     HashTable<integer, integer> kerningValuesList
 
     /*
-        This action gets a value with a given character.
+    This action returns the kerning value for the character at the given
+    glyph table index.
 
-        Attribute: Parameter rightCharacterGlyphIndex - glyph table index of 
-        character on righthand side of kerning pair
+    Attribute: Parameter rightCharacterGlyphIndex The glyph table index of the
+    right-hand character of the pair.
 
-        Attribute: Returns the kerning value between two passed characters
+    Attribute: Returns Returns the kerning value for the characters.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                KerningValuesList values
+                output values:GetKerningValue(0)
+            end
+        end
     */
     action GetKerningValue(integer rightCharacterGlyphIndex) returns integer
-        return me:kerningValuesList:GetValue(rightCharacterGlyphIndex)
+        if HasKey(rightCharacterGlyphIndex)    
+            return me:kerningValuesList:GetValue(rightCharacterGlyphIndex)
+        else
+            return 0
+        end
     end
 
     /*
-        Adds kerning value between two characters to kerning table.
+    This action adds the kerning value of the right-hand character to the 
+    hash table.
 
-        Attribute: Parameter rightCharacterGlyphInex - glyph table index of
-        character on righthand side of kerning pair
+    Attribute: Parameter rightCharacterGlyphIndex The glyph table index of the
+    right-hand character of the pair.
 
-        Attribute: Parameter kerningValue - kerning value between pair of kerned 
-        glyphs
+    Attribute: Parameter kerningValue The kerning value of the character pair.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                KerningValuesList values
+                // Adds a kerning value of 10 to the glyph at glyph table index 0
+                // to the hash table.
+                values:Add(0, 10)
+            end
+        end
     */
     action Add(integer rightCharacterGlyphIndex, integer kerningValue)
         me:kerningValuesList:Add(rightCharacterGlyphIndex, kerningValue)
     end
 
     /*
-        This action determines whether the kerning value table contains target pair.
+    This action checks if the kerning value table contains a kerning value for the
+    given right-hand character.
 
-        Attribute: Parameter rightCharacterGlyphindex - glyph table index of
-        character on righthand side of kerning pair
+    Attribute: Parameter rightCharacterGlyphIndex The glyph table index of the
+    right-hand character of the pair.
 
-        Attribute: Returns True if list contains passed righthand character. 
-        Returns false otherwise.
+    Attribute: Returns Returns true if there is a kerning value for the given
+    character, and false if there is not.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                KerningValuesList values
+                output values:HasKey(0)
+            end
+        end
     */
     action HasKey(integer rightCharacterGlyphIndex) returns boolean
         return me:kerningValuesList:HasKey(rightCharacterGlyphIndex)

@@ -8,8 +8,8 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me)
-	: Item(name, description), m_focused(false), m_pTextBoxProvider(NULL), m_JO_me(me)
+TextBoxControl::TextBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me)
+	: Item(env, name, description, me), m_focused(false), m_pTextBoxProvider(NULL), m_JO_me(me)
 {
 }
 
@@ -54,7 +54,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me)
+TextBoxControl* TextBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me)
 {
 
 	if (!Initialized)
@@ -64,7 +64,7 @@ TextBoxControl* TextBoxControl::Create(_In_ HINSTANCE instance, _In_ HWND parent
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(textboxName, textboxDescription, me);
+		TextBoxControl * control = new TextBoxControl(env, textboxName, textboxDescription, me);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",

@@ -10,7 +10,7 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl(_In_ WCHAR* name, _In_ WCHAR* description) : Item(name, description), m_buttonProvider(NULL), m_focused(false)
+ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
 {
 }
 
@@ -83,7 +83,7 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+ButtonControl* ButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -92,7 +92,7 @@ ButtonControl* ButtonControl::Create(_In_ HINSTANCE instance, _In_ HWND parentWi
 
 	if (Initialized)
 	{
-		ButtonControl* control = new ButtonControl(buttonName, buttonDescription);
+		ButtonControl* control = new ButtonControl(env, buttonName, buttonDescription, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_BUTTON",
