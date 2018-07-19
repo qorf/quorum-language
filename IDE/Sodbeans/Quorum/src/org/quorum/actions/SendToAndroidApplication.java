@@ -7,9 +7,12 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.Map;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.modules.InstalledFileLocator;
@@ -101,6 +104,10 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 if(media.exists()) {
                     droid.copyAssets(media, project.getMobileAssetsFolder());
                 }     
+                Map <String, String> map = System.getenv();
+                for (Map.Entry <String, String> entry: map.entrySet()) {
+                    System.out.println("Variable Name:- " + entry.getKey() + " Value:- " + entry.getValue());
+                }
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();
                 QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getInputStream());

@@ -140,7 +140,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 assembleReleaseProcess.destroy();
                 
                 Process zipalignProcess = droid.GetZipalignProcess();
-                watch = new QuorumAction.QuorumProcessWatcher(zipalignProcess.getErrorStream());
+                watch = new QuorumAction.QuorumProcessWatcher(zipalignProcess.getInputStream());
                 outputStream = zipalignProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
@@ -153,7 +153,7 @@ public class SendToSignedAndroidApplication extends QuorumAction implements Acti
                 zipalignProcess.destroy();
                 
                 Process apkSignerProcess = droid.GetAPKSignerProcess();
-                watch = new QuorumAction.QuorumProcessWatcher(apkSignerProcess.getErrorStream());
+                watch = new QuorumAction.QuorumProcessWatcher(apkSignerProcess.getInputStream());
                 outputStream = apkSignerProcess.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
