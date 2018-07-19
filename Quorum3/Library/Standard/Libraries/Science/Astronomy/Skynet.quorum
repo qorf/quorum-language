@@ -684,7 +684,7 @@ class Skynet is NetworkRequestListener
         NetworkRequest request
         me:resource = "exps"
         request:SetRequestTypeToPost()
-        request:SetFixedLengthSreamingMode(true)
+        request:SetFixedLengthStreamingMode(true)
         request:SetWebAddress(me:server + me:resource)
         request:SetHeaders(GetSkynetHeaders())
         request:SetParameters(GetExposureParameters())

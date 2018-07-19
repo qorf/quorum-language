@@ -234,12 +234,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetFixedLengthSreamingMode(true)
+            request:SetFixedLengthStreamingMode(true)
             output request:IsFixedLengthStreamingMode()
         end
     end
     */
-    action SetFixedLengthSreamingMode(boolean value)
+    action SetFixedLengthStreamingMode(boolean value)
         me:fixedLengthStreamingMode = value
     end
 
@@ -255,12 +255,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetChunkedSreamingMode(true)
+            request:SetChunkedStreamingMode(true)
             output request:IsChunkedStreamingMode()
         end
     end
     */
-    action SetChunkedSreamingMode(boolean value)
+    action SetChunkedStreamingMode(boolean value)
         me:fixedLengthStreamingMode = not value
     end
 
@@ -276,7 +276,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetFixedLengthSreamingMode(false)
+            request:SetFixedLengthStreamingMode(false)
             output request:IsFixedLengthStreamingMode()
         end
     end
@@ -297,7 +297,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetChunkedSreamingMode(true)
+            request:SetChunkedStreamingMode(true)
             output request:IsChunkedStreamingMode()
         end
     end
@@ -318,7 +318,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetChunkedSreamingMode(true)
+            request:SetChunkedStreamingMode(true)
             request:SetChunkLength(1000
             output request:GetChunkLength()
         end
@@ -342,7 +342,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetChunkedSreamingMode(true)
+            request:SetChunkedStreamingMode(true)
             request:SetChunkLength(1000
             output request:GetChunkLength()
         end
