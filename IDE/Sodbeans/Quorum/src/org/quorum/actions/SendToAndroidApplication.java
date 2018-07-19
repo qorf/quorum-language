@@ -108,6 +108,8 @@ public class SendToAndroidApplication extends QuorumAction implements ActionList
                 for (Map.Entry <String, String> entry: map.entrySet()) {
                     System.out.println("Variable Name:- " + entry.getKey() + " Value:- " + entry.getValue());
                 }
+                
+           
             try {
                 Process buildProcess = droid.GetAPKDebugBuildProcess();
                 QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(buildProcess.getInputStream());

@@ -127,14 +127,13 @@ public class RunAndroid {
     }
     
     
-        public Process GetCreateKeystoreProcess(String keystorePath, String keystorePassword, String keystoreAlias, String keyAliasPassword) throws IOException, InterruptedException  {
-        if (isWindows()) {
+    public Process GetCreateKeystoreProcess(String keystorePath, String keystorePassword, String keystoreAlias, String keyAliasPassword, String firstLastName, String organizationalUnit, String organization, String cityLocation, String stateLocation, String nationLocation) throws IOException, InterruptedException  {
+        String jdkhome = System.getProperty("java.home") + File.separator + "bin" + File.separator;
+        String dName = "CN="+firstLastName+", OU="+organizationalUnit+", O="+organization+", L="+cityLocation+", S="+stateLocation+", C="+nationLocation;
             
-            String[] list = {"cmd", "/c", "\"\"", "keytool", "-genkey", "-v", "-keystore", keystorePath, "-storepass", keystorePassword, "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000", "-alias", keystoreAlias, "-keypasswd", keyAliasPassword, "&", "exit"};
-            for (String string : list) {
-                System.out.print(string+" ");
-            }
+        if (isWindows()) {
             System.out.println();
+            String[] list = {"cmd", "/c", "\"", jdkhome + "keytool", "-genkey", "-v", "-keystore", keystorePath, "-storepass", keystorePassword, "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000", "-alias", keystoreAlias, "-keypass", keyAliasPassword, "-dname", dName, "\"", "&", "exit"};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
@@ -145,13 +144,13 @@ public class RunAndroid {
             if(file.exists()) {
                 file.setExecutable(true);
             }
-            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {jdkhome + "keytool", "-genkey", "-v", "-keystore", keystorePath, "-storepass", keystorePassword, "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000", "-alias", keystoreAlias, "-keypass", keyAliasPassword, "-dname", dName};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
             return pb.start();
         } else {
-            String[] list = {pathToBuildAndroidFolder + "/gradlew",  "-p", pathToBuildAndroidFolder, "assembleRelease"};
+            String[] list = {jdkhome + "keytool", "-genkey", "-v", "-keystore", keystorePath, "-storepass", keystorePassword, "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000", "-alias", keystoreAlias, "-keypass", keyAliasPassword, "-dname", dName};
             ProcessBuilder pb = new ProcessBuilder(list);
             pb.redirectErrorStream(true);
             
