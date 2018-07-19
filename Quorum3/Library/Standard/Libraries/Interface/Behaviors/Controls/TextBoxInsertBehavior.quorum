@@ -8,24 +8,17 @@ use Libraries.Interface.Controls.TextBox
 
 class TextBoxInsertBehavior is Behavior
     action Run(BehaviorEvent event)
-        output "Inserting in TextBox."
         Item item = event:GetItem()
         if not (item is TextBox)
-            output "Item wasn't TextBox."
             return now
         end
 
         TextInputEvent inputEvent = event:GetTextInputEvent()
         if inputEvent = undefined
-            output "No input event."
             return now
-        else
-            output "Text was: " + inputEvent:GetText()
         end
 
-        output "About to insert."
         TextBox box = cast(TextBox, item)
         box:Insert(inputEvent:GetText())
-        output "Inserted into TextBox."
     end
 end
