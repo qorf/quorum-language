@@ -4,6 +4,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Network.NetworkRequestType
+use Libraries.System.File
 
 /*
 This class is used by the NetworkConnection class to create a request to be made over the internet protocol. More information on the internet protocol, called Hyper Text Transfer Protocol (HTTP) can be found at: https://www.w3.org/Protocols/,
@@ -42,10 +43,103 @@ class NetworkRequest
     private boolean fixedLengthStreamingMode = false
     private integer chunkLength = 1000
     private text parameters = ""
-
     private Iterator<text> headerIterator = undefined
     private text nextHeader = ""
+    private text downloadFile = ""
 
+
+    /*
+    Use this method to download a file from the internet. Set the filename and path where you'd like the downloaded file to save on your local computer.
+
+    Attribute: Parameter downloadFile The file object target for the download
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequest
+    use Libraries.Network.NetworkRequestListener
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.System.File
+
+    class Main is NetworkRequestListener
+
+        action Main
+            NetworkConnection conn
+            conn:AddListener(me)
+            File myFile
+            myFile:SetPath("logo.png")
+            NetworkRequest request
+            request:SetRequestTypeToGet()
+            request:SetWebAddress("https://quorumlanguage.com/media/QuorumLogo.png")
+            request:SetDownloadFile(myFile)
+
+            conn:SendRequest(request)
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+
+    end
+    */
+    public action SetDownloadFile(File downloadFile)
+        me:downloadFile = downloadFile:GetFileName()
+    end
+
+    /*
+    Use this method to download a file from the internet. Set the filename and path where you'd like the downloaded file to save on your local computer.
+
+    Attribute: Parameter downloadFile The path name as a text object
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequest
+    use Libraries.Network.NetworkRequestListener
+    use Libraries.Network.NetworkResponseEvent
+
+    class Main is NetworkRequestListener
+
+        action Main
+            NetworkConnection conn
+            conn:AddListener(me)
+            NetworkRequest request
+            request:SetRequestTypeToGet()
+            request:SetWebAddress("https://quorumlanguage.com/media/QuorumLogo.png")
+            request:SetDownloadFile("logo.png")
+            conn:SendRequest(request)
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+
+    end
+    */
+    public action SetDownloadFile(text downloadFile)
+        me:downloadFile = downloadFile
+    end
+
+/*
+    Use this method to retrieve the file name from a NetworkRequest object for a file to be downloaded.
+
+    Attribute: Parameter downloadFile The path name as a text object
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+
+    class Main
+        action Main
+            NetworkRequest request
+            request:SetDownloadFile("logo.png")
+            output request:GetDownloadFile()
+        end
+    end
+    */
+    public action GetDownloadFile returns text
+        return me:downloadFile
+    end
     /*
     This method is used to set the request type of a NetworkRequest
 
