@@ -184,7 +184,7 @@ public class QuorumLogicalView implements LogicalViewProvider{
             //nodeActions.add(project.getSendToIPhoneApplication());
             //nodeActions.add(project.getSendToIPhoneSimulator());
             nodeActions.add(project.getSendToAndroidApplication());
-            //nodeActions.add(project.getSendToSignedAndroidApplication());
+            nodeActions.add(project.getSendToSignedAndroidApplication());
             
             //set main project and close
             nodeActions.add(null);
