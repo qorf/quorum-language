@@ -38,8 +38,8 @@ class Main is WebResponder
     Library sharedLibrary = undefined
 
     action Main
-        ProcessConsoleFlags()
-        //CompileTest()
+        //ProcessConsoleFlags()
+        CompileTest()
     end
 
     action GenerateDocumentation(Array<text> fileNames)
@@ -203,21 +203,34 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File compilerRootFolder
-        compilerRootFolder:SetWorkingDirectory("/Users/andreasstefik/Repositories/quorum-language/Quorum3")
+        compilerRootFolder:SetWorkingDirectory("/Users/andreasstefik/Repositories/demogames/Bug Buster")
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetWorkingDirectory("/Users/andreasstefik/Repositories/quorum-language/Quorum3/SourceCode")
+        main:SetWorkingDirectory("/Users/andreasstefik/Repositories/demogames/Bug Buster/SourceCode")
         main:SetPath("main.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
         Array<File> files
-        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
-        i = 0
-        repeat while i < compilerFiles:GetSize()
-            File f = compilerFiles:Get(i)
-            files:Add(f)
-            i = i + 1
-        end
+//        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
+//        i = 0
+//        repeat while i < compilerFiles:GetSize()
+//            File f = compilerFiles:Get(i)
+//            if f:IsDirectory()
+//                Array<File> value = f:GetDirectoryListing()
+//                j = 0
+//                repeat while j < value:GetSize()
+//                    File value1 = value:Get(j)
+//                     if value1:GetFileName() = "Level.quorum"
+//                        a = 5
+//                     end
+//                    files:Add(value1)
+//                    j = j + 1
+//                end
+//            else
+//                files:Add(f)
+//            end
+//            i = i + 1
+//        end
         //files:Add(main)
         //compiler:SetMain(main)
 
