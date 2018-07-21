@@ -1634,7 +1634,7 @@ class Camera
     coordinates, and the width and height of the viewport.
     */
     action ScreenToWorldCoordinates(Vector3 coords, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Vector3
-        number x = viewportWidth - (coords:GetX() - viewportX)
+        number x = coords:GetX() - viewportX
         number y = coords:GetY() - viewportY
         coords:SetX((2 * x) / viewportWidth - 1)
         coords:SetY((2 * y) / viewportHeight - 1)
