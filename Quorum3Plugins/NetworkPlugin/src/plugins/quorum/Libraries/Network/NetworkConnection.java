@@ -75,7 +75,13 @@ public class NetworkConnection {
             }
             conn.setDoInput(request.GetDoInput());
             conn.setDoOutput(request.GetDoOutput());
-                conn.connect();
+            conn.connect();
+            
+            try(DataOutputStream os = new DataOutputStream(conn.getOutputStream())) {
+                os.writeBytes(body);
+                os.flush();
+                os.close();
+            }
             
             if (!request.GetDownloadFile().isEmpty()){
                 InputStream in = conn.getInputStream();
