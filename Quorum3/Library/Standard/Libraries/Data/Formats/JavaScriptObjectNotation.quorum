@@ -698,15 +698,15 @@ class JavaScriptObjectNotation
     end
 
     /*
-    This method returns a type of a JavaScriptObjectNotation object.
-    INTEGER = 1
-    NUMBER = 2
-    TEXT = 3
-    BOOLEAN = 4
-    UNDEFINED = 5
-    ARRAY = 6
-    OBJECT = 7
-    PARENT = 8
+    This method returns a type of a JavaScriptObjectNotation object as an integer code according to the following table:
+        INTEGER = 1
+        NUMBER = 2
+        TEXT = 3
+        BOOLEAN = 4
+        UNDEFINED = 5
+        ARRAY = 6
+        OBJECT = 7
+        PARENT = 8
 
     Attribute: Returns The type of the object as an integer.
 
@@ -733,6 +733,54 @@ class JavaScriptObjectNotation
 
     action GetType returns integer
         return type
+    end
+
+/*
+    This method returns a type of a JavaScriptObjectNotation object as text
+
+    Attribute: Returns The type of the object as text.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", "one")
+            json:Add("item2", 1)
+            json:Add("item3", 1.1)
+            json:Add("item4", true)
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):GetTypeAsText()
+                i = i + 1
+            end
+       end
+    end
+    */
+    action GetTypeAsText() returns text
+        if IsUndefined()
+            return "undefined"
+        elseif IsInteger()
+            return "integer"
+        elseif IsNumber()
+            return "number"
+        elseif IsText()
+            return "text"
+        elseif IsBoolean()
+            return "boolean"
+        elseif IsArray()
+            return "array"
+        elseif IsObject()
+            return "object"
+        elseif IsParent()
+            return "parent"
+        else
+            return ""
+        end
+            
     end
 
     /*
@@ -771,6 +819,161 @@ class JavaScriptObjectNotation
         return "No item called " + key + " found"
     end
 
+    /*
+    This method returns the value of a JavaScriptObjectNotation object by the key name as a JavaScriptObjectNotation object.
+    
+    Attribute; Returns The value of the object as text.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("key1", 1)
+            json:Add("key2", 2.2)
+            json:Add("key3", "three")
+            json:Add("key4", true)
+            JavaScriptObjectNotation nested
+            nested:SetKey("key5")
+            nested:Add("item1", 1)
+            nested:Add("item2", 2)
+            nested:Add("item3", 3)
+            json:Add(nested)
+
+            json:GetBoolean("key4")
+        end
+    end
+    */
+    action GetBoolean(text key) returns boolean
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key and child:GetType() = BOOLEAN
+                return child:GetBoolean()
+            end
+        end
+        alert(key + " not found with type boolean")
+        return false
+    end
+/*
+    This method returns the value of a JavaScriptObjectNotation object by the key name as a JavaScriptObjectNotation object.
+    
+    Attribute; Returns The value of the object as text.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("key1", 1)
+            json:Add("key2", 2.2)
+            json:Add("key3", "three")
+            json:Add("key4", true)
+            JavaScriptObjectNotation nested
+            nested:SetKey("key5")
+            nested:Add("item1", 1)
+            nested:Add("item2", 2)
+            nested:Add("item3", 3)
+            json:Add(nested)
+
+            json:GetInteger("key1")
+        end
+    end
+    */
+    action GetInteger(text key) returns integer
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key and child:GetType() = INTEGER
+                return child:GetInteger()
+            end
+        end
+        alert(key + " not found with type integer")
+        return 0
+    end
+/*
+    This method returns the value of a JavaScriptObjectNotation object by the key name as a JavaScriptObjectNotation object.
+    
+    Attribute; Returns The value of the object as text.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("key1", 1)
+            json:Add("key2", 2.2)
+            json:Add("key3", "three")
+            json:Add("key4", true)
+            JavaScriptObjectNotation nested
+            nested:SetKey("key5")
+            nested:Add("item1", 1)
+            nested:Add("item2", 2)
+            nested:Add("item3", 3)
+            json:Add(nested)
+
+            json:GetNumber("key2")
+        end
+    end
+    */
+    action GetNumber(text key) returns number
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key and child:GetType() = NUMBER
+                return child:GetNumber()
+            end
+        end
+        alert(key + " not found with type number")
+        return 0
+    end
+
+    /*
+    This method returns the value of a JavaScriptObjectNotation object by the key name as a JavaScriptObjectNotation object.
+    
+    Attribute; Returns The value of the object as text.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("key1", 1)
+            json:Add("key2", 2.2)
+            json:Add("key3", "three")
+            json:Add("key4", true)
+            JavaScriptObjectNotation nested
+            nested:SetKey("key5")
+            nested:Add("item1", 1)
+            nested:Add("item2", 2)
+            nested:Add("item3", 3)
+            json:Add(nested)
+
+            json:GetObject("key5"):GetInteger("item1")
+        end
+    end
+    */
+    action GetObject(text key) returns JavaScriptObjectNotation
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key and (not child:IsPrimitive())
+                return child
+            end
+        end
+        JavaScriptObjectNotation result = undefined
+        return result
+    end
+
+    
     /*
     This method returns the value of a JavaScriptObjectNotation object by the key name in text format
     
@@ -816,10 +1019,15 @@ class JavaScriptObjectNotation
             end
         elseif IsArray()
             text result = ""
+            text dq = result:GetDoubleQuote()
             result = result + "["
             i = 0
             repeat array:GetSize() times
-                result = result + array:Get(i):GetValue()
+                if array:Get(i):IsText()
+                    result = result + dq + array:Get(i):GetValue() + dq
+                else
+                    result = result + array:Get(i):GetValue()
+                end
                 if i < array:GetSize() - 1
                     result = result + ", "
                 end
