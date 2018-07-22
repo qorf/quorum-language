@@ -178,6 +178,9 @@ class JavaScriptObjectNotation
     */
 
     action Add(text key, JavaScriptObjectNotation object)
+        if IsUndefined()
+            SetObject()
+        end
         if object:HasKey()
             JavaScriptObjectNotation objectToAdd
             objectToAdd:SetPrettyPrint(IsPrettyPrint())
@@ -215,6 +218,9 @@ class JavaScriptObjectNotation
     */
 
     action Add(text key, boolean value)
+        if IsUndefined()
+            SetObject()
+        end
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetBoolean(value)
@@ -242,7 +248,10 @@ class JavaScriptObjectNotation
     end
     */
 
-    action Add(text key, integer value) 
+    action Add(text key, integer value)
+        if IsUndefined()
+            SetObject()
+        end
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetInteger(value)
@@ -271,6 +280,9 @@ class JavaScriptObjectNotation
     */
 
     action Add(text key, number value)
+        if IsUndefined()
+            SetObject()
+        end
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetNumber(value)
@@ -297,7 +309,10 @@ class JavaScriptObjectNotation
        end
     end
     */
-    action Add(text key, text value) 
+    action Add(text key, text value)
+        if IsUndefined()
+            SetObject()
+        end
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
         object:SetText(value)
@@ -842,7 +857,7 @@ class JavaScriptObjectNotation
             nested:Add("item3", 3)
             json:Add(nested)
 
-            json:GetBoolean("key4")
+            output json:GetBoolean("key4")
         end
     end
     */
@@ -880,7 +895,7 @@ class JavaScriptObjectNotation
             nested:Add("item3", 3)
             json:Add(nested)
 
-            json:GetInteger("key1")
+            output json:GetInteger("key1")
         end
     end
     */
@@ -918,7 +933,7 @@ class JavaScriptObjectNotation
             nested:Add("item3", 3)
             json:Add(nested)
 
-            json:GetNumber("key2")
+            output json:GetNumber("key2")
         end
     end
     */
@@ -957,7 +972,7 @@ class JavaScriptObjectNotation
             nested:Add("item3", 3)
             json:Add(nested)
 
-            json:GetObject("key5"):GetInteger("item1")
+            output json:GetObject("key5"):GetInteger("item1")
         end
     end
     */
