@@ -49,6 +49,7 @@ class ArrayTester
         ArrayRemoveFromFront()
         ArraySetMaxSize()
         ArraySetSize()
+        ArraySetSizeCheck()
         ArraySortInteger()
         ArraySortNumber()
         ArraySortText()
@@ -506,7 +507,18 @@ class ArrayTester
             File main
             main:SetPath(path + "ArraySetSize.quorum")
             files:Add(main)
-            results:Add(0, "6")
+            results:Add(0, "3")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action ArraySetSizeCheck
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "ArraySetSizeCheck.quorum")
+            files:Add(main)
+            results:Add(0, "passed")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
