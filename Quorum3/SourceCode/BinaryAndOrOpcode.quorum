@@ -42,9 +42,6 @@ class BinaryAndOrOpcode is QuorumOpcode
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         Libraries.Language.Compile.Location value = GetLocation()
-        if value:GetFile():GetFileName() = "ConstructorOr.quorum"
-            output "Method: " + GetMethodWriter():GetHashCode()
-        end
         if left not= undefined
             left:SetMethodWriterToAllChildren(writer)
         end
