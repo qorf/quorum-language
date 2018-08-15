@@ -15,11 +15,9 @@ class TextBoxNewLineBehavior is TimedBehavior
             return now
         end
 
-        text lineFeed = ""
-        lineFeed = lineFeed:GetLineFeed()
-
         textBox = cast(TextBox, item)
-        textBox:Insert(lineFeed)
+        text newLine = textBox:GetLineSeparator()
+        textBox:Insert(newLine)
     end
 
     action Dispose

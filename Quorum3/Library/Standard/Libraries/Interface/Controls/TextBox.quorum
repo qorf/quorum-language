@@ -304,6 +304,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     */
     private action GetLineDrawables
         Array<MultipleLineText> lines = textValue:GetLines()
+        text separator = textValue:GetLineSeparator()
         integer totalLines = lines:GetSize()
         integer lineHeight = font:GetLineHeight()
         firstLine = totalLines - (totalLines * verticalViewPercentage)
@@ -319,8 +320,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
             text line = lines:Get(counter):GetText()
             integer size = line:GetSize()
-            if line:EndsWith(line:GetLineFeed())
-                size = size - 1
+            if line:EndsWith(separator)
+                size = size - separator:GetSize()
             end
 
             Array<Drawable> drawables
@@ -564,9 +565,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             else
                 caretLine = caretLine - 1
                 text lineText = GetCurrentLineText()
+                text separator = textValue:GetLineSeparator()
                 caretCharacter = lineText:GetSize()
-                if lineText:EndsWith(lineText:GetLineFeed())
-                    caretCharacter = caretCharacter - 1
+                if lineText:EndsWith(separator)
+                    caretCharacter = caretCharacter - separator:GetSize()
                 end
 
                 if caretLine < firstLine
@@ -595,9 +597,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         integer oldIndex = GetCaretIndex()
 
         text lineText = GetCurrentLineText()
+        text separator = textValue:GetLineSeparator()
         integer size = lineText:GetSize()
-        if lineText:EndsWith(lineText:GetLineFeed())
-            size = size - 1
+        if lineText:EndsWith(separator)
+            size = size - separator:GetSize()
         end
         if caretCharacter >= size
             if caretLine + 1 = textValue:GetLineCount()
@@ -793,9 +796,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     */
     private action GetNearestCharacter(integer line, number position) returns integer
         text lineText = textValue:GetLine(line):GetText()
+        text separator = textValue:GetLineSeparator()
         integer size = lineText:GetSize()
-        if lineText:EndsWith(lineText:GetLineFeed())
-            size = size - 1
+        if lineText:EndsWith(separator)
+            size = size - separator:GetSize()
         end
 
         position = position - leftCharacterPadding
@@ -853,20 +857,22 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         boolean shouldResize = false
         number oldLength = GetLineWidth(caretLine)
+        integer toDelete = 1
 
         if caretCharacter = 0
             caretLine = caretLine - 1
             caretCharacter = textValue:GetLine(caretLine):GetText():GetSize()
             shouldResize = true
+            toDelete = GetLineSeparator():GetSize()
         elseif oldLength = GetScrollRegionWidth()
             // Force a recalculation of the width by setting its value to -1.
             scrollRegionWidth = -1
             shouldResize = true
         end
 
-        text deletedText = textValue:GetText(index - 1, index)
-        textValue = textValue:Delete(index - 1, index)
-        caretCharacter = caretCharacter - 1
+        text deletedText = textValue:GetText(index - toDelete, index)
+        textValue = textValue:Delete(index - toDelete, index)
+        caretCharacter = caretCharacter - toDelete
 
         if caretLine < firstLine
             GoToLine(caretLine)
@@ -898,16 +904,27 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             return now
         end
 
+        text line = GetCurrentLineText()
+
         if caretLine = textValue:GetLineCount() - 1
-            text line = GetCurrentLineText()
             if caretCharacter = line:GetSize()
                 return now
             end
         end
 
+        integer toDelete = 1
+        text separator = GetLineSeparator()
+        integer size = line:GetSize()
+        if line:EndsWith(separator)
+            size = size - separator:GetSize()
+        end
+        if caretCharacter >= size
+            toDelete = 2
+        end
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
-        text deletedText = textValue:GetText(index, index + 1)
-        textValue = textValue:Delete(index, index + 1)
+        text deletedText = textValue:GetText(index, index + toDelete)
+        textValue = textValue:Delete(index, index + toDelete)
 
         // Force a recalculation of the width by setting its value to -1.
         scrollRegionWidth = -1
@@ -987,17 +1004,23 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         textValue = textValue:Insert(GetCaretIndex(), value)
         
+        text separator = textValue:GetLineSeparator()
+
         // Determine how many new lines are produced from the insert so that we
         // know where to position the caret.
-        integer counter = value:GetSize()
+        integer counter = 0
         integer characters = 0
         integer newLines = 0
-        repeat while counter > 0
-            counter = counter - 1
-            if value:GetCharacter(counter) = value:GetLineFeed()
+
+        integer index = 0
+        integer searchIndex = 0
+        repeat while index not= -1 and searchIndex < value:GetSize()
+            index = value:IndexOf(separator, searchIndex)
+            if index = -1
+                characters = value:GetSize() - (searchIndex)
+            else
                 newLines = newLines + 1
-            elseif newLines = 0
-                characters = characters + 1
+                searchIndex = index + separator:GetSize()
             end
         end
 
@@ -1560,5 +1583,37 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetIndentationStrategy returns IndentationStrategy
         return indentation
+    end
+
+    /*
+    The GetLineSeparator action returns the text which is used to designate the
+    end of a line in the TextBox. By default, this is the same as the value used
+    by the operating system.
+
+    Attribute: Returns The character(s) used to designate the end of a line.
+    */
+    action GetLineSeparator returns text
+        return textValue:GetLineSeparator()
+    end
+
+    /*
+    The SetLineSeparator action sets which character(s) should be used to 
+    signify the end of a line.
+
+    Attribute: Parameter separator The character(s) to be used to mark the end of a line of text.
+    */
+    action SetLineSeparator(text separator)
+        textValue:SetLineSeparator(separator)
+    end
+
+    /*
+    The GetDefaultLineSeparator action returns the default character(s) used by
+    the TextBox to signify the end of a line of text. This is the same line
+    separating characters that are used by the running operating system.
+
+    Attribute: Returns The default characters used to indicate the end of a line of text.
+    */
+    action GetDefaultLineSeparator returns text
+        return textValue:GetDefaultLineSeparator()
     end
 end

@@ -1,6 +1,7 @@
 package Libraries.Containers
 
 use Libraries.Containers.Array
+use Libraries.System.Properties
 
 /*
 The MultipleLineText class is used to distribute text across multiple lines.
@@ -18,7 +19,7 @@ multiLineText:Initialize("Hello world! ")
 text extraText = "This is extra text."
 multiLineText = multiLineText:Concatenate(extraText)
 
-extraText = extraText:GetLineFeed() + "This text is on a second line."
+extraText = multiLineText:GetLineSeparator() + "This text is on a second line."
 multiLineText = multiLineText:Concatenate(extraText)
 
 output multiLineText:GetText()
@@ -57,6 +58,16 @@ class MultipleLineText
 
     // The characters stored in this node - empty unless the node is a leaf.
     text characters = ""
+
+    // The line separator being used across all nodes of the tree.
+    text lineSeparator = ""
+
+    // Used to determine the platform's default line separator.
+    Properties properties
+
+    on create
+        lineSeparator = GetDefaultLineSeparator()
+    end
 
     /*
     The Initialize action constructs the MultipleLineText from a starting text value.
@@ -109,7 +120,7 @@ class MultipleLineText
         maxLeafSize = leafSize
         fibonacciArray = fibonacci
         if TextFitsInLine(value)
-            if (keepEmptyEndLine and value:EndsWith(value:GetLineFeed()))
+            if (keepEmptyEndLine and value:EndsWith(lineSeparator))
                 MultipleLineText leftChild
                 MultipleLineText rightChild
                 leftChild:Initialize(value, leafSize, fibonacci, false)
@@ -159,8 +170,8 @@ class MultipleLineText
     end
 
     private action TextFitsInLine(text value) returns boolean
-        integer index = value:IndexOf(value:GetLineFeed())
-        if index not= -1 and index not= value:GetSize() - 1
+        integer index = value:IndexOf(lineSeparator)
+        if index not= -1 and index not= value:GetSize() - lineSeparator:GetSize()
             return false
         end
 
@@ -169,7 +180,7 @@ class MultipleLineText
     end
 
     private action SplitIntoLines(text value) returns Array<text>
-        Array<text> lines = Split(value, value:GetLineFeed())
+        Array<text> lines = Split(value, lineSeparator)
 
         // Line wrapping will be handled here when it is supported.
 
@@ -257,7 +268,7 @@ class MultipleLineText
     end
 
     private action GetTextWidth(text value) returns number
-        if value:Contains(value:GetLineFeed())
+        if value:Contains(lineSeparator)
             return maxLeafSize
         end
 
@@ -589,7 +600,7 @@ class MultipleLineText
         
         MultipleLineText result = RecursiveConcatenate(value)
 
-        if value:EndsWith(value:GetLineFeed())
+        if value:EndsWith(lineSeparator)
             // Manually insert a blank line at the end of the tree.
             MultipleLineText newLine
             newLine:Initialize("", maxLeafSize, fibonacciArray, false)
@@ -1115,11 +1126,17 @@ class MultipleLineText
 
     // TO-DO: Implement text wrapping
     
+    /*
+
+    */
     action GetLines returns Array<MultipleLineText>
         Array<MultipleLineText> array
         return GetLines(array)
     end
 
+    /*
+
+    */
     action GetLines(Array<MultipleLineText> array) returns Array<MultipleLineText>
         if IsLeaf()
             array:Add(me)
@@ -1132,6 +1149,51 @@ class MultipleLineText
             end
         end
         return array
+    end
+
+    /*
+    The GetLineSeparator action returns the text which is used to designate the
+    end of a line in the MultipleLineText. By default, this is the same as the 
+    value used by the operating system.
+
+    Attribute: Returns The character(s) used to designate the end of a line.
+    */
+    action GetLineSeparator returns text
+        return lineSeparator
+    end
+
+    /*
+    The SetLineSeparator action sets which character(s) should be used to 
+    signify the end of a line.
+
+    Attribute: Parameter separator The character(s) to be used to mark the end of a line of text.
+    */
+    action SetLineSeparator(text separator)
+        if IsLeaf()
+            if characters:EndsWith(lineSeparator)
+                text preText = ""
+                if characters:GetSize() > lineSeparator:GetSize()
+                    preText = characters:GetSubtext(0, characters:GetSize() - lineSeparator:GetSize())
+                end
+                characters = preText + separator
+            end
+        else
+            left:SetLineSeparator(separator)
+            right:SetLineSeparator(separator)
+        end
+
+        lineSeparator = separator
+    end
+
+    /*
+    The GetDefaultLineSeparator action returns the default character(s) used by
+    the MultipleLineText to signify the end of a line of text. This is the same 
+    line separating characters that are used by the running operating system.
+
+    Attribute: Returns The default characters used to indicate the end of a line of text.
+    */
+    action GetDefaultLineSeparator returns text
+        return properties:GetProperty("line.separator")
     end
     
 end
