@@ -42,7 +42,7 @@ class TextBoxCaretStartMoveBehavior is Behavior
 
         TextBoxCaretMoveBehavior behavior
         behavior:SetSelecting(selecting)
-        behavior:SetTimer(box:GetCaretIdleTime())
+        behavior:SetTimer(box:GetCaretMoveDelay())
 
         /*
         Begin advancing the caret in the given direction. It will continue to
