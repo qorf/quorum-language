@@ -89,7 +89,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     number caretIdleTime = 1.0
     number caretBlinkTime = 0.35
-    number caretMoveTime = 0.05
+    number caretMoveDelay = 0.35
+    number caretMoveTime = 0.0325
     number caretTimer = 0
 
     /*
@@ -436,6 +437,28 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         UpdatePaneView(horizontal, newVertical)
     end
 
+    /*
+    Tries to ensure the given line is visible on the screen. If it's already on
+    the screen, this does nothing. Otherwise, it will be made the first visible
+    line (if the line is above the currently visible portion of the text) or the
+    last visible line (if the line is below the current text).
+    */
+    private action FitLineOnScreen(integer line)
+        if line < firstLine
+            output "ABOVE"
+            return now
+        end
+
+        integer lineHeight = font:GetLineHeight()
+        number lastLine = firstLine + cast(integer, (GetHeight() - GetSharedSpaceOffset()) / lineHeight) - 1
+        output "lastLine = " + lastLine + ", line = " + line
+
+        if lastLine < line
+            output "BELOW"
+            return now
+        end
+    end
+
     private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
@@ -742,6 +765,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretCharacter = GetNearestCharacter(caretLine, caretX)
 
         number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+//        FitLineOnScreen(caretLine)
         if caretLine > (firstLine + visibleLines - 1)
             GoToLine(caretLine - visibleLines + 1)
         end
@@ -773,6 +797,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretLine = caretLine - 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
 
+//        FitLineOnScreen(caretLine)
         if caretLine < firstLine
             GoToLine(caretLine)
         end
@@ -1418,8 +1443,24 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
     end
 
+    action SetCaretIdleTime(number time)
+        caretIdleTime = time
+    end
+
+    action SetCaretMoveDelay(number time)
+        caretMoveDelay = time
+    end
+
+    action SetCaretMoveTime(number time)
+        caretMoveTime = time
+    end
+
     action GetCaretIdleTime returns number
         return caretIdleTime
+    end
+
+    action GetCaretMoveDelay returns number
+        return caretMoveDelay
     end
 
     action GetCaretMoveTime returns number
