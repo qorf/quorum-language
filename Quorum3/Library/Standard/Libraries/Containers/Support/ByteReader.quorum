@@ -205,6 +205,57 @@ class ByteReader
         return value
     end
 
+    action NextTextReadWindows(integer amount) returns text
+        text value = ""
+        integer i = 0
+        repeat while i < amount
+            integer byte = array:Get(position)
+            integer byte2 = array:Get(position + 1)
+            text value2 = array:CharacterFromTwoBytes(byte, byte2)
+            value = value + value2
+            position = position + 2
+            i = i + 1
+        end
+        return value
+    end
+
+    /*
+    This action checks if the font file being read is a .ttc file or not. If it
+    is .ttc instead of .ttf, it has a different structure and must be read differently
+    than a .ttf file. .ttc files always have the tag "ttcf" at the start of the file.
+    Returns true if the file being read is a .ttc file, and false if it is a .ttf file.
+
+    Attribute: Returns Returns true if the file is in .ttc format, and false otherwise.
+
+    Attribute: Example
+        use Libraries.Containers.Support.ByteReader
+        use Libraries.System.File
+        use Libraries.Containers.ByteArray
+        File file
+        file:SetPath("files/Quorum.png")
+        ByteArray value = file:ReadBytes()
+        ByteReader reader
+        reader:SetByteArray(value)
+        boolean result = reader:CheckIfTrueTypeCollection()
+    */
+    action CheckIfTrueTypeCollection() returns boolean
+        text value = ""
+        integer i = 0
+        repeat while i < 4
+            integer byte = array:Get(i)
+            text character = array:CharacterFromByte(byte)
+            value = value + character
+            i = i + 1
+        end
+        //output "Value is: " + value
+        if value = "ttcf"
+            position = 4
+            return true
+        else
+            return false
+        end
+    end
+
     /*
     This action reads the next byte from the ByteArray and converts it to
     an integer.
