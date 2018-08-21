@@ -100,6 +100,25 @@ class TrueTypeFileInformation
     MacStyleFlags class for details on these flags, or visit the Apple documentation
     on the "head" table.*/
     MacStyleFlags macStyleFlags
+    /*NameTableRecords maintains human readable information about the font file.*/
+    NameTableRecords nameTable
+    boolean trueTypeCollection = false
+
+    action SetTrueTypeCollectionFlag(boolean value)
+        trueTypeCollection = value
+    end
+
+    action GetTrueTypeCollectionFlag() returns boolean
+        return trueTypeCollection
+    end
+
+    action SetNameTable(NameTableRecords table)
+        nameTable = table
+    end
+
+    action GetNameTable() returns NameTableRecords
+        return nameTable
+    end
 
     /*
     This action sets the line gap value to use when creating space between two
@@ -1616,5 +1635,31 @@ class TrueTypeFileInformation
     */
     action SetCharacterMapFormat(integer format) 
         me:characterMapFormat = format
+    end
+
+    action SetAllTrueTypeInformation(TrueTypeCollectionData information)
+        scalerType = information:GetScalerType()
+        numberOfTables = information:GetNumberOfTables()
+        searchRange = information:GetSearchRange()
+        entrySelector = information:GetEntrySelector()
+        rangeShift = information:GetRangeShift()
+        glyphOutlineTablePosition = information:GetGlyphOutlineTablePosition()
+        characterMapTablePosition = information:GetCharacterMapTablePosition()
+        glyphDataLocationTablePosition = information:GetGlyphDataLocationTablePosition()
+        kerningTablePosition = information:GetKerningSubtablePosition()
+        kerningValuesTablePosition = information:GetKerningValuesTablePosition()
+        characterMapFormat = information:GetCharacterMapFormat()
+        horizontalHeaderTablePosition = information:GetHorizontalHeaderTablePosition()
+        unitsPerEm = information:GetUnitsPerEm()
+        xMinimum = information:GetXMinimum()
+        yMinimum = information:GetYMinimum()
+        xMaximum = information:GetXMaximum()
+        yMaximum = information:GetYMaximum()
+        maximumAscent = information:GetMaximumAscent()
+        maximumDescent = information:GetMaximumDescent()
+        lineGap = information:GetLineGap()
+        lowestRecommendedPixelsPerEm = information:GetLowestRecommendedPixelsPerEm()
+        fontDirectionHint = information:GetFontDirectionHint()
+        indexToLocationTableFormat = information:GetIndexToLocationTableFormat()
     end
 end

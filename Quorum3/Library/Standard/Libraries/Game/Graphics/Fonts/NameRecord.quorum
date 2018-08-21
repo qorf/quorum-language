@@ -1,0 +1,97 @@
+package Libraries.Game.Graphics.Fonts
+
+// For more information on the fields in this class, see Microsoft's documentation
+// for the "name" table in their TrueType/OpenType documentation
+
+class NameRecord 
+    integer format = 0
+    integer numberOfNameRecords = 0
+    integer stringOffset = 0
+    integer platformID = 0
+    integer platformSpecificID = 0
+    integer languageID = 0
+    integer nameID = 0
+    integer wordLength = 0
+    integer offsetToWord = 0
+    text fontStyleName = ""
+
+    action GetFileFormat() returns integer
+        return format
+    end
+
+    action SetFileFormat(integer value)
+        format = value
+    end
+
+    action GetNumberOfNameRecords() returns integer
+        return numberOfNameRecords
+    end
+
+    action SetNumberOfNameRecords(integer count)
+        numberOfNameRecords = count
+    end
+
+    action GetStringOffset() returns integer
+        return stringOffset
+    end
+
+    action SetStringOffset(integer offset)
+        stringOffset = offset
+    end
+
+    action GetPlatformID() returns integer
+        return platformID
+    end
+
+    action SetPlatformID(integer id)
+        platformID = id
+    end
+
+    action GetPlatFormSpecificID() returns integer
+        return platformSpecificID
+    end
+
+    action SetPlatformSpecificID(integer id)
+        platformSpecificID = id
+    end
+
+    action GetLanguageID() returns integer
+        return languageID
+    end
+
+    action SetLanguageID(integer id)
+        languageID = id
+    end
+
+    action GetNameID() returns integer
+        return nameID
+    end
+
+    action SetNameID(integer id)
+        nameID = id
+    end
+
+    action GetWordLength() returns integer
+        return wordLength
+    end
+
+    action SetWordLength(integer length)
+        wordLength = length
+    end
+
+    action GetOffsetToWord() returns integer
+        return offsetToWord
+    end
+
+    action SetOffsetToWord(integer offset)
+        offsetToWord = offset
+    end
+
+    action GetFontStyleName() returns text
+        return fontStyleName
+    end
+
+    action SetFontStyleName(text name)
+        fontStyleName = name
+    end
+end

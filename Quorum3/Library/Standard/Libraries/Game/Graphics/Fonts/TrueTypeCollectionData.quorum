@@ -1,0 +1,154 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+
+class TrueTypeCollectionData 
+    Array<NameRecord> records
+    integer scalerType = -1
+    integer numberOfTables = -1
+    integer searchRange = -1
+    integer entrySelector = -1
+    integer rangeShift = -1
+    integer glyphOutlineTablePosition = -1
+    integer characterMapTablePosition = -1
+    integer glyphDataLocationTablePosition = -1
+    integer kerningTablePosition = -1
+    integer kerningValuesTablePosition = -1
+    integer characterMapFormat = -1
+    integer horizontalHeaderTablePosition = -1
+    integer unitsPerEm = -1
+    Signed16BitFontUnit xMinimum
+    Signed16BitFontUnit yMinimum
+    Signed16BitFontUnit xMaximum
+    Signed16BitFontUnit yMaximum
+    integer maximumAscent = -1
+    integer maximumDescent = -1
+    integer lineGap = -1
+    integer lowestRecommendedPixelsPerEm = -1
+    integer fontDirectionHint = -1
+    integer indexToLocationTableFormat = -1
+    GlobalFontInformationFlags globalFontInformationFlags
+    MacStyleFlags macStyleFlags
+   
+    action GetNameRecords() returns Array<NameRecord>
+        return records
+    end
+    
+    action GetScalerType() returns integer
+        return scalerType
+    end
+
+    action GetNumberOfTables() returns integer
+        return numberOfTables
+    end
+
+    action GetSearchRange() returns integer
+        return searchRange
+    end
+
+    action GetEntrySelector() returns integer
+        return entrySelector
+    end
+
+    action GetRangeShift() returns integer
+        return rangeShift
+    end
+
+    action GetGlyphOutlineTablePosition() returns integer
+        return glyphOutlineTablePosition
+    end
+
+    action GetCharacterMapTablePosition() returns integer
+        return characterMapTablePosition
+    end
+
+    action GetGlyphDataLocationTablePosition() returns integer
+        return glyphDataLocationTablePosition
+    end
+
+    action GetKerningSubtablePosition() returns integer
+        return kerningTablePosition
+    end
+
+    action GetKerningValuesTablePosition() returns integer
+        return kerningValuesTablePosition
+    end
+
+    action GetCharacterMapFormat() returns integer
+        return characterMapFormat
+    end
+    
+    action GetHorizontalHeaderTablePosition() returns integer
+        return horizontalHeaderTablePosition
+    end
+
+    action GetUnitsPerEm() returns integer
+        return unitsPerEm
+    end
+
+    action GetXMinimum() returns Signed16BitFontUnit
+        return xMinimum
+    end
+
+    action GetYMinimum() returns Signed16BitFontUnit
+        return yMinimum
+    end
+
+    action GetXMaximum() returns Signed16BitFontUnit
+        return xMaximum
+    end
+
+    action GetYMaximum() returns Signed16BitFontUnit
+        return yMaximum
+    end
+
+    action GetMaximumAscent() returns integer
+        return maximumAscent
+    end
+
+    action GetMaximumDescent() returns integer
+        return maximumDescent
+    end
+
+    action GetLineGap() returns integer
+        return lineGap
+    end
+
+    action GetLowestRecommendedPixelsPerEm() returns integer
+        return lowestRecommendedPixelsPerEm
+    end
+
+    action GetFontDirectionHint() returns integer
+        return fontDirectionHint
+    end
+
+    action GetIndexToLocationTableFormat() returns integer
+        return indexToLocationTableFormat
+    end
+
+    action SetAllTrueTypeInformation(TrueTypeFileInformation information)
+        scalerType = information:GetScalerType()
+        numberOfTables = information:GetNumberOfTables()
+        searchRange = information:GetSearchRange()
+        entrySelector = information:GetEntrySelector()
+        rangeShift = information:GetRangeShift()
+        glyphOutlineTablePosition = information:GetGlyphOutlineTablePosition()
+        characterMapTablePosition = information:GetCharacterMapTablePosition()
+        glyphDataLocationTablePosition = information:GetGlyphDataLocationTablePosition()
+        kerningTablePosition = information:GetKerningSubtablePosition()
+        kerningValuesTablePosition = information:GetKerningValuesTablePosition()
+        characterMapFormat = information:GetCharacterMapFormat()
+        horizontalHeaderTablePosition = information:GetHorizontalHeaderTablePosition()
+        unitsPerEm = information:GetUnitsPerEm()
+        xMinimum = information:GetXMinimum()
+        yMinimum = information:GetYMinimum()
+        xMaximum = information:GetXMaximum()
+        yMaximum = information:GetYMaximum()
+        maximumAscent = information:GetMaximumAscent()
+        maximumDescent = information:GetMaximumDescent()
+        lineGap = information:GetLineGap()
+        lowestRecommendedPixelsPerEm = information:GetLowestRecommendedPixelsPerEm()
+        fontDirectionHint = information:GetFontDirectionHint()
+        indexToLocationTableFormat = information:GetIndexToLocationTableFormat()
+    end
+end

@@ -46,12 +46,18 @@ class FreeTypeStrategy is FontStrategy
     private boolean initialized = false
     private HashTable<text, Glyph> glyphTable
 
+    private text style = ""
+
     on create
         Color color
         color = color:Black()
         SetColor(color)
     end
     
+    action SetStyle(text newStyle)
+        style = newStyle
+    end
+
     /*
     This action loads a font from a given font file. 
 

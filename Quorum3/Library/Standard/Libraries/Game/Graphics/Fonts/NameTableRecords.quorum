@@ -1,0 +1,47 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+
+class NameTableRecords 
+    integer numberOfFontsInCollection = 0
+    Array<integer> offsetTable
+    Array<NameRecord> nameRecords
+    HashTable<integer, TrueTypeCollectionData> styleTables
+
+    action GetStyleTables() returns HashTable<integer, TrueTypeCollectionData>
+        return styleTables
+    end
+
+    action SetStyleTables(HashTable<integer, TrueTypeCollectionData> tables)
+        styleTables = tables
+    end
+
+    action AddToStyleTables(integer key, TrueTypeCollectionData value)
+        styleTables:Add(key, value)
+    end
+
+    action AddNameRecord(NameRecord record)
+        nameRecords:Add(record)
+    end
+
+    action GetNameRecords() returns Array<NameRecord>
+        return nameRecords
+    end
+
+    action SetOffsetTable(Array<integer> table)
+        offsetTable = table
+    end
+
+    action GetOffsetTable() returns Array<integer>
+        return offsetTable
+    end
+
+    action SetNumberOfFontsInCollection(integer count)
+        numberOfFontsInCollection = count
+    end
+
+    action GetNumberOfFontsInCollection() returns integer
+        return numberOfFontsInCollection
+    end
+end

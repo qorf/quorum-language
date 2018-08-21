@@ -62,10 +62,16 @@ class QuorumStrategy is FontStrategy
     private integer fontMinimumX = 0
     private integer fontMinimumY = 0
 
+    private text style = ""
+
     on create
         Color color
         color = color:Black()
         SetColor(color)
+    end
+
+    action SetStyle(text newStyle)
+        style = newStyle
     end
 
     /*
@@ -102,8 +108,45 @@ class QuorumStrategy is FontStrategy
         fileInformation = fileReader:GetFileInformation()
         kerningTable = fileReader:GetKerningTable()
 
+        if fileInformation:GetTrueTypeCollectionFlag() = true
+            LoadSubFont()
+        end
+
         SetFontDimensions()
         initialized = true
+    end
+
+    private action LoadSubFont()
+        NameTableRecords nameRecords = fileInformation:GetNameTable()
+        HashTable<integer, TrueTypeCollectionData> hashTable = nameRecords:GetStyleTables()
+        Array<TrueTypeCollectionData> dataArray = hashTable:CopyToValueArray()
+        boolean styleFound = false
+
+        integer j = 0
+        repeat while j < dataArray:GetSize() and styleFound = false
+            TrueTypeCollectionData data = dataArray:Get(j)
+            Array<NameRecord> records = data:GetNameRecords()
+
+            integer i = 0
+            repeat while i < records:GetSize() and styleFound = false
+                NameRecord record = records:Get(i)
+                text name = record:GetFontStyleName()
+                if name = style
+                    fileInformation:SetAllTrueTypeInformation(data)
+                    styleFound = true
+                    output "Style was found!"
+                end
+            
+                i = i + 1
+            end
+
+            j = j + 1
+        end
+
+        if styleFound = false       // specified style was not found, try some defaults
+            output "Style was not found!"
+        end
+
     end
 
     /*

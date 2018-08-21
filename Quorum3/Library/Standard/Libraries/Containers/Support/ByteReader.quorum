@@ -205,7 +205,27 @@ class ByteReader
         return value
     end
 
-    action NextTextReadWindows(integer amount) returns text
+    /*
+    This action reads the next amount of characters from the ByteArray, sets them
+    to a text object, and then returns it. Unicode encoding uses 2 bytes per
+    character.
+
+    Attribute: Parameter amount The number of characters to read from the ByteArray
+    
+    Attribute: Returns Returns the characters read from the ByteArray as text.
+
+    Attribute: Example
+        use Libraries.Containers.Support.ByteReader
+        use Libraries.System.File
+        use Libraries.Containers.ByteArray
+        File file
+        file:SetPath("files/Quorum.png")
+        ByteArray value = file:ReadBytes()
+        ByteReader reader
+        reader:SetByteArray(value)
+        text word = reader:NextTextReadUnicode(5)
+    */
+    action NextTextReadUnicode(integer amount) returns text
         text value = ""
         integer i = 0
         repeat while i < amount
@@ -214,7 +234,7 @@ class ByteReader
             text value2 = array:CharacterFromTwoBytes(byte, byte2)
             value = value + value2
             position = position + 2
-            i = i + 1
+            i = i + 2
         end
         return value
     end

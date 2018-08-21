@@ -449,30 +449,32 @@ class FontRasterizer
             otherwise, recursively subdivide the line until it is curved enough
         TODO: Seems like this may be recursing too much in some cases. Set limit?    
     */
-    private action FlatCurveAlgorithm(number startX, number startY, number controlX, number controlY, number endX, number endY, Array<CoordinateVector> vals)
+    private action FlatCurveAlgorithm(number startX, number startY, number controlX, number controlY, number endX, number endY, Array<CoordinateVector> vals, integer recursionLimit)
         Math absoluteValue
 
-        // Midpoints of the lines between start/end and control points
-        number xStartToxControlMid = (startX + controlX) / 2
-        number yStartToyControlMid = (startY + controlY) / 2
-        number xControlToxEndMid = (controlX + endX) / 2
-        number yControlToyEndMid = (controlY + endY) / 2
-        number xMidToxMid = (xStartToxControlMid + xControlToxEndMid) /2
-        number yMidToyMid = (yStartToyControlMid + yControlToyEndMid) /2
+        if(recursionLimit < 50)
+            // Midpoints of the lines between start/end and control points
+            number xStartToxControlMid = (startX + controlX) / 2
+            number yStartToyControlMid = (startY + controlY) / 2
+            number xControlToxEndMid = (controlX + endX) / 2
+            number yControlToyEndMid = (controlY + endY) / 2
+            number xMidToxMid = (xStartToxControlMid + xControlToxEndMid) /2
+            number yMidToyMid = (yStartToyControlMid + yControlToyEndMid) /2
 
-        number dx = endX-startX
-        number dy = endY-startY
-        number d = absoluteValue:AbsoluteValue(((controlX-endX)*dy-(controlY-endY)*dx))
-        
-        // need to add end points to the array
-        if(d*d <= (dx*dx + dy*dy))
-            CoordinateVector vector
-            vector:SetX(cast(integer, endX))
-            vector:SetY(cast(integer, endY))
-            vals:Add(vector)
-        else
-            FlatCurveAlgorithm(startX, startY, xStartToxControlMid, yStartToyControlMid, xMidToxMid, yMidToyMid, vals)
-            FlatCurveAlgorithm(xMidToxMid, yMidToyMid, xControlToxEndMid, yControlToyEndMid, endX, endY, vals)
+            number dx = endX-startX
+            number dy = endY-startY
+            number d = absoluteValue:AbsoluteValue(((controlX-endX)*dy-(controlY-endY)*dx))
+
+            // need to add end points to the array
+            if(d*d <= (dx*dx + dy*dy))
+                CoordinateVector vector
+                vector:SetX(cast(integer, endX))
+                vector:SetY(cast(integer, endY))
+                vals:Add(vector)
+            else
+                FlatCurveAlgorithm(startX, startY, xStartToxControlMid, yStartToyControlMid, xMidToxMid, yMidToyMid, vals, recursionLimit + 1)
+                FlatCurveAlgorithm(xMidToxMid, yMidToyMid, xControlToxEndMid, yControlToyEndMid, endX, endY, vals, recursionLimit + 1)
+            end
         end
     end
 
@@ -652,7 +654,7 @@ class FontRasterizer
     */
     private action GetFlatCurve(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3) returns Array<Line>
         Array<CoordinateVector> vals
-        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals)
+        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals, 0)
         Array<Line> lines
     
         Line l0
@@ -692,7 +694,7 @@ class FontRasterizer
     */
     private action DrawFlatCurve(PixelMap pixelmap, integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
         Array<CoordinateVector> vals
-        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals)
+        FlatCurveAlgorithm(x1, y1, x2, y2, x3, y3, vals, 0)
         Color color
         pixelmap:DrawLine(x1, y1, vals:Get(0):GetX(), vals:Get(0):GetY(), color:Yellow())
 
