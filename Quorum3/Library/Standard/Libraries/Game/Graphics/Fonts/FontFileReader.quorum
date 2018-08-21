@@ -52,8 +52,8 @@ class FontFileReader
     CharacterMap characterMap
     /*KerningTable that maintains the kerning values between any two pairs of characters*/
     KerningTable kerningTable
-    /*NameTableRecords that maintains human-readable information about the font file.*/
-    NameTableRecords nameTable
+    /*TrueTypeCollectionRecords that maintains human-readable information about the font file.*/
+    TrueTypeCollectionRecords trueTypeTable
 
     on create
         NULL_TERMINATOR = NULL_TERMINATOR:GetUnicodeValue(0)
@@ -133,50 +133,42 @@ class FontFileReader
         GetRecords()
     end
 
+    // This action is used in the GetRecords() when reading a .ttc file. .ttc files
+    // have a different format from .ttf so must be read in differently. If this
+    // needs to be modified, Microsoft has good documentation on .ttc files
+    // in their OpenType documentation (I did not see anything on the Apple TrueType
+    // documentation).
     private action GetTrueTypeCollectionRecords()
         fileInformation:SetTrueTypeCollectionFlag(true)
         integer majorVersionNumber = byteReader:NextTwoByteUnsignedInteger()
-        //output "Major Version Number: " + majorVersionNumber
         integer minorVersionNumber = byteReader:NextTwoByteUnsignedInteger()
-        //output "Minor Version Number: " + minorVersionNumber
         integer numberOfFontsInCollection = byteReader:NextInteger()
-        nameTable:SetNumberOfFontsInCollection(numberOfFontsInCollection)
-        //output "Number of Fonts in Collection: " + nameTable:GetNumberOfFontsInCollection()
+        trueTypeTable:SetNumberOfFontsInCollection(numberOfFontsInCollection)
         Array<integer> offsetTable
-        //HashTable<integer, TrueTypeCollectionData> hashTable = nameTable:GetStyleTables()
-        Array<TrueTypeCollectionData> collectionTables = nameTable:GetCollectionTables()
+        Array<TrueTypeCollectionData> collectionTables = trueTypeTable:GetCollectionTables()
 
         integer i = 0
         repeat while i < numberOfFontsInCollection
             TrueTypeCollectionData data
             integer value = byteReader:NextInteger()
-            //output "Offset is: " + value
             offsetTable:Add(value)
-            //hashTable:Add(value, data)
             collectionTables:Add(data)
             i = i + 1
         end
 
-        nameTable:SetOffsetTable(offsetTable)
+        trueTypeTable:SetOffsetTable(offsetTable)
 
         if majorVersionNumber = 2
             integer digitalSignatureTag = byteReader:NextInteger()
-            //output "DigitalSignatureTag is: " + digitalSignatureTag
             integer digitalSignatureLength = byteReader:NextInteger()
-            //output "DigitalSignatureLength is: " + digitalSignatureLength
             integer digitalSignatureOffset = byteReader:NextInteger()
-            //output "DigitalSignatureOffset is: " + digitalSignatureOffset
         end
 
         //iterate over all the fonts in the file numberOfFontsInCollection
         i = 0
         repeat while i < numberOfFontsInCollection
-            //TrueTypeCollectionData data = hashTable:GetValue(offsetTable:Get(i))
             TrueTypeCollectionData data = collectionTables:Get(i)
-            //output "Index is: " + offsetTable:Get(i)
             byteReader:SetPosition(offsetTable:Get(i))
-            //text tag = byteReader:NextTextRead(4)
-            //output "Tag is: " + tag
             i = i + 1
             integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
             fileInformation:SetScalerType(scalertype)
@@ -195,7 +187,6 @@ class FontFileReader
                 integer length = byteReader:NextIntegerConvertFromUnsigned()
 
                 fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
-                //output "Tag is: " + tag
                 if tag = "cmap"
                     // reads character map table into hash table from CharacterMap class
                     ReadCharacterMapTable(byteReader, offset)
@@ -212,8 +203,10 @@ class FontFileReader
                     // saves offset in file where loca table begins
                     fileInformation:SetGlyphDataLocationTablePosition(offset)
                 elseif tag = "hhea"
+                    // reads the hhea table, primarily used for maximum ascent and descent of a font
                     ReadHorizontalHeaderTable(byteReader, offset)
                 elseif tag = "name"
+                    // reads the name table, used to get human-readable text about the font, such as style name (i.e. bold)
                     ReadNameTable(byteReader, offset, data:GetNameRecords())
                 end
                 j = j + 1
@@ -221,8 +214,8 @@ class FontFileReader
             data:SetAllTrueTypeInformation(fileInformation)
         end
 
-        nameTable:SetCollectionTables(collectionTables)
-        fileInformation:SetNameTable(nameTable)
+        trueTypeTable:SetCollectionTables(collectionTables)
+        fileInformation:SetTrueTypeCollectionRecords(trueTypeTable)
     end
 
     /*
@@ -302,11 +295,6 @@ class FontFileReader
             if byteReader:HasNextInteger()
                 integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
                 fileInformation:SetScalerType(scalertype)
-    //            if scalertype = 65536 or scalertype = 1953658213
-    ////                output "Font is actual truetype font"
-    //            else 
-    ////                output "This font only uses ttf as a container"
-    //            end
 
                 fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
@@ -322,7 +310,6 @@ class FontFileReader
                     integer length = byteReader:NextIntegerConvertFromUnsigned()
 
                     fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
-                    //output "Tag is: " + tag
                     if tag = "cmap"
                         // reads character map table into hash table from CharacterMap class
                         ReadCharacterMapTable(byteReader, offset)
@@ -340,8 +327,6 @@ class FontFileReader
                         fileInformation:SetGlyphDataLocationTablePosition(offset)
                     elseif tag = "hhea"
                         ReadHorizontalHeaderTable(byteReader, offset)
-                    //elseif tag = "name"
-                      //  ReadNameTable(byteReader, offset)
                     end
                     i = i + 1
                 end
