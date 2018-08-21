@@ -6,9 +6,19 @@ use Libraries.Containers.HashTable
 class NameTableRecords 
     integer numberOfFontsInCollection = 0
     Array<integer> offsetTable
-    Array<NameRecord> nameRecords
-    HashTable<integer, TrueTypeCollectionData> styleTables
+    //Array<NameRecord> nameRecords
+    //HashTable<integer, TrueTypeCollectionData> styleTables
+    Array<TrueTypeCollectionData> collectionTables
 
+    action GetCollectionTables() returns Array<TrueTypeCollectionData>
+        return collectionTables
+    end
+
+    action SetCollectionTables(Array<TrueTypeCollectionData> tables)
+        collectionTables = tables
+    end
+
+    /*
     action GetStyleTables() returns HashTable<integer, TrueTypeCollectionData>
         return styleTables
     end
@@ -20,6 +30,7 @@ class NameTableRecords
     action AddToStyleTables(integer key, TrueTypeCollectionData value)
         styleTables:Add(key, value)
     end
+    
 
     action AddNameRecord(NameRecord record)
         nameRecords:Add(record)
@@ -28,6 +39,7 @@ class NameTableRecords
     action GetNameRecords() returns Array<NameRecord>
         return nameRecords
     end
+    */
 
     action SetOffsetTable(Array<integer> table)
         offsetTable = table

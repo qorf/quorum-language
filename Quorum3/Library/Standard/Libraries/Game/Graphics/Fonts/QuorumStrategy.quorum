@@ -44,6 +44,7 @@ class QuorumStrategy is FontStrategy
     private integer size = 14
     private number angle = 0
     private boolean initialized = false
+    private boolean subFontInitialized = false
     private HashTable<text, Glyph> glyphTable
     // ^ use character map instead of makeshift glyph table?
     private KerningTable kerningTable
@@ -61,6 +62,21 @@ class QuorumStrategy is FontStrategy
     private integer fontMaximumY = 0
     private integer fontMinimumX = 0
     private integer fontMinimumY = 0
+
+    integer regular = -1
+    integer plain = -1
+    integer medium = -1
+    integer heavy = -1
+    integer light = -1
+    integer condensed = -1
+    integer book = -1
+    integer roman = -1
+    integer semibold = -1
+    integer bold = -1
+    integer italic = -1
+    integer boldItalic = -1
+
+    Array<TrueTypeCollectionData> dataArray
 
     private text style = ""
 
@@ -117,9 +133,11 @@ class QuorumStrategy is FontStrategy
     end
 
     private action LoadSubFont()
+        subFontInitialized = true
         NameTableRecords nameRecords = fileInformation:GetNameTable()
-        HashTable<integer, TrueTypeCollectionData> hashTable = nameRecords:GetStyleTables()
-        Array<TrueTypeCollectionData> dataArray = hashTable:CopyToValueArray()
+        //HashTable<integer, TrueTypeCollectionData> hashTable = nameRecords:GetStyleTables()
+        //dataArray = hashTable:CopyToValueArray()
+        dataArray = nameRecords:GetCollectionTables()
         boolean styleFound = false
 
         integer j = 0
@@ -131,12 +149,35 @@ class QuorumStrategy is FontStrategy
             repeat while i < records:GetSize() and styleFound = false
                 NameRecord record = records:Get(i)
                 text name = record:GetFontStyleName()
-                if name = style
+                if name:EqualsIgnoringCase(style)
                     fileInformation:SetAllTrueTypeInformation(data)
                     styleFound = true
-                    output "Style was found!"
+                    //output "Style was found! Loading " + style + " font."
+                elseif name:EqualsIgnoringCase("regular")
+                    regular = j
+                elseif name:EqualsIgnoringCase("plain")
+                    plain = j
+                elseif name:EqualsIgnoringCase("medium")
+                    medium = j
+                elseif name:EqualsIgnoringCase("heavy")
+                    heavy = j
+                elseif name:EqualsIgnoringCase("light")
+                    light = j
+                elseif name:EqualsIgnoringCase("condensed")
+                    condensed = j
+                elseif name:EqualsIgnoringCase("book")
+                    book = j
+                elseif name:EqualsIgnoringCase("roman")
+                    roman = j
+                elseif name:EqualsIgnoringCase("semibold")
+                    semibold = j
+                elseif name:EqualsIgnoringCase("bold")
+                    bold = j
+                elseif name:EqualsIgnoringCase("italic")
+                    italic = j
+                elseif name:EqualsIgnoringCase("boldItalic")
+                    boldItalic = j
                 end
-            
                 i = i + 1
             end
 
@@ -144,9 +185,97 @@ class QuorumStrategy is FontStrategy
         end
 
         if styleFound = false       // specified style was not found, try some defaults
-            output "Style was not found!"
+            //output "Style was not found!"
+            TrueTypeCollectionData data
+            ChangeSubFont(style)
         end
 
+    end
+
+    action ChangeSubFont(text newStyle)
+        TrueTypeCollectionData data
+        boolean styleFound = false
+
+        if subFontInitialized = true
+            if style not= newStyle
+                style = newStyle
+
+                integer j = 0
+                repeat while j < dataArray:GetSize() and styleFound = false
+                    data = dataArray:Get(j)
+                    Array<NameRecord> records = data:GetNameRecords()
+
+                    integer i = 0
+                    repeat while i < records:GetSize() and styleFound = false
+                        NameRecord record = records:Get(i)
+                        text name = record:GetFontStyleName()
+                        if name:EqualsIgnoringCase(style)
+                            fileInformation:SetAllTrueTypeInformation(data)
+                            styleFound = true
+                            //output "Style was found! Loading " + style + " font."
+                        end
+                        i = i + 1
+                    end
+                    j = j + 1
+                end
+            end
+        
+            if styleFound = false
+                if regular > -1
+                    //output "Regular font loaded"
+                    data = dataArray:Get(regular)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif plain > -1
+                    //output "Plain font loaded"
+                    data = dataArray:Get(plain)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif medium > -1
+                    //output "Medium font loaded"
+                    data = dataArray:Get(medium)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif heavy > -1
+                    //output "Heavy font loaded"
+                    data = dataArray:Get(heavy)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif light > -1
+                    //output "Light font loaded"
+                    data = dataArray:Get(light)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif condensed > -1
+                    //output "Condensed font loaded"
+                    data = dataArray:Get(condensed)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif book > -1
+                    //output "Book font loaded"
+                    data = dataArray:Get(book)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif roman > -1
+                    //output "Roman font loaded"
+                    data = dataArray:Get(roman)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif semibold > -1
+                    //output "Semibold font loaded"
+                    data = dataArray:Get(semibold)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif bold > -1
+                    //output "Bold font loaded"
+                    data = dataArray:Get(bold)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif italic > -1
+                    //output "Italic font loaded"
+                    data = dataArray:Get(italic)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif boldItalic > -1
+                    //output "Bold Italic font loaded"
+                    data = dataArray:Get(boldItalic)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                else // no standard fonts, just load the first one from the file
+                    //output "In else statement"
+                    data = dataArray:Get(0)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                end
+            end
+        end    
     end
 
     /*
