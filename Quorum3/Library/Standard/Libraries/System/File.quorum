@@ -655,6 +655,58 @@ class File
     system action Delete returns boolean
 
     /*
+        Delete the path specified by this File object. This operation does not send items to the appropriate recycle bin or trash can
+        folder on the system, and it cannot be easily undone (if at all). This operation can be used to delete single files
+        or directories, whether they are empty or not. A value of false is the same as Delete() with no parameters.
+
+        Attribute: Parameter Whether or not we want the system to delete non-empty directories. A value of false is the same as Delete() with no parameters.
+
+        Attribute: Returns True if the operation succeeds; false otherwise.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        // Create a directory and delete it.
+        File myDir
+        myDIr:SetWorkingDirectory("C:\Users\jeff\My DOcuments\")
+        myDir:SetPath("A_New_Folder")
+        myDir:CreateDirectory()
+        boolean ok = myDir:Delete(true) // delete it
+
+        if ok
+            output "deletion succeeded."
+        else
+            output "deletion failed."
+        end
+     */
+    action Delete(boolean recursive)
+        Delete(true, me)
+    end
+
+    /*
+        A helper action for the Delete(boolean) action. It handles the recursive deletion.
+    */
+    private action Delete(boolean recursive, File file)
+        if recursive and file not= undefined and file:Exists() and file:IsDirectory()
+            //loop through all the sub-folders, delete items and then go up the leaves
+            Array<File> files = file:GetDirectoryListing()
+            i = 0
+            repeat while i < files:GetSize()
+                File sub = files:Get(i)
+                if sub:IsFile()
+                    sub:Delete()
+                else
+                    Delete(true, sub)
+                end
+                i = i + 1
+            end
+            file:Delete()
+        else
+            file:Delete()
+        end
+    end
+
+    /*
         Create the directory specified in the path by this File object. This can only be used to create a single directory; it is not possible
         to create an entire path using this action. As an example, if the path "C:\blah\bb" does not already exist under "C:\", we cannot
         create all three directories in this path:
