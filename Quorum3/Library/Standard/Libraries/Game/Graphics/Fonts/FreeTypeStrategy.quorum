@@ -46,12 +46,75 @@ class FreeTypeStrategy is FontStrategy
     private boolean initialized = false
     private HashTable<text, Glyph> glyphTable
 
+    private text style = ""
+
     on create
         Color color
         color = color:Black()
         SetColor(color)
     end
     
+    /*
+    This action sets the style of font to use, such as bold, italic, condensed,
+    and so on. This is only applicable to TrueTypeCollection (.ttc) files. Note
+    that this is not currently supported using the FreeType system.
+
+    Attribute: Parameter newStyle The style of the font to load.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:SetStyle("Bold")
+                font:LoadFont(file)
+            end
+        end
+    */
+    action SetStyle(text newStyle)
+        style = newStyle
+    end
+
+    /*
+    This action changes the style of the font. This is only applicable to TrueTypeCollection
+    (.ttc) files. Note that this is not currently supported using the FreeType system.
+
+    Attribute: Parameter style The style of the font to change to.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:LoadFont(file)
+                font:ChangeSubFont("Italic")
+            end
+        end
+    */
+    action ChangeSubFont(text style)
+        
+    end
+
     /*
     This action loads a font from a given font file. 
 

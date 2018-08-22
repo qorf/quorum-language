@@ -100,6 +100,115 @@ class TrueTypeFileInformation
     MacStyleFlags class for details on these flags, or visit the Apple documentation
     on the "head" table.*/
     MacStyleFlags macStyleFlags
+    /*TrueTypeCollectionRecords maintains human readable information about the font file.*/
+    TrueTypeCollectionRecords trueTypeTable
+    /*Used to distinguish between .ttf and .ttc fonts.*/
+    boolean trueTypeCollection = false
+
+    /*
+    This action sets the flag which determines if the font file is a TrueTypeCollection
+    (.ttc) file or not.
+
+    Attribute: Parameter value True if the file is a TrueTypeCollection (.ttc) file
+    and false if not.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+            
+            action CreateGame
+                TrueTypeFileInformation fileInformation
+                fileInformation:SetTrueTypeCollectionFlag(true)
+            end
+        end
+    */
+    action SetTrueTypeCollectionFlag(boolean value)
+        trueTypeCollection = value
+    end
+
+    /*
+    This action returns the flag which determines if the font file is a TrueTypeCollection
+    (.ttc) file or not.
+
+    Attribute: Returns Returns true if the file is a TrueTypeCollection (.ttc) file and
+    false if not.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+            
+            action CreateGame
+                TrueTypeFileInformation fileInformation
+                output fileInformation:GetTrueTypeCollectionFlag()
+            end
+        end
+    */
+    action GetTrueTypeCollectionFlag() returns boolean
+        return trueTypeCollection
+    end
+
+    /*
+    This action sets the TrueTypeCollectionRecords for the font file.
+
+    Attribute: Parameter table The name table records for the font file.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+            
+            action CreateGame
+                TrueTypeFileInformation fileInformation
+                TrueTypeCollectionRecords records
+                fileInformation:SetTrueTypeCollectionRecords(records)
+            end
+        end
+    */
+    action SetTrueTypeCollectionRecords(TrueTypeCollectionRecords table)
+        trueTypeTable = table
+    end
+
+    /*
+    This action returns the TrueTypeCollectionRecords for the font file.
+
+    Attribute: Returns Returns the name table records for the font file.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+            
+            action CreateGame
+                TrueTypeFileInformation fileInformation
+                TrueTypeCollectionRecords records = fileInformation:GetTrueTypeCollectionRecords()
+            end
+        end
+    */
+    action GetTrueTypeCollectionRecords() returns TrueTypeCollectionRecords
+        return trueTypeTable
+    end
 
     /*
     This action sets the line gap value to use when creating space between two
@@ -1616,5 +1725,58 @@ class TrueTypeFileInformation
     */
     action SetCharacterMapFormat(integer format) 
         me:characterMapFormat = format
+    end
+
+    /*
+    This action sets all of the font file information using a TrueTypeCollectionData
+    object. This is primarily used when dealing with TrueTypeCollection (.ttc) format
+    font files and you need to swap between different styles for the font. Rather than
+    reloading and rereading the font, we store all of the appropriate information
+    for each font style and just swap out the values as they are needed.
+
+    Attribute: Parameter information The TrueTypeCollectionData to use for copying
+    values into this file information.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+            
+            action CreateGame
+                TrueTypeFileInformation fileInformation
+                TrueTypeCollectionData data
+                fileInformation:SetAllTrueTypeInformation(data)
+            end
+        end
+    */
+    action SetAllTrueTypeInformation(TrueTypeCollectionData information)
+        scalerType = information:GetScalerType()
+        numberOfTables = information:GetNumberOfTables()
+        searchRange = information:GetSearchRange()
+        entrySelector = information:GetEntrySelector()
+        rangeShift = information:GetRangeShift()
+        glyphOutlineTablePosition = information:GetGlyphOutlineTablePosition()
+        characterMapTablePosition = information:GetCharacterMapTablePosition()
+        glyphDataLocationTablePosition = information:GetGlyphDataLocationTablePosition()
+        kerningTablePosition = information:GetKerningSubtablePosition()
+        kerningValuesTablePosition = information:GetKerningValuesTablePosition()
+        characterMapFormat = information:GetCharacterMapFormat()
+        horizontalHeaderTablePosition = information:GetHorizontalHeaderTablePosition()
+        unitsPerEm = information:GetUnitsPerEm()
+        xMinimum = information:GetXMinimum()
+        yMinimum = information:GetYMinimum()
+        xMaximum = information:GetXMaximum()
+        yMaximum = information:GetYMaximum()
+        maximumAscent = information:GetMaximumAscent()
+        maximumDescent = information:GetMaximumDescent()
+        lineGap = information:GetLineGap()
+        lowestRecommendedPixelsPerEm = information:GetLowestRecommendedPixelsPerEm()
+        fontDirectionHint = information:GetFontDirectionHint()
+        indexToLocationTableFormat = information:GetIndexToLocationTableFormat()
     end
 end
