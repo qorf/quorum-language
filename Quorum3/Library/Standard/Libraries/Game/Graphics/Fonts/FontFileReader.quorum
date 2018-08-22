@@ -5,6 +5,7 @@ use Libraries.System.BinaryFileReader
 use Libraries.Containers.ByteArray
 use Libraries.Containers.Support.ByteReader
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Compute.BigInteger
 use Libraries.Compute.BitwiseOperations
@@ -51,6 +52,8 @@ class FontFileReader
     CharacterMap characterMap
     /*KerningTable that maintains the kerning values between any two pairs of characters*/
     KerningTable kerningTable
+    /*TrueTypeCollectionRecords that maintains human-readable information about the font file.*/
+    TrueTypeCollectionRecords trueTypeTable
 
     on create
         NULL_TERMINATOR = NULL_TERMINATOR:GetUnicodeValue(0)
@@ -130,39 +133,60 @@ class FontFileReader
         GetRecords()
     end
 
-    /*
-        Called by FontFileReader:Load() action.
+    // This action is used in the GetRecords() when reading a .ttc file. .ttc files
+    // have a different format from .ttf so must be read in differently. If this
+    // needs to be modified, Microsoft has good documentation on .ttc files
+    // in their OpenType documentation (I did not see anything on the Apple TrueType
+    // documentation).
+    private action GetTrueTypeCollectionRecords()
+        fileInformation:SetTrueTypeCollectionFlag(true)
+        integer majorVersionNumber = byteReader:NextTwoByteUnsignedInteger()
+        integer minorVersionNumber = byteReader:NextTwoByteUnsignedInteger()
+        integer numberOfFontsInCollection = byteReader:NextInteger()
+        trueTypeTable:SetNumberOfFontsInCollection(numberOfFontsInCollection)
+        Array<integer> offsetTable
+        Array<TrueTypeCollectionData> collectionTables = trueTypeTable:GetCollectionTables()
 
-        Reads entire file using class variable byteReader and saves all
-        necessary information to fileInformation object from TrueTypeFileInformation 
-        class, which includes the character map, global font information table, 
-        glyph offset location table, and kern table. 
-    */
-    private action GetRecords
-        if byteReader:HasNextInteger()
+        integer i = 0
+        repeat while i < numberOfFontsInCollection
+            TrueTypeCollectionData data
+            integer value = byteReader:NextInteger()
+            offsetTable:Add(value)
+            collectionTables:Add(data)
+            i = i + 1
+        end
+
+        trueTypeTable:SetOffsetTable(offsetTable)
+
+        if majorVersionNumber = 2
+            integer digitalSignatureTag = byteReader:NextInteger()
+            integer digitalSignatureLength = byteReader:NextInteger()
+            integer digitalSignatureOffset = byteReader:NextInteger()
+        end
+
+        //iterate over all the fonts in the file numberOfFontsInCollection
+        i = 0
+        repeat while i < numberOfFontsInCollection
+            TrueTypeCollectionData data = collectionTables:Get(i)
+            byteReader:SetPosition(offsetTable:Get(i))
+            i = i + 1
             integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
             fileInformation:SetScalerType(scalertype)
-//            if scalertype = 65536 or scalertype = 1953658213
-////                output "Font is actual truetype font"
-//            else 
-////                output "This font only uses ttf as a container"
-//            end
-            
+
             fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
             fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
             fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
             fileInformation:SetRangeShift(byteReader:NextTwoByteUnsignedInteger())
 
-            integer i = 0
-            repeat while i < fileInformation:GetNumberOfTables()
-                
+            integer j = 0
+            repeat while j < fileInformation:GetNumberOfTables()
+                // these tables exist for every font, need to save them per font
                 text tag = byteReader:NextTextRead(4)
                 integer checksum = byteReader:NextIntegerConvertFromUnsigned()
                 integer offset = byteReader:NextIntegerConvertFromUnsigned()
                 integer length = byteReader:NextIntegerConvertFromUnsigned()
 
                 fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
-                //output "Tag is: " + tag
                 if tag = "cmap"
                     // reads character map table into hash table from CharacterMap class
                     ReadCharacterMapTable(byteReader, offset)
@@ -179,9 +203,133 @@ class FontFileReader
                     // saves offset in file where loca table begins
                     fileInformation:SetGlyphDataLocationTablePosition(offset)
                 elseif tag = "hhea"
+                    // reads the hhea table, primarily used for maximum ascent and descent of a font
                     ReadHorizontalHeaderTable(byteReader, offset)
+                elseif tag = "name"
+                    // reads the name table, used to get human-readable text about the font, such as style name (i.e. bold)
+                    ReadNameTable(byteReader, offset, data:GetNameRecords())
                 end
-                i = i + 1
+                j = j + 1
+            end
+            data:SetAllTrueTypeInformation(fileInformation)
+        end
+
+        trueTypeTable:SetCollectionTables(collectionTables)
+        fileInformation:SetTrueTypeCollectionRecords(trueTypeTable)
+    end
+
+    /*
+    This action reads the name table of the ttf or ttc file. Useful primarily
+    when dealing with the ttc files, as it allows us to differentiate between
+    styles of a font in the collection (such as bold, light, etc.)
+    */
+    private action ReadNameTable(ByteReader byteReader, integer nameTableOffset, Array<NameRecord> records)
+        integer previousPosition = byteReader:GetPosition()
+        byteReader:SetPosition(nameTableOffset)
+        integer format = byteReader:NextTwoByteUnsignedInteger()
+        integer numberOfNameRecords = byteReader:NextTwoByteUnsignedInteger()
+        integer stringOffset = byteReader:NextTwoByteUnsignedInteger()
+        integer i = 0
+
+        integer platformID = 0
+        integer platformSpecificID = 0
+        integer languageID = 0
+        integer nameID = 0
+        integer length = 0
+        integer offset = 0
+
+        repeat while i < numberOfNameRecords
+            NameRecord nameRecord
+            platformID = byteReader:NextTwoByteUnsignedInteger()
+            platformSpecificID = byteReader:NextTwoByteUnsignedInteger()
+            languageID = byteReader:NextTwoByteUnsignedInteger()
+            nameID = byteReader:NextTwoByteUnsignedInteger()
+            length = byteReader:NextTwoByteUnsignedInteger()
+            offset = byteReader:NextTwoByteUnsignedInteger()
+
+            if nameID = 2       // this is the string that contains the style name, so add it to the record
+                nameRecord:SetFileFormat(format)
+                nameRecord:SetNumberOfNameRecords(numberOfNameRecords)
+                nameRecord:SetStringOffset(stringOffset)
+                nameRecord:SetPlatformID(platformID)
+                nameRecord:SetPlatformSpecificID(platformSpecificID)
+                nameRecord:SetLanguageID(languageID)
+                nameRecord:SetNameID(nameID)
+                nameRecord:SetWordLength(length)
+                nameRecord:SetOffsetToWord(offset)
+                text word = ""
+                integer currentPosition = byteReader:GetPosition()
+                byteReader:SetPosition(nameTableOffset + stringOffset + offset)
+                
+                if(platformID = 3 or platformID = 0) 
+                    word = byteReader:NextTextReadUnicode(length)
+                else 
+                    word = byteReader:NextTextRead(length)
+                end
+                
+                nameRecord:SetFontStyleName(word)
+
+                records:Add(nameRecord)
+
+                byteReader:SetPosition(currentPosition)
+            end
+            i = i + 1
+        end
+
+        byteReader:SetPosition(previousPosition)
+    end
+
+    /*
+        Called by FontFileReader:Load() action.
+
+        Reads entire file using class variable byteReader and saves all
+        necessary information to fileInformation object from TrueTypeFileInformation 
+        class, which includes the character map, global font information table, 
+        glyph offset location table, and kern table. 
+    */
+    private action GetRecords
+        if byteReader:CheckIfTrueTypeCollection()   // For .ttc files
+            GetTrueTypeCollectionRecords()
+        else
+            fileInformation:SetTrueTypeCollectionFlag(false)                                        // For .ttf files
+            if byteReader:HasNextInteger()
+                integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
+                fileInformation:SetScalerType(scalertype)
+
+                fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
+                fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
+                fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
+                fileInformation:SetRangeShift(byteReader:NextTwoByteUnsignedInteger())
+
+                integer i = 0
+                repeat while i < fileInformation:GetNumberOfTables()
+
+                    text tag = byteReader:NextTextRead(4)
+                    integer checksum = byteReader:NextIntegerConvertFromUnsigned()
+                    integer offset = byteReader:NextIntegerConvertFromUnsigned()
+                    integer length = byteReader:NextIntegerConvertFromUnsigned()
+
+                    fileInformation:AddFontTableDirectoryEntry(tag, checksum, offset, length)
+                    if tag = "cmap"
+                        // reads character map table into hash table from CharacterMap class
+                        ReadCharacterMapTable(byteReader, offset)
+                    elseif tag = "head"
+                        // reads head table into hash table from GlobalFontInformationFlags class
+                        ReadGlobalFontInformationTable(byteReader, offset)
+                    elseif tag = "kern"
+                        // saves offset in file where kern table begins
+                        ReadKerningTable(byteReader, offset)
+                    elseif tag = "glyf"
+                        // saves offset in file where glyf table begins
+                        fileInformation:SetGlyphOutlineTablePosition(offset)
+                    elseif tag = "loca"
+                        // saves offset in file where loca table begins
+                        fileInformation:SetGlyphDataLocationTablePosition(offset)
+                    elseif tag = "hhea"
+                        ReadHorizontalHeaderTable(byteReader, offset)
+                    end
+                    i = i + 1
+                end
             end
         end
     end

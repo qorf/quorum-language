@@ -44,6 +44,7 @@ class QuorumStrategy is FontStrategy
     private integer size = 14
     private number angle = 0
     private boolean initialized = false
+    private boolean subFontInitialized = false
     private HashTable<text, Glyph> glyphTable
     // ^ use character map instead of makeshift glyph table?
     private KerningTable kerningTable
@@ -62,10 +63,64 @@ class QuorumStrategy is FontStrategy
     private integer fontMinimumX = 0
     private integer fontMinimumY = 0
 
+    // These are indecies into the dataArray for ttc files
+    // They are used to reference some common font styles when switching between them
+    private integer regular = -1
+    private integer plain = -1
+    private integer medium = -1
+    private integer heavy = -1
+    private integer light = -1
+    private integer condensed = -1
+    private integer book = -1
+    private integer roman = -1
+    private integer semibold = -1
+    private integer bold = -1
+    private integer italic = -1
+    private integer boldItalic = -1
+
+    // TTC files contain several font tables in them. This array stores
+    // indecies that are used to access these subtables. For example, if a ttc
+    // file has Regular, Bold, and Italic fonts, this will contain 3 items that
+    // contain the indecies needed to get the glyphs corresponding to the desired
+    // font style.
+    private Array<TrueTypeCollectionData> dataArray
+
+    private text style = ""
+
     on create
         Color color
         color = color:Black()
         SetColor(color)
+    end
+
+    /*
+    This action sets the style of font to use, such as bold, italic, condensed,
+    and so on. This is only applicable to TrueTypeCollection (.ttc) files.
+
+    Attribute: Parameter newStyle The style of the font to load.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:SetStyle("Bold")
+                font:LoadFont(file)
+            end
+        end
+    */
+    action SetStyle(text newStyle)
+        style = newStyle
     end
 
     /*
@@ -102,8 +157,177 @@ class QuorumStrategy is FontStrategy
         fileInformation = fileReader:GetFileInformation()
         kerningTable = fileReader:GetKerningTable()
 
+        if fileInformation:GetTrueTypeCollectionFlag() = true
+            LoadSubFont()
+        end
+
         SetFontDimensions()
         initialized = true
+    end
+
+    // When loading a font file and it is in .ttc format, we need to pick the
+    // style of font (regular, bold, etc.) to load. This checks the file for
+    // the style set by the user. If the style was not set, or the style set is not
+    // in the file, it goes through some default options and tries those. Finally,
+    // if none of the default options are part of the font file, it just loads
+    // the first font that was found in the file. It also scans the font file
+    // for common fonts and sets indecies to them for later use if changing the
+    // style. 
+    private action LoadSubFont()
+        subFontInitialized = true
+        TrueTypeCollectionRecords trueTypeTable = fileInformation:GetTrueTypeCollectionRecords()
+        dataArray = trueTypeTable:GetCollectionTables()
+        boolean styleFound = false
+
+        integer j = 0
+        repeat while j < dataArray:GetSize() and styleFound = false
+            TrueTypeCollectionData data = dataArray:Get(j)
+            Array<NameRecord> records = data:GetNameRecords()
+
+            integer i = 0
+            repeat while i < records:GetSize() and styleFound = false
+                NameRecord record = records:Get(i)
+                text name = record:GetFontStyleName()
+                if name:EqualsIgnoringCase(style)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                    styleFound = true
+                elseif name:EqualsIgnoringCase("regular")
+                    regular = j
+                elseif name:EqualsIgnoringCase("plain")
+                    plain = j
+                elseif name:EqualsIgnoringCase("medium")
+                    medium = j
+                elseif name:EqualsIgnoringCase("heavy")
+                    heavy = j
+                elseif name:EqualsIgnoringCase("light")
+                    light = j
+                elseif name:EqualsIgnoringCase("condensed")
+                    condensed = j
+                elseif name:EqualsIgnoringCase("book")
+                    book = j
+                elseif name:EqualsIgnoringCase("roman")
+                    roman = j
+                elseif name:EqualsIgnoringCase("semibold")
+                    semibold = j
+                elseif name:EqualsIgnoringCase("bold")
+                    bold = j
+                elseif name:EqualsIgnoringCase("italic")
+                    italic = j
+                elseif name:EqualsIgnoringCase("boldItalic")
+                    boldItalic = j
+                end
+                i = i + 1
+            end
+
+            j = j + 1
+        end
+
+        if styleFound = false       // specified style was not found, try some defaults
+            ChangeSubFont(style)
+        end
+    end
+
+
+    /*
+    This action changes the style of the font to the new style specified (such as
+    bold, italic, condensed, and so on). This action only works both if the font
+    file is a TrueTypeCollection (.ttc) file and if the file has already been loaded.
+    If the file has not been loaded yet, use the SetStyle(text style) action to set
+    the desired style and then load the font file.
+
+    Attribute: Parameter newStyle The style of the font to change to.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:LoadFont(file)
+                font:ChangeSubFont("Italic")
+            end
+        end
+    */
+    action ChangeSubFont(text newStyle)
+        TrueTypeCollectionData data
+        boolean styleFound = false
+
+        if subFontInitialized = true
+            if style not= newStyle
+                style = newStyle
+
+                integer j = 0
+                repeat while j < dataArray:GetSize() and styleFound = false
+                    data = dataArray:Get(j)
+                    Array<NameRecord> records = data:GetNameRecords()
+
+                    integer i = 0
+                    repeat while i < records:GetSize() and styleFound = false
+                        NameRecord record = records:Get(i)
+                        text name = record:GetFontStyleName()
+                        if name:EqualsIgnoringCase(style)
+                            fileInformation:SetAllTrueTypeInformation(data)
+                            styleFound = true
+                        end
+                        i = i + 1
+                    end
+                    j = j + 1
+                end
+            end
+        
+            // style not found, try some defaults
+            if styleFound = false
+                if regular > -1
+                    data = dataArray:Get(regular)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif plain > -1
+                    data = dataArray:Get(plain)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif medium > -1
+                    data = dataArray:Get(medium)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif heavy > -1
+                    data = dataArray:Get(heavy)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif light > -1
+                    data = dataArray:Get(light)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif condensed > -1
+                    data = dataArray:Get(condensed)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif book > -1
+                    data = dataArray:Get(book)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif roman > -1
+                    data = dataArray:Get(roman)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif semibold > -1
+                    data = dataArray:Get(semibold)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif bold > -1
+                    data = dataArray:Get(bold)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif italic > -1
+                    data = dataArray:Get(italic)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                elseif boldItalic > -1
+                    data = dataArray:Get(boldItalic)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                else // no standard fonts, just load the first one from the file
+                    data = dataArray:Get(0)
+                    fileInformation:SetAllTrueTypeInformation(data)
+                end
+            end
+        end    
     end
 
     /*

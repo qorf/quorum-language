@@ -83,6 +83,66 @@ class Font
     end
 
     /*
+    This action sets the style of the font to use, such as bold, italic, condensed,
+    and so on. This is only applicable to TrueTypeCollection (.ttc) files.
+
+    Attribute: Parameter style The style of the font to load.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:SetStyle("Regular")
+                font:LoadFont(file)
+            end
+        end
+    */
+    action SetStyle(text style)
+        strategy:SetStyle(style)
+    end
+
+    /*
+    This action changes the style of the font. This is only applicable to TrueTypeCollection
+    (.ttc) files.
+
+    Attribute: Parameter style The style of the font to change to.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:LoadFont(file)
+                font:ChangeSubFont("Italic")
+            end
+        end
+    */
+    action ChangeSubFont(text style)
+        strategy:ChangeSubFont(style)
+    end
+
+    /*
     This action loads a font from a given font file. 
 
     Attribute: Parameter fontFile The file to load.
