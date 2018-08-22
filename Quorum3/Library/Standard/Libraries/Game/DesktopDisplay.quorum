@@ -202,4 +202,11 @@ class DesktopDisplay is GameDisplay
     false.
     */
     system action IsWindowFocused returns boolean
+
+    /*
+    This action sets the position of the window on the screen. This uses the
+    coordinate system of the native platform, which often will start the y index
+    at the top of the screen and move down as the y value increases.
+    */
+    system action SetWindowPosition(integer x, integer y)
 end

@@ -91,6 +91,10 @@ class DesktopInput is GameInput
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
 
+        if layers = undefined
+            return now
+        end
+
         InputSet set = keyboardModifiers:Copy()
         InputSet multiSet = undefined
         InputSet anySet = keyboardModifiers:Copy()
