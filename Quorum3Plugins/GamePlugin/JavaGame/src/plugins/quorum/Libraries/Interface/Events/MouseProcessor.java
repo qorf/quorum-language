@@ -56,8 +56,11 @@ public class MouseProcessor
     */
     public static void AddMouseMovementEvent(long window, double x, double y)
     {
-        // Invert the y-axis (GLFW places 0,0 at top-left.)
-        y = GameStateManager.display.GetHeight() - y;
+        // Invert the y-axis (GLFW places 0,0 at top-left) and account for the
+        // difference between window coordinates and pixel coordinates.
+        double scale = GameStateManager.display.GetPixelScaleFactor();
+        x = x * scale;
+        y = GameStateManager.display.GetHeight() - y * scale;
         
         MouseEvent event = new MouseEvent();
         event.x = (int)x;
