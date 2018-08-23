@@ -499,18 +499,18 @@ public class Painter2D
         /*
         The result of the multiplication will produce a vector containing
         values between -1 and 1. We want to adjust the range to 0 to 1 and then
-        use the display's width and pixel factor to find the actual pixel values
+        use the display's width and height to find the actual pixel values
         the clip point will apply to.
         */
         clipPoint.Multiply(combinedMatrix);
-        int x = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor());
-        int y = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor());
+        int x = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth());
+        int y = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight());
         
         clipPoint.Set(painter.GetClipX2(), painter.GetClipY2(), 0);
         
         clipPoint.Multiply(combinedMatrix);
-        int x2 = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor());
-        int y2 = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor());
+        int x2 = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth());
+        int y2 = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight());
         
         int width, height;
         
