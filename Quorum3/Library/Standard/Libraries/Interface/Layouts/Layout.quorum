@@ -6,83 +6,74 @@ use Libraries.Language.Support.CompareResult
 
 class Layout 
 
-    number xPercentage = 0.0
-    number yPercentage = 0.0
-    number offsetX = 0
-    number offsetY = 0
-    number widthPercentage = 0.0
-    number heightPercentage = 0.0
-    number widthOffset = 0
-    number heightOffset = 0
-    number minimumWidth = 0
-    number minimumHeight = 0
-    number maximumWidth = widthPercentage:GetPositiveInfinityValue()
-    number maximumHeight = heightPercentage:GetPositiveInfinityValue()
-    number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
-    number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
-
-    /*
-    What point along the Item2D, as a percentage, should be placed at the given
-    x and y coordinates defined by the x/y percentage and offsets. For example,
-    a value of 0.5 for the origin x and y percent will center the Item at the
-    given position.
-    */
-    number originPercentageX = 0
-    number originPercentageY = 0
-
-    boolean setX = false
-    boolean setY = false
-    boolean setWidth = false
-    boolean setHeight = false
-
     action Apply(Item2D item, number containerWidth, number containerHeight)
 
-        number width = item:GetWidth()
-        number height = item:GetHeight()
+        LayoutProperties properties = undefined
+        Array<LayoutProperties> array = item:GetLayoutProperties()
+        integer counter = array:GetSize()
 
-        if setWidth
-            width = containerWidth * GetPercentageWidth() + GetWidthOffset() 
-        end
-
-        if setHeight
-            height = containerHeight * GetPercentageHeight() + GetHeightOffset()
-        end
-
-        if width < GetMinimumWidth()
-            width = GetMinimumWidth()
-        elseif width > GetMaximumWidth()
-            width = GetMaximumWidth()
-        end
-
-        if height < GetMinimumHeight()
-            height = GetMinimumHeight()
-        elseif height > GetMaximumHeight()
-            height = GetMaximumHeight()
-        end
-
-        if setX
-            if setY
-                item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX, containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
-            else
-                item:SetX(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX)
+        /*
+        Layouts are sorted by minimum width, or minimum height if minimum
+        widths are equal. When we find an invalid layout, it's assumed that
+        all following layouts will also be invalid.
+        */
+        repeat while counter > 0
+            counter = counter - 1
+            LayoutProperties temp = array:Get(counter)
+            if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                properties = temp
             end
-        elseif setY
-            item:SetY(containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
         end
 
-        if setWidth
-            if setHeight
-                item:SetSize(width, height)
-            else
-                item:SetWidth(width)
+        if properties not= undefined
+            number width = item:GetWidth()
+            number height = item:GetHeight()
+
+            if properties:IsSettingWidth()
+                width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() 
             end
-        elseif setHeight
-            item:SetHeight(height)
+
+            if properties:IsSettingHeight()
+                height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
+            end
+
+            if width < properties:GetMinimumWidth()
+                width = properties:GetMinimumWidth()
+            elseif width > properties:GetMaximumWidth()
+                width = properties:GetMaximumWidth()
+            end
+
+            if height < properties:GetMinimumHeight()
+                height = properties:GetMinimumHeight()
+            elseif height > properties:GetMaximumHeight()
+                height = properties:GetMaximumHeight()
+            end
+
+            if properties:IsPositioningInX()
+                if properties:IsPositioningInY()
+                    item:SetPosition(containerWidth * properties:GetPercentageX() + properties:GetOffsetX() - width * properties:GetPercentageOriginX(),
+                        containerHeight * properties:GetPercentageY() + properties:GetOffsetY() - height * properties:GetPercentageOriginY())
+                else
+                    item:SetX(containerWidth * properties:GetPercentageX() + properties:GetOffsetX() - width * properties:GetPercentageOriginX())
+                end
+            elseif properties:IsPositioningInY()
+                item:SetY(containerHeight * properties:GetPercentageY() + properties:GetOffsetY() - height * properties:GetPercentageOriginY())
+            end
+
+            if properties:IsSettingWidth()
+                if properties:IsSettingHeight()
+                    item:SetSize(width, height)
+                else
+                    item:SetWidth(width)
+                end
+            elseif properties:IsSettingHeight()
+                item:SetHeight(height)
+            end
         end
 
         Layout(item)
 
-        integer counter = 0
+        counter = 0
         Array<Item2D> children = item:GetChildren()
         repeat while counter < children:GetSize()
             children:Get(counter):Resize()
@@ -92,205 +83,5 @@ class Layout
 
     action Layout(Item2D item)
         
-    end
-
-    action SetPercentageX(number x)
-        xPercentage = x
-        setX = true
-    end
-
-    action GetPercentageX returns number
-        return xPercentage
-    end
-
-    action SetPercentageY(number y)
-        yPercentage = y
-        setY = true
-    end
-
-    action GetPercentageY returns number
-        return yPercentage
-    end
-
-    action SetOffsetX(number x)
-        offsetX = x
-        setX = true
-    end
-
-    action GetOffsetX returns number
-        return offsetX
-    end
-
-    action SetOffsetY(number y)
-        offsetY = y
-        setY = true
-    end
-
-    action GetOffsetY returns number
-        return offsetY
-    end
-
-    action SetPercentageWidth(number width)
-        widthPercentage = width
-        setWidth = true
-    end
-
-    action GetPercentageWidth returns number
-        return widthPercentage
-    end
-
-    action SetPercentageHeight(number height)
-        heightPercentage = height
-        setHeight = true
-    end
-
-    action GetPercentageHeight returns number
-        return heightPercentage
-    end
-
-    action SetWidthOffset(number width)
-        widthOffset = width
-        setWidth = true
-    end
-
-    action GetWidthOffset returns number
-        return widthOffset
-    end
-
-    action SetHeightOffset(number height)
-        heightOffset = height
-        setHeight = true
-    end
-
-    action GetHeightOffset returns number
-        return heightOffset
-    end
-
-    action SetMinimumWidth(number width)
-        minimumWidth = width
-    end
-
-    action GetMinimumWidth returns number
-        return minimumWidth
-    end
-
-    action SetMinimumHeight(number height)
-        minimumHeight = height
-    end
-
-    action GetMinimumHeight returns number
-        return minimumHeight
-    end
-
-    action SetMaximumWidth(number width)
-        maximumWidth = width
-    end
-
-    action GetMaximumWidth returns number
-        return maximumWidth
-    end
-
-    action SetMaximumHeight(number height)
-        maximumHeight = height
-    end
-
-    action GetMaximumHeight returns number
-        return maximumHeight
-    end
-
-    action SetMaximumContainerWidth(number maximum)
-        maximumContainerWidth = maximum
-    end
-
-    action GetMaximumContainerWidth returns number
-        return maximumContainerWidth
-    end
-
-    action SetMaximumContainerHeight(number maximum)
-        maximumContainerHeight = maximum
-    end
-
-    action GetMaximumContainerHeight returns number
-        return maximumContainerHeight
-    end
-
-    action SetPercentageOriginX(number x)
-        originPercentageX = x
-        setX = true
-    end
-
-    action GetPercentageOriginX returns number
-        return originPercentageX
-    end
-
-    action SetPercentageOriginY(number y)
-        originPercentageY = y
-        setY = true
-    end
-
-    action GetPercentageOriginY returns number
-        return originPercentageY
-    end
-
-    action IsPositioningInX returns boolean
-        return setX
-    end
-
-    action IsPositioningInY returns boolean
-        return setY
-    end
-
-    action IsSettingWidth returns boolean
-        return setWidth
-    end
-
-    action IsSettingHeight returns boolean
-        return setHeight
-    end
-
-    action SetPositioningInX(boolean enable)
-        setX = enable
-    end
-
-    action SetPositioningInY(boolean enable)
-        setY = enable
-    end
-
-    action SetWidthSetting(boolean enable)
-        setWidth = enable
-    end
-
-    action SetHeightSetting(boolean enable)
-        setHeight = enable
-    end
-
-    action Compare(Object object) returns CompareResult
-        if object is Layout
-            Layout layout = cast(Layout, object)
-            number myWidth = GetMaximumContainerWidth()
-            number testWidth = layout:GetMaximumContainerWidth()
-            CompareResult result
-
-            if myWidth < testWidth
-                result:result = result:SMALLER
-            elseif myWidth = testWidth
-                number myHeight = GetMaximumContainerHeight()
-                number testHeight = layout:GetMaximumContainerHeight()
-
-                if myHeight < testHeight
-                    result:result = result:SMALLER
-                elseif myHeight = testHeight
-                    result:result = result:EQUAL
-                else
-                    result:result = result:LARGER
-                end
-            else
-                result:result = result:LARGER
-            end
-
-            return result
-        else
-            return parent:Object:Compare(object)
-        end
     end
 end

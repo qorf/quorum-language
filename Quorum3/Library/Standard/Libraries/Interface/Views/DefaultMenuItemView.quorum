@@ -4,7 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Painter2D
-use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
@@ -14,9 +14,9 @@ class DefaultMenuItemView is Item2D, MenuItemView
     Label nameLabel
     Label shortcutLabel
 
-    Layout nameLayout
-    Layout shortcutLayout
-    Layout arrowLayout
+    LayoutProperties nameLayout
+    LayoutProperties shortcutLayout
+    LayoutProperties arrowLayout
 
     Drawable arrow
     Drawable selectionHighlight
@@ -37,10 +37,10 @@ class DefaultMenuItemView is Item2D, MenuItemView
         selectionHighlight:Hide()
         Add(selectionHighlight)
 
-        Layout highlightLayout
+        LayoutProperties highlightLayout
         highlightLayout:SetPercentageWidth(1.0)
         highlightLayout:SetPercentageHeight(1.0)
-        selectionHighlight:AddLayout(highlightLayout)
+        selectionHighlight:AddLayoutProperties(highlightLayout)
 
         nameLabel:SetText(name)
         shortcutLabel:SetText(shortcut)
@@ -50,14 +50,14 @@ class DefaultMenuItemView is Item2D, MenuItemView
         shortcutLayout:SetPercentageX(1)
         shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
 
-        nameLabel:AddLayout(nameLayout)
-        shortcutLabel:AddLayout(shortcutLayout)
+        nameLabel:AddLayoutProperties(nameLayout)
+        shortcutLabel:AddLayoutProperties(shortcutLayout)
 
         Add(nameLabel)
         Add(shortcutLabel)
 
         arrowLayout:SetPercentageX(1)
-        arrow:AddLayout(arrowLayout)
+        arrow:AddLayoutProperties(arrowLayout)
     end
 
     action Draw(Painter2D painter)

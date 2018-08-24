@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
@@ -17,9 +18,10 @@ class Tab is ToggleButton
     
     Item2D relatedItem = undefined
     Layout layout = undefined
-    Layout iconLayout = undefined
-    Layout labelLayout = undefined
-    Layout buttonLayout = undefined
+    LayoutProperties defaultProperties
+    LayoutProperties iconLayoutProperties = undefined
+    LayoutProperties labelLayoutProperties = undefined
+    LayoutProperties buttonLayoutProperties = undefined
 
     Drawable icon
     Label label
@@ -34,11 +36,14 @@ class Tab is ToggleButton
 
         FlowLayout flow
         layout = flow
-        flow:SetHeightOffset(label:GetLineHeight() * 1.4)
         flow:SetPadding(label:GetLineHeight() / 2)
         flow:SetFrontPadding(true)
         flow:SetIgnoreHidden(true)
-        AddLayout(flow)
+        SetLayout(flow)
+
+        defaultProperties:SetHeightOffset(label:GetLineHeight() * 1.4)
+        AddLayoutProperties(defaultProperties)
+
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
     end
@@ -129,22 +134,22 @@ class Tab is ToggleButton
             icon:SetSize(0, label:GetLineHeight())
         end
 
-        Layout iconLayout
+        LayoutProperties iconLayout
         iconLayout:SetPercentageY(0.5)
         iconLayout:SetPercentageOriginY(0.5)
-        me:iconLayout = iconLayout
+        iconLayoutProperties = iconLayout
 
-        Layout labelLayout
+        LayoutProperties labelLayout
         labelLayout:SetPercentageY(1)
         labelLayout:SetPercentageOriginY(1)
-        me:labelLayout = labelLayout
-        label:AddLayout(labelLayout)
+        labelLayoutProperties = labelLayout
+        label:AddLayoutProperties(labelLayout)
 
-        Layout buttonLayout
+        LayoutProperties buttonLayout
         buttonLayout:SetPercentageY(0.5)
         buttonLayout:SetPercentageOriginY(0.5)
-        me:buttonLayout = buttonLayout
-        closeButton:AddLayout(buttonLayout)
+        buttonLayoutProperties = buttonLayout
+        closeButton:AddLayoutProperties(buttonLayout)
 
         SetName(name)
         SetRelatedItem(item)
@@ -170,12 +175,12 @@ class Tab is ToggleButton
         if children:Has(drawable)
             integer index = children:GetFirstLocation(icon)
             Item2D item = Remove(index)
-            item:RemoveLayout(iconLayout)
+            item:RemoveLayoutProperties(iconLayoutProperties)
             Add(index, drawable)
             icon = drawable
         else
             icon = drawable
-            icon:AddLayout(iconLayout)
+            icon:AddLayoutProperties(iconLayoutProperties)
             Add(0, drawable)
         end
 

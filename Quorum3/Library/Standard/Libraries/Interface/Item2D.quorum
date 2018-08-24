@@ -2,6 +2,7 @@ package Libraries.Interface
 
 use Libraries.Interface.Item
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -193,10 +194,16 @@ class Item2D is Item
     View2D visualView = undefined
 
     /*
-    Layout objects are used to reactively set the position and dimensions of
-    Items relative to either screen dimensions or parent Item dimensions.
+    LayoutProperties describe how this Item are laid out by Layouts. If the
+    Item has multiple LayoutProperties objects, the most appropriate one will
+    be chosen based on the container's size.
     */
-    Array<Layout> layouts
+    Array<LayoutProperties> layoutProperties
+    
+    /*
+    A layout which is used to arrange the children of this object.
+    */
+    Layout layout
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -4469,17 +4476,21 @@ class Item2D is Item
         return visualView
     end
 
-    action AddLayout(Layout layout)
-        layouts:Add(layout)
-        layouts:Sort()
+    action AddLayoutProperties(LayoutProperties properties)
+        layoutProperties:Add(properties)
+        layoutProperties:Sort()
     end
 
-    action RemoveLayout(Layout layout)
-        layouts:Remove(layout)
+    action RemoveLayoutProperties(LayoutProperties properties)
+        layoutProperties:Remove(properties)
     end
 
-    action GetLayouts returns Array<Layout>
-        return layouts
+    action GetLayoutProperties returns Array<LayoutProperties>
+        return layoutProperties
+    end
+
+    action SetLayout(Layout layout)
+        me:layout = layout
     end
 
     action Resize
@@ -4490,7 +4501,7 @@ class Item2D is Item
 
         isResizing = true
 
-        if not layouts:IsEmpty()
+        if layout not= undefined
             number containerWidth = 0
             number containerHeight = 0
             if parentItem not= undefined
@@ -4500,22 +4511,6 @@ class Item2D is Item
                 GameStateManager manager
                 containerWidth = manager:GetGameDisplay():GetWidth()
                 containerHeight = manager:GetGameDisplay():GetHeight()
-            end
-
-            Layout layout = undefined
-            integer counter = layouts:GetSize()
-
-            /*
-            Layouts are sorted by minimum width, or minimum height if minimum
-            widths are equal. When we find an invalid layout, it's assumed that
-            all following layouts will also be invalid.
-            */
-            repeat while counter > 0
-                counter = counter - 1
-                Layout temp = layouts:Get(counter)
-                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
-                    layout = temp
-                end
             end
 
             layout:Apply(me, containerWidth, containerHeight)

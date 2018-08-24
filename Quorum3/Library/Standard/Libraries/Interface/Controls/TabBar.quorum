@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.TabFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
@@ -14,15 +15,18 @@ class TabBar is Item2D, ButtonGroup
     
     Array<Tab> tabs
     TabFlowLayout layout
+    LayoutProperties layoutProperties
     TabPane pane = undefined
 
     Array<TabChangeListener> listeners
 
     on create
-        layout:SetPercentageWidth(1.0)
-        layout:SetPercentageOriginY(1.0)
-        layout:SetPercentageY(1.0)
-        AddLayout(layout)
+        layoutProperties:SetPercentageWidth(1.0)
+        layoutProperties:SetPercentageOriginY(1.0)
+        layoutProperties:SetPercentageY(1.0)
+        AddLayoutProperties(layoutProperties)
+
+        SetLayout(layout)
 
         SetClipping(true)
         SetName("Tab Bar")

@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.MenuSelection
@@ -21,6 +22,7 @@ use Libraries.Game.GameStateManager
 
 class MenuBar is Item2D
     Layout defaultLayout = undefined
+    LayoutProperties defaultLayoutProperties
     MenuItemView defaultMenuAppearance = undefined
     MenuItemView defaultItemAppearance = undefined
     View2D panelAppearance = undefined
@@ -36,13 +38,15 @@ class MenuBar is Item2D
         FlowLayout layout
         layout:SetWrapping(true)
         defaultLayout = layout
-        defaultLayout:SetPercentageWidth(1)
-        defaultLayout:SetWidthOffset(2)
-        defaultLayout:SetOffsetX(-1)
-        defaultLayout:SetPercentageY(1)
-        defaultLayout:SetOffsetY(1)
-        defaultLayout:SetOffsetY(-GetHeight() + 1)
-        AddLayout(defaultLayout)
+        SetLayout(defaultLayout)
+
+        defaultLayoutProperties:SetPercentageWidth(1)
+        defaultLayoutProperties:SetWidthOffset(2)
+        defaultLayoutProperties:SetOffsetX(-1)
+        defaultLayoutProperties:SetPercentageY(1)
+        defaultLayoutProperties:SetOffsetY(1)
+        defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
+        AddLayoutProperties(defaultLayoutProperties)
 
         SetInputGroup("MenuBar")
 
@@ -107,9 +111,9 @@ class MenuBar is Item2D
     end
 
     action Resize
-        if defaultLayout not= undefined
-            defaultLayout:SetOffsetY(-GetHeight() + 1)
-            defaultLayout:SetHeightOffset(GetHeight())
+        if defaultLayoutProperties not= undefined
+            defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
+            defaultLayoutProperties:SetHeightOffset(GetHeight())
         end
         parent:Item2D:Resize()
     end

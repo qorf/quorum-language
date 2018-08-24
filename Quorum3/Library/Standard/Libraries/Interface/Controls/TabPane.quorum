@@ -3,6 +3,7 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
@@ -12,7 +13,7 @@ class TabPane is Item2D
     TabBar bar = undefined
     Item2D currentItem = undefined
     Item2D viewArea
-    Layout viewLayout
+    LayoutProperties viewLayoutProperties
     TabPaneSelection selection
 
     on create
@@ -29,12 +30,12 @@ class TabPane is Item2D
         bar:SetTabPane(me)
         bar:Initialize(tabs)
         
-        viewLayout:SetPercentageX(0)
-        viewLayout:SetPercentageY(0)
-        viewLayout:SetPercentageWidth(1)
-        viewLayout:SetPercentageHeight(1)
-        viewLayout:SetHeightOffset(-bar:GetHeight())
-        viewArea:AddLayout(viewLayout)
+        viewLayoutProperties:SetPercentageX(0)
+        viewLayoutProperties:SetPercentageY(0)
+        viewLayoutProperties:SetPercentageWidth(1)
+        viewLayoutProperties:SetPercentageHeight(1)
+        viewLayoutProperties:SetHeightOffset(-bar:GetHeight())
+        viewArea:AddLayoutProperties(viewLayoutProperties)
 
         viewArea:SetClipping(true)
 
@@ -62,7 +63,7 @@ class TabPane is Item2D
         end
         currentItem = item
 
-        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewLayoutProperties:SetHeightOffset(-bar:GetHeight())
         viewArea:Resize()
     end
 

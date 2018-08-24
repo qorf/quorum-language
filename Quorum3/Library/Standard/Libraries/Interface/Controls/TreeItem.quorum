@@ -9,6 +9,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
 use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Controls.ControlLabel
@@ -30,6 +31,7 @@ class TreeItem is Control
 
     Layout layout = undefined
     Layout panelLayout = undefined
+    LayoutProperties panelProperties
 
     ToggleButton expandButton
     Drawable icon
@@ -46,15 +48,17 @@ class TreeItem is Control
         flow:SetWrapping(false)
         layout = flow
 
-        itemStructure:AddLayout(layout)
+        itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 
         TreeLayout verticalFlow
         verticalFlow:SetWrapping(false)
-        verticalFlow:SetPercentageOriginY(1.0)
         panelLayout = verticalFlow
+        panel:SetLayout(panelLayout)
 
-        panel:AddLayout(panelLayout)
+        panelProperties:SetPercentageOriginY(1.0)
+        panel:AddLayoutProperties(panelProperties)
+
         SetAccessibilityCode(parent:Item:TREE_ITEM)
     end
     
@@ -105,7 +109,7 @@ class TreeItem is Control
             // Hardcoded value sufficient for basic cases. Should be replaced with
             // something more responsive to design in the future.
             flow:SetPadding(2)
-            flow:SetOffsetX(height/2 * 3)
+            panelProperties:SetOffsetX(height/2 * 3)
         end
 
         itemStructure:Add(expandButton)

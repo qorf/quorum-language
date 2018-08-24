@@ -6,6 +6,7 @@ use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.VerticalMenuLayout
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
@@ -29,6 +30,7 @@ class MenuItem is Control
     */
     Item2D panel
     Layout panelLayout = undefined
+    LayoutProperties panelProperties
 
     /*
     An array containing all elements added to the panel. This is redundant to
@@ -100,7 +102,8 @@ class MenuItem is Control
 
         SetMenuDirection(direction)
         
-        panel:AddLayout(panelLayout)
+        panel:SetLayout(panelLayout)
+        panel:AddLayoutProperties(panelProperties)
         panel:SetView2D(panelView)
     end
 
@@ -179,25 +182,25 @@ class MenuItem is Control
         end
 
         if direction = LEFT
-            panelLayout:SetPercentageOriginX(1)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageX(0)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(1)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageX(0)
+            panelProperties:SetPercentageY(1)
         elseif direction = RIGHT
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageX(1)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageX(1)
+            panelProperties:SetPercentageY(1)
         elseif direction = DOWN
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageY(0)
-            panelLayout:SetPercentageX(0)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageY(0)
+            panelProperties:SetPercentageX(0)
         elseif direction = UP
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(0)
-            panelLayout:SetPercentageX(0)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(0)
+            panelProperties:SetPercentageX(0)
+            panelProperties:SetPercentageY(1)
         end
     end
 

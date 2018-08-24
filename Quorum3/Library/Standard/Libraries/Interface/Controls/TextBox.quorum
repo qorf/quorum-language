@@ -16,6 +16,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Containers.Array
 use Libraries.Containers.MultipleLineText
@@ -121,10 +122,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     Drawable verticalBar
     Drawable verticalControl
 
-    Layout horizontalBarLayout
-    Layout horizontalControlLayout
-    Layout verticalBarLayout
-    Layout verticalControlLayout
+    LayoutProperties horizontalBarProperties
+    LayoutProperties horizontalControlProperties
+    LayoutProperties verticalBarProperties
+    LayoutProperties verticalControlProperties
     
     number scrollDistance = 3
     integer barThickness = 20
@@ -220,10 +221,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         textValue:Initialize(value)
 
-        Layout backgroundLayout
+        LayoutProperties backgroundLayout
         backgroundLayout:SetPercentageWidth(1)
         backgroundLayout:SetPercentageHeight(1)
-        background:AddLayout(backgroundLayout)
+        background:AddLayoutProperties(backgroundLayout)
 
         if backgroundColor not= undefined
             background:LoadFilledRectangle(cast(integer, width), cast(integer, height), backgroundColor)
@@ -259,15 +260,15 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number barWidth = width
 
         if verticalVisible and horizontalVisible
-            verticalBarLayout:SetHeightOffset(-barThickness)
-            horizontalBarLayout:SetWidthOffset(-barThickness)
+            verticalBarProperties:SetHeightOffset(-barThickness)
+            horizontalBarProperties:SetWidthOffset(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
         else
-            verticalBarLayout:SetHeightOffset(0)
-            horizontalBarLayout:SetWidthOffset(0)
+            verticalBarProperties:SetHeightOffset(0)
+            horizontalBarProperties:SetWidthOffset(0)
         end
 
         if verticalRatio > 1.0
@@ -279,14 +280,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         if verticalVisible
-            verticalControlLayout:SetPercentageHeight(verticalRatio)
+            verticalControlProperties:SetPercentageHeight(verticalRatio)
             verticalBar:Show()
         else
             verticalBar:Hide()
         end
 
         if horizontalVisible
-            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
+            horizontalControlProperties:SetPercentageWidth(horizontalRatio)
             horizontalBar:Show()
         else
             horizontalBar:Hide()
@@ -1022,48 +1023,48 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         height equal to the height of its container, and has its top right 
         corner touching the top right corner of the container.
         */
-        verticalBarLayout:SetPercentageX(1)
-        verticalBarLayout:SetPercentageOriginX(1)
-        verticalBarLayout:SetPercentageY(1)
-        verticalBarLayout:SetPercentageOriginY(1)
-        verticalBarLayout:SetPercentageHeight(1)
-        verticalBarLayout:SetWidthOffset(barThickness)
+        verticalBarProperties:SetPercentageX(1)
+        verticalBarProperties:SetPercentageOriginX(1)
+        verticalBarProperties:SetPercentageY(1)
+        verticalBarProperties:SetPercentageOriginY(1)
+        verticalBarProperties:SetPercentageHeight(1)
+        verticalBarProperties:SetWidthOffset(barThickness)
 
-        verticalBar:AddLayout(verticalBarLayout)
+        verticalBar:AddLayoutProperties(verticalBarProperties)
 
         /*
         The horizontal bar has width equal to its container's width, height
         equal to the bar thickness, and lies along the bottom of the text box.
         */
-        horizontalBarLayout:SetPercentageX(0)
-        horizontalBarLayout:SetPercentageY(0)
-        horizontalBarLayout:SetPercentageWidth(1)
-        horizontalBarLayout:SetHeightOffset(barThickness)
+        horizontalBarProperties:SetPercentageX(0)
+        horizontalBarProperties:SetPercentageY(0)
+        horizontalBarProperties:SetPercentageWidth(1)
+        horizontalBarProperties:SetHeightOffset(barThickness)
 
-        horizontalBar:AddLayout(horizontalBarLayout)
+        horizontalBar:AddLayoutProperties(horizontalBarProperties)
 
         /*
         The vertical control begins at the top of the bar, and its width fully
         fills the bar. Its height is not set here, instead being set during
         Resize().
         */
-        verticalControlLayout:SetPercentageOriginY(1)
-        verticalControlLayout:SetPercentageY(1)
-        verticalControlLayout:SetPercentageX(0)
-        verticalControlLayout:SetPercentageWidth(1)
+        verticalControlProperties:SetPercentageOriginY(1)
+        verticalControlProperties:SetPercentageY(1)
+        verticalControlProperties:SetPercentageX(0)
+        verticalControlProperties:SetPercentageWidth(1)
 
-        verticalControl:AddLayout(verticalControlLayout)
+        verticalControl:AddLayoutProperties(verticalControlProperties)
 
         /*
         The horizontal control begins at the left of the bar, and its height
         fully fills the bar. Its width is not set here, instead being set during
         Resize().
         */
-        horizontalControlLayout:SetPercentageX(0)
-        horizontalControlLayout:SetPercentageY(0)
-        horizontalControlLayout:SetPercentageHeight(1)
+        horizontalControlProperties:SetPercentageX(0)
+        horizontalControlProperties:SetPercentageY(0)
+        horizontalControlProperties:SetPercentageHeight(1)
 
-        horizontalControl:AddLayout(horizontalControlLayout)
+        horizontalControl:AddLayoutProperties(horizontalControlProperties)
 
         Add(verticalBar)
         Add(horizontalBar)
@@ -1226,10 +1227,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
-        verticalControlLayout:SetPercentageY(vertical)
-        verticalControlLayout:SetOffsetY(((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight())))
-        horizontalControlLayout:SetPercentageX(horizontal)
-        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
+        verticalControlProperties:SetPercentageY(vertical)
+        verticalControlProperties:SetOffsetY(((1 - vertical) * ((GetHeight() + verticalBarProperties:GetHeightOffset()) * verticalControlProperties:GetPercentageHeight())))
+        horizontalControlProperties:SetPercentageX(horizontal)
+        horizontalControlProperties:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetWidthOffset()) * horizontalControlProperties:GetPercentageWidth())))
 
         verticalControl:Resize()
         horizontalControl:Resize()
