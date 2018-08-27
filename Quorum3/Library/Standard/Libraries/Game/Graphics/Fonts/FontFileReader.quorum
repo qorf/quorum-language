@@ -172,6 +172,7 @@ class FontFileReader
             i = i + 1
             integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
             fileInformation:SetScalerType(scalertype)
+            output "Scaler type is: " + scalertype
 
             fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
             fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
@@ -295,7 +296,7 @@ class FontFileReader
             if byteReader:HasNextInteger()
                 integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
                 fileInformation:SetScalerType(scalertype)
-
+                output "Scaler type is: " + scalertype
                 fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
@@ -742,9 +743,9 @@ class FontFileReader
 
                 characterMapSubtable = characterMapSubtable + 1
 
-                if platformID = 0
+                //if platformID = 0
                    ReadCharacterMapMapping(byteReader, characterMapTablePosition + characterMapOffset)
-                end
+                //end
             end
         end
         byteReader:SetPosition(previousPosition)
