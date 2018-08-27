@@ -46,7 +46,7 @@ public class DesktopDisplay {
             public void invoke(long window, int width, int height)
             {
                 wasResized = true;
-                ResizeProcessor.AddResizeEvent(window, width, height);
+                ResizeProcessor.AddResizeEvent(window, GetWidth(), GetHeight());
                 GameStateManager.game.ContinueGame();
                 GLFW.glfwSwapBuffers(window);
                 
@@ -247,6 +247,9 @@ public class DesktopDisplay {
         GLFW.glfwSetScrollCallback(window, scrollCallback);
         GLFW.glfwSetCharCallback(window, textCallback);
         GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
+
+        if (!resolution.IsFullscreen() && GetPixelScaleFactor() != 1.0)
+            SetScreenResolution(resolution);
     }
 
     public void SetVSync(boolean vsync) 
@@ -285,38 +288,45 @@ public class DesktopDisplay {
         return y[0];
     }
 
-    public int GetWidth() {
+    public int GetWindowWidth() {
         int[] width = new int[1], height = new int[1];
         GLFW.glfwGetWindowSize(window, width, height);
         return width[0];
     }
 
-    public int GetHeight() {
+    public int GetWindowHeight() {
         int[] width = new int[1], height = new int[1];
         GLFW.glfwGetWindowSize(window, width, height);
         return height[0];
     }
     
-    public int GetFramebufferWidth()
+    public int GetWidth()
     {
         int[] width = new int[1], height = new int[1];
         GLFW.glfwGetFramebufferSize(window, width, height);
         return width[0];
     }
     
-    public int GetFramebufferHeight()
+    public int GetHeight()
     {
         int[] width = new int[1], height = new int[1];
         GLFW.glfwGetFramebufferSize(window, width, height);
         return height[0];
     }
     
-    public double GetPixelScaleFactor() {
-        return (double)GetFramebufferWidth() / (double)GetWidth();
+    public double GetPixelScaleFactor() 
+    {
+        return (double)GetWidth() / (double)GetWindowWidth();
     }
 
-    public void ProcessMessages() {
+    public void ProcessMessages() 
+    {
 //        Display.processMessages();
+    }
+    
+    public void SetWindowPosition(int x, int y)
+    {
+        GLFW.glfwSetWindowPos(window, x, y);
     }
 
     public boolean IsCloseRequested() {
@@ -452,7 +462,8 @@ public class DesktopDisplay {
             else
                 y = 20;
             
-            GLFW.glfwSetWindowMonitor(window, 0, x, y, resolution.GetWidth(), resolution.GetHeight(), resolution.GetFrequency());
+            double scaling = GetPixelScaleFactor();
+            GLFW.glfwSetWindowMonitor(window, 0, x, y, (int)(resolution.GetWidth() / scaling), (int)(resolution.GetHeight() / scaling), resolution.GetFrequency());
         }
         
         this.resolution = resolution;
