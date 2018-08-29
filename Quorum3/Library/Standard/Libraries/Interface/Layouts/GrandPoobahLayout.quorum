@@ -1,0 +1,83 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+
+/*
+A flow layout used for testing the new layout design.
+
+For testing purposes only, will be renamed or removed.
+*/
+class GrandPoobahLayout
+
+    boolean ignoreHidden = false
+
+    action Layout(Array<Item2D> items, number containerWidth, number containerHeight)
+
+        // This is the x position of the next item, unless it flows onto the
+        // next line (and resets to 0).
+        number x = 0
+
+        // Objects are placed such that their top edge is at the currentY.
+        number currentY = containerHeight
+        number nextY = containerHeight
+
+        i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+
+            // For testing purposes only, always gets the first LayoutProperties.
+            Array<LayoutProperties> propertiesArray = item:GetLayoutProperties()
+            LayoutProperties properties = undefined
+            if not propertiesArray:IsEmpty()
+                properties = propertiesArray:Get(0)
+            end
+
+            if properties not= undefined and (ignoreHidden = false or item:IsShowing())
+                number width = 0
+                number height = 0
+
+                if properties:GetPercentageWidth() = properties:FILL
+                    width = containerWidth - x
+                else
+                    width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
+                end
+
+                if properties:GetPercentageHeight() = properties:FILL
+                    height = currentY
+                else
+                    height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                end
+
+                item:SetSize(width, height)
+                item:SetWidth(width)
+                item:SetHeight(height)
+
+                if x + item:GetWidth() > containerWidth
+                    currentY = nextY
+                    x = 0
+                end
+
+                if currentY - item:GetHeight() < nextY
+                    nextY = currentY - item:GetHeight()
+                end
+
+                item:SetPosition(x, currentY - item:GetHeight())
+                x = x + item:GetWidth()
+            end
+            i = i + 1
+        end
+
+//        number oldHeight = item:GetHeight()
+//        item:SetHeight(nextY - currentY)
+//        item:MoveY(oldHeight - (nextY - currentY))
+    end
+
+    action SetIgnoreHidden(boolean ignore)
+        ignoreHidden = ignore
+    end
+
+    action IsIgnoringHidden returns boolean
+        return ignoreHidden
+    end
+end

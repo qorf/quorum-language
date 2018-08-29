@@ -6,6 +6,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
 
@@ -102,5 +103,36 @@ class Control is Item2D
 
         GameStateManager manager
         manager:GetInput():NotifyControlActivationListeners(event)
+    end
+
+    /*
+    This action returns the best suited LayoutProperties stored by the Control
+    for use with the given container width and height. The Control will attempt
+    to find the most restricted LayoutProperties that is still valid,
+    prioritizing width over height in case of equal values.
+
+    Attribute: Parameter containerWidth The width of the container the LayoutProperties must be legal for.
+    Attribute: Parameter containerHeight The height of the container the LayoutProperties must be legal for.
+    Attribute: Returns The LayoutProperties contained in the Control that is best suited to the requested container dimensions.
+    */
+    action GetLayoutProperties(number containerWidth, number containerHeight) returns LayoutProperties
+        LayoutProperties properties = undefined
+        Array<LayoutProperties> array = GetLayoutProperties()
+        integer counter = array:GetSize()
+
+        /*
+        Layouts are sorted by minimum width, or minimum height if minimum
+        widths are equal. When we find an invalid layout, it's assumed that
+        all following layouts will also be invalid.
+        */
+        repeat while counter > 0
+            counter = counter - 1
+            LayoutProperties temp = array:Get(counter)
+            if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                properties = temp
+            end
+        end
+
+        return properties
     end
 end
