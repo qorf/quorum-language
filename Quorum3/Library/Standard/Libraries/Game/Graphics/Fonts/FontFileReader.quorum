@@ -172,7 +172,7 @@ class FontFileReader
             i = i + 1
             integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
             fileInformation:SetScalerType(scalertype)
-            output "Scaler type is: " + scalertype
+            //output "Scaler type is: " + scalertype
 
             fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
             fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
@@ -296,7 +296,7 @@ class FontFileReader
             if byteReader:HasNextInteger()
                 integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
                 fileInformation:SetScalerType(scalertype)
-                output "Scaler type is: " + scalertype
+                //output "Scaler type is: " + scalertype
                 fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
@@ -404,13 +404,10 @@ class FontFileReader
         BezierCurveGlyphPoints glyphPoints
         integer characterCode = character:GetUnicodeInteger(0)
 
-        integer glyphLocationTableIndex = 0
-        check
-            glyphLocationTableIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
-        detect e
-            glyphLocationTableIndex = 0
-        end
-
+        integer glyphLocationTableIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
+        
+        //output "Glyph location table index is: " + glyphLocationTableIndex + " and character is: " + character
+        
         integer glyphTableOffset = 0
         check
             glyphTableOffset = GetGlyphOffset(glyphLocationTableIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
@@ -456,7 +453,7 @@ class FontFileReader
         // default is glyph not found
         integer glyphLocationTableIndex = 0
 
-        if characterMapFormat = 4       // different cases for different files, may be why we're drawing a lot of boxes for fonts
+        if characterMapFormat = 4      
             integer length = byteReader:NextTwoByteUnsignedInteger()
             integer language = byteReader:NextTwoByteUnsignedInteger()
             integer segmentCountTimes2 = byteReader:NextTwoByteUnsignedInteger()
@@ -495,9 +492,47 @@ class FontFileReader
             elseif delta > 0
                 glyphLocationTableIndex = (delta + characterCode) mod 65536
             end 
+        elseif characterMapFormat = 6
+            integer tableLength = byteReader:NextTwoByteUnsignedInteger()
+            integer languageCode = byteReader:NextTwoByteUnsignedInteger()
+            integer firstCharacterCode = byteReader:NextTwoByteUnsignedInteger()
+            integer entryCount = byteReader:NextTwoByteUnsignedInteger()
+            
+            integer endCharacterCode = firstCharacterCode + entryCount
+
+            if characterCode < firstCharacterCode or characterCode > endCharacterCode
+                glyphLocationTableIndex = 0
+            else
+                integer offset = characterCode - firstCharacterCode
+                byteReader:SkipBytes(offset*2)      // each entry in the table is two bytes
+                glyphLocationTableIndex = byteReader:NextTwoByteUnsignedInteger()
+            end
+
+        elseif characterMapFormat = 12 
+            integer formatDecimal = byteReader:NextTwoByteUnsignedInteger() // format 12 files have an additional 2 bytes of info for the format that wasn't read before, so need to advance file
+            integer tableLength = byteReader:NextInteger()
+            integer languageCode = byteReader:NextInteger()
+            integer numberOfGroups = byteReader:NextInteger()
+
+            integer startCharacterCode = 0
+            integer endCharacterCode = 0
+            integer startGlyphID = 0
+            integer i = 0
+            
+            repeat while i < numberOfGroups
+                startCharacterCode = byteReader:NextInteger()
+                endCharacterCode = byteReader:NextInteger()
+                startGlyphID = byteReader:NextInteger()
+                
+                if endCharacterCode >= characterCode // the character we want is in this grouping
+                    i = numberOfGroups
+                end    
+                i = i + 1
+            end 
+            
+            glyphLocationTableIndex = startGlyphID + (characterCode - startCharacterCode)
         end
 
-        //output "location Table index for " + characterCode + " is " + glyphLocationTableIndex
         return glyphLocationTableIndex
     end
 
@@ -734,19 +769,66 @@ class FontFileReader
             integer version = byteReader:NextTwoByteUnsignedInteger()
             integer numberOfSubtables = byteReader:NextTwoByteUnsignedInteger()
 
+            integer platformID = -1
+            integer platformSpecificID = -1
+            integer characterMapOffset = -1
+
             integer characterMapSubtable = 0
             integer tablePosition = byteReader:GetPosition()
             repeat while characterMapSubtable < numberOfSubtables
-                integer platformID = byteReader:NextTwoByteUnsignedInteger()
-                integer platformspecificID= byteReader:NextTwoByteUnsignedInteger()
-                integer characterMapOffset = byteReader:NextIntegerConvertFromUnsigned()
+                integer tempPlatformID = byteReader:NextTwoByteUnsignedInteger()
+                integer tempPlatformSpecificID= byteReader:NextTwoByteUnsignedInteger()
+                integer tempCharacterMapOffset = byteReader:NextIntegerConvertFromUnsigned()
 
                 characterMapSubtable = characterMapSubtable + 1
 
-                //if platformID = 0
-                   ReadCharacterMapMapping(byteReader, characterMapTablePosition + characterMapOffset)
-                //end
+                // The idea here is to use a more generalized and robust cmap table when possible.
+                // There are 4 platform ID options, with 1 being deprecated. Of these, Unicode
+                // is the most general and useful, followed by Windows, and finally Mac. Each of these
+                // platform IDs have encoding IDs that let us know how the tables are encoded. For example,
+                // some tables may be unicode UCS-4, which encompasses every current unicode character,
+                // while some may be UCS-2, which covers many but not all characters. The ordering here
+                // is based on the recommendation from the "cmap" table documentation on the Apple
+                // website. We only need one cmap table, and we want the best one the file has,
+                // and these conditionals are intended to get us the best one. For more information,
+                // read the Apple or Microsoft documentation on the "cmap" table. 
+
+                if tempPlatformID = 0
+                    if tempPlatformSpecificID = 4
+                        platformID = tempPlatformID
+                        platformSpecificID = tempPlatformSpecificID
+                        characterMapOffset = tempCharacterMapOffset
+                        characterMapSubtable = numberOfSubtables
+                    elseif tempPlatformSpecificID < 4 and platformSpecificID not= 4
+                        platformID = tempPlatformID
+                        platformSpecificID = tempPlatformSpecificID
+                        characterMapOffset = tempCharacterMapOffset
+                    end
+                elseif tempPlatformID = 3 and platformID not= 0
+                    if tempPlatformSpecificID = 10
+                        platformID = tempPlatformID
+                        platformSpecificID = tempPlatformSpecificID
+                        characterMapOffset = tempCharacterMapOffset
+                    elseif tempPlatformSpecificID = 1 and platformSpecificID not= 10
+                        platformID = tempPlatformID
+                        platformSpecificID = tempPlatformSpecificID
+                        characterMapOffset = tempCharacterMapOffset
+                    elseif tempPlatformSpecificID = 0 and platformSpecificID not= 10 and platformSpecificID not= 1
+                        platformID = tempPlatformID
+                        platformSpecificID = tempPlatformSpecificID
+                        characterMapOffset = tempCharacterMapOffset
+                    end
+                elseif tempPlatformID = 1 and platformID not= 0 and platformID not= 3
+                    platformID = tempPlatformID
+                    platformSpecificID = tempPlatformSpecificID
+                    characterMapOffset = tempCharacterMapOffset
+                end
             end
+            
+            //output "Platform ID: " + platformID + ", platform specific ID: " + platformSpecificID
+
+            ReadCharacterMapMapping(byteReader, characterMapTablePosition + characterMapOffset)
+
         end
         byteReader:SetPosition(previousPosition)
     end
@@ -768,12 +850,9 @@ class FontFileReader
             // Formats have to be read differently, so the format has
             // to be saved
             integer format = byteReader:NextTwoByteUnsignedInteger()
-            if format = 4
-                integer cmapPosition = byteReader:GetPosition()
-                fileInformation:SetCharacterMapTablePosition(cmapPosition, format)
-            elseif format = 12
-                // this should be viable too
-            end
+            //output "Format is: " + format
+            integer cmapPosition = byteReader:GetPosition()
+            fileInformation:SetCharacterMapTablePosition(cmapPosition, format)
         end
         byteReader:SetPosition(previousPosition)
     end
