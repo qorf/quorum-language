@@ -406,8 +406,6 @@ class FontFileReader
 
         integer glyphLocationTableIndex = FindCharacterGlyphIndex(characterCode, byteReader, fileInformation:GetCharacterMapTablePosition(), fileInformation:GetCharacterMapFormat())
         
-        //output "Glyph location table index is: " + glyphLocationTableIndex + " and character is: " + character
-        
         integer glyphTableOffset = 0
         check
             glyphTableOffset = GetGlyphOffset(glyphLocationTableIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
@@ -453,45 +451,66 @@ class FontFileReader
         // default is glyph not found
         integer glyphLocationTableIndex = 0
 
-        if characterMapFormat = 4      
+        if characterMapFormat = 4
             integer length = byteReader:NextTwoByteUnsignedInteger()
             integer language = byteReader:NextTwoByteUnsignedInteger()
-            integer segmentCountTimes2 = byteReader:NextTwoByteUnsignedInteger()
+            integer segmentCountTimesTwo = byteReader:NextTwoByteUnsignedInteger()
+            integer segmentCount = segmentCountTimesTwo / 2
             integer searchRange = byteReader:NextTwoByteUnsignedInteger()
             integer entrySelector = byteReader:NextTwoByteUnsignedInteger()
             integer rangeShift = byteReader:NextTwoByteUnsignedInteger()
+            
+            integer i = 0
+            integer position = -1
+            integer endCharacterCode = -1
+            
+            repeat while i < segmentCount 
+                endCharacterCode = byteReader:NextTwoByteUnsignedInteger()
+                if endCharacterCode >= characterCode and position = -1   // set the first segment found, keep iterating to advance file reader enough
+                    position = i
+                end
+                i = i + 1
+            end
+            
+            integer pad = byteReader:NextTwoByteUnsignedInteger()
 
-            integer count = -1
-            integer endCode = 0
-            integer glyphIndexArrayOffset = -1
+            if position = -1 // character not in the font, return missing character index
+                return glyphLocationTableIndex
+            else
+                integer startCharacterCode = -1
+                byteReader:SkipBytes(position * 2)  // array of 16 bit startCharacterCodes, we need to jump to the proper index
+                startCharacterCode = byteReader:NextTwoByteUnsignedInteger()
+                byteReader:SkipBytes((segmentCount - position - 1) * 2)
+                
+                if startCharacterCode <= characterCode  // character should be present, find it
+                    integer idDelta = -1
+                    integer idRangeOffset = -1
 
-            repeat until  (endCode = 65535) or (endCode >= characterCode)
-                endCode = byteReader:NextTwoByteUnsignedInteger()
-                count = count + 1
+                    byteReader:SkipBytes(position * 2)
+                    idDelta = byteReader:NextTwoByteUnsignedInteger()
+                    byteReader:SkipBytes((segmentCount - position - 1) * 2)
+                    
+                    byteReader:SkipBytes(position * 2)
+                    integer idRangeOffsetPosition = byteReader:GetPosition()
+                    idRangeOffset = byteReader:NextTwoByteUnsignedInteger()
+                    
+                    if idRangeOffset not= 0 // this case not working right
+                        integer glyphIndexAddress = idRangeOffset + 2 * (characterCode - startCharacterCode) + idRangeOffsetPosition
+                        byteReader:SetPosition(glyphIndexAddress)
+                        integer glyphID = byteReader:NextTwoByteUnsignedInteger()
+                        if glyphID = 0
+                            return glyphLocationTableIndex
+                        else
+                            glyphLocationTableIndex = (idDelta + glyphID) mod 65536
+                        end
+                    else
+                        glyphLocationTableIndex = (idDelta + characterCode) mod 65536
+                    end
+                else        // character not in the font file, return missing character index
+                    return glyphLocationTableIndex
+                end
             end
 
-            // skip ahead to start code it's by the number of segments*2 + index of 
-            // entry (count) multiplied by 2 since the values are all 2 byte long
-            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count )
-            integer startCode = byteReader:NextTwoByteUnsignedInteger()
-
-            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count - 2)
-            integer delta = byteReader:NextTwoByteUnsignedInteger()
-
-            byteReader:SkipBytes((segmentCountTimes2 - 2 * count) + 2*count - 2)
-            glyphIndexArrayOffset = byteReader:GetPosition()
-            integer rangeOffset = byteReader:NextTwoByteUnsignedInteger()
-
-            // rangeOffset determines address
-            if rangeOffset > 0                
-                integer glyphIndexAddress = rangeOffset + 2*(characterCode - startCode) + glyphIndexArrayOffset
-                
-                byteReader:SetPosition(glyphIndexAddress)
-                glyphLocationTableIndex = byteReader:NextTwoByteUnsignedInteger()
-            // delta determines address
-            elseif delta > 0
-                glyphLocationTableIndex = (delta + characterCode) mod 65536
-            end 
         elseif characterMapFormat = 6
             integer tableLength = byteReader:NextTwoByteUnsignedInteger()
             integer languageCode = byteReader:NextTwoByteUnsignedInteger()
@@ -594,7 +613,7 @@ class FontFileReader
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(glyphTablePosition)
         //output "Index is: " + glyphTablePosition + ", previousPosition is: " + previousPosition + ", iteratorIsValid is: " + iteratorIsValid
-        BezierCurveGlyphPoints glyphPoints    
+        BezierCurveGlyphPoints glyphPoints
         if iteratorIsValid
             integer numberOfContours = byteReader:NextTwoByteInteger()
 
