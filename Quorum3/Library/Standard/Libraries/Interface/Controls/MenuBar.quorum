@@ -1,6 +1,6 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
@@ -20,7 +20,7 @@ use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
 use Libraries.Game.GameStateManager
 
-class MenuBar is Item2D
+class MenuBar is Control
     Layout defaultLayout = undefined
     LayoutProperties defaultLayoutProperties
     MenuItemView defaultMenuAppearance = undefined
@@ -41,11 +41,8 @@ class MenuBar is Item2D
         SetLayout(defaultLayout)
 
         defaultLayoutProperties:SetPercentageWidth(1)
-        defaultLayoutProperties:SetWidthOffset(2)
-        defaultLayoutProperties:SetOffsetX(-1)
         defaultLayoutProperties:SetPercentageY(1)
         defaultLayoutProperties:SetOffsetY(1)
-        defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
         AddLayoutProperties(defaultLayoutProperties)
 
         SetInputGroup("MenuBar")
@@ -59,6 +56,7 @@ class MenuBar is Item2D
 
     action Initialize
         LabelBoxView defaultBar
+        defaultBar:SetBorderStyle(defaultBar:BOTTOM)
         defaultBar:SetBorderThickness(1)
         defaultBar:SetText("")
         Color color
@@ -115,7 +113,7 @@ class MenuBar is Item2D
             defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
             defaultLayoutProperties:SetHeightOffset(GetHeight())
         end
-        parent:Item2D:Resize()
+        parent:Control:Resize()
     end
 
     action AddMenuItem(MenuItem item)
@@ -245,7 +243,7 @@ class MenuBar is Item2D
             boolean shouldOpen = name:IsOpen()
             integer counter = 0
             repeat while counter < menus:GetSize()
-                Item2D menu = menus:Get(counter)
+                MenuItem menu = menus:Get(counter)
                 if menu:Equals(name)
                     integer index = counter - 1
                     if index < 0
@@ -277,7 +275,7 @@ class MenuBar is Item2D
             boolean shouldOpen = name:IsOpen()
             integer counter = 0
             repeat while counter < menus:GetSize()
-                Item2D menu = menus:Get(counter)
+                MenuItem menu = menus:Get(counter)
                 if menu:Equals(name)
                     integer index = (counter + 1) mod menus:GetSize()
                     path:Set(0, menus:Get(index))
@@ -303,7 +301,7 @@ class MenuBar is Item2D
                 integer counter = 0
                 boolean shouldOpen = name:IsOpen()
                 repeat while counter < menus:GetSize()
-                    Item2D menu = menus:Get(counter)
+                    MenuItem menu = menus:Get(counter)
                     if menu:Equals(name)
                         integer index = (counter + 1) mod menus:GetSize()
                         path:Empty()

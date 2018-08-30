@@ -4,6 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Control
 
 class TabFlowLayout is Layout
     
@@ -12,7 +13,7 @@ class TabFlowLayout is Layout
     number padding = 0
     number offset = 0
 
-    action Layout(Item2D item)
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         number x = -offset
         number y = 0
 
@@ -21,10 +22,9 @@ class TabFlowLayout is Layout
         end
 
         number tallestHeight = 0
-        Array<Item2D> kids = item:GetChildren()
         i = 0
-        repeat while i < kids:GetSize()
-            Item2D kid = kids:Get(i)
+        repeat while i < items:GetSize()
+            Item2D kid = items:Get(i)
 
             if (not ignoreHidden) or kid:IsShowing()
                 if kid:GetHeight() > tallestHeight
@@ -37,7 +37,7 @@ class TabFlowLayout is Layout
             i = i + 1
         end
 
-        item:SetHeight(tallestHeight)
+        container:SetHeight(tallestHeight)
     end
 
     action SetPadding(number value)

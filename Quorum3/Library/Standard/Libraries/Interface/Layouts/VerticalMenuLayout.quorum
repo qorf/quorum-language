@@ -3,19 +3,19 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Control
 
 class VerticalMenuLayout is Layout
     
-    action Layout(Item2D item)
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
         number y = 0
         number longestWidth = 0
 
-        Array<Item2D> kids = item:GetChildren()
-        i = kids:GetSize()
+        i = items:GetSize()
         repeat while i > 0
             i = i - 1
-            Item2D kid = kids:Get(i)
+            Item2D kid = items:Get(i)
 
             if longestWidth < kid:GetWidth()
                 longestWidth = kid:GetWidth()
@@ -26,16 +26,16 @@ class VerticalMenuLayout is Layout
             y = y + kid:GetHeight()
         end
 
-        repeat while i < kids:GetSize()
-            Item2D kid = kids:Get(i)
+        repeat while i < items:GetSize()
+            Item2D kid = items:Get(i)
             kid:SetWidth(longestWidth)
             i = i + 1
         end
 
-        number oldHeight = item:GetHeight()
+        number oldHeight = container:GetHeight()
 
-        item:SetSize(longestWidth, y)
-        item:MoveY(oldHeight - y)
+        container:SetSize(longestWidth, y)
+        container:MoveY(oldHeight - y)
     end
 
 end

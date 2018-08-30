@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
@@ -11,7 +12,7 @@ use Libraries.Interface.Events.TabChangeListener
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 
-class TabBar is Item2D, ButtonGroup
+class TabBar is Control, ButtonGroup
     
     Array<Tab> tabs
     TabFlowLayout layout

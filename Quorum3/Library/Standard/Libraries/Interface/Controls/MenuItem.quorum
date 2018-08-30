@@ -7,6 +7,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.VerticalMenuLayout
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
@@ -28,7 +29,7 @@ class MenuItem is Control
     A panel which contains all of the submenu options for this MenuItem, if this
     MenuItem is a menu.
     */
-    Item2D panel
+    Control panel
     Layout panelLayout = undefined
     LayoutProperties panelProperties
 
@@ -65,6 +66,9 @@ class MenuItem is Control
         SetInputGroup("MenuItem")
         panel:SetName("Menu Panel")
         SetAccessibilityCode(parent:Item:MENU_ITEM)
+
+        ManualLayout layout
+        SetLayout(layout)
     end
 
     action Initialize(text name)

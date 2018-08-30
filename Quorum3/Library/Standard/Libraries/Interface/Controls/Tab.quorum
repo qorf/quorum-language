@@ -10,6 +10,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Texture
+use Libraries.Interface.Views.DrawableView
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
@@ -23,9 +24,11 @@ class Tab is ToggleButton
     LayoutProperties labelLayoutProperties = undefined
     LayoutProperties buttonLayoutProperties = undefined
 
-    Drawable icon
+    Control icon
     Label label
     Button closeButton
+
+    DrawableView iconView
 
     boolean displayIcon = true
     boolean displayLabel = true
@@ -40,6 +43,11 @@ class Tab is ToggleButton
         flow:SetFrontPadding(true)
         flow:SetIgnoreHidden(true)
         SetLayout(flow)
+
+        icon:AddLayoutProperties(iconLayoutProperties)
+        icon:SetView2D(iconView)
+        Add(0, icon)
+        icon:Hide()
 
         defaultProperties:SetHeightOffset(label:GetLineHeight() * 1.4)
         AddLayoutProperties(defaultProperties)
@@ -57,7 +65,7 @@ class Tab is ToggleButton
     end
 
     action Initialize(text name, Item2D item, Drawable icon)
-        me:icon = icon
+       SetIcon(icon)
 
         DisplayName(true)
         DisplayIcon(true)
@@ -67,7 +75,7 @@ class Tab is ToggleButton
     end
 
     action Initialize(text name, Item2D item, Texture iconTexture)
-        icon:Load(iconTexture)
+        SetIcon(iconTexture)
 
         DisplayName(true)
         DisplayIcon(true)
@@ -85,7 +93,7 @@ class Tab is ToggleButton
     end
 
     action Initialize(text name, Item2D item, Drawable icon, boolean hasClose)
-        me:icon = icon
+        SetIcon(icon)
 
         DisplayName(true)
         DisplayIcon(true)
@@ -95,7 +103,7 @@ class Tab is ToggleButton
     end
 
     action Initialize(text name, Item2D item, Texture iconTexture, boolean hasClose)
-        icon:Load(iconTexture)
+        SetIcon(iconTexture)
 
         DisplayName(true)
         DisplayIcon(true)
@@ -153,7 +161,7 @@ class Tab is ToggleButton
 
         SetName(name)
         SetRelatedItem(item)
-        SetIcon(icon)
+//        SetIcon(icon)
 
         Add(label)
         Add(closeButton)
@@ -169,28 +177,26 @@ class Tab is ToggleButton
         return relatedItem
     end
 
-    action SetIcon(Drawable drawable)
-        Array<Item2D> children = GetChildren()
+    action SetIcon(Texture texture)
+        if iconView:IsLoaded()
+            iconView:Dispose()
+        end
 
-        if children:Has(drawable)
-            integer index = children:GetFirstLocation(icon)
-            Item2D item = Remove(index)
-            item:RemoveLayoutProperties(iconLayoutProperties)
-            Add(index, drawable)
-            icon = drawable
+        if texture = undefined
+            icon:Hide()
         else
-            icon = drawable
-            icon:AddLayoutProperties(iconLayoutProperties)
-            Add(0, drawable)
+            iconView:Load(texture)
+            icon:Show()
         end
+    end
 
-        if drawable:GetName() = "Unnamed"
-            drawable:SetName(GetName() + " Icon")
-        end
+    action SetIcon(Drawable drawable)
+        SetIcon(drawable:GetTexture())
     end
 
     action SetName(text name)
         label:SetText(name)
+        icon:SetName(name + " Icon")
         parent:Item2D:SetName(name)
         Resize()
     end

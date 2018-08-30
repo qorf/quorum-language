@@ -961,7 +961,7 @@ class Layer2D is Layer
     */
     action Update(number seconds)
         if shouldLayout
-            layerLayout:Layout(controls, camera:GetWidth(), camera:GetHeight())
+            layerLayout:Layout(undefined, controls, camera:GetWidth(), camera:GetHeight())
             shouldLayout = false
         end
 

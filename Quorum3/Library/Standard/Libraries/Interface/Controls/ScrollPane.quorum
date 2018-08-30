@@ -8,6 +8,7 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Array
 
 class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
@@ -18,12 +19,12 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
     of all added content within the viewable area of the scroll pane without
     moving the pane itself, or moving items individually.
     */
-    Drawable scrollAnchor
+    Control scrollAnchor
 
-    Drawable horizontalBar
-    Drawable horizontalControl
-    Drawable verticalBar
-    Drawable verticalControl
+    Control horizontalBar
+    Control horizontalControl
+    Control verticalBar
+    Control verticalControl
 
     number scrollDistance = 3
     integer barThickness = 20
@@ -72,9 +73,12 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
 
     action Initialize(number width, number height, Color backgroundColor)
         if backgroundColor not= undefined
-            Drawable background
+            Control background
             background:SetName("Background")
-            background:LoadFilledRectangle(1, 1, backgroundColor)
+
+            DrawableView backgroundView
+            backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
+            background:SetView2D(backgroundView)
 
             LayoutProperties backgroundLayout
             backgroundLayout:SetPercentageX(0)
@@ -97,10 +101,21 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
 
     private action CreateScrollBars
         Color color
-        verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        horizontalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        verticalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-        horizontalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        DrawableView verticalBarView
+        DrawableView horizontalBarView
+        DrawableView verticalControlView
+        DrawableView horizontalControlView
+
+        verticalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        horizontalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        verticalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+        horizontalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        verticalBar:SetView2D(verticalBarView)
+        horizontalBar:SetView2D(horizontalBarView)
+        verticalControl:SetView2D(verticalControlView)
+        horizontalControl:SetView2D(horizontalControlView)
 
         verticalBar:SetName("Vertical Scroll Track")
         verticalControl:SetName("Vertical Scroll Control")

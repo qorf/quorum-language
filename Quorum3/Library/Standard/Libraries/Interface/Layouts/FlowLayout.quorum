@@ -2,7 +2,7 @@ package Libraries.Interface.Layouts
 
 use Libraries.Interface.Item2D
 use Libraries.Containers.Array
-use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Control
 
 class FlowLayout is Layout
     
@@ -11,7 +11,7 @@ class FlowLayout is Layout
     boolean ignoreHidden = false
     number padding = 0
 
-    action Layout(Item2D item)
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         number x = 0
         number y = 0
 
@@ -20,34 +20,33 @@ class FlowLayout is Layout
         end
 
         number tallestHeight = 0
-        Array<Item2D> kids = item:GetChildren()
         i = 0
-        repeat while i < kids:GetSize()
-            Item2D kid = kids:Get(i)
-
-            if (not ignoreHidden) or kid:IsShowing()
-                if x + kid:GetWidth() > item:GetWidth() and wrapping
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if item is Control and ((not ignoreHidden) or item:IsShowing())
+                Control control = cast(Control, item)
+                if x + control:GetWidth() > containerWidth and wrapping
                     y = y - tallestHeight
                     x = 0
                     tallestHeight = 0
                 end
 
-                if kid:GetHeight() > tallestHeight
-                    tallestHeight = kid:GetHeight()
+                if control:GetHeight() > tallestHeight
+                    tallestHeight = control:GetHeight()
                 end
 
-                kid:SetPosition(x, y)
-                x = x + kid:GetWidth() + padding
+                control:SetPosition(x, y)
+                x = x + control:GetWidth() + padding
             end
             i = i + 1
         end
 
         if not wrapping
-            item:SetWidth(x)
+            container:SetWidth(x)
         else
-            number oldHeight = item:GetHeight()
-            item:SetHeight(tallestHeight - y)
-            item:MoveY(oldHeight - (tallestHeight - y))
+            number oldHeight = container:GetHeight()
+            container:SetHeight(tallestHeight - y)
+            container:MoveY(oldHeight - (tallestHeight - y))
         end
     end
 

@@ -9,14 +9,29 @@ use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Compute.BitwiseOperations
 
 class LabelBoxView is Item2D, ControlView
+
+    public constant integer NONE = 0
+    public constant integer LEFT = 1
+    public constant integer RIGHT = 2
+    public constant integer BOTTOM = 4
+    public constant integer TOP = 8
+    public constant integer ALL = 15
+    
+    /*
+    Bitmask representing which sides of the box have borders.
+    */
+    integer borderStyle = ALL
     
     Drawable border
     Drawable background
     Drawable clickEffect
     Drawable mouseOverEffect
     Label label
+
+    BitwiseOperations bits
 
     integer borderThickness = 0
 
@@ -152,6 +167,66 @@ class LabelBoxView is Item2D, ControlView
         return borderThickness
     end
 
+    action SetBorderStyle(integer style)
+        borderStyle = style
+    end
+
+    action SetLeftBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, LEFT)
+        else
+            borderStyle = bits:Or(borderStyle, LEFT)
+            borderStyle = bits:ExclusiveOr(borderStyle, LEFT)
+        end
+    end
+
+    action SetRightBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, RIGHT)
+        else
+            borderStyle = bits:Or(borderStyle, RIGHT)
+            borderStyle = bits:ExclusiveOr(borderStyle, RIGHT)
+        end
+    end
+
+    action SetBottomBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, BOTTOM)
+        else
+            borderStyle = bits:Or(borderStyle, BOTTOM)
+            borderStyle = bits:ExclusiveOr(borderStyle, BOTTOM)
+        end
+    end
+
+    action SetTopBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, TOP)
+        else
+            borderStyle = bits:Or(borderStyle, TOP)
+            borderStyle = bits:ExclusiveOr(borderStyle, TOP)
+        end
+    end
+
+    action GetBorderStyle returns integer
+        return borderStyle
+    end
+
+    action HasLeftBorder returns boolean
+        return bits:And(LEFT, borderStyle) not= 0
+    end
+
+    action HasRightBorder returns boolean
+        return bits:And(RIGHT, borderStyle) not= 0
+    end
+
+    action HasBottomBorder returns boolean
+        return bits:And(BOTTOM, borderStyle) not= 0
+    end
+
+    action HasTopBorder returns boolean
+        return bits:And(TOP, borderStyle) not= 0
+    end
+
     action Draw(Painter2D painter)
         parent:Item2D:Draw(painter)
     end
@@ -171,17 +246,39 @@ class LabelBoxView is Item2D, ControlView
         end
 
         texture = background:GetTexture()
-        number backgroundWidth = width - borderThickness * 2
-        number backgroundHeight = height - borderThickness * 2
-        background:SetPosition(borderThickness, borderThickness)
+        number backgroundWidth = width
+        number backgroundHeight = height
+
+        number backgroundX = 0
+        number backgroundY = 0
+
+        if HasLeftBorder()
+            backgroundWidth = backgroundWidth - borderThickness
+            backgroundX = borderThickness
+        end
+
+        if HasRightBorder()
+            backgroundWidth = backgroundWidth - borderThickness
+        end
+
+        if HasBottomBorder()
+            backgroundHeight = backgroundHeight - borderThickness
+            backgroundY = borderThickness
+        end
+
+        if HasTopBorder()
+            backgroundHeight = backgroundHeight - borderThickness
+        end
+
+        background:SetPosition(backgroundX, backgroundY)
         background:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
         texture = clickEffect:GetTexture()
-        clickEffect:SetPosition(borderThickness, borderThickness)
+        clickEffect:SetPosition(backgroundX, backgroundY)
         clickEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
         texture = mouseOverEffect:GetTexture()
-        mouseOverEffect:SetPosition(borderThickness, borderThickness)
+        mouseOverEffect:SetPosition(backgroundX, backgroundY)
         mouseOverEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
         label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())

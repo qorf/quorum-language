@@ -4,7 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.System.File
-use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Painter2D
 
 /*
@@ -30,7 +30,7 @@ Attribute: Example
         end
     end
 */
-class Label is Item2D
+class Label is Control
 
     on create
         SetName("Label")

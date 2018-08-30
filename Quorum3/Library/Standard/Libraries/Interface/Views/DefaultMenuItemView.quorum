@@ -1,15 +1,17 @@
 package Libraries.Interface.Views
 
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 
-class DefaultMenuItemView is Item2D, MenuItemView
+class DefaultMenuItemView is Control, MenuItemView
     
     Label nameLabel
     Label shortcutLabel
@@ -18,8 +20,11 @@ class DefaultMenuItemView is Item2D, MenuItemView
     LayoutProperties shortcutLayout
     LayoutProperties arrowLayout
 
-    Drawable arrow
-    Drawable selectionHighlight
+    Control arrow
+    Control selectionHighlight
+
+    DrawableView arrowView
+    DrawableView selectionHighlightView
 
     number imageSpace = 10
     number labelPadding = 10
@@ -27,13 +32,19 @@ class DefaultMenuItemView is Item2D, MenuItemView
 
     number heightFactor = 1.4
 
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+    end
+
     action Initialize(text name)
         Initialize(name, "")
     end
 
     action Initialize(text name, text shortcut)
         Color color
-        selectionHighlight:LoadFilledRectangle(1, 1, color:CustomColor(0.25, 0.25, 1, 1))
+        selectionHighlightView:LoadFilledRectangle(1, 1, color:CustomColor(0.25, 0.25, 1, 1))
+        selectionHighlight:SetView2D(selectionHighlightView)
         selectionHighlight:Hide()
         Add(selectionHighlight)
 
@@ -58,6 +69,7 @@ class DefaultMenuItemView is Item2D, MenuItemView
 
         arrowLayout:SetPercentageX(1)
         arrow:AddLayoutProperties(arrowLayout)
+        arrow:SetView2D(arrowView)
     end
 
     action Draw(Painter2D painter)
@@ -114,7 +126,7 @@ class DefaultMenuItemView is Item2D, MenuItemView
         Color color
         nameLabel:SetColor(color:White())
         shortcutLabel:SetColor(color:White())
-        arrow:SetColor(color:White())
+        arrowView:SetColor(color:White())
     end
 
     action LostSelection
@@ -122,7 +134,7 @@ class DefaultMenuItemView is Item2D, MenuItemView
         Color color
         nameLabel:SetColor(color:Black())
         shortcutLabel:SetColor(color:Black())
-        arrow:SetColor(color:Black())
+        arrowView:SetColor(color:Black())
     end
 
     action EnableMenuArrow(boolean enable)
@@ -130,8 +142,8 @@ class DefaultMenuItemView is Item2D, MenuItemView
             number contentHeight = GetViewHeight()
             arrowSpace = 10 + contentHeight
             integer height = cast(integer, contentHeight / 2.25)
-            if arrow:IsLoaded()
-                arrow:Dispose()
+            if arrowView:IsLoaded()
+                arrowView:Dispose()
             end
 
             Color color
@@ -142,11 +154,11 @@ class DefaultMenuItemView is Item2D, MenuItemView
             arrowLayout:SetPercentageOriginY(0.5)
             arrowLayout:SetWidthOffset(height)
             arrowLayout:SetHeightOffset(height)
-            arrow:LoadFilledTriangle(0, 0, 0, 100 + height, 100 + height, (100 + height) / 2, color:Black())
-            Add(arrow)
+            arrowView:LoadFilledTriangle(0, 0, 0, 100 + height, 100 + height, (100 + height) / 2, color:Black())
+            Add(arrowView)
             Resize()
         else
-            Remove(arrow)
+            Remove(arrowView)
             arrowSpace = 10
         end
 

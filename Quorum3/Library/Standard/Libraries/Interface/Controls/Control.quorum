@@ -6,6 +6,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
@@ -13,6 +14,18 @@ use Libraries.Game.GameStateManager
 class Control is Item2D
 
     Array<ControlActivationListener> listeners
+
+    /*
+    LayoutProperties describe how this Item are laid out by Layouts. If the
+    Item has multiple LayoutProperties objects, the most appropriate one will
+    be chosen based on the container's size.
+    */
+    Array<LayoutProperties> layoutProperties
+    
+    /*
+    A layout which is used to arrange the children of this object.
+    */
+    Layout layout = undefined
 
     action ClickedMouse
         if GetView2D() is ControlView
@@ -103,6 +116,27 @@ class Control is Item2D
 
         GameStateManager manager
         manager:GetInput():NotifyControlActivationListeners(event)
+    end
+
+    action SetLayout(Layout layout)
+        me:layout = layout
+    end
+
+    action GetLayout returns Layout
+        return layout
+    end
+
+    action AddLayoutProperties(LayoutProperties properties)
+        layoutProperties:Add(properties)
+        layoutProperties:Sort()
+    end
+
+    action RemoveLayoutProperties(LayoutProperties properties)
+        layoutProperties:Remove(properties)
+    end
+
+    action GetLayoutProperties returns Array<LayoutProperties>
+        return layoutProperties
     end
 
     /*

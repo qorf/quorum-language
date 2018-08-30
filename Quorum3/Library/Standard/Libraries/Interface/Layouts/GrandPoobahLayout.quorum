@@ -2,6 +2,7 @@ package Libraries.Interface.Layouts
 
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 
 /*
 A flow layout used for testing the new layout design.
@@ -12,7 +13,7 @@ class GrandPoobahLayout
 
     boolean ignoreHidden = false
 
-    action Layout(Array<Item2D> items, number containerWidth, number containerHeight)
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
         // This is the x position of the next item, unless it flows onto the
         // next line (and resets to 0).
@@ -26,45 +27,50 @@ class GrandPoobahLayout
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
 
-            // For testing purposes only, always gets the first LayoutProperties.
-            Array<LayoutProperties> propertiesArray = item:GetLayoutProperties()
-            LayoutProperties properties = undefined
-            if not propertiesArray:IsEmpty()
-                properties = propertiesArray:Get(0)
+            if item is Control
+                Control control = cast(Control, item)
+
+                // For testing purposes only, always gets the first LayoutProperties.
+                Array<LayoutProperties> propertiesArray = control:GetLayoutProperties()
+                LayoutProperties properties = undefined
+                if not propertiesArray:IsEmpty()
+                    properties = propertiesArray:Get(0)
+                end
+
+                if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                    number width = 0
+                    number height = 0
+
+                    if properties:GetPercentageWidth() = properties:FILL
+                        width = containerWidth - x
+                    else
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
+                    end
+
+                    if properties:GetPercentageHeight() = properties:FILL
+                        height = currentY
+                    else
+                        height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                    end
+
+                    control:SetSize(width, height)
+                    control:SetWidth(width)
+                    control:SetHeight(height)
+
+                    if x + control:GetWidth() > containerWidth
+                        currentY = nextY
+                        x = 0
+                    end
+
+                    if currentY - control:GetHeight() < nextY
+                        nextY = currentY - control:GetHeight()
+                    end
+
+                    control:SetPosition(x, currentY - control:GetHeight())
+                    x = x + control:GetWidth()
+                end
             end
 
-            if properties not= undefined and (ignoreHidden = false or item:IsShowing())
-                number width = 0
-                number height = 0
-
-                if properties:GetPercentageWidth() = properties:FILL
-                    width = containerWidth - x
-                else
-                    width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
-                end
-
-                if properties:GetPercentageHeight() = properties:FILL
-                    height = currentY
-                else
-                    height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
-                end
-
-                item:SetSize(width, height)
-                item:SetWidth(width)
-                item:SetHeight(height)
-
-                if x + item:GetWidth() > containerWidth
-                    currentY = nextY
-                    x = 0
-                end
-
-                if currentY - item:GetHeight() < nextY
-                    nextY = currentY - item:GetHeight()
-                end
-
-                item:SetPosition(x, currentY - item:GetHeight())
-                x = x + item:GetWidth()
-            end
             i = i + 1
         end
 

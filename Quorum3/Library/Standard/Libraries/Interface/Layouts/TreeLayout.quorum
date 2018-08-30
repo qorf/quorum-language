@@ -4,22 +4,23 @@ use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Control
 
 class TreeLayout is Layout
     
     boolean wrapping = false
     number padding = 0
 
-    action Layout(Item2D item)
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         number x = 0
         number y = 0
 
         number longestWidth = 0
-        Array<Item2D> kids = item:GetChildren()
-        i = kids:GetSize()
+        i = items:GetSize()
+
         repeat while i > 0
             i = i - 1
-            Item2D kid = kids:Get(i)
+            Item2D kid = items:Get(i)
 
             number height = 0
             if kid is TreeItem
@@ -29,7 +30,7 @@ class TreeLayout is Layout
                 height = kid:GetHeight()
             end
 
-            if y + height > item:GetHeight() and wrapping
+            if y + height > containerHeight and wrapping
                 y = 0
                 x = x + longestWidth
                 longestWidth = 0
@@ -44,13 +45,13 @@ class TreeLayout is Layout
             y = y + height + padding
         end
 
-        item:SetWidth(longestWidth + x)
+        container:SetWidth(longestWidth + x)
         if not wrapping
-            number oldHeight = item:GetHeight()
-            item:SetHeight(y)
-            item:SetY(-y)
+            number oldHeight = container:GetHeight()
+            container:SetHeight(y)
+            container:SetY(-y)
         else
-            item:MoveY(item:GetHeight() - y)
+            container:MoveY(container:GetHeight() - y)
         end
     end
 
