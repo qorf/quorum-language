@@ -736,9 +736,51 @@ class FontFileReader
 
 
             else
-                //output "Else statement."
-                //TODO
-                //alert("Not yet supported compound glyph")
+                output "Compound glyph case"
+                BitwiseOperations ops
+                integer flags = byteReader:NextTwoByteUnsignedInteger()
+                integer glyphIndex = byteReader:NextTwoByteUnsignedInteger()
+
+                boolean Arg1And2AreWords = ops:And(flags, 1) > 0
+                boolean ArgsAreXYValues = ops:And(flags, 2) > 0
+                boolean RoundXYToGrid = ops:And(flags, 4) > 0
+                boolean WeHaveAScale = ops:And(flags, 8) > 0
+                boolean MoreComponents = ops:And(flags, 32) > 0
+                boolean WeHaveAnXAndYScale = ops:And(flags, 64) > 0
+                boolean WeHaveATwoByTwo = ops:And(flags, 128) > 0
+                boolean WeHaveInstructions = ops:And(flags, 256) > 0
+                boolean UseMyMetrics = ops:And(flags, 512) > 0
+                boolean OverlapCompound = ops:And(flags, 1024) > 0
+                boolean ScaledComponentOffset = ops:And(flags, 2048) > 0
+                boolean UnscaledComponentOffset = ops:And(flags, 4096) > 0
+                
+                if(Arg1And2AreWords)
+                    integer argument1 = byteReader:NextTwoByteUnsignedInteger()
+                    integer argument2 = byteReader:NextTwoByteUnsignedInteger()
+                else
+                    integer argument1 = byteReader:NextByteAsUnsignedInteger()
+                    integer argument2 = byteReader:NextByteAsUnsignedInteger()
+                end
+
+                /*
+                output "Flags in order: "
+                output Arg1And2AreWords
+                output ArgsAreXYValues
+                output RoundXYToGrid
+                output WeHaveAScale
+                output MoreComponents
+                output WeHaveAnXAndYScale
+                output WeHaveATwoByTwo
+                output WeHaveInstructions
+                output UseMyMetrics
+                output OverlapCompound
+                output ScaledComponentOffset
+                output UnscaledComponentOffset
+                */
+
+                integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
+                BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+                glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
             end
         end
 

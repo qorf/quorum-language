@@ -486,4 +486,23 @@ class BezierCurveGlyphPoints
 
         return t
     end
+    
+    action CombineBezierCurveGlyphPoints(BezierCurveGlyphPoints glyphPoints)
+        Array<integer> tempContourEndPoints = glyphPoints:GetContourEndpoints()
+        Array<CoordinateVector> tempPoints = glyphPoints:GetPoints()
+        
+        integer i = 0
+
+        repeat while i < tempContourEndPoints:GetSize()
+            contourEndpoints:Add(tempContourEndPoints:Get(i))
+            i = i + 1
+        end
+
+        i = 0
+
+        repeat while i < tempPoints:GetSize()
+            points:Add(tempPoints:Get(i))
+            i = i + 1
+        end
+    end
 end
