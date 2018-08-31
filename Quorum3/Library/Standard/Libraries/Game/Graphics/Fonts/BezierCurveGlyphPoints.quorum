@@ -35,6 +35,10 @@ class BezierCurveGlyphPoints
     /*The coordinate space for which the points are restricted to.*/
     FontBoundingBox boundingbox
 
+    action AddContourEndPoints(integer point)
+        contourEndpoints:Add(point)
+    end
+
     /*
     This action adds the absolute coordinate position of the next point relative
     to the last point that was read from the file. 
@@ -70,6 +74,17 @@ class BezierCurveGlyphPoints
         vector:Copy(GetLastPoint())
         vector:AddNewPointRelativeToLast(changeInX, changeInY, onCurve, endpoint)
         AddPoint(vector)
+    end
+
+    action OffsetXY(integer offsetX, integer offsetY)
+        CoordinateVector vector
+        integer i = 0
+        repeat while i < points:GetSize()
+            vector = points:Get(i)
+            vector:SetX(offsetX + vector:GetX())
+            vector:SetY(offsetY + vector:GetY())
+            i = i + 1
+        end
     end
 
     /*
@@ -286,6 +301,10 @@ class BezierCurveGlyphPoints
     action SetNumberOfContours(integer numberOfContours)
         me:numberOfContours = numberOfContours
     end
+
+    action GetNumberOfContours() returns integer
+        return numberOfContours
+    end     
 
     /*
     This action sets the number of points that are on each contour of the glyph.

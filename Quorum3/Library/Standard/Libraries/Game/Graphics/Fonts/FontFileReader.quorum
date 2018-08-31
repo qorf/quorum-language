@@ -609,7 +609,6 @@ class FontFileReader
         glyph = ReadGlyph(byteReader, glyphTableOffset + fileInformation:GetGlyphTablePosition())
     */
     private action ReadGlyphPoints(ByteReader byteReader, integer glyphTablePosition) returns BezierCurveGlyphPoints
-       
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(glyphTablePosition)
         //output "Index is: " + glyphTablePosition + ", previousPosition is: " + previousPosition + ", iteratorIsValid is: " + iteratorIsValid
@@ -732,19 +731,21 @@ class FontFileReader
                     glyphPoints:AddNewPointRelativeToLast(relativeXCoordinates:Get(pointIterator), relativeYCoordinates:Get(pointIterator), glyphCoordinateFlagsArray:Get(pointIterator):IsOnCurve(), IsEndpoint(pointIterator, endPointsOfContours))
                     pointIterator = pointIterator + 1
                 end
+
                 glyphPoints:AddVirtualPoints()
-
-
             else
                 output "Compound glyph case"
                 BitwiseOperations ops
                 integer flags = byteReader:NextTwoByteUnsignedInteger()
                 integer glyphIndex = byteReader:NextTwoByteUnsignedInteger()
 
+                output "Original glyph index is: " + glyphIndex
                 boolean Arg1And2AreWords = ops:And(flags, 1) > 0
                 boolean ArgsAreXYValues = ops:And(flags, 2) > 0
                 boolean RoundXYToGrid = ops:And(flags, 4) > 0
                 boolean WeHaveAScale = ops:And(flags, 8) > 0
+                //boolean ObsoleteBit = ops:And(flags, 16) > 0
+                //output "Obsolete bit is: " + ObsoleteBit
                 boolean MoreComponents = ops:And(flags, 32) > 0
                 boolean WeHaveAnXAndYScale = ops:And(flags, 64) > 0
                 boolean WeHaveATwoByTwo = ops:And(flags, 128) > 0
@@ -754,12 +755,34 @@ class FontFileReader
                 boolean ScaledComponentOffset = ops:And(flags, 2048) > 0
                 boolean UnscaledComponentOffset = ops:And(flags, 4096) > 0
                 
+                //output "Arg1And2AreWords: " + Arg1And2AreWords + ", WeHaveAScale: " + WeHaveAScale + ", WeHaveAnXAndYScale: " + WeHaveAnXAndYScale + ", WeHaveATwoByTwo: " + WeHaveATwoByTwo
+
+                integer argument1 = -1
+                integer argument2 = -1
+
                 if(Arg1And2AreWords)
-                    integer argument1 = byteReader:NextTwoByteUnsignedInteger()
-                    integer argument2 = byteReader:NextTwoByteUnsignedInteger()
+                    argument1 = byteReader:NextTwoByteInteger()
+                    argument2 = byteReader:NextTwoByteInteger()
+                    output "Argument1: " + argument1 + ", argument2: " + argument2
                 else
-                    integer argument1 = byteReader:NextByteAsUnsignedInteger()
-                    integer argument2 = byteReader:NextByteAsUnsignedInteger()
+                    argument1 = byteReader:NextByteAsUnsignedInteger()
+                    argument2 = byteReader:NextByteAsUnsignedInteger()
+                    output "Argument1: " + argument1 + ", argument2: " + argument2
+                end
+
+                if WeHaveAScale
+                    integer scale = byteReader:NextTwoByteInteger()
+                    output "Scale is: " + scale
+                elseif WeHaveAnXAndYScale
+                    integer xScale = byteReader:NextTwoByteInteger()
+                    integer yScale = byteReader:NextTwoByteInteger()
+                    output "xScale is: " + xScale + ", yScale is: " + yScale
+                elseif WeHaveATwoByTwo
+                    integer xScale = byteReader:NextTwoByteInteger()
+                    integer scale01 = byteReader:NextTwoByteInteger()   
+                    integer scale10 = byteReader:NextTwoByteInteger()   
+                    integer yScale = byteReader:NextTwoByteInteger()  
+                    output "xScale is: " + xScale + ", scale01 is: " + scale01 + ", scale10 is: " + scale10 + ", yScale is: " + yScale
                 end
 
                 /*
@@ -768,24 +791,216 @@ class FontFileReader
                 output ArgsAreXYValues
                 output RoundXYToGrid
                 output WeHaveAScale
-                output MoreComponents
                 output WeHaveAnXAndYScale
                 output WeHaveATwoByTwo
-                output WeHaveInstructions
                 output UseMyMetrics
                 output OverlapCompound
                 output ScaledComponentOffset
                 output UnscaledComponentOffset
                 */
+                repeat while MoreComponents
+                    integer currentPosition = byteReader:GetPosition()
+                    integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
+                    //BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+                    
+                    if ArgsAreXYValues
+                        //temporaryPoints:OffsetXY(argument1, argument2)
+                        CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
+                    else
+                        CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
+                    end
+                    //glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
+                    byteReader:SetPosition(currentPosition)
 
+                    flags = byteReader:NextTwoByteUnsignedInteger()
+                    glyphIndex = byteReader:NextTwoByteUnsignedInteger()
+                    output "Glyph index in loop is: " + glyphIndex
+                    Arg1And2AreWords = ops:And(flags, 1) > 0
+                    ArgsAreXYValues = ops:And(flags, 2) > 0
+                    RoundXYToGrid = ops:And(flags, 4) > 0
+                    WeHaveAScale = ops:And(flags, 8) > 0
+                    //ObsoleteBit = ops:And(flags, 16) > 0
+                    //output "Obsolete bit in loop is: " + ObsoleteBit
+                    MoreComponents = ops:And(flags, 32) > 0
+                    WeHaveAnXAndYScale = ops:And(flags, 64) > 0
+                    WeHaveATwoByTwo = ops:And(flags, 128) > 0
+                    WeHaveInstructions = ops:And(flags, 256) > 0
+                    UseMyMetrics = ops:And(flags, 512) > 0
+                    OverlapCompound = ops:And(flags, 1024) > 0
+                    ScaledComponentOffset = ops:And(flags, 2048) > 0
+                    UnscaledComponentOffset = ops:And(flags, 4096) > 0
+
+                    output "More components inside loop: " + MoreComponents
+
+                    if(Arg1And2AreWords)
+                        argument1 = byteReader:NextTwoByteUnsignedInteger()
+                        argument2 = byteReader:NextTwoByteUnsignedInteger()
+output "Argument1: " + argument1 + ", argument2: " + argument2
+                    else
+                        argument1 = byteReader:NextByteAsUnsignedInteger()
+                        argument2 = byteReader:NextByteAsUnsignedInteger()
+output "Argument1: " + argument1 + ", argument2: " + argument2
+                    end
+
+                    if WeHaveAScale
+                        integer scale = byteReader:NextTwoByteUnsignedInteger()
+                        output "Scale is: " + scale
+                    elseif WeHaveAnXAndYScale
+                        integer first = byteReader:NextTwoByteUnsignedInteger()
+                        integer second = byteReader:NextTwoByteUnsignedInteger()
+                        output "First is: " + first + ", second is: " + second
+                    elseif WeHaveATwoByTwo
+                        integer first = byteReader:NextTwoByteUnsignedInteger()
+                        integer second = byteReader:NextTwoByteUnsignedInteger()   
+                        integer third = byteReader:NextTwoByteUnsignedInteger()   
+                        integer fourth = byteReader:NextTwoByteUnsignedInteger()   
+                        output "First is: " + first + ", second is: " + second + ", third is: " + third + ", fourth is: " + fourth
+                    end
+                end
+
+                output "Final Glyph index is: " + glyphIndex
                 integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
-                BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
-                glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
+                //BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+                if ArgsAreXYValues
+                    //temporaryPoints:OffsetXY(argument1, argument2)
+                    CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
+                else
+                    CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
+                end
+                //glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
             end
         end
 
         byteReader:SetPosition(previousPosition)
         return glyphPoints
+    end
+
+    private action CreateCompoundGlyph(ByteReader byteReader, integer glyphTablePosition, BezierCurveGlyphPoints glyphPoints, integer offsetX, integer offsetY)
+        integer previousPosition = byteReader:GetPosition()
+        boolean iteratorIsValid = byteReader:SetPosition(glyphTablePosition)
+        //output "Index is: " + glyphTablePosition + ", previousPosition is: " + previousPosition + ", iteratorIsValid is: " + iteratorIsValid
+        if iteratorIsValid
+            integer numberOfContours = byteReader:NextTwoByteInteger()
+
+            // Glyph bounding box
+            integer xMin = byteReader:NextTwoByteInteger()
+            integer yMin = byteReader:NextTwoByteInteger()
+            integer xMax = byteReader:NextTwoByteInteger()
+            integer yMax = byteReader:NextTwoByteInteger()
+            
+            glyphPoints:SetNumberOfContours(numberOfContours + glyphPoints:GetNumberOfContours())
+            glyphPoints:SetBoundingBox(xMin, yMin, xMax, yMax)
+
+            if numberOfContours >= 0
+
+                integer contourIterator = 0
+                //Array<integer> endPointsOfContours
+                integer numberOfPoints = 0
+                // Read contour endpoints
+                repeat while contourIterator < numberOfContours
+                    numberOfPoints = byteReader:NextTwoByteUnsignedInteger()
+                    glyphPoints:AddContourEndPoints(numberOfPoints)
+                    contourIterator = contourIterator + 1
+                end
+
+                //glyphPoints:SetContourEndpoints(endPointsOfContours)
+
+                numberOfPoints = numberOfPoints + 1
+                //glyphPoints:SetNumberOfPoints(numberOfPoints)
+                
+                integer numberOfInstructions = byteReader:NextTwoByteUnsignedInteger()
+                
+                integer instructionCount = 0
+                Array<integer> instructions                                                 // read hints?
+                repeat while instructionCount < numberOfInstructions
+                    instructions:Add(byteReader:NextByteAsUnsignedInteger())
+                    instructionCount = instructionCount + 1
+                end
+
+                // Read Glyph Coordinate flags
+                Array<GlyphCoordinateFlag> glyphCoordinateFlagsArray
+                repeat while glyphCoordinateFlagsArray:GetSize() < numberOfPoints
+                    integer flags = byteReader:NextByteAsUnsignedInteger()
+                    
+                    GlyphCoordinateFlag glyphCoordinateFlag
+                    glyphCoordinateFlag:SetFlags(flags)
+                    glyphCoordinateFlagsArray:Add(glyphCoordinateFlag)
+
+                    if glyphCoordinateFlag:RepetitionIsTrue()
+                        integer repetitionCount = byteReader:NextByteAsUnsignedInteger()
+                        repeat repetitionCount times
+                            glyphCoordinateFlagsArray:Add(glyphCoordinateFlag)
+                        end
+                    end
+                end
+
+                // read x-Coordinates (relative)
+                Array<integer> relativeXCoordinates
+                integer flagIterator = 0
+                repeat while relativeXCoordinates:GetSize() < numberOfPoints
+                    GlyphCoordinateFlag currentFlag = glyphCoordinateFlagsArray:Get(flagIterator)
+
+                    if currentFlag:XCoordinateIsOneByte()
+                        integer currentX = byteReader:NextByteAsUnsignedInteger() + offsetX
+                        if not currentFlag:XCoordinateIsSame()
+                            // is negative coordinate
+                            currentX = currentX * -1
+                        end
+                        relativeXCoordinates:Add(currentX)
+                    else    
+                        if currentFlag:XCoordinateIsSame()
+                            integer lastX = 0 + offsetX
+                            relativeXCoordinates:Add(lastX)
+                        else 
+                            integer currentX = byteReader:NextTwoByteInteger() + offsetX
+                            relativeXCoordinates:Add(currentX)
+                        end
+                    end
+
+                    flagIterator = flagIterator + 1
+                end
+
+                // read y-Coordinates (relative)
+                Array<integer> relativeYCoordinates
+                flagIterator = 0 // reset for y
+                repeat while relativeYCoordinates:GetSize() < numberOfPoints
+                    GlyphCoordinateFlag currentFlag = glyphCoordinateFlagsArray:Get(flagIterator)
+                    
+                    if currentFlag:YCoordinateIsOneByte()
+                        integer currentY = 0
+                        check
+                            currentY = byteReader:NextByteAsUnsignedInteger() + offsetY
+                        detect e
+                        end
+                        if not currentFlag:YCoordinateIsSame()
+                            // is negative coordinate
+                            currentY = currentY * -1
+                        end
+                        relativeYCoordinates:Add(currentY)
+                    elseif currentFlag:YCoordinateIsSame()
+                        integer lastY = 0 + offsetY
+                        relativeYCoordinates:Add(lastY)
+                    else
+                        integer currentY = 0
+                        check
+                            currentY = byteReader:NextTwoByteInteger() + offsetY
+                        detect e
+                        end
+                        relativeYCoordinates:Add(currentY)
+                    end
+
+                    flagIterator = flagIterator + 1
+                end
+
+                integer pointIterator = 0
+                repeat while pointIterator < numberOfPoints
+                    glyphPoints:AddNewPointRelativeToLast(relativeXCoordinates:Get(pointIterator), relativeYCoordinates:Get(pointIterator), glyphCoordinateFlagsArray:Get(pointIterator):IsOnCurve(), IsEndpoint(pointIterator, glyphPoints:GetContourEndpoints()))
+                    pointIterator = pointIterator + 1
+                end
+
+                glyphPoints:AddVirtualPoints()
+            end
+        end
     end
 
     /*
