@@ -10,8 +10,10 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.ManualLayout
 
-class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
+class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelListener
 
     /*
     All items added to the scroll pane are actually added to the "anchor"
@@ -69,6 +71,9 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         AddMouseWheelListener(me)
         AddMouseListener(me)
         AddMouseMovementListener(me)
+
+        ManualLayout layout
+        SetLayout(layout)
     end
 
     action Initialize(number width, number height, Color backgroundColor)
@@ -121,6 +126,12 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         verticalControl:SetName("Vertical Scroll Control")
         horizontalBar:SetName("Horizontal Scroll Track")
         horizontalControl:SetName("Horizontal Scroll Control")
+
+        ManualLayout verticalLayout
+        ManualLayout horizontalLayout
+
+        verticalBar:SetLayout(verticalLayout)
+        horizontalBar:SetLayout(horizontalLayout)
 
         /*
         By default, the vertical bar has width equal to the bar thickness, has a

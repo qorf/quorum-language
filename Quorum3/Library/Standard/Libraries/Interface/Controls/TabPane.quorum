@@ -2,13 +2,15 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 
-class TabPane is Item2D
+class TabPane is Control
     
     TabBar bar = undefined
     Item2D currentItem = undefined
@@ -22,6 +24,9 @@ class TabPane is Item2D
         viewArea:SetName("Tab View Area")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:TABPANE)
+
+        ManualLayout layout
+        SetLayout(layout)
     end
 
     action Initialize(number width, number height, Array<Tab> tabs)
