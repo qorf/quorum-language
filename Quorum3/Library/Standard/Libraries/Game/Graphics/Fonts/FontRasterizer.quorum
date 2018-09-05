@@ -218,15 +218,26 @@ class FontRasterizer
         integer highPoint = CalculateScaledCoordinate(box:GetYMaximum(), pixelSize, information:GetUnitsPerEm()) + 1
         integer lowPoint = CalculateScaledCoordinate(box:GetYMinimum(), pixelSize, information:GetUnitsPerEm()) -1
 
+        output "The font bounding box dimensions are: " + box:ToText()
+
         Format format = SetupFormat()
         Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)
         Array<integer> maximums
         integer height = CalculateGlyphHeight(linesToDraw, maximums) + 1
         integer heightFromBaseline = highPoint
         PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
+        
+        output "Glyph points inside rasterizer: "
+        outline:DisplayPoints()
+        output "Endpoints inside rasterizer: "
+        outline:DisplayOtherPoints()
+        output "On curve inside rasterizer: "
+        outline:DisplayOnCurve()
+        output "Endpoint status inside rasterizer: "
+        outline:DisplayEndpoint()
 
         pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false, maximums)  // draws the glyph outline
-        pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, color, linesToDraw, maximums) // fills in the glyphs
+        //pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, color, linesToDraw, maximums) // fills in the glyphs
         
         Texture tex
         tex:FinishLoadingAsynchronously(undefined, pixelmap, format, false, undefined)
@@ -432,11 +443,19 @@ class FontRasterizer
         returns next point on contour relative to last
     */
     private action NextPoint(integer i, integer contour, Array<CoordinateVector> vectorArray, Array<integer> endpoints) returns CoordinateVector
-        if endpoints:Get(contour) = i and contour > 0
-            return vectorArray:Get(endpoints:Get(contour-1)+1)
+        output "I is: " + i + " and the vector array size is: " + vectorArray:GetSize() + " and the contour value is: " + contour
+        
+        if endpoints:Get(contour) = i and contour > 0   
+            integer value = 0
+            value = endpoints:Get(contour-1)
+            value = value + 1
+            output "If statement. Value of the index is: " + value
+            return vectorArray:Get(endpoints:Get(contour-1)+1)  // VERY weird behavior, more research and report bug
         elseif endpoints:Get(contour) = i and contour = 0
+            output "Elseif statement."
             return vectorArray:Get(0)
         end
+        output "Neither if or elseif hit."
         return vectorArray:Get(i+1)
     end
     

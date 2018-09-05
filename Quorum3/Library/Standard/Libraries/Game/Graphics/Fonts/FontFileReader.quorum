@@ -801,15 +801,15 @@ class FontFileReader
                 repeat while MoreComponents
                     integer currentPosition = byteReader:GetPosition()
                     integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
-                    //BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+                    BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
                     
                     if ArgsAreXYValues
                         //temporaryPoints:OffsetXY(argument1, argument2)
-                        CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
-                    else
-                        CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
+                        //CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
+                    //else
+                        //CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
                     end
-                    //glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
+                    glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
                     byteReader:SetPosition(currentPosition)
 
                     flags = byteReader:NextTwoByteUnsignedInteger()
@@ -835,11 +835,11 @@ class FontFileReader
                     if(Arg1And2AreWords)
                         argument1 = byteReader:NextTwoByteUnsignedInteger()
                         argument2 = byteReader:NextTwoByteUnsignedInteger()
-output "Argument1: " + argument1 + ", argument2: " + argument2
+                        output "Argument1: " + argument1 + ", argument2: " + argument2
                     else
                         argument1 = byteReader:NextByteAsUnsignedInteger()
                         argument2 = byteReader:NextByteAsUnsignedInteger()
-output "Argument1: " + argument1 + ", argument2: " + argument2
+                        output "Argument1: " + argument1 + ", argument2: " + argument2
                     end
 
                     if WeHaveAScale
@@ -860,17 +860,22 @@ output "Argument1: " + argument1 + ", argument2: " + argument2
 
                 output "Final Glyph index is: " + glyphIndex
                 integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
-                //BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+                BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
                 if ArgsAreXYValues
                     //temporaryPoints:OffsetXY(argument1, argument2)
-                    CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
-                else
-                    CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
+                    //CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, argument1, argument2)
+                //else
+                    //CreateCompoundGlyph(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset, glyphPoints, 0, 0)
                 end
-                //glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
+                glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
             end
         end
-
+        
+        glyphPoints:DisplayPoints()
+        glyphPoints:DisplayOtherPoints()    
+        glyphPoints:DisplayOnCurve()
+        glyphPoints:DisplayEndpoint()
+        glyphPoints:FixEndPoints()
         byteReader:SetPosition(previousPosition)
         return glyphPoints
     end

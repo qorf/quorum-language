@@ -505,7 +505,74 @@ class BezierCurveGlyphPoints
 
         return t
     end
-    
+
+    action DisplayPoints()
+        text t = ""
+
+        integer i = 0
+        
+        repeat while i < points:GetSize()
+            t = t + "(" + points:Get(i):GetX() + ", " + points:Get(i):GetY() + "), "
+        
+            i = i + 1
+        end
+
+        output t
+    end
+
+    action DisplayOtherPoints()
+        text t = ""
+
+        integer i = 0
+
+        repeat while i < contourEndpoints:GetSize()
+            t = t + "(" + contourEndpoints:Get(i) + "), "
+            
+
+            i = i + 1
+        end
+        output "Contour endpoints: " + t
+    end
+
+    action DisplayOnCurve()
+        text t = ""
+
+        integer i = 0
+
+        repeat while i < points:GetSize()
+            t = t + "(" + points:Get(i):IsOnCurve() + "), "
+
+            i = i + 1
+        end
+
+        output "On curve status: " + t
+
+    end
+
+    action DisplayEndpoint()
+        text t = ""
+
+        integer i = 0
+
+        repeat while i < points:GetSize()
+            t = t + "(" + points:Get(i):IsEndpoint() + "), "
+            i = i + 1
+        end
+        
+        output "End point status: " + t
+
+    end
+
+    action FixEndPoints()
+        integer i = 1
+        
+        repeat while i < contourEndpoints:GetSize()
+            contourEndpoints:Set(i, contourEndpoints:Get(i-1) + contourEndpoints:Get(i))
+
+            i = i + 1
+        end
+    end
+
     action CombineBezierCurveGlyphPoints(BezierCurveGlyphPoints glyphPoints)
         Array<integer> tempContourEndPoints = glyphPoints:GetContourEndpoints()
         Array<CoordinateVector> tempPoints = glyphPoints:GetPoints()
