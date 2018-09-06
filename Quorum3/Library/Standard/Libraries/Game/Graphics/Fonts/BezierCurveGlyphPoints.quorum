@@ -573,6 +573,18 @@ class BezierCurveGlyphPoints
         end
     end
 
+    action ScalePoints(number scale)
+        
+    end
+
+    action ScaleXAndYDifferently(number xScale, number yScale)
+
+    end
+
+    action TransformPoints(number xScale, number scale01, number scale10, number yScale)
+
+    end
+
     action CombineBezierCurveGlyphPoints(BezierCurveGlyphPoints glyphPoints)
         Array<integer> tempContourEndPoints = glyphPoints:GetContourEndpoints()
         Array<CoordinateVector> tempPoints = glyphPoints:GetPoints()
