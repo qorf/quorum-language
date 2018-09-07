@@ -3,8 +3,10 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Tab
 
 class TabFlowLayout is Layout
     
@@ -17,27 +19,52 @@ class TabFlowLayout is Layout
         number x = -offset
         number y = 0
 
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if item is Control
+                Control control = cast(Control, item)
+                control:Resize()
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                control:SetHeight(properties:GetHeightOffset())
+            end
+
+            counter = counter + 1
+        end
+
         if padFront
             x = padding
         end
 
-        number tallestHeight = 0
+        // 1.4 is currently hard-coded. This should be modified in the future
+        // to be more reflective of different padding options.
+        number textArea = container:GetHeight() / 1.4
         i = 0
         repeat while i < items:GetSize()
             Item2D kid = items:Get(i)
 
             if (not ignoreHidden) or kid:IsShowing()
-                if kid:GetHeight() > tallestHeight
-                    tallestHeight = kid:GetHeight()
+                if kid is Tab
+                    Tab tab = cast(Tab, kid)
+                    Label label = tab:GetLabel()
+                    Font font = label:GetFont()
+                    counter = 0
+                    number lineHeight = 0
+                    repeat while lineHeight <= textArea
+                        counter = counter + 1
+                        font:SetSize(counter)
+                        lineHeight = font:GetLineHeight()
+                    end
+
+                    label:SetSize(counter - 1)
                 end
 
+                kid:SetHeight(container:GetHeight())
                 kid:SetPosition(x, y)
                 x = x + kid:GetWidth() + padding
             end
             i = i + 1
         end
-
-        container:SetHeight(tallestHeight)
     end
 
     action SetPadding(number value)

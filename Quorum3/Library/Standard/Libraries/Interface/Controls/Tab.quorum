@@ -49,7 +49,8 @@ class Tab is ToggleButton
         Add(0, icon)
         icon:Hide()
 
-        defaultProperties:SetHeightOffset(label:GetLineHeight() * 1.4)
+        
+//        defaultProperties:SetHeightOffset(label:GetLineHeight() * 1.4)
         AddLayoutProperties(defaultProperties)
 
         SetAccessibilityCode(parent:Item:TAB)
@@ -268,5 +269,12 @@ class Tab is ToggleButton
                 pane:UpdateSelection(undefined)
             end
         end
+    end
+
+    /*
+    For internal use only.
+    */
+    action GetLabel returns Label
+        return label
     end
 end
