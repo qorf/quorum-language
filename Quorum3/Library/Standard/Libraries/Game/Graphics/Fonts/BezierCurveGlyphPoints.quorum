@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Fonts
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Fonts.all
+use Libraries.Compute.Math
 
 /*
 The BezierCurveGlyphPoints class is used to store the Bezier point information
@@ -578,7 +579,17 @@ class BezierCurveGlyphPoints
     end
 
     action ScaleXAndYDifferently(number xScale, number yScale)
+        integer i = 0
+        Math math
 
+        repeat while i < points:GetSize()
+            integer x = cast(integer, math:Floor(points:Get(i):GetX() * xScale))
+            integer y = cast(integer, math:Floor(points:Get(i):GetY() * yScale))
+            points:Get(i):SetX(x)
+            points:Get(i):SetY(y)
+        
+            i = i + 1
+        end
     end
 
     action TransformPoints(number xScale, number scale01, number scale10, number yScale)

@@ -1,0 +1,183 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Game.Graphics.Fonts.all
+use Libraries.Compute.BitwiseOperations
+
+class CompoundGlyphFlags 
+    integer flags = -1
+    integer glyphIndex = -1
+
+    boolean arg1And2AreWords = false
+    boolean argsAreXYValues = false
+    boolean roundXYToGrid = false
+    boolean weHaveAScale = false
+    boolean moreComponents = false
+    boolean weHaveAnXAndYScale = false
+    boolean weHaveATwoByTwo = false
+    boolean weHaveInstructions = false
+    boolean useMyMetrics = false
+    boolean overlapCompound = false
+    boolean scaledComponentOffset = false
+    boolean unscaledComponentOffset = false
+
+    integer argument1 = -1
+    integer argument2 = -1
+
+    number scale = -1
+    number xScale = -1
+    number yScale = -1
+    number xScaleTransform = -1
+    number zeroOneScaleTransform = -1
+    number oneZeroScaleTransform = -1
+    number yScaleTransform = -1
+
+    action SetGlyphIndex(integer index)
+        glyphIndex = index
+    end
+
+    action GetGlyphIndex() returns integer
+        return glyphIndex
+    end
+
+    action SetZeroOneScaleTransform(number value)
+        zeroOneScaleTransform = value
+    end
+
+    action GetZeroOneScaleTransform() returns number
+        return zeroOneScaleTransform
+    end
+
+    action SetOneZeroScaleTransform(number value)
+        oneZeroScaleTransform = value
+    end
+
+    action GetOneZeroScaleTransform() returns number
+        return oneZeroScaleTransform
+    end
+
+    action SetYScaleTransform(number value)
+        yScaleTransform = value
+    end
+
+    action GetYScaleTransform() returns number
+        return yScaleTransform
+    end
+
+    action SetXScaleTransform(number value)
+        xScaleTransform = value
+    end
+
+    action GetXScaleTransform() returns number
+        return xScaleTransform
+    end
+
+    action SetScale(number value)
+        scale = value
+    end
+
+    action GetScale() returns number
+        return scale
+    end
+    
+    action SetXScale(number value)
+        xScale = value
+    end
+
+    action GetXScale() returns number
+        return xScale
+    end
+
+    action SetYScale(number value)
+        yScale = value
+    end
+
+    action GetYScale() returns number
+        return yScale
+    end
+    
+    action SetArgument1(integer value)
+        argument1 = value
+    end
+
+    action GetArgument1() returns integer
+        return argument1
+    end
+
+    action SetArgument2(integer value)
+        argument2 = value
+    end
+
+    action GetArgument2() returns integer
+        return argument2
+    end
+
+    action SetFlags(integer newFlags)
+        BitwiseOperations ops
+        flags = newFlags
+
+        arg1And2AreWords = ops:And(flags, 1) > 0
+        argsAreXYValues = ops:And(flags, 2) > 0
+        roundXYToGrid = ops:And(flags, 4) > 0
+        weHaveAScale = ops:And(flags, 8) > 0
+        moreComponents = ops:And(flags, 32) > 0
+        weHaveAnXAndYScale = ops:And(flags, 64) > 0
+        weHaveATwoByTwo = ops:And(flags, 128) > 0
+        weHaveInstructions = ops:And(flags, 256) > 0
+        useMyMetrics = ops:And(flags, 512) > 0
+        overlapCompound = ops:And(flags, 1024) > 0
+        scaledComponentOffset = ops:And(flags, 2048) > 0
+        unscaledComponentOffset = ops:And(flags, 4096) > 0
+    end
+
+    action GetFlags() returns integer
+        return flags
+    end
+
+    action GetArg1And2AreWords() returns boolean
+        return arg1And2AreWords
+    end
+
+    action GetArgsAreXYValues() returns boolean
+        return argsAreXYValues
+    end
+
+    action GetRoundXYToGrid() returns boolean
+        return roundXYToGrid
+    end 
+
+    action GetWeHaveAScale() returns boolean
+        return weHaveAScale
+    end
+
+    action GetMoreComponents() returns boolean
+        return moreComponents
+    end
+
+    action GetWeHaveAnXAndYScale() returns boolean
+        return weHaveAnXAndYScale
+    end
+
+    action GetWeHaveATwoByTwo() returns boolean
+        return weHaveATwoByTwo
+    end
+
+    action GetWeHaveInstructions() returns boolean
+        return weHaveInstructions
+    end
+
+    action GetUseMyMetrics() returns boolean
+        return useMyMetrics
+    end
+
+    action GetOverlapCompound() returns boolean
+        return overlapCompound
+    end
+
+    action GetScaledComponentOffset() returns boolean
+        return scaledComponentOffset
+    end
+
+    action GetUnscaledComponentOffset() returns boolean
+        return unscaledComponentOffset
+    end
+end

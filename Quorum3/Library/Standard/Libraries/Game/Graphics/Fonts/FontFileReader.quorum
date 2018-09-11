@@ -759,76 +759,101 @@ class FontFileReader
 
                 glyphPoints:AddVirtualPoints()
             else
-                output "Compound glyph case"
-                BitwiseOperations ops
-                integer flags = byteReader:NextTwoByteUnsignedInteger()
-                integer glyphIndex = byteReader:NextTwoByteUnsignedInteger()
+                Array<CompoundGlyphFlags> flags
+                CompoundGlyphFlags glyphFlag
 
-                output "Original glyph index is: " + glyphIndex
-                boolean Arg1And2AreWords = ops:And(flags, 1) > 0
-                boolean ArgsAreXYValues = ops:And(flags, 2) > 0
-                boolean RoundXYToGrid = ops:And(flags, 4) > 0
-                boolean WeHaveAScale = ops:And(flags, 8) > 0
-                boolean MoreComponents = ops:And(flags, 32) > 0
-                boolean WeHaveAnXAndYScale = ops:And(flags, 64) > 0
-                boolean WeHaveATwoByTwo = ops:And(flags, 128) > 0
-                boolean WeHaveInstructions = ops:And(flags, 256) > 0
-                boolean UseMyMetrics = ops:And(flags, 512) > 0
-                boolean OverlapCompound = ops:And(flags, 1024) > 0
-                boolean ScaledComponentOffset = ops:And(flags, 2048) > 0
-                boolean UnscaledComponentOffset = ops:And(flags, 4096) > 0
-               
-                integer argument1 = -1
-                integer argument2 = -1
+                glyphFlag:SetFlags(byteReader:NextTwoByteUnsignedInteger())
+                glyphFlag:SetGlyphIndex(byteReader:NextTwoByteUnsignedInteger())
 
-                if(Arg1And2AreWords)
-                    argument1 = byteReader:NextTwoByteInteger()
-                    argument2 = byteReader:NextTwoByteInteger()
-                    output "Arguments are words: Argument1: " + argument1 + ", argument2: " + argument2
-                else    
-                    argument1 = byteReader:NextByteAsUnsignedInteger()
-                    argument2 = byteReader:NextByteAsUnsignedInteger()
-                    output "Arguments are not words: Argument1: " + argument1 + ", argument2: " + argument2
+                if glyphFlag:GetArg1And2AreWords()
+                    if glyphFlag:GetArgsAreXYValues()
+                        output "Arguments are words and xy values"
+                        glyphFlag:SetArgument1(byteReader:NextTwoByteInteger())
+                        glyphFlag:SetArgument2(byteReader:NextTwoByteInteger())
+                    else
+                        output "Arguments are words and not xy values"
+                        glyphFlag:SetArgument1(byteReader:NextTwoByteUnsignedInteger())
+                        glyphFlag:SetArgument2(byteReader:NextTwoByteUnsignedInteger())
+                    end
+                else
+                    if glyphFlag:GetArgsAreXYValues()
+                        output "Arguments are not words and are xy values"
+                        glyphFlag:SetArgument1(byteReader:NextByteAsInteger())
+                        glyphFlag:SetArgument2(byteReader:NextByteAsInteger())
+                    else
+                        output "Arguments are not words or xy values"
+                        glyphFlag:SetArgument1(byteReader:NextByteAsUnsignedInteger())
+                        glyphFlag:SetArgument2(byteReader:NextByteAsUnsignedInteger())
+                    end
                 end
 
-                output "Scale values:"
-                output WeHaveAScale
-                output WeHaveAnXAndYScale
-                output WeHaveATwoByTwo
-
-                if WeHaveAScale
-                    integer scale = byteReader:NextTwoByteInteger()
-                    output "Scale is: " + scale
-                    number newScale = ConvertIntegerToF2Dot14(scale)
-                    output "New scale is: " + newScale
-                elseif WeHaveAnXAndYScale
-                    integer xScale = byteReader:NextTwoByteInteger()
-                    integer yScale = byteReader:NextTwoByteInteger()
-                    output "xScale is: " + xScale + ", yScale is: " + yScale
-                    number newXScale = ConvertIntegerToF2Dot14(xScale)
-                    number newYScale = ConvertIntegerToF2Dot14(yScale)
-                    output "New xScale is: " + newXScale + ", newYScale is: " + newYScale
-                elseif WeHaveATwoByTwo
-                    integer xScale = byteReader:NextTwoByteInteger()
-                    integer scale01 = byteReader:NextTwoByteInteger()   
-                    integer scale10 = byteReader:NextTwoByteInteger()   
-                    integer yScale = byteReader:NextTwoByteInteger()  
-                    output "xScale is: " + xScale + ", scale01 is: " + scale01 + ", scale10 is: " + scale10 + ", yScale is: " + yScale
+                if glyphFlag:GetWeHaveAScale()
+                    glyphFlag:SetScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                elseif glyphFlag:GetWeHaveAnXAndYScale()
+                    glyphFlag:SetXScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    glyphFlag:SetYScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                elseif glyphFlag:GetWeHaveATwoByTwo()
+                    glyphFlag:SetXScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    glyphFlag:SetZeroOneScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    glyphFlag:SetOneZeroScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    glyphFlag:SetYScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
                 end
 
-                /*
-                output "Flags in order: "
-                output Arg1And2AreWords
-                output ArgsAreXYValues
-                output RoundXYToGrid
-                output WeHaveAScale
-                output WeHaveAnXAndYScale
-                output WeHaveATwoByTwo
-                output UseMyMetrics
-                output OverlapCompound
-                output ScaledComponentOffset
-                output UnscaledComponentOffset
-                */
+                flags:Add(glyphFlag)
+
+                integer i = 0
+
+                repeat while i < flags:GetSize() and flags:Get(i):GetMoreComponents()
+                    output "Inside loop"
+                    CompoundGlyphFlags glyphFlags
+                    glyphFlags:SetFlags(byteReader:NextTwoByteUnsignedInteger())
+                    glyphFlags:SetGlyphIndex(byteReader:NextTwoByteUnsignedInteger())
+
+                    if glyphFlags:GetArg1And2AreWords()
+                        if glyphFlags:GetArgsAreXYValues()
+                            output "Arguments are words and xy values"
+                            glyphFlags:SetArgument1(byteReader:NextTwoByteInteger())
+                            glyphFlags:SetArgument2(byteReader:NextTwoByteInteger())
+                        else
+                            output "Arguments are words and not xy values"
+                            glyphFlags:SetArgument1(byteReader:NextTwoByteUnsignedInteger())
+                            glyphFlags:SetArgument2(byteReader:NextTwoByteUnsignedInteger())
+                        end
+                    else
+                        if glyphFlags:GetArgsAreXYValues()
+                            output "Arguments are not words and are xy values"
+                            glyphFlags:SetArgument1(byteReader:NextByteAsInteger())
+                            glyphFlags:SetArgument2(byteReader:NextByteAsInteger())
+                        else
+                            output "Arguments are not words or xy values"
+                            glyphFlags:SetArgument1(byteReader:NextByteAsUnsignedInteger())
+                            glyphFlags:SetArgument2(byteReader:NextByteAsUnsignedInteger())
+                        end
+                    end
+
+                    if glyphFlags:GetWeHaveAScale()
+                        glyphFlags:SetScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    elseif glyphFlags:GetWeHaveAnXAndYScale()
+                        glyphFlags:SetXScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                        glyphFlags:SetYScale(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    elseif glyphFlags:GetWeHaveATwoByTwo()
+                        glyphFlags:SetXScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                        glyphFlags:SetZeroOneScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                        glyphFlags:SetOneZeroScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                        glyphFlags:SetYScaleTransform(ConvertIntegerToF2Dot14(byteReader:NextTwoByteInteger()))
+                    end
+
+                    flags:Add(glyphFlags)
+                    i = i + 1
+                end
+
+                i = 0
+
+                repeat while i < flags:GetSize()
+                    output "Index inside flags: " + flags:Get(i):GetGlyphIndex()
+                    i = i + 1
+                end
+/*
                 repeat while MoreComponents
                     integer currentPosition = byteReader:GetPosition()
                     integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
@@ -863,22 +888,35 @@ class FontFileReader
                     output "More components inside loop: " + MoreComponents
 
                     if(Arg1And2AreWords)
+                    if ArgsAreXYValues
+                        output "Arguments are words and XY values inside loop."
                         argument1 = byteReader:NextTwoByteInteger()
                         argument2 = byteReader:NextTwoByteInteger()
-                        output "Arguments are words: Argument1: " + argument1 + ", argument2: " + argument2
                     else
+                        output "Arguments are words and not XY values inside loop."
+                        argument1 = byteReader:NextTwoByteUnsignedInteger()
+                        argument2 = byteReader:NextTwoByteUnsignedInteger()
+                    end
+                else
+                    if ArgsAreXYValues
+                        output "Arguments are not words and XY values inside loop."
+                        argument1 = byteReader:NextByteAsInteger()
+                        argument2 = byteReader:NextByteAsInteger()
+                    else
+                        output "Arguments are not words and not XY values inside loop."
                         argument1 = byteReader:NextByteAsUnsignedInteger()
                         argument2 = byteReader:NextByteAsUnsignedInteger()
-                        output "Arguments are not words: Argument1: " + argument1 + ", argument2: " + argument2
                     end
+                end
+
+
 
                     if WeHaveAScale
                         integer scale = byteReader:NextTwoByteUnsignedInteger()
                         output "Scale is: " + scale
                     elseif WeHaveAnXAndYScale
-                        integer first = byteReader:NextTwoByteUnsignedInteger()
-                        integer second = byteReader:NextTwoByteUnsignedInteger()
-                        output "First is: " + first + ", second is: " + second
+                        scaleX = byteReader:NextTwoByteUnsignedInteger()
+                        scaleY = byteReader:NextTwoByteUnsignedInteger()
                     elseif WeHaveATwoByTwo
                         integer first = byteReader:NextTwoByteUnsignedInteger()
                         integer second = byteReader:NextTwoByteUnsignedInteger()   
@@ -899,6 +937,9 @@ class FontFileReader
                     output "TempPoints (component) after any offset: "
                     temporaryPoints:DisplayPoints()
                 end
+                if WeHaveAnXAndYScale
+                    temporaryPoints:ScaleXAndYDifferently(ConvertIntegerToF2Dot14(scaleX), ConvertIntegerToF2Dot14(scaleY))
+                end
                 glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
                 //output "File read endpoints before 'fix': " 
                 //glyphPoints:DisplayOtherPoints()
@@ -907,10 +948,10 @@ class FontFileReader
                 //glyphPoints:DisplayEndpoint()
                 glyphPoints:FixEndPoints()
                 //output "File read endpoints after 'fix': "
-                //glyphPoints:DisplayOtherPoints()    
+                //glyphPoints:DisplayOtherPoints()    */
             end
         end
-                
+            
         byteReader:SetPosition(previousPosition)
         return glyphPoints
     end
