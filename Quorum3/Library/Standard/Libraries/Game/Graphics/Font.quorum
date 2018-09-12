@@ -582,4 +582,21 @@ class Font
     action GetKerning(text currentCharacter, text nextCharacter) returns integer
         return strategy:GetKerning(currentCharacter, nextCharacter)
     end
+
+    /*
+    This action sets the font's size to the largest font size that will fit in
+    the given height. The line height of the Font will always be less than or
+    equal to the height value after the action finishes.
+    */
+    action FitToHeight(number height)
+        integer counter = 0
+        number lineHeight = 0
+        repeat while lineHeight <= height
+            counter = counter + 1
+            SetSize(counter)
+            lineHeight = GetLineHeight()
+        end
+
+        SetSize(counter - 1)
+    end
 end

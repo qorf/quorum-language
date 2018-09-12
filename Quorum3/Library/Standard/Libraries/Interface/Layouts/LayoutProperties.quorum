@@ -5,6 +5,7 @@ use Libraries.Language.Support.CompareResult
 class LayoutProperties 
     
     public number FILL = -1.0
+    public number FIT_CONTENTS = -2.0
 
     number xPercentage = 0.0
     number yPercentage = 0.0
@@ -20,6 +21,13 @@ class LayoutProperties
     number maximumHeight = heightPercentage:GetPositiveInfinityValue()
     number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
     number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
+
+    number leftPadding = 0
+    number rightPadding = 0
+    number bottomPadding = 0
+    number topPadding = 0
+
+    number zoomFactor = 1.0
 
     /*
     What point along the Item2D, as a percentage, should be placed at the given
@@ -203,6 +211,46 @@ class LayoutProperties
 
     action SetHeightSetting(boolean enable)
         setHeight = enable
+    end
+
+    action SetLeftPadding(number padding)
+        leftPadding = padding
+    end
+
+    action SetRightPadding(number padding)
+        rightPadding = padding
+    end
+
+    action SetBottomPadding(number padding)
+        bottomPadding = padding
+    end
+
+    action SetTopPadding(number padding)
+        topPadding = padding
+    end
+
+    action GetLeftPadding returns number
+        return leftPadding
+    end
+
+    action GetRightPadding returns number
+        return rightPadding
+    end
+
+    action GetBottomPadding returns number
+        return bottomPadding
+    end
+
+    action GetTopPadding returns number
+        return topPadding
+    end
+
+    action SetZoomFactor(number zoom)
+        zoomFactor = zoom
+    end
+
+    action GetZoomFactor returns number
+        return zoomFactor
     end
 
     action Compare(Object object) returns CompareResult

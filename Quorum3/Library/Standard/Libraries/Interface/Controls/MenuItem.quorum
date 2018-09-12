@@ -69,6 +69,11 @@ class MenuItem is Control
 
         ManualLayout layout
         SetLayout(layout)
+
+        LayoutProperties defaultProperties
+        defaultProperties:SetPercentageWidth(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetPercentageHeight(defaultProperties:FIT_CONTENTS)
+        AddLayoutProperties(defaultProperties)
     end
 
     action Initialize(text name)

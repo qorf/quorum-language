@@ -4,6 +4,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.GrandPoobahLayout
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Views.View2D
@@ -35,14 +36,16 @@ class MenuBar is Control
     Array<MenuChangeListener> listeners
 
     on create
-        FlowLayout layout
-        layout:SetWrapping(true)
+        GrandPoobahLayout layout
+//        FlowLayout layout
+//        layout:SetWrapping(true)
         defaultLayout = layout
         SetLayout(defaultLayout)
 
         defaultLayoutProperties:SetPercentageWidth(1)
         defaultLayoutProperties:SetPercentageY(1)
         defaultLayoutProperties:SetOffsetY(1)
+        defaultLayoutProperties:SetPercentageHeight(defaultLayoutProperties:FIT_CONTENTS)
         AddLayoutProperties(defaultLayoutProperties)
 
         SetInputGroup("MenuBar")

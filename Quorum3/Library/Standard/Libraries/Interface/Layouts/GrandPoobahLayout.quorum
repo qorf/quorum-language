@@ -9,7 +9,7 @@ A flow layout used for testing the new layout design.
 
 For testing purposes only, will be renamed or removed.
 */
-class GrandPoobahLayout
+class GrandPoobahLayout is Layout
 
     boolean ignoreHidden = false
 
@@ -23,6 +23,54 @@ class GrandPoobahLayout
         number currentY = containerHeight
         number nextY = containerHeight
 
+        /* 
+        Boolean used to ensure we don't perform redundant resizing on items
+        that were already fit to their contents while fitting the container
+        width to its contents.
+        */
+        boolean alreadyFitContents = false
+        LayoutProperties containerProperties = undefined
+
+        if container not= undefined
+            containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= undefined
+                if containerProperties:GetPercentageWidth() = containerProperties:FIT_CONTENTS
+                    integer i = 0
+
+                    number totalWidthOffset = 0
+                    number totalWidthPercentage = 0
+
+                    repeat while i < items:GetSize()
+                        Item2D item = items:Get(i)
+
+                        if item is Control
+                            Control control = cast(Control, item)
+                            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                            if properties not= undefined
+                                if properties:GetPercentageWidth() = properties:FIT_CONTENTS or properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                                    alreadyFitContents = true
+                                    control:Resize()
+                                end
+
+                                if properties:GetPercentageWidth() = properties:FIT_CONTENTS
+                                    totalWidthOffset = totalWidthOffset + control:GetWidth()
+                                else
+                                    totalWidthOffset = totalWidthOffset + properties:GetWidthOffset()
+                                    totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
+                                end
+                            end
+                        end
+                    end
+
+                    if containerProperties:GetPercentageWidth() = containerProperties:FIT_CONTENTS
+                        totalWidthPercentage = 1.0 - totalWidthPercentage
+                        containerWidth = totalWidthOffset / totalWidthPercentage
+                        container:SetWidth(containerWidth)
+                    end
+                end
+            end
+        end
+
         i = 0
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
@@ -30,32 +78,38 @@ class GrandPoobahLayout
             if item is Control
                 Control control = cast(Control, item)
 
-                // For testing purposes only, always gets the first LayoutProperties.
-                Array<LayoutProperties> propertiesArray = control:GetLayoutProperties()
-                LayoutProperties properties = undefined
-                if not propertiesArray:IsEmpty()
-                    properties = propertiesArray:Get(0)
-                end
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
                 if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+
+                    // If the item's dimensions are fit to its contents, we need
+                    // to resize it first (using its contents to set its dimensions).
+                    if (properties:GetPercentageWidth() = properties:FIT_CONTENTS or properties:GetPercentageHeight() = properties:FIT_CONTENTS) and alreadyFitContents = false
+                        control:Resize()
+                    end
+
                     number width = 0
                     number height = 0
 
                     if properties:GetPercentageWidth() = properties:FILL
                         width = containerWidth - x
+                    elseif properties:GetPercentageWidth() = properties:FIT_CONTENTS
+                        // Width was already set by an early resize.
+                        width = control:GetWidth()
                     else
                         width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
                     end
 
                     if properties:GetPercentageHeight() = properties:FILL
                         height = currentY
+                    elseif properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                        // Height was already set by an early resize.
+                        height = control:GetHeight()
                     else
                         height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
                     end
 
                     control:SetSize(width, height)
-                    control:SetWidth(width)
-                    control:SetHeight(height)
 
                     if x + control:GetWidth() > containerWidth
                         currentY = nextY
@@ -67,6 +121,7 @@ class GrandPoobahLayout
                     end
 
                     control:SetPosition(x, currentY - control:GetHeight())
+                    output control:GetName() + " at " + control:GetGlobalX() + ", " + control:GetGlobalY() + " - " + control:GetWidth() + "x" + control:GetHeight()
                     x = x + control:GetWidth()
                 end
             end
@@ -74,9 +129,13 @@ class GrandPoobahLayout
             i = i + 1
         end
 
-//        number oldHeight = item:GetHeight()
-//        item:SetHeight(nextY - currentY)
-//        item:MoveY(oldHeight - (nextY - currentY))
+        if containerProperties not= undefined and containerProperties:GetPercentageHeight() = containerProperties:FIT_CONTENTS
+            output "Setting " + container:GetName() + " height to " + (containerHeight - nextY)
+            number oldHeight = container:GetHeight()
+            container:SetHeight(containerHeight - nextY)
+            container:MoveY(oldHeight - (containerHeight - nextY))
+            output "Container " + container:GetName() + " at " + container:GetGlobalX() + ", " + container:GetGlobalY() + " - " + container:GetWidth() + "x" + container:GetHeight()
+        end
     end
 
     action SetIgnoreHidden(boolean ignore)

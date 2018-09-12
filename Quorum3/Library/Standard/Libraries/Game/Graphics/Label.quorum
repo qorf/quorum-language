@@ -968,4 +968,15 @@ class Label is Control
     action GetLineHeight returns integer
         return font:GetLineHeight()
     end
+
+    /*
+    The FitToHeight action sets the font size of this Label to the largest font 
+    size that will fit in the given height. The line height of the Font will 
+    always be less than or equal to the requested height value after the action 
+    finishes.
+    */
+    action FitToHeight(number height)
+        font:FitToHeight(height)
+        textChanged = true
+    end
 end

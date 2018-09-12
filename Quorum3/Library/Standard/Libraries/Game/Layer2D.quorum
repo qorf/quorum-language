@@ -961,6 +961,7 @@ class Layer2D is Layer
     */
     action Update(number seconds)
         if shouldLayout
+            output "Laying out..."
             layerLayout:Layout(undefined, controls, camera:GetWidth(), camera:GetHeight())
             shouldLayout = false
         end
