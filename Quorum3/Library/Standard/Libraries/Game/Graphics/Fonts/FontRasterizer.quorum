@@ -218,23 +218,12 @@ class FontRasterizer
         integer highPoint = CalculateScaledCoordinate(box:GetYMaximum(), pixelSize, information:GetUnitsPerEm()) + 1
         integer lowPoint = CalculateScaledCoordinate(box:GetYMinimum(), pixelSize, information:GetUnitsPerEm()) -1
 
-        //output "The font bounding box dimensions are: " + box:ToText()
-
         Format format = SetupFormat()
         Array<Line> linesToDraw = GetLinesToDraw(outline, emSize)
         Array<integer> maximums
         integer height = CalculateGlyphHeight(linesToDraw, maximums) + 1
         integer heightFromBaseline = highPoint
         PixelMap pixelmap = SetupPixelMap(maximumSizeYAxis, height, format)     // at some point, change the maximumSizeYAxis to use the value calculated by the width function
-        
-        //output "Glyph points inside rasterizer: "
-        //outline:DisplayPoints()
-        //output "Endpoints inside rasterizer: "
-        //outline:DisplayOtherPoints()
-        //output "On curve inside rasterizer: "
-        //outline:DisplayOnCurve()
-        //output "Endpoint status inside rasterizer: "
-        //outline:DisplayEndpoint()
 
         pixelmap = RenderAntiAliasedOutline(offsetx, offsety, pixelmap, outline, emSize, color, false, maximums)  // draws the glyph outline
         pixelmap = RenderRasterizedGlyph(offsetx, offsety, pixelmap, outline, color, linesToDraw, maximums) // fills in the glyphs
@@ -295,7 +284,6 @@ class FontRasterizer
            
             i = i + 1
         end
-
         return pixelmap
     end
 
@@ -363,7 +351,6 @@ class FontRasterizer
             end
 
         end
-
         return pixelmap
     end
 
@@ -442,23 +429,15 @@ class FontRasterizer
     /*
         returns next point on contour relative to last
     */
-    private action NextPoint(integer i, integer contour, Array<CoordinateVector> vectorArray, Array<integer> endpoints) returns CoordinateVector
-        //output "I is: " + i + " and the vector array size is: " + vectorArray:GetSize() + " and the contour value is: " + contour
-        
-        //output "Endpoints at the contour index: " + endpoints:Get(contour)
-
+    private action NextPoint(integer i, integer contour, Array<CoordinateVector> vectorArray, Array<integer> endpoints) returns CoordinateVector        
         if endpoints:Get(contour) = i and contour > 0   
             integer value = 0
             value = endpoints:Get(contour-1)
             value = value + 1
-           // output "If statement. Value of the index is: " + value
             return vectorArray:Get(value)
-            //return vectorArray:Get(endpoints:Get(contour-1)+1)  // VERY weird behavior, more research and report bug
         elseif endpoints:Get(contour) = i and contour = 0
-            //output "Elseif statement."
             return vectorArray:Get(0)
         end
-        //output "Neither if or elseif hit."
         return vectorArray:Get(i+1)
     end
     
@@ -510,12 +489,10 @@ class FontRasterizer
 
         Array<Line> linesToDraw
 
-
         integer ypixel = 0
         Iterator<integer> ite = profile:GetKeyIterator()
         repeat while ite:HasNext()
             ypixel = ite:Next()
-
 
             if profile:HasY(ypixel)
                 CoordinateContainer matches = profile:GetXInterceptAtY(ypixel)
@@ -528,8 +505,8 @@ class FontRasterizer
                    
                     if current:GetNonzero() = 0
                         Line l
-                        l:SetPoint1(current:Get(0):GetXPosition()+1, ypixel)    // REMOVE THE +1 AND -1 FROM THE X COORDINATES, POSSIBLY
-                        l:SetPoint2(current:GetLast():GetXPosition()-1, ypixel)
+                        l:SetPoint1(current:Get(0):GetXPosition(), ypixel)    // REMOVE THE +1 AND -1 FROM THE X COORDINATES, POSSIBLY (add them back?)
+                        l:SetPoint2(current:GetLast():GetXPosition(), ypixel)
                         linesToDraw:Add(l)
                     end
 
@@ -547,13 +524,10 @@ class FontRasterizer
                         end
                     end
 
-
                     i = i + 1
                 end
-
             end
         end
-
         return linesToDraw
     end
 
@@ -563,30 +537,18 @@ class FontRasterizer
     */
     private action CreateAntiAliasedGlyphProfile(BezierCurveGlyphPoints outline, integer unitsPerEM) returns GlyphProfile
         GlyphProfile profile
-        
-        Array<Line> lines = FlattenOutline(outline) // this currently has some erroneous lines, such as from (0, 0) to (0, 0). Removing doesn't seem to fix anything, though.
-        integer oldNonZero = 1
+        Array<Line> lines
 
-        // testing converting the outline coordinates to smaller coordinates before doing any work on them
-        // does not seem to be beneficial at all, no difference in the outline
-        /*
-        integer k = 0
-        repeat while k < lines:GetSize()
-            Line l = lines:Get(k)
-            l:SetX1(l:CalculateCoordinate(l:GetX1(), pixelSize, emSize, 0))
-            l:SetX2(l:CalculateCoordinate(l:GetX2(), pixelSize, emSize, 0))
-            l:SetY1(l:CalculateCoordinate(l:GetY1(), pixelSize, emSize, maximumSizeYAxis))
-            l:SetY2(l:CalculateCoordinate(l:GetY2(), pixelSize, emSize, maximumSizeYAxis))
-            k = k + 1
+        if outline:GetCompoundGlyph()
+            lines = FlattenCompoundOutline(outline)
+        else
+            lines = FlattenOutline(outline) // this currently has some erroneous lines, such as from (0, 0) to (0, 0). Removing doesn't seem to fix anything, though.
         end
-        */
-        // end testing
+        integer oldNonZero = 1
 
         integer i = 0
         repeat while i < lines:GetSize() and lines:GetSize() < 10000
             Line line = lines:Get(i)
-            //output line:ToText()
-
 
             //HashTable<integer, XCoordinateList> xintercepts = line:BresenhamLineAlgorithm(line:GetX1(), line:GetY1(), line:GetX2(), line:GetY2())
             HashTable<integer, XCoordinateList> xintercepts = line:GetXInterceptsNumber(pixelSize, pixelSize, unitsPerEM, maximumSizeYAxis, oldNonZero)   
@@ -600,8 +562,68 @@ class FontRasterizer
 
             i = i + 1
         end
-
         return profile
+    end
+
+    /*
+    This action takes the glyph outline for compound glyphs and "flattens" it to make
+    drawing easier and more efficient.
+    */
+    private action FlattenCompoundOutline (BezierCurveGlyphPoints outline) returns Array<Line>
+        Array<Line> lines
+        integer i = 0
+        Array<Array<integer>> compoundEndpoints = outline:GetCompoundEndpoints()
+        Array<Array<CoordinateVector>> compoundPoints = outline:GetCompoundPoints()
+
+        repeat while i < compoundEndpoints:GetSize()
+            Array<CoordinateVector> vectorArray = compoundPoints:Get(i)
+
+            Array<integer> endpoints = compoundEndpoints:Get(i)
+            integer contour = 0
+            repeat while contour < endpoints:GetSize()
+                integer endpoint = endpoints:Get(contour)
+                integer lastEndpoint = 0
+                integer j = 0
+                if contour > 0
+                    lastEndpoint = endpoints:Get(contour-1)
+                    j = 0 + lastEndpoint + 1
+                end
+
+                repeat while j <= endpoint
+                    CoordinateVector tempVec = vectorArray:Get(j)
+
+                    xCoord = tempVec:GetX()
+                    yCoord = tempVec:GetY()
+
+                    CoordinateVector nextPoint = NextPoint(j, contour, vectorArray, endpoints)
+                    xNext = nextPoint:GetX()
+                    yNext = nextPoint:GetY()
+
+                    if not tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                        // quadratic curve
+                        CoordinateVector lastPoint = PreviousPoint(vectorArray, j)
+
+                        integer xPast = lastPoint:GetX()
+                        integer yPast = lastPoint:GetY()
+                        AddAll(lines, GetFlatCurve(xPast, yPast, xCoord, yCoord, xNext, yNext))
+
+                    elseif not tempVec:IsOnCurve() and not nextPoint:IsOnCurve()
+                        // this shouldn't happen because this should be handled while reading the data from file (fill in one point)
+                    elseif tempVec:IsOnCurve() and nextPoint:IsOnCurve()
+                        // straight line case
+                        Line l
+                        l:SetPoint1(xCoord, yCoord)
+                        l:SetPoint2(xNext, yNext)
+                        lines:Add(l)
+                    end
+                    j = j + 1
+                end
+                contour = contour + 1
+            end            
+            i = i + 1
+        end
+
+        return lines
     end
 
     /*
@@ -624,7 +646,6 @@ class FontRasterizer
                 i = 0 + lastEndpoint + 1
             end
             
-
             repeat while i <= endpoint
                 CoordinateVector tempVec = vectorArray:Get(i)
 
@@ -779,7 +800,7 @@ class FontRasterizer
     /*
     This action initializes the pixel map used for the glyph.
     */  
-    private action SetupPixelMap (integer width, integer height, Format format) returns PixelMap
+    private action SetupPixelMap(integer width, integer height, Format format) returns PixelMap
         Color color
         PixelMap map
 
@@ -793,7 +814,7 @@ class FontRasterizer
     /*
     This action initializes the format used for the pixel map.
     */
-    private action SetupFormat () returns Format
+    private action SetupFormat() returns Format
         Format format
         format:SetValue(format:RGBA8888)
         return format

@@ -35,9 +35,170 @@ class BezierCurveGlyphPoints
     Array<CoordinateVector> points
     /*The coordinate space for which the points are restricted to.*/
     FontBoundingBox boundingbox
+    /*Whether or not this is a compound glyph (a glyph made up of multiple glyphs).*/
+    boolean compoundGlyph = false
+    /*Contains all of the endpoints for compound glyph components.*/
+    Array<Array<integer>> compoundEndpoints
+    /*Contains all of the coordinates for the Bezier curves of compound glyph components.*/
+    Array<Array<CoordinateVector>> compoundPoints
 
-    action AddContourEndPoints(integer point)
-        contourEndpoints:Add(point)
+    /*
+    This action sets whether or not the BezierCurveGlyphPoints is a simple glyph.
+
+    Attribute: Parameter value True if this is a compound glyph, and false if it is not.
+
+    Attribute: Example
+    
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                points:SetCompoundGlyph(true)
+            end
+        end
+    */
+    action SetCompoundGlyph(boolean value)
+        compoundGlyph = value
+    end
+
+    /*
+    This action returns whether or not the BezierCurveGlyphPoints is a simple glyph.
+
+    Attribute: Returns Returns true if this is a compound glyph, and false if it is not.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                output points:GetCompoundGlyph()
+            end
+        end
+    */
+    action GetCompoundGlyph() returns boolean
+        return compoundGlyph
+    end
+    
+    /*
+    This action adds an array of endpoints for a compound glyph component to the
+    BezierCurveGlyphPoints.
+
+    Attribute: Parameter endpoints Array of endpoints for a compound glyph component.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                Array<integer> endpoints
+                points:AddToCompoundEndpoints(endpoints)
+            end
+        end
+    */
+    action AddToCompoundEndpoints(Array<integer> endPoints)
+        compoundEndpoints:Add(endPoints)
+    end
+
+    /*
+    This action adds an array of coordinate points for a compound glyph component
+    to the BezierCurveGlyphPoints.
+
+    Attribute: Parameter coordinatePoints Array of coordinate points for a compound
+    glyph component.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                Array<CoordinateVector> coordinatePoints
+                points:AddToCompoundPoints(coordinatePoints)
+            end
+        end
+    */
+    action AddToCompoundPoints(Array<CoordinateVector> coordinatePoints)
+        compoundPoints:Add(coordinatePoints)
+    end
+
+    /*
+    This action returns an array of all the endpoint arrays in a compound glyph.
+
+    Attribute: Returns Returns an array of all the endpoint arrays in a compound glyph.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                Array<Array<integer>> endpoints = points:GetCompoundEndpoints()
+            end
+        end
+    */
+    action GetCompoundEndpoints() returns Array<Array<integer>>
+        return compoundEndpoints
+    end
+
+    /*  
+    This action returns an array of all the coordinate point arrays in a compound glyph.
+
+    Attribute: Returns Returns an array of all the coordinate point arrays in a compound glyph.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                Array<Array<CoordinateVector>> coordinatePoints = points:GetCompoundPoints()
+            end
+        end
+    */
+    action GetCompoundPoints() returns Array<Array<CoordinateVector>>
+        return compoundPoints
     end
 
     /*
@@ -77,6 +238,32 @@ class BezierCurveGlyphPoints
         AddPoint(vector)
     end
 
+    /*
+    This action offsets the BezierCurveGlyphPoints coordinate points by the given
+    offset values. These values are in a real, unscaled coordinate system and 
+    should be used on points that are also in a real, unscaled coordinate system 
+    (before the points have been scaled to a font size, for example).
+
+    Attribute: Parameter offsetX The value to offset the x-coordinates by.
+
+    Attribute: Parameter offsetY The value to offset the y-coordinates by.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                points:OffsetXY(10, 20)
+            end
+        end
+    */
     action OffsetXY(integer offsetX, integer offsetY)
         CoordinateVector vector
         integer i = 0
@@ -148,11 +335,11 @@ class BezierCurveGlyphPoints
 
             c = c + 1
         end
-
     end
 
+    // This action finds the middle point between two coordinate points of the
+    // BezierCurveGlyphPoints.
     private action ComputeMiddlePoint(CoordinateVector current, CoordinateVector next) returns CoordinateVector
-        
         integer x = (current:GetX() + next:GetX())/2
         integer y = (current:GetY() + next:GetY())/2
 
@@ -302,10 +489,6 @@ class BezierCurveGlyphPoints
     action SetNumberOfContours(integer numberOfContours)
         me:numberOfContours = numberOfContours
     end
-
-    action GetNumberOfContours() returns integer
-        return numberOfContours
-    end     
 
     /*
     This action sets the number of points that are on each contour of the glyph.
@@ -507,77 +690,70 @@ class BezierCurveGlyphPoints
         return t
     end
 
-    action DisplayPoints()
-        text t = ""
+    /*
+    This action scales the coordinate position points of the BezierCurveGlyphPoints
+    by the given value. This scale is applied to both x and y positions. For example,
+    if the scale is 2.0, it will set all points to twice their current values,
+    doubling the size of the character.
 
-        integer i = 0
+    Attribute: Parameter scale The value to use when scaling the coordinates.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
         
-        repeat while i < points:GetSize()
-            t = t + "(" + points:Get(i):GetX() + ", " + points:Get(i):GetY() + "), "
-        
-            i = i + 1
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                points:ScalePoints(2.0)
+            end
         end
-
-        output t
-    end
-
-    action DisplayOtherPoints()
-        text t = ""
-
-        integer i = 0
-
-        repeat while i < contourEndpoints:GetSize()
-            t = t + "(" + contourEndpoints:Get(i) + "), "
-            
-
-            i = i + 1
-        end
-        output "Contour endpoints: " + t
-    end
-
-    action DisplayOnCurve()
-        text t = ""
-
-        integer i = 0
-
-        repeat while i < points:GetSize()
-            t = t + "(" + points:Get(i):IsOnCurve() + "), "
-
-            i = i + 1
-        end
-
-        output "On curve status: " + t
-
-    end
-
-    action DisplayEndpoint()
-        text t = ""
-
-        integer i = 0
-
-        repeat while i < points:GetSize()
-            t = t + "(" + points:Get(i):IsEndpoint() + "), "
-            i = i + 1
-        end
-        
-        output "End point status: " + t
-
-    end
-
-    action FixEndPoints()
-        integer i = 1
-        
-        repeat while i < contourEndpoints:GetSize()
-            contourEndpoints:Set(i, contourEndpoints:Get(i-1) + contourEndpoints:Get(i))
-
-            i = i + 1
-        end
-    end
-
+    */  
     action ScalePoints(number scale)
+        integer i = 0
+        Math math
+
+        repeat while i < points:GetSize()
+            integer x = cast(integer, math:Floor(points:Get(i):GetX() * scale))
+            integer y = cast(integer, math:Floor(points:Get(i):GetY() * scale))
+            points:Get(i):SetX(x)
+            points:Get(i):SetY(y)
         
+            i = i + 1
+        end
     end
 
+    /*
+    This action scales the coordinate position points of the BezierCurveGlyphPoints
+    by the given values. There is an x scale and a y scale that are applied to
+    the x and y values accordingly. For example, if the values are 2.0 and 1.0,
+    then the glyph will be twice as wide but remain at the same height.
+
+    Attribute: Parameter xScale The value to use when scaling the x coordinates.
+
+    Attribute: Parameter yScale The value to use when scaling the y coordinates.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Fonts.all
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                BezierCurveGlyphPoints points
+                points:ScaleXAndYDifferently(2.0, 1.0)
+            end
+        end
+    */
     action ScaleXAndYDifferently(number xScale, number yScale)
         integer i = 0
         Math math
@@ -588,29 +764,6 @@ class BezierCurveGlyphPoints
             points:Get(i):SetX(x)
             points:Get(i):SetY(y)
         
-            i = i + 1
-        end
-    end
-
-    action TransformPoints(number xScale, number scale01, number scale10, number yScale)
-
-    end
-
-    action CombineBezierCurveGlyphPoints(BezierCurveGlyphPoints glyphPoints)
-        Array<integer> tempContourEndPoints = glyphPoints:GetContourEndpoints()
-        Array<CoordinateVector> tempPoints = glyphPoints:GetPoints()
-        
-        integer i = 0
-
-        repeat while i < tempContourEndPoints:GetSize()
-            contourEndpoints:Add(tempContourEndPoints:Get(i))
-            i = i + 1
-        end
-
-        i = 0
-
-        repeat while i < tempPoints:GetSize()
-            points:Add(tempPoints:Get(i))
             i = i + 1
         end
     end

@@ -222,7 +222,9 @@ class FontFileReader
     /*
     This action reads the name table of the ttf or ttc file. Useful primarily
     when dealing with the ttc files, as it allows us to differentiate between
-    styles of a font in the collection (such as bold, light, etc.)
+    styles of a font in the collection (such as bold, light, etc.). For more
+    information on the variables in this action, see the "name" table documentation
+    on the Microsoft TrueType website.
     */
     private action ReadNameTable(ByteReader byteReader, integer nameTableOffset, Array<NameRecord> records)
         integer previousPosition = byteReader:GetPosition()
@@ -291,12 +293,11 @@ class FontFileReader
     private action GetRecords
         if byteReader:CheckIfTrueTypeCollection()   // For .ttc files
             GetTrueTypeCollectionRecords()
-        else
-            fileInformation:SetTrueTypeCollectionFlag(false)                                        // For .ttf files
+        else    // .ttf file
+            fileInformation:SetTrueTypeCollectionFlag(false)
             if byteReader:HasNextInteger()
                 integer scalertype = byteReader:NextIntegerConvertFromUnsigned()
                 fileInformation:SetScalerType(scalertype)
-                //output "Scaler type is: " + scalertype
                 fileInformation:SetNumberOfTables(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetSearchRange(byteReader:NextTwoByteUnsignedInteger())
                 fileInformation:SetEntrySelector(byteReader:NextTwoByteUnsignedInteger())
@@ -579,23 +580,23 @@ class FontFileReader
         integer glyphTableOffset= -1
         if iteratorIsValid
             if fileInformation:GetIndexToLocationTableFormat() = 0 
-                
                 byteReader:SkipBytes(glyphLocationTableIndex*2)
                 glyphTableOffset = byteReader:NextTwoByteUnsignedInteger() * 2
-                // if nextoffset - glyphTableOffset = 0, then read whitespace, there is no glyph
             else 
                 byteReader:SkipBytes(glyphLocationTableIndex*4)
                 glyphTableOffset = byteReader:NextIntegerConvertFromUnsigned()
-                // if nextoffset - glyphTableOffset = 0, then read whitespace, there is no glyph
             end
         end
         return glyphTableOffset
     end
 
-    // F2Dot14 is a number where the first two bits of a 16 bit number are the sign and non-decimal value,
-    // and the lower 14 bits are the fractional component of the number. 
+    /*
+    F2Dot14 is a number where the first two bits of a 16 bit integer are the 
+    sign and non-decimal value, and the lower 14 bits are the fractional component
+    of the number. See the Microsoft documentation on TrueType File Information
+    for a better understanding.
+    */
     private action ConvertIntegerToF2Dot14(integer scale) returns number
-        output "Scale is: " + scale 
         BitwiseOperations ops
         integer sign = 0
         number newScale = 0
@@ -608,13 +609,10 @@ class FontFileReader
         end
         
         newScale = newScale + ops:And(ops:ShiftRight(scale, 14), 1)
-        
         decimalPortion = ops:And(scale, ops:Negate(ops:ShiftLeft(-1, 14)))
-        
         newScale = newScale + decimalPortion / 16384        // 16384 is the maximum representation possible with 14 bits
 
         return newScale * sign
-
     end
 
     /*
@@ -636,7 +634,6 @@ class FontFileReader
     private action ReadGlyphPoints(ByteReader byteReader, integer glyphTablePosition) returns BezierCurveGlyphPoints
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(glyphTablePosition)
-        //output "Index is: " + glyphTablePosition + ", previousPosition is: " + previousPosition + ", iteratorIsValid is: " + iteratorIsValid
         BezierCurveGlyphPoints glyphPoints
         if iteratorIsValid
             integer numberOfContours = byteReader:NextTwoByteInteger()
@@ -650,8 +647,7 @@ class FontFileReader
             glyphPoints:SetNumberOfContours(numberOfContours)
             glyphPoints:SetBoundingBox(xMin, yMin, xMax, yMax)
 
-            if numberOfContours >= 0
-
+            if numberOfContours >= 0    // simple glyph case
                 integer contourIterator = 0
                 Array<integer> endPointsOfContours
                 integer numberOfPoints = 0
@@ -665,12 +661,11 @@ class FontFileReader
                 glyphPoints:SetContourEndpoints(endPointsOfContours)
 
                 numberOfPoints = numberOfPoints + 1
-                //glyphPoints:SetNumberOfPoints(numberOfPoints)
                 
                 integer numberOfInstructions = byteReader:NextTwoByteUnsignedInteger()
                 
                 integer instructionCount = 0
-                Array<integer> instructions                                                 // read hints?
+                Array<integer> instructions
                 repeat while instructionCount < numberOfInstructions
                     instructions:Add(byteReader:NextByteAsUnsignedInteger())
                     instructionCount = instructionCount + 1
@@ -758,30 +753,31 @@ class FontFileReader
                 end
 
                 glyphPoints:AddVirtualPoints()
-            else
+            else    // compound glyph case, see Microsoft's documentation on the "glyf" table for relevant information
+                glyphPoints:SetCompoundGlyph(true)
                 Array<CompoundGlyphFlags> flags
                 CompoundGlyphFlags glyphFlag
+                integer instructionCount = 0
+                Array<integer> instructions
 
                 glyphFlag:SetFlags(byteReader:NextTwoByteUnsignedInteger())
                 glyphFlag:SetGlyphIndex(byteReader:NextTwoByteUnsignedInteger())
 
+                // The first two bits of the flags determine the type and use
+                // of the arguments for a component
                 if glyphFlag:GetArg1And2AreWords()
                     if glyphFlag:GetArgsAreXYValues()
-                        output "Arguments are words and xy values"
                         glyphFlag:SetArgument1(byteReader:NextTwoByteInteger())
                         glyphFlag:SetArgument2(byteReader:NextTwoByteInteger())
                     else
-                        output "Arguments are words and not xy values"
                         glyphFlag:SetArgument1(byteReader:NextTwoByteUnsignedInteger())
                         glyphFlag:SetArgument2(byteReader:NextTwoByteUnsignedInteger())
                     end
                 else
                     if glyphFlag:GetArgsAreXYValues()
-                        output "Arguments are not words and are xy values"
                         glyphFlag:SetArgument1(byteReader:NextByteAsInteger())
                         glyphFlag:SetArgument2(byteReader:NextByteAsInteger())
                     else
-                        output "Arguments are not words or xy values"
                         glyphFlag:SetArgument1(byteReader:NextByteAsUnsignedInteger())
                         glyphFlag:SetArgument2(byteReader:NextByteAsUnsignedInteger())
                     end
@@ -803,29 +799,26 @@ class FontFileReader
 
                 integer i = 0
 
+                // If there are more components to the compound glyph, keep getting
+                // their flags and arguments, store them all in the flag array
                 repeat while i < flags:GetSize() and flags:Get(i):GetMoreComponents()
-                    output "Inside loop"
                     CompoundGlyphFlags glyphFlags
                     glyphFlags:SetFlags(byteReader:NextTwoByteUnsignedInteger())
                     glyphFlags:SetGlyphIndex(byteReader:NextTwoByteUnsignedInteger())
 
                     if glyphFlags:GetArg1And2AreWords()
                         if glyphFlags:GetArgsAreXYValues()
-                            output "Arguments are words and xy values"
                             glyphFlags:SetArgument1(byteReader:NextTwoByteInteger())
                             glyphFlags:SetArgument2(byteReader:NextTwoByteInteger())
                         else
-                            output "Arguments are words and not xy values"
                             glyphFlags:SetArgument1(byteReader:NextTwoByteUnsignedInteger())
                             glyphFlags:SetArgument2(byteReader:NextTwoByteUnsignedInteger())
                         end
                     else
                         if glyphFlags:GetArgsAreXYValues()
-                            output "Arguments are not words and are xy values"
                             glyphFlags:SetArgument1(byteReader:NextByteAsInteger())
                             glyphFlags:SetArgument2(byteReader:NextByteAsInteger())
                         else
-                            output "Arguments are not words or xy values"
                             glyphFlags:SetArgument1(byteReader:NextByteAsUnsignedInteger())
                             glyphFlags:SetArgument2(byteReader:NextByteAsUnsignedInteger())
                         end
@@ -849,109 +842,54 @@ class FontFileReader
 
                 i = 0
 
+                // iterate over all components, reposition/scale them as needed,
+                // add to BezierCurvePoints
                 repeat while i < flags:GetSize()
-                    output "Index inside flags: " + flags:Get(i):GetGlyphIndex()
+                    BezierCurveGlyphPoints temporaryPoints
+                    glyphFlag = flags:Get(i)
+    
+                    integer glyphTableOffset = GetGlyphOffset(glyphFlag:GetGlyphIndex(), byteReader, fileInformation:GetGlyphDataLocationTablePosition())
+                    temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
+
+                    // apply the offset first, then scale component
+                    if glyphFlag:GetScaledComponentOffset()
+                        if glyphFlag:GetArgsAreXYValues()
+                            temporaryPoints:OffsetXY(glyphFlag:GetArgument1(), glyphFlag:GetArgument2())
+                        else
+                            // arguments are anchor points? Not yet implemented
+                        end
+
+                        if glyphFlag:GetWeHaveAScale()
+                            temporaryPoints:ScalePoints(glyphFlag:GetScale())
+                        elseif glyphFlag:GetWeHaveAnXAndYScale()
+                            temporaryPoints:ScaleXAndYDifferently(glyphFlag:GetXScale(), glyphFlag:GetYScale())
+                        elseif glyphFlag:GetWeHaveATwoByTwo()
+                            // not yet implemented
+                        end
+                    // scale the glyph, then apply the offset
+                    else
+                        if glyphFlag:GetWeHaveAScale()
+                            temporaryPoints:ScalePoints(glyphFlag:GetScale())
+                        elseif glyphFlag:GetWeHaveAnXAndYScale()
+                            temporaryPoints:ScaleXAndYDifferently(glyphFlag:GetXScale(), glyphFlag:GetYScale())
+                        elseif glyphFlag:GetWeHaveATwoByTwo()
+                            // not yet implemented
+                        end
+
+                        if glyphFlag:GetArgsAreXYValues()
+                            temporaryPoints:OffsetXY(glyphFlag:GetArgument1(), glyphFlag:GetArgument2())
+                        else
+                            // arguments are anchor points? Not yet implemented
+                        end
+                    end
+
+                    glyphPoints:AddToCompoundEndpoints(temporaryPoints:GetContourEndpoints())
+                    glyphPoints:AddToCompoundPoints(temporaryPoints:GetPoints())
+
                     i = i + 1
                 end
-/*
-                repeat while MoreComponents
-                    integer currentPosition = byteReader:GetPosition()
-                    integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
-                    BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
-                    output "TempPoints (component) before any offset: "
-                    temporaryPoints:DisplayPoints()
-                    if ArgsAreXYValues
-                        output "Args are XYValues, offset."
-                        temporaryPoints:OffsetXY(argument1, argument2)
-                        output "TempPoints (component) after any offset: "
-                        temporaryPoints:DisplayPoints()
-                    end
-                    glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
-                    byteReader:SetPosition(currentPosition)
-
-                    flags = byteReader:NextTwoByteUnsignedInteger()
-                    glyphIndex = byteReader:NextTwoByteUnsignedInteger()
-                    output "Glyph index in loop is: " + glyphIndex
-                    Arg1And2AreWords = ops:And(flags, 1) > 0
-                    ArgsAreXYValues = ops:And(flags, 2) > 0
-                    RoundXYToGrid = ops:And(flags, 4) > 0
-                    WeHaveAScale = ops:And(flags, 8) > 0
-                    MoreComponents = ops:And(flags, 32) > 0
-                    WeHaveAnXAndYScale = ops:And(flags, 64) > 0
-                    WeHaveATwoByTwo = ops:And(flags, 128) > 0
-                    WeHaveInstructions = ops:And(flags, 256) > 0
-                    UseMyMetrics = ops:And(flags, 512) > 0
-                    OverlapCompound = ops:And(flags, 1024) > 0
-                    ScaledComponentOffset = ops:And(flags, 2048) > 0
-                    UnscaledComponentOffset = ops:And(flags, 4096) > 0
-
-                    output "More components inside loop: " + MoreComponents
-
-                    if(Arg1And2AreWords)
-                    if ArgsAreXYValues
-                        output "Arguments are words and XY values inside loop."
-                        argument1 = byteReader:NextTwoByteInteger()
-                        argument2 = byteReader:NextTwoByteInteger()
-                    else
-                        output "Arguments are words and not XY values inside loop."
-                        argument1 = byteReader:NextTwoByteUnsignedInteger()
-                        argument2 = byteReader:NextTwoByteUnsignedInteger()
-                    end
-                else
-                    if ArgsAreXYValues
-                        output "Arguments are not words and XY values inside loop."
-                        argument1 = byteReader:NextByteAsInteger()
-                        argument2 = byteReader:NextByteAsInteger()
-                    else
-                        output "Arguments are not words and not XY values inside loop."
-                        argument1 = byteReader:NextByteAsUnsignedInteger()
-                        argument2 = byteReader:NextByteAsUnsignedInteger()
-                    end
-                end
-
-
-
-                    if WeHaveAScale
-                        integer scale = byteReader:NextTwoByteUnsignedInteger()
-                        output "Scale is: " + scale
-                    elseif WeHaveAnXAndYScale
-                        scaleX = byteReader:NextTwoByteUnsignedInteger()
-                        scaleY = byteReader:NextTwoByteUnsignedInteger()
-                    elseif WeHaveATwoByTwo
-                        integer first = byteReader:NextTwoByteUnsignedInteger()
-                        integer second = byteReader:NextTwoByteUnsignedInteger()   
-                        integer third = byteReader:NextTwoByteUnsignedInteger()   
-                        integer fourth = byteReader:NextTwoByteUnsignedInteger()   
-                        output "First is: " + first + ", second is: " + second + ", third is: " + third + ", fourth is: " + fourth
-                    end
-                end
-
-                output "Final Glyph index is: " + glyphIndex
-                integer glyphTableOffset = GetGlyphOffset(glyphIndex, byteReader, fileInformation:GetGlyphDataLocationTablePosition())
-                BezierCurveGlyphPoints temporaryPoints = ReadGlyphPoints(byteReader, fileInformation:GetGlyphOutlineTablePosition() + glyphTableOffset)
-                output "TempPoints (component) before any offset: "
-                temporaryPoints:DisplayPoints()
-                if ArgsAreXYValues
-                    output "Args are XYValues, offset."
-                    temporaryPoints:OffsetXY(argument1, argument2)
-                    output "TempPoints (component) after any offset: "
-                    temporaryPoints:DisplayPoints()
-                end
-                if WeHaveAnXAndYScale
-                    temporaryPoints:ScaleXAndYDifferently(ConvertIntegerToF2Dot14(scaleX), ConvertIntegerToF2Dot14(scaleY))
-                end
-                glyphPoints:CombineBezierCurveGlyphPoints(temporaryPoints)
-                //output "File read endpoints before 'fix': " 
-                //glyphPoints:DisplayOtherPoints()
-                glyphPoints:DisplayPoints()
-                //glyphPoints:DisplayOnCurve()
-                //glyphPoints:DisplayEndpoint()
-                glyphPoints:FixEndPoints()
-                //output "File read endpoints after 'fix': "
-                //glyphPoints:DisplayOtherPoints()    */
             end
         end
-            
         byteReader:SetPosition(previousPosition)
         return glyphPoints
     end
@@ -967,7 +905,6 @@ class FontFileReader
         Attribute: Returns True if passed point is an endpoint
     */
     private action IsEndpoint (integer targetPoint, Array<integer> endpoints) returns boolean
-        
         integer index = 0
 
         repeat while index < endpoints:GetSize()
@@ -977,7 +914,6 @@ class FontFileReader
 
             index = index + 1
         end
-
         return false
     end
   
@@ -1021,7 +957,6 @@ class FontFileReader
                 // website. We only need one cmap table, and we want the best one the file has,
                 // and these conditionals are intended to get us the best one. For more information,
                 // read the Apple or Microsoft documentation on the "cmap" table. 
-
                 if tempPlatformID = 0
                     if tempPlatformSpecificID = 4
                         platformID = tempPlatformID
@@ -1053,11 +988,7 @@ class FontFileReader
                     characterMapOffset = tempCharacterMapOffset
                 end
             end
-            
-            //output "Platform ID: " + platformID + ", platform specific ID: " + platformSpecificID
-
             ReadCharacterMapMapping(byteReader, characterMapTablePosition + characterMapOffset)
-
         end
         byteReader:SetPosition(previousPosition)
     end
@@ -1076,10 +1007,8 @@ class FontFileReader
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(characterMapOffsetPosition)
         if iteratorIsValid
-            // Formats have to be read differently, so the format has
-            // to be saved
+            // Formats have to be read differently, so the format has to be saved
             integer format = byteReader:NextTwoByteUnsignedInteger()
-            //output "Format is: " + format
             integer cmapPosition = byteReader:GetPosition()
             fileInformation:SetCharacterMapTablePosition(cmapPosition, format)
         end
@@ -1123,11 +1052,9 @@ class FontFileReader
                 if format = 0
                     ReadKerningSubtableFormat0(byteReader, byteReader:GetPosition())
                 end
-
                 kerningSubtable = kerningSubtable + 1
             end 
         end
-        
         byteReader:SetPosition(previousPosition)
     end
 
@@ -1166,7 +1093,7 @@ class FontFileReader
         Attribute: Parameter kerningValuesPosition - byteReader position of
         beginning of kerning values in TrueType file being read.
     */
-    private action ReadKerningSubtableFormat0 (ByteReader byteReader, integer kerningSubtablePosition)
+    private action ReadKerningSubtableFormat0(ByteReader byteReader, integer kerningSubtablePosition)
         integer previousPosition = byteReader:GetPosition()
         boolean iteratorIsValid = byteReader:SetPosition(kerningSubtablePosition)
 
@@ -1182,14 +1109,12 @@ class FontFileReader
                 integer rightCharacterGlyphIndex = byteReader:NextTwoByteUnsignedInteger()
                 integer kerningValue = byteReader:NextTwoByteInteger()
      
-                //output pairIterator + ": " + leftCharacterGlyphIndex + "-" + rightCharacterGlyphIndex + "-  " + kerningValue
                 number kerningValueNumber = kerningValue / 1000
                 kerningTable:Add(leftCharacterGlyphIndex, rightCharacterGlyphIndex, kerningValue)
                 
                 pairIterator = pairIterator + 1
             end 
         end
-
         byteReader:SetPosition(previousPosition)
     end
 
@@ -1250,7 +1175,6 @@ class FontFileReader
         if leftCharacterGlyphIndex > -1 and rightCharacterGlyphIndex > -1 and kerningTable:HasPair(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
             kerningValue = me:kerningTable:GetKerningValue(leftCharacterGlyphIndex, rightCharacterGlyphIndex)
         end
-
         return kerningValue
     end
 
@@ -1347,11 +1271,9 @@ class FontFileReader
             integer fontDirectionHint = byteReader:NextTwoByteUnsignedInteger()
             fileInformation:SetFontDirectionHint(fontDirectionHint)
 
-
             integer indexToLocationTableFormat = byteReader:NextTwoByteInteger()
             fileInformation:SetIndexToLocationTableFormat(indexToLocationTableFormat)
-            integer glyphDataFormat = byteReader:NextTwoByteInteger()
-           
+            integer glyphDataFormat = byteReader:NextTwoByteInteger()    
         end
         byteReader:SetPosition(previousPosition)
     end
