@@ -21,6 +21,7 @@ class TreeLayout is Layout
         repeat while i > 0
             i = i - 1
             Item2D kid = items:Get(i)
+            kid:Resize()
 
             number height = 0
             if kid is TreeItem

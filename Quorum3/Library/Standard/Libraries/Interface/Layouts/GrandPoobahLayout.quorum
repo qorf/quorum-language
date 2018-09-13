@@ -59,15 +59,21 @@ class GrandPoobahLayout is Layout
                                     totalWidthOffset = totalWidthOffset + properties:GetWidthOffset()
                                     totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
                                 end
+                            else
+                                // If width can't be determined from its properties, use its width instead.
+                                totalWidthOffset = totalWidthOffset + item:GetWidth()
                             end
+                        else
+                            // If width can't be determined from its properties, use its width instead.
+                            totalWidthOffset = totalWidthOffset + item:GetWidth()
                         end
+
+                        i = i + 1
                     end
 
-                    if containerProperties:GetPercentageWidth() = containerProperties:FIT_CONTENTS
-                        totalWidthPercentage = 1.0 - totalWidthPercentage
-                        containerWidth = totalWidthOffset / totalWidthPercentage
-                        container:SetWidth(containerWidth)
-                    end
+                    totalWidthPercentage = 1.0 - totalWidthPercentage
+                    containerWidth = totalWidthOffset / totalWidthPercentage
+                    container:SetWidth(containerWidth)
                 end
             end
         end

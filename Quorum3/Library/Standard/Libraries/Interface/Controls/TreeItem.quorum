@@ -4,6 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.GrandPoobahLayout
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TreeChangeEvent
@@ -44,10 +45,16 @@ class TreeItem is Control
         SetInputGroup("TreeItem")
         panel:SetName("Tree Panel")
 
-        FlowLayout flow
-        flow:SetWrapping(false)
+//        FlowLayout flow
+//        flow:SetWrapping(false)
+        GrandPoobahLayout flow
         layout = flow
 
+        LayoutProperties itemStructureProperties
+        itemStructureProperties:SetPercentageWidth(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetPercentageHeight(itemStructureProperties:FIT_CONTENTS)
+
+        itemStructure:AddLayoutProperties(itemStructureProperties)
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 
@@ -56,6 +63,7 @@ class TreeItem is Control
         panelLayout = verticalFlow
         panel:SetLayout(panelLayout)
 
+        panelProperties:SetPercentageWidth(1.0)
         panelProperties:SetPercentageOriginY(1.0)
         panel:AddLayoutProperties(panelProperties)
 
