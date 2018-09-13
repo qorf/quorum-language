@@ -1,0 +1,71 @@
+package Libraries.Curriculum.TurtleProgram
+
+class RotationCommand is Command
+    
+    public integer LEFT = 1
+    public integer RIGHT = -1
+    integer direction = 0
+    private boolean isRotating = false
+
+    /*
+        This action sets the direction field to the LEFT constant(1).
+
+        Attribute: Example
+        RotationCommand rotation
+        rotation:TurnLeft()
+    */
+ 
+    action TurnLeft
+        direction = LEFT
+    end
+
+    /*
+        This action sets the direction field to the RIGHT constant(-1).
+
+        Attribute: Example
+        RotationCommand rotation
+        rotation:TurnRight()
+    */
+ 
+    action TurnRight
+        direction = RIGHT
+    end
+
+    /*
+        This action returns the direction field.
+
+        Attribute: Example
+        RotationCommand rotation
+        rotation:GetDirection()
+    */
+ 
+    action GetDirection returns integer
+        return direction
+    end
+
+    /*
+        This action returns the boolean of the isRotating field.
+
+        Attribute: Example
+        RotationCommand rotation
+        rotation:IsRotating()
+    */
+ 
+    action IsRotating() returns boolean
+        return isRotating
+    end
+
+    /*
+        This action sets the isRotating field to boolean provided.
+
+        Attribute: Parameter rotating The boolean value to be assigned to the isRotating field.
+
+        Attribute: Example
+        RotationCommand rotation
+        rotation:SetIsRotating(true)
+    */
+ 
+    action SetIsRotating(boolean rotating)
+        isRotating = rotating
+    end
+end

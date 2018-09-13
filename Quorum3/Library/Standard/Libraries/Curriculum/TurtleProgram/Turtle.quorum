@@ -1,0 +1,486 @@
+package Libraries.Curriculum.TurtleProgram
+
+// Class implements a sprite for a tortoise vs. hare race game. Sprite inherits
+// from drawable. Sprite allows the user to load an image for the sprite as well
+// as queue up moves. A move will not execute until the current move is done.
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Queue
+use Libraries.Sound.Audio
+
+class Turtle is Drawable
+    private number speed = 100
+    /*
+    Direction points along the four cardinal directions using these values:
+    0: UP
+    1: LEFT
+    2: DOWN
+    3: RIGHT
+    */
+    public constant integer UP = 0
+    public constant integer LEFT = 1
+    public constant integer DOWN = 2
+    public constant integer RIGHT = 3
+    integer direction = 0
+    boolean penDown = true
+    boolean musicPlaying = false
+    boolean soundPlaying = false
+
+    public Audio upLine
+    public Audio downLine
+    public Audio leftLine
+    public Audio rightLine
+    public Audio turnLeft
+    public Audio turnRight
+    public Audio penDownSound
+    public Audio penUpSound
+    public Audio moving
+    public Audio reachedEdge
+    
+    public SoundModule soundModule
+
+     /*
+        This action Initializes the picture, initial position, speed, name, and collision boolean. It also initializes the sound Module object which loads all the correct sounds.
+
+        Attribute: Parameter picture The text field containing the path to the sprite graphic.
+
+        Attribute: Parameter x The number value for the starting x-coordinate for the sprite.
+
+        Attribute: Parameter y The number value for the starting y-coordinate for the sprite.
+
+        Attribute: Parameter speed The starting integer value for the speed
+
+        Attribute: Parameter name The text value for the name for the sprite 
+
+        Attribute: Parameter value The default boolean value for the Collision boolean.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:Initialize(/media/picture/turtle.png, 2.5, 3.0, 25, "turtle", true)
+    */   
+
+    action Initialize(text picture, number x, number y, integer speed, text name, boolean value )
+        SetSpritePicture(picture)
+        SetInitialPosition(y*60, x*60)
+        SetSpeed(speed)
+        SetName(name)
+        SetCollidable(value)
+        soundModule:Initialize(upLine, downLine, leftLine, rightLine, turnLeft, turnRight, penDownSound, penUpSound, moving, reachedEdge)
+    end
+       
+    Queue<Command> commandQueue
+
+    /*
+        This action sets the initial position for the Sprite object. Additionally
+        this action sets the initial move state for the Sprite to be not moving
+        at that position.
+    
+        Attribute: Parameter x This field is the x-coordinate of initial position.
+
+        Attribute: Parameter y This field is the y-coordinate of initial position.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:SetInitialPosition(4.0, 1.)
+    */
+
+    action SetInitialPosition(number x, number y)
+        SetPosition(x, y)
+    end
+
+    /*
+        This action sets the speed of the spirte.
+    
+        Attribute: Parameter number s The number to set as the speed of the sprite
+
+        Attribute: Example
+        Turtle turtle
+        turtle:SetSpeed(25)
+    */
+
+    action SetSpeed(number s)
+        speed = s
+    end
+
+    /*
+        This action returns the speed field as a number value.
+    
+        Attribute: Example
+        Turtle turtle
+        turtle:GetSpeed()
+    */
+
+    action GetSpeed() returns number
+        return speed
+    end
+
+    /*
+        Action creates a MoveCommand object that is set to the new coordinates. This move command will
+        execute when all move commands issued before it have completed.
+    
+        Attribute: Parameters x x-coordinate of the target that the sprite is moving to.
+
+        Attribute: Parameters y y-coordinate of the target that the sprite is moving to.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:MoveTo(4.0, 3.0)
+    */
+
+    action MoveTo(number x, number y)
+        MoveCommand newMove
+        newMove:SetTarget(x, y)
+        commandQueue:Add(newMove)
+    end
+
+    /* 
+        Action creates a MoveCommand object with the entered distance parameter. This move command will
+        execute when all move commands issued before it have completed.
+
+        Attribute: Parameter distance a number value of how far the sprite will move 
+        Attribute: Parameter movable a boolean indicating whether the turtle can move further or not.
+        Attribute: Parameter error an integer indicating whether the turtle can't move further up (0), left (1), down (2), right (3), or no error (4)
+
+        Attribute: Example
+        Turtle turtle
+        turtle:MoveDistance(3.0, true, 4)
+    */
+
+    action MoveDistance(number distance, boolean movable, integer error)
+        MoveCommand newMove
+        newMove:SetDistance(distance)
+        newMove:SetMovable(movable)
+        newMove:SetError(error)
+        commandQueue:Add(newMove)
+    end
+
+    /* 
+       Action sets the amount of time period for when the Game will update.
+       Attribute: Example
+       Turtle turtle
+       turtle:Update(50.0)
+    */
+
+    action Update(number time)
+        MoveSprite(time)
+    end
+
+    /* 
+        Action updates the sprite, deciding whether or not the sprite is ready
+        to change move states. This is decided based on whether the sprite's
+        coordinates are equal to the target move's coodinates.
+    
+        Attribute: Parameter time the number of seconds between game updates.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:MoveSprite(50.0)
+    */
+
+    private action MoveSprite(number time)
+        //output commandQueue:GetSize()
+        if not commandQueue:IsEmpty()
+            newMoveSet = false            
+
+            if moving:IsPlaying() = false
+                if IsPenDown() = true
+                    moving:Play()
+                else
+                    moving:Stop()
+                end
+            end
+
+            Command currentCommand = commandQueue:GetFromFront()
+            //output "checking for a command" ///////
+
+            if currentCommand is RotationCommand
+                RotationCommand rotation = cast(RotationCommand, currentCommand)
+                if rotation:IsRotating() = false
+                    if rotation:GetDirection() = rotation:LEFT
+                        Rotate(-90)
+                        direction = (direction + 1) mod 4
+                        if IsSoundPlaying() = false
+                            turnLeft:Play()
+                            //output "turning left" /////////
+                        end
+                    elseif rotation:GetDirection() = rotation:RIGHT
+                        Rotate(90)
+                        direction = direction - 1
+                        if direction < 0
+                            direction = 3
+                        end
+                        if IsSoundPlaying() = false
+                            turnRight:Play()
+                            //output "turning right" /////////
+                        end
+                    end
+                    rotation:SetIsRotating(true)
+                elseif IsSoundPlaying() = false
+                    commandQueue:RemoveFromFront()
+                end
+                
+            elseif currentCommand is MoveCommand
+                MoveCommand currentMove = cast(MoveCommand, currentCommand)
+                if currentMove:GetMovable() = false
+                    if IsSoundPlaying() = false
+                        reachedEdge:Play()
+                        if currentMove:GetError() = 1
+                            output "Couldn't move left"
+                        elseif currentMove:GetError() = 3
+                            output "Couldn't move right"
+                        elseif currentMove:GetError() = 0
+                            output "Couldn't move up"
+                        elseif currentMove:GetError() = 2
+                            output "Couldn't move down"
+                        else
+                            output "Error: " + currentMove:GetError()
+                        end
+                        commandQueue:RemoveFromFront()
+                    end
+                else
+                    number distance = currentMove:GetDistance()
+
+                    if currentMove:GetHasStarted() = false
+                        if IsSoundPlaying() = false
+                           DirectionalSound()
+                           currentMove:SetHasStarted(true)
+                        end
+                    end
+                    if distance not= 0
+                        if direction = UP
+                            currentMove:SetTarget(GetX(), GetY() + distance)
+                            //output "move up" ////////
+                        elseif direction = LEFT
+                            currentMove:SetTarget(GetX() - distance, GetY())
+                            //output "move left" ////////
+                        elseif direction = DOWN
+                            currentMove:SetTarget(GetX(), GetY() - distance)
+                            //output "move down" ////////
+                        elseif direction = RIGHT
+                            currentMove:SetTarget(GetX() + distance, GetY())
+                            //output "move right" ////////
+                        end
+                        currentMove:SetDistance(0)
+                    end
+                    currentMove:SetStart(GetX(), GetY())
+                    number xTarget = currentMove:GetTargetX()
+                    number yTarget = currentMove:GetTargetY()
+                    number newX = GetX()
+                    number newY = GetY()
+
+                    // if drawable is close enough to the target, just set the drawable
+                    // to be at the target. This prevents the drawable from moving back
+                    // and forth upon reaching the target coordinates
+                    if (-1 * speed * time <= xTarget - newX and xTarget - newX <= speed * time)
+                        SetX(xTarget)
+                    end
+
+                    if (-1 * speed * time <= yTarget - newY and yTarget - newY <= speed * time)
+                        SetY(yTarget)
+                    end
+
+                    if GetX() = xTarget and GetY() = yTarget
+                        commandQueue:RemoveFromFront()
+                    end
+
+                    newX = newX + speed * time * currentMove:GetXPercent()
+                    newY = newY + speed * time * currentMove:GetYPercent()
+                    SetX(newX)
+                    SetY(newY)
+                end
+            elseif currentCommand is PenCommand
+                PenCommand currentPen = cast(PenCommand, currentCommand)
+                if currentPen:IsPenDown() = false
+                    if IsSoundPlaying() = false
+                        penUpSound:Play()
+                        penDown = currentPen:IsPenDown()
+                        //output "pen up" ///////
+                        moving:Stop()
+                        commandQueue:RemoveFromFront()
+                    end
+                    
+                elseif currentPen:IsPenDown() = true
+                    if IsSoundPlaying() = false
+                        penDownSound:Play()
+                        penDown = currentPen:IsPenDown()
+                        //output "pen down" ////////
+                        moving:Play()
+                        commandQueue:RemoveFromFront()
+                    end
+                
+                end
+            end
+        end
+    end
+
+    /* 
+        Action creates a RotationCommand object, calles the TurnLeft() action on the object, and then adds the command to the command queue.
+        
+        Attribute: Example
+        Turtle turtle
+        turtle:TurnLeft()
+    */
+
+    action TurnLeft
+        RotationCommand rotation
+        rotation:TurnLeft()
+        commandQueue:Add(rotation)
+    end
+    /* 
+        Action creates a RotationCommand object, calles the TurnRight() action on the object, and then adds the command to the command queue.
+        
+        Attribute: Example
+        Turtle turtle
+        turtle:TurnRight()
+    */
+    action TurnRight
+        RotationCommand rotation
+        rotation:TurnRight()
+        commandQueue:Add(rotation)
+    end
+
+    /*
+        Action returns the interger value assigned to a direction.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:GetDirection()
+    */
+
+    action GetDirection returns integer
+        return direction
+    end
+
+    /*
+        Action returns the value stored in the boolean field penDown. This indicates the status of the pen.
+
+        Attribute: Example
+        Turtle turtle
+        turtle:IsPenDown()
+    */
+
+    action IsPenDown returns boolean
+        return penDown
+    end
+
+    /*
+        Action sets the value in the boolean field penDown. 
+
+        Attribute: Example
+        Turtle turtle
+        turtle:SetPenDown()
+    */
+
+    action SetPenDown(boolean value)
+        penDown = value
+    end
+
+    /*
+        Action adds a command object to the command queue.
+
+        Attribute: Parameter command This is the command object to be added to the command queue.
+
+        Attribute: Example
+        Turtle turtle
+        MoveCommand moveCommand
+        turtle:AddCommand(moveCommand)
+    */
+
+    action AddCommand(Command command)
+        commandQueue:Add(command)
+    end
+
+    /*
+    Action sets the picture to be used for the sprite. 
+
+    Attribute: Parameter picture Text object that contains the local path to the picture to be used for the sprite.
+
+    Attribute: Example
+    Turtle turtle
+    turtle:SetSpritePicture("/media//turtlepic.png")
+    */
+
+    action SetSpritePicture(text picture)
+        Load(picture)
+    end
+
+    /*
+    Action sets movingMusic boolean to parameter value.
+
+    Attribute: Parameter boolean value False indicates no music, true is music
+
+    Attribute: Example
+    Turtle turtle
+    turtle:SetMovingMusic(true)
+    */
+
+    action SetMovingMusic(boolean value)
+        musicPlaying = value
+    end
+
+    /*
+    Action returns the movingMusic boolean
+
+    Attribute: Parameter value Boolean false indicates not playing and true indicates playing
+ 
+    Attribute: Example
+    Turtle turtle
+    turtle:SetMovingMusic(true)
+    */
+
+    action GetMovingMusic() returns boolean
+        return musicPlaying
+    end
+
+    /*
+    Action checks each audio object to see if it is playing and if it is true is returned 
+
+    Attribute: Example
+    Turtle turtle
+    turtle:IsSoundPlaying()
+    */
+
+    action IsSoundPlaying() returns boolean
+        if (upLine:IsPlaying() or downLine:IsPlaying() or leftLine:IsPlaying() or rightLine:IsPlaying() or turnLeft:IsPlaying() or turnRight:IsPlaying() or penDownSound:IsPlaying() or penUpSound:IsPlaying())
+            soundPlaying = true
+        else
+            soundPlaying = false
+        end
+        
+        return soundPlaying
+    end
+
+    /*
+    Action sets the soundPlaying boolean to the value entered
+
+    Attribute: Parameter value Boolean false indicates a sound is not playing and true is sound playing
+    Attribute: Example
+    Turtle turtle
+    turtle:IsSoundPlaying()
+    */
+
+    action SetSoundPlaying(boolean value)
+        soundPlaying = value
+    end
+    /* 
+        Action that gets the integer direction of the turtle object then plays the corresponding directional sound.
+
+        Attribute: Example
+        TurtleGame turtleGame
+        turtleGame:DirectionalSound
+    */
+
+    action DirectionalSound()
+        integer direction = GetDirection()
+        if direction = 1
+            leftLine:Play()
+        elseif direction = 3
+            rightLine:Play()
+        elseif direction = 2
+            downLine:Play()
+        elseif direction = 0
+            upLine:Play()
+        end
+    end
+
+end

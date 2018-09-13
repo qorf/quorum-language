@@ -1,0 +1,248 @@
+package Libraries.Curriculum.TurtleProgram
+
+// Class implements movements for the tortoise and hare for the game. Move
+// inherits from State. The Move state allows a drawable to move to a certain
+// coordinate at a given speed.
+use Libraries.Compute.Math
+
+class MoveCommand is Command
+    private number xTarget = 0
+    private number yTarget = 0
+    private number xPercent = 0
+    private number yPercent = 0
+    private number xStart = 0
+    private number yStart = 0
+    private Math math
+    private boolean hasStarted = false
+    private boolean startSet = false
+
+    private number distance = 0
+
+    private boolean movable = true
+    private integer errorCode = 4
+
+
+    /*
+        This action sets if the turtle has reached the edge of the grid or not.
+        
+        Attribute: Parameter isMovable A boolean indicating whether the turtle can move further or not.
+
+        Attribute: Example
+        MoveCommand moveCommand
+        moveCommand:SetMovable(false)
+    */
+    action SetMovable(boolean isMovable)
+        movable = isMovable
+    end
+
+    /*
+        This action tells you if the turtle has reached the edge of the grid or not.
+        
+        Attribute: Returns returns a boolean indicating whether the turtle can move further or not.
+
+        Attribute: Example
+        MoveCommand moveCommand
+        boolean movable
+        movable = moveCommand:GetMovable()
+    */
+    action GetMovable() returns boolean
+        return movable
+    end
+
+
+    action SetError(integer error)
+        errorCode = error
+    end
+
+    action GetError() returns integer
+        return errorCode
+    end
+    
+    /*
+        This action sets the x-coordinate of the target coordinate.
+
+        Attribute: Parameter x The number to set as the x-coordinate of the target.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:SetTargetX(3.0)
+    */
+
+    action SetTargetX(number x)
+        xTarget = x
+    end
+    
+    /*
+        This action sets the y-coordinate of the target coordinate.
+
+        Attribute: Parameter y The number to set as the y-coordinate of the target.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:SetTargetY(5.0)
+    */
+
+    action SetTargetY(number y)
+        yTarget = y
+    end
+
+    /*
+        This action sets the x-coordinate  and y-coordinate of the target coordinate.
+
+        Attribute: Parameter x The number to set as the x-coordinate of the target.
+        
+        Attribute: Parameter y The number to set as the y-coordinate of the target.
+        
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:SetTarget(3.0, 5.0)
+    */    
+
+    action SetTarget(number x, number y)
+        xTarget = x
+        yTarget = y        
+    end
+
+    /*
+        This action returns the x-coordinate of the target coordinate.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetTargetX()
+    */
+
+    action GetTargetX() returns number
+        return xTarget
+    end
+    
+    /*
+        This action returns the y-coordinate of the target coordinate.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetTargetY()
+    */
+
+    action GetTargetY() returns number
+        return yTarget
+    end
+
+    /*
+        This action returns the x-coordinate percent of the target coordinate.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetXPercent()
+    */
+
+    action GetXPercent() returns number
+        return xPercent
+    end
+
+    /*
+        This action returns the y-coordinate percent.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetYPercent()
+    */
+
+    action GetYPercent() returns  number
+        return yPercent
+    end
+
+    /*
+        This action gets the x-coordinate of the start position.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetXStart()
+    */
+
+    action GetXStart() returns number
+        return xStart
+    end
+
+    /*
+        This action gets the y-coordinate of the start position.
+         
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetYStart()
+    */
+
+    action GetYStart() returns number
+        return yStart
+    end
+
+    /*
+        This action sets the x-coordinate  and y-coordinate of the start coordinate.
+
+        Attribute: Parameter x The number to set as the x-coordinate of the start position.
+        
+        Attribute: Parameter y The number to set as the y-coordinate of the start position.
+        
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:SetStart(3.0, 5.0)
+    */  
+
+    action SetStart(number x, number y)
+        if not startSet
+            xStart = x
+            yStart = y
+            number xDist = xTarget - xStart
+            number yDist = yTarget - yStart
+            number dist = math:SquareRoot(xDist * xDist + yDist * yDist)
+            xPercent = xDist / dist
+            yPercent = yDist / dist
+            startSet = true
+        end
+    end
+
+    /*
+        This action sets a distance traveled.
+
+        Attribute: Parameter newDistance A number value to be set as distance.
+        
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:SetDistance(4.0)
+    */  
+
+    action SetDistance(number newDistance)
+        distance = newDistance
+    end
+
+    /*
+        This action gets the number stored in the distance field.
+ 
+        Attribute: Example
+        use Libraries.Compute.Math
+        MoveCommand moveCommand
+        moveCommand:GetDistance()
+    */ 
+
+    action GetDistance returns number
+        return distance
+    end
+
+    action GetHasStarted() returns boolean
+        return hasStarted
+    end
+
+    action SetHasStarted(boolean value)
+        hasStarted = value
+    end
+end

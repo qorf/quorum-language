@@ -1,0 +1,135 @@
+package Libraries.Curriculum.TurtleProgram
+
+use Libraries.Sound.Audio
+
+class SoundModule  
+    boolean voiceChoice = false
+    boolean useWav = false
+    /*
+        This action Initializes the list of Audio objects by calling the Load() action on each object. Default booleans(false, false) are Male Voice and .ogg file format.
+
+        Attribute: Parameter up The Audio object for the sound to be played when going up.
+
+        Attribute: Parameter down The Audio object for the sound to be played when going down.
+
+        Attribute: Parameter left The Audio object for the sound to be played when going left.
+
+        Attribute: Parameter right The Audio object for the sound to be played when going right.
+
+        Attribute: Parameter turnLeft The Audio object for the sound to be played when turning left.
+
+        Attribute: Parameter turnRight The Audio object for the sound to be played when turning right.
+
+        Attribute: Parameter penDownSound The Audio object for the sound to be played when the pen is down.
+
+        Attribute: Parameter penUpSound The Audio object for the sound to be played when pen is up.
+
+        Attribute: Parameter moving The Audio object for the sound to be played when moving.
+
+        Attribute: Parameter reachedEdge The Audio object for the sound to be played when the turtle has reached the edge of the grid.
+
+        Attribute: Example
+        SoundModule soundModule
+        soundModule:Initialize(up, down, left, right, turnLeft, turnRight, penDownSound, penUpSound, moving)
+        )
+    */
+    action Initialize(Audio up, Audio down, Audio left, Audio right, Audio turnLeft, Audio turnRight, Audio penDownSound, Audio penUpSound, Audio moving, Audio reachedEdge)
+        /* Loyalty_Freak_Music_-_15_-_Walking_Shoes is original sound clip CC0 from freemusicarchive.org/music/Loyalty_Freak_Music/INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_15_Walking_Shoes  */
+        moving:Load("/media/audioFiles//moving.ogg")
+        reachedEdge:Load("/media/audioFiles//Boing.ogg")
+        if voiceChoice = false
+            if useWav = false
+                up:Load("/media/audioFiles/maleVoice//up.ogg")
+                down:Load("/media/audioFiles/maleVoice//down.ogg")
+                left:Load("/media/audioFiles/maleVoice//left.ogg")
+                right:Load("/media/audioFiles/maleVoice//right.ogg")
+                turnLeft:Load("/media/audioFiles/maleVoice//turnLeft.ogg")    
+                turnRight:Load("/media/audioFiles/maleVoice//turnRight.ogg")
+                penDownSound:Load("/media/audioFiles/maleVoice//penDown.ogg")
+                penUpSound:Load("/media/audioFiles/maleVoice//penUp.ogg")
+            elseif useWav = true
+                up:Load("/media/audioFiles/maleVoice//up.wav")
+                down:Load("/media/audioFiles/maleVoice//down.wav")
+                left:Load("/media/audioFiles/maleVoice//left.wav")
+                right:Load("/media/audioFiles/maleVoice//right.wav")
+                turnLeft:Load("/media/audioFiles/maleVoice//turnLeft.wav")    
+                turnRight:Load("/media/audioFiles/maleVoice//turnRight.wav")
+                penDownSound:Load("/media/audioFiles/maleVoice//penDown.wav")
+                penUpSound:Load("/media/audioFiles/maleVoice//penUp.wav")
+            end
+        elseif voiceChoice = true
+            if useWav = false
+                up:Load("/media/audioFiles/femaleVoice//up.ogg")
+                down:Load("/media/audioFiles/femaleVoice//down.ogg")
+                left:Load("/media/audioFiles/femaleVoice//left.ogg")
+                right:Load("/media/audioFiles/femaleVoice//right.ogg")
+                turnLeft:Load("/media/audioFiles/femaleVoice//turnLeft.ogg")    
+                turnRight:Load("/media/audioFiles/femaleVoice//turnRight.ogg")
+                penDownSound:Load("/media/audioFiles/femaleVoice//penDown.ogg")
+                penUpSound:Load("/media/audioFiles/femaleVoice//penUp.ogg")
+            elseif useWav = true
+                up:Load("/media/audioFiles/femaleVoice//up.wav")
+                down:Load("/media/audioFiles/femaleVoice//down.wav")
+                left:Load("/media/audioFiles/femaleVoice//left.wav")
+                right:Load("/media/audioFiles/femaleVoice//right.wav")
+                turnLeft:Load("/media/audioFiles/femaleVoice//turnLeft.wav")    
+                turnRight:Load("/media/audioFiles/femaleVoice//turnRight.wav")
+                penDownSound:Load("/media/audioFiles/femaleVoice//penDown.wav")
+                penUpSound:Load("/media/audioFiles/femaleVoice//penUp.wav")
+            end
+        end
+    end
+
+    /*
+        This action returns the current voiceChoice boolean.
+
+        Attribute: Example
+        SoundModule soundModule
+        soundModule:GetVoiceChoice()
+    */ 
+
+    action GetVoiceChoice()returns boolean
+        return voiceChoice
+    end
+
+     /*
+        This action sets the voiceChoice boolean.
+
+        Attribute: Parameter value Choices are either true for female and false for male.
+
+        Attribute: Example
+        SoundModule soundModule
+        soundModule:SetVoiceChoice(true)
+    */    
+
+    action SetVoiceChoice(boolean value) 
+        voiceChoice = value
+    end 
+
+    /*
+        This action returns the current useWav boolean.
+
+        Attribute: Example
+        SoundModule soundModule
+        soundModule:GetUseWav()
+    */ 
+
+    action GetUseWav() returns boolean
+        return useWav
+    end
+
+     /*
+        This action sets the voiceChoice boolean.
+
+        Attribute: Parameter value Choices are either true for .wav and false for .ogg
+
+        Attribute: Example
+        SoundModule soundModule
+        soundModule:SetuseWav(true)
+    */   
+
+    action SetUseWav(boolean value)
+        useWav = value
+    end
+
+end
