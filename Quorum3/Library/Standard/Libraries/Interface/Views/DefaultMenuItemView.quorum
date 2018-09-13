@@ -88,8 +88,8 @@ class DefaultMenuItemView is Control, MenuItemView
         nameLayout:SetPercentageY(lineY)
         shortcutLayout:SetPercentageY(lineY)
 
+        // Setting the size also triggers the layout.
         SetSize(width, height)
-//        Resize()
     end
 
     action UpdatePosition(number x, number y)

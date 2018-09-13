@@ -3,6 +3,7 @@ package Libraries.Interface.Layouts
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.MenuBar
 
 /*
 A flow layout used for testing the new layout design.
@@ -28,7 +29,7 @@ class GrandPoobahLayout is Layout
         that were already fit to their contents while fitting the container
         width to its contents.
         */
-        boolean alreadyFitContents = false
+        boolean fitContainerContents = false
         LayoutProperties containerProperties = undefined
 
         if container not= undefined
@@ -48,7 +49,7 @@ class GrandPoobahLayout is Layout
                             LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                             if properties not= undefined
                                 if properties:GetPercentageWidth() = properties:FIT_CONTENTS or properties:GetPercentageHeight() = properties:FIT_CONTENTS
-                                    alreadyFitContents = true
+                                    fitContainerContents = true
                                     control:Resize()
                                 end
 
@@ -82,34 +83,45 @@ class GrandPoobahLayout is Layout
 
                 if properties not= undefined and (ignoreHidden = false or control:IsShowing())
 
-                    // If the item's dimensions are fit to its contents, we need
-                    // to resize it first (using its contents to set its dimensions).
-                    if (properties:GetPercentageWidth() = properties:FIT_CONTENTS or properties:GetPercentageHeight() = properties:FIT_CONTENTS) and alreadyFitContents = false
-                        control:Resize()
-                    end
-
                     number width = 0
-                    number height = 0
 
-                    if properties:GetPercentageWidth() = properties:FILL
+                    /*
+                    Boolean used to ensure we don't perform redundant resizing
+                    on a control.
+                    */
+                    boolean alreadyFitContents = fitContainerContents
+
+                    if properties:GetPercentageWidth() = properties:FIT_CONTENTS and alreadyFitContents = false
+                        alreadyFitContents = true
+                        if properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                            // Resize the control and allow it to set its own dimensions.
+                            control:Resize()
+                        elseif properties:GetPercentageHeight() = properties:FILL
+                            // Setting the height will trigger a resize.
+                            control:SetHeight(currentY)
+                        else
+                            // Setting the height will trigger a resize.
+                            control:SetHeight(containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        end
+                    elseif properties:GetPercentageWidth() = properties:FILL
                         width = containerWidth - x
-                    elseif properties:GetPercentageWidth() = properties:FIT_CONTENTS
-                        // Width was already set by an early resize.
-                        width = control:GetWidth()
                     else
                         width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
                     end
 
-                    if properties:GetPercentageHeight() = properties:FILL
-                        height = currentY
-                    elseif properties:GetPercentageHeight() = properties:FIT_CONTENTS
-                        // Height was already set by an early resize.
-                        height = control:GetHeight()
-                    else
-                        height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                    // When we set the size in this step, we also trigger a
+                    // resize that will cascade to the entire control's hierarchy.
+                    if alreadyFitContents = false
+                        if properties:GetPercentageHeight() = properties:FILL
+                            control:SetSize(width, currentY)
+                        elseif properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                            // Set the control's width and allow it to set its own height via its contents.
+                            // Setting the width triggers its layout to resize.
+                            control:SetWidth(width)
+                        else
+                            control:SetSize(width, containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        end
                     end
-
-                    control:SetSize(width, height)
 
                     if x + control:GetWidth() > containerWidth
                         currentY = nextY
@@ -121,7 +133,6 @@ class GrandPoobahLayout is Layout
                     end
 
                     control:SetPosition(x, currentY - control:GetHeight())
-                    output control:GetName() + " at " + control:GetGlobalX() + ", " + control:GetGlobalY() + " - " + control:GetWidth() + "x" + control:GetHeight()
                     x = x + control:GetWidth()
                 end
             end
@@ -130,11 +141,35 @@ class GrandPoobahLayout is Layout
         end
 
         if containerProperties not= undefined and containerProperties:GetPercentageHeight() = containerProperties:FIT_CONTENTS
-            output "Setting " + container:GetName() + " height to " + (containerHeight - nextY)
-            number oldHeight = container:GetHeight()
             container:SetHeight(containerHeight - nextY)
-            container:MoveY(oldHeight - (containerHeight - nextY))
-            output "Container " + container:GetName() + " at " + container:GetGlobalX() + ", " + container:GetGlobalY() + " - " + container:GetWidth() + "x" + container:GetHeight()
+
+            /*
+            We had to place all elements before to determine the height of the
+            container, but now that the height is known we need to ensure the
+            items are placed at the right y positions.
+            */
+            integer counter = 0
+            x = 0
+            containerHeight = container:GetHeight()
+            currentY = containerHeight
+            nextY = containerHeight
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+
+                if x + item:GetWidth() > containerWidth
+                    currentY = nextY
+                    x = 0
+                end
+
+                if currentY - item:GetHeight() < nextY
+                    nextY = currentY - item:GetHeight()
+                end
+
+                item:SetPosition(x, currentY - item:GetHeight())
+                x = x + item:GetWidth()
+
+                counter = counter + 1
+            end
         end
     end
 
