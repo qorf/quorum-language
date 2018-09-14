@@ -2,7 +2,6 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Layouts.GrandPoobahLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
@@ -21,9 +20,9 @@ class Tab is ToggleButton
     Item2D relatedItem = undefined
     Layout layout = undefined
     LayoutProperties defaultProperties
-    LayoutProperties iconLayoutProperties = undefined
-    LayoutProperties labelLayoutProperties = undefined
-    LayoutProperties buttonLayoutProperties = undefined
+    LayoutProperties iconLayoutProperties
+    LayoutProperties labelLayoutProperties
+    LayoutProperties buttonLayoutProperties
 
     Control icon
     Label label
@@ -40,18 +39,19 @@ class Tab is ToggleButton
 
         FlowLayout flow
         layout = flow
-        flow:SetPadding(label:GetLineHeight() / 2)
-        flow:SetFrontPadding(true)
-        flow:SetIgnoreHidden(true)
         SetLayout(flow)
 
+        iconLayoutProperties:SetPercentageY(0.5)
+        iconLayoutProperties:SetPercentageOriginY(0.5)
+        iconLayoutProperties:SetLeftPadding(label:GetLineHeight() / 2)
         icon:AddLayoutProperties(iconLayoutProperties)
         icon:SetView2D(iconView)
         Add(0, icon)
         icon:Hide()
 
         
-//        defaultProperties:SetHeightOffset(label:GetLineHeight() * 1.4)
+        defaultProperties:SetPercentageWidth(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetPercentageHeight(1.0)
         AddLayoutProperties(defaultProperties)
 
         SetAccessibilityCode(parent:Item:TAB)
@@ -144,20 +144,18 @@ class Tab is ToggleButton
             icon:SetSize(0, label:GetLineHeight())
         end
 
-        LayoutProperties iconLayout
-        iconLayout:SetPercentageY(0.5)
-        iconLayout:SetPercentageOriginY(0.5)
-        iconLayoutProperties = iconLayout
-
         LayoutProperties labelLayout
         labelLayout:SetPercentageY(1)
         labelLayout:SetPercentageOriginY(1)
+        labelLayout:SetLeftPadding(label:GetLineHeight() / 2)
+        labelLayout:SetRightPadding(label:GetLineHeight() / 2)
         labelLayoutProperties = labelLayout
         label:AddLayoutProperties(labelLayout)
 
         LayoutProperties buttonLayout
         buttonLayout:SetPercentageY(0.5)
         buttonLayout:SetPercentageOriginY(0.5)
+        buttonLayout:SetRightPadding(label:GetLineHeight() / 2)
         buttonLayoutProperties = buttonLayout
         closeButton:AddLayoutProperties(buttonLayout)
 

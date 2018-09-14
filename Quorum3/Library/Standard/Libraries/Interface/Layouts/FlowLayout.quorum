@@ -1,77 +1,181 @@
 package Libraries.Interface.Layouts
 
-use Libraries.Interface.Item2D
 use Libraries.Containers.Array
+use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.MenuBar
 
 class FlowLayout is Layout
-    
-    boolean wrapping = false
-    boolean padFront = false
+
     boolean ignoreHidden = false
-    number padding = 0
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
-        number x = 0
-        number y = 0
 
-        if padFront
-            x = padding
+        // This is the x position of the next item, unless it flows onto the
+        // next line (and resets to 0).
+        number x = 0
+
+        // Objects are placed such that their top edge is at the currentY.
+        number currentY = containerHeight
+        number nextY = containerHeight
+
+        /* 
+        Boolean used to ensure we don't perform redundant resizing on items
+        that were already fit to their contents while fitting the container
+        width to its contents.
+        */
+        boolean fitContainerContents = false
+        LayoutProperties containerProperties = undefined
+
+        if container not= undefined
+            containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= undefined
+                if containerProperties:GetPercentageWidth() = containerProperties:FIT_CONTENTS
+                    integer i = 0
+
+                    number totalWidthOffset = 0
+                    number totalWidthPercentage = 0
+
+                    repeat while i < items:GetSize()
+                        Item2D item = items:Get(i)
+
+                        if item is Control
+                            Control control = cast(Control, item)
+                            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                            if properties not= undefined
+                                if properties:GetPercentageWidth() = properties:FIT_CONTENTS or properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                                    fitContainerContents = true
+                                    control:Resize()
+                                end
+
+                                if properties:GetPercentageWidth() = properties:FIT_CONTENTS
+                                    totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                else
+                                    totalWidthOffset = totalWidthOffset + properties:GetWidthOffset() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
+                                end
+                            else
+                                // If width can't be determined from its properties, use its width instead.
+                                totalWidthOffset = totalWidthOffset + item:GetWidth()
+                            end
+                        else
+                            // If width can't be determined from its properties, use its width instead.
+                            totalWidthOffset = totalWidthOffset + item:GetWidth()
+                        end
+
+                        i = i + 1
+                    end
+
+                    totalWidthPercentage = 1.0 - totalWidthPercentage
+                    containerWidth = totalWidthOffset / totalWidthPercentage
+                    container:SetWidth(containerWidth)
+                end
+            end
         end
 
-        number tallestHeight = 0
         i = 0
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
-            if item is Control and ((not ignoreHidden) or item:IsShowing())
+
+            if item is Control
                 Control control = cast(Control, item)
-                if x + control:GetWidth() > containerWidth and wrapping
-                    y = y - tallestHeight
-                    x = 0
-                    tallestHeight = 0
-                end
 
-                if control:GetHeight() > tallestHeight
-                    tallestHeight = control:GetHeight()
-                end
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
-                control:SetPosition(x, y)
-                x = x + control:GetWidth() + padding
+                if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+
+                    number width = 0
+                    number leftPadding = properties:GetLeftPadding()
+                    number rightPadding = properties:GetRightPadding()
+
+                    /*
+                    Boolean used to ensure we don't perform redundant resizing
+                    on a control.
+                    */
+                    boolean alreadyFitContents = fitContainerContents
+
+                    if properties:GetPercentageWidth() = properties:FIT_CONTENTS and alreadyFitContents = false
+                        alreadyFitContents = true
+                        if properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                            // Resize the control and allow it to set its own dimensions.
+                            control:Resize()
+                        elseif properties:GetPercentageHeight() = properties:FILL
+                            // Setting the height will trigger a resize.
+                            control:SetHeight(currentY)
+                        else
+                            // Setting the height will trigger a resize.
+                            control:SetHeight(containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        end
+                    elseif properties:GetPercentageWidth() = properties:FILL
+                        width = containerWidth - x
+                    else
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
+                    end
+
+                    // When we set the size in this step, we also trigger a
+                    // resize that will cascade to the entire control's hierarchy.
+                    if alreadyFitContents = false
+                        if properties:GetPercentageHeight() = properties:FILL
+                            control:SetSize(width, currentY)
+                        elseif properties:GetPercentageHeight() = properties:FIT_CONTENTS
+                            // Set the control's width and allow it to set its own height via its contents.
+                            // Setting the width triggers its layout to resize.
+                            control:SetWidth(width)
+                        else
+                            control:SetSize(width, containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        end
+                    end
+
+                    if x + leftPadding + rightPadding + control:GetWidth() > containerWidth
+                        currentY = nextY
+                        x = 0
+                    end
+
+                    x = x + leftPadding
+
+                    if currentY - control:GetHeight() < nextY
+                        nextY = currentY - control:GetHeight()
+                    end
+
+                    control:SetPosition(x, currentY - control:GetHeight())
+                    x = x + control:GetWidth() + rightPadding
+                end
             end
+
             i = i + 1
         end
 
-        if not wrapping
-            container:SetWidth(x)
-        else
-            number oldHeight = container:GetHeight()
-            container:SetHeight(tallestHeight - y)
-            container:MoveY(oldHeight - (tallestHeight - y))
+        if containerProperties not= undefined and containerProperties:GetPercentageHeight() = containerProperties:FIT_CONTENTS
+            container:SetHeight(containerHeight - nextY)
+
+            /*
+            We had to place all elements before to determine the height of the
+            container, but now that the height is known we need to ensure the
+            items are placed at the right y positions.
+            */
+            integer counter = 0
+            x = 0
+            containerHeight = container:GetHeight()
+            currentY = containerHeight
+            nextY = containerHeight
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+
+                if x + item:GetWidth() > containerWidth
+                    currentY = nextY
+                    x = 0
+                end
+
+                if currentY - item:GetHeight() < nextY
+                    nextY = currentY - item:GetHeight()
+                end
+
+                item:SetPosition(x, currentY - item:GetHeight())
+                x = x + item:GetWidth()
+
+                counter = counter + 1
+            end
         end
-    end
-
-    action SetWrapping(boolean wrap)
-        wrapping = wrap
-    end
-
-    action WrappingEnabled returns boolean
-        return wrapping
-    end
-
-    action SetPadding(number value)
-        padding = value
-    end
-
-    action GetPadding returns number
-        return padding
-    end
-
-    action SetFrontPadding(boolean pad)
-        padFront = pad
-    end
-
-    action IsFrontPadding returns boolean
-        return padFront
     end
 
     action SetIgnoreHidden(boolean ignore)

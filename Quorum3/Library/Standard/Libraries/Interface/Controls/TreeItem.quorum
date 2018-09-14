@@ -4,7 +4,6 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Layouts.GrandPoobahLayout
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TreeChangeEvent
@@ -45,9 +44,7 @@ class TreeItem is Control
         SetInputGroup("TreeItem")
         panel:SetName("Tree Panel")
 
-//        FlowLayout flow
-//        flow:SetWrapping(false)
-        GrandPoobahLayout flow
+        FlowLayout flow
         layout = flow
 
         LayoutProperties itemStructureProperties
@@ -107,10 +104,10 @@ class TreeItem is Control
 
         expandButton:Hide()
 
-        if layout is FlowLayout
-            FlowLayout flow = cast(FlowLayout, layout)
-            flow:SetPadding(height/2)
-        end
+//        if layout is FlowLayout
+//            FlowLayout flow = cast(FlowLayout, layout)
+//            flow:SetPadding(height/2)
+//        end
 
         if panelLayout is TreeLayout
             TreeLayout flow = cast(TreeLayout, panelLayout)
