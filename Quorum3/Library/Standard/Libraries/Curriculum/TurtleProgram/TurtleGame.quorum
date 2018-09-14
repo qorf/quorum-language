@@ -10,14 +10,17 @@ use Libraries.Interface.Events.CollisionEvent2D
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Item2D
 use Libraries.Sound.Audio
-use Libraries.Sound.Speech
+use Libraries.Curriculum.TurtleProgram.Command
+use Libraries.Curriculum.TurtleProgram.MoveCommand
+use Libraries.Curriculum.TurtleProgram.PenCommand
+use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.SoundModule
+use Libraries.Curriculum.TurtleProgram.Turtle
 
 class TurtleGame is Game, KeyboardListener, CollisionListener2D
     /*Creating main character*/
     Turtle tortoise 
 
-    /*Create sound object for Say*/
-    Speech talker
     /*Creating an object to give the user the direction the tortoise is facing*/
     Audio beginSound
 
