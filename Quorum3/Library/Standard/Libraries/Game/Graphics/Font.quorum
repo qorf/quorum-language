@@ -583,6 +583,18 @@ class Font
         return strategy:GetKerning(currentCharacter, nextCharacter)
     end
 
+    action GetMaximumAscent returns integer
+        return strategy:GetMaximumAscent()
+    end
+
+    action GetMaximumDescent returns integer
+        return strategy:GetMaximumDescent()
+    end
+
+    action GetLineGap returns integer
+        return strategy:GetLineGap()
+    end
+
     /*
     This action sets the font's size to the largest font size that will fit in
     the given height. The line height of the Font will always be less than or

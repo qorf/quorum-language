@@ -606,8 +606,8 @@ class Label is Control
 
 
             integer index = 0
-            number x = 0//GetX()
-            number y = 0//GetY()
+            number x = 0
+            number y = 0
 
             Drawable drawable = undefined
             Glyph glyph = undefined
@@ -641,6 +641,8 @@ class Label is Control
 
             number maxLineWidth = 0
             number startingOriginY = originY
+
+            number maxDescent = font:GetMaximumDescent()
 
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
@@ -679,11 +681,11 @@ class Label is Control
                         drawable = glyph:drawable
 
                         if drawable not= undefined
-                            drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight())
+                            drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight() + maxDescent)
                             Add(drawable)
                         else
                             Item2D space
-                            space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine)
+                            space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine + maxDescent)
                             space:SetSize(glyph:horizontalAdvance, glyph:verticalAdvance)
                             Add(space)
                         end
@@ -800,14 +802,6 @@ class Label is Control
         end
         parent:Item2D:Draw(painter)
     end
-
-    /*
-    action GetDrawables returns List<Drawable>
-        if textChanged
-            LoadDrawables()
-        end
-        return parent:DrawableGroup:GetDrawables()
-    end*/
 
     /*
     Returns the width of the longest line of text in the label. This is set

@@ -80,14 +80,9 @@ class Drawable is TextureRegion, Item2D
     constant integer VERTEX_SIZE = 5
     constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
-    private Color color
-    private Gradient gradient
+    private ColorGroup colorGroup = undefined
     private boolean useCustomColor = false
     private boolean useCustomGradient = false
-
-    on create
-        color = color:White()
-    end
 
     /*
         This action will create a new texture from the image file located at the
@@ -317,7 +312,6 @@ class Drawable is TextureRegion, Item2D
     action Load(TextureRegion region)
         SetTexture(region:GetTextureField())
         SetRegion(region)
-        //SetColor(1, 1, 1, 1)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
     end
@@ -356,54 +350,10 @@ class Drawable is TextureRegion, Item2D
     action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         SetTexture(region:GetTextureField())
         SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
-        //SetColor(1, 1, 1, 1)
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
     end
-
-    /*
-    action Copy(Drawable drawable)
-        if drawable = undefined
-            Error error
-            error:SetErrorMessage("Can not copy an undefined Drawable!")
-            alert(error)
-        end
-
-        integer index = 0
-        Array<number> vertexArray = drawable:GetVertices()
-        Array<number> myVertices = GetVertices()
-        repeat DRAWABLE_SIZE times
-            number temp = vertexArray:Get(index)
-            myVertices:Set(index, temp)
-            index = index + 1
-        end
-
-        SetTexture(drawable:GetTexture())
-        SetLeftSide(drawable:GetLeftSide())
-        SetTopSide(drawable:GetTopSide())
-        SetRightSide(drawable:GetRightSide())
-        SetBottomSide(drawable:GetBottomSide())
-
-        SetX(drawable:GetX())
-        SetY(drawable:GetY())
-        //x = drawable:x
-        //y = drawable:y
-        width = drawable:parent:Item:width
-        height = drawable:parent:Item:height
-
-        SetRegionWidth(drawable:GetRegionWidth())
-        SetRegionHeight(drawable:GetRegionHeight())
-
-        parent:Item:originX = drawable:originX
-        parent:Item:originY = drawable:originY
-        parent:Item:rotation = drawable:rotation
-        parent:Item:scaleX = drawable:scaleX
-        parent:Item:scaleY = drawable:scaleY
-        parent:Item:color:CopyColor(drawable:color)
-        parent:Item:dirty = drawable:dirty
-        
-    end */
 
     /*
     Loads this drawable using the parameter Drawable's texture.
@@ -468,53 +418,8 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action SetColor(Color tint)
-        EnableCustomColor()
-        color = tint
-        number colorValue = tint:EncodeColorAsNumber()
-
-        Array<number> vertices = GetVertices()
-
-        vertices:Set(C1, colorValue)
-        vertices:Set(C2, colorValue)
-        vertices:Set(C3, colorValue)
-        vertices:Set(C4, colorValue)
-    end
-
-    /*
-    Sets the color filter on this Drawable. This will reduce the intensity of
-    colors in the Drawable that are not part of the filter, while leaving the
-    other colors that are part of the filter as the same.
-
-    Attribute: Example
-
-            use Libraries.Game.Graphics.Drawable
-            use Libraries.Game.Graphics.Color
-            use Libraries.Game.Game
-
-            class Main is Game
-
-                Drawable circle
-                Color red
-                Color yellow
-
-                action Main
-                    StartGame()
-                end
-
-                action CreateGame
-                    red:SetColor(1, 0, 0, 1)
-                    yellow:SetColor(1, 1, 0, 1)
-                    circle:LoadFilledCircle(50, yellow)
-                    circle:SetColor(red)
-                    circle:SetPosition(50, 100)
-                    Add(circle)
-                end
-            end
-    */
-    action SetGradient(Gradient tint)
-        EnableCustomGradient()
-        gradient = tint
+    action SetColor(ColorGroup tint)
+        colorGroup = tint
 
         Array<number> vertices = GetVertices()
 
@@ -522,21 +427,6 @@ class Drawable is TextureRegion, Item2D
         vertices:Set(C2, tint:GetTopLeft():EncodeColorAsNumber())
         vertices:Set(C3, tint:GetTopRight():EncodeColorAsNumber())
         vertices:Set(C4, tint:GetBottomRight():EncodeColorAsNumber())
-    end
-
-    private action EnableCustomColor
-        useCustomColor = true
-        useCustomGradient = false
-    end
-
-    private action EnableCustomGradient
-        useCustomColor = false
-        useCustomGradient = true
-    end
-
-    private action DisableCustomTint
-        useCustomColor = false
-        useCustomGradient = false
     end
 
     /*
@@ -566,7 +456,10 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action SetAlpha(number alpha)
-        SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), alpha)
+        colorGroup:GetTopLeft():SetAlpha(alpha)
+        colorGroup:GetTopRight():SetAlpha(alpha)
+        colorGroup:GetBottomLeft():SetAlpha(alpha)
+        colorGroup:GetBottomRight():SetAlpha(alpha)
 
         /*
         The old SetAlpha code. The goal was to set the alpha efficiently by
@@ -625,7 +518,8 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action SetColor(number red, number green, number blue, number alpha)
-        EnableCustomColor()
+        Color color
+        colorGroup = color
         color:SetColor(red, green, blue, alpha)
         BitwiseOperations ops
         NumberUtilities utility
@@ -651,19 +545,22 @@ class Drawable is TextureRegion, Item2D
     bits are set to represent a particular color. This is used primarily for
     internal use and should not be needed by most users.
     */
-    action SetColor(number colorValue)
-        EnableCustomColor()
-        Array<number> vertices = GetVertices()
-
-        vertices:Set(C1, colorValue)
-        vertices:Set(C2, colorValue)
-        vertices:Set(C3, colorValue)
-        vertices:Set(C4, colorValue)
-    end
+//    action SetColor(number colorValue)
+//        EnableCustomColor()
+//        Array<number> vertices = GetVertices()
+//
+//        vertices:Set(C1, colorValue)
+//        vertices:Set(C2, colorValue)
+//        vertices:Set(C3, colorValue)
+//        vertices:Set(C4, colorValue)
+//    end
 
     /*
     This action returns the color filter stored in the Drawable. To see if it's
-    currently in use, use the UsingCustomColor action.
+    currently in use, use the UsingCustomColor action. If the Drawable is using
+    a different type of filter (such as a Gradient) this will return undefined.
+    To get whatever filter the Drawable is using regardless of type, use the
+    GetColorGroup action.
 
     Attribute: Example
 
@@ -688,12 +585,19 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action GetColor returns Color
-        return color
+        if colorGroup is Color
+            Color color = cast(Color, colorGroup)
+            return color
+        end
+        return undefined
     end
 
     /*
     This action returns the gradient stored in the Drawable. To see if it's
-    currently in use, use the UsingCustomGradient action.
+    currently in use, use the UsingCustomGradient action. If the Drawable is using
+    a different type of filter (such as a Color) this will return undefined.
+    To get whatever filter the Drawable is using regardless of type, use the
+    GetColorGroup action.
 
     Attribute: Example
 
@@ -723,7 +627,44 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action GetGradient returns Gradient
-        return gradient
+        if colorGroup is Gradient
+            Gradient gradient = cast(Gradient, colorGroup)
+            return gradient
+        end
+        return undefined
+    end
+
+    /*
+    This action returns the color filter stored in the Drawable. The returned
+    value is a ColorGroup object, which describes how the color is mapped to the
+    four corners of the Drawable. If no filter is in use, this action will
+    return undefined.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Graphics.ColorGroup
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                drawable:SetColor(0, 1, 1, 1)
+                ColorGroup group = drawable:GetColorGroup()
+            end
+
+        end
+    */
+    action GetColorGroup returns ColorGroup
+        return colorGroup
     end
 
     /*
@@ -878,7 +819,10 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
-    This action returns whether or not the Drawable has a custom color filter.
+    This action returns whether or not the Drawable has a custom Color filter.
+    This will return false if a different type of filter, such as a Gradient, is
+    in use. To check for a filter regardless of type, use the UsingCustomTint
+    action.
 
     Attribute: Example
 
@@ -907,11 +851,14 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action UsingCustomColor returns boolean
-        return useCustomColor
+        return colorGroup is Color
     end
 
     /*
     This action returns whether or not the Drawable is using a gradient.
+    This will return false if a different type of filter, such as a Gradient, is
+    in use. To check for a filter regardless of type, use the UsingCustomTint
+    action.
 
     Attribute: Example
 
@@ -943,12 +890,12 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action UsingCustomGradient returns boolean
-        return useCustomGradient
+        return colorGroup is Gradient
     end
 
     /*
-    This action returns whether or not the Drawable is being tinted by either a
-    color filter or a gradient.
+    This action returns whether or not the Drawable is being tinted by a
+    ColorGroup, such as a Color or Gradient.
 
     Attribute: Example
 
@@ -986,7 +933,7 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action UsingCustomTint returns boolean
-        return useCustomColor or useCustomGradient
+        return colorGroup not= undefined
     end
 
     /*
@@ -1020,7 +967,7 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action UseDefaultColor
-        DisableCustomTint()
+        colorGroup = undefined
     end
 
     /*
@@ -1342,7 +1289,7 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadLine(integer x, integer y, Color color)
+    action LoadLine(integer x, integer y, ColorGroup color)
         Texture temp
         temp:LoadLine(x, y)
         Load(temp)
@@ -1407,7 +1354,7 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadRectangle(integer width, integer height, Color color)
+    action LoadRectangle(integer width, integer height, ColorGroup color)
         Texture temp
         temp:LoadRectangle(width, height)
         Load(temp)
@@ -1472,47 +1419,11 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadFilledRectangle(integer width, integer height, Color color)
+    action LoadFilledRectangle(integer width, integer height, ColorGroup color)
         Texture temp
         temp:LoadFilledRectangle(width, height)
         Load(temp)
         SetColor(color)
-    end
-
-    /*
-    This action will create a new Texture with a solid rectangle with the given 
-    width and height and apply a gradient to it. This texture is then loaded 
-    into the Drawable.
-
-    Attribute: Example
-
-            use Libraries.Game.Graphics.Drawable
-            use Libraries.Game.Graphics.Color
-            use Libraries.Game.Graphics.Gradient
-            use Libraries.Game.Game
-
-            class Main is Game
-                
-                action Main
-                    StartGame()
-                end
-
-                action CreateGame
-                    Color color
-                    Gradient gradient
-                    gradient:Set(color:Red(), color:White(), color:Green(), color:Blue())
-                    Drawable rectangle
-                    rectangle:LoadFilledRectangle(200, 100, gradient)
-                    rectangle:SetPosition(50, 50)
-                    Add(rectangle)
-                end
-            end
-    */
-    action LoadFilledRectangle(integer width, integer height, Gradient gradient)
-        Texture temp
-        temp:LoadFilledRectangle(width, height)
-        Load(temp)
-        SetGradient(gradient)
     end
 
     /*
@@ -1575,7 +1486,7 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadCircle(integer radius, Color color)
+    action LoadCircle(integer radius, ColorGroup color)
         Texture temp
         temp:LoadCircle(radius)
         Load(temp)
@@ -1645,49 +1556,11 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadFilledCircle(integer radius, Color color)
+    action LoadFilledCircle(integer radius, ColorGroup color)
         Texture temp
         temp:LoadFilledCircle(radius)
         Load(temp)
         SetColor(color)
-        Circle circle
-        circle:SetRadius(radius)
-        SetShape(circle)
-    end
-
-    /*
-    This action will create a new Texture with a solid circle with the given
-    gradient applied to it. This texture is then loaded into the Drawable.
-
-    Attribute: Example
-
-            use Libraries.Game.Graphics.Drawable
-            use Libraries.Game.Graphics.Color
-            use Libraries.Game.Graphics.Gradient
-            use Libraries.Game.Game
-
-            class Main is Game
-                
-                action Main
-                    StartGame()
-                end
-
-                action CreateGame
-                    Color color
-                    Gradient gradient
-                    gradient:Set(color:Blue(), color:Cyan(), color:Purple(), color:Teal())
-                    Drawable circle
-                    circle:LoadFilledCircle(75, gradient)
-                    circle:SetPosition(50, 50)
-                    Add(circle)
-                end
-            end
-    */
-    action LoadFilledCircle(integer radius, Gradient gradient)
-        Texture temp
-        temp:LoadFilledCircle(radius)
-        Load(temp)
-        SetGradient(gradient)
         Circle circle
         circle:SetRadius(radius)
         SetShape(circle)
@@ -1767,61 +1640,11 @@ class Drawable is TextureRegion, Item2D
                 end
             end
     */
-    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, ColorGroup color)
         Texture temp
         temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
         Load(temp)
         SetColor(color)
-        Vector2 vertex1
-        Vector2 vertex2
-        Vector2 vertex3
-        vertex1:Set(x1, y1)
-        vertex2:Set(x2, y2)
-        vertex3:Set(x3, y3)
-        Array<Vector2> vertices
-        vertices:Add(vertex1)
-        vertices:Add(vertex2)
-        vertices:Add(vertex3)
-        Polygon polygon
-        polygon:Set(vertices, 3)
-        SetShape(polygon)
-    end
-
-    /*
-    This action will create a new Texture with a solid triangle using the
-    provided gradient. The triangle is made of the points identified by the 
-    three given points. The three points are relative to the origin of the 
-    Drawable. This texture is then loaded into the Drawable.
-
-    Attribute: Example
-
-            use Libraries.Game.Graphics.Drawable
-            use Libraries.Game.Graphics.Color
-            use Libraries.Game.Graphics.Gradient
-            use Libraries.Game.Game
-
-            class Main is Game
-                
-                action Main
-                    StartGame()
-                end
-
-                action CreateGame
-                    Color color
-                    Gradient gradient
-                    gradient:Set(color:Red(), color:Red(), color:Blue(), color:Blue())
-                    Drawable triangle
-                    triangle:LoadFilledTriangle(0, 0, 200, 200, 400, 0, gradient)
-                    triangle:SetPosition(50, 50)
-                    Add(triangle)
-                end
-            end
-    */
-    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Gradient gradient)
-        Texture temp
-        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
-        Load(temp)
-        SetGradient(gradient)
         Vector2 vertex1
         Vector2 vertex2
         Vector2 vertex3

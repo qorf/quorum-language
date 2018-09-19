@@ -1,6 +1,10 @@
 package Libraries.Interface.Layouts
 
 use Libraries.Language.Support.CompareResult
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Texture
 
 class LayoutProperties 
     
@@ -26,6 +30,21 @@ class LayoutProperties
     number rightPadding = 0
     number bottomPadding = 0
     number topPadding = 0
+
+    ColorGroup backgroundColor = undefined
+    ColorGroup borderColor = undefined
+    number borderThickness = 0
+    // Border edging value here -- bitmask, pseudo-enum, object?
+    
+    Font font = undefined
+    integer baseFontSize = 14
+    Color fontColor
+    text labelText = ""
+
+    // For simplicity, may want to replace this with a Drawable instead, or have
+    // helper actions for using a Drawable for this. Texture has performance
+    // advantages, however.
+    Texture icon = undefined
 
     number zoomFactor = 1.0
 
@@ -243,6 +262,38 @@ class LayoutProperties
 
     action GetTopPadding returns number
         return topPadding
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        backgroundColor = color
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return backgroundColor
+    end
+
+    action SetBorderColor(ColorGroup color)
+        borderColor = color
+    end
+
+    action GetBorderColor returns ColorGroup
+        return borderColor
+    end
+
+    action SetBorderThickness(number thickness)
+        borderThickness = thickness
+    end
+
+    action GetBorderThickness returns number
+        return borderThickness
+    end
+
+    action SetLabelText(text value)
+        labelText = value
+    end
+
+    action GetLabelText returns text
+        return labelText
     end
 
     action SetZoomFactor(number zoom)

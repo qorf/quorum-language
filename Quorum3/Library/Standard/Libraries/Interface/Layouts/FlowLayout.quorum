@@ -29,6 +29,10 @@ class FlowLayout is Layout
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= container:GetCurrentLayoutProperties()
+                container:LoadGraphics(containerProperties)
+            end
+
             if containerProperties not= undefined
                 if containerProperties:GetPercentageWidth() = containerProperties:FIT_CONTENTS
                     integer i = 0
@@ -81,6 +85,10 @@ class FlowLayout is Layout
                 Control control = cast(Control, item)
 
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+                if properties not= control:GetCurrentLayoutProperties()
+                    control:LoadGraphics(properties)
+                end
 
                 if properties not= undefined and (ignoreHidden = false or control:IsShowing())
 

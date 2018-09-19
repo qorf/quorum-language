@@ -289,23 +289,23 @@ class LabelBoxToggleView is Item2D, ToggleView
 
         if open
             if background:UsingCustomGradient()
-                background:SetGradient(selectedBackgroundGradient)
+                background:SetColor(selectedBackgroundGradient)
             else
                 background:SetColor(selectedBackgroundColor)
             end
             if border:UsingCustomGradient()
-                border:SetGradient(selectedBorderGradient)
+                border:SetColor(selectedBorderGradient)
             else
                 border:SetColor(selectedBorderColor)
             end
         else
             if background:UsingCustomGradient()
-                background:SetGradient(backgroundGradient)
+                background:SetColor(backgroundGradient)
             else
                 background:SetColor(backgroundColor)
             end
             if border:UsingCustomGradient()
-                border:SetGradient(borderGradient)
+                border:SetColor(borderGradient)
             else
                 border:SetColor(borderColor)
             end
