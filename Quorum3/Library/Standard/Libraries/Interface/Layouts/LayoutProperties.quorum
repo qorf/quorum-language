@@ -10,6 +10,7 @@ class LayoutProperties
     
     public number FILL = -1.0
     public number FIT_CONTENTS = -2.0
+    public number FIT_FONT = -3.0
 
     number xPercentage = 0.0
     number yPercentage = 0.0
@@ -61,6 +62,10 @@ class LayoutProperties
     boolean setY = false
     boolean setWidth = false
     boolean setHeight = false
+
+    on create
+        fontColor = fontColor:Black()
+    end
 
     action SetPercentageX(number x)
         xPercentage = x
@@ -286,6 +291,42 @@ class LayoutProperties
 
     action GetBorderThickness returns number
         return borderThickness
+    end
+
+    /*
+    Font font = undefined
+    integer baseFontSize = 14
+    Color fontColor
+    */
+
+    action SetFont(Font font)
+        me:font = font
+        if font not= undefined
+            font:SetSize(cast(integer, baseFontSize * zoomFactor))
+        end
+    end
+
+    action GetFont returns Font
+        return font
+    end
+
+    action SetFontSize(integer size)
+        baseFontSize = size
+        if font not= undefined
+            font:SetSize(cast(integer, baseFontSize * zoomFactor))
+        end
+    end
+
+    action GetFontSize returns integer
+        return baseFontSize
+    end
+
+    action SetFontColor(Color color)
+        fontColor = color
+    end
+
+    action GetFontColor returns Color
+        return fontColor
     end
 
     action SetLabelText(text value)

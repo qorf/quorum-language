@@ -30,7 +30,7 @@ class LabelBoxView is Item2D, ControlView
     Drawable background
     Drawable clickEffect
     Drawable mouseOverEffect
-    Label label
+//    Label label
 
     BitwiseOperations bits
 
@@ -83,7 +83,7 @@ class LabelBoxView is Item2D, ControlView
         Add(background)
 
         InitializeEffects()
-        SetText(labelText)
+//        SetText(labelText)
     end
 
 //    action Initialize(Gradient backgroundGradient, Color borderColor, text labelText)
@@ -133,31 +133,33 @@ class LabelBoxView is Item2D, ControlView
 
         mouseOverEffect:LoadFilledRectangle(1, 1, mouseOverGradient)
 
-        Add(label)
+//        Add(label)
     end
 
     action SetText(text newText)
-        label:SetText(newText)
+//        label:SetText(newText)
         
-        number labelWidth = label:GetWidth()
-        number labelHeight = label:GetHeight()
+//        number labelWidth = label:GetWidth()
+//        number labelHeight = label:GetHeight()
 
         // Adjust the label upwards if it takes multiple lines.
-        number yOffset = labelHeight - label:GetLineHeight()
+//        number yOffset = labelHeight - label:GetLineHeight()
 
-        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
+//        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
     end
 
     action GetText returns text
-        return label:GetText()
+//        return label:GetText()
+        return ""
     end
 
     action SetFont(Font font)
-        label:SetFont(font)
+//        label:SetFont(font)
     end
 
     action GetFont returns Font
-        return label:GetFont()
+//        return label:GetFont()
+        return undefined
     end
 
     action SetBorderThickness(integer thickness)
@@ -233,9 +235,11 @@ class LabelBoxView is Item2D, ControlView
     end
 
     action UpdateSize(number width, number height)
+        output "Setting size " + width + ", " + height
         if background:GetTexture() = undefined
             return now
         end
+        output "Beginning..."
 
         Texture texture = undefined
 
@@ -282,9 +286,9 @@ class LabelBoxView is Item2D, ControlView
         mouseOverEffect:SetPosition(backgroundX, backgroundY)
         mouseOverEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
-        label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())
+//        label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())
         // Force the label to readjust to its new size.
-        SetText(label:GetText())
+//        SetText(label:GetText())
     end
 
     action UpdatePosition(number x, number y)

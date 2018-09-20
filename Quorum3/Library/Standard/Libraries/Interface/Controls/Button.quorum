@@ -8,22 +8,41 @@ use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
 use Libraries.System.File
 use Libraries.Interface.Views.ImageControlView
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
 
 class Button is Control
 
     Behavior activationBehavior = undefined
+    Label label
+    LayoutProperties labelProperties
 
     on create
+//        FlowLayout flowLayout
+//        SetLayout(flowLayout)
+
         LayoutProperties properties = GetDefaultLayoutProperties()
 //        properties:SetPercentageWidth(properties:FIT_CONTENTS)
 //        properties:SetPercentageHeight(properties:FIT_CONTENTS)
         properties:SetWidthOffset(100)
+//        properties:SetPercentageHeight(properties:FIT_FONT)
         properties:SetHeightOffset(50)
+        Font font
+        properties:SetFont(font)
+        properties:SetFontSize(16)
+
+//        labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
+//        labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
+//        labelProperties:SetLeftPadding(5)
+//        labelProperties:SetRightPadding(5)
+//        labelProperties:SetTopPadding(5)
+//        labelProperties:SetBottomPadding(5)
 
         Color color
         Gradient gradient
@@ -34,7 +53,7 @@ class Button is Control
         properties:SetBackgroundColor(gradient)
         properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
-        SetName("Button")
+        SetName("This is a Long Label")
 
         SetInputGroup("Button")
         SetFocusable(true)
@@ -202,14 +221,17 @@ class Button is Control
             return now
         end
 
+        // TO-DO: Remove/Dispose old Graphics here.
+
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()
         number borderThickness = properties:GetBorderThickness()
         text labelText = properties:GetLabelText()
 
         Color color
+        Font font = properties:GetFont()
 
-        if labelText not= ""
+        if font not= undefined and labelText not= ""
             LabelBoxView labelBoxView
             if background = undefined
                 background = color:CustomColor(0, 0, 0, 0)
@@ -219,10 +241,17 @@ class Button is Control
             end
             
             labelBoxView:SetBorderThickness(cast(integer, borderThickness))
-            labelBoxView:Initialize(background, border, labelText)
-            labelBoxView:SetName(labelText)
+            labelBoxView:Initialize(background, border)
             SetView2D(labelBoxView)
-            labelBoxView:SetSize(GetWidth(), GetHeight())
+
+            Label newLabel
+            label = newLabel
+            label:SetText("Hello world!")
+//            label:SetFont(font)
+//            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+//            label:SetText(labelText)
+//            label:AddLayoutProperties(labelProperties)
+//            Add(label)
         end
     end
 end

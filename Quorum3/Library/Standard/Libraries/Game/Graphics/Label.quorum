@@ -5,6 +5,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Painter2D
 
 /*
@@ -33,6 +34,10 @@ Attribute: Example
 class Label is Control
 
     on create
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetPercentageWidth(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetPercentageHeight(defaultProperties:FIT_CONTENTS)
+
         SetName("Label")
         Font font
         if font:FontIsAvailable("Arial")

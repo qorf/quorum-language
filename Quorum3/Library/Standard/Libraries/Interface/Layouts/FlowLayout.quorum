@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.MenuBar
+use Libraries.Game.Graphics.Font
 
 class FlowLayout is Layout
 
@@ -74,6 +75,16 @@ class FlowLayout is Layout
                     containerWidth = totalWidthOffset / totalWidthPercentage
                     container:SetWidth(containerWidth)
                 end
+
+                if containerProperties:GetPercentageHeight() = containerProperties:FIT_FONT
+                    Font font = containerProperties:GetFont()
+                    if font not= undefined
+                        number height = font:GetLineHeight()
+                        if container:GetHeight() not= height
+                            container:SetHeight(height)
+                        end
+                    end
+                end
             end
         end
 
@@ -83,6 +94,7 @@ class FlowLayout is Layout
 
             if item is Control
                 Control control = cast(Control, item)
+                output "Control: " + control:GetName()
 
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
@@ -91,6 +103,7 @@ class FlowLayout is Layout
                 end
 
                 if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                    output "Laying out " + control:GetName() + " using properties."
 
                     number width = 0
                     number leftPadding = properties:GetLeftPadding()
@@ -129,7 +142,18 @@ class FlowLayout is Layout
                             // Set the control's width and allow it to set its own height via its contents.
                             // Setting the width triggers its layout to resize.
                             control:SetWidth(width)
+                        elseif properties:GetPercentageHeight() = properties:FIT_FONT
+                            Font font = properties:GetFont()
+                            output "Fit font in Flow for " + control:GetName()
+                            if font not= undefined
+                                font:LoadFont("Arial")
+                                font:SetSize(properties:GetFontSize())
+                                number height = font:GetLineHeight()
+                                control:SetSize(width, height)
+                                output "Setting control size to " + width + ", " + height
+                            end
                         else
+                            output "Didn't fit font for " + control:GetName() + ", value was " + properties:GetPercentageHeight() + ", FIT_FONT is " + properties:FIT_FONT
                             control:SetSize(width, containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
                         end
                     end
