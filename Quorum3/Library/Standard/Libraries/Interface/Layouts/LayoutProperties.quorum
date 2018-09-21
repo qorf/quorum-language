@@ -4,7 +4,8 @@ use Libraries.Language.Support.CompareResult
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Drawable
 
 class LayoutProperties 
     
@@ -42,10 +43,8 @@ class LayoutProperties
     Color fontColor
     text labelText = ""
 
-    // For simplicity, may want to replace this with a Drawable instead, or have
-    // helper actions for using a Drawable for this. Texture has performance
-    // advantages, however.
-    Texture icon = undefined
+    TextureRegion icon = undefined
+    ColorGroup iconColor = undefined
 
     number zoomFactor = 1.0
 
@@ -63,8 +62,16 @@ class LayoutProperties
     boolean setWidth = false
     boolean setHeight = false
 
+    /*
+    Boolean indicating whether the Control which uses this should re-render its
+    graphical content. This can happen when a graphical component changes, like
+    changing the Font, or if the properties are used for the first time.
+    */
+    boolean needsRendering = true
+
     on create
         fontColor = fontColor:Black()
+        iconColor = fontColor:White()
     end
 
     action SetPercentageX(number x)
@@ -271,6 +278,7 @@ class LayoutProperties
 
     action SetBackgroundColor(ColorGroup color)
         backgroundColor = color
+        needsRendering = true
     end
 
     action GetBackgroundColor returns ColorGroup
@@ -279,6 +287,7 @@ class LayoutProperties
 
     action SetBorderColor(ColorGroup color)
         borderColor = color
+        needsRendering = true
     end
 
     action GetBorderColor returns ColorGroup
@@ -287,23 +296,22 @@ class LayoutProperties
 
     action SetBorderThickness(number thickness)
         borderThickness = thickness
+        needsRendering = true
     end
 
     action GetBorderThickness returns number
         return borderThickness
     end
 
-    /*
-    Font font = undefined
-    integer baseFontSize = 14
-    Color fontColor
-    */
-
     action SetFont(Font font)
         me:font = font
         if font not= undefined
             font:SetSize(cast(integer, baseFontSize * zoomFactor))
+            if fontColor not= undefined
+                font:SetColor(fontColor)
+            end
         end
+        needsRendering = true
     end
 
     action GetFont returns Font
@@ -315,6 +323,7 @@ class LayoutProperties
         if font not= undefined
             font:SetSize(cast(integer, baseFontSize * zoomFactor))
         end
+        needsRendering = true
     end
 
     action GetFontSize returns integer
@@ -323,6 +332,9 @@ class LayoutProperties
 
     action SetFontColor(Color color)
         fontColor = color
+        if font not= undefined
+            font:SetColor(color)
+        end
     end
 
     action GetFontColor returns Color
@@ -331,18 +343,52 @@ class LayoutProperties
 
     action SetLabelText(text value)
         labelText = value
+        needsRendering = true
     end
 
     action GetLabelText returns text
         return labelText
     end
 
+    action SetIcon(TextureRegion texture)
+        icon = texture
+        needsRendering = true
+    end
+
+    action SetIcon(Drawable drawable)
+        icon = drawable
+        iconColor = drawable:GetColor()
+        needsRendering = true
+    end
+
+    action GetIcon returns TextureRegion
+        return icon
+    end
+
+    action SetIconColor(ColorGroup color)
+        iconColor = color
+        needsRendering = true
+    end
+
+    action GetIconColor returns ColorGroup
+        return iconColor
+    end
+
     action SetZoomFactor(number zoom)
         zoomFactor = zoom
+        needsRendering = true
     end
 
     action GetZoomFactor returns number
         return zoomFactor
+    end
+
+    action NeedsRendering returns boolean
+        return needsRendering
+    end
+
+    action SetRenderingFlag(boolean shouldRender)
+        needsRendering = shouldRender
     end
 
     action Compare(Object object) returns CompareResult

@@ -21,6 +21,7 @@ class Button is Control
 
     Behavior activationBehavior = undefined
     Label label = undefined
+    Drawable icon = undefined
     LayoutProperties labelProperties
 
     on create
@@ -219,7 +220,25 @@ class Button is Control
             return now
         end
 
-        // TO-DO: Remove/Dispose old Graphics here.
+        LayoutProperties oldProperties = GetCurrentLayoutProperties()
+        if oldProperties not= properties
+            oldProperties:SetRenderingFlag(true)
+            parent:Control:currentProperties = properties
+            
+            if icon not= undefined
+                icon:Dispose()
+                Remove(icon)
+                icon = undefined
+            end
+
+            if label not= undefined
+                label:Dispose()
+                Remove(label)
+                label = undefined
+            end
+        end
+
+        properties:SetRenderingFlag(false)
 
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()
@@ -228,6 +247,7 @@ class Button is Control
 
         Color color
         Font font = properties:GetFont()
+        TextureRegion iconTexture = properties:GetIcon()
 
         if font not= undefined and labelText not= ""
             LabelBoxView labelBoxView
@@ -242,20 +262,45 @@ class Button is Control
             labelBoxView:Initialize(background, border)
             SetView2D(labelBoxView)
 
+            if icon not= undefined
+                icon:Load(iconTexture)
+            else
+                Drawable drawable
+                icon = drawable
+                drawable:Load(iconTexture)
+                drawable:SetColor(properties:GetIconColor())
+                Add(drawable)
+            end
+
             if label = undefined
                 Label newLabel
+                label = newLabel
                 LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
                 labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
                 labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
-                labelProperties:SetLeftPadding(50)
-                labelProperties:SetRightPadding(50)
-                label = newLabel
+                labelProperties:SetLeftPadding(7)
+                labelProperties:SetRightPadding(7)
+                labelProperties:SetTopPadding(4)
+                labelProperties:SetBottomPadding(7)
                 label:SetFont(font)
 //                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
                 label:SetText(labelText)
 //                label:AddLayoutProperties(labelProperties)
                 Add(label)
             end
+        elseif iconTexture not= undefined
+            ImageControlView content
+            content:Load(iconTexture)
+            content:SetColor(properties:GetIconColor())
+
+            // Temporary measure: Set properties to match dimensions of loaded
+            // texture region. 
+            properties:SetPercentageWidth(0)
+            properties:SetPercentageHeight(0)
+            properties:SetWidthOffset(iconTexture:GetRegionWidth())
+            properties:SetHeightOffset(iconTexture:GetRegionHeight())
+
+            SetView2D(content)
         end
     end
 end

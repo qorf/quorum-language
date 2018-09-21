@@ -31,7 +31,7 @@ class FlowLayout is Layout
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
-            if containerProperties not= container:GetCurrentLayoutProperties()
+            if containerProperties:NeedsRendering()
                 container:LoadGraphics(containerProperties)
             end
 
@@ -101,7 +101,7 @@ class FlowLayout is Layout
 
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
-                if properties not= control:GetCurrentLayoutProperties()
+                if properties:NeedsRendering()
                     control:LoadGraphics(properties)
                 end
 
@@ -111,6 +111,8 @@ class FlowLayout is Layout
                     number width = 0
                     number leftPadding = properties:GetLeftPadding()
                     number rightPadding = properties:GetRightPadding()
+                    number topPadding = properties:GetTopPadding()
+                    number bottomPadding = properties:GetBottomPadding()
 
                     /*
                     Boolean used to ensure we don't perform redundant resizing
@@ -168,11 +170,15 @@ class FlowLayout is Layout
                         x = leftPadding
                     end
 
-                    if currentY - control:GetHeight() < nextY
-                        nextY = currentY - control:GetHeight()
+                    number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
+
+                    if verticalSpace < nextY
+                        nextY = verticalSpace
                     end
 
-                    control:SetPosition(x, currentY - control:GetHeight())
+                    output "Positioning " + control:GetName() + " at " + x + ", " + (currentY - control:GetHeight()) + " -- leftPadding = " + leftPadding
+                    output "currentY = " + currentY + ", control height = " + control:GetHeight()
+                    control:SetPosition(x, currentY - control:GetHeight() - topPadding)
                     x = x + control:GetWidth() + rightPadding
                 end
             end
@@ -196,17 +202,35 @@ class FlowLayout is Layout
             repeat while counter < items:GetSize()
                 Item2D item = items:Get(counter)
 
-                if x + item:GetWidth() > containerWidth
+                number leftPadding = 0
+                number rightPadding = 0
+                number topPadding = 0
+                number bottomPadding = 0
+
+                if item is Control
+                    Control control = cast(Control, item)
+                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                    if properties not= undefined
+                        leftPadding = properties:GetLeftPadding()
+                        rightPadding = properties:GetRightPadding()
+                        topPadding = properties:GetTopPadding()
+                        bottomPadding = properties:GetBottomPadding()
+                    end
+                end
+
+                x = x + leftPadding
+
+                if x + item:GetWidth() + rightPadding > containerWidth
                     currentY = nextY
-                    x = 0
+                    x = leftPadding
                 end
 
-                if currentY - item:GetHeight() < nextY
-                    nextY = currentY - item:GetHeight()
+                if currentY - item:GetHeight() - topPadding - bottomPadding < nextY
+                    nextY = currentY - item:GetHeight() - topPadding - bottomPadding
                 end
 
-                item:SetPosition(x, currentY - item:GetHeight())
-                x = x + item:GetWidth()
+                item:SetPosition(x, currentY - item:GetHeight() - topPadding)
+                x = x + item:GetWidth() + rightPadding
 
                 counter = counter + 1
             end
