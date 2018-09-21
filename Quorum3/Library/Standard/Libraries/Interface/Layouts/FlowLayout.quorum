@@ -5,6 +5,7 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.MenuBar
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
 
 class FlowLayout is Layout
 
@@ -78,8 +79,10 @@ class FlowLayout is Layout
 
                 if containerProperties:GetPercentageHeight() = containerProperties:FIT_FONT
                     Font font = containerProperties:GetFont()
+                    output "Fitting container " + container:GetName() + " to font."
                     if font not= undefined
                         number height = font:GetLineHeight()
+                        output "Fit font size is " + height
                         if container:GetHeight() not= height
                             container:SetHeight(height)
                         end
@@ -130,7 +133,7 @@ class FlowLayout is Layout
                     elseif properties:GetPercentageWidth() = properties:FILL
                         width = containerWidth - x
                     else
-                        width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset()
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() + leftPadding + rightPadding
                     end
 
                     // When we set the size in this step, we also trigger a
@@ -158,12 +161,12 @@ class FlowLayout is Layout
                         end
                     end
 
-                    if x + leftPadding + rightPadding + control:GetWidth() > containerWidth
-                        currentY = nextY
-                        x = 0
-                    end
-
                     x = x + leftPadding
+
+                    if x + control:GetWidth() > containerWidth
+                        currentY = nextY
+                        x = leftPadding
+                    end
 
                     if currentY - control:GetHeight() < nextY
                         nextY = currentY - control:GetHeight()

@@ -20,27 +20,25 @@ use Libraries.Interface.Layouts.FlowLayout
 class Button is Control
 
     Behavior activationBehavior = undefined
-    Label label
+    Label label = undefined
     LayoutProperties labelProperties
 
     on create
-//        FlowLayout flowLayout
-//        SetLayout(flowLayout)
+        FlowLayout flowLayout
+        SetLayout(flowLayout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-//        properties:SetPercentageWidth(properties:FIT_CONTENTS)
-//        properties:SetPercentageHeight(properties:FIT_CONTENTS)
-        properties:SetWidthOffset(100)
-//        properties:SetPercentageHeight(properties:FIT_FONT)
-        properties:SetHeightOffset(50)
+        properties:SetPercentageWidth(properties:FIT_CONTENTS)
+        properties:SetPercentageHeight(properties:FIT_CONTENTS)
         Font font
+        font:LoadFont("Arial")
         properties:SetFont(font)
         properties:SetFontSize(16)
 
 //        labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
 //        labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
-//        labelProperties:SetLeftPadding(5)
-//        labelProperties:SetRightPadding(5)
+//        labelProperties:SetLeftPadding(50)
+//        labelProperties:SetRightPadding(50)
 //        labelProperties:SetTopPadding(5)
 //        labelProperties:SetBottomPadding(5)
 
@@ -53,7 +51,7 @@ class Button is Control
         properties:SetBackgroundColor(gradient)
         properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
-        SetName("This is a Long Label")
+        SetName("Button")
 
         SetInputGroup("Button")
         SetFocusable(true)
@@ -244,14 +242,20 @@ class Button is Control
             labelBoxView:Initialize(background, border)
             SetView2D(labelBoxView)
 
-            Label newLabel
-            label = newLabel
-            label:SetText("Hello world!")
-//            label:SetFont(font)
-//            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
-//            label:SetText(labelText)
-//            label:AddLayoutProperties(labelProperties)
-//            Add(label)
+            if label = undefined
+                Label newLabel
+                LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+                labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
+                labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
+                labelProperties:SetLeftPadding(50)
+                labelProperties:SetRightPadding(50)
+                label = newLabel
+                label:SetFont(font)
+//                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+                label:SetText(labelText)
+//                label:AddLayoutProperties(labelProperties)
+                Add(label)
+            end
         end
     end
 end
