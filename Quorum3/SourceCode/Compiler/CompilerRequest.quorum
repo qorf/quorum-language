@@ -40,6 +40,11 @@ class CompilerRequest
     action IsWebRequest returns boolean
         return isWebRequest
     end
+
+    action SetWebRequest(boolean value)
+        isWebRequest = value
+    end
+
     /*
         This action returns the name of a compiled version of the source code, 
         whether it is a jar file (standard mode) or a war file (web server mode).

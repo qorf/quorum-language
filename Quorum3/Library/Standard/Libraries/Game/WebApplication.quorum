@@ -3,6 +3,8 @@ package Libraries.Game
 use Libraries.Game.Application
 use Libraries.Game.Game
 use Libraries.Game.WebConfiguration
+use Libraries.Interface.AccessibilityManager
+use Libraries.Game.GameStateManager
 
 class WebApplication is Application
     
@@ -10,6 +12,11 @@ class WebApplication is Application
     Sets up the application and starts the main application loop.
     */
     action Setup(Game game)
+        GameStateManager manager
+        if manager:GetOperatingSystem():Contains("Web Browser")
+            AccessibilityManager accessibility
+            game:SetAccessibilityManager(accessibility)
+        end
         parent:Application:Setup(game)
         SetGame(game)
 
