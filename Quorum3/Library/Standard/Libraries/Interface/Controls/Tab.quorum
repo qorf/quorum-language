@@ -50,7 +50,8 @@ class Tab is ToggleButton
         icon:Hide()
 
         
-        defaultProperties:SetPercentageWidth(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetVerticalLayoutMode(defaultProperties:STANDARD)
         defaultProperties:SetPercentageHeight(1.0)
         AddLayoutProperties(defaultProperties)
 

@@ -35,8 +35,8 @@ class Label is Control
 
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-        defaultProperties:SetPercentageWidth(defaultProperties:FIT_CONTENTS)
-        defaultProperties:SetPercentageHeight(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
 
         SetName("Label")
         Font font

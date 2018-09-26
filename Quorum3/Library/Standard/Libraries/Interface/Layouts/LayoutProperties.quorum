@@ -9,9 +9,13 @@ use Libraries.Game.Graphics.Drawable
 
 class LayoutProperties 
     
-    public number FILL = -1.0
-    public number FIT_CONTENTS = -2.0
-    public number FIT_FONT = -3.0
+    public integer STANDARD = 0
+    public integer FILL = 1
+    public integer FIT_CONTENTS = 2
+    public integer FIT_FONT = 3
+
+    integer horizontalLayoutMode = STANDARD
+    integer verticalLayoutMode = STANDARD
 
     number xPercentage = 0.0
     number yPercentage = 0.0
@@ -72,6 +76,22 @@ class LayoutProperties
     on create
         fontColor = fontColor:Black()
         iconColor = fontColor:White()
+    end
+
+    action SetHorizontalLayoutMode(integer mode)
+        horizontalLayoutMode = mode
+    end
+
+    action GetHorizontalLayoutMode returns integer
+        return horizontalLayoutMode
+    end
+
+    action SetVerticalLayoutMode(integer mode)
+        verticalLayoutMode = mode
+    end
+
+    action GetVerticalLayoutMode returns integer
+        return verticalLayoutMode
     end
 
     action SetPercentageX(number x)

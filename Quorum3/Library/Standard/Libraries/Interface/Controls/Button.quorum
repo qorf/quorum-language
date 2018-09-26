@@ -29,8 +29,8 @@ class Button is Control
         SetLayout(flowLayout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetPercentageWidth(properties:FIT_CONTENTS)
-        properties:SetPercentageHeight(properties:FIT_CONTENTS)
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_FONT)
         Font font
         font:LoadFont("Arial")
         properties:SetFont(font)
@@ -262,22 +262,25 @@ class Button is Control
             labelBoxView:Initialize(background, border)
             SetView2D(labelBoxView)
 
-            if icon not= undefined
-                icon:Load(iconTexture)
-            else
-                Drawable drawable
-                icon = drawable
-                drawable:Load(iconTexture)
-                drawable:SetColor(properties:GetIconColor())
-                Add(drawable)
+            if iconTexture not= undefined
+                if icon not= undefined
+                    icon:Load(iconTexture)
+                    icon:SetColor(properties:GetIconColor())
+                else
+                    Drawable drawable
+                    icon = drawable
+                    drawable:Load(iconTexture)
+                    drawable:SetColor(properties:GetIconColor())
+                    Add(drawable)
+                end
             end
 
             if label = undefined
                 Label newLabel
                 label = newLabel
                 LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
-                labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
-                labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
+                labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+                labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
                 labelProperties:SetLeftPadding(7)
                 labelProperties:SetRightPadding(7)
                 labelProperties:SetTopPadding(4)

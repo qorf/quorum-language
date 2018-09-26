@@ -48,8 +48,8 @@ class TreeItem is Control
         layout = flow
 
         LayoutProperties itemStructureProperties
-        itemStructureProperties:SetPercentageWidth(itemStructureProperties:FIT_CONTENTS)
-        itemStructureProperties:SetPercentageHeight(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_CONTENTS)
 
         itemStructure:AddLayoutProperties(itemStructureProperties)
         itemStructure:SetLayout(layout)
