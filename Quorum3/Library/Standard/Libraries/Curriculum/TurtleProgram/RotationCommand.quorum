@@ -1,71 +1,63 @@
 package Libraries.Curriculum.TurtleProgram
 
+use Libraries.Sound.Audio
+
 class RotationCommand is Command
     
-    public integer LEFT = 1
-    public integer RIGHT = -1
-    integer direction = 0
-    private boolean isRotating = false
+    Turtle turtle = undefined
+    boolean turnLeft = true
+    Audio audio = undefined
+    boolean finished = false
 
-    /*
-        This action sets the direction field to the LEFT constant(1).
+    number rotationSpeed = 0
+    number progress = 0
+    number target = 90
 
-        Attribute: Example
-        RotationCommand rotation
-        rotation:TurnLeft()
-    */
- 
-    action TurnLeft
-        direction = LEFT
+    action SetTurnLeft(boolean left)
+        turnLeft = left
     end
 
-    /*
-        This action sets the direction field to the RIGHT constant(-1).
+    action Start(Turtle turtle)
+        me:turtle = turtle
+        rotationSpeed = (turtle:GetSpeed() / turtle:GetPixelsPerSquare()) * 90
 
-        Attribute: Example
-        RotationCommand rotation
-        rotation:TurnRight()
-    */
- 
-    action TurnRight
-        direction = RIGHT
+        if turnLeft
+            audio = turtle:GetTurnLeftAudio()
+            turtle:SetDirection((turtle:GetDirection() + 1) mod 4)
+        else
+            audio = turtle:GetTurnRightAudio()
+            integer direction = turtle:GetDirection() - 1
+            if direction < 0
+                direction = 3
+            end
+            turtle:SetDirection(direction)
+        end
+
+        audio:Play()
     end
 
-    /*
-        This action returns the direction field.
+    action Update(number seconds)
+        if finished
+            return now
+        end
+        
+        number toRotate = rotationSpeed * seconds
+        if progress + toRotate > target
+            toRotate = target - progress
+            finished = true
+        end
 
-        Attribute: Example
-        RotationCommand rotation
-        rotation:GetDirection()
-    */
- 
-    action GetDirection returns integer
-        return direction
+        progress = progress + toRotate
+
+        if turnLeft
+            toRotate = -toRotate
+        end
+
+        turtle:Rotate(toRotate)
     end
 
-    /*
-        This action returns the boolean of the isRotating field.
-
-        Attribute: Example
-        RotationCommand rotation
-        rotation:IsRotating()
-    */
- 
-    action IsRotating() returns boolean
-        return isRotating
+    action IsFinished returns boolean
+        return finished and audio:IsPlaying() = false
     end
 
-    /*
-        This action sets the isRotating field to boolean provided.
-
-        Attribute: Parameter rotating The boolean value to be assigned to the isRotating field.
-
-        Attribute: Example
-        RotationCommand rotation
-        rotation:SetIsRotating(true)
-    */
- 
-    action SetIsRotating(boolean rotating)
-        isRotating = rotating
-    end
 end

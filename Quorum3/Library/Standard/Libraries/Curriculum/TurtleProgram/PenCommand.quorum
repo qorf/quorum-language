@@ -1,51 +1,32 @@
 package Libraries.Curriculum.TurtleProgram
 
+use Libraries.Sound.Audio
+
 class PenCommand is Command
 
+    Audio audio = undefined
     boolean penDown = true
 
-    /*
-        This action sets the penDown boolean to false.
-
-        Attribute: Example
-        PenCommand currentPen
-        currentPen:penUp()
-    */ 
-
-    action PenUp
-        penDown = false
+    action SetPenDown(boolean pen)
+        penDown = pen
     end
 
-    /*
-        This action sets the penDown boolean to true.
+    action Start(Turtle turtle)
+        if penDown
+            audio = turtle:GetPenDownAudio()
+        else
+            audio = turtle:GetPenUpAudio()
+        end
 
-        Attribute: Example
-        PenCommand currentPen
-        currentPen:penDown()
-    */ 
-
-    action PenDown
-        penDown = true
+        turtle:SetPenDown(penDown)
+        audio:Play()
     end
 
-    /*
-        This returns the current value of the penDown boolean.
-
-        Attribute: Example
-        PenCommand currentPen
-        currentPen:IsPenDown()
-    */
- 
-    action IsPenDown returns boolean
-        return penDown
+    action Update(number seconds)
     end
 
-    /*
-        This action sets the value for the music loop boolean.
-
-        Attribute: Example
-        PenCommand currentPen
-        currentPen:SetMusicLoop(true)
-    */
+    action IsFinished returns boolean
+        return audio:IsPlaying() = false
+    end
 
 end
