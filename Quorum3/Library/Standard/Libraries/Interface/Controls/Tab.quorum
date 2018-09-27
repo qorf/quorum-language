@@ -132,7 +132,7 @@ class Tab is ToggleButton
         SetView2D(content)
 
         integer buttonHeight = cast(integer, label:GetLineHeight())
-        closeButton:Initialize(buttonHeight, buttonHeight)
+//        closeButton:Initialize(buttonHeight, buttonHeight)
         TabCloseBehavior behavior
         behavior:SetTab(me)
         closeButton:SetBehavior(behavior)

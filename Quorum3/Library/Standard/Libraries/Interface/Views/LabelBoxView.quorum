@@ -235,11 +235,9 @@ class LabelBoxView is Item2D, ControlView
     end
 
     action UpdateSize(number width, number height)
-        output "Setting size " + width + ", " + height
         if background:GetTexture() = undefined
             return now
         end
-        output "Beginning..."
 
         Texture texture = undefined
 

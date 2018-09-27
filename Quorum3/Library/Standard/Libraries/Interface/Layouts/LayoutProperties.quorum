@@ -6,13 +6,58 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Views.View2D
 
 class LayoutProperties 
     
+    /*
+    The STANDARD layout style calculates the dimensions and positions of the
+    Control using percentages of the Control's dimensions combined with static
+    pixel values. Because this is dependent on the container's size to calculate
+    the percentages, this is incompatible with container layouts that use the
+    children to determine its own size, such as FIT_CONTENTS.
+    */
     public integer STANDARD = 0
+
+    /*
+    The FILL layout style will attempt to fill the remaining width or height of
+    the container with this Control. Note that this is only effective if the
+    container's dimensions are already known independently of this element's
+    size -- for example, a FILL layout can't be effectively used if the
+    container's layout style is FIT_CONTENTS.
+    */
     public integer FILL = 1
+
+    /*
+    The FIT_CONTENTS layout style will calculate this Control's dimensions as
+    the combined total dimensions of its children elements. Because children
+    elements often need to have some concrete information about the parent's
+    dimensions, it's recommended to only use this in one of the two directions
+    (horizontally or vertically) for the Control. For example, FlowLayouts work
+    well with elements with a predetermined STANDARD horizontal layout style and
+    using FIT_CONTENTS for the vertical layout style.
+    */
     public integer FIT_CONTENTS = 2
+
+    /*
+    The FIT_FONT layout style is used to ensure a Control's height can fit the
+    Font used in this LayoutProperties, plus padding from the children elements.
+    FIT_FONT is only effective for the vertical layout style, and requires that
+    a Font is present in this LayoutProperties.
+    */
     public integer FIT_FONT = 3
+
+    /*
+    The MAINTAIN_ASPECT_RATIO layout style is used to calculate one of the
+    dimensions of the Control relative to the other dimension. For example, it
+    can be used to ensure that the width of a Control is always 120% of the
+    height. This style can only be used to calculate one of the two dimensions
+    (width or height) at a time. For example, if the horizontal layout style is
+    MAINTAIN_ASPECT_RATIO, the vertical layout style must be different, such as
+    using the STANDARD style.
+    */
+    public integer MAINTAIN_ASPECT_RATIO = 4
 
     integer horizontalLayoutMode = STANDARD
     integer verticalLayoutMode = STANDARD
@@ -49,6 +94,8 @@ class LayoutProperties
 
     TextureRegion icon = undefined
     ColorGroup iconColor = undefined
+
+    View2D view = undefined
 
     number zoomFactor = 1.0
 
@@ -381,6 +428,12 @@ class LayoutProperties
         needsRendering = true
     end
 
+    action SetIcon(Icon icon)
+        me:icon = icon
+        iconColor = icon:GetColorGroup()
+        needsRendering = true
+    end
+
     action GetIcon returns TextureRegion
         return icon
     end
@@ -392,6 +445,15 @@ class LayoutProperties
 
     action GetIconColor returns ColorGroup
         return iconColor
+    end
+
+    action SetView2D(View2D view2D)
+        view = view2D
+        needsRendering = true
+    end
+
+    action GetView2D returns View2D
+        return view
     end
 
     action SetZoomFactor(number zoom)

@@ -14,6 +14,7 @@ use Libraries.System.File
 use Libraries.Interface.Views.ImageControlView
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 
@@ -59,129 +60,129 @@ class Button is Control
         SetAccessibilityCode(parent:Item:BUTTON)
     end
 
-    /*
-    This action sets the initial width and height of the button using its
-    default appearance, a box with a light gray gradient and a black border.
-
-    Attribute: Example
-
-        use Libraries.Interface.Button
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Button button
-                button:Initialize(200, 100)
-                Add(button)
-            end
-        end
-    */
-    action Initialize(number width, number height)
-        LabelBoxView content
-        Color color
-        Gradient gradient
-        
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        content:SetBorderThickness(2)
-        content:Initialize(gradient, color:Black())
-
-        SetView2D(content)
-        SetSize(width, height)
-    end
-
-    /*
-    This action sets the initial width and height of the button using its
-    default appearance, a box with a light gray gradient, a black border, and
-    a label with the given text.
-
-    Attribute: Example
-
-        use Libraries.Interface.Button
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Button button
-                button:Initialize(200, 100, "Quorum!")
-                Add(button)
-            end
-        end
-    */
-    action Initialize(number width, number height, text label)
-        LabelBoxView content
-        Color color
-        Gradient gradient
-        
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        content:SetBorderThickness(2)
-        content:Initialize(gradient, color:Black())
-
-        SetView2D(content)
-        SetSize(width, height)
-
-        SetName(label)
-    end
-
-    action Initialize(Drawable drawable)
-        ImageControlView content
-        content:Initialize(drawable)
-        
-        SetView2D(content)
-        SetSize(drawable:GetWidth(), drawable:GetHeight())
-    end
-
-    action Initialize(Texture texture)
-        ImageControlView content
-        content:Load(texture)
-        
-        SetView2D(content)
-        SetSize(texture:GetWidth(), texture:GetHeight())
-    end
-
-    action Initialize(TextureRegion region)
-        ImageControlView content
-        content:Load(region)
-
-        SetView2D(content)
-        SetSize(region:GetRegionWidth(), region:GetRegionHeight())
-    end
-
-    action Initialize(File file)
-        ImageControlView content
-        content:Load(file)
-
-        SetView2D(content)
-        SetSize(content:GetWidth(), content:GetHeight())
-    end
-
-    action Initialize(text filePath)
-        ImageControlView content
-        content:Load(filePath)
-
-        SetView2D(content)
-        SetSize(content:GetWidth(), content:GetHeight())
-    end
-
-    action Initialize(number width, number height, ControlView content)
-        SetView2D(content)
-        SetSize(width, height)
-    end
+//    /*
+//    This action sets the initial width and height of the button using its
+//    default appearance, a box with a light gray gradient and a black border.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Button
+//        use Libraries.Game.Game
+//
+//        class Main is Game
+//
+//            action Main
+//                StartGame()
+//            end
+//
+//            action CreateGame
+//                Button button
+//                button:Initialize(200, 100)
+//                Add(button)
+//            end
+//        end
+//    */
+//    action Initialize(number width, number height)
+//        LabelBoxView content
+//        Color color
+//        Gradient gradient
+//        
+//        Color gray = color:LightGray()
+//        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+//
+//        gradient:Set(gray, gray, lightGray, lightGray)
+//        content:SetBorderThickness(2)
+//        content:Initialize(gradient, color:Black())
+//
+//        SetView2D(content)
+//        SetSize(width, height)
+//    end
+//
+//    /*
+//    This action sets the initial width and height of the button using its
+//    default appearance, a box with a light gray gradient, a black border, and
+//    a label with the given text.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Button
+//        use Libraries.Game.Game
+//
+//        class Main is Game
+//
+//            action Main
+//                StartGame()
+//            end
+//
+//            action CreateGame
+//                Button button
+//                button:Initialize(200, 100, "Quorum!")
+//                Add(button)
+//            end
+//        end
+//    */
+//    action Initialize(number width, number height, text label)
+//        LabelBoxView content
+//        Color color
+//        Gradient gradient
+//        
+//        Color gray = color:LightGray()
+//        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+//
+//        gradient:Set(gray, gray, lightGray, lightGray)
+//        content:SetBorderThickness(2)
+//        content:Initialize(gradient, color:Black())
+//
+//        SetView2D(content)
+//        SetSize(width, height)
+//
+//        SetName(label)
+//    end
+//
+//    action Initialize(Drawable drawable)
+//        ImageControlView content
+//        content:Initialize(drawable)
+//        
+//        SetView2D(content)
+//        SetSize(drawable:GetWidth(), drawable:GetHeight())
+//    end
+//
+//    action Initialize(Texture texture)
+//        ImageControlView content
+//        content:Load(texture)
+//        
+//        SetView2D(content)
+//        SetSize(texture:GetWidth(), texture:GetHeight())
+//    end
+//
+//    action Initialize(TextureRegion region)
+//        ImageControlView content
+//        content:Load(region)
+//
+//        SetView2D(content)
+//        SetSize(region:GetRegionWidth(), region:GetRegionHeight())
+//    end
+//
+//    action Initialize(File file)
+//        ImageControlView content
+//        content:Load(file)
+//
+//        SetView2D(content)
+//        SetSize(content:GetWidth(), content:GetHeight())
+//    end
+//
+//    action Initialize(text filePath)
+//        ImageControlView content
+//        content:Load(filePath)
+//
+//        SetView2D(content)
+//        SetSize(content:GetWidth(), content:GetHeight())
+//    end
+//
+//    action Initialize(number width, number height, ControlView content)
+//        SetView2D(content)
+//        SetSize(width, height)
+//    end
 
     action SetBehavior(Behavior behavior)
         activationBehavior = behavior
@@ -249,18 +250,22 @@ class Button is Control
         Font font = properties:GetFont()
         TextureRegion iconTexture = properties:GetIcon()
 
+        View2D view = properties:GetView2D()
+
         if font not= undefined and labelText not= ""
-            LabelBoxView labelBoxView
-            if background = undefined
-                background = color:CustomColor(0, 0, 0, 0)
+            if view = undefined
+                LabelBoxView labelBoxView
+                if background = undefined
+                    background = color:CustomColor(0, 0, 0, 0)
+                end
+                if border = undefined
+                    border = color:CustomColor(0, 0, 0, 0)
+                end
+
+                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
+                labelBoxView:Initialize(background, border)
+                view = labelBoxView
             end
-            if border = undefined
-                border = color:CustomColor(0, 0, 0, 0)
-            end
-            
-            labelBoxView:SetBorderThickness(cast(integer, borderThickness))
-            labelBoxView:Initialize(background, border)
-            SetView2D(labelBoxView)
 
             if iconTexture not= undefined
                 if icon not= undefined
@@ -271,12 +276,14 @@ class Button is Control
                     icon = newIcon
                     icon:SetName("Icon")
                     icon:Load(iconTexture)
-                    icon:SetSize(100, 100)
+
                     LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
-                    // Temporary measure: Set properties to match dimensions of loaded
-                    // texture region.
-                    iconProperties:SetWidthOffset(15)
+                    iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+                    iconProperties:SetPercentageWidth(cast(number, icon:GetRegionWidth()) / icon:GetRegionHeight())
                     iconProperties:SetPercentageHeight(1.0)
+                    iconProperties:SetLeftPadding(7)
+                    iconProperties:SetTopPadding(4)
+                    iconProperties:SetBottomPadding(4)
                     icon:SetColor(properties:GetIconColor())
                     Add(icon)
                 end
@@ -310,7 +317,9 @@ class Button is Control
             properties:SetWidthOffset(iconTexture:GetRegionWidth())
             properties:SetHeightOffset(iconTexture:GetRegionHeight())
 
-            SetView2D(content)
+            view = content
         end
+
+        SetView2D(view)
     end
 end

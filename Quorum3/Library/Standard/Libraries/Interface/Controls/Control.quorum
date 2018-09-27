@@ -215,4 +215,15 @@ class Control is Item2D
     action LoadGraphics(LayoutProperties properties)
         // Does nothing by default. This should be overridden by implementing classes.
     end
+
+    /*
+    This action sets the Icon used by this Control. Different Controls use this
+    Icon differently, depending on their purpose.
+
+    Attribute: Parameter icon The Icon to use for this Control.
+    */
+    action SetIcon(Icon icon)
+        defaultProperties:SetIcon(icon)
+    end
+    
 end
