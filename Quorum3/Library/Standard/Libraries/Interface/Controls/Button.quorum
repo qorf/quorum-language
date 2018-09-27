@@ -21,7 +21,7 @@ class Button is Control
 
     Behavior activationBehavior = undefined
     Label label = undefined
-    Drawable icon = undefined
+    Icon icon = undefined
     LayoutProperties labelProperties
 
     on create
@@ -267,11 +267,18 @@ class Button is Control
                     icon:Load(iconTexture)
                     icon:SetColor(properties:GetIconColor())
                 else
-                    Drawable drawable
-                    icon = drawable
-                    drawable:Load(iconTexture)
-                    drawable:SetColor(properties:GetIconColor())
-                    Add(drawable)
+                    Icon newIcon
+                    icon = newIcon
+                    icon:SetName("Icon")
+                    icon:Load(iconTexture)
+                    icon:SetSize(100, 100)
+                    LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+                    // Temporary measure: Set properties to match dimensions of loaded
+                    // texture region.
+                    iconProperties:SetWidthOffset(15)
+                    iconProperties:SetPercentageHeight(1.0)
+                    icon:SetColor(properties:GetIconColor())
+                    Add(icon)
                 end
             end
 

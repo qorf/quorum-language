@@ -17,10 +17,6 @@ class FlowLayout is Layout
         // next line (and resets to 0).
         number x = 0
 
-        // Objects are placed such that their top edge is at the currentY.
-        number currentY = containerHeight
-        number nextY = containerHeight
-
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
         that were already fit to their contents while fitting the container
@@ -81,10 +77,30 @@ class FlowLayout is Layout
                     Font font = containerProperties:GetFont()
                     output "Fitting container " + container:GetName() + " to font."
                     if font not= undefined
-                        number height = font:GetLineHeight()
-                        output "Fit font size is " + height
-                        if container:GetHeight() not= height
-                            container:SetHeight(height)
+                        number topPadding = 0
+                        number bottomPadding = 0
+
+                        integer i = 0
+                        repeat while i < items:GetSize()
+                            Item2D item = items:Get(i)
+                            if item is Control
+                                Control control = cast(Control, item)
+                                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                                if properties:GetTopPadding() > topPadding
+                                    topPadding = properties:GetTopPadding()
+                                end
+                                if properties:GetBottomPadding() > bottomPadding
+                                    bottomPadding = properties:GetBottomPadding()
+                                end
+                            end
+                            i = i + 1
+                        end
+
+                        containerHeight = font:GetLineHeight() + containerProperties:GetBorderThickness() + topPadding + bottomPadding
+
+                        output "Fit font size is " + containerHeight
+                        if container:GetHeight() not= containerHeight
+                            container:SetHeight(containerHeight)
                         end
                     else
                         output "Font was undefined."
@@ -92,6 +108,10 @@ class FlowLayout is Layout
                 end
             end
         end
+
+        // Objects are placed such that their top edge is at the currentY.
+        number currentY = containerHeight
+        number nextY = containerHeight
 
         i = 0
         repeat while i < items:GetSize()
@@ -138,6 +158,7 @@ class FlowLayout is Layout
                         width = containerWidth - x
                     else
                         width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() + leftPadding + rightPadding
+                        output "Calculated width for " + control:GetName() + " is " + width
                     end
 
                     // When we set the size in this step, we also trigger a
@@ -161,8 +182,12 @@ class FlowLayout is Layout
                             end
                         else
                             output "Didn't fit font for " + control:GetName() + ", value was " + properties:GetVerticalLayoutMode() + ", FIT_FONT is " + properties:FIT_FONT
+                            output "Calculated height for " + control:GetName() + " is " + (containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
                             control:SetSize(width, containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset())
                         end
+                    else
+                        output "Already fit contents of " + control:GetName() + " = " + control:GetWidth() + ", " + control:GetHeight()
+                        output "Modes are " + properties:GetHorizontalLayoutMode() + ", " + properties:GetVerticalLayoutMode()
                     end
 
                     x = x + leftPadding
@@ -179,7 +204,11 @@ class FlowLayout is Layout
                     end
 
                     output "Positioning " + control:GetName() + " at " + x + ", " + (currentY - control:GetHeight()) + " -- leftPadding = " + leftPadding
-                    output "currentY = " + currentY + ", control height = " + control:GetHeight()
+                    number containHeight = -100
+                    if container not= undefined
+                        containHeight = container:GetHeight()
+                    end
+                    output "currentY = " + currentY + ", control height = " + control:GetHeight() + ", container's height is " + containHeight
                     control:SetPosition(x, currentY - control:GetHeight() - topPadding)
                     x = x + control:GetWidth() + rightPadding
                 end
