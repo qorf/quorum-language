@@ -265,6 +265,7 @@ class Button is Control
                 labelBoxView:SetBorderThickness(cast(integer, borderThickness))
                 labelBoxView:Initialize(background, border)
                 view = labelBoxView
+                SetView2D(view)
             end
 
             if iconTexture not= undefined
@@ -300,9 +301,8 @@ class Button is Control
                 labelProperties:SetTopPadding(4)
                 labelProperties:SetBottomPadding(7)
                 label:SetFont(font)
-//                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
                 label:SetText(labelText)
-//                label:AddLayoutProperties(labelProperties)
                 Add(label)
             end
         elseif iconTexture not= undefined

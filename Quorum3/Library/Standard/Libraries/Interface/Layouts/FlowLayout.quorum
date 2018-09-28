@@ -192,7 +192,6 @@ class FlowLayout is Layout
 //                                font:SetSize(properties:GetFontSize())
                                 height = font:GetLineHeight()
 //                                control:SetSize(width, height)
-                                output "Setting control size to " + width + ", " + height
                             end
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset()

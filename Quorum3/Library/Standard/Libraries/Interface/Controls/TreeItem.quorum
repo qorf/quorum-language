@@ -15,8 +15,8 @@ use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 
@@ -34,7 +34,7 @@ class TreeItem is Control
     LayoutProperties panelProperties
 
     ToggleButton expandButton
-    Drawable icon
+    Icon icon
     // Replace with something that's a GUI visual content.
     ControlLabel label
 
@@ -47,11 +47,15 @@ class TreeItem is Control
         FlowLayout flow
         layout = flow
 
-        LayoutProperties itemStructureProperties
+        LayoutProperties itemStructureProperties = itemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
-        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
+        Font font
+        font:LoadFont("Arial")
+        itemStructureProperties:SetFont(font)
+        itemStructureProperties:SetFontSize(16)
 
-        itemStructure:AddLayoutProperties(itemStructureProperties)
+//        itemStructure:AddLayoutProperties(itemStructureProperties)
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 
@@ -92,11 +96,23 @@ class TreeItem is Control
 
         icon:Load(image)
         number aspectRatio = icon:GetWidth() / icon:GetHeight()
-        icon:SetSize(aspectRatio * height, height)
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetPercentageWidth(aspectRatio)
+        iconProperties:SetPercentageHeight(1.0)
 
         DefaultTreeMenuView content
         content:Initialize(height, height * 2)
 
+        LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+        buttonProperties:SetView2D(content)
+        buttonProperties:SetLabelText("")
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetPercentageHeight(1.0)
+//        buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
+//        buttonProperties:SetWidthOffset(50)
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
+        buttonProperties:SetPercentageWidth(1.0)
 //        expandButton:Initialize(height, height, content)
         ToggleTreeViewBehavior buttonBehavior
         buttonBehavior:SetTreeItem(me)
