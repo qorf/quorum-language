@@ -2,6 +2,12 @@ package Libraries.Curriculum.TurtleProgram
 
 use Libraries.Sound.Audio
 use Libraries.Game.Graphics.Drawable
+use Libraries.Curriculum.TurtleProgram.ChangePropertiesCommand
+use Libraries.Curriculum.TurtleProgram.Command
+use Libraries.Curriculum.TurtleProgram.PenCommand
+use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.Turtle
+use Libraries.Curriculum.TurtleProgram.TurtleGame
 
 class MoveCommand is Command
 
@@ -101,7 +107,7 @@ class MoveCommand is Command
                 if line not= undefined
                     turtle:PauseDrawSound()
                     line:SetHeight(turtle:GetPixelsPerSquare() + turtle:GetLineThickness())
-                    line:SetY(turtle:GetGridY() * turtle:GetPixelsPerSquare() - turtle:GetLineThickness() / 2.0)
+                    line:SetY(turtle:GetOriginY() + turtle:GetGridY() * turtle:GetPixelsPerSquare() - turtle:GetLineThickness() / 2.0)
                 end
             else
                 if line not= undefined
@@ -139,7 +145,7 @@ class MoveCommand is Command
                 if line not= undefined
                     turtle:PauseDrawSound()
                     line:SetWidth(turtle:GetPixelsPerSquare() + turtle:GetLineThickness())
-                    line:SetX(turtle:GetGridX() * turtle:GetPixelsPerSquare() - turtle:GetLineThickness() / 2.0)
+                    line:SetX(turtle:GetOriginX() + turtle:GetGridX() * turtle:GetPixelsPerSquare() - turtle:GetLineThickness() / 2.0)
                 end
             else
                 if line not= undefined

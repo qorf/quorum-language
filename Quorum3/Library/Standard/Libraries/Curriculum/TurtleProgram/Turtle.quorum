@@ -3,13 +3,20 @@ package Libraries.Curriculum.TurtleProgram
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Sound.Audio
+use Libraries.Game.Layer2D
 use Libraries.Game.Graphics.Color
+use Libraries.Curriculum.TurtleProgram.ChangePropertiesCommand
+use Libraries.Curriculum.TurtleProgram.Command
+use Libraries.Curriculum.TurtleProgram.MoveCommand
+use Libraries.Curriculum.TurtleProgram.PenCommand
+use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.TurtleGame
 
 class Turtle is Drawable
     
     number speed = 100
     
-    Item2D grid
+    TurtleGame game = undefined
     number pixelsPerSquare = 50
     integer gridLength = 10
 
@@ -21,6 +28,9 @@ class Turtle is Drawable
 
     integer gridX = 5
     integer gridY = 5
+
+    number originX = 0
+    number originY = 0
 
     /*
     Values used to indicate where the currently calculated end position and
@@ -34,6 +44,8 @@ class Turtle is Drawable
     boolean penDown = true
     Color penColor
     integer lineThickness = 4
+
+    integer lines = 0
 
     Array<Command> commands
     Command currentCommand = undefined
@@ -54,15 +66,21 @@ class Turtle is Drawable
 
     boolean scribbleStarted = false
 
+    number startTimer = 0
+    number startDelay = 1
+
     on create
         penColor = penColor:Black()
     end
 
-    action Load(Item2D grid)
-        me:grid = grid
+    action Load(TurtleGame game, number originX, number originY)
+        me:game = game
+        me:originX = originX
+        me:originY = originY
 
         SetScale(0.5)
         Load("media/code/Arrow.png")
+        SetName("Turtle")
 
         left:Load("media/audioFiles/maleVoice/left.wav")
         right:Load("media/audioFiles/maleVoice/right.wav")
@@ -81,6 +99,13 @@ class Turtle is Drawable
     end
 
     action Update(number seconds)
+        if startTimer < startDelay
+            startTimer = startTimer + seconds
+            if startTimer < startDelay
+                return now
+            end
+        end
+
         if currentCommand = undefined or currentCommand:IsFinished()
             if commands:IsEmpty()
                 currentCommand = undefined
@@ -358,15 +383,38 @@ class Turtle is Drawable
         return lineThickness
     end
 
+    action SetStartingCoordinates(integer x, integer y)
+        gridX = x
+        forecastX = x
+        gridY = y
+        forecastY = y
+        SetPosition(originX + GetGridX() * GetPixelsPerSquare() - 25, originY + GetGridY() * GetPixelsPerSquare() - 25)
+    end
+
+    action GetOriginX returns number
+        return originX
+    end
+
+    action GetOriginY returns number
+        return originY
+    end
+
     action NewLine returns Drawable
+        lines = lines + 1
+
         Drawable line
+        line:SetName("Line " + lines)
         line:LoadFilledRectangle(lineThickness, lineThickness, penColor)
-        line:SetCenter(gridX * pixelsPerSquare, gridY * pixelsPerSquare)
+        line:SetPosition(originX + gridX * pixelsPerSquare - lineThickness / 2.0, originY + gridY * pixelsPerSquare - lineThickness / 2.0)
         
         // Line is added just before the last item in the Grid, which should
         // always be the turtle.
-        integer position = grid:GetItemCount() - 1
-        grid:Add(position, line)
+//        integer position = lines - 1
+//        Layer2D layer = game:GetCurrentLayer2D()
+//        layer:Add(position, line)
+        game:Remove(me)
+        game:Add(line)
+        game:Add(me)
 
         return line
     end

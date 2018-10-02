@@ -4,13 +4,18 @@ use Libraries.Game.Game
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Item2D
+use Libraries.Curriculum.TurtleProgram.ChangePropertiesCommand
+use Libraries.Curriculum.TurtleProgram.Command
+use Libraries.Curriculum.TurtleProgram.MoveCommand
+use Libraries.Curriculum.TurtleProgram.PenCommand
+use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.Turtle
 
 class TurtleGame is Game
 
     Color color
     Turtle turtle
     Drawable background
-    Item2D grid
 
     number originX = 150
     number originY = 50
@@ -19,13 +24,9 @@ class TurtleGame is Game
         background:Load("media/code/Grid.png")
         Add(background)
 
-        grid:SetSize(500, 500)
-        grid:SetPosition(originX, originY)
-        Add(grid)
-
-        turtle:Load(grid)
-        turtle:SetCenter(turtle:GetGridX() * turtle:GetPixelsPerSquare(), turtle:GetGridY() * turtle:GetPixelsPerSquare())
-        grid:Add(turtle)
+        turtle:Load(me, originX, originY)
+        turtle:SetPosition(originX + turtle:GetGridX() * turtle:GetPixelsPerSquare() - 25, originY + turtle:GetGridY() * turtle:GetPixelsPerSquare() - 25)
+        Add(turtle)
 
         TurtleCommands()
     end
@@ -72,6 +73,10 @@ class TurtleGame is Game
 
     action GetDirection returns text
         return turtle:GetForecastDirection()
+    end
+
+    action SetStartingCoordinates(integer x, integer y)
+        turtle:SetStartingCoordinates(x, y)
     end
 
     blueprint action TurtleCommands
