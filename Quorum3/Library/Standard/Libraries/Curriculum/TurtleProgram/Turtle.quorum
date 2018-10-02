@@ -43,7 +43,7 @@ class Turtle is Drawable
 
     boolean penDown = true
     Color penColor
-    integer lineThickness = 4
+    integer lineThickness = 8
 
     integer lines = 0
 
@@ -78,7 +78,9 @@ class Turtle is Drawable
         me:originX = originX
         me:originY = originY
 
-        SetScale(0.5)
+        // Set the scale to half if we want to make the turtle graphic smaller,
+        // or comment it out to leave it at full size.
+        //SetScale(0.5)
         Load("media/code/Arrow.png")
         SetName("Turtle")
 
@@ -407,11 +409,8 @@ class Turtle is Drawable
         line:LoadFilledRectangle(lineThickness, lineThickness, penColor)
         line:SetPosition(originX + gridX * pixelsPerSquare - lineThickness / 2.0, originY + gridY * pixelsPerSquare - lineThickness / 2.0)
         
-        // Line is added just before the last item in the Grid, which should
-        // always be the turtle.
-//        integer position = lines - 1
-//        Layer2D layer = game:GetCurrentLayer2D()
-//        layer:Add(position, line)
+        // Remove the Turtle and re-add it after the line to ensure it always
+        // stays on top.
         game:Remove(me)
         game:Add(line)
         game:Add(me)
