@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 
@@ -34,7 +35,7 @@ class TreeItem is Control
     LayoutProperties panelProperties
 
     ToggleButton expandButton
-    Drawable icon
+    Icon icon
     // Replace with something that's a GUI visual content.
     ControlLabel label
 
@@ -44,19 +45,30 @@ class TreeItem is Control
         SetInputGroup("TreeItem")
         panel:SetName("Tree Panel")
 
+        LayoutProperties treeItemProperties = GetDefaultLayoutProperties()
+        treeItemProperties:SetHorizontalLayoutMode(treeItemProperties:FIT_CONTENTS)
+        treeItemProperties:SetVerticalLayoutMode(treeItemProperties:FIT_CONTENTS)
+
         FlowLayout flow
         layout = flow
 
         LayoutProperties itemStructureProperties
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
-        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
+
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(18)
+        itemStructureProperties:SetFont(font)
+        itemStructureProperties:SetFontSize(18)
+        TreeLayout treeItemLayout
+        SetLayout(treeItemLayout)
 
         itemStructure:AddLayoutProperties(itemStructureProperties)
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 
         TreeLayout verticalFlow
-        verticalFlow:SetWrapping(false)
         panelLayout = verticalFlow
         panel:SetLayout(panelLayout)
 
@@ -92,10 +104,22 @@ class TreeItem is Control
 
         icon:Load(image)
         number aspectRatio = icon:GetWidth() / icon:GetHeight()
-        icon:SetSize(aspectRatio * height, height)
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(aspectRatio)
 
         DefaultTreeMenuView content
         content:Initialize(height, height * 2)
+        LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+        buttonProperties:SetView2D(content)
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
+        buttonProperties:SetPercentageHeight(1.0)
+        buttonProperties:SetPercentageWidth(1.0)
+        buttonProperties:SetLabelText("")
+        buttonProperties:SetFont(undefined)
 
 //        expandButton:Initialize(height, height, content)
         ToggleTreeViewBehavior buttonBehavior
@@ -123,7 +147,12 @@ class TreeItem is Control
         parent:Item2D:Add(itemStructure)
 
         SetName(name)
-        SetSize(itemStructure:GetWidth(), height)
+//        SetSize(itemStructure:GetWidth(), height)
+    end
+
+    // FOR DEBUGGING ONLY, REMOVE AFTER USE
+    action GetItemStructure returns Control
+        return itemStructure
     end
 
     action Initialize(text name, Texture image, Array<TreeItem> treeItems)
