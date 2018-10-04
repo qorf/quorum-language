@@ -164,7 +164,9 @@ class LoopOpcode is QuorumOpcode
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         text hash = "$L" + GetHashCode() 
         if isTimes
-            result = result + "for(" + hash + "=0;" + hash + "<" + expression:WriteJavaScript() + ";" + hash + "++) {" + EOL
+            text hashMiddleExpression = hash + "Mid"
+            result = result + "var " + hashMiddleExpression + " = " + expression:WriteJavaScript() + ";" + EOL
+            result = result + "for(var " + hash + "=0;" + hash + "<" + hashMiddleExpression + ";" + hash + "++) {" + EOL
         elseif isUntil
             result = result + "while (!(" + expression:WriteJavaScript() + ")) {" + EOL
         else //it's a while loop
