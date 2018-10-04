@@ -12,16 +12,42 @@ class TreeLayout is Layout
     boolean isTopAligned = false
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
-        number x = 0
         number y = 0
 
         number totalHeight = 0
         number longestWidth = 0
         integer i = 0
 
+        if container not= undefined
+            LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+
+            if containerProperties not= undefined
+                if containerProperties:NeedsRendering()
+                    container:LoadGraphics(containerProperties)
+                end
+            end
+        end
+
         repeat while i < items:GetSize()
+            number x = 0
+
             Item2D kid = items:Get(i)
-            kid:Resize()
+
+            if kid is Control
+                Control control = cast(Control, kid)
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                if properties not= undefined
+                    if properties:NeedsRendering()
+                        control:LoadGraphics(properties)
+                    end
+                    kid:Resize()
+                    x = properties:GetOffsetX()
+                else
+                    kid:Resize()
+                end
+            else
+                kid:Resize()
+            end
 
             number height = kid:GetHeight()
             number treeHeight = 0
@@ -29,7 +55,6 @@ class TreeLayout is Layout
                 TreeItem treeItem = cast(TreeItem, kid)
                 treeHeight = treeItem:GetTreeHeight() - height
             end
-
 
             if kid:GetWidth() > longestWidth
                 longestWidth = kid:GetWidth()
@@ -54,7 +79,7 @@ class TreeLayout is Layout
             LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
             if containerProperties not= undefined
                 if containerProperties:GetHorizontalLayoutMode() = containerProperties:FIT_CONTENTS
-                    container:SetWidth(longestWidth + x)
+                    container:SetWidth(longestWidth)
                 end
                 if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
                     number oldHeight = container:GetHeight()
