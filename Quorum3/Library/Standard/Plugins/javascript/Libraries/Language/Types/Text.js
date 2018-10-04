@@ -175,7 +175,23 @@ String.prototype.GetUnicodeInteger$quorum_integer = function(value) {
 };
 //private system action ContainsNative(text lhv, text rhv) returns boolean
 String.prototype.ContainsNative$quorum_text$quorum_text = function(left, searchString) {
-    return left.valueOf().includes(searchString);
+    var l = left.valueOf();
+    for(var i = 0; i < l.length; i++) {
+        var j = 0;
+        if((searchString.length - j) > l.length - i) {
+            return false;
+        }
+        if(searchString[j] == l[i]) {
+            j++;
+            while(j < searchString.length && i < l.length && searchString[j] == l[i + j]) {
+                if(j == searchString.length - 1) {
+                    return true;
+                }
+                j++;
+            }
+        }
+    }
+    return false;
 };
 //private system action EndsWithNative(text left, text suffix) returns boolean
 String.prototype.EndsWithNative$quorum_text$quorum_text = function(left, suffix) {
