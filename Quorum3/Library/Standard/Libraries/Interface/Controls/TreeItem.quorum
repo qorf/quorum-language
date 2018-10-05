@@ -437,6 +437,14 @@ class TreeItem is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
+        LayoutProperties oldProperties = GetCurrentLayoutProperties()
+        if oldProperties not= properties
+            oldProperties:SetRenderingFlag(true)
+            parent:Control:currentProperties = properties
+        end
+
+        properties:SetRenderingFlag(false)
+
         Color color
 
         if label = undefined

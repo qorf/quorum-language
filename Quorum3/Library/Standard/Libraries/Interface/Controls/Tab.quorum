@@ -8,9 +8,12 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Texture
-use Libraries.Interface.Views.DrawableView
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
@@ -19,20 +22,14 @@ class Tab is ToggleButton
     
     Item2D relatedItem = undefined
     Layout layout = undefined
-    LayoutProperties defaultProperties
-    LayoutProperties iconLayoutProperties
-    LayoutProperties labelLayoutProperties
-    LayoutProperties buttonLayoutProperties
+    LayoutProperties defaultProperties = undefined
+    LayoutProperties iconLayoutProperties = undefined
+    LayoutProperties labelLayoutProperties = undefined
+    LayoutProperties buttonLayoutProperties = undefined
 
-    Control icon
+    Icon icon
     Label label
     Button closeButton
-
-    DrawableView iconView
-
-    boolean displayIcon = true
-    boolean displayLabel = true
-    boolean displayClose = true
 
     on create
         AllowToggleOff(false)
@@ -41,134 +38,154 @@ class Tab is ToggleButton
         layout = flow
         SetLayout(flow)
 
-        iconLayoutProperties:SetPercentageY(0.5)
-        iconLayoutProperties:SetPercentageOriginY(0.5)
-        iconLayoutProperties:SetLeftPadding(label:GetLineHeight() / 2)
+        iconLayoutProperties = icon:GetDefaultLayoutProperties()
+        iconLayoutProperties:SetHorizontalLayoutMode(iconLayoutProperties:MAINTAIN_ASPECT_RATIO)
+        iconLayoutProperties:SetVerticalLayoutMode(iconLayoutProperties:STANDARD)
+        iconLayoutProperties:SetPercentageX(1.0)
+        iconLayoutProperties:SetPercentageY(1.0)
+        iconLayoutProperties:SetTopPadding(4)
+        iconLayoutProperties:SetBottomPadding(4)
+        iconLayoutProperties:SetLeftPadding(4)
         icon:AddLayoutProperties(iconLayoutProperties)
-        icon:SetView2D(iconView)
-        Add(0, icon)
-        icon:Hide()
-
         
+        defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:STANDARD)
         defaultProperties:SetPercentageHeight(1.0)
-        AddLayoutProperties(defaultProperties)
+//        Font font
+//        font:LoadFont("Arial")
+//        font:SetSize(18)
+//        defaultProperties:SetFont(font)
+//        defaultProperties:SetFontSize(18)
+
+        labelLayoutProperties = label:GetDefaultLayoutProperties()
+        buttonLayoutProperties = closeButton:GetDefaultLayoutProperties()
 
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
-    end
 
-    action Initialize(text name, Item2D item)
-        DisplayName(true)
-        DisplayIcon(false)
-        DisplayCloseButton(false)
-
-        InitializeDefaults(name, item)
-    end
-
-    action Initialize(text name, Item2D item, Drawable icon)
-       SetIcon(icon)
-
-        DisplayName(true)
-        DisplayIcon(true)
-        DisplayCloseButton(false)
-
-        InitializeDefaults(name, item)
-    end
-
-    action Initialize(text name, Item2D item, Texture iconTexture)
-        SetIcon(iconTexture)
-
-        DisplayName(true)
-        DisplayIcon(true)
-        DisplayCloseButton(false)
-
-        InitializeDefaults(name, item)
-    end
-
-    action Initialize(text name, Item2D item, boolean hasClose)
-        DisplayName(true)
-        DisplayIcon(false)
-        DisplayCloseButton(hasClose)
-
-        InitializeDefaults(name, item)
-    end
-
-    action Initialize(text name, Item2D item, Drawable icon, boolean hasClose)
-        SetIcon(icon)
-
-        DisplayName(true)
-        DisplayIcon(true)
-        DisplayCloseButton(hasClose)
-
-        InitializeDefaults(name, item)
-    end
-
-    action Initialize(text name, Item2D item, Texture iconTexture, boolean hasClose)
-        SetIcon(iconTexture)
-
-        DisplayName(true)
-        DisplayIcon(true)
-        DisplayCloseButton(hasClose)
-
-        InitializeDefaults(name, item)
-    end
-
-    private action InitializeDefaults(text name, Item2D item)
-        LabelBoxToggleView content
-        Color color
-        Gradient gradient
-        Gradient selectionGradient
-        
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        selectionGradient:Set(lightGray, lightGray, color:White(), color:White())
-        content:SetBorderThickness(1)
-        content:Initialize(gradient, color:Black(), selectionGradient, color:Black())
-
-        SetView2D(content)
-
-        integer buttonHeight = cast(integer, label:GetLineHeight())
-//        closeButton:Initialize(buttonHeight, buttonHeight)
         TabCloseBehavior behavior
         behavior:SetTab(me)
         closeButton:SetBehavior(behavior)
 
-        if icon:GetWidth() not= 0 and icon:GetHeight() not= 0
-            number aspectRatio = icon:GetWidth() / icon:GetHeight()
-            integer height = label:GetLineHeight()
-            icon:SetSize(aspectRatio * height, height)
-        else
-            icon:SetSize(0, label:GetLineHeight())
-        end
+        labelLayoutProperties:SetHorizontalLayoutMode(labelLayoutProperties:FIT_CONTENTS)
+        labelLayoutProperties:SetLeftPadding(7)
+        labelLayoutProperties:SetRightPadding(7)
 
-        LayoutProperties labelLayout
-        labelLayout:SetPercentageY(1)
-        labelLayout:SetPercentageOriginY(1)
-        labelLayout:SetLeftPadding(label:GetLineHeight() / 2)
-        labelLayout:SetRightPadding(label:GetLineHeight() / 2)
-        labelLayoutProperties = labelLayout
-        label:AddLayoutProperties(labelLayout)
+        buttonLayoutProperties:SetPercentageHeight(1.0)
+        buttonLayoutProperties:SetTopPadding(4)
+        buttonLayoutProperties:SetBottomPadding(4)
+        buttonLayoutProperties:SetRightPadding(4)
 
-        LayoutProperties buttonLayout
-        buttonLayout:SetPercentageY(0.5)
-        buttonLayout:SetPercentageOriginY(0.5)
-        buttonLayout:SetRightPadding(label:GetLineHeight() / 2)
-        buttonLayoutProperties = buttonLayout
-        closeButton:AddLayoutProperties(buttonLayout)
-
-        SetName(name)
-        SetRelatedItem(item)
-//        SetIcon(icon)
-
+        Add(icon)
         Add(label)
         Add(closeButton)
-
-        Resize()
     end
+
+//    action Initialize(text name, Item2D item)
+//        DisplayName(true)
+//        DisplayIcon(false)
+//        DisplayCloseButton(false)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    action Initialize(text name, Item2D item, Drawable icon)
+//       SetIcon(icon)
+//
+//        DisplayName(true)
+//        DisplayIcon(true)
+//        DisplayCloseButton(false)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    action Initialize(text name, Item2D item, Texture iconTexture)
+//        SetIcon(iconTexture)
+//
+//        DisplayName(true)
+//        DisplayIcon(true)
+//        DisplayCloseButton(false)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    action Initialize(text name, Item2D item, boolean hasClose)
+//        DisplayName(true)
+//        DisplayIcon(false)
+//        DisplayCloseButton(hasClose)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    action Initialize(text name, Item2D item, Drawable icon, boolean hasClose)
+//        SetIcon(icon)
+//
+//        DisplayName(true)
+//        DisplayIcon(true)
+//        DisplayCloseButton(hasClose)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    action Initialize(text name, Item2D item, Texture iconTexture, boolean hasClose)
+//        SetIcon(iconTexture)
+//
+//        DisplayName(true)
+//        DisplayIcon(true)
+//        DisplayCloseButton(hasClose)
+//
+//        InitializeDefaults(name, item)
+//    end
+//
+//    private action InitializeDefaults(text name, Item2D item)
+//        LabelBoxToggleView content
+//        Color color
+//        Gradient gradient
+//        Gradient selectionGradient
+//        
+//        Color gray = color:LightGray()
+//        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+//
+//        gradient:Set(gray, gray, lightGray, lightGray)
+//        selectionGradient:Set(lightGray, lightGray, color:White(), color:White())
+//        content:SetBorderThickness(1)
+//        content:Initialize(gradient, color:Black(), selectionGradient, color:Black())
+//
+//        SetView2D(content)
+//
+//        integer buttonHeight = cast(integer, label:GetLineHeight())
+////        closeButton:Initialize(buttonHeight, buttonHeight)
+//        TabCloseBehavior behavior
+//        behavior:SetTab(me)
+//        closeButton:SetBehavior(behavior)
+//
+//        if icon:GetWidth() not= 0 and icon:GetHeight() not= 0
+//            number aspectRatio = icon:GetWidth() / icon:GetHeight()
+//            integer height = label:GetLineHeight()
+//            icon:SetSize(aspectRatio * height, height)
+//        else
+//            icon:SetSize(0, label:GetLineHeight())
+//        end
+//
+//        labelLayoutProperties:SetPercentageY(1)
+//        labelLayoutProperties:SetPercentageOriginY(1)
+//        labelLayoutProperties:SetLeftPadding(label:GetLineHeight() / 2)
+//        labelLayoutProperties:SetRightPadding(label:GetLineHeight() / 2)
+//
+//        buttonLayoutProperties:SetPercentageY(0.5)
+//        buttonLayoutProperties:SetPercentageOriginY(0.5)
+//        buttonLayoutProperties:SetRightPadding(label:GetLineHeight() / 2)
+//
+//        SetName(name)
+//        SetRelatedItem(item)
+////        SetIcon(icon)
+//
+//        Add(label)
+////        Add(closeButton)
+//
+//        Resize()
+//    end
 
     action SetRelatedItem(Item2D item)
         relatedItem = item
@@ -178,21 +195,17 @@ class Tab is ToggleButton
         return relatedItem
     end
 
-    action SetIcon(Texture texture)
-        if iconView:IsLoaded()
-            iconView:Dispose()
-        end
 
-        if texture = undefined
+    action SetIcon(Icon newIcon)
+        parent:Control:SetIcon(newIcon)
+        if newIcon = undefined
             icon:Hide()
         else
-            iconView:Load(texture)
+            icon:Load(newIcon)
+            number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
+            iconLayoutProperties:SetPercentageX(aspectRatio)
             icon:Show()
         end
-    end
-
-    action SetIcon(Drawable drawable)
-        SetIcon(drawable:GetTexture())
     end
 
     action SetName(text name)
@@ -219,23 +232,6 @@ class Tab is ToggleButton
         end
     end
 
-    action IsDisplayingName returns boolean
-        return displayLabel
-    end
-
-    action DisplayIcon(boolean display)
-        displayIcon = display
-        if display
-            icon:Show()
-        else
-            icon:Hide()
-        end
-    end
-
-    action IsDisplayingIcon returns boolean
-        return displayIcon
-    end
-
     action DisplayCloseButton(boolean display)
         displayClose = display
         if display
@@ -246,7 +242,7 @@ class Tab is ToggleButton
     end
 
     action IsDisplayingCloseButton returns boolean
-        return displayClose
+        return closeButton:IsShowing()
     end
 
     action OnToggleOn
@@ -276,5 +272,80 @@ class Tab is ToggleButton
     */
     action GetLabel returns Label
         return label
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        LayoutProperties oldProperties = GetCurrentLayoutProperties()
+        if oldProperties not= properties
+            oldProperties:SetRenderingFlag(true)
+            parent:Control:currentProperties = properties
+        end
+
+        properties:SetRenderingFlag(false)
+
+        TextureRegion region = properties:GetIcon()
+        if region = undefined
+            if icon:IsShowing()
+                icon:Hide()
+            end
+        else
+            if icon:IsShowing() = false
+                icon:Load(region)
+                number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
+                iconLayoutProperties:SetPercentageX(aspectRatio)
+                icon:Show()
+            end
+        end
+
+        View2D view = properties:GetView2D()
+        if view = undefined
+            if GetView2D() = undefined
+                LabelBoxToggleView content
+                Color color
+                ColorGroup background = properties:GetBackgroundColor()
+                ColorGroup border = properties:GetBorderColor()
+                number thickness = properties:GetBorderThickness()
+                if background = undefined
+                    Gradient backgroundGradient
+                    Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+                    Color gray = color:LightGray()
+                    backgroundGradient:Set(gray, gray, lightGray, lightGray)
+                    background = backgroundGradient
+                end
+                if border = undefined
+                    border = color:Black()
+                end
+                Gradient selectionGradient
+                selectionGradient:Set(background:GetTopLeft(), background:GetTopRight(), color:White(), color:White())
+                content:SetBorderThickness(cast(integer, thickness))
+                content:Initialize(background, border, selectionGradient, border)
+                view = content
+            end
+        end
+
+        SetView2D(view)
+        
+        /*
+
+        
+
+        SetName(name)
+        SetRelatedItem(item)
+//        SetIcon(icon)
+
+        Add(label)
+//        Add(closeButton)
+
+        Resize()
+        */
     end
 end

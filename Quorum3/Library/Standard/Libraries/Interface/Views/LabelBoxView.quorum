@@ -46,36 +46,6 @@ class LabelBoxView is Item2D, ControlView
         SetText("")
     end
 
-//    action Initialize(Gradient backgroundGradient, Color borderColor)
-//        background:LoadFilledRectangle(1, 1, backgroundGradient)
-//        border:LoadFilledRectangle(1, 1, borderColor)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText("")
-//    end
-//
-//    action Initialize(Color backgroundColor, Gradient borderGradient)
-//        background:LoadFilledRectangle(1, 1, backgroundColor)
-//        border:LoadFilledRectangle(1, 1, borderGradient)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText("")
-//    end
-//
-//    action Initialize(Gradient backgroundGradient, Gradient borderGradient)
-//        background:LoadFilledRectangle(1, 1, backgroundGradient)
-//        border:LoadFilledRectangle(1, 1, borderGradient)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText("")
-//    end
-
     action Initialize(ColorGroup backgroundColor, ColorGroup borderColor, text labelText)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
@@ -85,36 +55,6 @@ class LabelBoxView is Item2D, ControlView
         InitializeEffects()
 //        SetText(labelText)
     end
-
-//    action Initialize(Gradient backgroundGradient, Color borderColor, text labelText)
-//        background:LoadFilledRectangle(1, 1, backgroundGradient)
-//        border:LoadFilledRectangle(1, 1, borderColor)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText(labelText)
-//    end
-//
-//    action Initialize(Color backgroundColor, Gradient borderGradient, text labelText)
-//        background:LoadFilledRectangle(1, 1, backgroundColor)
-//        border:LoadFilledRectangle(1, 1, borderGradient)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText(labelText)
-//    end
-//
-//    action Initialize(Gradient backgroundGradient, Gradient borderGradient, text labelText)
-//        background:LoadFilledRectangle(1, 1, backgroundGradient)
-//        border:LoadFilledRectangle(1, 1, borderGradient)
-//        Add(border)
-//        Add(background)
-//
-//        InitializeEffects()
-//        SetText(labelText)
-//    end
 
     private action InitializeEffects
         Color color

@@ -5,17 +5,17 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
+use Libraries.Game.Graphics.Font
 
 class TabPane is Control
     
-    TabBar bar = undefined
+    TabBar bar
     Item2D currentItem = undefined
-    Control viewArea
-    LayoutProperties viewLayoutProperties
+    Control viewArea = undefined
     TabPaneSelection selection
 
     on create
@@ -25,36 +25,42 @@ class TabPane is Control
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:TABPANE)
 
-        ManualLayout layout
-        SetLayout(layout)
-    end
-
-    action Initialize(number width, number height, Array<Tab> tabs)
-        TabBar tabBar
-        bar = tabBar
         bar:SetTabPane(me)
-        bar:Initialize(tabs)
         
-        viewLayoutProperties:SetPercentageX(0)
-        viewLayoutProperties:SetPercentageY(0)
-        viewLayoutProperties:SetPercentageWidth(1)
-        viewLayoutProperties:SetPercentageHeight(1)
-        viewLayoutProperties:SetHeightOffset(-bar:GetHeight())
-        viewArea:AddLayoutProperties(viewLayoutProperties)
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(18)
+        
+        SetFont(font)
+        SetFontSize(font:GetSize())
 
+        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
+        viewLayoutProperties:SetPercentageX(0)
+        viewLayoutProperties:SetPercentageWidth(1)
         viewArea:SetClipping(true)
 
-        Add(viewArea)
         Add(bar)
-
-        SetSize(width, height)
+        Add(viewArea)
 
         selection:Initialize(me, -1)
 
-        if tabs:GetSize() > 0
-            Select(0)
-        end
+        FlowLayout layout
+        SetLayout(layout)
     end
+
+//    action Initialize(number width, number height, Array<Tab> tabs)
+//        bar:Initialize(tabs)
+//
+//        
+//
+//        SetSize(width, height)
+//
+//        if tabs:GetSize() > 0
+//            Select(0)
+//        end
+//    end
 
     private action SetCurrentItem(Item2D item)
         if currentItem not= undefined
@@ -68,7 +74,6 @@ class TabPane is Control
         end
         currentItem = item
 
-        viewLayoutProperties:SetHeightOffset(-bar:GetHeight())
         viewArea:Resize()
     end
 
@@ -164,5 +169,32 @@ class TabPane is Control
 
     action RemoveTabChangeListener(TabChangeListener listener)
         bar:RemoveTabChangeListener(listener)
+    end
+
+    /*
+    This action sets the Font to be used by this Control. How this Font is used
+    varies between Controls, and in some cases the Control will ignore it 
+    entirely (for example, ScrollPanes), but typically this sets the font that's
+    used for the default label on many Controls, such as Buttons. If the Font
+    is undefined, many Controls will omit their default label.
+
+    Attribute: Parameter font The Font to use for this Control.
+    */
+    action SetFont(Font font)
+        parent:Control:SetFont(font)
+        if bar not= undefined
+            bar:SetFont(font)
+        end
+    end
+
+    /*
+    This action sets the base Font size to be used by this Control, if the
+    Control uses a Font.
+    */
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        if bar not= undefined
+            bar:SetFontSize(size)
+        end
     end
 end

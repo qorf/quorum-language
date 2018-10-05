@@ -320,6 +320,8 @@ class Button is Control
             view = content
         end
 
-        SetView2D(view)
+        if view not= undefined
+            SetView2D(view)
+        end
     end
 end

@@ -10,6 +10,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Font
 
 class Control is Item2D
 
@@ -224,6 +225,27 @@ class Control is Item2D
     */
     action SetIcon(Icon icon)
         defaultProperties:SetIcon(icon)
+    end
+
+    /*
+    This action sets the Font to be used by this Control. How this Font is used
+    varies between Controls, and in some cases the Control will ignore it 
+    entirely (for example, ScrollPanes), but typically this sets the font that's
+    used for the default label on many Controls, such as Buttons. If the Font
+    is undefined, many Controls will omit their default label.
+
+    Attribute: Parameter font The Font to use for this Control.
+    */
+    action SetFont(Font font)
+        defaultProperties:SetFont(font)
+    end
+
+    /*
+    This action sets the base Font size to be used by this Control, if the
+    Control uses a Font.
+    */
+    action SetFontSize(integer size)
+        defaultProperties:SetFontSize(size)
     end
     
 end
