@@ -26,10 +26,8 @@ class TabBar is Control, ButtonGroup
     on create
         LayoutProperties layoutProperties = GetDefaultLayoutProperties()
         layoutProperties:SetHorizontalLayoutMode(layoutProperties:STANDARD)
-        layoutProperties:SetVerticalLayoutMode(layoutProperties:FIT_FONT)
+        layoutProperties:SetVerticalLayoutMode(layoutProperties:FIT_CONTENTS)
         layoutProperties:SetPercentageWidth(1.0)
-        layoutProperties:SetPercentageOriginY(1.0)
-        layoutProperties:SetPercentageY(1.0)
 
         SetLayout(layout)
 
@@ -102,6 +100,9 @@ class TabBar is Control, ButtonGroup
 
     action SetTabPane(TabPane tabPane)
         pane = tabPane
+        LayoutProperties paneProperties = GetDefaultLayoutProperties()
+        SetFont(paneProperties:GetFont())
+        SetFontSize(paneProperties:GetFontSize())
     end
 
     action GetTabPane returns TabPane
@@ -218,6 +219,8 @@ class TabBar is Control, ButtonGroup
         if properties = undefined
             return now
         end
+
+        output "Loading TabBar graphics."
 
         LayoutProperties oldProperties = GetCurrentLayoutProperties()
         if oldProperties not= properties

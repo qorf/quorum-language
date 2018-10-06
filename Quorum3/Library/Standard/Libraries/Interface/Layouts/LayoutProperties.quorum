@@ -187,6 +187,11 @@ class LayoutProperties
     end
 
     action SetPercentageHeight(number height)
+        if heightPercentage = 1.0 and height = 0.0
+            output "HEIGHT PERCENTAGE SET TO 0.0"
+        elseif heightPercentage = 0.0 and height = 1.0
+            output "HEIGHT PERCENTAGE SET TO 1.0"
+        end
         heightPercentage = height
         setHeight = true
     end

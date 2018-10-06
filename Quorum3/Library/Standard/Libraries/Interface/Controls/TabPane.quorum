@@ -15,7 +15,7 @@ class TabPane is Control
     
     TabBar bar
     Item2D currentItem = undefined
-    Control viewArea = undefined
+    Control viewArea
     TabPaneSelection selection
 
     on create
@@ -29,7 +29,7 @@ class TabPane is Control
         
         Font font
         font:LoadFont("Arial")
-        font:SetSize(18)
+        font:SetSize(22)
         
         SetFont(font)
         SetFontSize(font:GetSize())

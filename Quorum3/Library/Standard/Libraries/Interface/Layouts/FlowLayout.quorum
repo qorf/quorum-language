@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.MenuBar
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Tab
 
 class FlowLayout is Layout
 
@@ -188,13 +189,13 @@ class FlowLayout is Layout
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             Font font = properties:GetFont()
                             if font not= undefined
-//                                font:LoadFont("Arial")
-//                                font:SetSize(properties:GetFontSize())
                                 height = font:GetLineHeight()
-//                                control:SetSize(width, height)
                             end
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                            if container not= undefined and container is Tab
+                                output "Standard VERT " + control:GetName() + ": " + height + " = (" + containerHeight + " - " + containerBorder + " * 2 - " + properties:GetTopPadding() + " - " + properties:GetBottomPadding() + ") * " + properties:GetPercentageHeight() + " + " + properties:GetHeightOffset()
+                            end
                         elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                             height = properties:GetPercentageHeight() * width
                         end
@@ -219,12 +220,12 @@ class FlowLayout is Layout
                         nextY = verticalSpace
                     end
 
-                    number containHeight = -100
-                    if container not= undefined
-                        containHeight = container:GetHeight()
-                    end
                     control:SetPosition(x, currentY - control:GetHeight() - topPadding)
                     x = x + control:GetWidth() + rightPadding
+
+                    if container not= undefined and container is Tab
+                        output control:GetName() + ": " + control:GetX() + ", " + control:GetY() + " -- " + control:GetWidth() + "x" + control:GetHeight()
+                    end
                 end
             end
 
