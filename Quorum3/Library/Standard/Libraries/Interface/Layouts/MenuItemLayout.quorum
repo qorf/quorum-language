@@ -8,15 +8,11 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Tab
 
-class FlowLayout is Layout
+class MenuItemLayout is Layout
 
     boolean ignoreHidden = false
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
-
-        // This is the x position of the next item, unless it flows onto the
-        // next line (and resets to 0).
-        number x = 0
 
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
@@ -46,7 +42,7 @@ class FlowLayout is Layout
                         integer i = 0
                         repeat while i < items:GetSize()
                             Item2D item = items:Get(i)
-                            if item is Control
+                            if item is Control and (ignoreHidden = false or item:IsShowing())
                                 Control control = cast(Control, item)
                                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                                 if properties:GetTopPadding() > topPadding
@@ -76,8 +72,7 @@ class FlowLayout is Layout
                     repeat while i < items:GetSize()
                         Item2D item = items:Get(i)
 
-                        if item is Control and (ignoreHidden = false or item:IsShowing())
-                            output "Sizing " + item:GetName() + ", ignoreHidden = " + ignoreHidden + ", isShowing = " + item:IsShowing()
+                        if item is Control
                             Control control = cast(Control, item)
                             LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                             if properties not= undefined
@@ -124,7 +119,6 @@ class FlowLayout is Layout
                     totalWidthPercentage = 1.0 - totalWidthPercentage
                     containerWidth = totalWidthOffset / totalWidthPercentage
                     container:SetWidth(containerWidth)
-                    output "Set container width to " + containerWidth
                 end
             end
         end
@@ -132,6 +126,9 @@ class FlowLayout is Layout
         // Objects are placed such that their top edge is at the currentY.
         number currentY = containerHeight - containerBorder
         number nextY = currentY
+
+        number leftX = 0
+        number rightX = containerWidth
 
         i = 0
         repeat while i < items:GetSize()
@@ -152,6 +149,11 @@ class FlowLayout is Layout
                     number rightPadding = properties:GetRightPadding()
                     number topPadding = properties:GetTopPadding()
                     number bottomPadding = properties:GetBottomPadding()
+
+                    boolean fromLeft = true
+                    if properties:GetPercentageX() > 0.5
+                        fromLeft = false
+                    end
 
                     /*
                     Boolean used to ensure we don't perform redundant resizing
@@ -179,16 +181,19 @@ class FlowLayout is Layout
                         end
                         width = control:GetWidth()
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
-                        width = containerWidth - x
+                        if fromLeft
+                            width = containerWidth - leftX
+                        else
+                            width = containerWidth - rightX
+                        end
                     elseif properties:GetHorizontalLayoutMode() not= properties:MAINTAIN_ASPECT_RATIO
                         width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() + leftPadding + rightPadding
                     end
 
-                    x = x + leftPadding
-
-                    if x + width > containerWidth
-                        currentY = nextY
-                        x = leftPadding
+                    if fromLeft
+                        leftX = leftX + leftPadding
+                    else
+                        rightX = rightX - rightPadding
                     end
 
                     // When we set the size in this step, we also trigger a
@@ -218,8 +223,14 @@ class FlowLayout is Layout
                         control:SetSize(width, height)
                     end
 
-                    control:SetPosition(x, currentY - control:GetHeight() - topPadding)
-                    x = x + control:GetWidth() + rightPadding
+                    if fromLeft
+                        control:SetPosition(leftX, currentY - control:GetHeight() - topPadding)
+                        leftX = leftX + control:GetWidth() + rightPadding
+                    else
+                        rightX = rightX - control:GetWidth()
+                        control:SetPosition(rightX, currentY - control:GetHeight() - topPadding)
+                        rightX = rightX - leftPadding
+                    end
                 end
             end
 
@@ -235,7 +246,7 @@ class FlowLayout is Layout
             items are placed at the right y positions.
             */
             integer counter = 0
-            x = 0
+            number x = 0
             containerHeight = container:GetHeight()
             currentY = containerHeight
             nextY = containerHeight

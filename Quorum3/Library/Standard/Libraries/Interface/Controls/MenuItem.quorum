@@ -9,6 +9,8 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.VerticalMenuLayout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.MenuItemLayout
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
@@ -18,6 +20,8 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
 use Libraries.Game.InputSet
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
@@ -62,6 +66,18 @@ class MenuItem is Control
 
     Behavior activationBehavior = undefined
 
+    Icon icon
+    Label label
+    Label shortcutLabel
+    Icon arrow
+
+    /*
+    Layouts for this MenuItem. Which one is used depends on if this MenuItem is
+    a child of another MenuItem.
+    */
+    FlowLayout rootLayout
+    MenuItemLayout menuItemLayout
+
     on create
         SetInputGroup("MenuItem")
         panel:SetName("Menu Panel")
@@ -70,10 +86,97 @@ class MenuItem is Control
         ManualLayout layout
         SetLayout(layout)
 
-        LayoutProperties defaultProperties
-        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
-        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
-        AddLayoutProperties(defaultProperties)
+//        LayoutProperties defaultProperties
+//        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
+//        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
+//        AddLayoutProperties(defaultProperties)
+    end
+
+    /*
+    FOR DEBUGGING PURPOSES ONLY
+    */
+    action TestSetRoot(boolean root, text name)
+        if root
+            rootLayout:SetIgnoreHidden(true)
+            SetLayout(rootLayout)
+
+//            shortcutLabel:Hide()
+            arrow:Hide()
+        else
+            SetLayout(menuItemLayout)
+        end
+
+        SetName(name)
+
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+        LayoutProperties shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
+        LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+        LayoutProperties menuProperties = GetDefaultLayoutProperties()
+
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(18)
+        menuProperties:SetFont(font)
+        menuProperties:SetFontSize(18)
+        menuProperties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
+        menuProperties:SetVerticalLayoutMode(menuProperties:FIT_FONT)
+
+        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+        iconProperties:SetPercentageWidth(1.0)
+        iconProperties:SetPercentageHeight(1)
+        iconProperties:SetLeftPadding(6)
+        iconProperties:SetTopPadding(4)
+        iconProperties:SetBottomPadding(4)
+        iconProperties:SetPercentageX(0)
+
+        labelProperties:SetVerticalLayoutMode(labelProperties:FIT_CONTENTS)
+        labelProperties:SetPercentageX(0)
+        labelProperties:SetLeftPadding(6)
+        labelProperties:SetRightPadding(6)
+
+        shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
+        shortcutProperties:SetRightPadding(6)
+        shortcutProperties:SetPercentageX(1)
+
+        arrowProperties:SetHorizontalLayoutMode(arrowProperties:MAINTAIN_ASPECT_RATIO)
+        arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
+        arrowProperties:SetPercentageWidth(1.0)
+        arrowProperties:SetPercentageHeight(1)
+        arrowProperties:SetRightPadding(6)
+        arrowProperties:SetTopPadding(4)
+        arrowProperties:SetBottomPadding(4)
+        arrowProperties:SetPercentageX(1)
+
+        Color color
+        icon:LoadFilledRectangle(5, 5, color:Red())
+        arrow:LoadFilledRectangle(5, 5, color:Cyan())
+
+        label:SetFont(font)
+        label:SetSize(18)
+        label:SetText(name)
+
+        Font shortcutFont
+        shortcutFont:LoadFont("Arial")
+        shortcutFont:SetSize(18)
+        shortcutLabel:SetFont(shortcutFont)
+        shortcutLabel:SetSize(18)
+        shortcutLabel:SetText("SHRTCT")
+
+        label:SetName("Label")
+        icon:SetName("Icon")
+        shortcutLabel:SetName("Shortcut")
+        arrow:SetName("Arrow")
+
+        Add(icon)
+        Add(label)
+        Add(arrow)
+        Add(shortcutLabel)
+
+        LabelBoxView view
+        view:Initialize(color:Orange(), color:Yellow())
+        SetView2D(view)
     end
 
     action Initialize(text name)

@@ -70,6 +70,7 @@ class DefaultMenuItemView is Control, MenuItemView
         arrowLayout:SetPercentageX(1)
         arrow:AddLayoutProperties(arrowLayout)
         arrow:SetView2D(arrowView)
+        arrow:SetName("DefaultMenuItemView Arrow")
     end
 
     action Draw(Painter2D painter)

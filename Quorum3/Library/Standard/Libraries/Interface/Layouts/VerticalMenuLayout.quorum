@@ -26,16 +26,16 @@ class VerticalMenuLayout is Layout
             y = y + kid:GetHeight()
         end
 
+        number oldHeight = container:GetHeight()
+
+        container:SetSize(longestWidth, y)
+        container:MoveY(oldHeight - y)
+
         repeat while i < items:GetSize()
             Item2D kid = items:Get(i)
             kid:SetWidth(longestWidth)
             i = i + 1
         end
-
-        number oldHeight = container:GetHeight()
-
-        container:SetSize(longestWidth, y)
-        container:MoveY(oldHeight - y)
     end
 
 end
