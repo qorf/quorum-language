@@ -170,6 +170,10 @@ class FlowLayout is Layout
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             // Setting the height will trigger a resize.
                             control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                            if properties:GetFont() not= undefined
+                                control:SetHeight(properties:GetFont():GetLineHeight())
+                            end
                         end
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
                         width = containerWidth - x
@@ -181,7 +185,7 @@ class FlowLayout is Layout
                     // resize that will cascade to the entire control's hierarchy.
                     if alreadyFitContents = false
                         if properties:GetVerticalLayoutMode() = properties:FILL
-                            control:SetSize(width, currentY)
+                            height = currentY
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
                             // Set the control's width and allow it to set its own height via its contents.
                             // Setting the width triggers its layout to resize.
@@ -193,9 +197,6 @@ class FlowLayout is Layout
                             end
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset()
-                            if container not= undefined and container is Tab
-                                output "Standard VERT " + control:GetName() + ": " + height + " = (" + containerHeight + " - " + containerBorder + " * 2 - " + properties:GetTopPadding() + " - " + properties:GetBottomPadding() + ") * " + properties:GetPercentageHeight() + " + " + properties:GetHeightOffset()
-                            end
                         elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                             height = properties:GetPercentageHeight() * width
                         end
@@ -222,10 +223,6 @@ class FlowLayout is Layout
 
                     control:SetPosition(x, currentY - control:GetHeight() - topPadding)
                     x = x + control:GetWidth() + rightPadding
-
-                    if container not= undefined and container is Tab
-                        output control:GetName() + ": " + control:GetX() + ", " + control:GetY() + " -- " + control:GetWidth() + "x" + control:GetHeight()
-                    end
                 end
             end
 

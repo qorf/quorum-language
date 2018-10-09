@@ -6,7 +6,6 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.Graphics.Font
@@ -34,6 +33,12 @@ class TabPane is Control
         SetFont(font)
         SetFontSize(font:GetSize())
 
+        LayoutProperties paneProperties = GetDefaultLayoutProperties()
+        paneProperties:SetHorizontalLayoutMode(paneProperties:STANDARD)
+        paneProperties:SetVerticalLayoutMode(paneProperties:STANDARD)
+        paneProperties:SetPercentageWidth(1)
+        paneProperties:SetPercentageHeight(1)
+
         LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
         viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
         viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
@@ -50,18 +55,6 @@ class TabPane is Control
         SetLayout(layout)
     end
 
-//    action Initialize(number width, number height, Array<Tab> tabs)
-//        bar:Initialize(tabs)
-//
-//        
-//
-//        SetSize(width, height)
-//
-//        if tabs:GetSize() > 0
-//            Select(0)
-//        end
-//    end
-
     private action SetCurrentItem(Item2D item)
         if currentItem not= undefined
             viewArea:Remove(currentItem)
@@ -73,8 +66,8 @@ class TabPane is Control
             Focus()
         end
         currentItem = item
-
-        viewArea:Resize()
+        //viewArea:Resize()
+        Resize()
     end
 
     action GetCurrentItem returns Item2D

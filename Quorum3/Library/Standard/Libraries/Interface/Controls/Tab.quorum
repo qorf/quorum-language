@@ -41,8 +41,8 @@ class Tab is ToggleButton
         iconLayoutProperties = icon:GetDefaultLayoutProperties()
         iconLayoutProperties:SetHorizontalLayoutMode(iconLayoutProperties:MAINTAIN_ASPECT_RATIO)
         iconLayoutProperties:SetVerticalLayoutMode(iconLayoutProperties:STANDARD)
-        iconLayoutProperties:SetPercentageX(1.0)
-        iconLayoutProperties:SetPercentageY(1.0)
+        iconLayoutProperties:SetPercentageWidth(1.0)
+        iconLayoutProperties:SetPercentageHeight(1.0)
         iconLayoutProperties:SetTopPadding(4)
         iconLayoutProperties:SetBottomPadding(4)
         iconLayoutProperties:SetLeftPadding(4)
@@ -61,6 +61,11 @@ class Tab is ToggleButton
 
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
+        closeButton:SetFont(undefined)
+        Icon closeIcon
+        Color color
+        closeIcon:LoadFilledRectangle(10, 10, color:Red())
+        closeButton:SetIcon(closeIcon)
 
         TabCloseBehavior behavior
         behavior:SetTab(me)
@@ -70,10 +75,15 @@ class Tab is ToggleButton
         labelLayoutProperties:SetLeftPadding(7)
         labelLayoutProperties:SetRightPadding(7)
 
+        buttonLayoutProperties:SetHorizontalLayoutMode(buttonLayoutProperties:MAINTAIN_ASPECT_RATIO)
+        buttonLayoutProperties:SetVerticalLayoutMode(buttonLayoutProperties:STANDARD)
+        buttonLayoutProperties:SetPercentageWidth(1.0)
         buttonLayoutProperties:SetPercentageHeight(1.0)
-        buttonLayoutProperties:SetTopPadding(0)
-        buttonLayoutProperties:SetBottomPadding(0)
+        buttonLayoutProperties:SetTopPadding(4)
+        buttonLayoutProperties:SetBottomPadding(4)
         buttonLayoutProperties:SetRightPadding(4)
+
+        icon:Hide()
 
         Add(icon)
         Add(label)
@@ -95,7 +105,7 @@ class Tab is ToggleButton
         else
             icon:Load(newIcon)
             number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
-            iconLayoutProperties:SetPercentageX(aspectRatio)
+            iconLayoutProperties:SetPercentageWidth(aspectRatio)
             icon:Show()
         end
     end
@@ -193,7 +203,7 @@ class Tab is ToggleButton
             if icon:IsShowing() = false
                 icon:Load(region)
                 number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
-                iconLayoutProperties:SetPercentageX(aspectRatio)
+                iconLayoutProperties:SetPercentageWidth(aspectRatio)
                 icon:Show()
             end
         end

@@ -24,8 +24,7 @@ class TabFlowLayout is Layout
 
         // This is the x position of the next item, unless it flows onto the
         // next line (and resets to 0).
-        number x = offset
-        output "Laying out tabs."
+        number x = -offset
 
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
@@ -179,6 +178,10 @@ class TabFlowLayout is Layout
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             // Setting the height will trigger a resize.
                             control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                            if properties:GetFont() not= undefined
+                                control:SetHeight(properties:GetFont():GetLineHeight())
+                            end
                         end
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
                         width = containerWidth - x
@@ -218,11 +221,6 @@ class TabFlowLayout is Layout
 
                     x = x + leftPadding
 
-                    if x + control:GetWidth() > containerWidth
-                        currentY = nextY
-                        x = leftPadding
-                    end
-
                     number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
 
                     if verticalSpace < nextY
@@ -250,7 +248,7 @@ class TabFlowLayout is Layout
             items are placed at the right y positions.
             */
             integer counter = 0
-            x = 0
+            x = -offset
             containerHeight = container:GetHeight()
             currentY = containerHeight
             nextY = containerHeight
@@ -274,11 +272,6 @@ class TabFlowLayout is Layout
                 end
 
                 x = x + leftPadding
-
-                if x + item:GetWidth() + rightPadding > containerWidth
-                    currentY = nextY
-                    x = leftPadding
-                end
 
                 if currentY - item:GetHeight() - topPadding - bottomPadding < nextY
                     nextY = currentY - item:GetHeight() - topPadding - bottomPadding

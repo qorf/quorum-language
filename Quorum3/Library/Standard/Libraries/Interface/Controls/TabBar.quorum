@@ -35,15 +35,6 @@ class TabBar is Control, ButtonGroup
         SetName("Tab Bar")
     end
 
-    action Initialize(Array<Tab> array)
-//        LabelBoxView content
-//        Color color
-//        content:Initialize(color:DarkGray(), color:Black())
-//        SetView2D(content)
-
-        Add(array)
-    end
-
     action Add(Array<Tab> array)
         integer counter = 0
         repeat while counter < array:GetSize()
@@ -114,7 +105,7 @@ class TabBar is Control, ButtonGroup
         if index = -1
             return now
         end
-        
+
         if tab:GetX() <= 0
             LeftFitTab(index - 1.15)
         elseif tab:GetX() + tab:GetWidth() >= GetWidth()
@@ -219,8 +210,6 @@ class TabBar is Control, ButtonGroup
         if properties = undefined
             return now
         end
-
-        output "Loading TabBar graphics."
 
         LayoutProperties oldProperties = GetCurrentLayoutProperties()
         if oldProperties not= properties
