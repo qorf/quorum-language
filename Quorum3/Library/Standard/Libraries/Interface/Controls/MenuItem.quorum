@@ -100,8 +100,10 @@ class MenuItem is Control
             rootLayout:SetIgnoreHidden(true)
             SetLayout(rootLayout)
 
-//            shortcutLabel:Hide()
+            shortcutLabel:Hide()
             arrow:Hide()
+
+            InitializePanel()
         else
             SetLayout(menuItemLayout)
         end
@@ -162,7 +164,7 @@ class MenuItem is Control
         shortcutFont:SetSize(18)
         shortcutLabel:SetFont(shortcutFont)
         shortcutLabel:SetSize(18)
-        shortcutLabel:SetText("SHRTCT")
+        shortcutLabel:SetText("shortcut")
 
         label:SetName("Label")
         icon:SetName("Icon")
@@ -175,7 +177,7 @@ class MenuItem is Control
         Add(shortcutLabel)
 
         LabelBoxView view
-        view:Initialize(color:Orange(), color:Yellow())
+        view:Initialize(color:CustomColor(0, 0, 1, 0.5), color:Yellow())
         SetView2D(view)
     end
 
@@ -236,7 +238,7 @@ class MenuItem is Control
             menuView = bar:GetDefaultMenuItemView()
         end
 
-        SetMenuAppearance(menuView)
+//        SetMenuAppearance(menuView)
     end
 
     action AddMenuItem(MenuItem item)
@@ -247,20 +249,20 @@ class MenuItem is Control
             menuView = bar:GetDefaultMenuItemView()
         end
 
-        if menuView not= undefined
-            MenuItemView copy = cast(MenuItemView, menuView:Copy())
-            item:SetAppearance(copy)
-            item:SetMenuAppearance(copy)
-        end
-
-        if menuItems:IsEmpty() and GetMenuBar() not= undefined
-            if GetView2D() is MenuItemView
-                MenuItemView content = cast(MenuItemView, GetView2D())
-                content:EnableMenuArrow(true)
-                SetSize(content:GetViewWidth(), content:GetViewHeight())
-                GetMenuBar():Resize()
-            end
-        end
+//        if menuView not= undefined
+//            MenuItemView copy = cast(MenuItemView, menuView:Copy())
+//            item:SetAppearance(copy)
+//            item:SetMenuAppearance(copy)
+//        end
+//
+//        if menuItems:IsEmpty() and GetMenuBar() not= undefined
+//            if GetView2D() is MenuItemView
+//                MenuItemView content = cast(MenuItemView, GetView2D())
+//                content:EnableMenuArrow(true)
+//                SetSize(content:GetViewWidth(), content:GetViewHeight())
+//                GetMenuBar():Resize()
+//            end
+//        end
 
         item:SetMenuBar(menuBar)
         item:SetParentMenu(me)

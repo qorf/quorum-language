@@ -76,46 +76,48 @@ class FlowLayout is Layout
                     repeat while i < items:GetSize()
                         Item2D item = items:Get(i)
 
-                        if item is Control and (ignoreHidden = false or item:IsShowing())
-                            output "Sizing " + item:GetName() + ", ignoreHidden = " + ignoreHidden + ", isShowing = " + item:IsShowing()
-                            Control control = cast(Control, item)
-                            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                            if properties not= undefined
-                                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
-                                    fitContainerContents = true
-                                    control:Resize()
-                                end
-
-                                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
-                                    totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
-                                elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
-                                    // We have to estimate the height now to determine the width.
-                                    number height = 0
-                                    if properties:GetVerticalLayoutMode() = properties:STANDARD
-                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetHeightOffset()
-                                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
-                                        if properties:GetFont() not= undefined
-                                            height = properties:GetFont():GetLineHeight()
-                                        end
-                                    elseif properties:GetVerticalLayoutMode() = properties:FILL
-                                        height = containerHeight
-                                    elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
-                                        height = control:GetHeight()
+                        if ignoreHidden = false or item:IsShowing()
+                            if item is Control
+                                output "Sizing " + item:GetName() + ", ignoreHidden = " + ignoreHidden + ", isShowing = " + item:IsShowing()
+                                Control control = cast(Control, item)
+                                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                                if properties not= undefined
+                                    if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                        fitContainerContents = true
+                                        control:Resize()
                                     end
 
-                                    totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
-                                        + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+                                        totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                        // We have to estimate the height now to determine the width.
+                                        number height = 0
+                                        if properties:GetVerticalLayoutMode() = properties:STANDARD
+                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetHeightOffset()
+                                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                                            if properties:GetFont() not= undefined
+                                                height = properties:GetFont():GetLineHeight()
+                                            end
+                                        elseif properties:GetVerticalLayoutMode() = properties:FILL
+                                            height = containerHeight
+                                        elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                            height = control:GetHeight()
+                                        end
+
+                                        totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
+                                            + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    else
+                                        totalWidthOffset = totalWidthOffset + properties:GetWidthOffset() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                        totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
+                                    end
                                 else
-                                    totalWidthOffset = totalWidthOffset + properties:GetWidthOffset() + properties:GetLeftPadding() + properties:GetRightPadding()
-                                    totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
+                                    // If width can't be determined from its properties, use its width instead.
+                                    totalWidthOffset = totalWidthOffset + item:GetWidth()
                                 end
                             else
                                 // If width can't be determined from its properties, use its width instead.
                                 totalWidthOffset = totalWidthOffset + item:GetWidth()
                             end
-                        else
-                            // If width can't be determined from its properties, use its width instead.
-                            totalWidthOffset = totalWidthOffset + item:GetWidth()
                         end
 
                         i = i + 1

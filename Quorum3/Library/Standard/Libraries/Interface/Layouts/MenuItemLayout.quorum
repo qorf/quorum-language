@@ -42,14 +42,16 @@ class MenuItemLayout is Layout
                         integer i = 0
                         repeat while i < items:GetSize()
                             Item2D item = items:Get(i)
-                            if item is Control and (ignoreHidden = false or item:IsShowing())
-                                Control control = cast(Control, item)
-                                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                                if properties:GetTopPadding() > topPadding
-                                    topPadding = properties:GetTopPadding()
-                                end
-                                if properties:GetBottomPadding() > bottomPadding
-                                    bottomPadding = properties:GetBottomPadding()
+                            if ignoreHidden = false or item:IsShowing()
+                                if item is Control
+                                    Control control = cast(Control, item)
+                                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                                    if properties:GetTopPadding() > topPadding
+                                        topPadding = properties:GetTopPadding()
+                                    end
+                                    if properties:GetBottomPadding() > bottomPadding
+                                        bottomPadding = properties:GetBottomPadding()
+                                    end
                                 end
                             end
                             i = i + 1

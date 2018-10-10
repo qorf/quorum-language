@@ -39,11 +39,12 @@ class MenuBar is Control
         defaultLayout = layout
         SetLayout(defaultLayout)
 
+        defaultLayoutProperties = GetDefaultLayoutProperties()
         defaultLayoutProperties:SetPercentageWidth(1)
         defaultLayoutProperties:SetPercentageY(1)
         defaultLayoutProperties:SetOffsetY(1)
         defaultLayoutProperties:SetVerticalLayoutMode(defaultLayoutProperties:FIT_CONTENTS)
-        AddLayoutProperties(defaultLayoutProperties)
+//        AddLayoutProperties(defaultLayoutProperties)
 
         SetInputGroup("MenuBar")
 
@@ -117,10 +118,10 @@ class MenuBar is Control
     end
 
     action AddMenuItem(MenuItem item)
-        if item:GetView2D() = undefined
-            MenuItemView content = cast(MenuItemView, defaultMenuAppearance:Copy())
-            item:SetAppearance(content)
-        end
+//        if item:GetView2D() = undefined
+//            MenuItemView content = cast(MenuItemView, defaultMenuAppearance:Copy())
+//            item:SetAppearance(content)
+//        end
 
         menus:Add(item)
         Add(item)
