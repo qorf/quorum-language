@@ -3,16 +3,16 @@ use Libraries.Compute.Matrix
 class Main 
     action Main
         Matrix matrix
-        matrix:Fill(4, 4, 0.0)
+        matrix:Fill(5, 4, 0.0)
         Fill(matrix)
-        matrix = matrix:Shift(1, 1, 0.0)
+        matrix = matrix:Shift(1, 2, 0.0)
         CheckResult(matrix:ToText())
     end
 
     action CheckResult(text result)
         text answer = ""
         text cr = answer:GetCarriageReturn()
-        answer = "|0.0, 0.0, 0.0, 0.0|"+cr+"|0.0, 1.0, 2.0, 3.0|"+cr+"|0.0, 5.0, 6.0, 7.0|"+cr+"|0.0, 9.0, 10.0, 11.0|"
+        answer = "|0.0, 0.0, 0.0, 0.0|"+cr+"|0.0, 0.0, 1.0, 2.0|"+cr+"|0.0, 0.0, 5.0, 6.0|"+cr+"|0.0, 0.0, 9.0, 10.0|"+cr+"|0.0, 0.0, 13.0, 14.0|"
         if answer = result
             output "pass"
         else

@@ -1353,7 +1353,7 @@ class Matrix
     */
     action Reshape(integer offsetRow, integer offsetColumn, integer rows, integer columns, number fillValue) returns Matrix
         Reshape reshape
-        reshape:SetValues(offsetRow, offsetColumn, columns, rows, fillValue)
+        reshape:SetValues(offsetRow, offsetColumn, rows, columns, fillValue)
         return reshape:Transform(me)
     end
 
@@ -1439,7 +1439,7 @@ class Matrix
     */
     action Shift(integer offsetRow, integer offsetColumn, number fillValue) returns Matrix
         Reshape reshape
-        reshape:SetValues(offsetRow, offsetColumn, GetColumns(), GetRows(), fillValue)
+        reshape:SetValues(offsetRow, offsetColumn, GetRows(), GetColumns(), fillValue)
         return reshape:Transform(me)
     end
 
