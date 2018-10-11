@@ -17,7 +17,7 @@ function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
     //    private system action Deselect(Item item) returns boolean
 //
 
-    this.DeSelect$quorum_Libraries_Interface_Item = function(item) {
+    this.Deselect$quorum_Libraries_Interface_Item = function(item) {
 
     };
     
