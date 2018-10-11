@@ -364,6 +364,8 @@ class QuorumStrategy is FontStrategy
             fontFile:SetWorkingDirectory("/Library/Fonts")
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
+        elseif os:Contains("Web Browser")
+            fontFile:SetWorkingDirectory("fonts")
         else
             fontFile:SetWorkingDirectory("/system/fonts")
         end
@@ -387,6 +389,12 @@ class QuorumStrategy is FontStrategy
             fontFile:SetWorkingDirectory("/Library/Fonts")
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
+        elseif os:Contains("Web Browser")
+            if FontIsAvailable(fontName)
+                return fontName + ".ttf"
+            else 
+                return ""
+            end
         else
             fontFile:SetWorkingDirectory("/system/fonts/")
         end
@@ -442,10 +450,19 @@ class QuorumStrategy is FontStrategy
         end
     */
     action FontIsAvailable(text fontName) returns boolean
-        if FindFontExtension(fontName) = ""
-            return false
-        else
-            return true
+        text os = GetOS()
+        if os:Contains("Web Browser")
+            if fontName = "Roboto-Black"
+                return true
+            else 
+                return false
+            end
+        else 
+            if FindFontExtension(fontName) = ""
+                return false
+            else
+                return true
+            end
         end
     end
 
@@ -968,6 +985,12 @@ class QuorumStrategy is FontStrategy
             fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
+        elseif os:Contains("Web Browser")
+            Array<File> fontFiles2
+            fontFiles = fontFiles2
+            File file
+            file:SetPath("fonts/Roboto-Black.ttf")
+            fontFiles:Add(file)
         else    // Linux and Android
             fontDirectory:SetWorkingDirectory("/system/fonts/")
             fontDirectory:SetPath("")
