@@ -9,6 +9,7 @@ use Libraries.Curriculum.TurtleProgram.Command
 use Libraries.Curriculum.TurtleProgram.MoveCommand
 use Libraries.Curriculum.TurtleProgram.PenCommand
 use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.SayCommand
 use Libraries.Curriculum.TurtleProgram.Turtle
 
 class TurtleGame is Game
@@ -61,6 +62,10 @@ class TurtleGame is Game
 
     action SetPenColor(number red, number green, number blue, number alpha)
         turtle:SetPenColor(red, green, blue, alpha)
+    end
+
+    action OutputLines
+        turtle:OutputLines()
     end
 
     action GetX returns integer

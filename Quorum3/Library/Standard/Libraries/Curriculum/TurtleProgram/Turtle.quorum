@@ -10,6 +10,7 @@ use Libraries.Curriculum.TurtleProgram.Command
 use Libraries.Curriculum.TurtleProgram.MoveCommand
 use Libraries.Curriculum.TurtleProgram.PenCommand
 use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.SayCommand
 use Libraries.Curriculum.TurtleProgram.TurtleGame
 
 class Turtle is Drawable
@@ -69,8 +70,11 @@ class Turtle is Drawable
     number startTimer = 0
     number startDelay = 1
 
+    Array<text> pathToSpeechArray
+
     on create
         penColor = penColor:Black()
+        pathToSpeechArray:Add("New lines begin: ")
     end
 
     action Load(TurtleGame game, number originX, number originY)
@@ -113,6 +117,31 @@ class Turtle is Drawable
                 currentCommand = undefined
                 return now
             else
+                if currentCommand not= undefined
+                    if currentCommand is MoveCommand and penDown
+                        text toSpeech = ""
+                        MoveCommand moveCommand = cast(MoveCommand, currentCommand)
+                        if pathToSpeechArray:GetFromEnd():EndsWith("New lines begin: ")
+                            toSpeech = "(" + moveCommand:GetStartX() + ", " + moveCommand:GetStartY() + ")"
+                        end
+
+                        if GetGridX() not= moveCommand:GetStartX() or GetGridY() not= moveCommand:GetStartY()
+                            toSpeech = toSpeech + " to (" + GetGridX() + ", " + GetGridY() + ")"
+                        end
+
+                        if toSpeech not= ""
+                            pathToSpeechArray:Add(toSpeech)
+                        end
+                    elseif currentCommand is PenCommand
+                        PenCommand penCommand = cast(PenCommand, currentCommand)
+                        if penCommand:IsPenDown()
+                            pathToSpeechArray:Add(". New lines begin: ")
+                        else
+                            pathToSpeechArray:Add(". End of lines")
+                        end
+                    end
+                end
+
                 currentCommand = commands:RemoveFromFront()
                 currentCommand:Start(me)
             end
@@ -253,6 +282,11 @@ class Turtle is Drawable
         command:SetColor(color)
         command:SetSpeech("Set pen color from R G B A components.")
         command:SetTimer(2.5)
+        commands:Add(command)
+    end
+
+    action OutputLines
+        SayCommand command
         commands:Add(command)
     end
 
@@ -416,5 +450,17 @@ class Turtle is Drawable
         game:Add(me)
 
         return line
+    end
+
+    action SayLines
+        text toSpeak = ""
+        integer counter = 0
+        repeat while counter < pathToSpeechArray:GetSize()
+            toSpeak = toSpeak + pathToSpeechArray:Get(counter)
+            counter = counter + 1
+        end
+
+        output toSpeak
+        say toSpeak
     end
 end

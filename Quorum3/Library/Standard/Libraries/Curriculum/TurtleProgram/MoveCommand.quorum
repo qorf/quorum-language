@@ -6,6 +6,7 @@ use Libraries.Curriculum.TurtleProgram.ChangePropertiesCommand
 use Libraries.Curriculum.TurtleProgram.Command
 use Libraries.Curriculum.TurtleProgram.PenCommand
 use Libraries.Curriculum.TurtleProgram.RotationCommand
+use Libraries.Curriculum.TurtleProgram.SayCommand
 use Libraries.Curriculum.TurtleProgram.Turtle
 use Libraries.Curriculum.TurtleProgram.TurtleGame
 
@@ -20,12 +21,18 @@ class MoveCommand is Command
 
     Drawable line = undefined
 
+    integer startX = 0
+    integer startY = 0
+
     action Start(Turtle turtle)
         me:turtle = turtle
 
         direction = turtle:GetDirection()
         number distance = turtle:GetPixelsPerSquare()
         boolean penDown = turtle:IsPenDown()
+
+        startX = turtle:GetGridX()
+        startY = turtle:GetGridY()
 
         if direction = turtle:UP
             if turtle:GetGridY() = turtle:GetGridLength()
@@ -159,5 +166,13 @@ class MoveCommand is Command
 
     action IsFinished returns boolean
         return finished and moveAudio:IsPlaying() = false
+    end
+
+    action GetStartX returns integer
+        return startX
+    end
+
+    action GetStartY returns integer
+        return startY
     end
 end
