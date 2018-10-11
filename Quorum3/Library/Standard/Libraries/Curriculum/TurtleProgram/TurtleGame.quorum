@@ -12,6 +12,7 @@ use Libraries.Curriculum.TurtleProgram.RotationCommand
 use Libraries.Curriculum.TurtleProgram.SayCommand
 use Libraries.Curriculum.TurtleProgram.Turtle
 
+
 class TurtleGame is Game
 
     Color color
@@ -31,6 +32,13 @@ class TurtleGame is Game
 
         TurtleCommands()
     end
+
+    action RepeatMoveForward(integer steps)
+        repeat steps times
+            turtle:MoveForward()
+        end
+    end
+
 
     action MoveForward
         turtle:MoveForward()
