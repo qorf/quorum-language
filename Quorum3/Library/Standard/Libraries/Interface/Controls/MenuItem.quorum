@@ -34,7 +34,7 @@ class MenuItem is Control
     A panel which contains all of the submenu options for this MenuItem, if this
     MenuItem is a menu.
     */
-    Control panel
+    MenuPanel panel
     Layout panelLayout = undefined
     LayoutProperties panelProperties = undefined
 
@@ -81,7 +81,6 @@ class MenuItem is Control
 
     on create
         SetInputGroup("MenuItem")
-        panel:SetName("Menu Panel")
         SetAccessibilityCode(parent:Item:MENU_ITEM)
 
         ManualLayout layout
@@ -104,6 +103,13 @@ class MenuItem is Control
         LayoutProperties menuProperties = GetDefaultLayoutProperties()
 
         ColorGroup backgroundColor = menuProperties:GetBackgroundColor()
+        ColorGroup selectionColor = menuProperties:GetSelectionColor()
+
+        if selectionColor = undefined
+            Color color
+            selectionColor = color:CustomColor(0.25, 0.25, 1, 1)
+            menuProperties:SetSelectionColor(selectionColor)
+        end
 
         if root
             rootLayout:SetIgnoreHidden(true)
@@ -121,9 +127,14 @@ class MenuItem is Control
                 backgroundColor = gradient
             end
 
+            menuProperties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
+
             InitializePanel()
         else
             SetLayout(menuItemLayout)
+
+            menuProperties:SetHorizontalLayoutMode(menuProperties:STANDARD)
+            menuProperties:SetPercentageWidth(1.0)
 
             if backgroundColor = undefined
                 Color color
@@ -132,14 +143,15 @@ class MenuItem is Control
             end
         end
 
+        menuProperties:SetBackgroundColor(backgroundColor)
+
         SetName(name)
 
         Font font
         font:LoadFont("Arial")
-        font:SetSize(18)
+        font:SetSize(14)
         menuProperties:SetFont(font)
-        menuProperties:SetFontSize(18)
-        menuProperties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
+        menuProperties:SetFontSize(14)
         menuProperties:SetVerticalLayoutMode(menuProperties:FIT_FONT)
 
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
@@ -149,16 +161,15 @@ class MenuItem is Control
         iconProperties:SetLeftPadding(6)
         iconProperties:SetTopPadding(4)
         iconProperties:SetBottomPadding(4)
-        iconProperties:SetPercentageX(0)
 
         labelProperties:SetVerticalLayoutMode(labelProperties:FIT_CONTENTS)
-        labelProperties:SetPercentageX(0)
         labelProperties:SetLeftPadding(6)
         labelProperties:SetRightPadding(6)
+        labelProperties:SetBottomPadding(4)
 
         shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
         shortcutProperties:SetRightPadding(6)
-        shortcutProperties:SetPercentageX(1)
+        shortcutProperties:SetBottomPadding(4)
 
         arrowProperties:SetHorizontalLayoutMode(arrowProperties:MAINTAIN_ASPECT_RATIO)
         arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
@@ -167,9 +178,19 @@ class MenuItem is Control
         arrowProperties:SetRightPadding(6)
         arrowProperties:SetTopPadding(4)
         arrowProperties:SetBottomPadding(4)
-        arrowProperties:SetPercentageX(1)
 
         Color color
+        if menuProperties:GetIcon() not= undefined
+            icon:Load(menuProperties:GetIcon())
+            icon:SetColor(menuProperties:GetIconColor())
+        else
+            icon:LoadFilledRectangle(1, 1, color:Magenta())
+            icon:Hide()
+        end
+
+        arrow:SetColor(menuProperties:GetFontColor())
+        arrow:Hide()
+
         icon:LoadFilledRectangle(5, 5, color:Red())
         arrow:LoadFilledRectangle(5, 5, color:Cyan())
 
@@ -179,9 +200,9 @@ class MenuItem is Control
 
         Font shortcutFont
         shortcutFont:LoadFont("Arial")
-        shortcutFont:SetSize(18)
+        shortcutFont:SetSize(14)
         shortcutLabel:SetFont(shortcutFont)
-        shortcutLabel:SetSize(18)
+        shortcutLabel:SetSize(14)
         shortcutLabel:SetText("shortcut")
 
         label:SetName("Label")
@@ -191,8 +212,8 @@ class MenuItem is Control
 
         Add(icon)
         Add(label)
-        Add(arrow)
         Add(shortcutLabel)
+        Add(arrow)
 
         LabelBoxView view
         view:Initialize(backgroundColor, color:Yellow())
@@ -234,8 +255,6 @@ class MenuItem is Control
         panelView = content
 
         SetMenuDirection(direction)
-        
-        panel:SetLayout(panelLayout)
         panel:SetView2D(panelView)
     end
 
@@ -281,6 +300,10 @@ class MenuItem is Control
 //                GetMenuBar():Resize()
 //            end
 //        end
+
+        if menuItems:IsEmpty()
+            arrow:Show()
+        end
 
         item:SetMenuBar(menuBar)
         item:SetParentMenu(me)
@@ -490,12 +513,10 @@ class MenuItem is Control
         if GetView2D() is LabelBoxView
             LabelBoxView view = cast(LabelBoxView, GetView2D())
             LayoutProperties properties = GetDefaultLayoutProperties()
-            Color color
             ColorGroup useColor = properties:GetSelectionColor()
-            if useColor = undefined
-                useColor = color:Blue()
+            if useColor not= undefined
+                view:SetBackgroundColor(useColor)
             end
-            view:SetBackgroundColor(useColor)
         end
 
         MenuBar menuBar = GetMenuBar()
@@ -510,7 +531,7 @@ class MenuItem is Control
         if GetView2D() is LabelBoxView
             LabelBoxView view = cast(LabelBoxView, GetView2D())
             LayoutProperties properties = GetDefaultLayoutProperties()
-            if properties:GetSelectionColor() not= undefined
+            if properties:GetBackgroundColor() not= undefined
                 view:SetBackgroundColor(properties:GetBackgroundColor())
             end
         end
@@ -593,39 +614,53 @@ class MenuItem is Control
     end
 
     action GetIconWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetIconWidth()
-        else
-            return 0
+        if icon:IsShowing()
+            Font font = GetDefaultLayoutProperties():GetFont()
+            if font not= undefined
+                number aspectRatio = 1.0
+                LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+                if iconProperties:GetHorizontalLayoutMode() = iconProperties:MAINTAIN_ASPECT_RATIO
+                    aspectRatio = iconProperties:GetPercentageWidth()
+                end
+
+                return (font:GetLineHeight() * aspectRatio) + iconProperties:GetLeftPadding() + iconProperties:GetRightPadding()
+            end
         end
+        return 0
     end
 
     action GetNameWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetNameWidth()
+        if label:IsShowing()
+            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            return label:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
         else
             return 0
         end
     end
 
     action GetShortcutWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetShortcutWidth()
+        if shortcutLabel:IsShowing()
+            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            return shortcutLabel:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
         else
             return 0
         end
     end
 
     action GetSubmenuIconWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetSubmenuIconWidth()
-        else
-            return 0
+        if arrow:IsShowing()
+            Font font = GetDefaultLayoutProperties():GetFont()
+            if font not= undefined
+                number aspectRatio = 1.0
+                LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+                if arrowProperties:GetHorizontalLayoutMode() = arrowProperties:MAINTAIN_ASPECT_RATIO
+                    aspectRatio = arrowProperties:GetPercentageWidth()
+                end
+
+                return (font:GetLineHeight() * aspectRatio) + arrowProperties:GetLeftPadding() + arrowProperties:GetRightPadding()
+            end
         end
+        return 0
     end
 
     action IsMenu returns boolean
