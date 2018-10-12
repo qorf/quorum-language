@@ -19,6 +19,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Font
@@ -35,7 +36,7 @@ class MenuItem is Control
     */
     Control panel
     Layout panelLayout = undefined
-    LayoutProperties panelProperties
+    LayoutProperties panelProperties = undefined
 
     /*
     An array containing all elements added to the panel. This is redundant to
@@ -86,16 +87,24 @@ class MenuItem is Control
         ManualLayout layout
         SetLayout(layout)
 
-//        LayoutProperties defaultProperties
-//        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
-//        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
-//        AddLayoutProperties(defaultProperties)
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetBackgroundColor(undefined)
+
+        panelProperties = panel:GetDefaultLayoutProperties()
     end
 
     /*
     FOR DEBUGGING PURPOSES ONLY
     */
     action TestSetRoot(boolean root, text name)
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+        LayoutProperties shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
+        LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+        LayoutProperties menuProperties = GetDefaultLayoutProperties()
+
+        ColorGroup backgroundColor = menuProperties:GetBackgroundColor()
+
         if root
             rootLayout:SetIgnoreHidden(true)
             SetLayout(rootLayout)
@@ -103,18 +112,27 @@ class MenuItem is Control
             shortcutLabel:Hide()
             arrow:Hide()
 
+            if backgroundColor = undefined
+                Color color
+                Gradient gradient
+                Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
+                Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+                gradient:Set(gray, gray, lightGray, lightGray)
+                backgroundColor = gradient
+            end
+
             InitializePanel()
         else
             SetLayout(menuItemLayout)
+
+            if backgroundColor = undefined
+                Color color
+                color:SetColor(0.85, 0.85, 0.9, 1)
+                backgroundColor = color
+            end
         end
 
         SetName(name)
-
-        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
-        LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
-        LayoutProperties shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
-        LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
-        LayoutProperties menuProperties = GetDefaultLayoutProperties()
 
         Font font
         font:LoadFont("Arial")
@@ -177,7 +195,7 @@ class MenuItem is Control
         Add(shortcutLabel)
 
         LabelBoxView view
-        view:Initialize(color:CustomColor(0, 0, 1, 0.5), color:Yellow())
+        view:Initialize(backgroundColor, color:Yellow())
         SetView2D(view)
     end
 
@@ -205,19 +223,19 @@ class MenuItem is Control
 
     private action InitializePanel
         panel:SetName(GetName() + " Menu Panel")
+        panelProperties:SetBorderThickness(1)
 
         Color color
 
         LabelBoxView content
         content:SetBorderThickness(1)
-
-        content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+        content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
+        content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
         panelView = content
 
         SetMenuDirection(direction)
         
         panel:SetLayout(panelLayout)
-        panel:AddLayoutProperties(panelProperties)
         panel:SetView2D(panelView)
     end
 
@@ -383,7 +401,7 @@ class MenuItem is Control
             content:EnableMenuArrow(false)
         end
 
-        SetView2D(content)
+//        SetView2D(content)
         SetSize(content:GetViewWidth(), content:GetViewHeight())
     end
 
@@ -469,6 +487,17 @@ class MenuItem is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            Color color
+            ColorGroup useColor = properties:GetSelectionColor()
+            if useColor = undefined
+                useColor = color:Blue()
+            end
+            view:SetBackgroundColor(useColor)
+        end
+
         MenuBar menuBar = GetMenuBar()
         if menuBar not= undefined
             menuBar:SetSelectingState(true)
@@ -477,6 +506,14 @@ class MenuItem is Control
 
     action LostSelection
         parent:Control:LostSelection()
+        parent:Control:GainedSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            if properties:GetSelectionColor() not= undefined
+                view:SetBackgroundColor(properties:GetBackgroundColor())
+            end
+        end
         if open
             Close()
         end
@@ -680,5 +717,14 @@ class MenuItem is Control
         end
 
         parent:Control:Activate(event)
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
     end
 end

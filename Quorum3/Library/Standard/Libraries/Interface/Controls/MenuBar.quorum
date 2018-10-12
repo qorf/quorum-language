@@ -44,7 +44,16 @@ class MenuBar is Control
         defaultLayoutProperties:SetPercentageY(1)
         defaultLayoutProperties:SetOffsetY(1)
         defaultLayoutProperties:SetVerticalLayoutMode(defaultLayoutProperties:FIT_CONTENTS)
-//        AddLayoutProperties(defaultLayoutProperties)
+        defaultLayoutProperties:SetBorderThickness(1)
+        defaultLayoutProperties:SetBorderStyle(defaultLayoutProperties:BOTTOM)
+        
+        Color color
+        Gradient gradient
+        Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+        defaultLayoutProperties:SetBackgroundColor(gradient)
+        defaultLayoutProperties:SetBorderColor(color:Black())
 
         SetInputGroup("MenuBar")
 
@@ -53,21 +62,24 @@ class MenuBar is Control
 
         selection:Initialize(me)
         SetAccessibilityCode(parent:Item:MENU_BAR)
+        SetName("Menu Bar")
     end
 
     action Initialize
         LabelBoxView defaultBar
-        defaultBar:SetBorderStyle(defaultBar:BOTTOM)
-        defaultBar:SetBorderThickness(1)
-        defaultBar:SetText("")
+//        defaultBar:SetBorderStyle(defaultBar:BOTTOM)
+//        defaultBar:SetBorderThickness(1)
+//        defaultBar:SetText("")
         Color color
-        Gradient gradient
-        
-        Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        defaultBar:Initialize(gradient, color:Black())
+//        Gradient gradient
+//        
+//        Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
+//        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+//
+//        gradient:Set(gray, gray, lightGray, lightGray)
+        defaultBar:SetBorderStyle(defaultLayoutProperties:GetBorderStyle())
+        defaultBar:SetBorderThickness(cast(integer, defaultLayoutProperties:GetBorderThickness()))
+        defaultBar:Initialize(defaultLayoutProperties:GetBackgroundColor(), defaultLayoutProperties:GetBorderColor())
 
         SetView2D(defaultBar)
         Resize()
@@ -77,8 +89,9 @@ class MenuBar is Control
         defaultMenuAppearance = menuView
 
         LabelBoxView panelView
-        panelView:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Gray())
-        panelView:SetBorderThickness(1)
+        panelView:Initialize(color:CustomColor(1, 1, 1, 0), defaultLayoutProperties:GetBorderColor())
+        panelView:SetBorderThickness(5)
+//        panelView:SetBorderStyle(panelView:LEFT + panelView:RIGHT + panelView:BOTTOM)
         panelAppearance = panelView
 
         DefaultMenuItemView itemView
@@ -109,13 +122,13 @@ class MenuBar is Control
         Resize()
     end
 
-    action Resize
-        if defaultLayoutProperties not= undefined
-            defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
-            defaultLayoutProperties:SetHeightOffset(GetHeight())
-        end
-        parent:Control:Resize()
-    end
+//    action Resize
+//        if defaultLayoutProperties not= undefined
+//            defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
+//            defaultLayoutProperties:SetHeightOffset(GetHeight())
+//        end
+//        parent:Control:Resize()
+//    end
 
     action AddMenuItem(MenuItem item)
 //        if item:GetView2D() = undefined

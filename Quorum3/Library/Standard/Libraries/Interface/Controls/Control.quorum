@@ -34,7 +34,7 @@ class Control is Item2D
     Control. Used to indicate when graphics should be reloaded due to Layout
     changes.
     */
-    LayoutProperties currentProperties
+    LayoutProperties currentProperties = undefined
 
     /*
     A layout which is used to arrange the children of this object.
@@ -214,7 +214,8 @@ class Control is Item2D
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        // Does nothing by default. This should be overridden by implementing classes.
+        currentProperties = properties
+        properties:SetRenderingFlag(false)
     end
 
     /*

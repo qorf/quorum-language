@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Views.View2D
+use Libraries.Compute.BitwiseOperations
 
 class LayoutProperties 
     
@@ -59,6 +60,40 @@ class LayoutProperties
     */
     public integer MAINTAIN_ASPECT_RATIO = 4
 
+    /*
+    The NONE border style will disable borders on the Control this is applied to.
+    */
+    public constant integer NONE = 0
+
+    /*
+    The LEFT border style will place a border only on the left side of this
+    Control.
+    */
+    public constant integer LEFT = 1
+
+    /*
+    The RIGHT border style will place a border only on the right side of this
+    Control.
+    */
+    public constant integer RIGHT = 2
+
+    /*
+    The BOTTOM border style will place a border only on the bottom side of this
+    Control.
+    */
+    public constant integer BOTTOM = 4
+
+    /*
+    The TOP border style will place a border only on the top side of this 
+    Control.
+    */
+    public constant integer TOP = 8
+
+    /*
+    The ALL border style will place borders on all four sides of this Control.
+    */
+    public constant integer ALL = LEFT + RIGHT + BOTTOM + TOP
+
     integer horizontalLayoutMode = STANDARD
     integer verticalLayoutMode = STANDARD
 
@@ -82,15 +117,21 @@ class LayoutProperties
     number bottomPadding = 0
     number topPadding = 0
 
+    // Bitwise operations are used for the border styling bitmask.
+    BitwiseOperations bits
+    
     ColorGroup backgroundColor = undefined
     ColorGroup borderColor = undefined
     number borderThickness = 0
-    // Border edging value here -- bitmask, pseudo-enum, object?
+    integer borderStyle = ALL
     
     Font font = undefined
     integer baseFontSize = 14
     Color fontColor
     text labelText = ""
+
+    ColorGroup selectionColor = undefined
+    Color selectionFontColor = undefined
 
     TextureRegion icon = undefined
     ColorGroup iconColor = undefined
@@ -370,6 +411,30 @@ class LayoutProperties
         return borderThickness
     end
 
+    action SetBorderStyle(integer style)
+        borderStyle = style
+    end
+
+    action GetBorderStyle returns integer
+        return borderStyle
+    end
+
+    action HasLeftBorder returns boolean
+        return bits:And(LEFT, borderStyle) not= 0
+    end
+
+    action HasRightBorder returns boolean
+        return bits:And(RIGHT, borderStyle) not= 0
+    end
+
+    action HasBottomBorder returns boolean
+        return bits:And(BOTTOM, borderStyle) not= 0
+    end
+
+    action HasTopBorder returns boolean
+        return bits:And(TOP, borderStyle) not= 0
+    end
+
     action SetFont(Font font)
         me:font = font
         if font not= undefined
@@ -402,6 +467,22 @@ class LayoutProperties
         if font not= undefined
             font:SetColor(color)
         end
+    end
+
+    action SetSelectionColor(ColorGroup color)
+        selectionColor = color
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return selectionColor
+    end
+
+    action SetSelectionFontColor(Color color)
+        selectionFontColor = color
+    end
+
+    action GetSelectionFontColor returns Color
+        return selectionFontColor
     end
 
     action GetFontColor returns Color

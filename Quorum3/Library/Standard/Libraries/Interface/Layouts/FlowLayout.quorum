@@ -78,7 +78,6 @@ class FlowLayout is Layout
 
                         if ignoreHidden = false or item:IsShowing()
                             if item is Control
-                                output "Sizing " + item:GetName() + ", ignoreHidden = " + ignoreHidden + ", isShowing = " + item:IsShowing()
                                 Control control = cast(Control, item)
                                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                                 if properties not= undefined
@@ -126,7 +125,6 @@ class FlowLayout is Layout
                     totalWidthPercentage = 1.0 - totalWidthPercentage
                     containerWidth = totalWidthOffset / totalWidthPercentage
                     container:SetWidth(containerWidth)
-                    output "Set container width to " + containerWidth
                 end
             end
         end
@@ -218,6 +216,12 @@ class FlowLayout is Layout
                         end
 
                         control:SetSize(width, height)
+                    end
+
+                    number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
+
+                    if verticalSpace < nextY
+                        nextY = verticalSpace
                     end
 
                     control:SetPosition(x, currentY - control:GetHeight() - topPadding)

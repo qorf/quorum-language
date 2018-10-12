@@ -9,7 +9,34 @@ class VerticalMenuLayout is Layout
     
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
-        number y = 0
+        LayoutProperties containerProperties = undefined
+
+        number leftBorder = 0
+        number rightBorder = 0
+        number topBorder = 0
+        number bottomBorder = 0
+
+        if container not= undefined
+            containerProperties = container:GetDefaultLayoutProperties()
+            if containerProperties not= undefined
+                number thickness = containerProperties:GetBorderThickness()
+
+                if containerProperties:HasLeftBorder()
+                    leftBorder = thickness
+                end
+                if containerProperties:HasRightBorder()
+                    rightBorder = thickness
+                end
+                if containerProperties:HasTopBorder()
+                    topBorder = thickness
+                end
+                if containerProperties:HasBottomBorder()
+                    bottomBorder = thickness
+                end
+            end
+        end
+
+        number y = bottomBorder
         number longestWidth = 0
 
         i = items:GetSize()
@@ -21,15 +48,15 @@ class VerticalMenuLayout is Layout
                 longestWidth = kid:GetWidth()
             end
 
-            kid:SetPosition(0, y)
+            kid:SetPosition(leftBorder, y)
 
             y = y + kid:GetHeight()
         end
 
         number oldHeight = container:GetHeight()
 
-        container:SetSize(longestWidth, y)
-        container:MoveY(oldHeight - y)
+        container:SetSize(longestWidth + leftBorder + rightBorder, y + topBorder)
+        container:MoveY(oldHeight - container:GetHeight())
 
         repeat while i < items:GetSize()
             Item2D kid = items:Get(i)
