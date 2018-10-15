@@ -66,6 +66,7 @@ class Turtle is Drawable
     Audio errorAudio
 
     boolean scribbleStarted = false
+    boolean sayStarted = false
 
     number startTimer = 0
     number startDelay = 1
@@ -75,6 +76,7 @@ class Turtle is Drawable
     on create
         penColor = penColor:Black()
         pathToSpeechArray:Add("New lines begin: ")
+        sayStarted = true
     end
 
     action Load(TurtleGame game, number originX, number originY)
@@ -135,9 +137,15 @@ class Turtle is Drawable
                     elseif currentCommand is PenCommand
                         PenCommand penCommand = cast(PenCommand, currentCommand)
                         if penCommand:IsPenDown()
-                            pathToSpeechArray:Add(". New lines begin: ")
+                            if sayStarted = false
+                                pathToSpeechArray:Add(". New lines begin: ")
+                                sayStarted = true
+                            end
                         else
-                            pathToSpeechArray:Add(". End of lines")
+                            if sayStarted = true
+                                pathToSpeechArray:Add(". End of lines")
+                                sayStarted = false
+                            end
                         end
                     end
                 end
