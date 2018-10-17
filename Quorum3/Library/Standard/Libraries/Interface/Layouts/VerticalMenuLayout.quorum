@@ -49,6 +49,12 @@ class VerticalMenuLayout is Layout
                 Item2D item = items:Get(i)
                 if item is MenuItem
                     MenuItem menuItem = cast(MenuItem, item)
+                    LayoutProperties properties = menuItem:GetLayoutProperties(containerWidth, containerHeight)
+
+                    if properties:NeedsRendering()
+                        menuItem:LoadGraphics(properties)
+                    end
+
                     if menuItem:GetIconWidth() > panel:GetIconRegionWidth()
                         panel:SetIconRegionWidth(menuItem:GetIconWidth())
                     end
