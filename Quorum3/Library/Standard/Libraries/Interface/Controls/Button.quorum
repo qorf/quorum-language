@@ -93,29 +93,23 @@ class Button is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if icon not= undefined
+            icon:Dispose()
+            Remove(icon)
+            icon = undefined
+        end
+
+        if label not= undefined
+            label:Dispose()
+            Remove(label)
+            label = undefined
+        end
+
         if properties = undefined
             return now
         end
-
-        LayoutProperties oldProperties = GetCurrentLayoutProperties()
-        if oldProperties not= properties
-            oldProperties:SetRenderingFlag(true)
-            parent:Control:currentProperties = properties
-            
-            if icon not= undefined
-                icon:Dispose()
-                Remove(icon)
-                icon = undefined
-            end
-
-            if label not= undefined
-                label:Dispose()
-                Remove(label)
-                label = undefined
-            end
-        end
-
-        properties:SetRenderingFlag(false)
 
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()

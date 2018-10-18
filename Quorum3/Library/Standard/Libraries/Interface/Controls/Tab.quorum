@@ -182,17 +182,11 @@ class Tab is ToggleButton
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
         if properties = undefined
             return now
         end
-
-        LayoutProperties oldProperties = GetCurrentLayoutProperties()
-        if oldProperties not= properties
-            oldProperties:SetRenderingFlag(true)
-            parent:Control:currentProperties = properties
-        end
-
-        properties:SetRenderingFlag(false)
 
         TextureRegion region = properties:GetIcon()
         if region = undefined
@@ -206,12 +200,13 @@ class Tab is ToggleButton
                 iconLayoutProperties:SetPercentageWidth(aspectRatio)
                 icon:Show()
             end
+            icon:SetColor(properties:GetIconColor())
         end
 
         Font font = properties:GetFont()
         if font not= undefined
             label:SetFont(font)
-            label:SetFontSize(properties:GetFontSize())
+            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
         else
             label:Hide()
         end

@@ -11,6 +11,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.ColorGroup
 
 class Control is Item2D
 
@@ -214,8 +215,15 @@ class Control is Item2D
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
+        if currentProperties not= undefined
+            currentProperties:SetRenderingFlag(true)
+        end
+
         currentProperties = properties
-        properties:SetRenderingFlag(false)
+
+        if currentProperties not= undefined
+            properties:SetRenderingFlag(false)
+        end
     end
 
     /*
@@ -248,5 +256,47 @@ class Control is Item2D
     action SetFontSize(integer size)
         defaultProperties:SetFontSize(size)
     end
+
+    /*
+
+    */
+    action SetBackgroundColor(ColorGroup color)
+        defaultProperties:SetBackgroundColor(color)
+    end
+
+    /*
+
+    */
+    action GetBackgroundColor returns ColorGroup
+        return defaultProperties:GetBackgroundColor()
+    end
+
+    /*
+
+    */
+    action SetBorderColor(ColorGroup color)
+        defaultProperties:SetBorderColor(color)
+    end
+
+    /*
     
+    */
+    action GetBorderColor returns ColorGroup
+        return defaultProperties:GetBorderColor()
+    end
+
+    /*
+
+    */
+    action SetBorderThickness(number thickness)
+        defaultProperties:SetBorderThickness(thickness)
+    end
+
+    /*
+
+    */
+    action GetBorderThickness returns number
+        return defaultProperties:GetBorderThickness()
+    end
+
 end

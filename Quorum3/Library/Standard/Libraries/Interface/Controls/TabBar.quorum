@@ -207,6 +207,8 @@ class TabBar is Control, ButtonGroup
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
         if properties = undefined
             return now
         end

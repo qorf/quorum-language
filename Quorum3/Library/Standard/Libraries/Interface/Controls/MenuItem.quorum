@@ -131,6 +131,7 @@ class MenuItem is Control
         labelProperties:SetBottomPadding(4)
 
         shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
+        shortcutProperties:SetLeftPadding(4)
         shortcutProperties:SetRightPadding(6)
         shortcutProperties:SetBottomPadding(4)
 
@@ -146,6 +147,7 @@ class MenuItem is Control
         icon:SetName("Icon")
         shortcutLabel:SetName("Shortcut")
         arrow:SetName("Arrow")
+        arrow:Hide()
 
         Add(icon)
         Add(label)
@@ -163,38 +165,10 @@ class MenuItem is Control
         SetShortcut(name)
     end
 
-    private action InitializeMenuAppearance
-        MenuBar bar = GetMenuBar()
-        MenuItemView menuView = undefined
-        if bar not= undefined
-            menuView = bar:GetDefaultMenuItemView()
-        end
-
-//        SetMenuAppearance(menuView)
-    end
-
     action AddMenuItem(MenuItem item)
 
         MenuBar bar = GetMenuBar()
         MenuItemView menuView = undefined
-        if bar not= undefined
-            menuView = bar:GetDefaultMenuItemView()
-        end
-
-//        if menuView not= undefined
-//            MenuItemView copy = cast(MenuItemView, menuView:Copy())
-//            item:SetAppearance(copy)
-//            item:SetMenuAppearance(copy)
-//        end
-//
-//        if menuItems:IsEmpty() and GetMenuBar() not= undefined
-//            if GetView2D() is MenuItemView
-//                MenuItemView content = cast(MenuItemView, GetView2D())
-//                content:EnableMenuArrow(true)
-//                SetSize(content:GetViewWidth(), content:GetViewHeight())
-//                GetMenuBar():Resize()
-//            end
-//        end
 
         if menuItems:IsEmpty() and GetParentMenu() not= undefined
             arrow:Show()
@@ -547,7 +521,7 @@ class MenuItem is Control
     end
 
     action GetShortcutWidth returns number
-        if shortcutLabel:IsShowing()
+        if shortcutLabel:IsShowing() and shortcutLabel:GetText() not= ""
             LayoutProperties properties = label:GetDefaultLayoutProperties()
             return shortcutLabel:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
         else
@@ -670,13 +644,10 @@ class MenuItem is Control
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
 
-        output "Loading " + GetName() + ", property hash = " + properties:GetHashCode() + ", default hash = " + GetDefaultLayoutProperties():GetHashCode()
-
         ColorGroup backgroundColor = properties:GetBackgroundColor()
         ColorGroup selectionColor = properties:GetSelectionColor()
 
         if GetParentMenu() = undefined
-            output "Root"
             rootLayout:SetIgnoreHidden(true)
             SetLayout(rootLayout)
 
@@ -694,7 +665,6 @@ class MenuItem is Control
 
             properties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
         else
-            output "Not root, parent is " + GetParentMenu():GetName()
             SetLayout(menuItemLayout)
 
             properties:SetHorizontalLayoutMode(menuProperties:STANDARD)
@@ -734,7 +704,6 @@ class MenuItem is Control
         end
 
         arrow:SetColor(menuProperties:GetFontColor())
-//        arrow:Hide()
 
         icon:LoadFilledRectangle(5, 5, color:Red())
         arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100, menuProperties:GetFontColor())
@@ -744,22 +713,22 @@ class MenuItem is Control
             labelText = GetName()
         end
 
-        Font newFont
-        newFont:LoadFont("Arial")
-        newFont:SetSize(properties:GetFontSize())
-        label:SetFont(newFont)
 
-//        label:SetFont(properties:GetFont())
-//        label:SetSize(properties:GetFontSize())
-        output "Setting " + GetName() + " label to " + labelText + ", labelText = " + properties:GetLabelText()
+        label:SetFont(properties:GetFont())
+        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
         label:SetText(labelText)
 
         Font shortcutFont
         shortcutFont:LoadFont("Arial")
-        shortcutFont:SetSize(properties:GetFontSize())
         shortcutLabel:SetFont(shortcutFont)
-        shortcutLabel:SetSize(properties:GetFontSize())
-        shortcutLabel:SetText("shortcut")
+        shortcutLabel:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+        shortcutLabel:SetText(shortcut)
+
+        if shortcut = ""
+            shortcutLabel:Hide()
+        else
+            shortcutLabel:Show()
+        end
 
         LabelBoxView view
         view:Initialize(backgroundColor, color:Yellow())

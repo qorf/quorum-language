@@ -23,9 +23,6 @@ use Libraries.Game.GameStateManager
 class MenuBar is Control
     Layout defaultLayout = undefined
     LayoutProperties defaultLayoutProperties
-    MenuItemView defaultMenuAppearance = undefined
-    MenuItemView defaultItemAppearance = undefined
-    View2D panelAppearance = undefined
     Array<MenuItem> menus
 
     boolean isSelecting = false
@@ -65,82 +62,19 @@ class MenuBar is Control
         SetName("Menu Bar")
     end
 
-    action Initialize
-        LabelBoxView defaultBar
-//        defaultBar:SetBorderStyle(defaultBar:BOTTOM)
-//        defaultBar:SetBorderThickness(1)
-//        defaultBar:SetText("")
-        Color color
-//        Gradient gradient
-//        
-//        Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
-//        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-//
-//        gradient:Set(gray, gray, lightGray, lightGray)
-        defaultBar:SetBorderStyle(defaultLayoutProperties:GetBorderStyle())
-        defaultBar:SetBorderThickness(cast(integer, defaultLayoutProperties:GetBorderThickness()))
-        defaultBar:Initialize(defaultLayoutProperties:GetBackgroundColor(), defaultLayoutProperties:GetBorderColor())
-
-        SetView2D(defaultBar)
-        Resize()
-
-        DefaultMenuItemView menuView
-        menuView:Initialize("Unnamed")
-        defaultMenuAppearance = menuView
-
-        LabelBoxView panelView
-        panelView:Initialize(color:CustomColor(1, 1, 1, 0), defaultLayoutProperties:GetBorderColor())
-        panelView:SetBorderThickness(5)
-//        panelView:SetBorderStyle(panelView:LEFT + panelView:RIGHT + panelView:BOTTOM)
-        panelAppearance = panelView
-
-        DefaultMenuItemView itemView
-        itemView:Initialize("Unnamed")
-        defaultItemAppearance = itemView
-    end
-
-    action Initialize(Array<MenuItem> menuHeaders)
-        Initialize()
-        
+    action Add(Array<MenuItem> menuHeaders)
         integer counter = 0
         repeat while counter < menuHeaders:GetSize()
             MenuItem menu = menuHeaders:Get(counter)
-
-            AddMenuItem(menu)
-
+            Add(menu)
             counter = counter + 1
         end
-
-        Resize()
     end
 
-    action Initialize(View2D bar, MenuItemView menus, View2D panels, MenuItemView items)
-        SetView2D(bar)
-        defaultMenuAppearance = menus
-        defaultItemAppearance = items
-        panelAppearance = panels
-        Resize()
-    end
-
-//    action Resize
-//        if defaultLayoutProperties not= undefined
-//            defaultLayoutProperties:SetOffsetY(-GetHeight() + 1)
-//            defaultLayoutProperties:SetHeightOffset(GetHeight())
-//        end
-//        parent:Control:Resize()
-//    end
-
-    action AddMenuItem(MenuItem item)
-//        if item:GetView2D() = undefined
-//            MenuItemView content = cast(MenuItemView, defaultMenuAppearance:Copy())
-//            item:SetAppearance(content)
-//        end
-
+    action Add(MenuItem item)
         menus:Add(item)
-        Add(item)
+        parent:Item2D:Add(item)
         item:SetMenuBar(me)
-
-        item:SetMenuAppearance(defaultItemAppearance)
     end
 
     action GetSelection returns MenuSelection
@@ -229,14 +163,6 @@ class MenuBar is Control
             return path:GetFromEnd()
         end
         return undefined
-    end
-
-    action GetDefaultMenuHeaderView returns MenuItemView
-        return defaultMenuAppearance
-    end
-
-    action GetDefaultMenuItemView returns MenuItemView
-        return defaultItemAppearance
     end
 
     action IsSelecting returns boolean
@@ -384,5 +310,24 @@ class MenuBar is Control
 
         GameStateManager manager
         manager:GetInput():NotifyMenuChangeListeners(event)
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if properties:GetView2D() not= undefined
+            SetView2D(properties:GetView2D())
+        elseif GetView2D() = undefined
+            LabelBoxView defaultBar
+            defaultBar:SetBorderStyle(defaultLayoutProperties:GetBorderStyle())
+            defaultBar:SetBorderThickness(cast(integer, defaultLayoutProperties:GetBorderThickness()))
+            defaultBar:Initialize(defaultLayoutProperties:GetBackgroundColor(), defaultLayoutProperties:GetBorderColor())
+            SetView2D(defaultBar)
+        end
     end
 end
