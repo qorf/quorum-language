@@ -352,7 +352,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         selectionColor = highlightColor
 
-        InitializeCaret()
         GetLineDrawables()
     end
 
@@ -421,8 +420,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        Color fontColor = GetCurrentLayoutProperties():GetFontColor()
-        Color selectedFontColor = GetCurrentLayoutProperties():GetSelectionFontColor()
+        LayoutProperties currentProperties = GetCurrentLayoutProperties()
+        Color fontColor = currentProperties:GetFontColor()
+        Color selectedFontColor = currentProperties:GetSelectionFontColor()
+
+        if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetZoomFactor()))
+            font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetZoomFactor()))
+        end
+
+        // Ensure caret is correct size.
+        InitializeCaret()
 
         Array<MultipleLineText> lines = textValue:GetLines()
         text separator = textValue:GetLineSeparator()
@@ -518,15 +525,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     private action InitializeCaret
-        if caret:IsLoaded()
-            if caret:GetWidth() not= caretThickness or caret:GetHeight() not= font:GetLineHeight()
-                caret:Dispose()
-            else
-                return now
-            end
+        if caret:IsLoaded() = false
+            caret:LoadFilledRectangle(1, 1)
+            caret:SetName("TextBox Caret")
         end
-        caret:LoadFilledRectangle(caretThickness, font:GetLineHeight(), caretColor)
-        caret:SetName("TextBox Caret")
+
+        integer thickness = caretThickness
+        if GetCurrentLayoutProperties() not= undefined
+            thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetZoomFactor())
+        end
+
+        caret:SetSize(thickness, font:GetLineHeight())
+        caret:SetColor(caretColor)
     end
 
     /*

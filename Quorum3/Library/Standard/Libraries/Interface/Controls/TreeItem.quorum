@@ -115,6 +115,9 @@ class TreeItem is Control
 
     action Open
         if not open
+            if panel:GetZoomFactor() not= GetZoomFactor()
+                panel:SetZoomFactor(GetZoomFactor())
+            end
             parent:Item2D:Add(panel)
             open = true
             
@@ -437,13 +440,7 @@ class TreeItem is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        LayoutProperties oldProperties = GetCurrentLayoutProperties()
-        if oldProperties not= properties
-            oldProperties:SetRenderingFlag(true)
-            parent:Control:currentProperties = properties
-        end
-
-        properties:SetRenderingFlag(false)
+        parent:Control:LoadGraphics(properties)
 
         Color color
 
@@ -473,7 +470,7 @@ class TreeItem is Control
         integer height = 10
 
         if font not= undefined
-            font:SetSize(properties:GetFontSize())
+            font:SetSize(cast (integer, properties:GetFontSize() * properties:GetZoomFactor()))
             label:SetFont(font)
             text labelText = properties:GetLabelText()
             if labelText = ""
@@ -493,7 +490,7 @@ class TreeItem is Control
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
         itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
         itemStructureProperties:SetFont(font)
-        itemStructureProperties:SetFontSize(properties:GetFontSize())
+        itemStructureProperties:SetFontSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 

@@ -165,7 +165,7 @@ class MenuItem is Control
         SetShortcut(name)
     end
 
-    action AddMenuItem(MenuItem item)
+    action Add(MenuItem item)
 
         MenuBar bar = GetMenuBar()
         MenuItemView menuView = undefined
@@ -234,6 +234,10 @@ class MenuItem is Control
 
     action Open
         if not open and (not menuItems:IsEmpty())
+            if panel:GetZoomFactor() not= GetZoomFactor()
+                panel:SetZoomFactor(GetZoomFactor())
+            end
+
             open = true
             Add(panelAnchor)
             panel:Resize()

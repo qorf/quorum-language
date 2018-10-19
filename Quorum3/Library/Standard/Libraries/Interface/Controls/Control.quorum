@@ -299,4 +299,29 @@ class Control is Item2D
         return defaultProperties:GetBorderThickness()
     end
 
+    /*
+
+    */
+    action SetZoomFactor(number zoom)
+        defaultProperties:SetZoomFactor(zoom)
+        defaultProperties:SetRenderingFlag(true)
+
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            if children:Get(counter) is Control
+                Control control = cast(Control, children:Get(counter))
+                control:SetZoomFactor(zoom)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action GetZoomFactor returns number
+        return defaultProperties:GetZoomFactor()
+    end
+
 end

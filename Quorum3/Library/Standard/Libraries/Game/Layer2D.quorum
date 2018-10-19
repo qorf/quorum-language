@@ -2306,4 +2306,12 @@ class Layer2D is Layer
             counter = counter + 1
         end
     end
+
+    action SetZoomFactor(number zoom)
+        integer counter = 0
+        repeat while counter < controls:GetSize()
+            controls:Get(counter):SetZoomFactor(zoom)
+            counter = counter + 1
+        end
+    end
 end

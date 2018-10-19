@@ -241,7 +241,9 @@ class TabBar is Control, ButtonGroup
             end
         end
 
-        SetView2D(view)
+        if view not= undefined
+            SetView2D(view)
+        end
     end
 
     /*
