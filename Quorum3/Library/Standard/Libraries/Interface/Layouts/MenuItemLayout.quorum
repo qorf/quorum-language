@@ -96,7 +96,7 @@ class MenuItemLayout is Layout
                                     // We have to estimate the height now to determine the width.
                                     number height = 0
                                     if properties:GetVerticalLayoutMode() = properties:STANDARD
-                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetHeightOffset()
+                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetPixelHeight()
                                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                         if properties:GetFont() not= undefined
                                             height = properties:GetFont():GetLineHeight()
@@ -110,7 +110,7 @@ class MenuItemLayout is Layout
                                     totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
                                         + properties:GetLeftPadding() + properties:GetRightPadding()
                                 else
-                                    totalWidthOffset = totalWidthOffset + properties:GetWidthOffset() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    totalWidthOffset = totalWidthOffset + properties:GetPixelWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
                                     totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
                                 end
                             else
@@ -245,7 +245,7 @@ class MenuItemLayout is Layout
                                 control:SetHeight(currentY)
                             elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                                 // Setting the height will trigger a resize.
-                                control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset())
+                                control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight())
                             elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                 if properties:GetFont() not= undefined
                                     control:SetHeight(properties:GetFont():GetLineHeight())
@@ -259,7 +259,7 @@ class MenuItemLayout is Layout
                                 width = containerWidth - rightX
                             end
                         elseif properties:GetHorizontalLayoutMode() not= properties:MAINTAIN_ASPECT_RATIO
-                            width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() + leftPadding + rightPadding
+                            width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() + leftPadding + rightPadding
                         end
 
                         if fromLeft
@@ -283,7 +283,7 @@ class MenuItemLayout is Layout
                                     height = font:GetLineHeight()
                                 end
                             elseif properties:GetVerticalLayoutMode() = properties:STANDARD
-                                height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                                height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight()
                             elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                                 height = properties:GetPercentageHeight() * width
                             end

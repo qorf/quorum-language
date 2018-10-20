@@ -22,11 +22,11 @@ class ManualLayout is Layout
                     number height = control:GetHeight()
 
                     if properties:IsSettingWidth()
-                        width = containerWidth * properties:GetPercentageWidth() + properties:GetWidthOffset() 
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() 
                     end
 
                     if properties:IsSettingHeight()
-                        height = containerHeight * properties:GetPercentageHeight() + properties:GetHeightOffset()
+                        height = containerHeight * properties:GetPercentageHeight() + properties:GetPixelHeight()
                     end
 
                     if width < properties:GetMinimumWidth()
@@ -43,13 +43,13 @@ class ManualLayout is Layout
 
                     if properties:IsPositioningInX()
                         if properties:IsPositioningInY()
-                            control:SetPosition(containerWidth * properties:GetPercentageX() + properties:GetOffsetX() - width * properties:GetPercentageOriginX(),
-                                containerHeight * properties:GetPercentageY() + properties:GetOffsetY() - height * properties:GetPercentageOriginY())
+                            control:SetPosition(containerWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX(),
+                                containerHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY())
                         else
-                            control:SetX(containerWidth * properties:GetPercentageX() + properties:GetOffsetX() - width * properties:GetPercentageOriginX())
+                            control:SetX(containerWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX())
                         end
                     elseif properties:IsPositioningInY()
-                        control:SetY(containerHeight * properties:GetPercentageY() + properties:GetOffsetY() - height * properties:GetPercentageOriginY())
+                        control:SetY(containerHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY())
                     end
 
                     if properties:IsSettingWidth()

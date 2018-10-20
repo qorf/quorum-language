@@ -17,45 +17,48 @@ class DefaultTreeMenuView is Drawable, ToggleView
     action Initialize(integer width, integer height)
         SetName("DefaultTreeMenuView")
 
-        integer longestSide = width
-        if width < height
-            longestSide = height
-        end
-
-        integer xOffset = (longestSide - width) / 2
-        integer yOffset = (longestSide - height) / 2
-
-        // Variables representing a quarter of the width/height of the final
-        // size of the texture we're about to create.
-        integer quarterWidth = width
-        integer quarterHeight = height
+//        integer longestSide = width
+//        if width < height
+//            longestSide = height
+//        end
+//
+//        integer xOffset = (longestSide - width) / 2
+//        integer yOffset = (longestSide - height) / 2
+//
+//        // Variables representing a quarter of the width/height of the final
+//        // size of the texture we're about to create.
+//        integer quarterWidth = width
+//        integer quarterHeight = height
+//
+//        Color color
+//
+//        PixelMap pixelMap
+//        Format format
+//        format:SetValue(format:RGBA8888)
+//        pixelMap:CreatePixelMap(longestSide, longestSide, format)
+//        integer y1 = yOffset
+//        integer y2 = yOffset + height
+//        integer y3 = yOffset + height / 2
+//        pixelMap:FillTriangle(xOffset, y1, xOffset, y2, xOffset + width, y3, color:Black())
+//
+//        Texture texture
+//        TextureFilter minFilter
+//        TextureFilter magFilter
+//
+//        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+//        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+//
+//        texture:SetFilter(minFilter, magFilter)
+////        texture:LoadFilledTriangle(quarterWidth, quarterHeight, (3 * quarterWidth)/2, 2 * quarterHeight, quarterWidth, 3 * quarterHeight)
+////        texture:LoadFilledTriangle(0, 0, (3 * quarterWidth)/2 - quarterWidth, quarterHeight, 0, 2 * quarterHeight)
+////        texture:LoadFilledTriangle(0, 0, 0, height, width, height / 2)
+//
+//        texture:LoadFromPixelMap(pixelMap)
 
         Color color
+        LoadFilledTriangle(0, 0, 0, 200, 173, 100)
 
-        PixelMap pixelMap
-        Format format
-        format:SetValue(format:RGBA8888)
-        pixelMap:CreatePixelMap(longestSide, longestSide, format)
-        integer y1 = yOffset
-        integer y2 = yOffset + height
-        integer y3 = yOffset + height / 2
-        pixelMap:FillTriangle(xOffset, y1, xOffset, y2, xOffset + width, y3, color:Black())
-
-        Texture texture
-        TextureFilter minFilter
-        TextureFilter magFilter
-
-        minFilter:ConstructTextureFilter(minFilter:LINEAR)
-        magFilter:ConstructTextureFilter(magFilter:LINEAR)
-
-        texture:SetFilter(minFilter, magFilter)
-//        texture:LoadFilledTriangle(quarterWidth, quarterHeight, (3 * quarterWidth)/2, 2 * quarterHeight, quarterWidth, 3 * quarterHeight)
-//        texture:LoadFilledTriangle(0, 0, (3 * quarterWidth)/2 - quarterWidth, quarterHeight, 0, 2 * quarterHeight)
-//        texture:LoadFilledTriangle(0, 0, 0, height, width, height / 2)
-
-        texture:LoadFromPixelMap(pixelMap)
-
-        Load(texture)
+//        Load(texture)
 
         SetColor(color:Black())
     end

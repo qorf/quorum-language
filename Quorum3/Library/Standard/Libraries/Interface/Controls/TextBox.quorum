@@ -245,7 +245,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         verticalBarProperties:SetPercentageY(1)
         verticalBarProperties:SetPercentageOriginY(1)
         verticalBarProperties:SetPercentageHeight(1)
-        verticalBarProperties:SetWidthOffset(barThickness)
+        verticalBarProperties:SetPixelWidth(barThickness)
 
         verticalBar:AddLayoutProperties(verticalBarProperties)
 
@@ -256,7 +256,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         horizontalBarProperties:SetPercentageX(0)
         horizontalBarProperties:SetPercentageY(0)
         horizontalBarProperties:SetPercentageWidth(1)
-        horizontalBarProperties:SetHeightOffset(barThickness)
+        horizontalBarProperties:SetPixelHeight(barThickness)
 
         horizontalBar:AddLayoutProperties(horizontalBarProperties)
 
@@ -366,15 +366,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number barWidth = width
 
         if verticalVisible and horizontalVisible
-            verticalBarProperties:SetHeightOffset(-barThickness)
-            horizontalBarProperties:SetWidthOffset(-barThickness)
+            verticalBarProperties:SetPixelHeight(-barThickness)
+            horizontalBarProperties:SetPixelWidth(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
         else
-            verticalBarProperties:SetHeightOffset(0)
-            horizontalBarProperties:SetWidthOffset(0)
+            verticalBarProperties:SetPixelHeight(0)
+            horizontalBarProperties:SetPixelWidth(0)
         end
 
         if verticalRatio > 1.0
@@ -424,8 +424,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Color fontColor = currentProperties:GetFontColor()
         Color selectedFontColor = currentProperties:GetSelectionFontColor()
 
-        if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetZoomFactor()))
-            font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetZoomFactor()))
+        if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
+            font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
         end
 
         // Ensure caret is correct size.
@@ -532,7 +532,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         integer thickness = caretThickness
         if GetCurrentLayoutProperties() not= undefined
-            thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetZoomFactor())
+            thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetInterfaceScale())
         end
 
         caret:SetSize(thickness, font:GetLineHeight())
@@ -1295,9 +1295,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
         verticalControlProperties:SetPercentageY(vertical)
-        verticalControlProperties:SetOffsetY(((1 - vertical) * ((GetHeight() + verticalBarProperties:GetHeightOffset()) * verticalControlProperties:GetPercentageHeight())))
+        verticalControlProperties:SetPixelY(((1 - vertical) * ((GetHeight() + verticalBarProperties:GetPixelHeight()) * verticalControlProperties:GetPercentageHeight())))
         horizontalControlProperties:SetPercentageX(horizontal)
-        horizontalControlProperties:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetWidthOffset()) * horizontalControlProperties:GetPercentageWidth())))
+        horizontalControlProperties:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetPixelWidth()) * horizontalControlProperties:GetPercentageWidth())))
 
         verticalControl:Resize()
         horizontalControl:Resize()

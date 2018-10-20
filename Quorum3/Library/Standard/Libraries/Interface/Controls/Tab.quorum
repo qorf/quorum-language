@@ -206,7 +206,7 @@ class Tab is ToggleButton
         Font font = properties:GetFont()
         if font not= undefined
             label:SetFont(font)
-            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
         else
             label:Hide()
         end

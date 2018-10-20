@@ -227,6 +227,154 @@ class Control is Item2D
     end
 
     /*
+    This action sets the x position of the Control relative to the size of its
+    container, if the container's Layout supports it.
+
+    Attribute: Parameter x The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action SetPercentageX(number x)
+        defaultProperties:SetPercentageX(x)
+    end
+
+    /*
+    This action returns the x position of the Control relative to the size of 
+    its container, if the container's Layout supports it.
+
+    Attribute: Returns The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action GetPercentageX returns number
+        return defaultProperties:GetPercentageY()
+    end
+
+    /*
+    This action sets the y position of the Control relative to the size of its
+    container, if the container's Layout supports it.
+
+    Attribute: Parameter y The target y position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action SetPercentageY(number y)
+        defaultProperties:SetPercentageY(y)
+    end
+
+    /*
+    This action returns the y position of the Control relative to the size of 
+    its container, if the container's Layout supports it.
+
+    Attribute: Returns The target y position as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
+    action GetPercentageY returns number
+        return defaultProperties:GetPercentageY()
+    end
+
+    /*
+    This action sets the x position of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's width to set the x position, then the two values will be
+    added together.
+
+    Attribute: Parameter x The target x position of this Control in pixels.
+    */
+    action SetPixelX(number x)
+        defaultProperties:SetPixelX(x)
+    end
+
+    /*
+    This action returns the target x position of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
+
+    Attribute: Returns The target x position of this Control in pixels.
+    */
+    action GetPixelX returns number
+        return defaultProperties:GetPixelX()
+    end
+
+    /*
+    This action sets the y position of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's height to set the y position, then the two values will be
+    added together.
+
+    Attribute: Parameter y The target y position of this Control in pixels.
+    */
+    action SetPixelY(number y)
+        defaultProperties:SetPixelY(y)
+    end
+
+    /*
+    This action returns the target y position of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
+
+    Attribute: Returns The target y position of this Control in pixels.
+    */
+    action GetPixelY returns number
+        return defaultProperties:GetPixelY()
+    end
+
+    action SetPercentageWidth(number width)
+        defaultProperties:SetPercentageWidth(width)
+    end
+
+    action GetPercentageWidth returns number
+        return defaultProperties:GetPercentageWidth()
+    end
+
+    action SetPercentageHeight(number height)
+        defaultProperties:SetPercentageHeight(height)
+    end
+
+    action GetPercentageHeight returns number
+        return defaultProperties:GetPercentageHeight()
+    end
+
+    action SetPixelWidth(number width)
+        defaultProperties:SetPixelWidth(width)
+    end
+
+    action GetPixelWidth returns number
+        return defaultProperties:GetPixelWidth()
+    end
+
+    action SetPixelHeight(number height)
+        defaultProperties:SetPixelHeight(height)
+    end
+
+    action GetPixelHeight returns number
+        return defaultProperties:GetPixelHeight()
+    end
+
+    action SetLeftPadding(number padding)
+        defaultProperties:SetLeftPadding(padding)
+    end
+
+    action SetRightPadding(number padding)
+        defaultProperties:SetRightPadding(padding)
+    end
+
+    action SetBottomPadding(number padding)
+        defaultProperties:SetBottomPadding(padding)
+    end
+
+    action SetTopPadding(number padding)
+        defaultProperties:SetTopPadding(padding)
+    end
+
+    action GetLeftPadding returns number
+        return defaultProperties:GetLeftPadding()
+    end
+
+    action GetRightPadding returns number
+        return defaultProperties:GetRightPadding()
+    end
+
+    action GetBottomPadding returns number
+        return defaultProperties:GetBottomPadding()
+    end
+
+    action GetTopPadding returns number
+        return defaultProperties:GetTopPadding()
+    end
+
+    /*
     This action sets the Icon used by this Control. Different Controls use this
     Icon differently, depending on their purpose.
 
@@ -302,8 +450,8 @@ class Control is Item2D
     /*
 
     */
-    action SetZoomFactor(number zoom)
-        defaultProperties:SetZoomFactor(zoom)
+    action SetInterfaceScale(number scale)
+        defaultProperties:SetInterfaceScale(scale)
         defaultProperties:SetRenderingFlag(true)
 
         Array<Item2D> children = GetChildren()
@@ -311,7 +459,7 @@ class Control is Item2D
         repeat while counter < children:GetSize()
             if children:Get(counter) is Control
                 Control control = cast(Control, children:Get(counter))
-                control:SetZoomFactor(zoom)
+                control:SetInterfaceScale(scale)
             end
             counter = counter + 1
         end
@@ -320,8 +468,8 @@ class Control is Item2D
     /*
 
     */
-    action GetZoomFactor returns number
-        return defaultProperties:GetZoomFactor()
+    action GetInterfaceScale returns number
+        return defaultProperties:GetInterfaceScale()
     end
 
 end

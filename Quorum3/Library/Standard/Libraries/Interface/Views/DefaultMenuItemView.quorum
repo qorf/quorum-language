@@ -56,10 +56,10 @@ class DefaultMenuItemView is Control, MenuItemView
         nameLabel:SetText(name)
         shortcutLabel:SetText(shortcut)
 
-        nameLayout:SetOffsetX(imageSpace)
+        nameLayout:SetPixelX(imageSpace)
         
         shortcutLayout:SetPercentageX(1)
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+        shortcutLayout:SetPixelX(-arrowSpace - shortcutLabel:GetWidth())
 
         nameLabel:AddLayoutProperties(nameLayout)
         shortcutLabel:AddLayoutProperties(shortcutLayout)
@@ -149,12 +149,12 @@ class DefaultMenuItemView is Control, MenuItemView
 
             Color color
 
-            arrowLayout:SetOffsetX(-contentHeight)
-            //arrowLayout:SetOffsetY(contentHeight - height)
+            arrowLayout:SetPixelX(-contentHeight)
+            //arrowLayout:SetPixelY(contentHeight - height)
             arrowLayout:SetPercentageY(0.4)
             arrowLayout:SetPercentageOriginY(0.5)
-            arrowLayout:SetWidthOffset(height)
-            arrowLayout:SetHeightOffset(height)
+            arrowLayout:SetPixelWidth(height)
+            arrowLayout:SetPixelHeight(height)
             arrowView:LoadFilledTriangle(0, 0, 0, 100 + height, 100 + height, (100 + height) / 2, color:Black())
             Add(arrowView)
             Resize()
@@ -163,7 +163,7 @@ class DefaultMenuItemView is Control, MenuItemView
             arrowSpace = 10
         end
 
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+        shortcutLayout:SetPixelX(-arrowSpace - shortcutLabel:GetWidth())
     end
 
     action SetText(text value)
@@ -176,7 +176,7 @@ class DefaultMenuItemView is Control, MenuItemView
 
     action SetShortcut(text shortcut)
         shortcutLabel:SetText(shortcut)
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+        shortcutLayout:SetPixelX(-arrowSpace - shortcutLabel:GetWidth())
     end
 
     action GetShortcut returns text

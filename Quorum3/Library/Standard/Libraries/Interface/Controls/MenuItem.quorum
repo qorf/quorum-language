@@ -234,8 +234,8 @@ class MenuItem is Control
 
     action Open
         if not open and (not menuItems:IsEmpty())
-            if panel:GetZoomFactor() not= GetZoomFactor()
-                panel:SetZoomFactor(GetZoomFactor())
+            if panel:GetInterfaceScale() not= GetInterfaceScale()
+                panel:SetInterfaceScale(GetInterfaceScale())
             end
 
             open = true
@@ -702,14 +702,13 @@ class MenuItem is Control
         if menuProperties:GetIcon() not= undefined
             icon:Load(menuProperties:GetIcon())
             icon:SetColor(menuProperties:GetIconColor())
+            icon:Show()
         else
             icon:LoadFilledRectangle(1, 1, color:Magenta())
             icon:Hide()
         end
 
         arrow:SetColor(menuProperties:GetFontColor())
-
-        icon:LoadFilledRectangle(5, 5, color:Red())
         arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100, menuProperties:GetFontColor())
 
         text labelText = properties:GetLabelText()
@@ -719,13 +718,13 @@ class MenuItem is Control
 
 
         label:SetFont(properties:GetFont())
-        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
         label:SetText(labelText)
 
         Font shortcutFont
         shortcutFont:LoadFont("Arial")
         shortcutLabel:SetFont(shortcutFont)
-        shortcutLabel:SetSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+        shortcutLabel:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
         shortcutLabel:SetText(shortcut)
 
         if shortcut = ""

@@ -97,7 +97,7 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         verticalBarLayout:SetPercentageY(1)
         verticalBarLayout:SetPercentageOriginY(1)
         verticalBarLayout:SetPercentageHeight(1)
-        verticalBarLayout:SetWidthOffset(barThickness)
+        verticalBarLayout:SetPixelWidth(barThickness)
 
         verticalBar:AddLayoutProperties(verticalBarLayout)
 
@@ -108,7 +108,7 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         horizontalBarLayout:SetPercentageX(0)
         horizontalBarLayout:SetPercentageY(0)
         horizontalBarLayout:SetPercentageWidth(1)
-        horizontalBarLayout:SetHeightOffset(barThickness)
+        horizontalBarLayout:SetPixelHeight(barThickness)
 
         horizontalBar:AddLayoutProperties(horizontalBarLayout)
 
@@ -201,15 +201,15 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         number barWidth = width
 
         if verticalVisible and horizontalVisible
-            verticalBarLayout:SetHeightOffset(-barThickness)
-            horizontalBarLayout:SetWidthOffset(-barThickness)
+            verticalBarLayout:SetPixelHeight(-barThickness)
+            horizontalBarLayout:SetPixelWidth(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
         else
-            verticalBarLayout:SetHeightOffset(0)
-            horizontalBarLayout:SetWidthOffset(0)
+            verticalBarLayout:SetPixelHeight(0)
+            horizontalBarLayout:SetPixelWidth(0)
         end
 
         if verticalRatio > 1.0
@@ -381,12 +381,12 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
         verticalControlLayout:SetPercentageY(vertical)
-        verticalControlLayout:SetOffsetY((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight()))
+        verticalControlLayout:SetPixelY((1 - vertical) * ((GetHeight() + verticalBarLayout:GetPixelHeight()) * verticalControlLayout:GetPercentageHeight()))
         horizontalControlLayout:SetPercentageX(horizontal)
-        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
+        horizontalControlLayout:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetPixelWidth()) * horizontalControlLayout:GetPercentageWidth())))
 
-        scrollAnchorLayout:SetOffsetY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
-        scrollAnchorLayout:SetOffsetX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetPixelY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetPixelX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
 
         if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
             verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()

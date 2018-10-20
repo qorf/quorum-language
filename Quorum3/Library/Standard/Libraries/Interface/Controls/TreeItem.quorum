@@ -57,9 +57,9 @@ class TreeItem is Control
 
         Font font
         font:LoadFont("Arial")
-        font:SetSize(18)
+        font:SetSize(14)
         treeItemProperties:SetFont(font)
-        treeItemProperties:SetFontSize(18)
+        treeItemProperties:SetFontSize(14)
 
         FlowLayout flow
         layout = flow
@@ -115,8 +115,8 @@ class TreeItem is Control
 
     action Open
         if not open
-            if panel:GetZoomFactor() not= GetZoomFactor()
-                panel:SetZoomFactor(GetZoomFactor())
+            if panel:GetInterfaceScale() not= GetInterfaceScale()
+                panel:SetInterfaceScale(GetInterfaceScale())
             end
             parent:Item2D:Add(panel)
             open = true
@@ -470,7 +470,7 @@ class TreeItem is Control
         integer height = 10
 
         if font not= undefined
-            font:SetSize(cast (integer, properties:GetFontSize() * properties:GetZoomFactor()))
+            font:SetSize(cast (integer, properties:GetFontSize() * properties:GetInterfaceScale()))
             label:SetFont(font)
             text labelText = properties:GetLabelText()
             if labelText = ""
@@ -490,7 +490,7 @@ class TreeItem is Control
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
         itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
         itemStructureProperties:SetFont(font)
-        itemStructureProperties:SetFontSize(cast(integer, properties:GetFontSize() * properties:GetZoomFactor()))
+        itemStructureProperties:SetFontSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 
@@ -524,6 +524,9 @@ class TreeItem is Control
         buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
         buttonProperties:SetPercentageHeight(1.0)
         buttonProperties:SetPercentageWidth(1.0)
+        buttonProperties:SetTopPadding(4)
+        buttonProperties:SetBottomPadding(4)
+        buttonProperties:SetLeftPadding(4)
         buttonProperties:SetLabelText("")
         buttonProperties:SetFont(undefined)
 
@@ -542,7 +545,7 @@ class TreeItem is Control
             // Hardcoded value sufficient for basic cases. Should be replaced with
             // something more responsive to design in the future.
             flow:SetPadding(2)
-            panelProperties:SetOffsetX(height/2 * 3)
+            panelProperties:SetPixelX(height/2 * 3)
         end
 
         itemStructure:Add(expandButton)

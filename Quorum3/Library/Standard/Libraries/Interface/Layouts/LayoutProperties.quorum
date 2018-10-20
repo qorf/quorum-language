@@ -99,12 +99,12 @@ class LayoutProperties
 
     number xPercentage = 0.0
     number yPercentage = 0.0
-    number offsetX = 0
-    number offsetY = 0
+    number pixelX = 0
+    number pixelY = 0
     number widthPercentage = 0.0
     number heightPercentage = 0.0
-    number widthOffset = 0
-    number heightOffset = 0
+    number widthPixels = 0
+    number heightPixels = 0
     number minimumWidth = 0
     number minimumHeight = 0
     number maximumWidth = widthPercentage:GetPositiveInfinityValue()
@@ -138,7 +138,7 @@ class LayoutProperties
 
     View2D view = undefined
 
-    number zoomFactor = 1.0
+    number interfaceScale = 1.0
 
     /*
     What point along the Item2D, as a percentage, should be placed at the given
@@ -166,6 +166,16 @@ class LayoutProperties
         iconColor = fontColor:White()
     end
 
+    /*
+    The SetHorizontalLayoutMode is used to determine how the width of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the width as a set number of pixels plus a
+    percentage of the container's width.
+    FILL, which will make the width fill the remaining width of the container.
+    FIT_CONTENTS, which will calculate the width to fit the children contents.
+
+    Attribute: Parameter mode A layout mode constant, one of STANDARD, FILL, or FILL_CONTENTS.
+    */
     action SetHorizontalLayoutMode(integer mode)
         horizontalLayoutMode = mode
     end
@@ -174,6 +184,18 @@ class LayoutProperties
         return horizontalLayoutMode
     end
 
+    /*
+    The GetVerticalLayoutMode is used to determine how the height of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the height as a set number of pixels plus a
+    percentage of the container's height.
+    FILL, which will make the height fill the remaining height of the container.
+    FIT_CONTENTS, which will calculate the height to fit the children contents.
+    FIT_FONT, which will fit the height of the Control to the line height of the
+    Font set in this LayoutProperties.
+
+    Attribute: Parameter mode A layout mode constant, one of STANDARD, FILL, FILL_CONTENTS, or FIT_FONT.
+    */
     action SetVerticalLayoutMode(integer mode)
         verticalLayoutMode = mode
     end
@@ -200,22 +222,22 @@ class LayoutProperties
         return yPercentage
     end
 
-    action SetOffsetX(number x)
-        offsetX = x
+    action SetPixelX(number x)
+        pixelX = x
         setX = true
     end
 
-    action GetOffsetX returns number
-        return offsetX
+    action GetPixelX returns number
+        return pixelX
     end
 
-    action SetOffsetY(number y)
-        offsetY = y
+    action SetPixelY(number y)
+        pixelY = y
         setY = true
     end
 
-    action GetOffsetY returns number
-        return offsetY
+    action GetPixelY returns number
+        return pixelY
     end
 
     action SetPercentageWidth(number width)
@@ -236,22 +258,22 @@ class LayoutProperties
         return heightPercentage
     end
 
-    action SetWidthOffset(number width)
-        widthOffset = width
+    action SetPixelWidth(number width)
+        widthPixels = width
         setWidth = true
     end
 
-    action GetWidthOffset returns number
-        return widthOffset
+    action GetPixelWidth returns number
+        return widthPixels
     end
 
-    action SetHeightOffset(number height)
-        heightOffset = height
+    action SetPixelHeight(number height)
+        heightPixels = height
         setHeight = true
     end
 
-    action GetHeightOffset returns number
-        return heightOffset
+    action GetPixelHeight returns number
+        return heightPixels
     end
 
     action SetMinimumWidth(number width)
@@ -438,7 +460,7 @@ class LayoutProperties
     action SetFont(Font font)
         me:font = font
         if font not= undefined
-            font:SetSize(cast(integer, baseFontSize * zoomFactor))
+            font:SetSize(cast(integer, baseFontSize * interfaceScale))
             if fontColor not= undefined
                 font:SetColor(fontColor)
             end
@@ -453,7 +475,7 @@ class LayoutProperties
     action SetFontSize(integer size)
         baseFontSize = size
         if font not= undefined
-            font:SetSize(cast(integer, baseFontSize * zoomFactor))
+            font:SetSize(cast(integer, baseFontSize * interfaceScale))
         end
         needsRendering = true
     end
@@ -537,13 +559,13 @@ class LayoutProperties
         return view
     end
 
-    action SetZoomFactor(number zoom)
-        zoomFactor = zoom
+    action SetInterfaceScale(number scale)
+        interfaceScale = scale
         needsRendering = true
     end
 
-    action GetZoomFactor returns number
-        return zoomFactor
+    action GetInterfaceScale returns number
+        return interfaceScale
     end
 
     action NeedsRendering returns boolean
