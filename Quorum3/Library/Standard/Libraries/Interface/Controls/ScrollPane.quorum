@@ -12,6 +12,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.ManualLayout
 
 class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelListener
@@ -51,7 +52,7 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     boolean verticalChanging = true
     number clickPointOffset = 0
 
-    LayoutProperties scrollAnchorLayout
+    LayoutProperties scrollAnchorLayout = undefined
     LayoutProperties horizontalBarLayout
     LayoutProperties horizontalControlLayout
     LayoutProperties verticalBarLayout
@@ -60,9 +61,12 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     boolean automaticRegionSizing = true
 
     on create
+        scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
         scrollAnchorLayout:SetPercentageX(0)
         scrollAnchorLayout:SetPercentageY(1)
         scrollAnchorLayout:SetPercentageOriginY(1)
+        scrollAnchorLayout:SetPixelWidth(scrollRegionWidth)
+        scrollAnchorLayout:SetPixelHeight(scrollRegionHeight)
 
         scrollAnchor:SetWidth(scrollRegionWidth)
         scrollAnchor:SetHeight(scrollRegionHeight)
@@ -74,8 +78,9 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         AddMouseMovementListener(me)
 
         ManualLayout layout
-        SetLayout(layout)
+        parent:Control:SetLayout(layout)
 
+        scrollAnchor:SetName("Scroll Anchor")
         verticalBar:SetName("Vertical Scroll Track")
         verticalControl:SetName("Vertical Scroll Control")
         horizontalBar:SetName("Horizontal Scroll Track")
@@ -308,6 +313,8 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         scrollRegionHeight = height
         scrollAnchor:SetWidth(width)
         scrollAnchor:SetHeight(height)
+        scrollAnchorLayout:SetPixelWidth(width)
+        scrollAnchorLayout:SetPixelHeight(height)
         Resize()
     end
 
@@ -427,5 +434,9 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
 
     private action GetHorizontalTrackPercentage(number x) returns number
         return x / (GetWidth() - horizontalControl:GetWidth())
+    end
+
+    action SetLayout(Layout layout)
+        scrollAnchor:SetLayout(layout)
     end
 end

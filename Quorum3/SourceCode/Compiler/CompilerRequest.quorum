@@ -37,6 +37,10 @@ class CompilerRequest
         end
     end
 
+    action SetWebRequest(boolean value)
+        isWebRequest = value
+    end
+
     action IsWebRequest returns boolean
         return isWebRequest
     end

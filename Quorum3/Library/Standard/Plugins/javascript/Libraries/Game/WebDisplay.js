@@ -99,5 +99,15 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     {
         return 1.0;
     };
+    
+    this.IsAvailable = function()
+    {
+        var manager = new quorum_Libraries_Game_GameStateManager_();
+        var graphics = manager.GetGameGraphics();
+        if (graphics !== null && graphics !== undefined)
+            return graphics.HasContext();
+        else
+            return false;
+    };
 }
 

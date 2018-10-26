@@ -6,7 +6,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.MenuBar
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
-use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.TabPane
 
 class FlowLayout is Layout
 
@@ -140,6 +140,12 @@ class FlowLayout is Layout
             if item is Control
                 Control control = cast(Control, item)
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+                if item is TabPane
+                    integer a = 5
+                    a = a + 5
+                    output "TabPane"
+                end
 
                 if properties:NeedsRendering()
                     control:LoadGraphics(properties)

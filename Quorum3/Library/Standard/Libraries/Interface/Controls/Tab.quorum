@@ -62,10 +62,6 @@ class Tab is ToggleButton
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
         closeButton:SetFont(undefined)
-        Icon closeIcon
-        Color color
-        closeIcon:LoadFilledRectangle(10, 10, color:Red())
-        closeButton:SetIcon(closeIcon)
 
         TabCloseBehavior behavior
         behavior:SetTab(me)
@@ -114,7 +110,6 @@ class Tab is ToggleButton
         label:SetText(name)
         icon:SetName(name + " Icon")
         parent:Item2D:SetName(name)
-        Resize()
     end
 
     action ReleasedMouse
@@ -200,7 +195,13 @@ class Tab is ToggleButton
                 iconLayoutProperties:SetPercentageWidth(aspectRatio)
                 icon:Show()
             end
-            icon:SetColor(properties:GetIconColor())
+            ColorGroup iconColor = properties:GetIconColor()
+            if iconColor = undefined
+                Color color
+                iconColor = color:White()
+            end
+
+            icon:SetColor(iconColor)
         end
 
         Font font = properties:GetFont()
@@ -240,5 +241,10 @@ class Tab is ToggleButton
         end
 
         SetView2D(view)
+
+        Icon closeIcon
+        Color color
+        closeIcon:LoadFilledRectangle(10, 10, color:Red())
+        closeButton:SetIcon(closeIcon)
     end
 end

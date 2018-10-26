@@ -178,7 +178,22 @@ class Button is Control
         elseif iconTexture not= undefined
             ImageControlView content
             content:Load(iconTexture)
-            content:SetColor(properties:GetIconColor())
+
+            properties:SetHorizontalLayoutMode(properties:STANDARD)
+            properties:SetVerticalLayoutMode(properties:STANDARD)
+
+            if properties:IsSettingWidth() = false
+                properties:SetPixelWidth(content:GetWidth())
+            end
+            if properties:IsSettingHeight() = false
+                properties:SetPixelHeight(content:GetHeight())
+            end
+
+            ColorGroup iconColor = properties:GetIconColor()
+            if iconColor = undefined
+                iconColor = color:White()
+            end
+            content:SetColor(iconColor)
 
             view = content
         end

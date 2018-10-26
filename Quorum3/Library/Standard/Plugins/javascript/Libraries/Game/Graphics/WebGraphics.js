@@ -27,6 +27,11 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         return true;
     };
     
+    this.HasContext = function()
+    {
+        return gl !== null && gl !== undefined;
+    };
+    
     this.ClearScreenColor$quorum_number$quorum_number$quorum_number$quorum_number = function(red, green, blue, alpha)
     {
         gl.clearColor(red, green, blue, alpha);

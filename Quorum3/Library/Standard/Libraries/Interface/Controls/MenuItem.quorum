@@ -184,6 +184,14 @@ class MenuItem is Control
         end
     end
 
+    action Add(Array<MenuItem> items)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Add(items:Get(counter))
+            counter = counter + 1
+        end
+    end
+
     action RemoveMenuItem(MenuItem item)
         menuItems:Remove(item)
         panel:Remove(item)

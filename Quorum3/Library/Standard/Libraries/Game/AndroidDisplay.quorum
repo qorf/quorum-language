@@ -84,4 +84,15 @@ class AndroidDisplay is GameDisplay
         return 1
     end
 
+    /*
+    The IsAvailable action returns whether or not a display is available
+    to draw on. If no display is available, actions that try to create or draw
+    graphics (such as loading a Drawable) will create an error. This will return
+    false if called before StartGame() is called in the Game class, and will
+    typically return true after the game has been started.
+    */
+    action IsAvailable returns boolean
+        // TO-DO: Make this accurately reflect the state of the OpenGL ES context.
+        return true
+    end
 end
