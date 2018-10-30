@@ -2302,10 +2302,14 @@ class Layer2D is Layer
 
         camera:Update()
 
-        integer counter = 0
-        repeat while counter < items:GetSize()
-            items:Get(counter):Resize()
-            counter = counter + 1
+        if layerLayout not= undefined
+            shouldLayout = true
+        else
+            integer counter = 0
+            repeat while counter < items:GetSize()
+                items:Get(counter):Resize()
+                counter = counter + 1
+            end
         end
     end
 
