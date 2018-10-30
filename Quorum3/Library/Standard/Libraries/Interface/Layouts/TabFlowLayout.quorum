@@ -201,10 +201,7 @@ class TabFlowLayout is Layout
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             Font font = properties:GetFont()
                             if font not= undefined
-//                                font:LoadFont("Arial")
-//                                font:SetSize(properties:GetFontSize())
                                 height = font:GetLineHeight()
-//                                control:SetSize(width, height)
                             end
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight()

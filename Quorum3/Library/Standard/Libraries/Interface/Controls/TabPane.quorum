@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.Graphics.Font
@@ -53,6 +54,9 @@ class TabPane is Control
 
         FlowLayout layout
         SetLayout(layout)
+
+        ManualLayout manual
+        viewArea:SetLayout(manual)
     end
 
     private action SetCurrentItem(Item2D item)

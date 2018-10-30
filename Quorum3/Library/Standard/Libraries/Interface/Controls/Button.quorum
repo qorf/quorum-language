@@ -179,13 +179,12 @@ class Button is Control
             ImageControlView content
             content:Load(iconTexture)
 
-            properties:SetHorizontalLayoutMode(properties:STANDARD)
-            properties:SetVerticalLayoutMode(properties:STANDARD)
-
             if properties:IsSettingWidth() = false
+                properties:SetHorizontalLayoutMode(properties:STANDARD)
                 properties:SetPixelWidth(content:GetWidth())
             end
             if properties:IsSettingHeight() = false
+                properties:SetVerticalLayoutMode(properties:STANDARD)
                 properties:SetPixelHeight(content:GetHeight())
             end
 

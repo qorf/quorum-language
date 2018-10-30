@@ -18,6 +18,10 @@ class ManualLayout is Layout
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
                 if properties not= undefined
+                    if properties:NeedsRendering()
+                        control:LoadGraphics(properties)
+                    end
+
                     number width = control:GetWidth()
                     number height = control:GetHeight()
 
