@@ -126,7 +126,11 @@ class LayoutProperties
     integer borderStyle = ALL
     
     Font font = undefined
-    integer baseFontSize = 14
+
+    /* This is a default size for fonts on the system. */
+    constant integer DEFAULT_FONT_SIZE = 14
+
+    integer baseFontSize = DEFAULT_FONT_SIZE
     Color fontColor
     text labelText = ""
 
