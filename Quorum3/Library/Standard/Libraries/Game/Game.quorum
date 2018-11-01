@@ -98,6 +98,7 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
+use Libraries.Interface.Layouts.Layout
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -3807,5 +3808,140 @@ class Game
         return accessibility
     end
 
-    
+    /*
+    The SetInterfaceScale action sets the scale of the user interface. Larger
+    scaling values make each interface component larger. When the interface is
+    scaled in this way, components that can be re-rendered at a higher
+    resolution (such as fonts) will do so.
+
+    Attribute: Parameter scale The new interface rendering scale to use.
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Layouts.FlowLayout
+    use Libraries.Interface.Controls.Button
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FlowLayout layout
+            SetLayout(layout)
+
+            Button button1
+            button1:SetName("My Button")
+            Add(button1)
+
+            SetInterfaceScale(2.0)
+        end
+    end
+    */
+    action SetInterfaceScale(number scale)
+        currentLayer2D:SetInterfaceScale(scale)
+    end
+
+    /*
+    The GetInterfaceScale action returns the scale of the user interface. Larger
+    scaling values make each interface component larger. When the interface is
+    scaled in this way, components that can be re-rendered at a higher
+    resolution (such as fonts) will do so. Note that this represents the
+    standard scale in use by the default 2D layer, and it will not necessarily
+    reflect the scale of every single component. 
+
+    Attribute: Returns The current interface rendering scale.
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Layouts.FlowLayout
+    use Libraries.Interface.Controls.Button
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FlowLayout layout
+            SetLayout(layout)
+
+            Button button1
+            button1:SetName("My Button")
+            Add(button1)
+
+            output "The default interface scale is " + GetInterfaceScale()
+        end
+    end
+    */
+    action GetInterfaceScale returns number
+        return currentLayer2D:GetInterfaceScale()
+    end
+
+    /*
+    The SetLayout action is used to apply a layout to all Controls on the
+    default Layer2D.
+
+    Attribute: Parameter layout The Layout to use on the default Layer2D.
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Layouts.FlowLayout
+    use Libraries.Interface.Controls.Button
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FlowLayout layout
+            SetLayout(layout)
+
+            Button button1
+            button1:SetName("My Button")
+            Add(button1)
+        end
+    end
+    */
+    action SetLayout(Layout layout)
+        currentLayer2D:SetLayout(layout)
+    end
+
+    /*
+    The GetLayout action returns the layout that has been applied to the default
+    Layer2D.
+
+    Attribute: Parameter layout The Layout to use on the default Layer2D.
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Layouts.Layout
+    use Libraries.Interface.Layouts.FlowLayout
+    use Libraries.Interface.Controls.Button
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FlowLayout layout
+            SetLayout(layout)
+
+            Button button1
+            button1:SetName("My Button")
+            Add(button1)
+
+            Layout currentLayout = GetLayout()
+        end
+    end
+    */
+    action GetLayout returns Layout
+        return currentLayer2D:GetLayout()
+    end
 end

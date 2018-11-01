@@ -6,7 +6,11 @@ use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.VerticalMenuLayout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.MenuItemLayout
 use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
@@ -15,7 +19,10 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
 use Libraries.Game.InputSet
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
@@ -25,10 +32,18 @@ class MenuItem is Control
     
     /*
     A panel which contains all of the submenu options for this MenuItem, if this
-    MenuItem is a menu.
+    MenuItem is a menu. The anchor is used to position the panel depending on
+    what direction the panel is expected to open in.
     */
-    Item2D panel
+    MenuPanel panel
+    Control panelAnchor
     Layout panelLayout = undefined
+    LayoutProperties panelProperties = undefined
+    LayoutProperties iconProperties = undefined
+    LayoutProperties labelProperties = undefined
+    LayoutProperties shortcutProperties = undefined
+    LayoutProperties arrowProperties = undefined
+    LayoutProperties menuProperties = undefined
 
     /*
     An array containing all elements added to the panel. This is redundant to
@@ -59,49 +74,85 @@ class MenuItem is Control
 
     Behavior activationBehavior = undefined
 
+    Icon icon
+    Label label
+    Label shortcutLabel
+    Icon arrow
+
+    /*
+    Layouts for this MenuItem. Which one is used depends on if this MenuItem is
+    a child of another MenuItem.
+    */
+    FlowLayout rootLayout
+    MenuItemLayout menuItemLayout
+
     on create
         SetInputGroup("MenuItem")
-        panel:SetName("Menu Panel")
         SetAccessibilityCode(parent:Item:MENU_ITEM)
-    end
 
-    action Initialize(text name)
-        SetName(name)
-        InitializePanel()
-    end
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetBackgroundColor(undefined)
 
-    action Initialize(text name, text shortcut)
-        SetName(name)
-        SetShortcut(shortcut)
-    end
+        panelProperties = panel:GetDefaultLayoutProperties()
+        panelAnchor:Add(panel)
+        ManualLayout layout
+        panelAnchor:SetLayout(layout)
+        panelAnchor:SetName("Panel Anchor")
 
-    action Initialize(text name, Array<MenuItem> items)
-        Initialize(name)
-
-        integer counter = 0
-        repeat while counter < items:GetSize()
-            AddMenuItem(items:Get(counter))
-            counter = counter + 1
-        end
-
-        InitializeMenuAppearance()
-    end
-
-    private action InitializePanel
-        panel:SetName(GetName() + " Menu Panel")
+        iconProperties = icon:GetDefaultLayoutProperties()
+        labelProperties = label:GetDefaultLayoutProperties()
+        shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
+        arrowProperties = arrow:GetDefaultLayoutProperties()
+        menuProperties = GetDefaultLayoutProperties()
 
         Color color
+        menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
 
-        LabelBoxView content
-        content:SetBorderThickness(1)
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(14)
+        menuProperties:SetFont(font)
+        menuProperties:SetFontSize(14)
+        menuProperties:SetVerticalLayoutMode(menuProperties:FIT_FONT)
 
-        content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
-        panelView = content
+        menuProperties:SetBorderThickness(1)
 
-        SetMenuDirection(direction)
-        
-        panel:AddLayout(panelLayout)
-        panel:SetView2D(panelView)
+        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+        iconProperties:SetPercentageWidth(1.0)
+        iconProperties:SetPercentageHeight(1)
+        iconProperties:SetLeftPadding(6)
+        iconProperties:SetTopPadding(4)
+        iconProperties:SetBottomPadding(4)
+
+        labelProperties:SetVerticalLayoutMode(labelProperties:FIT_CONTENTS)
+        labelProperties:SetLeftPadding(6)
+        labelProperties:SetRightPadding(6)
+        labelProperties:SetBottomPadding(4)
+
+        shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
+        shortcutProperties:SetLeftPadding(4)
+        shortcutProperties:SetRightPadding(6)
+        shortcutProperties:SetBottomPadding(4)
+
+        arrowProperties:SetHorizontalLayoutMode(arrowProperties:MAINTAIN_ASPECT_RATIO)
+        arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
+        arrowProperties:SetPercentageWidth(1.0)
+        arrowProperties:SetPercentageHeight(0.5)
+        arrowProperties:SetRightPadding(6)
+        arrowProperties:SetTopPadding(4)
+        arrowProperties:SetBottomPadding(4)
+
+        label:SetName("Label")
+        icon:SetName("Icon")
+        shortcutLabel:SetName("Shortcut")
+        arrow:SetName("Arrow")
+        arrow:Hide()
+
+        Add(icon)
+        Add(label)
+        Add(shortcutLabel)
+        Add(arrow)
     end
 
     action SetShortcut(InputSet set)
@@ -114,37 +165,13 @@ class MenuItem is Control
         SetShortcut(name)
     end
 
-    private action InitializeMenuAppearance
-        MenuBar bar = GetMenuBar()
-        MenuItemView menuView = undefined
-        if bar not= undefined
-            menuView = bar:GetDefaultMenuItemView()
-        end
-
-        SetMenuAppearance(menuView)
-    end
-
-    action AddMenuItem(MenuItem item)
+    action Add(MenuItem item)
 
         MenuBar bar = GetMenuBar()
         MenuItemView menuView = undefined
-        if bar not= undefined
-            menuView = bar:GetDefaultMenuItemView()
-        end
 
-        if menuView not= undefined
-            MenuItemView copy = cast(MenuItemView, menuView:Copy())
-            item:SetAppearance(copy)
-            item:SetMenuAppearance(copy)
-        end
-
-        if menuItems:IsEmpty() and GetMenuBar() not= undefined
-            if GetView2D() is MenuItemView
-                MenuItemView content = cast(MenuItemView, GetView2D())
-                content:EnableMenuArrow(true)
-                SetSize(content:GetViewWidth(), content:GetViewHeight())
-                GetMenuBar():Resize()
-            end
+        if menuItems:IsEmpty() and GetParentMenu() not= undefined
+            arrow:Show()
         end
 
         item:SetMenuBar(menuBar)
@@ -154,6 +181,14 @@ class MenuItem is Control
 
         if item:GetMenuDirection() = DEFAULT
             item:SetMenuDirection(DEFAULT)
+        end
+    end
+
+    action Add(Array<MenuItem> items)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Add(items:Get(counter))
+            counter = counter + 1
         end
     end
 
@@ -179,25 +214,25 @@ class MenuItem is Control
         end
 
         if direction = LEFT
-            panelLayout:SetPercentageOriginX(1)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageX(0)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(1)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageX(0)
+            panelProperties:SetPercentageY(1)
         elseif direction = RIGHT
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageX(1)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageX(1)
+            panelProperties:SetPercentageY(1)
         elseif direction = DOWN
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(1)
-            panelLayout:SetPercentageY(0)
-            panelLayout:SetPercentageX(0)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(1)
+            panelProperties:SetPercentageY(0)
+            panelProperties:SetPercentageX(0)
         elseif direction = UP
-            panelLayout:SetPercentageOriginX(0)
-            panelLayout:SetPercentageOriginY(0)
-            panelLayout:SetPercentageX(0)
-            panelLayout:SetPercentageY(1)
+            panelProperties:SetPercentageOriginX(0)
+            panelProperties:SetPercentageOriginY(0)
+            panelProperties:SetPercentageX(0)
+            panelProperties:SetPercentageY(1)
         end
     end
 
@@ -207,9 +242,14 @@ class MenuItem is Control
 
     action Open
         if not open and (not menuItems:IsEmpty())
+            if panel:GetInterfaceScale() not= GetInterfaceScale()
+                panel:SetInterfaceScale(GetInterfaceScale())
+            end
+
             open = true
-            Add(panel)
+            Add(panelAnchor)
             panel:Resize()
+            PositionPanel()
             
             MenuBar bar = GetMenuBar()
             if bar not= undefined
@@ -217,6 +257,18 @@ class MenuItem is Control
                 event:Set(bar, me, event:OPENED)
                 bar:NotifyMenuChangeListeners(event)
             end
+        end
+    end
+
+    private action PositionPanel
+        if direction = LEFT
+            panelAnchor:SetPosition(-panel:GetWidth(), GetHeight())
+        elseif direction = RIGHT
+            panelAnchor:SetPosition(GetWidth(), GetHeight())
+        elseif direction = DOWN
+            panelAnchor:SetPosition(0, 0)
+        elseif direction = UP
+            panelAnchor:SetPosition(0, GetHeight() + panel:GetHeight())
         end
     end
 
@@ -231,7 +283,7 @@ class MenuItem is Control
             end
 
             open = false
-            Remove(panel)
+            Remove(panelAnchor)
 
             MenuBar bar = GetMenuBar()
             if bar not= undefined
@@ -266,7 +318,7 @@ class MenuItem is Control
             content:EnableMenuArrow(false)
         end
 
-        SetView2D(content)
+//        SetView2D(content)
         SetSize(content:GetViewWidth(), content:GetViewHeight())
     end
 
@@ -352,6 +404,15 @@ class MenuItem is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            ColorGroup useColor = properties:GetSelectionColor()
+            if useColor not= undefined
+                view:SetBackgroundColor(useColor)
+            end
+        end
+
         MenuBar menuBar = GetMenuBar()
         if menuBar not= undefined
             menuBar:SetSelectingState(true)
@@ -360,6 +421,14 @@ class MenuItem is Control
 
     action LostSelection
         parent:Control:LostSelection()
+        parent:Control:GainedSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            if properties:GetBackgroundColor() not= undefined
+                view:SetBackgroundColor(properties:GetBackgroundColor())
+            end
+        end
         if open
             Close()
         end
@@ -439,39 +508,53 @@ class MenuItem is Control
     end
 
     action GetIconWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetIconWidth()
-        else
-            return 0
+        if icon:IsShowing()
+            Font font = GetDefaultLayoutProperties():GetFont()
+            if font not= undefined
+                number aspectRatio = 1.0
+                LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+                if iconProperties:GetHorizontalLayoutMode() = iconProperties:MAINTAIN_ASPECT_RATIO
+                    aspectRatio = iconProperties:GetPercentageWidth()
+                end
+
+                return (font:GetLineHeight() * aspectRatio) + iconProperties:GetLeftPadding() + iconProperties:GetRightPadding()
+            end
         end
+        return 0
     end
 
     action GetNameWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetNameWidth()
+        if label:IsShowing()
+            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            return label:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
         else
             return 0
         end
     end
 
     action GetShortcutWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetShortcutWidth()
+        if shortcutLabel:IsShowing() and shortcutLabel:GetText() not= ""
+            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            return shortcutLabel:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
         else
             return 0
         end
     end
 
     action GetSubmenuIconWidth returns number
-        if GetView2D() is MenuItemView
-            MenuItemView content = cast(MenuItemView, GetView2D())
-            return content:GetSubmenuIconWidth()
-        else
-            return 0
+        if arrow:IsShowing()
+            Font font = GetDefaultLayoutProperties():GetFont()
+            if font not= undefined
+                number aspectRatio = 1.0
+                LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+                if arrowProperties:GetHorizontalLayoutMode() = arrowProperties:MAINTAIN_ASPECT_RATIO
+                    aspectRatio = arrowProperties:GetPercentageWidth()
+                end
+
+                return (font:GetLineHeight() * aspectRatio) + arrowProperties:GetLeftPadding() + arrowProperties:GetRightPadding()
+            end
         end
+        return 0
     end
 
     action IsMenu returns boolean
@@ -563,5 +646,103 @@ class MenuItem is Control
         end
 
         parent:Control:Activate(event)
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        ColorGroup backgroundColor = properties:GetBackgroundColor()
+        ColorGroup selectionColor = properties:GetSelectionColor()
+
+        if GetParentMenu() = undefined
+            rootLayout:SetIgnoreHidden(true)
+            SetLayout(rootLayout)
+
+            shortcutLabel:Hide()
+            arrow:Hide()
+
+            if backgroundColor = undefined
+                Color color
+                Gradient gradient
+                Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
+                Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+                gradient:Set(gray, gray, lightGray, lightGray)
+                backgroundColor = gradient
+            end
+
+            properties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
+        else
+            SetLayout(menuItemLayout)
+
+            properties:SetHorizontalLayoutMode(menuProperties:STANDARD)
+            properties:SetPercentageWidth(1.0)
+
+            SetMenuDirection(RIGHT)
+
+            if backgroundColor = undefined
+                Color color
+                color:SetColor(0.85, 0.85, 0.9, 1)
+                backgroundColor = color
+            end
+        end
+
+        properties:SetBackgroundColor(backgroundColor)
+
+        panel:SetName(GetName() + " Menu Panel")
+        panelProperties:SetBorderThickness(properties:GetBorderThickness())
+
+        Color color
+
+        LabelBoxView content
+        content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+        content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
+        content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
+        panelView = content
+
+        SetMenuDirection(direction)
+        panel:SetView2D(panelView)
+
+        if menuProperties:GetIcon() not= undefined
+            icon:Load(menuProperties:GetIcon())
+            icon:SetColor(menuProperties:GetIconColor())
+            icon:Show()
+        else
+            icon:LoadFilledRectangle(1, 1, color:Magenta())
+            icon:Hide()
+        end
+
+        arrow:SetColor(menuProperties:GetFontColor())
+        arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100, menuProperties:GetFontColor())
+
+        text labelText = properties:GetLabelText()
+        if labelText = ""
+            labelText = GetName()
+        end
+
+
+        label:SetFont(properties:GetFont())
+        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        label:SetText(labelText)
+
+        Font shortcutFont
+        shortcutFont:LoadFont("Arial")
+        shortcutLabel:SetFont(shortcutFont)
+        shortcutLabel:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        shortcutLabel:SetText(shortcut)
+
+        if shortcut = ""
+            shortcutLabel:Hide()
+        else
+            shortcutLabel:Show()
+        end
+
+        LabelBoxView view
+        view:Initialize(backgroundColor, color:Yellow())
+        SetView2D(view)
     end
 end

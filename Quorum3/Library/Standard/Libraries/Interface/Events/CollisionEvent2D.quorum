@@ -16,6 +16,8 @@ use Libraries.Game.Collision.CollisionIdentifier2D
 use Libraries.Game.Collision.Narrowphase.Distance2D
 use Libraries.Game.Collision.EdgeResult2D
 use Libraries.Game.Collision.ClipVertex2D
+use Libraries.Game.Graphics.Drawable
+
 
 package Libraries.Interface.Events
 
@@ -99,7 +101,6 @@ class CollisionEvent2D
 
     action Initialize(Item2D itemA, integer indexA, Item2D itemB, integer indexB)
         enabledFlag = true
-        
         //gets the shapes of the two items that are involved in the collision
         //this assumes that each item is made up of one shape
         CollisionShape2D shapeA = itemA:GetShape()  
@@ -110,25 +111,39 @@ class CollisionEvent2D
         //  (1) A = circle, B = circle
         //  (2) A = polygon, B = polygon
         //  (3) A = polygon, B = circle
-        if shapeA is Circle and shapeB is Circle or
-           shapeA is Polygon and shapeB is Polygon or
-           shapeA is Polygon and shapeB is Circle
            // Either the shapes are the same type or the polygon is the
            // first shape, so we can just assign the values as they come in
+        if (shapeA is Circle and shapeB is Circle)
             me:itemA = itemA
             me:indexA = indexA
 
             me:itemB = itemB
             me:indexB = indexB
+
+        elseif (shapeA is Polygon and shapeB is Polygon)
+            me:itemA = itemA
+            me:indexA = indexA
+
+            me:itemB = itemB
+            me:indexB = indexB
+
+        elseif (shapeA is Polygon and shapeB is Circle)
+            me:itemA = itemA
+            me:indexA = indexA
+
+            me:itemB = itemB
+            me:indexB = indexB
+
         else
             // The first shape is a circle and the second shape is a polygon, but
             // the collision algorithm for CirclePolygon collision assumes the
             // other way around, so flip them here
             me:itemA = itemB
             me:indexA = indexB
-            
+
             me:itemB = itemA
             me:indexB = indexA
+
         end
 
         collisionPoints:pointCount = 0  //local collision points

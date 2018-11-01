@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
@@ -21,19 +22,15 @@ class LabelBoxToggleView is Item2D, ToggleView
 
     boolean toggled = false
 
-    Color backgroundColor = undefined
-    Color borderColor = undefined
-    Gradient backgroundGradient = undefined
-    Gradient borderGradient = undefined
+    ColorGroup backgroundColor = undefined
+    ColorGroup borderColor = undefined
 
-    Color selectedBackgroundColor = undefined
-    Color selectedBorderColor = undefined
-    Gradient selectedBackgroundGradient = undefined
-    Gradient selectedBorderGradient = undefined
+    ColorGroup selectedBackgroundColor = undefined
+    ColorGroup selectedBorderColor = undefined
 
     integer borderThickness = 0
 
-    action Initialize(Color backgroundColor, Color borderColor, Color selectedBackgroundColor, Color selectedBorderColor)
+    action Initialize(ColorGroup backgroundColor, ColorGroup borderColor, ColorGroup selectedBackgroundColor, ColorGroup selectedBorderColor)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
         Add(border)
@@ -48,52 +45,7 @@ class LabelBoxToggleView is Item2D, ToggleView
         SetText("")
     end
 
-    action Initialize(Gradient backgroundGradient, Color borderColor, Gradient selectedBackgroundGradient, Color selectedBorderColor)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderColor)
-        Add(border)
-        Add(background)
-
-        me:backgroundGradient = backgroundGradient
-        me:borderColor = borderColor
-        me:selectedBackgroundGradient = selectedBackgroundGradient
-        me:selectedBorderColor = selectedBorderColor
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Color backgroundColor, Gradient borderGradient, Color selectedBackgroundColor, Gradient selectedBorderGradient)
-        background:LoadFilledRectangle(1, 1, backgroundColor)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        me:backgroundColor = backgroundColor
-        me:borderGradient = borderGradient
-        me:selectedBackgroundColor = selectedBackgroundColor
-        me:selectedBorderGradient = selectedBorderGradient
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Gradient backgroundGradient, Gradient borderGradient, Gradient selectedBackgroundGradient, Gradient selectedBorderGradient)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        me:backgroundGradient = backgroundGradient
-        me:borderGradient = borderGradient
-        me:selectedBackgroundGradient = selectedBackgroundGradient
-        me:selectedBorderGradient = selectedBorderGradient
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Color backgroundColor, Color borderColor, Color selectedBackgroundColor, Color selectedBorderColor, text labelText)
+    action Initialize(ColorGroup backgroundColor, ColorGroup borderColor, ColorGroup selectedBackgroundColor, ColorGroup selectedBorderColor, text labelText)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
         Add(border)
@@ -103,51 +55,6 @@ class LabelBoxToggleView is Item2D, ToggleView
         me:borderColor = borderColor
         me:selectedBackgroundColor = selectedBackgroundColor
         me:selectedBorderColor = selectedBorderColor
-
-        InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Gradient backgroundGradient, Color borderColor, Gradient selectedBackgroundGradient, Color selectedBorderColor, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderColor)
-        Add(border)
-        Add(background)
-
-        me:backgroundGradient = backgroundGradient
-        me:borderColor = borderColor
-        me:selectedBackgroundGradient = selectedBackgroundGradient
-        me:selectedBorderColor = selectedBorderColor
-
-        InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Color backgroundColor, Gradient borderGradient, Color selectedBackgroundColor, Gradient selectedBorderGradient, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundColor)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        me:backgroundColor = backgroundColor
-        me:borderGradient = borderGradient
-        me:selectedBackgroundColor = selectedBackgroundColor
-        me:selectedBorderGradient = selectedBorderGradient
-
-        InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Gradient backgroundGradient, Gradient borderGradient, Gradient selectedBackgroundGradient, Gradient selectedBorderGradient, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        me:backgroundGradient = backgroundGradient
-        me:borderGradient = borderGradient
-        me:selectedBackgroundGradient = selectedBackgroundGradient
-        me:selectedBorderGradient = selectedBorderGradient
 
         InitializeEffects()
         SetText(labelText)
@@ -288,27 +195,11 @@ class LabelBoxToggleView is Item2D, ToggleView
         end
 
         if open
-            if background:UsingCustomGradient()
-                background:SetGradient(selectedBackgroundGradient)
-            else
-                background:SetColor(selectedBackgroundColor)
-            end
-            if border:UsingCustomGradient()
-                border:SetGradient(selectedBorderGradient)
-            else
-                border:SetColor(selectedBorderColor)
-            end
+            background:SetColor(selectedBackgroundColor)
+            border:SetColor(selectedBorderColor)
         else
-            if background:UsingCustomGradient()
-                background:SetGradient(backgroundGradient)
-            else
-                background:SetColor(backgroundColor)
-            end
-            if border:UsingCustomGradient()
-                border:SetGradient(borderGradient)
-            else
-                border:SetColor(borderColor)
-            end
+            background:SetColor(backgroundColor)
+            border:SetColor(borderColor)
         end
 
         toggled = open
@@ -320,19 +211,7 @@ class LabelBoxToggleView is Item2D, ToggleView
 
     action Copy returns ControlView
         LabelBoxToggleView content
-        if background:UsingCustomGradient()
-            if border:UsingCustomGradient()
-                content:Initialize(backgroundGradient, borderGradient, selectedBackgroundGradient, selectedBorderGradient)
-            else
-                content:Initialize(backgroundGradient, borderColor, selectedBackgroundGradient, selectedBorderColor)
-            end
-        else
-            if border:UsingCustomGradient()
-                content:Initialize(backgroundColor, borderGradient, selectedBackgroundColor, selectedBorderGradient)
-            else
-                content:Initialize(backgroundColor, borderColor, selectedBackgroundColor, selectedBorderColor)
-            end
-        end
+        content:Initialize(backgroundColor, borderColor, selectedBackgroundColor, selectedBorderColor)
 
         content:SetBorderThickness(GetBorderThickness())
         content:SetText(GetText())

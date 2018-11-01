@@ -5,22 +5,38 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Compute.BitwiseOperations
 
 class LabelBoxView is Item2D, ControlView
+
+    public constant integer NONE = 0
+    public constant integer LEFT = 1
+    public constant integer RIGHT = 2
+    public constant integer BOTTOM = 4
+    public constant integer TOP = 8
+    public constant integer ALL = 15
+    
+    /*
+    Bitmask representing which sides of the box have borders.
+    */
+    integer borderStyle = ALL
     
     Drawable border
     Drawable background
     Drawable clickEffect
     Drawable mouseOverEffect
-    Label label
+//    Label label
+
+    BitwiseOperations bits
 
     integer borderThickness = 0
 
-    action Initialize(Color backgroundColor, Color borderColor)
+    action Initialize(ColorGroup backgroundColor, ColorGroup borderColor)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
         Add(border)
@@ -30,74 +46,14 @@ class LabelBoxView is Item2D, ControlView
         SetText("")
     end
 
-    action Initialize(Gradient backgroundGradient, Color borderColor)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderColor)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Color backgroundColor, Gradient borderGradient)
-        background:LoadFilledRectangle(1, 1, backgroundColor)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Gradient backgroundGradient, Gradient borderGradient)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText("")
-    end
-
-    action Initialize(Color backgroundColor, Color borderColor, text labelText)
+    action Initialize(ColorGroup backgroundColor, ColorGroup borderColor, text labelText)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
         Add(border)
         Add(background)
 
         InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Gradient backgroundGradient, Color borderColor, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderColor)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Color backgroundColor, Gradient borderGradient, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundColor)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText(labelText)
-    end
-
-    action Initialize(Gradient backgroundGradient, Gradient borderGradient, text labelText)
-        background:LoadFilledRectangle(1, 1, backgroundGradient)
-        border:LoadFilledRectangle(1, 1, borderGradient)
-        Add(border)
-        Add(background)
-
-        InitializeEffects()
-        SetText(labelText)
+//        SetText(labelText)
     end
 
     private action InitializeEffects
@@ -117,31 +73,37 @@ class LabelBoxView is Item2D, ControlView
 
         mouseOverEffect:LoadFilledRectangle(1, 1, mouseOverGradient)
 
-        Add(label)
+//        Add(label)
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        background:SetColor(color)
     end
 
     action SetText(text newText)
-        label:SetText(newText)
+//        label:SetText(newText)
         
-        number labelWidth = label:GetWidth()
-        number labelHeight = label:GetHeight()
+//        number labelWidth = label:GetWidth()
+//        number labelHeight = label:GetHeight()
 
         // Adjust the label upwards if it takes multiple lines.
-        number yOffset = labelHeight - label:GetLineHeight()
+//        number yOffset = labelHeight - label:GetLineHeight()
 
-        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
+//        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
     end
 
     action GetText returns text
-        return label:GetText()
+//        return label:GetText()
+        return ""
     end
 
     action SetFont(Font font)
-        label:SetFont(font)
+//        label:SetFont(font)
     end
 
     action GetFont returns Font
-        return label:GetFont()
+//        return label:GetFont()
+        return undefined
     end
 
     action SetBorderThickness(integer thickness)
@@ -150,6 +112,66 @@ class LabelBoxView is Item2D, ControlView
 
     action GetBorderThickness returns integer
         return borderThickness
+    end
+
+    action SetBorderStyle(integer style)
+        borderStyle = style
+    end
+
+    action SetLeftBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, LEFT)
+        else
+            borderStyle = bits:Or(borderStyle, LEFT)
+            borderStyle = bits:ExclusiveOr(borderStyle, LEFT)
+        end
+    end
+
+    action SetRightBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, RIGHT)
+        else
+            borderStyle = bits:Or(borderStyle, RIGHT)
+            borderStyle = bits:ExclusiveOr(borderStyle, RIGHT)
+        end
+    end
+
+    action SetBottomBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, BOTTOM)
+        else
+            borderStyle = bits:Or(borderStyle, BOTTOM)
+            borderStyle = bits:ExclusiveOr(borderStyle, BOTTOM)
+        end
+    end
+
+    action SetTopBorder(boolean value)
+        if value
+            borderStyle = bits:Or(borderStyle, TOP)
+        else
+            borderStyle = bits:Or(borderStyle, TOP)
+            borderStyle = bits:ExclusiveOr(borderStyle, TOP)
+        end
+    end
+
+    action GetBorderStyle returns integer
+        return borderStyle
+    end
+
+    action HasLeftBorder returns boolean
+        return bits:And(LEFT, borderStyle) not= 0
+    end
+
+    action HasRightBorder returns boolean
+        return bits:And(RIGHT, borderStyle) not= 0
+    end
+
+    action HasBottomBorder returns boolean
+        return bits:And(BOTTOM, borderStyle) not= 0
+    end
+
+    action HasTopBorder returns boolean
+        return bits:And(TOP, borderStyle) not= 0
     end
 
     action Draw(Painter2D painter)
@@ -171,22 +193,44 @@ class LabelBoxView is Item2D, ControlView
         end
 
         texture = background:GetTexture()
-        number backgroundWidth = width - borderThickness * 2
-        number backgroundHeight = height - borderThickness * 2
-        background:SetPosition(borderThickness, borderThickness)
+        number backgroundWidth = width
+        number backgroundHeight = height
+
+        number backgroundX = 0
+        number backgroundY = 0
+
+        if HasLeftBorder()
+            backgroundWidth = backgroundWidth - borderThickness
+            backgroundX = borderThickness
+        end
+
+        if HasRightBorder()
+            backgroundWidth = backgroundWidth - borderThickness
+        end
+
+        if HasBottomBorder()
+            backgroundHeight = backgroundHeight - borderThickness
+            backgroundY = borderThickness
+        end
+
+        if HasTopBorder()
+            backgroundHeight = backgroundHeight - borderThickness
+        end
+
+        background:SetPosition(backgroundX, backgroundY)
         background:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
         texture = clickEffect:GetTexture()
-        clickEffect:SetPosition(borderThickness, borderThickness)
+        clickEffect:SetPosition(backgroundX, backgroundY)
         clickEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
         texture = mouseOverEffect:GetTexture()
-        mouseOverEffect:SetPosition(borderThickness, borderThickness)
+        mouseOverEffect:SetPosition(backgroundX, backgroundY)
         mouseOverEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
-        label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())
+//        label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())
         // Force the label to readjust to its new size.
-        SetText(label:GetText())
+//        SetText(label:GetText())
     end
 
     action UpdatePosition(number x, number y)

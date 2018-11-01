@@ -3,14 +3,19 @@ package Libraries.Interface.Controls
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
-use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.ManualLayout
 
-class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
+class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelListener
 
     /*
     All items added to the scroll pane are actually added to the "anchor"
@@ -18,12 +23,12 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
     of all added content within the viewable area of the scroll pane without
     moving the pane itself, or moving items individually.
     */
-    Drawable scrollAnchor
+    Control scrollAnchor
 
-    Drawable horizontalBar
-    Drawable horizontalControl
-    Drawable verticalBar
-    Drawable verticalControl
+    Control horizontalBar
+    Control horizontalControl
+    Control verticalBar
+    Control verticalControl
 
     number scrollDistance = 3
     integer barThickness = 20
@@ -47,65 +52,45 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
     boolean verticalChanging = true
     number clickPointOffset = 0
 
-    Layout scrollAnchorLayout
-    Layout horizontalBarLayout
-    Layout horizontalControlLayout
-    Layout verticalBarLayout
-    Layout verticalControlLayout
+    LayoutProperties scrollAnchorLayout = undefined
+    LayoutProperties horizontalBarLayout
+    LayoutProperties horizontalControlLayout
+    LayoutProperties verticalBarLayout
+    LayoutProperties verticalControlLayout
 
     boolean automaticRegionSizing = true
 
     on create
+        scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
         scrollAnchorLayout:SetPercentageX(0)
         scrollAnchorLayout:SetPercentageY(1)
         scrollAnchorLayout:SetPercentageOriginY(1)
+        scrollAnchorLayout:SetPixelWidth(scrollRegionWidth)
+        scrollAnchorLayout:SetPixelHeight(scrollRegionHeight)
 
         scrollAnchor:SetWidth(scrollRegionWidth)
         scrollAnchor:SetHeight(scrollRegionHeight)
-        scrollAnchor:AddLayout(scrollAnchorLayout)
+        scrollAnchor:AddLayoutProperties(scrollAnchorLayout)
         parent:Item2D:Add(scrollAnchor)
         SetClipping(true)
         AddMouseWheelListener(me)
         AddMouseListener(me)
         AddMouseMovementListener(me)
-    end
 
-    action Initialize(number width, number height, Color backgroundColor)
-        if backgroundColor not= undefined
-            Drawable background
-            background:SetName("Background")
-            background:LoadFilledRectangle(1, 1, backgroundColor)
+        ManualLayout layout
+        parent:Control:SetLayout(layout)
 
-            Layout backgroundLayout
-            backgroundLayout:SetPercentageX(0)
-            backgroundLayout:SetPercentageY(0)
-            backgroundLayout:SetPercentageWidth(1)
-            backgroundLayout:SetPercentageHeight(1)
-            background:AddLayout(backgroundLayout)
-
-            parent:Item2D:Add(0, background)
-        end
-
-        SetWidth(width)
-        SetHeight(height)
-
-        CreateScrollBars()
-
-        verticalBar:SetName("Vertical Scroll Track")
-        verticalControl:SetName("Vertical Scroll Control")
-    end
-
-    private action CreateScrollBars
-        Color color
-        verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        horizontalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        verticalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-        horizontalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-
+        scrollAnchor:SetName("Scroll Anchor")
         verticalBar:SetName("Vertical Scroll Track")
         verticalControl:SetName("Vertical Scroll Control")
         horizontalBar:SetName("Horizontal Scroll Track")
         horizontalControl:SetName("Horizontal Scroll Control")
+
+        ManualLayout verticalLayout
+        ManualLayout horizontalLayout
+
+        verticalBar:SetLayout(verticalLayout)
+        horizontalBar:SetLayout(horizontalLayout)
 
         /*
         By default, the vertical bar has width equal to the bar thickness, has a
@@ -117,9 +102,9 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         verticalBarLayout:SetPercentageY(1)
         verticalBarLayout:SetPercentageOriginY(1)
         verticalBarLayout:SetPercentageHeight(1)
-        verticalBarLayout:SetWidthOffset(barThickness)
+        verticalBarLayout:SetPixelWidth(barThickness)
 
-        verticalBar:AddLayout(verticalBarLayout)
+        verticalBar:AddLayoutProperties(verticalBarLayout)
 
         /*
         The horizontal bar has width equal to its container's width, height
@@ -128,9 +113,9 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         horizontalBarLayout:SetPercentageX(0)
         horizontalBarLayout:SetPercentageY(0)
         horizontalBarLayout:SetPercentageWidth(1)
-        horizontalBarLayout:SetHeightOffset(barThickness)
+        horizontalBarLayout:SetPixelHeight(barThickness)
 
-        horizontalBar:AddLayout(horizontalBarLayout)
+        horizontalBar:AddLayoutProperties(horizontalBarLayout)
 
         /*
         The vertical control begins at the top of the bar, and its width fully
@@ -142,7 +127,7 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         verticalControlLayout:SetPercentageX(0)
         verticalControlLayout:SetPercentageWidth(1)
 
-        verticalControl:AddLayout(verticalControlLayout)
+        verticalControl:AddLayoutProperties(verticalControlLayout)
 
         /*
         The horizontal control begins at the left of the bar, and its height
@@ -153,14 +138,61 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         horizontalControlLayout:SetPercentageY(0)
         horizontalControlLayout:SetPercentageHeight(1)
 
-        horizontalControl:AddLayout(horizontalControlLayout)
+        horizontalControl:AddLayoutProperties(horizontalControlLayout)
 
         parent:Item2D:Add(verticalBar)
         parent:Item2D:Add(horizontalBar)
         verticalBar:Add(verticalControl)
         horizontalBar:Add(horizontalControl)
 
-        Resize()
+        Color color
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetBackgroundColor(color:White())
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        ColorGroup backgroundColor = properties:GetBackgroundColor()
+        if backgroundColor not= undefined
+            Control background
+            background:SetName("Background")
+
+            DrawableView backgroundView
+            backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
+            background:SetView2D(backgroundView)
+
+            LayoutProperties backgroundLayout
+            backgroundLayout:SetPercentageX(0)
+            backgroundLayout:SetPercentageY(0)
+            backgroundLayout:SetPercentageWidth(1)
+            backgroundLayout:SetPercentageHeight(1)
+            background:AddLayoutProperties(backgroundLayout)
+
+            parent:Item2D:Add(0, background)
+        end
+
+        // If we haven't loaded the scroll bar views yet, do so now.
+        if verticalBar:GetView2D() = undefined
+            Color color
+            DrawableView verticalBarView
+            DrawableView horizontalBarView
+            DrawableView verticalControlView
+            DrawableView horizontalControlView
+
+            verticalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+            horizontalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+            verticalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+            horizontalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+            verticalBar:SetView2D(verticalBarView)
+            horizontalBar:SetView2D(horizontalBarView)
+            verticalControl:SetView2D(verticalControlView)
+            horizontalControl:SetView2D(horizontalControlView)
+        end
     end
 
     action Resize
@@ -174,15 +206,15 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         number barWidth = width
 
         if verticalVisible and horizontalVisible
-            verticalBarLayout:SetHeightOffset(-barThickness)
-            horizontalBarLayout:SetWidthOffset(-barThickness)
+            verticalBarLayout:SetPixelHeight(-barThickness)
+            horizontalBarLayout:SetPixelWidth(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
         else
-            verticalBarLayout:SetHeightOffset(0)
-            horizontalBarLayout:SetWidthOffset(0)
+            verticalBarLayout:SetPixelHeight(0)
+            horizontalBarLayout:SetPixelWidth(0)
         end
 
         if verticalRatio > 1.0
@@ -207,6 +239,8 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
             horizontalBar:Hide()
         end
 
+        // UpdatePaneView will also call the parent's Resize action from Item2D,
+        // so layouts will trigger properly.
         UpdatePaneView(horizontal, vertical)
     end
 
@@ -279,6 +313,8 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         scrollRegionHeight = height
         scrollAnchor:SetWidth(width)
         scrollAnchor:SetHeight(height)
+        scrollAnchorLayout:SetPixelWidth(width)
+        scrollAnchorLayout:SetPixelHeight(height)
         Resize()
     end
 
@@ -352,12 +388,12 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
         verticalControlLayout:SetPercentageY(vertical)
-        verticalControlLayout:SetOffsetY((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight()))
+        verticalControlLayout:SetPixelY((1 - vertical) * ((GetHeight() + verticalBarLayout:GetPixelHeight()) * verticalControlLayout:GetPercentageHeight()))
         horizontalControlLayout:SetPercentageX(horizontal)
-        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
+        horizontalControlLayout:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetPixelWidth()) * horizontalControlLayout:GetPercentageWidth())))
 
-        scrollAnchorLayout:SetOffsetY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
-        scrollAnchorLayout:SetOffsetX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetPixelY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetPixelX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
 
         if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
             verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
@@ -398,5 +434,9 @@ class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelList
 
     private action GetHorizontalTrackPercentage(number x) returns number
         return x / (GetWidth() - horizontalControl:GetWidth())
+    end
+
+    action SetLayout(Layout layout)
+        scrollAnchor:SetLayout(layout)
     end
 end

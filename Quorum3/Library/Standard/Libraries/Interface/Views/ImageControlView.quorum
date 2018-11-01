@@ -93,7 +93,7 @@ class ImageControlView is Drawable, ControlView
                 Color newTopRight = MixColors(previousColor, clickGradient:GetTopRight())
                 newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
 
-                SetGradient(newGradient)
+                SetColor(newGradient)
             end
         elseif UsingCustomGradient()
             previousGradient = GetGradient()
@@ -106,7 +106,7 @@ class ImageControlView is Drawable, ControlView
                 Color newTopRight = MixColors(previousGradient:GetTopRight(), clickColor)
                 newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
 
-                SetGradient(newGradient)
+                SetColor(newGradient)
             elseif clickGradient not= undefined
                 Gradient newGradient
 
@@ -116,13 +116,13 @@ class ImageControlView is Drawable, ControlView
                 Color newTopRight = MixColors(previousGradient:GetTopRight(), clickGradient:GetTopRight())
                 newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
 
-                SetGradient(newGradient)
+                SetColor(newGradient)
             end
         else
             if clickColor not= undefined
                 SetColor(clickColor)
             elseif clickGradient not= undefined
-                SetGradient(clickGradient)
+                SetColor(clickGradient)
             end
         end
     end
@@ -132,10 +132,10 @@ class ImageControlView is Drawable, ControlView
             SetColor(previousColor)
             previousColor = undefined
         elseif previousGradient not= undefined
-            SetGradient(previousGradient)
+            SetColor(previousGradient)
             previousGradient = undefined
         else
-            DisableCustomTint()
+            UseDefaultColor()
         end
     end
 

@@ -3,147 +3,61 @@ package Libraries.Interface.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
 use Libraries.System.File
 use Libraries.Interface.Views.ImageControlView
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
 
 class Button is Control
 
     Behavior activationBehavior = undefined
+    Label label = undefined
+    Icon icon = undefined
+    LayoutProperties labelProperties
 
     on create
+        FlowLayout flowLayout
+        SetLayout(flowLayout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+        Font font
+        font:LoadFont("Arial")
+        properties:SetFont(font)
+        properties:SetFontSize(16)
+
+//        labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
+//        labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
+//        labelProperties:SetLeftPadding(50)
+//        labelProperties:SetRightPadding(50)
+//        labelProperties:SetTopPadding(5)
+//        labelProperties:SetBottomPadding(5)
+
+        Color color
+        Gradient gradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+
+        properties:SetBackgroundColor(gradient)
+        properties:SetBorderColor(color:Black())
+        properties:SetBorderThickness(2)
+        SetName("Button")
+
         SetInputGroup("Button")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:BUTTON)
-    end
-
-    /*
-    This action sets the initial width and height of the button using its
-    default appearance, a box with a light gray gradient and a black border.
-
-    Attribute: Example
-
-        use Libraries.Interface.Button
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Button button
-                button:Initialize(200, 100)
-                Add(button)
-            end
-        end
-    */
-    action Initialize(number width, number height)
-        LabelBoxView content
-        Color color
-        Gradient gradient
-        
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        content:SetBorderThickness(2)
-        content:Initialize(gradient, color:Black())
-
-        SetView2D(content)
-        SetSize(width, height)
-    end
-
-    /*
-    This action sets the initial width and height of the button using its
-    default appearance, a box with a light gray gradient, a black border, and
-    a label with the given text.
-
-    Attribute: Example
-
-        use Libraries.Interface.Button
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Button button
-                button:Initialize(200, 100, "Quorum!")
-                Add(button)
-            end
-        end
-    */
-    action Initialize(number width, number height, text label)
-        LabelBoxView content
-        Color color
-        Gradient gradient
-        
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-
-        gradient:Set(gray, gray, lightGray, lightGray)
-        content:SetBorderThickness(2)
-        content:Initialize(gradient, color:Black())
-
-        SetView2D(content)
-        SetSize(width, height)
-
-        SetName(label)
-    end
-
-    action Initialize(Drawable drawable)
-        ImageControlView content
-        content:Initialize(drawable)
-        
-        SetView2D(content)
-        SetSize(drawable:GetWidth(), drawable:GetHeight())
-    end
-
-    action Initialize(Texture texture)
-        ImageControlView content
-        content:Load(texture)
-        
-        SetView2D(content)
-        SetSize(texture:GetWidth(), texture:GetHeight())
-    end
-
-    action Initialize(TextureRegion region)
-        ImageControlView content
-        content:Load(region)
-
-        SetView2D(content)
-        SetSize(region:GetRegionWidth(), region:GetRegionHeight())
-    end
-
-    action Initialize(File file)
-        ImageControlView content
-        content:Load(file)
-
-        SetView2D(content)
-        SetSize(content:GetWidth(), content:GetHeight())
-    end
-
-    action Initialize(text filePath)
-        ImageControlView content
-        content:Load(filePath)
-
-        SetView2D(content)
-        SetSize(content:GetWidth(), content:GetHeight())
-    end
-
-    action Initialize(number width, number height, ControlView content)
-        SetView2D(content)
-        SetSize(width, height)
     end
 
     action SetBehavior(Behavior behavior)
@@ -161,9 +75,130 @@ class Button is Control
 
     action SetName(text name)
         parent:Item2D:SetName(name)
+        
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+
+        if defaultProperties not= undefined
+            defaultProperties:SetLabelText(name)
+        end
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:SetText(name)
+        end
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if icon not= undefined
+            icon:Dispose()
+            Remove(icon)
+            icon = undefined
+        end
+
+        if label not= undefined
+            label:Dispose()
+            Remove(label)
+            label = undefined
+        end
+
+        if properties = undefined
+            return now
+        end
+
+        ColorGroup background = properties:GetBackgroundColor()
+        ColorGroup border = properties:GetBorderColor()
+        number borderThickness = properties:GetBorderThickness()
+        text labelText = properties:GetLabelText()
+
+        Color color
+        Font font = properties:GetFont()
+        TextureRegion iconTexture = properties:GetIcon()
+
+        View2D view = properties:GetView2D()
+
+        if font not= undefined and labelText not= ""
+            if view = undefined
+                LabelBoxView labelBoxView
+                if background = undefined
+                    background = color:CustomColor(0, 0, 0, 0)
+                end
+                if border = undefined
+                    border = color:CustomColor(0, 0, 0, 0)
+                end
+
+                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
+                labelBoxView:Initialize(background, border)
+                view = labelBoxView
+                SetView2D(view)
+            end
+
+            if iconTexture not= undefined
+                if icon not= undefined
+                    icon:Load(iconTexture)
+                    icon:SetColor(properties:GetIconColor())
+                else
+                    Icon newIcon
+                    icon = newIcon
+                    icon:SetName("Icon")
+                    icon:Load(iconTexture)
+
+                    LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+                    iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+                    iconProperties:SetPercentageWidth(cast(number, icon:GetRegionWidth()) / icon:GetRegionHeight())
+                    iconProperties:SetPercentageHeight(1.0)
+                    iconProperties:SetLeftPadding(7)
+                    iconProperties:SetTopPadding(4)
+                    iconProperties:SetBottomPadding(4)
+                    icon:SetColor(properties:GetIconColor())
+                    Add(icon)
+                end
+            end
+
+            if label = undefined
+                Label newLabel
+                label = newLabel
+                LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+                labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+                labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+                labelProperties:SetLeftPadding(7)
+                labelProperties:SetRightPadding(7)
+                labelProperties:SetTopPadding(4)
+                labelProperties:SetBottomPadding(7)
+                label:SetFont(font)
+                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+                label:SetText(labelText)
+                Add(label)
+            end
+        elseif iconTexture not= undefined
+            ImageControlView content
+            content:Load(iconTexture)
+
+            if properties:IsSettingWidth() = false
+                properties:SetHorizontalLayoutMode(properties:STANDARD)
+                properties:SetPixelWidth(content:GetWidth())
+            end
+            if properties:IsSettingHeight() = false
+                properties:SetVerticalLayoutMode(properties:STANDARD)
+                properties:SetPixelHeight(content:GetHeight())
+            end
+
+            ColorGroup iconColor = properties:GetIconColor()
+            if iconColor = undefined
+                iconColor = color:White()
+            end
+            content:SetColor(iconColor)
+
+            view = content
+        end
+
+        if view not= undefined
+            SetView2D(view)
         end
     end
 end

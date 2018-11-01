@@ -10,9 +10,11 @@ use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
 
-class Tree is Item2D
-    Item2D panel
+class Tree is Control
+    Control panel
     Layout panelLayout = undefined
     TreeSelection selection
     Array<TreeItem> treeItems
@@ -26,10 +28,11 @@ class Tree is Item2D
         // Hardcoded value sufficient for basic cases. Should be replaced with
         // something more responsive to design in the future.
         flow:SetPadding(2)
+        flow:SetTopAligned(true)
 
         panelLayout = flow
-        panel:AddLayout(flow)
-
+        panel:SetLayout(flow)
+        panel:SetName("Tree Panel")
         parent:Item2D:Add(panel)
 
         selection:Initialize(me)

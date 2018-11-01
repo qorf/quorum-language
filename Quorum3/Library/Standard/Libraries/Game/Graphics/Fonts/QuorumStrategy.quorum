@@ -1021,4 +1021,16 @@ class QuorumStrategy is FontStrategy
         end
         glyphTable:Empty()
     end
+
+    action GetMaximumAscent returns integer
+        return fileInformation:GetMaximumAscent()
+    end
+
+    action GetMaximumDescent returns integer
+        return fileInformation:GetMaximumDescent()
+    end
+
+    action GetLineGap returns integer
+        return fileInformation:GetLineGap()
+    end
 end

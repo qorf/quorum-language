@@ -4,62 +4,99 @@ use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Control
 
 class TreeLayout is Layout
     
-    boolean wrapping = false
     number padding = 0
+    boolean isTopAligned = false
 
-    action Layout(Item2D item)
-        number x = 0
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         number y = 0
 
+        number totalHeight = 0
         number longestWidth = 0
-        Array<Item2D> kids = item:GetChildren()
-        i = kids:GetSize()
-        repeat while i > 0
-            i = i - 1
-            Item2D kid = kids:Get(i)
+        integer i = 0
 
-            number height = 0
-            if kid is TreeItem
-                TreeItem treeItem = cast(TreeItem, kid)
-                height = treeItem:GetTreeHeight()
+        if container not= undefined
+            LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+
+            if containerProperties not= undefined
+                if containerProperties:NeedsRendering()
+                    container:LoadGraphics(containerProperties)
+                end
+            end
+        end
+
+        repeat while i < items:GetSize()
+            number x = 0
+
+            Item2D kid = items:Get(i)
+
+            if kid is Control
+                Control control = cast(Control, kid)
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                if properties not= undefined
+                    if properties:NeedsRendering()
+                        control:LoadGraphics(properties)
+                    end
+                    kid:Resize()
+                    x = properties:GetPixelX()
+                else
+                    kid:Resize()
+                end
             else
-                height = kid:GetHeight()
+                kid:Resize()
             end
 
-            if y + height > item:GetHeight() and wrapping
-                y = 0
-                x = x + longestWidth
-                longestWidth = 0
+            number height = kid:GetHeight()
+            number treeHeight = 0
+            if kid is TreeItem
+                TreeItem treeItem = cast(TreeItem, kid)
+                treeHeight = treeItem:GetTreeHeight() - height
             end
 
             if kid:GetWidth() > longestWidth
                 longestWidth = kid:GetWidth()
             end
 
-            kid:SetPosition(x, y + height - kid:GetHeight())
+            if isTopAligned = true
+                y = y - height
+            end
 
-            y = y + height + padding
+            kid:SetPosition(x, y)
+
+            if isTopAligned = false
+                y = y - height - treeHeight - padding
+            else
+                y = y - treeHeight - padding
+            end
+
+            i = i + 1
         end
 
-        item:SetWidth(longestWidth + x)
-        if not wrapping
-            number oldHeight = item:GetHeight()
-            item:SetHeight(y)
-            item:SetY(-y)
-        else
-            item:MoveY(item:GetHeight() - y)
+        if container not= undefined
+            LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= undefined
+                if containerProperties:GetHorizontalLayoutMode() = containerProperties:FIT_CONTENTS
+                    container:SetWidth(longestWidth)
+                end
+                if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
+                    number oldHeight = container:GetHeight()
+                    number oldTop = container:GetY() + container:GetHeight()
+                    container:SetHeight(-y)
+                    container:SetY(oldTop - container:GetHeight())
+                end
+            end
         end
     end
 
-    action SetWrapping(boolean wrap)
-        wrapping = wrap
+    action IsTopAligned returns boolean
+        return isTopAligned
     end
 
-    action WrappingEnabled returns boolean
-        return wrapping
+    action SetTopAligned(boolean topAligned)
+        isTopAligned = topAligned
     end
 
     action SetPadding(number value)

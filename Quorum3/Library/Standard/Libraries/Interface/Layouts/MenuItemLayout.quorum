@@ -1,0 +1,371 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.MenuBar
+use Libraries.Interface.Controls.MenuPanel
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Tab
+
+class MenuItemLayout is Layout
+
+    boolean ignoreHidden = false
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+
+        /* 
+        Boolean used to ensure we don't perform redundant resizing on items
+        that were already fit to their contents while fitting the container
+        width to its contents.
+        */
+        boolean fitContainerContents = false
+        LayoutProperties containerProperties = undefined
+        number containerBorder = 0
+
+        MenuPanel parentPanel = undefined
+
+        if container not= undefined
+            containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if container:GetParent() is MenuPanel
+                parentPanel = cast(MenuPanel, container:GetParent())
+            end
+
+            if containerProperties not= undefined
+                if containerProperties:NeedsRendering()
+                    container:LoadGraphics(containerProperties)
+                end
+
+                containerBorder = containerProperties:GetBorderThickness()
+
+                if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_FONT
+                    Font font = containerProperties:GetFont()
+                    if font not= undefined
+                        number topPadding = 0
+                        number bottomPadding = 0
+
+                        integer i = 0
+                        repeat while i < items:GetSize()
+                            Item2D item = items:Get(i)
+                            if ignoreHidden = false or item:IsShowing()
+                                if item is Control
+                                    Control control = cast(Control, item)
+                                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                                    if properties:GetTopPadding() > topPadding
+                                        topPadding = properties:GetTopPadding()
+                                    end
+                                    if properties:GetBottomPadding() > bottomPadding
+                                        bottomPadding = properties:GetBottomPadding()
+                                    end
+                                end
+                            end
+                            i = i + 1
+                        end
+
+                        containerHeight = font:GetLineHeight() + containerBorder + topPadding + bottomPadding
+
+                        if container:GetHeight() not= containerHeight
+                            container:SetHeight(containerHeight)
+                        end
+                    end
+                end
+
+                if containerProperties:GetHorizontalLayoutMode() = containerProperties:FIT_CONTENTS
+                    integer i = 0
+
+                    number totalWidthOffset = 0
+                    number totalWidthPercentage = 0
+
+                    repeat while i < items:GetSize()
+                        Item2D item = items:Get(i)
+
+                        if item is Control
+                            Control control = cast(Control, item)
+                            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                            if properties not= undefined
+                                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                    fitContainerContents = true
+                                    control:Resize()
+                                end
+
+                                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+                                    totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                    // We have to estimate the height now to determine the width.
+                                    number height = 0
+                                    if properties:GetVerticalLayoutMode() = properties:STANDARD
+                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetPixelHeight()
+                                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                                        if properties:GetFont() not= undefined
+                                            height = properties:GetFont():GetLineHeight()
+                                        end
+                                    elseif properties:GetVerticalLayoutMode() = properties:FILL
+                                        height = containerHeight
+                                    elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                        height = control:GetHeight()
+                                    end
+
+                                    totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
+                                        + properties:GetLeftPadding() + properties:GetRightPadding()
+                                else
+                                    totalWidthOffset = totalWidthOffset + properties:GetPixelWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
+                                end
+                            else
+                                // If width can't be determined from its properties, use its width instead.
+                                totalWidthOffset = totalWidthOffset + item:GetWidth()
+                            end
+                        else
+                            // If width can't be determined from its properties, use its width instead.
+                            totalWidthOffset = totalWidthOffset + item:GetWidth()
+                        end
+
+                        i = i + 1
+                    end
+
+                    totalWidthPercentage = 1.0 - totalWidthPercentage
+                    containerWidth = totalWidthOffset / totalWidthPercentage
+                    container:SetWidth(containerWidth)
+                end
+            end
+        end
+
+        // Objects are placed such that their top edge is at the currentY.
+        number currentY = containerHeight - containerBorder
+        number nextY = currentY
+
+        number leftX = 0
+        number rightX = containerWidth
+
+        if parentPanel not= undefined and container is MenuItem
+            /*
+            Hardcoded values related to the position of elements in the MenuItem.
+            May want to make this more flexible in the future, though this
+            requires exposing elements via public actions, which may clutter the
+            API if not handled carefully.
+            */
+            MenuItem menuItem = cast(MenuItem, container)
+            Control icon = cast(Control, items:Get(0))
+            Control label = cast(Control, items:Get(1))
+            Control shortcut = cast(Control, items:Get(2))
+            Control arrow = cast(Control, items:Get(3))
+            LayoutProperties iconProperties = icon:GetLayoutProperties(containerWidth, containerHeight)
+            LayoutProperties labelProperties = label:GetLayoutProperties(containerWidth, containerHeight)
+            LayoutProperties shortcutProperties = shortcut:GetLayoutProperties(containerWidth, containerHeight)
+            LayoutProperties arrowProperties = arrow:GetLayoutProperties(containerWidth, containerHeight)
+            
+            number bottomPadding = iconProperties:GetBottomPadding()
+            number topPadding = iconProperties:GetTopPadding()
+            if labelProperties:GetBottomPadding() > bottomPadding
+                bottomPadding = labelProperties:GetBottomPadding()
+            end
+            if shortcutProperties:GetBottomPadding() > bottomPadding
+                bottomPadding = shortcutProperties:GetBottomPadding()
+            end
+            if arrowProperties:GetBottomPadding() > bottomPadding
+                bottomPadding = arrowProperties:GetBottomPadding()
+            end
+
+            if labelProperties:GetTopPadding() > topPadding
+                topPadding = labelProperties:GetTopPadding()
+            end
+            if shortcutProperties:GetTopPadding() > topPadding
+                topPadding = shortcutProperties:GetTopPadding()
+            end
+            if arrowProperties:GetTopPadding() > topPadding
+                topPadding = arrowProperties:GetTopPadding()
+            end
+
+            number height = containerProperties:GetFont():GetLineHeight() + topPadding + bottomPadding
+
+            number panelIconWidth = parentPanel:GetIconRegionWidth()
+            number iconHeight = (height - iconProperties:GetTopPadding() - iconProperties:GetBottomPadding()) * iconProperties:GetPercentageHeight()
+            number iconWidth = iconHeight * iconProperties:GetPercentageWidth()
+            icon:SetPosition(iconProperties:GetLeftPadding(), iconProperties:GetBottomPadding())
+            icon:SetSize(iconWidth, iconHeight)
+
+            number x = parentPanel:GetIconRegionWidth() + labelProperties:GetLeftPadding()
+            label:SetPosition(x, labelProperties:GetBottomPadding())
+            
+            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + shortcutProperties:GetLeftPadding()
+            shortcut:SetPosition(x, shortcutProperties:GetBottomPadding())
+            
+            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + parentPanel:GetShortcutRegionWidth() + arrowProperties:GetLeftPadding()
+            number arrowHeight = (height - arrowProperties:GetTopPadding() - arrowProperties:GetBottomPadding()) * arrowProperties:GetPercentageHeight()
+            number arrowWidth = arrowHeight * arrowProperties:GetPercentageWidth()
+            arrow:SetPosition(x, arrowProperties:GetBottomPadding())
+            arrow:SetSize(arrowWidth, arrowHeight)
+
+            containerHeight = height
+            containerWidth = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + parentPanel:GetShortcutRegionWidth() + parentPanel:GetArrowRegionWidth()
+            container:SetSize(containerWidth, containerHeight)
+        else
+            i = 0
+            repeat while i < items:GetSize()
+                Item2D item = items:Get(i)
+
+                if item is Control
+                    Control control = cast(Control, item)
+                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+                    if properties:NeedsRendering()
+                        control:LoadGraphics(properties)
+                    end
+
+                    if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                        number width = 0
+                        number height = 0
+                        number leftPadding = properties:GetLeftPadding()
+                        number rightPadding = properties:GetRightPadding()
+                        number topPadding = properties:GetTopPadding()
+                        number bottomPadding = properties:GetBottomPadding()
+
+                        boolean fromLeft = true
+                        if properties:GetPercentageX() > 0.5
+                            fromLeft = false
+                        end
+
+                        /*
+                        Boolean used to ensure we don't perform redundant resizing
+                        on a control.
+                        */
+                        boolean alreadyFitContents = fitContainerContents and 
+                            (properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS)
+
+                        if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS and alreadyFitContents = false
+                            alreadyFitContents = true
+                            if properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS 
+                                or properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                // Resize the control and allow it to set its own dimensions.
+                                control:Resize()
+                            elseif properties:GetVerticalLayoutMode() = properties:FILL
+                                // Setting the height will trigger a resize.
+                                control:SetHeight(currentY)
+                            elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                                // Setting the height will trigger a resize.
+                                control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight())
+                            elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                                if properties:GetFont() not= undefined
+                                    control:SetHeight(properties:GetFont():GetLineHeight())
+                                end
+                            end
+                            width = control:GetWidth()
+                        elseif properties:GetHorizontalLayoutMode() = properties:FILL
+                            if fromLeft
+                                width = containerWidth - leftX
+                            else
+                                width = containerWidth - rightX
+                            end
+                        elseif properties:GetHorizontalLayoutMode() not= properties:MAINTAIN_ASPECT_RATIO
+                            width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() + leftPadding + rightPadding
+                        end
+
+                        if fromLeft
+                            leftX = leftX + leftPadding
+                        else
+                            rightX = rightX - rightPadding
+                        end
+
+                        // When we set the size in this step, we also trigger a
+                        // resize that will cascade to the entire control's hierarchy.
+                        if alreadyFitContents = false
+                            if properties:GetVerticalLayoutMode() = properties:FILL
+                                height = currentY
+                            elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                // Set the control's width and allow it to set its own height via its contents.
+                                // Setting the width triggers its layout to resize.
+                                control:SetWidth(width)
+                            elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                                Font font = properties:GetFont()
+                                if font not= undefined
+                                    height = font:GetLineHeight()
+                                end
+                            elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                                height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight()
+                            elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                height = properties:GetPercentageHeight() * width
+                            end
+
+                            if properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                width = properties:GetPercentageWidth() * height
+                            end
+
+                            control:SetSize(width, height)
+                        end
+
+                        if fromLeft
+                            control:SetPosition(leftX, currentY - control:GetHeight() - topPadding)
+                            leftX = leftX + control:GetWidth() + rightPadding
+                        else
+                            rightX = rightX - control:GetWidth()
+                            control:SetPosition(rightX, currentY - control:GetHeight() - topPadding)
+                            rightX = rightX - leftPadding
+                        end
+                    end
+                end
+
+                i = i + 1
+            end
+        end
+
+        if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS and parentPanel = undefined
+            container:SetHeight(containerHeight - nextY)
+
+            /*
+            We had to place all elements before to determine the height of the
+            container, but now that the height is known we need to ensure the
+            items are placed at the right y positions.
+            */
+            integer counter = 0
+            number x = 0
+            containerHeight = container:GetHeight()
+            currentY = containerHeight
+            nextY = containerHeight
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+
+                number leftPadding = 0
+                number rightPadding = 0
+                number topPadding = 0
+                number bottomPadding = 0
+
+                if item is Control
+                    Control control = cast(Control, item)
+                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                    if properties not= undefined
+                        leftPadding = properties:GetLeftPadding()
+                        rightPadding = properties:GetRightPadding()
+                        topPadding = properties:GetTopPadding()
+                        bottomPadding = properties:GetBottomPadding()
+                    end
+                end
+
+                x = x + leftPadding
+
+                if x + item:GetWidth() + rightPadding > containerWidth
+                    currentY = nextY
+                    x = leftPadding
+                end
+
+                if currentY - item:GetHeight() - topPadding - bottomPadding < nextY
+                    nextY = currentY - item:GetHeight() - topPadding - bottomPadding
+                end
+
+                item:SetPosition(x, currentY - item:GetHeight() - topPadding)
+                x = x + item:GetWidth() + rightPadding
+
+                counter = counter + 1
+            end
+        end
+    end
+
+    action SetIgnoreHidden(boolean ignore)
+        ignoreHidden = ignore
+    end
+
+    action IsIgnoringHidden returns boolean
+        return ignoreHidden
+    end
+end

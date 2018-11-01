@@ -7,22 +7,27 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
 use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.TextureRegion
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 
 class TreeItem is Control
 
-    Item2D panel
-    Item2D itemStructure
+    Control panel
+    Control itemStructure = undefined
     TreeItem parentTreeItem = undefined
     Tree parentTree = undefined
     Array<TreeItem> treeItems
@@ -30,11 +35,12 @@ class TreeItem is Control
 
     Layout layout = undefined
     Layout panelLayout = undefined
+    LayoutProperties panelProperties
 
     ToggleButton expandButton
-    Drawable icon
+    Icon icon
     // Replace with something that's a GUI visual content.
-    ControlLabel label
+    ControlLabel label = undefined
 
     Behavior activationBehavior = undefined
 
@@ -42,26 +48,33 @@ class TreeItem is Control
         SetInputGroup("TreeItem")
         panel:SetName("Tree Panel")
 
+        LayoutProperties treeItemProperties = GetDefaultLayoutProperties()
+        treeItemProperties:SetHorizontalLayoutMode(treeItemProperties:FIT_CONTENTS)
+        treeItemProperties:SetVerticalLayoutMode(treeItemProperties:FIT_CONTENTS)
+
+        TreeLayout treeItemLayout
+        SetLayout(treeItemLayout)
+
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(14)
+        treeItemProperties:SetFont(font)
+        treeItemProperties:SetFontSize(14)
+
         FlowLayout flow
-        flow:SetWrapping(false)
         layout = flow
 
-        itemStructure:AddLayout(layout)
-        itemStructure:SetName("TreeItem Elements")
-
         TreeLayout verticalFlow
-        verticalFlow:SetWrapping(false)
-        verticalFlow:SetPercentageOriginY(1.0)
         panelLayout = verticalFlow
+        panel:SetLayout(panelLayout)
 
-        panel:AddLayout(panelLayout)
+        panelProperties:SetPercentageWidth(1.0)
+        panelProperties:SetPercentageOriginY(1.0)
+        panel:AddLayoutProperties(panelProperties)
+
         SetAccessibilityCode(parent:Item:TREE_ITEM)
     end
     
-    action Initialize(text name)
-        Initialize(name, undefined)
-    end
-
     action HideExpandButton
         expandButton:Hide()
     end
@@ -70,67 +83,11 @@ class TreeItem is Control
         expandButton:Show()
     end
 
-    action Initialize(text name, Texture image)
-        label:Initialize()
-        integer height = label:GetLineHeight()
-
-        if image = undefined
-            Texture texture
-            Color color
-            texture:LoadFilledRectangle(1, 1, color:CustomColor(1, 1, 1, 0))
-            image = texture
-        end
-
-        icon:Load(image)
-        number aspectRatio = icon:GetWidth() / icon:GetHeight()
-        icon:SetSize(aspectRatio * height, height)
-
-        DefaultTreeMenuView content
-        content:Initialize(height, height * 2)
-
-        expandButton:Initialize(height, height, content)
-        ToggleTreeViewBehavior buttonBehavior
-        buttonBehavior:SetTreeItem(me)
-        expandButton:SetBehavior(buttonBehavior)
-
-        expandButton:Hide()
-
-        if layout is FlowLayout
-            FlowLayout flow = cast(FlowLayout, layout)
-            flow:SetPadding(height/2)
-        end
-
-        if panelLayout is TreeLayout
-            TreeLayout flow = cast(TreeLayout, panelLayout)
-            // Hardcoded value sufficient for basic cases. Should be replaced with
-            // something more responsive to design in the future.
-            flow:SetPadding(2)
-            flow:SetOffsetX(height/2 * 3)
-        end
-
-        itemStructure:Add(expandButton)
-        itemStructure:Add(icon)
-        itemStructure:Add(label)
-        parent:Item2D:Add(itemStructure)
-
-        SetName(name)
-        SetSize(itemStructure:GetWidth(), height)
-    end
-
-    action Initialize(text name, Texture image, Array<TreeItem> treeItems)
-        Initialize(name, image)
-        
-        integer counter = 0
-        repeat while counter < treeItems:GetSize()
-            Add(treeItems:Get(counter))
-            counter = counter + 1
-        end
-    end
-
     action SetName(text name)
         parent:Item:SetName(name)
-        label:SetText(name)
-        Resize()
+        if label not= undefined and label:GetText() = ""
+            label:SetText(name)
+        end
     end
 
     action Add(TreeItem item)
@@ -142,6 +99,14 @@ class TreeItem is Control
         treeItems:Add(item)
         item:SetTree(GetTree())
         item:SetParentTreeItem(me)
+    end
+
+    action Add(Array<TreeItem> items)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Add(items:Get(counter))
+            counter = counter + 1
+        end
     end
 
     action Remove(TreeItem item)
@@ -158,6 +123,9 @@ class TreeItem is Control
 
     action Open
         if not open
+            if panel:GetInterfaceScale() not= GetInterfaceScale()
+                panel:SetInterfaceScale(GetInterfaceScale())
+            end
             parent:Item2D:Add(panel)
             open = true
             
@@ -472,5 +440,125 @@ class TreeItem is Control
 
     action GetSize returns integer
         return treeItems:GetSize()
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        Color color
+
+        if label = undefined
+            ControlLabel newLabel
+            label = newLabel
+
+            LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+            labelProperties:SetPercentageHeight(1.0)
+            labelProperties:SetHorizontalLayoutMode(labelProperties:FIT_CONTENTS)
+        end
+
+        TextureRegion region = properties:GetIcon()
+        ColorGroup iconColor = properties:GetIconColor()
+        if region = undefined
+            Drawable drawable
+            drawable:LoadFilledRectangle(1, 1, color:CustomColor(1, 1, 1, 0))
+            region = drawable
+            iconColor = color:CustomColor(1, 1, 1, 0)
+        elseif iconColor = undefined
+            iconColor = color:White()
+        end
+
+        Font font = properties:GetFont()
+        // Height uses a default fall-back value of 16 if height can't be
+        // derived from the Font.
+        integer height = 10
+
+        if font not= undefined
+            font:SetSize(cast (integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+            label:SetFont(font)
+            text labelText = properties:GetLabelText()
+            if labelText = ""
+                labelText = GetName()
+            end
+            label:SetText(labelText)
+            height = font:GetLineHeight()
+        end
+
+        if itemStructure not= undefined
+            Remove(itemStructure)
+        end
+
+        Control newItemStructure
+        itemStructure = newItemStructure
+        LayoutProperties itemStructureProperties = itemStructure:GetDefaultLayoutProperties()
+        itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
+        itemStructureProperties:SetFont(font)
+        itemStructureProperties:SetFontSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        itemStructure:SetLayout(layout)
+        itemStructure:SetName("TreeItem Elements")
+
+        icon:Load(region)
+        icon:SetColor(iconColor)
+        number aspectRatio = icon:GetWidth() / icon:GetHeight()
+
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(aspectRatio)
+        iconProperties:SetLeftPadding(5)
+        iconProperties:SetRightPadding(5)
+
+        View2D buttonView = properties:GetView2D()
+        if buttonView = undefined
+            View2D currentView = expandButton:GetView2D()
+            if currentView = undefined
+                DefaultTreeMenuView content
+                content:Initialize(height, height * 2)
+                buttonView = content
+            else
+                buttonView = currentView
+            end
+        end
+
+        LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+        buttonProperties:SetView2D(buttonView)
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
+        buttonProperties:SetPercentageHeight(1.0)
+        buttonProperties:SetPercentageWidth(1.0)
+        buttonProperties:SetTopPadding(4)
+        buttonProperties:SetBottomPadding(4)
+        buttonProperties:SetLeftPadding(4)
+        buttonProperties:SetLabelText("")
+        buttonProperties:SetFont(undefined)
+
+        ToggleTreeViewBehavior buttonBehavior
+        buttonBehavior:SetTreeItem(me)
+        expandButton:SetBehavior(buttonBehavior)
+
+        if panel:GetChildren():IsEmpty()
+            expandButton:Hide()
+        else
+            expandButton:Show()
+        end
+
+        if panelLayout is TreeLayout
+            TreeLayout flow = cast(TreeLayout, panelLayout)
+            // Hardcoded value sufficient for basic cases. Should be replaced with
+            // something more responsive to design in the future.
+            flow:SetPadding(2)
+            panelProperties:SetPixelX(height/2 * 3)
+        end
+
+        itemStructure:Add(expandButton)
+        itemStructure:Add(icon)
+        itemStructure:Add(label)
+        parent:Item2D:Add(0, itemStructure)
     end
 end

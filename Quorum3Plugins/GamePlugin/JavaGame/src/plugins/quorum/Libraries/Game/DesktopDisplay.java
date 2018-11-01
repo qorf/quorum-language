@@ -557,4 +557,9 @@ public class DesktopDisplay {
     {
         return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
     }
+    
+    public boolean IsAvailable()
+    {
+        return GLFW.glfwGetCurrentContext() != 0;
+    }
 }

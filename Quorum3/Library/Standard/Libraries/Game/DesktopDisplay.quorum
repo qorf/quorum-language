@@ -209,4 +209,13 @@ class DesktopDisplay is GameDisplay
     at the top of the screen and move down as the y value increases.
     */
     system action SetWindowPosition(integer x, integer y)
+
+    /*
+    The IsAvailable action returns whether or not a display is available
+    to draw on. If no display is available, actions that try to create or draw
+    graphics (such as loading a Drawable) will create an error. This will return
+    false if called before StartGame() is called in the Game class, and will
+    typically return true after the game has been started.
+    */
+    system action IsAvailable returns boolean
 end

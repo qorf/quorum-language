@@ -275,7 +275,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
         
         if (loading === true)
-            onloadQueue.push(Play);
+            onloadQueue.push(this.Play);
         else
         {
             if (this.IsStreaming() === true)
@@ -334,7 +334,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
         
         if (loading === true)
-            onloadQueue.push(Stop);
+            onloadQueue.push(this.Stop);
         else if (this.IsStreaming())
         {
             for (var i = 0; i < playingSamples.length; i++)
@@ -360,7 +360,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
         
         if (loading === true)
-            onloadQueue.push(Stop);
+            onloadQueue.push(this.Stop);
         else if (this.IsStreaming())
         {
             var currentTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
@@ -402,7 +402,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
         
         if (loading === true)
-            onloadQueue.push(Play);
+            onloadQueue.push(this.Play);
         else if (this.IsStreaming())
         {
             if (!(pauseTime > 0 && queuedSamples.length > 0))

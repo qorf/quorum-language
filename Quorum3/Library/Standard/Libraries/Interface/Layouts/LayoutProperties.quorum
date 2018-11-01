@@ -1,0 +1,608 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Language.Support.CompareResult
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Views.View2D
+use Libraries.Compute.BitwiseOperations
+
+class LayoutProperties 
+    
+    /*
+    The STANDARD layout style calculates the dimensions and positions of the
+    Control using percentages of the Control's dimensions combined with static
+    pixel values. Because this is dependent on the container's size to calculate
+    the percentages, this is incompatible with container layouts that use the
+    children to determine its own size, such as FIT_CONTENTS.
+    */
+    public integer STANDARD = 0
+
+    /*
+    The FILL layout style will attempt to fill the remaining width or height of
+    the container with this Control. Note that this is only effective if the
+    container's dimensions are already known independently of this element's
+    size -- for example, a FILL layout can't be effectively used if the
+    container's layout style is FIT_CONTENTS.
+    */
+    public integer FILL = 1
+
+    /*
+    The FIT_CONTENTS layout style will calculate this Control's dimensions as
+    the combined total dimensions of its children elements. Because children
+    elements often need to have some concrete information about the parent's
+    dimensions, it's recommended to only use this in one of the two directions
+    (horizontally or vertically) for the Control. For example, FlowLayouts work
+    well with elements with a predetermined STANDARD horizontal layout style and
+    using FIT_CONTENTS for the vertical layout style.
+    */
+    public integer FIT_CONTENTS = 2
+
+    /*
+    The FIT_FONT layout style is used to ensure a Control's height can fit the
+    Font used in this LayoutProperties, plus padding from the children elements.
+    FIT_FONT is only effective for the vertical layout style, and requires that
+    a Font is present in this LayoutProperties.
+    */
+    public integer FIT_FONT = 3
+
+    /*
+    The MAINTAIN_ASPECT_RATIO layout style is used to calculate one of the
+    dimensions of the Control relative to the other dimension. For example, it
+    can be used to ensure that the width of a Control is always 120% of the
+    height. This style can only be used to calculate one of the two dimensions
+    (width or height) at a time. For example, if the horizontal layout style is
+    MAINTAIN_ASPECT_RATIO, the vertical layout style must be different, such as
+    using the STANDARD style.
+    */
+    public integer MAINTAIN_ASPECT_RATIO = 4
+
+    /*
+    The NONE border style will disable borders on the Control this is applied to.
+    */
+    public constant integer NONE = 0
+
+    /*
+    The LEFT border style will place a border only on the left side of this
+    Control.
+    */
+    public constant integer LEFT = 1
+
+    /*
+    The RIGHT border style will place a border only on the right side of this
+    Control.
+    */
+    public constant integer RIGHT = 2
+
+    /*
+    The BOTTOM border style will place a border only on the bottom side of this
+    Control.
+    */
+    public constant integer BOTTOM = 4
+
+    /*
+    The TOP border style will place a border only on the top side of this 
+    Control.
+    */
+    public constant integer TOP = 8
+
+    /*
+    The ALL border style will place borders on all four sides of this Control.
+    */
+    public constant integer ALL = LEFT + RIGHT + BOTTOM + TOP
+
+    integer horizontalLayoutMode = STANDARD
+    integer verticalLayoutMode = STANDARD
+
+    number xPercentage = 0.0
+    number yPercentage = 0.0
+    number pixelX = 0
+    number pixelY = 0
+    number widthPercentage = 0.0
+    number heightPercentage = 0.0
+    number widthPixels = 0
+    number heightPixels = 0
+    number minimumWidth = 0
+    number minimumHeight = 0
+    number maximumWidth = widthPercentage:GetPositiveInfinityValue()
+    number maximumHeight = heightPercentage:GetPositiveInfinityValue()
+    number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
+    number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
+
+    number leftPadding = 0
+    number rightPadding = 0
+    number bottomPadding = 0
+    number topPadding = 0
+
+    // Bitwise operations are used for the border styling bitmask.
+    BitwiseOperations bits
+    
+    ColorGroup backgroundColor = undefined
+    ColorGroup borderColor = undefined
+    number borderThickness = 0
+    integer borderStyle = ALL
+    
+    Font font = undefined
+    integer baseFontSize = 14
+    Color fontColor
+    text labelText = ""
+
+    ColorGroup selectionColor = undefined
+    Color selectionFontColor = undefined
+
+    TextureRegion icon = undefined
+    ColorGroup iconColor = undefined
+
+    View2D view = undefined
+
+    number interfaceScale = 1.0
+
+    /*
+    What point along the Item2D, as a percentage, should be placed at the given
+    x and y coordinates defined by the x/y percentage and offsets. For example,
+    a value of 0.5 for the origin x and y percent will center the Item at the
+    given position.
+    */
+    number originPercentageX = 0
+    number originPercentageY = 0
+
+    boolean setX = false
+    boolean setY = false
+    boolean setWidth = false
+    boolean setHeight = false
+
+    /*
+    Boolean indicating whether the Control which uses this should re-render its
+    graphical content. This can happen when a graphical component changes, like
+    changing the Font, or if the properties are used for the first time.
+    */
+    boolean needsRendering = true
+
+    on create
+        fontColor = fontColor:Black()
+        iconColor = fontColor:White()
+    end
+
+    /*
+    The SetHorizontalLayoutMode is used to determine how the width of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the width as a set number of pixels plus a
+    percentage of the container's width.
+    FILL, which will make the width fill the remaining width of the container.
+    FIT_CONTENTS, which will calculate the width to fit the children contents.
+
+    Attribute: Parameter mode A layout mode constant, one of STANDARD, FILL, or FILL_CONTENTS.
+    */
+    action SetHorizontalLayoutMode(integer mode)
+        horizontalLayoutMode = mode
+    end
+
+    action GetHorizontalLayoutMode returns integer
+        return horizontalLayoutMode
+    end
+
+    /*
+    The GetVerticalLayoutMode is used to determine how the height of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the height as a set number of pixels plus a
+    percentage of the container's height.
+    FILL, which will make the height fill the remaining height of the container.
+    FIT_CONTENTS, which will calculate the height to fit the children contents.
+    FIT_FONT, which will fit the height of the Control to the line height of the
+    Font set in this LayoutProperties.
+
+    Attribute: Parameter mode A layout mode constant, one of STANDARD, FILL, FILL_CONTENTS, or FIT_FONT.
+    */
+    action SetVerticalLayoutMode(integer mode)
+        verticalLayoutMode = mode
+    end
+
+    action GetVerticalLayoutMode returns integer
+        return verticalLayoutMode
+    end
+
+    action SetPercentageX(number x)
+        xPercentage = x
+        setX = true
+    end
+
+    action GetPercentageX returns number
+        return xPercentage
+    end
+
+    action SetPercentageY(number y)
+        yPercentage = y
+        setY = true
+    end
+
+    action GetPercentageY returns number
+        return yPercentage
+    end
+
+    action SetPixelX(number x)
+        pixelX = x
+        setX = true
+    end
+
+    action GetPixelX returns number
+        return pixelX
+    end
+
+    action SetPixelY(number y)
+        pixelY = y
+        setY = true
+    end
+
+    action GetPixelY returns number
+        return pixelY
+    end
+
+    action SetPercentageWidth(number width)
+        widthPercentage = width
+        setWidth = true
+    end
+
+    action GetPercentageWidth returns number
+        return widthPercentage
+    end
+
+    action SetPercentageHeight(number height)
+        heightPercentage = height
+        setHeight = true
+    end
+
+    action GetPercentageHeight returns number
+        return heightPercentage
+    end
+
+    action SetPixelWidth(number width)
+        widthPixels = width
+        setWidth = true
+    end
+
+    action GetPixelWidth returns number
+        return widthPixels
+    end
+
+    action SetPixelHeight(number height)
+        heightPixels = height
+        setHeight = true
+    end
+
+    action GetPixelHeight returns number
+        return heightPixels
+    end
+
+    action SetMinimumWidth(number width)
+        minimumWidth = width
+    end
+
+    action GetMinimumWidth returns number
+        return minimumWidth
+    end
+
+    action SetMinimumHeight(number height)
+        minimumHeight = height
+    end
+
+    action GetMinimumHeight returns number
+        return minimumHeight
+    end
+
+    action SetMaximumWidth(number width)
+        maximumWidth = width
+    end
+
+    action GetMaximumWidth returns number
+        return maximumWidth
+    end
+
+    action SetMaximumHeight(number height)
+        maximumHeight = height
+    end
+
+    action GetMaximumHeight returns number
+        return maximumHeight
+    end
+
+    action SetMaximumContainerWidth(number maximum)
+        maximumContainerWidth = maximum
+    end
+
+    action GetMaximumContainerWidth returns number
+        return maximumContainerWidth
+    end
+
+    action SetMaximumContainerHeight(number maximum)
+        maximumContainerHeight = maximum
+    end
+
+    action GetMaximumContainerHeight returns number
+        return maximumContainerHeight
+    end
+
+    action SetPercentageOriginX(number x)
+        originPercentageX = x
+        setX = true
+    end
+
+    action GetPercentageOriginX returns number
+        return originPercentageX
+    end
+
+    action SetPercentageOriginY(number y)
+        originPercentageY = y
+        setY = true
+    end
+
+    action GetPercentageOriginY returns number
+        return originPercentageY
+    end
+
+    action IsPositioningInX returns boolean
+        return setX
+    end
+
+    action IsPositioningInY returns boolean
+        return setY
+    end
+
+    action IsSettingWidth returns boolean
+        return setWidth
+    end
+
+    action IsSettingHeight returns boolean
+        return setHeight
+    end
+
+    action SetPositioningInX(boolean enable)
+        setX = enable
+    end
+
+    action SetPositioningInY(boolean enable)
+        setY = enable
+    end
+
+    action SetWidthSetting(boolean enable)
+        setWidth = enable
+    end
+
+    action SetHeightSetting(boolean enable)
+        setHeight = enable
+    end
+
+    action SetLeftPadding(number padding)
+        leftPadding = padding
+    end
+
+    action SetRightPadding(number padding)
+        rightPadding = padding
+    end
+
+    action SetBottomPadding(number padding)
+        bottomPadding = padding
+    end
+
+    action SetTopPadding(number padding)
+        topPadding = padding
+    end
+
+    action GetLeftPadding returns number
+        return leftPadding
+    end
+
+    action GetRightPadding returns number
+        return rightPadding
+    end
+
+    action GetBottomPadding returns number
+        return bottomPadding
+    end
+
+    action GetTopPadding returns number
+        return topPadding
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        backgroundColor = color
+        needsRendering = true
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return backgroundColor
+    end
+
+    action SetBorderColor(ColorGroup color)
+        borderColor = color
+        needsRendering = true
+    end
+
+    action GetBorderColor returns ColorGroup
+        return borderColor
+    end
+
+    action SetBorderThickness(number thickness)
+        borderThickness = thickness
+        needsRendering = true
+    end
+
+    action GetBorderThickness returns number
+        return borderThickness
+    end
+
+    action SetBorderStyle(integer style)
+        borderStyle = style
+    end
+
+    action GetBorderStyle returns integer
+        return borderStyle
+    end
+
+    action HasLeftBorder returns boolean
+        return bits:And(LEFT, borderStyle) not= 0
+    end
+
+    action HasRightBorder returns boolean
+        return bits:And(RIGHT, borderStyle) not= 0
+    end
+
+    action HasBottomBorder returns boolean
+        return bits:And(BOTTOM, borderStyle) not= 0
+    end
+
+    action HasTopBorder returns boolean
+        return bits:And(TOP, borderStyle) not= 0
+    end
+
+    action SetFont(Font font)
+        me:font = font
+        if font not= undefined
+            font:SetSize(cast(integer, baseFontSize * interfaceScale))
+            if fontColor not= undefined
+                font:SetColor(fontColor)
+            end
+        end
+        needsRendering = true
+    end
+
+    action GetFont returns Font
+        return font
+    end
+
+    action SetFontSize(integer size)
+        baseFontSize = size
+        if font not= undefined
+            font:SetSize(cast(integer, baseFontSize * interfaceScale))
+        end
+        needsRendering = true
+    end
+
+    action GetFontSize returns integer
+        return baseFontSize
+    end
+
+    action SetFontColor(Color color)
+        fontColor = color
+        if font not= undefined
+            font:SetColor(color)
+        end
+    end
+
+    action SetSelectionColor(ColorGroup color)
+        selectionColor = color
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return selectionColor
+    end
+
+    action SetSelectionFontColor(Color color)
+        selectionFontColor = color
+    end
+
+    action GetSelectionFontColor returns Color
+        return selectionFontColor
+    end
+
+    action GetFontColor returns Color
+        return fontColor
+    end
+
+    action SetLabelText(text value)
+        labelText = value
+        needsRendering = true
+    end
+
+    action GetLabelText returns text
+        return labelText
+    end
+
+    action SetIcon(TextureRegion texture)
+        icon = texture
+        needsRendering = true
+    end
+
+    action SetIcon(Drawable drawable)
+        icon = drawable
+        iconColor = drawable:GetColorGroup()
+        needsRendering = true
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+        iconColor = icon:GetColorGroup()
+        needsRendering = true
+    end
+
+    action GetIcon returns TextureRegion
+        return icon
+    end
+
+    action SetIconColor(ColorGroup color)
+        iconColor = color
+        needsRendering = true
+    end
+
+    action GetIconColor returns ColorGroup
+        return iconColor
+    end
+
+    action SetView2D(View2D view2D)
+        view = view2D
+        needsRendering = true
+    end
+
+    action GetView2D returns View2D
+        return view
+    end
+
+    action SetInterfaceScale(number scale)
+        interfaceScale = scale
+        needsRendering = true
+    end
+
+    action GetInterfaceScale returns number
+        return interfaceScale
+    end
+
+    action NeedsRendering returns boolean
+        return needsRendering
+    end
+
+    action SetRenderingFlag(boolean shouldRender)
+        needsRendering = shouldRender
+    end
+
+    action Compare(Object object) returns CompareResult
+        if object is LayoutProperties
+            LayoutProperties layout = cast(LayoutProperties, object)
+            number myWidth = GetMaximumContainerWidth()
+            number testWidth = layout:GetMaximumContainerWidth()
+            CompareResult result
+
+            if myWidth < testWidth
+                result:result = result:SMALLER
+            elseif myWidth = testWidth
+                number myHeight = GetMaximumContainerHeight()
+                number testHeight = layout:GetMaximumContainerHeight()
+
+                if myHeight < testHeight
+                    result:result = result:SMALLER
+                elseif myHeight = testHeight
+                    result:result = result:EQUAL
+                else
+                    result:result = result:LARGER
+                end
+            else
+                result:result = result:LARGER
+            end
+
+            return result
+        else
+            return parent:Object:Compare(object)
+        end
+    end
+end

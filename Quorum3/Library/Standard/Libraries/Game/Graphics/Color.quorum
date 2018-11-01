@@ -50,7 +50,7 @@ use Libraries.Game.NumberUtilities
             end
         end
 */
-class Color 
+class Color is ColorGroup
   
     /* The RGBA components of the Color class */
     private number red = 0
@@ -1391,4 +1391,143 @@ class Color
         Clamp()
     end
 
+    /*
+    This action returns what color is applied to the top left corner of an 
+    object which is using this Color. Note that for a Color object, the returned
+    value is the same Color object from which the action was called, and all
+    four corner actions (GetTopLeft(), GetTopRight(), GetBottomLeft(), and
+    GetBottomRight()) return the same value.
+
+    Attribute: Returns The Color object that the action was called from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Gradient
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            color = color:Orange()
+            
+            Color corner = gradient:GetTopLeft()
+            output "The color's values are: " + corner:GetRed() + ", " + corner:GetBlue() + ", " + corner:GetGreen() + ", " + corner:GetAlpha()
+        end
+
+    end
+    */
+    action GetTopLeft returns Color
+        return me
+    end
+
+    /*
+    This action returns what color is applied to the bottom left corner of an 
+    object which is using this Color. Note that for a Color object, the returned
+    value is the same Color object from which the action was called, and all
+    four corner actions (GetTopLeft(), GetTopRight(), GetBottomLeft(), and
+    GetBottomRight()) return the same value.
+
+    Attribute: Returns The Color object that the action was called from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Gradient
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            color = color:Orange()
+            
+            Color corner = gradient:GetBottomLeft()
+            output "The color's values are: " + corner:GetRed() + ", " + corner:GetBlue() + ", " + corner:GetGreen() + ", " + corner:GetAlpha()
+        end
+
+    end
+    */
+    action GetBottomLeft returns Color
+        return me
+    end
+
+    /*
+    This action returns what color is applied to the top right corner of an 
+    object which is using this Color. Note that for a Color object, the returned
+    value is the same Color object from which the action was called, and all
+    four corner actions (GetTopLeft(), GetTopRight(), GetBottomLeft(), and
+    GetBottomRight()) return the same value.
+
+    Attribute: Returns The Color object that the action was called from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Gradient
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            color = color:Orange()
+            
+            Color corner = gradient:GetTopRight()
+            output "The color's values are: " + corner:GetRed() + ", " + corner:GetBlue() + ", " + corner:GetGreen() + ", " + corner:GetAlpha()
+        end
+
+    end
+    */
+    action GetTopRight returns Color
+        return me
+    end
+
+    /*
+    This action returns what color is applied to the bottom right corner of an 
+    object which is using this Color. Note that for a Color object, the returned
+    value is the same Color object from which the action was called, and all
+    four corner actions (GetTopLeft(), GetTopRight(), GetBottomLeft(), and
+    GetBottomRight()) return the same value.
+
+    Attribute: Returns The Color object that the action was called from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Gradient
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            color = color:Orange()
+            
+            Color corner = gradient:GetTopLeft()
+            output "The color's values are: " + corner:GetRed() + ", " + corner:GetBlue() + ", " + corner:GetGreen() + ", " + corner:GetAlpha()
+        end
+
+    end
+    */
+    action GetBottomRight returns Color
+        return me
+    end
 end

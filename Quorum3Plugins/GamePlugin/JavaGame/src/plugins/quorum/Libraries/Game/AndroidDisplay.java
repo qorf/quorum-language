@@ -632,4 +632,12 @@ public class AndroidDisplay implements Renderer
         return true;
     }
 
+    public boolean IsAvailable()
+    {
+        // This check needs to be made more thorough. This satisfies the simple
+        // case of making sure the display was initialized at some point, but
+        // doesn't necessarily guarantee that an OpenGL context exists, which is
+        // the more important question to answer.
+        return eglContext != null;
+    }
 }

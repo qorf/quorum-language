@@ -1,7 +1,6 @@
 package Libraries.Interface
 
 use Libraries.Interface.Item
-use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -9,6 +8,8 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Views.View2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.Layout
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
@@ -191,12 +192,6 @@ class Item2D is Item
     are, and thus isn't eligible for things like events.
     */
     View2D visualView = undefined
-
-    /*
-    Layout objects are used to reactively set the position and dimensions of
-    Items relative to either screen dimensions or parent Item dimensions.
-    */
-    Array<Layout> layouts
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -4469,57 +4464,28 @@ class Item2D is Item
         return visualView
     end
 
-    action AddLayout(Layout layout)
-        layouts:Add(layout)
-        layouts:Sort()
-    end
-
-    action RemoveLayout(Layout layout)
-        layouts:Remove(layout)
-    end
-
-    action GetLayouts returns Array<Layout>
-        return layouts
-    end
-
     action Resize
         // If we're already resizing, return immediately from a recursive call.
         if isResizing
             return now
         end
 
+        // We resize all of the children if we don't have a Layout, but if we do
+        // have a Layout, we leave it to the Layout to decide in what order the
+        // children should be resized.
         isResizing = true
+        boolean resizeChildren = true
 
-        if not layouts:IsEmpty()
-            number containerWidth = 0
-            number containerHeight = 0
-            if parentItem not= undefined
-                containerWidth = parentItem:GetWidth()
-                containerHeight = parentItem:GetHeight()
-            else
-                GameStateManager manager
-                containerWidth = manager:GetGameDisplay():GetWidth()
-                containerHeight = manager:GetGameDisplay():GetHeight()
+        if me is Control
+            Control control = cast(Control, me)
+            Layout layout = control:GetLayout()
+            if layout not= undefined
+                resizeChildren = false
+                layout:Layout(control, GetChildren(), GetWidth(), GetHeight())
             end
+        end
 
-            Layout layout = undefined
-            integer counter = layouts:GetSize()
-
-            /*
-            Layouts are sorted by minimum width, or minimum height if minimum
-            widths are equal. When we find an invalid layout, it's assumed that
-            all following layouts will also be invalid.
-            */
-            repeat while counter > 0
-                counter = counter - 1
-                Layout temp = layouts:Get(counter)
-                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
-                    layout = temp
-                end
-            end
-
-            layout:Apply(me, containerWidth, containerHeight)
-        else
+        if resizeChildren
             integer counter = 0
             Array<Item2D> children = GetChildren()
             repeat while counter < children:GetSize()

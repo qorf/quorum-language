@@ -1,20 +1,15 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.SelectionHighlightView
 
 class ControlLabel is Label, Control
     
     Color color
-
-    action Initialize
-        SelectionHighlightView content
-        content:Initialize(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
-        SetView2D(content)
-    end
 
     action GainedSelection
         SetColor(color:White())
@@ -26,4 +21,15 @@ class ControlLabel is Label, Control
         parent:Control:LostSelection()
     end
 
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if properties:GetView2D() not= undefined
+            SetView2D(properties:GetView2D())
+        elseif GetView2D() = undefined
+            SelectionHighlightView content
+            content:Initialize(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+            SetView2D(content)
+        end
+    end
 end

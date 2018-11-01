@@ -6,12 +6,41 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.ColorGroup
 
 class Control is Item2D
 
     Array<ControlActivationListener> listeners
+
+    /*
+    LayoutProperties describe how this Item are laid out by Layouts. If the
+    Item has multiple LayoutProperties objects, the most appropriate one will
+    be chosen based on the container's size.
+    */
+    Array<LayoutProperties> layoutProperties
+    
+    /*
+    The default LayoutProperties, used by many controls to set their base visual
+    information and provide default values.
+    */
+    LayoutProperties defaultProperties
+
+    /*
+    The LayoutProperties that were last used to define the properties of this
+    Control. Used to indicate when graphics should be reloaded due to Layout
+    changes.
+    */
+    LayoutProperties currentProperties = undefined
+
+    /*
+    A layout which is used to arrange the children of this object.
+    */
+    Layout layout = undefined
 
     action ClickedMouse
         if GetView2D() is ControlView
@@ -103,4 +132,344 @@ class Control is Item2D
         GameStateManager manager
         manager:GetInput():NotifyControlActivationListeners(event)
     end
+
+    action SetLayout(Layout layout)
+        me:layout = layout
+    end
+
+    action GetLayout returns Layout
+        return layout
+    end
+
+    action AddLayoutProperties(LayoutProperties properties)
+        layoutProperties:Add(properties)
+        layoutProperties:Sort()
+    end
+
+    action RemoveLayoutProperties(LayoutProperties properties)
+        layoutProperties:Remove(properties)
+    end
+
+    action GetLayoutProperties returns Array<LayoutProperties>
+        return layoutProperties
+    end
+
+    /*
+    This action returns the best suited LayoutProperties stored by the Control
+    for use with the given container width and height. The Control will attempt
+    to find the most restricted LayoutProperties that is still valid,
+    prioritizing width over height in case of equal values.
+
+    Attribute: Parameter containerWidth The width of the container the LayoutProperties must be legal for.
+    Attribute: Parameter containerHeight The height of the container the LayoutProperties must be legal for.
+    Attribute: Returns The LayoutProperties contained in the Control that is best suited to the requested container dimensions.
+    */
+    action GetLayoutProperties(number containerWidth, number containerHeight) returns LayoutProperties
+        LayoutProperties properties = undefined
+        Array<LayoutProperties> array = GetLayoutProperties()
+        integer counter = array:GetSize()
+
+        /*
+        Layouts are sorted by minimum width, or minimum height if minimum
+        widths are equal. When we find an invalid layout, it's assumed that
+        all following layouts will also be invalid.
+        */
+        repeat while counter > 0
+            counter = counter - 1
+            LayoutProperties temp = array:Get(counter)
+            if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                properties = temp
+            end
+        end
+
+        if properties = undefined
+            properties = GetDefaultLayoutProperties()
+        end
+
+        return properties
+    end
+
+    /*
+    This action returns the default LayoutProperties used for this Control.
+
+    Attribute: Returns The default LayoutProperties of this Control.
+    */
+    action GetDefaultLayoutProperties returns LayoutProperties
+        return defaultProperties
+    end
+
+    /*
+    This action returns the LayoutProperties that were last used to define the
+    Control, and thus describe its current state. Note that if the Control 
+    hasn't been laid out yet, this will return undefined.
+
+    Attribute: Returns The last LayoutProperties used to layout this Control, or undefined if it hasn't been laid out yet.
+    */
+    action GetCurrentLayoutProperties returns LayoutProperties
+        return currentProperties
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if currentProperties not= undefined
+            currentProperties:SetRenderingFlag(true)
+        end
+
+        currentProperties = properties
+
+        if currentProperties not= undefined
+            properties:SetRenderingFlag(false)
+        end
+    end
+
+    /*
+    This action sets the x position of the Control relative to the size of its
+    container, if the container's Layout supports it.
+
+    Attribute: Parameter x The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action SetPercentageX(number x)
+        defaultProperties:SetPercentageX(x)
+    end
+
+    /*
+    This action returns the x position of the Control relative to the size of 
+    its container, if the container's Layout supports it.
+
+    Attribute: Returns The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action GetPercentageX returns number
+        return defaultProperties:GetPercentageY()
+    end
+
+    /*
+    This action sets the y position of the Control relative to the size of its
+    container, if the container's Layout supports it.
+
+    Attribute: Parameter y The target y position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action SetPercentageY(number y)
+        defaultProperties:SetPercentageY(y)
+    end
+
+    /*
+    This action returns the y position of the Control relative to the size of 
+    its container, if the container's Layout supports it.
+
+    Attribute: Returns The target y position as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
+    action GetPercentageY returns number
+        return defaultProperties:GetPercentageY()
+    end
+
+    /*
+    This action sets the x position of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's width to set the x position, then the two values will be
+    added together.
+
+    Attribute: Parameter x The target x position of this Control in pixels.
+    */
+    action SetPixelX(number x)
+        defaultProperties:SetPixelX(x)
+    end
+
+    /*
+    This action returns the target x position of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
+
+    Attribute: Returns The target x position of this Control in pixels.
+    */
+    action GetPixelX returns number
+        return defaultProperties:GetPixelX()
+    end
+
+    /*
+    This action sets the y position of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's height to set the y position, then the two values will be
+    added together.
+
+    Attribute: Parameter y The target y position of this Control in pixels.
+    */
+    action SetPixelY(number y)
+        defaultProperties:SetPixelY(y)
+    end
+
+    /*
+    This action returns the target y position of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
+
+    Attribute: Returns The target y position of this Control in pixels.
+    */
+    action GetPixelY returns number
+        return defaultProperties:GetPixelY()
+    end
+
+    action SetPercentageWidth(number width)
+        defaultProperties:SetPercentageWidth(width)
+    end
+
+    action GetPercentageWidth returns number
+        return defaultProperties:GetPercentageWidth()
+    end
+
+    action SetPercentageHeight(number height)
+        defaultProperties:SetPercentageHeight(height)
+    end
+
+    action GetPercentageHeight returns number
+        return defaultProperties:GetPercentageHeight()
+    end
+
+    action SetPixelWidth(number width)
+        defaultProperties:SetPixelWidth(width)
+    end
+
+    action GetPixelWidth returns number
+        return defaultProperties:GetPixelWidth()
+    end
+
+    action SetPixelHeight(number height)
+        defaultProperties:SetPixelHeight(height)
+    end
+
+    action GetPixelHeight returns number
+        return defaultProperties:GetPixelHeight()
+    end
+
+    action SetLeftPadding(number padding)
+        defaultProperties:SetLeftPadding(padding)
+    end
+
+    action SetRightPadding(number padding)
+        defaultProperties:SetRightPadding(padding)
+    end
+
+    action SetBottomPadding(number padding)
+        defaultProperties:SetBottomPadding(padding)
+    end
+
+    action SetTopPadding(number padding)
+        defaultProperties:SetTopPadding(padding)
+    end
+
+    action GetLeftPadding returns number
+        return defaultProperties:GetLeftPadding()
+    end
+
+    action GetRightPadding returns number
+        return defaultProperties:GetRightPadding()
+    end
+
+    action GetBottomPadding returns number
+        return defaultProperties:GetBottomPadding()
+    end
+
+    action GetTopPadding returns number
+        return defaultProperties:GetTopPadding()
+    end
+
+    /*
+    This action sets the Icon used by this Control. Different Controls use this
+    Icon differently, depending on their purpose.
+
+    Attribute: Parameter icon The Icon to use for this Control.
+    */
+    action SetIcon(Icon icon)
+        defaultProperties:SetIcon(icon)
+    end
+
+    /*
+    This action sets the Font to be used by this Control. How this Font is used
+    varies between Controls, and in some cases the Control will ignore it 
+    entirely (for example, ScrollPanes), but typically this sets the font that's
+    used for the default label on many Controls, such as Buttons. If the Font
+    is undefined, many Controls will omit their default label.
+
+    Attribute: Parameter font The Font to use for this Control.
+    */
+    action SetFont(Font font)
+        defaultProperties:SetFont(font)
+    end
+
+    /*
+    This action sets the base Font size to be used by this Control, if the
+    Control uses a Font.
+    */
+    action SetFontSize(integer size)
+        defaultProperties:SetFontSize(size)
+    end
+
+    /*
+
+    */
+    action SetBackgroundColor(ColorGroup color)
+        defaultProperties:SetBackgroundColor(color)
+    end
+
+    /*
+
+    */
+    action GetBackgroundColor returns ColorGroup
+        return defaultProperties:GetBackgroundColor()
+    end
+
+    /*
+
+    */
+    action SetBorderColor(ColorGroup color)
+        defaultProperties:SetBorderColor(color)
+    end
+
+    /*
+    
+    */
+    action GetBorderColor returns ColorGroup
+        return defaultProperties:GetBorderColor()
+    end
+
+    /*
+
+    */
+    action SetBorderThickness(number thickness)
+        defaultProperties:SetBorderThickness(thickness)
+    end
+
+    /*
+
+    */
+    action GetBorderThickness returns number
+        return defaultProperties:GetBorderThickness()
+    end
+
+    /*
+
+    */
+    action SetInterfaceScale(number scale)
+        defaultProperties:SetInterfaceScale(scale)
+        defaultProperties:SetRenderingFlag(true)
+
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            if children:Get(counter) is Control
+                Control control = cast(Control, children:Get(counter))
+                control:SetInterfaceScale(scale)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action GetInterfaceScale returns number
+        return defaultProperties:GetInterfaceScale()
+    end
+
 end
