@@ -10,7 +10,8 @@ class OrthographicCamera is Camera
 
     on create
         parent:Camera:near = 0
-        SetPosition(GetWidth()/2, GetHeight()/2, 0)
+        SetFar(20000)
+        SetPosition(GetWidth()/2, GetHeight()/2, 10000)
     end
 
     private Vector3 calcVector

@@ -212,7 +212,7 @@ class Painter2D
         end
     */
     action IsDrawing returns boolean
-            return drawing
+        return drawing
     end
 
     /*
@@ -274,7 +274,7 @@ class Painter2D
         Array<VertexAttribute> array
         
         VertexAttribute position
-        position:SetAttribute(position:POSITION, 2, "a_position")
+        position:SetAttribute(position:POSITION, 3, "a_position")
         VertexAttribute colorPacked
         colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
         VertexAttribute textureCoords
@@ -285,9 +285,9 @@ class Painter2D
         array:Add(textureCoords)
         attributes:SetAttributes(array)
 
-        mesh:Load(false, 4000, 6000, attributes, true)
+        mesh:Load(false, 4800, 6000, attributes, true)
 
-        vertices:SetSize(4000)
+        vertices:SetSize(4800)
 
         integer length = 6000
         Array<integer> indices

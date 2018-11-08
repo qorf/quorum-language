@@ -11,6 +11,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
+use Libraries.Containers.Support.SortableContainer
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
@@ -1081,18 +1082,19 @@ class Layer2D is Layer
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
     
+        Array<Item2D> sortedItems = GetDepthSortedItems()
+
         boolean processing = true
-        integer counter = items:GetSize()
+        integer counter = 0
         Item2D temp = undefined
         Item result = undefined
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
-        repeat while counter > 0 and processing
-            counter = counter - 1
-            temp = items:Get(counter):GetVisibleItemAt(pointVector:GetX(), pointVector:GetY())
-
-            if temp not= undefined
+        repeat while counter < sortedItems:GetSize() and processing
+            Item2D item = sortedItems:Get(counter)
+            if item:IsShowing() and item:Contains(pointVector:GetX(), pointVector:GetY())
+                temp = item
                 event:SetSource(temp)
                 temp:ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
@@ -1100,6 +1102,8 @@ class Layer2D is Layer
                     result = temp
                 end
             end
+
+            counter = counter + 1
         end
 
         if processing
@@ -1160,6 +1164,50 @@ class Layer2D is Layer
         end
 
         return result
+    end
+
+    /*
+    This action returns an Array of all of the visible elements on this Layer, 
+    including elements nested into other Items as children, sorted by ascending 
+    depth. Items which are not visible (i.e. IsShowing() returns false) will not
+    be included in the Array.
+    */
+    private action GetDepthSortedItems returns Array<Item2D>
+        Array<Item2D> resultArray
+        Array<SortableContainer<number, Item2D>> sortArray
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            GetDepthSortedItems(items:Get(i), sortArray)
+            i = i + 1
+        end
+
+        sortArray:Sort()
+
+        integer counter = 0
+        repeat while counter < sortArray:GetSize()
+            resultArray:Add(sortArray:Get(counter):GetValue())
+            counter = counter + 1
+        end
+
+        return resultArray
+    end
+
+    /*
+    Used by GetDepthSortedItems() to recursively collect items. The given item
+    adds itself to the array then recurses on the children elements.
+    */
+    private action GetDepthSortedItems(Item2D item, Array<SortableContainer<number, Item2D>> array)
+        SortableContainer<number, Item2D> container
+        container:Set(item:GetGlobalZ(), item)
+        array:Add(container)
+
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            GetDepthSortedItems(children:Get(i), array)
+            i = i + 1
+        end
     end
 
     /*

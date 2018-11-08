@@ -14,6 +14,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Layer2D
@@ -80,7 +81,7 @@ class Item2D is Item
     number z = 0
     number rotation = 0
 
-    Vector2 offset
+    Vector3 offset
 
     Vector2 dimensions
 
@@ -100,9 +101,6 @@ class Item2D is Item
 
     private boolean verticesChanged = true
     private Rectangle bounds
-
-    constant integer VERTEX_SIZE = 5
-    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
     Array<number> vertices
 
@@ -149,11 +147,6 @@ class Item2D is Item
     */
     boolean physicsEnabled = false
 
-    on create
-        vertices:SetSize(20)
-        scale:Set(1, 1)
-    end
-
     private boolean widthSet = false
     private boolean heightSet = false
     private boolean layerSet = false
@@ -198,26 +191,38 @@ class Item2D is Item
     // the second vertex, respectively.
     constant integer X1 = 0
     constant integer Y1 = 1
-    constant integer C1 = 2
-    constant integer U1 = 3
-    constant integer V1 = 4
-    constant integer X2 = 5
-    constant integer Y2 = 6
-    constant integer C2 = 7
-    constant integer U2 = 8
-    constant integer V2 = 9
-    constant integer X3 = 10
-    constant integer Y3 = 11
-    constant integer C3 = 12
-    constant integer U3 = 13
-    constant integer V3 = 14
-    constant integer X4 = 15
-    constant integer Y4 = 16
-    constant integer C4 = 17
-    constant integer U4 = 18
-    constant integer V4 = 19
+    constant integer Z1 = 2
+    constant integer C1 = 3
+    constant integer U1 = 4
+    constant integer V1 = 5
+    constant integer X2 = 6
+    constant integer Y2 = 7
+    constant integer Z2 = 8
+    constant integer C2 = 9
+    constant integer U2 = 10
+    constant integer V2 = 11
+    constant integer X3 = 12
+    constant integer Y3 = 13
+    constant integer Z3 = 14
+    constant integer C3 = 15
+    constant integer U3 = 16
+    constant integer V3 = 17
+    constant integer X4 = 18
+    constant integer Y4 = 19
+    constant integer Z4 = 20
+    constant integer C4 = 21
+    constant integer U4 = 22
+    constant integer V4 = 23
+
+    constant integer VERTEX_SIZE = 6
+    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
     Math math
+
+    on create
+        vertices:SetSize(DRAWABLE_SIZE)
+        scale:Set(1, 1)
+    end
 
     /*
     This action sets the X coordinate of the Item.
@@ -229,15 +234,13 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-//        MoveX(setX - position:GetX())
-
         verticesChanged = true
         hasMoved = true
         position:SetX(setX)
         SetOffsetX(offset:GetX())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -255,15 +258,13 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-//        MoveY(setY - position:GetY())
-
         verticesChanged = true
         hasMoved = true
         position:SetY(setY)
         SetOffsetY(offset:GetY())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -283,7 +284,13 @@ class Item2D is Item
         myItem:SetZ(3)
     */
     action SetZ(number setZ)
-        MoveZ(setZ - z)
+        verticesChanged = true
+        z = setZ
+        SetOffsetZ(offset:GetZ())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+        end
     end
 
     /*
@@ -345,7 +352,7 @@ class Item2D is Item
         SetOffset(offset:GetX(), offset:GetY())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -593,7 +600,7 @@ class Item2D is Item
         end
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         integer counter = 0
@@ -632,12 +639,47 @@ class Item2D is Item
         end
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetY(position:GetY() + yAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action sets the Z offset of the item. The offset tells the Item
+    where to relate its Z position to. In other words, the Z offset is where a
+    Z coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetZ(75)
+    */
+    action SetOffsetZ(number zAmount)
+        if zAmount not= offset:GetZ() and verticesChanged = false
+            number adjust = zAmount - offset:GetZ()
+        
+            vertices:Set(Z1, -(vertices:Get(Z1) + adjust))
+            vertices:Set(Z2, -(vertices:Get(Z2) + adjust))
+            vertices:Set(Z3, -(vertices:Get(Z3) + adjust))
+            vertices:Set(Z4, -(vertices:Get(Z4) + adjust))
+        end
+
+        offset:SetZ(zAmount)
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+        end
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetZ(z + zAmount)
             counter = counter + 1
         end
     end
@@ -659,7 +701,8 @@ class Item2D is Item
         return offset:GetX()
     end
 
-    /* This action returns the Y offset of the item. The offset tells the Item
+    /* 
+    This action returns the Y offset of the item. The offset tells the Item
     where to relate its Y position to. In other words, the Y offset is where a
     Y coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
@@ -675,8 +718,25 @@ class Item2D is Item
         return offset:GetY()
     end
 
-    
-    /* This action will set both the X and Y offsets of the item, respectively.
+    /* 
+    This action returns the Z offset of the item. The offset tells the Item
+    where to relate its Z position to. In other words, the Z offset is where a
+    Z coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetZ(75)
+        number offset = myItem:GetOffsetZ()
+    */
+    action GetOffsetZ returns number
+        return offset:GetZ()
+    end
+
+    /* 
+    This action will set both the X and Y offsets of the item, respectively.
 
     Attribute: Example
 
@@ -712,7 +772,7 @@ class Item2D is Item
         end
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         integer counter = 0
@@ -722,6 +782,64 @@ class Item2D is Item
         end
     end
 
+    /* 
+    This action will set X, Y, and Z offsets of the item, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffset(100, 75, 2)
+    */
+    action SetOffset(number xAmount, number yAmount, number zAmount)
+        if verticesChanged = false
+            Array<number> vertices = GetVertices()
+
+            if xAmount not= offset:GetX()
+                number adjustX = xAmount - GetOffsetX()
+
+                vertices:Set(X1, vertices:Get(X1) + adjustX)
+                vertices:Set(X2, vertices:Get(X2) + adjustX)
+                vertices:Set(X3, vertices:Get(X3) + adjustX)
+                vertices:Set(X4, vertices:Get(X4) + adjustX)
+            end
+
+            if yAmount not= offset:GetY()
+                number adjustY = yAmount - GetOffsetY()
+
+                vertices:Set(Y1, vertices:Get(Y1) + adjustY)
+                vertices:Set(Y2, vertices:Get(Y2) + adjustY)
+                vertices:Set(Y3, vertices:Get(Y3) + adjustY)
+                vertices:Set(Y4, vertices:Get(Y4) + adjustY)
+            end
+
+            if zAmount not= offset:GetZ()
+                number adjustZ = zAmount - GetOffsetZ()
+
+                vertices:Set(Z1, -(vertices:Get(Z1) + adjustZ))
+                vertices:Set(Z2, -(vertices:Get(Z2) + adjustZ))
+                vertices:Set(Z3, -(vertices:Get(Z3) + adjustZ))
+                vertices:Set(Z4, -(vertices:Get(Z4) + adjustZ))
+            end
+        end
+
+        offset:Set(xAmount, yAmount, zAmount)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+        end
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffset(position:GetX() + xAmount, position:GetY() + yAmount, z + zAmount)
+            counter = counter + 1
+        end
+    end
     
     /* 
     This action returns the Item's global x coordinate. This is the actual world
@@ -764,7 +882,7 @@ class Item2D is Item
     returns the Item2D's current z value.
     */
     action GetGlobalZ returns number
-        return z
+        return GetZ() + offset:GetZ()
     end
 
     /*
@@ -846,7 +964,7 @@ class Item2D is Item
         SetOffsetX(offset:GetX())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -878,7 +996,7 @@ class Item2D is Item
         SetOffsetY(offset:GetY())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -898,7 +1016,19 @@ class Item2D is Item
         myItem:MoveZ(2)
     */
     action MoveZ(number zAmount)
+        if verticesChanged = false
+            vertices:Set(Z1, vertices:Get(Z1) + zAmount)
+            vertices:Set(Z2, vertices:Get(Z2) + zAmount)
+            vertices:Set(Z3, vertices:Get(Z3) + zAmount)
+            vertices:Set(Z4, vertices:Get(Z4) + zAmount)
+        end
+
         z = z + zAmount
+        SetOffsetZ(offset:GetZ())
+
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+        end
     end
 
     /*
@@ -936,7 +1066,7 @@ class Item2D is Item
         SetOffset(offset:GetX(), offset:GetY())
 
         if visualView not= undefined
-            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -1107,7 +1237,7 @@ class Item2D is Item
         newItem:SetParent(me)
         newItem:SetLayer(layer)
         newItem:PrepareVertices()
-        newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
+        newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY(), GetZ() + GetOffsetZ())
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
@@ -1432,6 +1562,12 @@ class Item2D is Item
                 vertices:Set(Y4, y1)
             end
 
+            // Vertices are set to negative Z to reverse draw order.
+            number negatedZ = -GetGlobalZ()
+            vertices:Set(Z1, negatedZ)
+            vertices:Set(Z2, negatedZ)
+            vertices:Set(Z3, negatedZ)
+            vertices:Set(Z4, negatedZ)
         end
     end
 
@@ -4455,7 +4591,7 @@ class Item2D is Item
         visualView = content
         visualView:SetItem(me)
         visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
-        visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
         visualView:UpdateFlipping(flipX, flipY)
         visualView:UpdateRotation(GetRotation())
     end
