@@ -2697,14 +2697,14 @@ class Item2D is Item
 
                 painter:SetClipCoordinates(left, bottom, right, top)
 
-                if visualView not= undefined
-                    visualView:Draw(painter)
+                integer counter = children:GetSize()
+                repeat while counter > 0
+                    counter = counter - 1
+                    children:Get(counter):Draw(painter)
                 end
 
-                integer counter = 0
-                repeat children:GetSize() times
-                    children:Get(counter):Draw(painter)
-                    counter = counter + 1
+                if visualView not= undefined
+                    visualView:Draw(painter)
                 end
 
                 painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
@@ -2712,28 +2712,28 @@ class Item2D is Item
                 painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
 
-                if visualView not= undefined
-                    visualView:Draw(painter)
+                integer counter = children:GetSize()
+                repeat while counter > 0
+                    counter = counter - 1
+                    children:Get(counter):Draw(painter)
                 end
 
-                integer counter = 0
-                repeat children:GetSize() times
-                    children:Get(counter):Draw(painter)
-                    counter = counter + 1
+                if visualView not= undefined
+                    visualView:Draw(painter)
                 end
 
                 painter:SetClipping(false)
             end
         else
 
-            if visualView not= undefined
-                visualView:Draw(painter)
+            integer counter = children:GetSize()
+            repeat while counter > 0
+                counter = counter - 1
+                children:Get(counter):Draw(painter)
             end
 
-            integer counter = 0
-            repeat children:GetSize() times
-                children:Get(counter):Draw(painter)
-                counter = counter + 1
+            if visualView not= undefined
+                visualView:Draw(painter)
             end
         end
     end

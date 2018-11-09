@@ -1095,17 +1095,15 @@ class Drawable is TextureRegion, Item2D
     added to the Game with the Add(Item) action. 
     */
     action Draw(Painter2D painter)
-        PrepareVertices()
-
         if not IsShowing()
             return now
         end
 
+        parent:Item2D:Draw(painter)
+
         if GetTexture() not= undefined
             painter:Draw(me)
         end
-
-        parent:Item2D:Draw(painter)
     end
 
     /*
