@@ -381,7 +381,9 @@ class Painter2D
         integer counter = sortingArray:GetSize()
         repeat while counter > 0
             counter = counter - 1
-            SystemDraw(sortingArray:Get(counter):GetValue())
+            Drawable drawable = sortingArray:Get(counter):GetValue()
+            drawable:SetClipCoordinates(me)
+            SystemDraw(drawable)
         end
 
         SystemEnd()

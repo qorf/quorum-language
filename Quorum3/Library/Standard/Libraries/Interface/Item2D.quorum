@@ -2739,6 +2739,50 @@ class Item2D is Item
     end
 
     /*
+    This action sets the clipping coordinates of the given painter to respect
+    the coordinates of this Item (if it's clipping) as well as any clipping
+    being performed by parent Items. This action is called automatically by the
+    Game engine as necessary, and most users will never need to use this action
+    directly.
+    */
+    action SetClipCoordinates(Painter2D painter)
+        Number constants
+        number left = constants:GetNegativeInfinityValue()
+        number right = constants:GetPositiveInfinityValue()
+        number bottom = constants:GetNegativeInfinityValue()
+        number top = constants:GetPositiveInfinityValue()
+        boolean applyClipping = false
+
+        Item2D item = me
+        repeat while item not= undefined
+            if item:IsClipping()
+                applyClipping = true
+                if item:GetGlobalX() > left
+                    left = item:GetGlobalX()
+                end
+                if item:GetGlobalX() + item:GetWidth() < right
+                    right = item:GetGlobalX() + item:GetWidth()
+                end
+                if item:GetGlobalY() > bottom
+                    bottom = item:GetGlobalY()
+                end
+                if item:GetGlobalY() + item:GetHeight() < top
+                    top = item:GetGlobalY() + item:GetHeight()
+                end
+            end
+
+            item = item:GetParent()
+        end
+
+        if applyClipping
+            painter:SetClipping(true)
+            painter:SetClipCoordinates(left, bottom, right, top)
+        else
+            painter:SetClipping(false)
+        end
+    end
+
+    /*
     This is an action used internally to retrieve the head of the linked list of 
     collisions with this item. This action is used internally and users should 
     not need to use this action.

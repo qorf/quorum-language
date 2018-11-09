@@ -993,10 +993,11 @@ class Layer2D is Layer
         
         painter:Begin()
 
+        painter:SetClipping(false)
+
         integer counter = sortedItems:GetSize()
         repeat while counter > 0
             counter = counter - 1
-            painter:SetClipping(false)
             sortedItems:Get(counter):Draw(painter)
         end
 
