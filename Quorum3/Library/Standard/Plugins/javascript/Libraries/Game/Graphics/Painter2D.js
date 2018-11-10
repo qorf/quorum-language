@@ -187,7 +187,11 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         
-        graphics.glDepthMask(false);
+        graphics.glDepthMask(true);
+        graphics.glEnable(graphics.gl.DEPTH_TEST);
+        graphics.glDepthFunc(graphics.gl.LEQUAL);
+        graphics.glDisable(graphics.gl.CULL_FACE);
+        
         if (useFontShader)
             fontShader.Begin();
         else if (customShader !== null && customShader !== undefined)
@@ -208,7 +212,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         }
     };
     
-    this.End = function() 
+    this.SystemEnd = function() 
     {
         if (!(this.me_.IsDrawing()))
         {
@@ -251,7 +255,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         colorValue = this.me_.color.EncodeColorAsNumber();
     };
     
-    this.Draw$quorum_Libraries_Game_Graphics_Drawable = function(drawable) 
+    this.SystemDraw$quorum_Libraries_Game_Graphics_Drawable = function(drawable) 
     {
         if (!(this.me_.IsDrawing()))
         {
@@ -277,7 +281,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         if (!(drawable.UsingCustomTint()))
         {
-            for (var i = 2; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
+            for (var i = drawable.Get_Libraries_Game_Graphics_Drawable__Z1_(); i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
             {
                 drawable.SetVertex$quorum_integer$quorum_number(i, colorValue);
             }
@@ -295,7 +299,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         if (index === 0)
             return;
         
-        var count = (index / 20) * 6;
+        var count = (index / 24) * 6;
         
         this.me_.lastTexture.Bind();
         
