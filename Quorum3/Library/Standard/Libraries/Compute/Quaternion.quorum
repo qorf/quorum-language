@@ -404,6 +404,60 @@ class Quaternion
         return me
     end
 
+
+
+    //only accepts normalized v0 and v1
+    action SetAsShortestArcQuaternion(Vector3 v0, Vector3 v1)
+        Vector3 c
+        c:Set(v0)
+        c:CrossProduct(v1)
+        number d = v0:DotProduct(v1)
+
+        if (d < -1.0 + 1.1920928955078125 * math:RaiseToPower(10, -7))
+            //use an arbituary vector
+            x = 0
+            y = 1
+            z = 0
+            w = 0
+        end
+
+        number s = math:SquareRoot((1 + d) * 2)
+        number rs = 1.0/s
+        x = c:GetX() * rs
+        y = c:GetY() * rs
+        z = c:GetZ() * rs
+        w = s * 0.5
+    end
+
+
+
+    action QuaternionRotate(Vector3 v) returns Vector3
+        Vector3 result
+
+        Quaternion q
+        q:Set(me)
+        q:Multiply(v)
+
+
+        Quaternion temp
+        temp:Set(me)
+        temp:MakeInverse()
+
+        q:Multiply(temp)
+
+        result:SetX(q:GetX())
+        result:SetY(q:GetY())
+        result:SetZ(q:GetZ())
+        return result
+    end
+
+
+
+    action MakeInverse()
+        x = -x
+        y = -y
+        z = -z
+    end
     /*
     This action gets the pole of the gimbal lock if there is one.
 
@@ -784,6 +838,19 @@ class Quaternion
         vector:SetY(temp3:GetY())
         vector:SetZ(temp3:GetZ())
         return vector
+    end
+
+    //changes the current quaternion
+    action Multiply(Vector3 inputVector)
+        number rx = w * inputVector:GetX() + y * inputVector:GetZ() - z * inputVector:GetY()
+        number ry = w * inputVector:GetY() + z * inputVector:GetX() - x * inputVector:GetZ()
+        number rz = w * inputVector:GetZ() + x * inputVector:GetY() - y * inputVector:GetX()
+        number rw = - x * inputVector:GetX() - y * inputVector:GetY() - z * inputVector:GetZ()
+
+        x = rx
+        y = ry
+        z = rz
+        w = rw
     end
 
     /*

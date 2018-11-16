@@ -7,25 +7,30 @@ use Libraries.Compute.Math
 use Libraries.Compute.Vector3   
 
 /*
-This class stores information of how much a 3D joint (in the form of a motor) can rotate.
+This class stores information of how to control a joint via a motor.
 */
 class RotationalLimitMotor3D
 
     Math math
-    number loLimit = -(math:RaiseToPower(2, 10))  
-    number hiLimit = math:RaiseToPower(2, 10) 
-    number targetVelocity = 0
-    number maxMotorForce = 0.1
-    number maxLimitForce = 300
+    number loLimit = -(math:RaiseToPower(2, 10))   //joint limit
+    number hiLimit = math:RaiseToPower(2, 10)     //joint limit
+    number targetVelocity = 0                       //target motor velocity
+    number maxMotorForce = 0.1                      //maximum force on motor
+    number maxLimitForce = 300                      //maximum force on limit
     number damping = 1
     number limitSoftness = 0.5
     number ERP = 0.5//!< Error tolerance factor when joint is at limit
-    number bounce = 0
+    number bounce = 0           //restitution factor
     boolean enableMotor = false
-    number currentLimitError = 0
-    integer currentLimit = 0
+    number currentLimitError = 0        //how much is violated at a certain limit
+    integer currentLimit = 0            //0 = free, 1 = at low limit, 2 = at high limit
     number accumulatedImpulse = 0
     
+
+
+    number currentPosition = 0
+
+
     /*
     This action sets the values of this RotationalLimitMotor3D using another RotationalLimitMotor3D.
     Attribute: Parameter other The other RotationalLimitMotor3D.
@@ -55,7 +60,7 @@ class RotationalLimitMotor3D
     end
 
     /*
-    This action lets you know if you need to apply torque to any of the objects associated with this RotationalLimitMotor3D.
+    This action lets you know if you need to apply torque to any of the objects associated with this RotationalLimitMotor3D because either the error in calculation is not 0 or motor is enabled.
     Attribute: Returns 0 if this motor is not enabled so there will be no torque from this motor, 1 when there will be torque from this motor.
     */
     action NeedApplyTorques() returns boolean
@@ -72,19 +77,35 @@ class RotationalLimitMotor3D
     */
     action TestLimitValue(number testValue) returns integer
 	if loLimit > hiLimit
-            currentLimit = 0 
+            currentLimit = 0    //no violation
             return 0
 	end
 	if testValue < loLimit
-            currentLimit = 1
+            currentLimit = 1    //lower limit has violation
             currentLimitError = testValue - loLimit
+
+            if (currentLimitError > math:pi)
+                currentLimitError = currentLimitError - 2*math:pi
+            elseif (currentLimitError < -math:pi)
+                currentLimitError = currentLimitError + 2*math:pi
+            end
+
             return 1
 	elseif testValue > hiLimit
-            currentLimit = 2
+            currentLimit = 2    //higher limit has violation
             currentLimitError = testValue - hiLimit
+
+
+            if (currentLimitError > math:pi)
+                currentLimitError = currentLimitError - 2*math:pi
+            elseif (currentLimitError < -math:pi)
+                currentLimitError = currentLimitError + 2*math:pi
+            end
+
+
             return 2
 	end
-	currentLimit = 0
+	currentLimit = 0    //there is no violation
 	return 0
     end
     
@@ -112,14 +133,14 @@ class RotationalLimitMotor3D
 	Vector3 velDiff
         velDiff:Set(body0:GetAngularVelocity())
 	if body1 not= undefined
-            velDiff:Subtract(body1:GetAngularVelocity())
+            velDiff:Subtract(body1:GetAngularVelocity())            //velDiff = body0:GetAngularVelocity() - body1:GetAngularVelocity()
 	end
 	number relVel = axis:DotProduct(velDiff)
 
 	// correction velocity
 	number motorRelvel = limitSoftness * (localTargetVelocity - damping * relVel)
 
-	if motorRelvel < (1.19209290 * math:RaiseToPower(10, -7)) and motorRelvel > (-1.19209290 * math:RaiseToPower(10, -7))
+	if (motorRelvel < (1.19209290 * math:RaiseToPower(10, -7))) and (motorRelvel > (-1.19209290 * math:RaiseToPower(10, -7)))
             return 0
 	end
 
@@ -149,9 +170,20 @@ class RotationalLimitMotor3D
 
 	number oldaccumImpulse = accumulatedImpulse
 	number sum = oldaccumImpulse + clippedMotorImpulse
+
+        /*
         if sum > hi or sum < lo
             accumulatedImpulse = 0
         else 
+            accumulatedImpulse = sum
+        end
+        */
+
+        if sum > hi
+            accumulatedImpulse = 0
+        elseif sum < lo
+            accumulatedImpulse = 0
+        else
             accumulatedImpulse = sum
         end
 
@@ -161,14 +193,14 @@ class RotationalLimitMotor3D
 	motorImp:Set(axis)
         motorImp:Scale(clippedMotorImpulse)
 
-	body0:ApplyAngularImpulse(motorImp)
+	body0:ApplyAngularImpulse(motorImp)     //applyTorqueImpulse
 	if body1 not= undefined
             motorImp:Set(-motorImp:GetX(), -motorImp:GetY(), -motorImp:GetZ())
             body1:ApplyAngularImpulse(motorImp)
 	end
 
 	return clippedMotorImpulse
-        return 0
+        //return 0
     end  
 
     /*
@@ -281,5 +313,12 @@ class RotationalLimitMotor3D
     action GetEnableMotor() returns boolean
         return enableMotor
     end
+
+
+    action SetCurrentPosition(number currentPosition)
+        me:currentPosition = currentPosition
+    end
+
+
 end
 

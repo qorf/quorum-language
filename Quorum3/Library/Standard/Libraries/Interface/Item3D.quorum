@@ -71,8 +71,8 @@ class Item3D is Item
     boolean collideWithChildren = false
     boolean hasMoved = false
 
-    PhysicsPosition3D collisionTransform
-    PhysicsPosition3D collisionTransform0
+    PhysicsPosition3D collisionTransform        //projected position
+    PhysicsPosition3D collisionTransform0       //previous position
     PhysicsPosition3D interpolationTransform
 
     CollisionShape3D shape = undefined
@@ -2672,9 +2672,10 @@ class Item3D is Item
 
     action GetCollisionGroupFlag returns boolean
         if properties = undefined
+            //output "properties is undefined"
             alert(PHYSICS_ERROR_MESSAGE)
         end
-
+        //output "properties is defined"
         return properties:GetCollisionGroupFlag()
     end
 
@@ -2983,6 +2984,10 @@ class Item3D is Item
     end
 
     action GetCenterOfMassTransform returns PhysicsPosition3D
+//        output "In Item3D-----"
+//        collisionTransform:Output()
+//        output "previous"
+//        collisionTransform0:Output()
         return collisionTransform
     end
 
@@ -3098,6 +3103,36 @@ class Item3D is Item
 
         properties:InternalApplyImpulse(linearComponent, angularComponent, impulseMagnitude)
     end
+
+
+    /*
+    ACTIONS MADE FOR JOINTS.
+    */
+    action ApplyLinearImpulseToCenter(Vector3 impulse)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulseToCenter(impulse)  //exists
+    end
+
+    action ApplyImpulse(Vector3 impulse, Vector3 localPositionToApply)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulse(impulse, localPositionToApply)
+    end
+
+    action ApplyTorqueImpulse(Vector3 torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyTorque(torque)
+    end
+
+
 
     action GetPushVelocity returns Vector3
         if properties = undefined

@@ -1,0 +1,74 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Game.Physics.CollisionSolverInformation3D
+use Libraries.Game.Physics.all
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+use Libraries.Compute.Math  
+use Libraries.Compute.Vector3  
+use Libraries.Compute.Matrix3
+use Libraries.Game.Physics.Joints.RotationalLimitMotor3D
+use Libraries.Game.Physics.Joints.TranslationalLimitMotor3D   
+use Libraries.Game.Physics.ConstraintDescription3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Compute.Quaternion
+
+
+class BallAndSocketJoint3D is Joint3D
+
+
+
+    //JacobianEntry[] jac
+    ConstraintDescription3D jac0
+    ConstraintDescription3D jac1
+    ConstraintDescription3D jac2
+
+
+
+    Vector3 pivotInA
+    Vector3 pivotInB
+
+    number tau = 0.3
+    number damping = 1
+    number impulseClamp = 0
+
+    //Point2PointConstraint
+    action Initialize(Item3D itemA, Item3D itemB, Vector3 pivotInA, Vector3 pivotInB)
+        parent:Joint3D:SetItemA(itemA)
+        parent:Joint3D:SetItemB(itemB)
+        parent:Joint3D:SetType(parent:Joint3D:BallAndSocket)
+        me:pivotInA = pivotInA
+        me:pivotInB = pivotInB
+    end
+
+    action BuildJacobian()
+        parent:Joint3D:appliedImpulse = 0
+
+        Vector3 normal
+        normal:Set(0,0,0)
+
+
+        Matrix3 tempMat1
+        Matrix3 tempMat2
+
+        Vector3 temp1
+        Vector3 temp2
+        Vector3 tempVec
+
+
+        PhysicsPosition3D centerOfMassA
+        PhysicsPosition3D centerOfMassB
+        centerOfMassA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
+        centerOfMassB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
+        
+
+        normal:Set(1.0, normal:GetY(), normal:GetZ())
+        tempMat1:Set(centerOfMassA:GetBasis())
+        tempMat1:Transpose()
+
+        tempMat2:Set(centerOfMassB:GetBasis())
+        tempMat2:Transpose()
+        
+    end
+
+end

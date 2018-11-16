@@ -302,6 +302,45 @@ class Matrix3
         return SetToRotation(axis, math:Cosine(math:DegreesToRadians(degrees)), math:Sine(math:DegreesToRadians(degrees)))
     end
 
+
+    action Output
+        output "The matrix3 is:"
+        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+        output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
+    end
+
+
+
+    //pass in values in radians
+    action SetEulerZYX(number rotateX, number rotateY, number rotateZ)
+        number ci = math:Cosine(rotateX)
+        number cj = math:Cosine(rotateY)
+        number ch = math:Cosine(rotateZ)
+        number si = math:Sine(rotateX)
+        number sj = math:Sine(rotateY)
+        number sh = math:Sine(rotateZ)
+
+        number cc = ci * ch
+        number cs = ci * sh
+        number sc = si * ch
+        number ss = si * sh
+
+        row0column0 = cj * ch
+        row0column1 = sj * sc - cs
+        row0column2 = sj * cc + ss
+
+        row1column0 = cj * sh
+        row1column1 = sj * ss + cc
+        row1column2 = sj * cs - sc
+
+        row2column0 = -sj
+        row2column1 = cj * si
+        row2column2 = cj * ci
+    end
+
+
+
     /*
     This action sets the matrix to a rotation matrix about the passed axis using
     the cosine and sine of the angle of rotation. A rotation matrix is often
@@ -1828,6 +1867,12 @@ class Matrix3
         end
     end
 
+
+    /*
+    This action multiply the matrix by a vector. Mathematically, this is v = M*v.
+    This action won't change the matrix.
+    This action will chagne the vector.
+    */
     action Transform(Vector3 vector)
         number x = row0column0 * vector:GetX() + row0column1 * vector:GetY() + row0column2 * vector:GetZ()
         number y = row1column0 * vector:GetX() + row1column1 * vector:GetY() + row1column2 * vector:GetZ()

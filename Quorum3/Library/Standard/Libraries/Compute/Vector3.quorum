@@ -38,6 +38,11 @@ class Vector3
     Math math
     constant number ROUNDING_MARGIN = 0.000001
 
+
+
+    action Output
+        output "The vector3 is: [" + x + ", " + y + ", " + z + "]"
+    end
     /*
     This action returns the x component of the vector.
 
@@ -305,6 +310,16 @@ class Vector3
         Vector3 temp
         temp:Set(x, y, z)
         return temp
+    end
+
+
+    /*
+    This action makes the current vector point in the opposite direction by negating all of its components.
+    */
+    action MakeOpposite
+        x = -x
+        y = -y
+        z = -z
     end
 
     /*
