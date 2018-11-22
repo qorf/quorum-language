@@ -152,10 +152,11 @@ class BallAndSocketJoint3D is Joint3D
 
             rel_vel = normal:DotProduct(vel)
 
+            // positional error (zeroth order error)
             temp:Set(pivotAInW)
             temp:Subtract(pivotBInW)
 
-            number depth = -(temp:DotProduct(normal))
+            number depth = -(temp:DotProduct(normal)) // this is the error projected on the normal
             number impulse = depth * tau / timeStep * jacDiagABInv - damping * rel_vel * jacDiagABInv
 
             //number impulseClamp = me:impulseClamp

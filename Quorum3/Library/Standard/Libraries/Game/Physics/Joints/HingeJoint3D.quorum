@@ -121,7 +121,7 @@ class HingeJoint3D is Joint3D
         Quaternion rotationArc
         rotationArc:SetAsShortestArcQuaternion(axisInA, axisInB)
         Vector3 rbAxisB1
-        rbAxisB1 = rotationArc:QuaternionRotate(rbAxisA1)
+        rbAxisB1:Set(rotationArc:QuaternionRotate(rbAxisA1))
 
         Vector3 rbAxisB2
         rbAxisB2:Set(axisInB)
@@ -484,7 +484,7 @@ class HingeJoint3D is Joint3D
 
         Vector3 angularError
         angularError:Set(axisA:CrossProduct(axisB))
-        angularError:MakeOpposite()
+        angularError:MakeOpposite()  //TODO: check
         angularError:Scale(1.0/timeStep)
 
         number len2 = angularError:Length()

@@ -59,19 +59,6 @@ class CustomizableJoint3D is Joint3D
 
 
 
-    //! shouldn't be used
-    /*
-    This action initializes the data inside this CustomizableJoint3D class.
-    Attribute: Parameter itemB The second item.
-    Attribute: Parameter positionB The center of the joint connection in B's point of view.
-    Attribute: Parameter useLinearReferenceFrameB When you want to define the limits from the point of view of the second object.
-    */
-    action Initialize(Item3D itemB, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
-        parent:Joint3D:SetItemB(itemB)
-        frameInB:Set(positionB)
-        me:useLinearReferenceFrameA = useLinearReferenceFrameA
-        frameInA:Set(itemB:GetCenterOfMassTransform())
-    end
 
     /*
     This action initializes the data inside this CustomizableJoint3D class.
