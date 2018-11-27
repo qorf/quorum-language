@@ -20,23 +20,43 @@ class CustomizableJoint3D is Joint3D
     Math math
     PhysicsPosition3D frameInA  
     PhysicsPosition3D frameInB  
-    Array<ConstraintDescription3D> jacobianLinear/*[3]*/ 
-    Array<ConstraintDescription3D> jacobianAng/*[3]*/
+    //Array<ConstraintDescription3D> jacobianLinear/*[3]*/ 
+    //Array<ConstraintDescription3D> jacobianAng/*[3]*/
 
+
+    ConstraintDescription3D jacobianLinear0
+    ConstraintDescription3D jacobianLinear1
+    ConstraintDescription3D jacobianLinear2
+
+    ConstraintDescription3D jacobianAng0
+    ConstraintDescription3D jacobianAng1
+    ConstraintDescription3D jacobianAng2
 
     TranslationalLimitMotor3D linearLimits
-    Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
+    //Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
 
+
+    RotationalLimitMotor3D angularLimits0
+    RotationalLimitMotor3D angularLimits1
+    RotationalLimitMotor3D angularLimits2
 
     number timeStep = 0
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
     Vector3 calculatedAxisAngleDifference
-    Array<Vector3> calculatedAxis/*[3]*/ 
+    //Array<Vector3> calculatedAxis/*[3]*/ 
+
+
+    Vector3 calculatedAxis0
+    Vector3 calculatedAxis1
+    Vector3 calculatedAxis2
+
     Vector3 anchorPosition
     Vector3 calculatedLinearDifference
     boolean useLinearReferenceFrameA  = true
 
+
+/*
     on create
         Vector3 dummy
         ConstraintDescription3D filler
@@ -56,7 +76,7 @@ class CustomizableJoint3D is Joint3D
         jacobianLinear:Add(filler)
         parent:Joint3D:SetType(parent:Joint3D:Customizable)
     end
-
+*/
 
 
 
@@ -159,14 +179,10 @@ class CustomizableJoint3D is Joint3D
         axis22:Set(axis2)
 
         Vector3 cAxis1
-	calculatedAxis:Set(1, axis2:CrossProduct(axis0))
-        cAxis1:Set(calculatedAxis:Get(1))
-	calculatedAxis:Set(0, cAxis1:CrossProduct(axis22))
-	calculatedAxis:Set(2, axis0:CrossProduct(calculatedAxis:Get(1)))
-
-        calculatedAxis:Get(0):Normalize()
-        calculatedAxis:Get(1):Normalize()
-        calculatedAxis:Get(2):Normalize()
+	calculatedAxis1:Set(axis2:CrossProduct(axis0))
+        cAxis1:Set(calculatedAxis1)
+	calculatedAxis0:Set(cAxis1:CrossProduct(axis22))
+	calculatedAxis2:Set(axis0:CrossProduct(calculatedAxis1))
     end
 
     /*
@@ -179,8 +195,7 @@ class CustomizableJoint3D is Joint3D
 
 	calculatedTransformB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
 	calculatedTransformB:Multiply(frameInB)                 //joint for B in global coordinates
-
-        CalculateLinearInfo()    
+  
 	CalculateAngleInfo()
     end  
 
@@ -202,12 +217,25 @@ class CustomizableJoint3D is Joint3D
 
 
         //adjust the angle 
-        angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
-        angularLimits:Get(axisIndex):SetCurrentPosition(angle)
+        //angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
 
         //test limits
-	angularLimits:Get(axisIndex):TestLimitValue(angle)
-	return angularLimits:Get(axisIndex):NeedApplyTorques()
+        if axisIndex = 0
+            //angularLimits0:SetCurrentPosition(angle)
+            angularLimits0:TestLimitValue(angle)
+            return angularLimits0:NeedApplyTorques()
+        elseif axisIndex = 1
+            //angularLimits1:SetCurrentPosition(angle)
+            angularLimits1:TestLimitValue(angle)
+            return angularLimits1:NeedApplyTorques()
+        elseif axisIndex = 2
+            //angularLimits2:SetCurrentPosition(angle)
+            angularLimits2:TestLimitValue(angle)
+            return angularLimits2:NeedApplyTorques()
+        else
+            output "invalid index"
+            return false
+        end
     end  
 
 
@@ -269,13 +297,28 @@ class CustomizableJoint3D is Joint3D
         tmp2:Set(pivotBInW)
 	tmp2:Subtract(parent:Joint3D:itemB:GetCenterOfMassPosition())
 
-        ConstraintDescription3D linearJacobian
-        linearJacobian:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+
+        if (jacobianLinearIndex = 0)
+            jacobianLinear0:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
                                 parent:Joint3D:itemA:GetInverseInertiaLocal(), 
 				parent:Joint3D:itemA:GetInverseMass(),
 				parent:Joint3D:itemB:GetInverseInertiaLocal(),
 				parent:Joint3D:itemB:GetInverseMass())
-	jacobianLinear:Set(jacobianLinearIndex, linearJacobian)
+        elseif (jacobianLinearIndex = 1)
+            jacobianLinear1:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+                                parent:Joint3D:itemA:GetInverseInertiaLocal(), 
+				parent:Joint3D:itemA:GetInverseMass(),
+				parent:Joint3D:itemB:GetInverseInertiaLocal(),
+				parent:Joint3D:itemB:GetInverseMass())
+        elseif (jacobianLinearIndex = 2)
+            jacobianLinear2:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+                                parent:Joint3D:itemA:GetInverseInertiaLocal(), 
+				parent:Joint3D:itemA:GetInverseMass(),
+				parent:Joint3D:itemB:GetInverseInertiaLocal(),
+				parent:Joint3D:itemB:GetInverseMass())
+        else
+            output "invalid index"
+        end
     end
 
     /*
@@ -290,13 +333,27 @@ class CustomizableJoint3D is Joint3D
         mat2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetBasis())
 	mat2:Transpose()
 
-        ConstraintDescription3D angularJacobian
-        angularJacobian:Initialize(jointAxisW,
+        if (jacobianAngularIndex = 0)
+            jacobianAng0:Initialize(jointAxisW,
 				mat1,
 				mat2,
 				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
 				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
-        jacobianAng:Set(jacobianAngularIndex, angularJacobian)
+        elseif (jacobianAngularIndex = 1)
+            jacobianAng1:Initialize(jointAxisW,
+				mat1,
+				mat2,
+				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
+				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
+        elseif (jacobianAngularIndex = 2)
+            jacobianAng2:Initialize(jointAxisW,
+				mat1,
+				mat2,
+				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
+				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
+        else
+            output "invalid index"
+        end
     end
 
 
@@ -324,14 +381,13 @@ class CustomizableJoint3D is Joint3D
     /*
     This action calls the BuildAngularJacobian and BuildLinearJacobian. This action is called by the Collision Solver.
     */
-    action BuildJacobian() 
+    action BuildJacobian
         output "building jacobian"
 	linearLimits:SetAccumulatedImpulse(0, 0, 0)
-        integer i = 0
-        repeat 3 times
-            angularLimits:Get(i):SetAccumulatedImpulse(0)
-            i = i + 1
-	end
+        angularLimits0:SetAccumulatedImpulse(0)
+        angularLimits1:SetAccumulatedImpulse(0)
+        angularLimits2:SetAccumulatedImpulse(0)
+
 	CalculateTransforms()
 		
 	Vector3 tmpVec
@@ -344,7 +400,7 @@ class CustomizableJoint3D is Joint3D
 	Vector3 normalWorld
         i = 0
 	repeat 3 times
-            if  TestLinearLimitMotor(i)
+            if  linearLimits:IsLimited(i)
                 if useLinearReferenceFrameA 
                     normalWorld:Set(calculatedTransformA:GetBasis():GetColumn(i))
                 else 
@@ -358,7 +414,7 @@ class CustomizableJoint3D is Joint3D
 	i = 0
         repeat 3 times
             if TestAngularLimitMotor(i)    
-                normalWorld:Set(GetAxis(i))
+                normalWorld:Set(me:GetAxis(i))
                 BuildAngularJacobian(i, normalWorld)
             end
             i = i + 1
@@ -384,7 +440,14 @@ class CustomizableJoint3D is Joint3D
         repeat 3 times
             if linearLimits:IsLimited(i)
                 output "axis " + i + " is limited"
-                jacDiagABInv = 1 / jacobianLinear:Get(i):GetDiagonal()
+                if (i = 0)
+                    jacDiagABInv = 1 / jacobianLinear0:GetDiagonal()
+                elseif (i = 1)
+                    jacDiagABInv = 1 / jacobianLinear1:GetDiagonal()
+                elseif (i = 2)
+                    jacDiagABInv = 1 / jacobianLinear2:GetDiagonal()
+                end
+
 
                 if useLinearReferenceFrameA
                     linearAxis:Set(calculatedTransformA:GetBasis():GetColumn(i))
@@ -414,15 +477,24 @@ class CustomizableJoint3D is Joint3D
 	Vector3 angularAxis
 	number angularJacDiagABInv = 0
         i = 0
-        repeat 3 times
-            if angularLimits:Get(i):NeedApplyTorques()
-		angularAxis:Set(GetAxis(i))
-                angularJacDiagABInv = 1 / jacobianAng:Get(i):GetDiagonal()
-                angularLimits:Get(i):SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
-            end  
-            i = i + 1
-	end
 
+        if angularLimits0:NeedApplyTorques()
+            angularAxis:Set(GetAxis(0))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits0:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
+
+        if angularLimits1:NeedApplyTorques()
+            angularAxis:Set(GetAxis(1))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits1:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
+
+        if angularLimits2:NeedApplyTorques()
+            angularAxis:Set(GetAxis(2))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits2:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
     end
 
     action updateRHS(number timeStep) 
@@ -434,7 +506,17 @@ class CustomizableJoint3D is Joint3D
     Attribute: Returns the rotational axis in global coordinates.
     */
     action GetAxis(integer axisIndex) returns Vector3
-        return calculatedAxis:Get(axisIndex)
+        if (axisIndex = 0)
+            return calculatedAxis0
+        elseif (axisIndex = 1)
+            return calculatedAxis1
+        elseif (axisIndex = 2)
+            return calculatedAxis2
+        else 
+            output "invalid index"
+            Vector3 out
+            return out
+        end
     end
 
     /*
@@ -514,9 +596,9 @@ class CustomizableJoint3D is Joint3D
     Attribute: Parameter angularLower The lower angular limit.
     */
     action SetAngularLowerLimit(Vector3 angularLower) 
-	angularLimits:Get(0):SetLoLimit(angularLower:GetX())
-	angularLimits:Get(1):SetLoLimit(angularLower:GetY())
-	angularLimits:Get(2):SetLoLimit(angularLower:GetZ())
+	angularLimits0:SetLoLimit(angularLower:GetX())
+	angularLimits1:SetLoLimit(angularLower:GetY())
+	angularLimits2:SetLoLimit(angularLower:GetZ())
     end            
 
     /*
