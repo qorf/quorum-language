@@ -28,7 +28,7 @@ class RotationalLimitMotor3D
     
 
 
-    number currentPosition = 0
+    //number currentPosition = 0
 
 
     /*
@@ -84,24 +84,10 @@ class RotationalLimitMotor3D
             currentLimit = 1    //lower limit has violation
             currentLimitError = testValue - loLimit
 
-            if (currentLimitError > math:pi)
-                currentLimitError = currentLimitError - 2*math:pi
-            elseif (currentLimitError < -math:pi)
-                currentLimitError = currentLimitError + 2*math:pi
-            end
-
             return 1
 	elseif testValue > hiLimit
             currentLimit = 2    //higher limit has violation
             currentLimitError = testValue - hiLimit
-
-
-            if (currentLimitError > math:pi)
-                currentLimitError = currentLimitError - 2*math:pi
-            elseif (currentLimitError < -math:pi)
-                currentLimitError = currentLimitError + 2*math:pi
-            end
-
 
             return 2
 	end
@@ -195,7 +181,7 @@ class RotationalLimitMotor3D
 
 	body0:ApplyAngularImpulse(motorImp)     //applyTorqueImpulse
 	if body1 not= undefined
-            motorImp:Set(-motorImp:GetX(), -motorImp:GetY(), -motorImp:GetZ())
+            motorImp:MakeOpposite()
             body1:ApplyAngularImpulse(motorImp)
 	end
 
@@ -313,12 +299,5 @@ class RotationalLimitMotor3D
     action GetEnableMotor() returns boolean
         return enableMotor
     end
-
-
-    action SetCurrentPosition(number currentPosition)
-        me:currentPosition = currentPosition
-    end
-
-
 end
 

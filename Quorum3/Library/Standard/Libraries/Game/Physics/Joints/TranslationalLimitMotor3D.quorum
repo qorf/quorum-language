@@ -167,12 +167,12 @@ class TranslationalLimitMotor3D
 	Vector3 tmpVec
 		
 	Vector3 relativePosition1
-        tmpVec:Set(anchorPos)       //anchor position relative to body A
-	relativePosition1:Set(tmpVec:Subtract(body1:GetCenterOfMassPosition())) //COM_A to the anchor position
+        relativePosition1:Set(anchorPos)       //anchor position relative to body A
+	relativePosition1:Subtract(body1:GetCenterOfMassPosition()) //COM_A to the anchor position
 
 	Vector3 relativePosition2
-        tmpVec:Set(anchorPos)
-	relativePosition2:Set(tmpVec:Subtract(body2:GetCenterOfMassPosition())) //COM_B to the anchor position
+        relativePosition2:Set(anchorPos)
+	relativePosition2:Subtract(body2:GetCenterOfMassPosition()) //COM_B to the anchor position
 
 	Vector3 velocity1         
 	Vector3 velocity2        
@@ -180,15 +180,18 @@ class TranslationalLimitMotor3D
 
         velocity1:Set(body1:GetLinearVelocityAtLocalPoint(relativePosition1))
         velocity2:Set(body2:GetLinearVelocityAtLocalPoint(relativePosition2))
-	velocity:Set(velocity1:Subtract(velocity2)) //Note that velocity1 has changed!
+	velocity:Set(velocity1)
+        velocity:Subtract(velocity2)
 
 	number relativeVelocity = axisNormalOnA:DotProduct(velocity)
 
-        tmp:Set(pointInA)
-        tmp:Set(tmp:Subtract(pointInB))
 
-        number depth = tmp:DotProduct(axisNormalOnA)
-        depth = -depth
+        // positional error (zeroth order error)
+        tmp:Set(pointInA)
+        tmp:Subtract(pointInB)
+
+        number depth = -(tmp:DotProduct(axisNormalOnA))
+
 
 	number lo = -(math:RaiseToPower(10, 30))
 	number hi = math:RaiseToPower(10, 30)
@@ -217,13 +220,13 @@ class TranslationalLimitMotor3D
             if (depth > maxLimit)
                 depth = depth - maxLimit
                 lo = 0
-            end
-        else
-            if (depth < minLimit)
-                depth = depth - minLimit
-                hi = 0
             else
-                return 0   //there is no error
+                if (depth < minLimit)
+                    depth = depth - minLimit
+                    hi = 0
+                else
+                    return 0   //there is no error
+                end
             end
         end
 
@@ -265,8 +268,12 @@ class TranslationalLimitMotor3D
         Vector3 impulseVector
         impulseVector:Set(axisNormalOnA)
         impulseVector:Scale(normalImpulse)
+
         body1:ApplyLinearImpulse(impulseVector, relativePosition1)
-	tmp:Set(-impulseVector:GetX(), -impulseVector:GetY(), -impulseVector:GetZ())
+	tmp:Set(impulseVector)
+        tmp:MakeOpposite()
+
+
 	body2:ApplyLinearImpulse(tmp, relativePosition2)
 	return normalImpulse
 

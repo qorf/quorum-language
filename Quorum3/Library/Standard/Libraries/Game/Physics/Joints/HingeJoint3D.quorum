@@ -21,6 +21,19 @@ class HingeJoint3D is Joint3D
         Array<ConstraintDescription3D> jac/*[3]*/ 
         Array<ConstraintDescription3D> jacAng/*[3]*/
 
+
+        ConstraintDescription3D jac0
+        ConstraintDescription3D jac1
+        ConstraintDescription3D jac2
+
+
+
+
+        ConstraintDescription3D jacAng0
+        ConstraintDescription3D jacAng1
+        ConstraintDescription3D jacAng2
+
+
         number motorTargetVelocity = 0
         number maxMotorImpulse = 0
         number limitSoftness = 0.9
@@ -71,7 +84,7 @@ class HingeJoint3D is Joint3D
 
         frameInA:GetOrigin():Set(pivotInA)  //pivot in A's perspective
 
-
+        // since no frame is given, assume this to be zero angle and just pick rb transform axis
         Vector3 rbAxisA1
         Vector3 rbAxisA2
 
@@ -80,8 +93,7 @@ class HingeJoint3D is Joint3D
 
         //get the 0th column of COM A
         rbAxisA1:Set(centerOfMassA:GetBasis():GetColumn(0))
-//        output "initial value of rbAxisA1"
-//        rbAxisA1:Output()
+
 
         number projection = axisInA:DotProduct(rbAxisA1)
 
@@ -91,16 +103,10 @@ class HingeJoint3D is Joint3D
         if projection >= lowError
             rbAxisA1:Set(centerOfMassA:GetBasis():GetColumn(2))
             rbAxisA1:MakeOpposite()
-            rbAxisA2:Set(centerOfMassA:GetBasis():GetColumn(1))
-
-//            output "projection >= lowError"
-//            rbAxisA1:Output()
-            
+            rbAxisA2:Set(centerOfMassA:GetBasis():GetColumn(1))    
         elseif (projection <= highError)
             rbAxisA1:Set(centerOfMassA:GetBasis():GetColumn(2))
             rbAxisA2:Set(centerOfMassA:GetBasis():GetColumn(1))
-//            output "projection <= highError"
-//            rbAxisA1:Output()
         else 
             //cross product changes the original value
             Vector3 temp
@@ -110,8 +116,6 @@ class HingeJoint3D is Joint3D
             Vector3 temp2
             temp2:Set(rbAxisA2)
             rbAxisA1:Set(temp2:CrossProduct(axisInA))
-//            output "else"
-//            rbAxisA1:Output()
         end
 
         frameInA:GetBasis():Set(rbAxisA1:GetX(), rbAxisA2:GetX(), axisInA:GetX(), rbAxisA1:GetY(), rbAxisA2:GetY(), axisInA:GetY(), rbAxisA1:GetZ(), rbAxisA2:GetZ(), axisInA:GetZ())
@@ -134,11 +138,19 @@ class HingeJoint3D is Joint3D
 //        output "Initializing"
 //        frameInA:Output()
 //        frameInB:Output()
+
+
+        lowerLimit = math:RaiseToPower(10, 30)	
+	upperLimit = math:RaiseToPower(10, -30)	
+        biasFactor = 0.3
+        relaxationFactor = 1.0
+        limitSoftness = 0.9
+        solveLimit = false
     end
 
 
     action BuildJacobian()
-
+        Vector3 temp
         Vector3 temp1
         Vector3 temp2
         Vector3 tempVec
@@ -172,56 +184,51 @@ class HingeJoint3D is Joint3D
             relativePosition:Set(pivotBInW)
             relativePosition:Subtract(pivotAInW)
 
-
-            Array<Vector3> normal
+            Vector3 normal0
             Vector3 normal1
             Vector3 normal2
-            Vector3 normal3
-            normal:Add(normal1)
-            normal:Add(normal2)
-            normal:Add(normal3)
+
             if(relativePosition:LengthSquared() > epsilon)
-                normal:Get(0):Set(relativePosition)
-                normal:Get(0):Normalize()
+                normal0:Set(relativePosition)
+                normal0:Normalize()
             else
-                normal:Get(0):Set(1,0,0)
+                normal0:Set(1,0,0)
             end
 
 //            output "before plane space"
 //            normal:Get(0):Output()
 //            normal:Get(1):Output()
 //            normal:Get(2):Output()
-            PlaneSpace1(normal:Get(0), normal:Get(1), normal:Get(2)) //TODO: make sure the normals actually got transformed
+            PlaneSpace1(normal0, normal1, normal2) 
 //            output "after plane space"
 //            normal:Get(0):Output()
 //            normal:Get(1):Output()
 //            normal:Get(2):Output()
 
-            integer i = 0
 
+            mat1:Set(centerOfMassA:GetBasis())    
+            mat1:Transpose()
+            mat2:Set(centerOfMassB:GetBasis())
+            mat2:Transpose()
 
-            repeat 3 times
-                mat1:Set(centerOfMassA:GetBasis())          //TODO: this part can be made faster
-                mat1:Transpose()
-                mat2:Set(centerOfMassB:GetBasis())
-                mat2:Transpose()
+            temp1:Set(pivotAInW)
+            temp1:Subtract(centerOfMassA:GetOrigin())   //temp1 = temp1 - centerOfMassA:GetOrigin()
 
-                temp1:Set(pivotAInW)
-                temp1:Subtract(centerOfMassA:GetOrigin())   //temp1 = temp1 - centerOfMassA:GetOrigin()
-                
-                temp2:Set(pivotBInW)
-                temp2:Subtract(centerOfMassB:GetOrigin())   //temp2 = temp2 - centerOfMassB:GetOrigin()
-            
+            temp2:Set(pivotBInW)
+            temp2:Subtract(centerOfMassB:GetOrigin())   //temp2 = temp2 - centerOfMassB:GetOrigin()
 
-                jac:Get(i):Initialize(mat1, mat2, temp1, temp2, normal:Get(i), parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemA:GetInverseMass(), parent:Joint3D:itemB:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseMass())
-                i = i + 1
-            end   
+            jac0:Initialize(mat1, mat2, temp1, temp2, normal0, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemA:GetInverseMass(), parent:Joint3D:itemB:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseMass())
+            jac1:Initialize(mat1, mat2, temp1, temp2, normal1, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemA:GetInverseMass(), parent:Joint3D:itemB:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseMass())
+            jac2:Initialize(mat1, mat2, temp1, temp2, normal2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemA:GetInverseMass(), parent:Joint3D:itemB:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseMass())
         end   //end if
 
+
+
+        // calculate two perpendicular jointAxis, orthogonal to hingeAxis
+        // these two jointAxis require equal angular velocities for both bodies
         Vector3 jointAxis0local
         Vector3 jointAxis1local
 
-        Vector3 temp
         temp:Set(frameInA:GetBasis():GetColumn(2))
         PlaneSpace1(temp, jointAxis0local, jointAxis1local)     //TODO: make sure jointAxis0local and jointAxis1local changed
 
@@ -248,9 +255,9 @@ class HingeJoint3D is Joint3D
         mat2:Transpose()
 
 
-        jacAng:Get(0):Initialize(jointAxis0, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
-        jacAng:Get(1):Initialize(jointAxis1, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
-        jacAng:Get(2):Initialize(hingeAxisWorld, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
+        jacAng0:Initialize(jointAxis0, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
+        jacAng1:Initialize(jointAxis1, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
+        jacAng2:Initialize(hingeAxisWorld, mat1, mat2, parent:Joint3D:itemA:GetInverseInertiaLocal(), parent:Joint3D:itemB:GetInverseInertiaLocal())
 
 
         // Compute limit information
@@ -349,14 +356,12 @@ class HingeJoint3D is Joint3D
 
         if (not angularOnly)
             Vector3 rel_pos1
-            rel_pos1:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetOrigin())
-            rel_pos1:Subtract(pivotAInW)        //rel_pos1 = rel_pos1 - pivotAInW
-            rel_pos1:MakeOpposite()
+            rel_pos1:Set(pivotAInW) 
+            rel_pos1:Subtract(parent:Joint3D:itemA:GetCenterOfMassTransform():GetOrigin())       //rel_pos1 = rel_pos1 - pivotAInW
 
             Vector3 rel_pos2
-            rel_pos2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetOrigin())
-            rel_pos2:Subtract(pivotBInW)        //rel_pos1 = rel_pos1 - pivotAInW
-            rel_pos2:MakeOpposite()
+            rel_pos2:Set(pivotBInW) 
+            rel_pos2:Subtract(parent:Joint3D:itemB:GetCenterOfMassTransform():GetOrigin())       //rel_pos1 = rel_pos1 - pivotAInW
 
             Vector3 vel1
             vel1:Set(parent:Joint3D:itemA:GetLinearVelocityAtLocalPoint(rel_pos1))
@@ -372,56 +377,51 @@ class HingeJoint3D is Joint3D
             integer i = 0
             repeat 3 times
                 Vector3 normal
-                normal:Set(jac:Get(i):GetLinearJointAxis())
-
+                number jacDiagABInv = 1
+                number rel_vel = 0  //relative velocity in the normal direction 
                 if (i = 0)
-                    normal:Set(-1,0,0)
+                    normal:Set(jac0:GetLinearJointAxis())   
+                    jacDiagABInv = 1/jac0:GetDiagonal()
                 elseif (i = 1)
-                    normal:Set(0,-1,0)
+                    normal:Set(jac1:GetLinearJointAxis())
+                    jacDiagABInv = 1/jac1:GetDiagonal()
                 else
-                    normal:Set(0,0,-1)
+                    normal:Set(jac2:GetLinearJointAxis())
+                    jacDiagABInv = 1/jac2:GetDiagonal()
                 end
-                normal:Output()
 
-                number jacDiagABInv = 1/jac:Get(i):GetDiagonal()
+                rel_vel = normal:DotProduct(vel) 
 
-                number rel_vel = 0
-                rel_vel = normal:DotProduct(vel)       //relative velocity in the normal direction 
-
-                temp:Set(pivotAInW)
+                temp:Set(pivotAInW)  // positional error (zeroth order error)
                 temp:Subtract(pivotBInW)        //temp = pivotAInW - pivotBInW
 
                 number depth = 0
-                depth = -(temp:DotProduct(vel))
+                depth = -(temp:DotProduct(normal))  // this is the error projected on the normal
 
                 number impulse = depth * tau / timeStep * jacDiagABInv - rel_vel * jacDiagABInv
-//                output "solving linear: i;;;;;"
-                output i
-//                output "impulse"
-                output impulse
+
 
                 parent:Joint3D:appliedImpulse = parent:Joint3D:appliedImpulse + impulse
 
                 Vector3 impulse_vector 
 
                 impulse_vector:Set(normal)
-                output "Direction to apply for A"
-                normal:Output()
+                //output "Direction to apply for A"
+                //normal:Output()
 
                 impulse_vector:Scale(impulse)
 
-                temp:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetOrigin())
-                temp:Subtract(pivotAInW)  
-                temp:MakeOpposite()
+                temp:Set(pivotAInW) 
+                temp:Subtract(parent:Joint3D:itemA:GetCenterOfMassTransform():GetOrigin())
+
 
                 parent:Joint3D:itemA:ApplyImpulse(impulse_vector, temp)     //temp is the location position where the impulse will be applied
 
                 temp:Set(impulse_vector)
                 temp:MakeOpposite()        //temp = -impulse_vector
 
-                temp2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetOrigin())
-                temp2:Subtract(pivotBInW)       //temp2 = temp2 - pivotBInW
-                temp2:MakeOpposite()
+                temp2:Set(pivotBInW) 
+                temp2:Subtract(parent:Joint3D:itemB:GetCenterOfMassTransform():GetOrigin())      //temp2 = temp2 - pivotBInW
 
                 parent:Joint3D:itemB:ApplyImpulse(temp, temp2)
                 i = i + 1
@@ -430,6 +430,8 @@ class HingeJoint3D is Joint3D
 
 
         //solving the angular part
+
+        // get axes in world space
         Vector3 axisA
         axisA:Set(frameInA:GetBasis():GetColumn(2))    
         centerOfMassA:GetBasis():Transform(axisA)
@@ -451,7 +453,7 @@ class HingeJoint3D is Joint3D
         angVelAroundHingeAxisA:Scale(scaleForA)
 
         Vector3 angVelAroundHingeAxisB
-        number scaleForB = angVelA:DotProduct(axisB)
+        number scaleForB = angVelB:DotProduct(axisB)
         angVelAroundHingeAxisB:Set(axisB)
         angVelAroundHingeAxisB:Scale(scaleForB)
         
@@ -482,6 +484,7 @@ class HingeJoint3D is Joint3D
             velRelOrthog:Scale(1.0/denom * relaxationFactor)
         end
 
+        // solve angular positional correction
         Vector3 angularError
         angularError:Set(axisA:CrossProduct(axisB))
         angularError:MakeOpposite()  //TODO: check
@@ -495,7 +498,7 @@ class HingeJoint3D is Joint3D
             normal2:Normalize()
 
             number denom2  = parent:Joint3D:itemA:ComputeAngularImpulseDenominator(normal2) + parent:Joint3D:itemB:ComputeAngularImpulseDenominator(normal2)
-            angularError:Scale(1.0/denom2 * relaxationFactor)
+            angularError:Scale(1.0/denom2 * relaxation)   //relaxation instead of relaxationFactor
         end
 
 

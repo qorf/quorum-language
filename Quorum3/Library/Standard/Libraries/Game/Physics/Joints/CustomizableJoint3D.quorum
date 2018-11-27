@@ -20,9 +20,6 @@ class CustomizableJoint3D is Joint3D
     Math math
     PhysicsPosition3D frameInA  
     PhysicsPosition3D frameInB  
-    //Array<ConstraintDescription3D> jacobianLinear/*[3]*/ 
-    //Array<ConstraintDescription3D> jacobianAng/*[3]*/
-
 
     ConstraintDescription3D jacobianLinear0
     ConstraintDescription3D jacobianLinear1
@@ -33,8 +30,6 @@ class CustomizableJoint3D is Joint3D
     ConstraintDescription3D jacobianAng2
 
     TranslationalLimitMotor3D linearLimits
-    //Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
-
 
     RotationalLimitMotor3D angularLimits0
     RotationalLimitMotor3D angularLimits1
@@ -44,8 +39,6 @@ class CustomizableJoint3D is Joint3D
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
     Vector3 calculatedAxisAngleDifference
-    //Array<Vector3> calculatedAxis/*[3]*/ 
-
 
     Vector3 calculatedAxis0
     Vector3 calculatedAxis1
@@ -54,30 +47,6 @@ class CustomizableJoint3D is Joint3D
     Vector3 anchorPosition
     Vector3 calculatedLinearDifference
     boolean useLinearReferenceFrameA  = true
-
-
-/*
-    on create
-        Vector3 dummy
-        ConstraintDescription3D filler
-        RotationalLimitMotor3D ghost
-
-        calculatedAxis:Add(dummy)
-        calculatedAxis:Add(dummy)
-        calculatedAxis:Add(dummy)
-        angularLimits:Add(ghost)
-        angularLimits:Add(ghost)
-        angularLimits:Add(ghost)
-        jacobianAng:Add(filler)
-        jacobianAng:Add(filler)
-        jacobianAng:Add(filler)
-        jacobianLinear:Add(filler)
-        jacobianLinear:Add(filler)
-        jacobianLinear:Add(filler)
-        parent:Joint3D:SetType(parent:Joint3D:Customizable)
-    end
-*/
-
 
 
     /*
@@ -134,28 +103,6 @@ class CustomizableJoint3D is Joint3D
         return false
     end
 
-    /*
-    This action calculates whether the objects are within the linear limits.
-    */
-//not used
-    action CalculateLinearInfo()
-        Vector3 temp
-        
-        temp:Set(calculatedTransformB:GetOrigin())
-        temp:Subtract(calculatedTransformA:GetOrigin())
-
-        Matrix3 basisInv
-
-        //calculatedTransformA:GetBasis():PrintThis()
-
-        basisInv:Set(calculatedTransformA:GetBasis():Inverse())
-        basisInv:Transform(calculatedLinearDifference)
-
-        linearLimits:SetCurrentLinearDiff(calculatedLinearDifference)
-        linearLimits:TestLimitValue(0, calculatedLinearDifference:GetX())
-        linearLimits:TestLimitValue(1, calculatedLinearDifference:GetY())
-        linearLimits:TestLimitValue(2, calculatedLinearDifference:GetZ())
-    end
 
     /*
     This action calculates the angular difference between object A and object B.
@@ -200,83 +147,7 @@ class CustomizableJoint3D is Joint3D
     end  
 
 
-    /*
-    This action tests if the relative angle between the two objects is within the angular limit that we defined.
-    Attribute: Parameter axisIndex The axis that you want to test, 0 for x, 1 for y, 2 for z.
-    Attribute: Returns false if outside of limit, true if within limit.
-    */
-    action TestAngularLimitMotor(integer axisIndex) returns boolean
-	number angle = 0
-        if axisIndex = 0
-            angle = calculatedAxisAngleDifference:GetX()
-        elseif axisIndex = 1
-            angle = calculatedAxisAngleDifference:GetY()
-        elseif axisIndex = 2
-            angle = calculatedAxisAngleDifference:GetZ()
-        end
 
-
-        //adjust the angle 
-        //angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
-
-        //test limits
-        if axisIndex = 0
-            //angularLimits0:SetCurrentPosition(angle)
-            angularLimits0:TestLimitValue(angle)
-            return angularLimits0:NeedApplyTorques()
-        elseif axisIndex = 1
-            //angularLimits1:SetCurrentPosition(angle)
-            angularLimits1:TestLimitValue(angle)
-            return angularLimits1:NeedApplyTorques()
-        elseif axisIndex = 2
-            //angularLimits2:SetCurrentPosition(angle)
-            angularLimits2:TestLimitValue(angle)
-            return angularLimits2:NeedApplyTorques()
-        else
-            output "invalid index"
-            return false
-        end
-    end  
-
-
-
-    private action AdjustAngleToLimits(number angleInRadians, number angleLowerLimitInRadians, number angleUpperLimitInRadians) returns number
-        if (angleLowerLimitInRadians >= angleUpperLimitInRadians)
-            return angleInRadians
-        elseif (angleInRadians < angleLowerLimitInRadians)
-            number diffLo = math:AbsoluteValue(NormalizeAngle(angleLowerLimitInRadians - angleInRadians))
-            number diffHi = math:AbsoluteValue(NormalizeAngle(angleUpperLimitInRadians - angleInRadians))
-
-            if (diffLo < diffHi)
-                return angleInRadians
-            else
-                return angleInRadians + 2*math:pi
-            end
-        elseif (angleInRadians > angleUpperLimitInRadians)
-            number diffHi = math:AbsoluteValue(NormalizeAngle(angleInRadians - angleUpperLimitInRadians))
-            number diffLo = math:AbsoluteValue(NormalizeAngle(angleInRadians - angleLowerLimitInRadians))
-
-            if (diffLo < diffHi)
-                return angleInRadians - 2*math:pi
-            else
-                return angleInRadians 
-            end
-        else
-            return angleInRadians
-        end
-    end 
-
-
-    private action NormalizeAngle(number angleInRadians) returns number
-        angleInRadians = math:Remainder(angleInRadians, math:pi*2)
-        if (angleInRadians < -math:pi)
-            return angleInRadians + math:pi*2
-        elseif (angleInRadians > math:pi)
-            return angleInRadians - math:pi*2
-        else
-            return angleInRadians
-        end
-    end
     /*
     This action finds the values that are useful to calculate if the two objects are within the position limits.
     */
@@ -321,6 +192,8 @@ class CustomizableJoint3D is Joint3D
         end
     end
 
+
+
     /*
     This action finds values that are useful for calculating the angular difference between the two objects.
     */
@@ -358,31 +231,55 @@ class CustomizableJoint3D is Joint3D
 
 
 
+
+
+
+
     /*
-    This action tests if the position of the two objects is within the position limits that we have set.
+    This action tests if the relative angle between the two objects is within the angular limit that we defined.
     Attribute: Parameter axisIndex The axis that you want to test, 0 for x, 1 for y, 2 for z.
     Attribute: Returns false if outside of limit, true if within limit.
     */
-    action TestLinearLimitMotor(integer axisIndex) returns boolean
-	number diff = 0
-
+    action TestAngularLimitMotor(integer axisIndex) returns boolean
+	number angle = 0
         if axisIndex = 0
-            diff = calculatedLinearDifference:GetX()
+            angle = calculatedAxisAngleDifference:GetX()
         elseif axisIndex = 1
-            diff = calculatedLinearDifference:GetY()
+            angle = calculatedAxisAngleDifference:GetY()
         elseif axisIndex = 2
-            diff = calculatedLinearDifference:GetZ()
+            angle = calculatedAxisAngleDifference:GetZ()
         end
 
-	linearLimits:TestLimitValue(axisIndex, diff) 
-	return linearLimits:NeedApplyForces(axisIndex)
-    end
+
+        //adjust the angle 
+        //angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
+
+        //test limits
+        if axisIndex = 0
+            //angularLimits0:SetCurrentPosition(angle)
+            angularLimits0:TestLimitValue(angle)
+            return angularLimits0:NeedApplyTorques()
+        elseif axisIndex = 1
+            //angularLimits1:SetCurrentPosition(angle)
+            angularLimits1:TestLimitValue(angle)
+            return angularLimits1:NeedApplyTorques()
+        elseif axisIndex = 2
+            //angularLimits2:SetCurrentPosition(angle)
+            angularLimits2:TestLimitValue(angle)
+            return angularLimits2:NeedApplyTorques()
+        else
+            output "invalid index"
+            return false
+        end
+    end  
+
+
+
 
     /*
     This action calls the BuildAngularJacobian and BuildLinearJacobian. This action is called by the Collision Solver.
     */
     action BuildJacobian
-        output "building jacobian"
 	linearLimits:SetAccumulatedImpulse(0, 0, 0)
         angularLimits0:SetAccumulatedImpulse(0)
         angularLimits1:SetAccumulatedImpulse(0)
@@ -421,11 +318,13 @@ class CustomizableJoint3D is Joint3D
 	end
     end
 
+
+
+
     /*
     This action solves the constraint of this joint and make sure that objects A and B is able to move with the joint constraint applied.
     */
     action SolveJoint(number localtimeStep) 
-        output "solving 6dof"
 	timeStep = localtimeStep
         Vector3 pointInA
         Vector3 pointInB
@@ -439,7 +338,6 @@ class CustomizableJoint3D is Joint3D
 
         repeat 3 times
             if linearLimits:IsLimited(i)
-                output "axis " + i + " is limited"
                 if (i = 0)
                     jacDiagABInv = 1 / jacobianLinear0:GetDiagonal()
                 elseif (i = 1)
@@ -459,20 +357,6 @@ class CustomizableJoint3D is Joint3D
             end
             i = i + 1
         end
-
-/*
-        repeat 3 times
-            if linearLimits:NeedApplyForces(i)
-		jacDiagABInv = 1 / jacobianLinear:Get(i):GetDiagonal()
-		if useLinearReferenceFrameA 
-                    linearAxis:Set(calculatedTransformA:GetBasis():GetColumn(i))
-		else 
-                    linearAxis:Set(calculatedTransformB:GetBasis():GetColumn(i))
-		end
-		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB(), pointInB, i, linearAxis, anchorPosition)
-            end
-            i = i + 1
-        end*/
 
 	Vector3 angularAxis
 	number angularJacDiagABInv = 0
@@ -497,8 +381,13 @@ class CustomizableJoint3D is Joint3D
         end  
     end
 
+
+
     action updateRHS(number timeStep) 
     end    
+
+
+
 
     /*
     This action returns the rotational axis in global coordinates.
@@ -518,6 +407,9 @@ class CustomizableJoint3D is Joint3D
             return out
         end
     end
+
+
+
 
     /*
     This action returns the relative angle.
@@ -606,9 +498,9 @@ class CustomizableJoint3D is Joint3D
     Attribute: Parameter angularUpper The upper angular limit.
     */
     action SetAngularUpperLimit(Vector3 angularUpper) 
-	angularLimits:Get(0):SetHiLimit(angularUpper:GetX())
-	angularLimits:Get(1):SetHiLimit(angularUpper:GetY())
-	angularLimits:Get(2):SetHiLimit(angularUpper:GetZ())
+	angularLimits0:SetHiLimit(angularUpper:GetX())
+	angularLimits1:SetHiLimit(angularUpper:GetY())
+	angularLimits2:SetHiLimit(angularUpper:GetZ())
     end    
 
     /*
@@ -617,7 +509,17 @@ class CustomizableJoint3D is Joint3D
     Attribute: Returns the angular limit stored inside a RotationalLimitMotor3D object.
     */
     action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor3D
-	return angularLimits:Get(index)
+        if (index = 0)
+            return angularLimits0
+        elseif (index = 1)
+            return angularLimits1
+        elseif (index = 2)
+            return angularLimits2
+        else
+            output "invalid index"
+            RotationalLimitMotor3D out
+            return out
+        end
     end
 
     /*
@@ -647,8 +549,18 @@ class CustomizableJoint3D is Joint3D
                 linearLimits:GetUpperLimit():SetZ(hi)
             end
 	else 
-            angularLimits:Get(axis - 3):SetLoLimit(lo)
-            angularLimits:Get(axis - 3):SetHiLimit(hi)
+            if (axis-3 = 0)
+                angularLimits0:SetLoLimit(lo)
+                angularLimits0:SetHiLimit(hi)
+            elseif (axis-3 = 1)
+                angularLimits1:SetLoLimit(lo)
+                angularLimits1:SetHiLimit(hi)
+            elseif (axis-3 = 2)
+                angularLimits2:SetLoLimit(lo)
+                angularLimits2:SetHiLimit(hi)
+            else
+                output "invalid index"
+            end
 	end
     end            
 	
@@ -661,7 +573,17 @@ class CustomizableJoint3D is Joint3D
 	if limitIndex < 3
             return linearLimits:IsLimited(limitIndex)
 	end
-	return angularLimits:Get(limitIndex - 3):IsLimited()
+
+        if (limitIndex - 3 = 0)
+            return angularLimits0:IsLimited()
+        elseif (limitIndex - 3 = 1)
+            return angularLimits1:IsLimited()
+        elseif (limitIndex - 3 = 2)
+            return angularLimits2:IsLimited()
+        else
+            output "invalid index"
+            return false
+        end
     end
 
     /*
@@ -683,13 +605,14 @@ class CustomizableJoint3D is Joint3D
 	Vector3 tmp1
 	Vector3 tmp2
 
-	tmp1:Set(pA:Scale(weight))
-	tmp2:Set(pB:Scale(1 - weight))
+	tmp1:Set(pA)
+        tmp1:Scale(weight)
+
+	tmp2:Set(pB)
+        tmp2:Scale(1.0 - weight)
+
         tmp1:Add(tmp2)    //temp1 = temp1 + temp2
 	anchorPosition:Set(tmp1)
-
-        output "anchor position for 6dof:"
-        anchorPosition:Output()
     end            
 end
 
