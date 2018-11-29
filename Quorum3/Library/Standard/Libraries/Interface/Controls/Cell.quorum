@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.ColorGroup
 
 class Cell is Control
     text value = ""
@@ -28,8 +29,11 @@ class Cell is Control
         properties:SetFont(font)
         properties:SetFontSize(size)
 
+        SetInputGroup("SpreadsheetCell")
         SetClipping(true)
         Add(label)
+        SetAccessibilityCode(parent:Item:CELL)
+        SetName("Cell")
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -54,6 +58,30 @@ class Cell is Control
 
     action GetText returns text
         return value
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            ColorGroup useColor = properties:GetSelectionColor()
+            if useColor not= undefined
+                view:SetBackgroundColor(useColor)
+            end
+        end
+
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            if properties:GetBackgroundColor() not= undefined
+                view:SetBackgroundColor(properties:GetBackgroundColor())
+            end
+        end
     end
 
     action ClickDown

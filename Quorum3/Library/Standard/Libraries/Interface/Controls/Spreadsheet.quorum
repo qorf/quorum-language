@@ -31,6 +31,18 @@ class Spreadsheet is Control
         parent:Item2D:Add(column)
     end
 
+    action GetSelection returns SpreadsheetSelection
+        return selection
+    end
+
+    /*
+        This action selects a single cell in the spreadsheet. In this case,
+        a single cell.
+    */
+    action Select(Cell cell)
+
+    end
+
     action MoveSelectionUp
 
     end

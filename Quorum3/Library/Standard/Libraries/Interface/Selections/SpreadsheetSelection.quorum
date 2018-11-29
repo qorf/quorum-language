@@ -1,13 +1,36 @@
 package Libraries.Interface.Selections
 use Libraries.Interface.Item
+use Libraries.Interface.Controls.Cell
 
 class SpreadsheetSelection is Selection
+    Cell singleSelection = undefined
 
     action Initialize(Item item)
         Initialize(item, "")
     end
 
     action IsEmpty returns boolean
-        return true
+        return singleSelection = undefined
+    end
+
+    /*
+        This action selects a single cell in the spreadsheet. In this case, 
+        the x represents the column number and the y represents the row.
+    */
+    action Set(Cell cell)
+        if cell not= undefined
+            SetDisplayName(cell:GetText())
+            singleSelection = cell
+        end
+    end
+
+    action Get returns Cell
+        return singleSelection
+    end
+
+     /* This action empties the selection path. */
+    action Empty
+        singleSelection = undefined
+        parent:Selection:displayName = ""
     end
 end
