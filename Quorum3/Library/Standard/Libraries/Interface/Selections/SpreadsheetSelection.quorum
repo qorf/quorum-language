@@ -1,0 +1,13 @@
+package Libraries.Interface.Selections
+use Libraries.Interface.Item
+
+class SpreadsheetSelection is Selection
+
+    action Initialize(Item item)
+        Initialize(item, "")
+    end
+
+    action IsEmpty returns boolean
+        return true
+    end
+end

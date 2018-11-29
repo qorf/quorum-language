@@ -59,6 +59,12 @@ use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarActivateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetCellClickDownBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetCellTouchDownBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
@@ -582,6 +588,32 @@ class Game
         menuBarTable:Add(enter, menuRunBehavior)
 
         gameInput:AddInputTable(menuBarTable)
+
+        InputTable spreadsheetTable
+        spreadsheetTable:SetIdentifier("Spreadsheet")
+        SpreadsheetDownBehavior spreadsheetDownBehavior
+        SpreadsheetUpBehavior spreadsheetUpBehavior
+        SpreadsheetLeftBehavior spreadsheetLeftBehavior
+        SpreadsheetRightBehavior spreadsheetRightBehavior
+
+        spreadsheetTable:Add(downArrow, spreadsheetDownBehavior)
+        spreadsheetTable:Add(upArrow, spreadsheetUpBehavior)
+        spreadsheetTable:Add(leftArrow, spreadsheetLeftBehavior)
+        spreadsheetTable:Add(rightArrow, spreadsheetRightBehavior)
+
+        gameInput:AddInputTable(spreadsheetTable)
+
+
+        InputTable spreadsheetCellTable
+        spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
+
+        SpreadsheetCellClickDownBehavior spreadsheetCellClickDownBehavior
+        SpreadsheetCellTouchDownBehavior spreadsheetCellTouchDownBehavior
+
+        spreadsheetCellTable:Add(clickDown, spreadsheetCellClickDownBehavior)
+        spreadsheetCellTable:Add(touchDown, spreadsheetCellTouchDownBehavior)
+
+        gameInput:AddInputTable(spreadsheetCellTable)
 
         InputTable treeItemTable
         treeItemTable:SetIdentifier("TreeItem")

@@ -1,0 +1,26 @@
+package Libraries.Interface.Controls
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+
+class Column is Control
+    Array<Cell> cells
+    boolean hasHeader = true
+
+    on create
+        FlowLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        //properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+        properties:SetPixelWidth(100)
+    end
+
+    action Add(Cell cell)
+        cells:Add(cell)
+
+        parent:Item2D:Add(cell)
+    end
+end
