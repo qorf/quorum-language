@@ -1,6 +1,6 @@
 package Libraries.Interface.Events
 
-use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.Control
 
 class TextChangeEvent 
     
@@ -8,12 +8,13 @@ class TextChangeEvent
     public constant integer DELETED = 2
     public constant integer MODIFIED = 3
 
-    TextBox textBox = undefined
+    // Holds the control which had its text change, such as a TextBox or TextField.
+    Control textControl = undefined
     text addedText = ""
     text deletedText = ""
     integer eventType = 0
 
-    action Initialize(TextBox box, text added, text deleted)
+    action Initialize(Control control, text added, text deleted)
         if added = ""
             eventType = DELETED
         elseif deleted = ""
@@ -22,13 +23,13 @@ class TextChangeEvent
             eventType = MODIFIED
         end
 
-        textBox = box
+        textControl = control
         addedText = added
         deletedText = deleted
     end
 
-    action GetTextBox returns TextBox
-        return textBox
+    action GetControl returns Control
+        return textControl
     end
 
     action GetEventType returns integer
