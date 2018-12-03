@@ -107,7 +107,9 @@ class SliderJoint3D is Joint3D
     ConstraintDescription3D jacAng2
 
 
-
+    /*
+    positionA: make sure so that the x-axis of the slider joint's orientation is pointing toward the direction of the slide
+    */
     action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
         parent:Joint3D:SetType(parent:Joint3D:Slider)
         parent:Joint3D:SetItemA(itemA)
