@@ -77,7 +77,6 @@ class TranslationalLimitMotor3D
     Attribute: Parameter index The axis that you want to check, 0 for x, 1 for y, and 2 for z.
     Attribute: Returns 0 for you don't need to apply forces on the axis that you check, 1 you do need to apply forces.
     */
-//should not use
     action NeedApplyForces(integer index) returns boolean
         if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false
             return false
@@ -276,119 +275,6 @@ class TranslationalLimitMotor3D
 
 	body2:ApplyLinearImpulse(tmp, relativePosition2)
 	return normalImpulse
-
-        /*
-        number localTargetVelocity = 0
-        number localMaxMotorForce = 0
-        number limitError = 0
-
-        if limitIndex = 0
-            localTargetVelocity = targetVelocity:GetX()
-            localMaxMotorForce = maxMotorForce:GetX()
-            limitError = currentLimitError:GetX()
-        elseif limitIndex = 1
-            localTargetVelocity = targetVelocity:GetY()
-            localMaxMotorForce = maxMotorForce:GetY()
-            limitError = currentLimitError:GetY()
-        elseif limitIndex = 2
-            localTargetVelocity = targetVelocity:GetZ()
-            localMaxMotorForce = maxMotorForce:GetZ() 
-            limitError = currentLimitError:GetZ()
-        end
-        
-        if currentLimit:Get(limitIndex) not= 0
-            localTargetVelocity = restitution * limitError / (timeStep)
-            if limitIndex = 1
-                localMaxMotorForce = maxLimitForce:GetY()
-            elseif limitIndex = 2
-                localMaxMotorForce = maxLimitForce:GetZ() 
-            end
-        end
-	localMaxMotorForce = localMaxMotorForce * timeStep
-
-        // correction velocity
-	number motorRelvel = limitSoftness * (localTargetVelocity - damping * relativeVelocity)
-	if motorRelvel < 1.19209290 * (math:RaiseToPower(10, -07)) and motorRelvel > -1.19209290 * (math:RaiseToPower(10, -07))
-            return 0
-	end
-                
-        // correction impulse
-	number unclippedMotorImpulse = motorRelvel * jacDiagABInv
-
-	// clip correction impulse
-	number clippedMotorImpulse = 0
-
-	if unclippedMotorImpulse > 0
-            if unclippedMotorImpulse > localMaxMotorForce
-                clippedMotorImpulse =  localMaxMotorForce 
-            else
-                clippedMotorImpulse = unclippedMotorImpulse
-            end
-	else 
-            if unclippedMotorImpulse < -localMaxMotorForce
-                clippedMotorImpulse = -localMaxMotorForce 
-            else
-                clippedMotorImpulse = unclippedMotorImpulse
-            end
-	end
-
-        number normalImpulse = clippedMotorImpulse
-
-        // sort with accumulated impulses
-	number lo = -math:RaiseToPower(10, 30)
-	number hi = math:RaiseToPower(10, 30)
-	number oldNormalImpulse = 0
-
-        if limitIndex = 0
-            oldNormalImpulse = accumulatedImpulse:GetX()
-        elseif limitIndex = 1
-            oldNormalImpulse = accumulatedImpulse:GetY()
-        elseif limitIndex = 2
-            oldNormalImpulse = accumulatedImpulse:GetZ()
-        end
-
-	number sum = oldNormalImpulse + normalImpulse
-
-        if limitIndex = 0
-            if sum > hi
-                accumulatedImpulse:SetX(0)
-            elseif sum < lo
-                accumulatedImpulse:SetX(0)
-            else
-                accumulatedImpulse:SetX(sum)
-            end
-        elseif limitIndex = 1
-            if sum > hi
-                accumulatedImpulse:SetY(0)
-            elseif sum < lo
-                accumulatedImpulse:SetY(0)
-            else
-                accumulatedImpulse:SetY(sum)
-            end
-        elseif limitIndex = 2
-            if sum > hi
-                accumulatedImpulse:SetZ(0)
-            elseif sum < lo
-                accumulatedImpulse:SetZ(0)
-            else
-                accumulatedImpulse:SetZ(sum)
-            end
-        end        
-        if limitIndex = 0
-            normalImpulse = accumulatedImpulse:GetX() - oldNormalImpulse
-        elseif limitIndex = 1
-            normalImpulse = accumulatedImpulse:GetY() - oldNormalImpulse
-        elseif limitIndex = 2
-            normalImpulse = accumulatedImpulse:GetZ() - oldNormalImpulse
-        end        
-	Vector3 impulseVector
-        impulseVector:Set(axisNormalOnA)
-	impulseVector:Scale(normalImpulse)
-        body1:ApplyLinearImpulse(impulseVector, relativePosition1)
-	tmp:Set(-impulseVector:GetX(), -impulseVector:GetY(), -impulseVector:GetZ())
-	body2:ApplyLinearImpulse(tmp, relativePosition2)
-	return normalImpulse
-        */
     end 
     
     /*

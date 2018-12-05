@@ -17,13 +17,14 @@ use Libraries.Game.Physics.CollisionConstraint3D
 
 /*
 This class contains actions that is necessary to compute how objects will react
-after a collision.
+after a collision or after the objects have been constrained by a joint.
+The objects' reaction to physics is simulated by applying impulses to the objects based on collision and constraints on the objects.
 */
 class CollisionSolver3D
     constant integer MAX_SOLVER_POINTS = 16384
     Array<OrderIndex> gOrder
     
-    Array<SolverItem3D> tempSolverBodyPool
+    Array<SolverItem3D> tempSolverBodyPool      //objects are only added to here if the object has collided with some other object
     Array<SolverConstraint3D> tempSolverConstraintPool
     Array<SolverConstraint3D> tempSolverFrictionConstraintPool
     Array<integer> orderTempConstraintPool
@@ -41,6 +42,8 @@ class CollisionSolver3D
     /*
     This action stores properties inside an Item3D class into a SolverItem3D
     so that you can access these properties quicker from the SolverItem3D.
+    Attribute: Parameter solverItem The SolverItem3D that will store the properties.
+    Attribute: Parameter originalItem The 3D object from which properties will be extracted from.
     */
     action InitializeSolverItem(SolverItem3D solverItem, Item3D originalItem)
         if originalItem:IsPhysicsEnabled()
@@ -66,7 +69,9 @@ class CollisionSolver3D
     end
     
     /*
-    This action returns a restitution value that is correlated with the relative velocity and negated.
+    This action returns a restitution value that is correlated with the relative velocity for a more realistic simulation of physics.
+    Attribute: Parameter restitution The original restitution.
+    Attribute: Parameter relativeVelocity The relative velocity between two objects.
     */
     action RestitutionCurve(number relativeVelocity, number restitution) returns number
         return restitution * -relativeVelocity
@@ -92,6 +97,7 @@ class CollisionSolver3D
             number velocityImpulse = velocityError * contactConstraint:GetJacobianDiagonalABInverse()
             normalImpulse = penetrationImpulse + velocityImpulse
 
+            //clamping the accumulated impulse
             number oldNormalImpulse = contactConstraint:GetAppliedPushImpulse()
             number sum = oldNormalImpulse + normalImpulse
             contactConstraint:SetAppliedPushImpulse(sum)
@@ -113,7 +119,7 @@ class CollisionSolver3D
 
     /*
     This action finds the impulse that should be applied to resolve collision
-    for two objects taking into account of friction and normal force.
+    for two objects by taking into account of friction and normal force.
     */
     action ResolveSingleCollisionCombined(SolverItem3D body1, SolverItem3D body2, SolverConstraint3D contactConstraint, CollisionSolverInformation3D solverInfo) returns number
         number normalImpulse = 0
@@ -269,8 +275,8 @@ class CollisionSolver3D
             return 0
         end
 
-        LocalCollisionPoints3D manifold = undefined
-        Item3D obj0 = undefined
+        LocalCollisionPoints3D manifold = undefined   //PersistentManifold
+        Item3D obj0 = undefined //CollisionObject
         Item3D obj1 = undefined
 
         PhysicsPosition3D tempTransform
@@ -294,6 +300,8 @@ class CollisionSolver3D
         Matrix3 tempMatrix
 
         repeat while i < numManifolds
+//            output "Number of manifolds: " + numManifolds
+//            output "Manifold offset: " + manifold_offset
             manifold = manifoldPtr:Get(manifold_offset + i)
             obj0 = manifold:GetBody0()
             obj1 = manifold:GetBody1()
@@ -302,17 +310,17 @@ class CollisionSolver3D
             integer solverBodyIDB = -1
 
             if manifold:GetPointCount() not= 0
-                if obj0:GetCollisionGroupFlag()
-                    if obj0:GetCollisionGroupIndex() >= 0
+                if obj0:GetCollisionGroupFlag() //if this object's physics needs to be updated
+                    if obj0:GetCollisionGroupIndex() >= 0   //if this object has already been assigned a spot inside tempSolverBodyPool
                         solverBodyIDA = obj0:GetCollisionGroupIndex()
                     else
-                        solverBodyIDA = tempSolverBodyPool:GetSize()
+                        solverBodyIDA = tempSolverBodyPool:GetSize()    //add this object to the end of the tempSolverBodyPool
                         SolverItem3D solverBody
                         tempSolverBodyPool:Add(solverBody)
                         InitializeSolverItem(solverBody, obj0)
                         obj0:SetCollisionGroupIndex(solverBodyIDA)
                     end
-                else
+                else    //if this object's physics doesn't need to be updated
                     solverBodyIDA = tempSolverBodyPool:GetSize()
                     SolverItem3D solverBody
                     tempSolverBodyPool:Add(solverBody)
@@ -420,6 +428,7 @@ class CollisionSolver3D
                     velocity:Set(velocity1):Subtract(velocity2)
 
                     relativeVelocity = cp:GetWorldNormalOnB():DotProduct(velocity)
+
 
                     solverConstraint:SetPenetration(cp:GetDistance() + infoGlobal:GetLinearSlop())
                     if solverConstraint:GetPenetration() > 0
@@ -531,6 +540,8 @@ class CollisionSolver3D
         end
 
 
+        //output "Number of Joints: " + numJoints
+        //output "Joints Offset: " + joints_offset
         integer j = 0
         repeat while j < numJoints
             Joint3D joint = joints:Get(joints_offset + j)
@@ -538,12 +549,12 @@ class CollisionSolver3D
             j = j + 1
         end
 
-        j = 0
-        repeat while j < numJoints
-            Joint3D joint = joints:Get(joints_offset + j)
-            joint:GetInformation(infoGlobal)
-            j = j + 1
-        end
+//        j = 0
+//        repeat while j < numJoints
+//            Joint3D joint = joints:Get(joints_offset + j)
+//            joint:GetInformation(infoGlobal)
+//            j = j + 1
+//        end
 
         integer numJointPool = tempSolverConstraintPool:GetSize()
         integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
@@ -602,8 +613,22 @@ class CollisionSolver3D
 
             j = 0
             repeat while j < numJoints
+                //output "Number of Joints: " + numJoints
+                //output "Joints Offset: " + joints_offset
+                //output "Solving for joint number: " + j
+
                 Joint3D joint = joints:Get(joints_offset + j)
                 
+
+//                output joint:GetItemA():GetDescription() + "'s collision group index: " + joint:GetItemA():GetCollisionGroupIndex()
+//                joint:GetItemA():GetCenterOfMassPosition():Output()
+//                output joint:GetItemB():GetDescription() +  "'s collision group index: " + joint:GetItemB():GetCollisionGroupIndex()
+//                output "B's position: "
+//                joint:GetItemB():GetCenterOfMassPosition():Output()
+//
+//                output "bodies to account for size: " + tempSolverBodyPool:GetSize()
+
+                //if itemA needs to have physics updated && itemA has collided with someone
                 if joint:GetItemA():GetCollisionGroupFlag() and joint:GetItemA():GetCollisionGroupIndex() >= 0
                     tempSolverBodyPool:Get(joint:GetItemA():GetCollisionGroupIndex()):WriteBackVelocity()
                 end

@@ -87,6 +87,7 @@ class CollisionGroup2D
     Attribute: Parameter joint The joint to add.
     */
     action Add(Joint2D joint)
+        output "Added a joint in Collision Group 2D" + (jointCount + 1)
         joints:Add(joint)
         jointCount = jointCount + 1
     end

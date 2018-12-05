@@ -163,7 +163,6 @@ class SliderJoint3D is Joint3D
         else
             BuildJacobian(parent:Joint3D:itemB, parent:Joint3D:itemA, frameInB, frameInA)
         end
-        //output "jacobian built"
     end
 
 
@@ -578,7 +577,7 @@ class SliderJoint3D is Joint3D
                     depth:SetX(0)
             end
         else
-                depth:SetX(0)
+            depth:SetX(0)
         end
     end
 

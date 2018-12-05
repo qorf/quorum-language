@@ -12,7 +12,7 @@ class Joint3D
     public constant integer Hinge = 1
     public constant integer Customizable = 2
     public constant integer Slider = 3
-    public constant integer ConeTwist = 3
+    public constant integer ConeTwist = 4
 
 
     integer type = 0
@@ -28,16 +28,16 @@ class Joint3D
     boolean inCollisionGroup = false
 
     /*
-    This action returns whether the items in this joint is in a collision group with other items.
-    Attribute: Returns true when the items are in a collision group, false if they are not
+    This action returns whether this joint is been accounted for in a collision group.
+    Attribute: Returns true when the joint has already been assigned to a collision group, false if the joint is not
     */
     action InCollisionGroup returns boolean
         return inCollisionGroup
     end
 
     /*
-    This action sets whether the items in this joint is in a collision group with other items.
-    Attribute: Parameter flag True if you want the items to be in a collision group.
+    This action sets whether this joint is been accounted for in a collision group.
+    Attribute: Parameter flag True if the joint has been assigned to a collision group.
     */
     action SetInCollisionGroup(boolean flag)
         me:inCollisionGroup = flag
