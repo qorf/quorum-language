@@ -159,7 +159,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         defaultProperties:SetFontColor(color:Black())
         defaultProperties:SetFont(font)
         defaultProperties:SetFontSize(font:GetSize())
-        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:STANDARD)
         defaultProperties:SetBackgroundColor(color:White())
         defaultProperties:SetSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
@@ -318,7 +318,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             counter = counter + 1
         end
 
-        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, 0)
+        caret:SetPosition(x + leftCharacterPadding, 0)
         return x + leftCharacterPadding
     end
 
@@ -442,7 +442,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     private action FitCharacterOnScreen(integer character)
         if character = 0
-            horizontalOffset = leftCharacterPadding
+            horizontalOffset = 0
             return now
         end
 

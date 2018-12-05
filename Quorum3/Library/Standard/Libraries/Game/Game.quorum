@@ -49,6 +49,9 @@ use Libraries.Interface.Behaviors.Controls.TextBoxInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxAddIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxOpenKeyboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCaretStartMoveBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -472,6 +475,51 @@ class Game
         textBoxTable:Add(touchSet, openKeyboardBehavior)
 
         gameInput:AddInputTable(textBoxTable)
+
+        // Adding the input table for TextFields.
+        InputTable textFieldTable
+        textFieldTable:SetIdentifier("TextField")
+
+        TextFieldCaretStartMoveBehavior textFieldLeftBehavior
+        textFieldLeftBehavior:SetDirection(textFieldLeftBehavior:LEFT)
+        textFieldTable:Add(leftArrow, textFieldLeftBehavior)
+
+        TextFieldCaretStartMoveBehavior textFieldShiftLeftBehavior
+        textFieldShiftLeftBehavior:SetSelecting(true)
+        textFieldShiftLeftBehavior:SetDirection(textFieldShiftLeftBehavior:LEFT)
+        textFieldTable:Add(shiftLeftArrow, textFieldShiftLeftBehavior)
+
+        TextFieldCaretStartMoveBehavior textFieldRightBehavior
+        textFieldRightBehavior:SetDirection(textFieldRightBehavior:RIGHT)
+        textFieldTable:Add(rightArrow, textFieldRightBehavior)
+
+        TextFieldCaretStartMoveBehavior textFieldShiftRightBehavior
+        textFieldShiftRightBehavior:SetSelecting(true)
+        textFieldShiftRightBehavior:SetDirection(textFieldShiftRightBehavior:RIGHT)
+        textFieldTable:Add(shiftRightArrow, textFieldShiftRightBehavior)
+
+        textFieldTable:Add(releaseLeftArrow, cancelBehavior)
+        textFieldTable:Add(releaseShiftLeftArrow, cancelBehavior)
+        textFieldTable:Add(releaseRightArrow, cancelBehavior)
+        textFieldTable:Add(releaseShiftRightArrow, cancelBehavior)
+
+        TextFieldStartDeleteBehavior fieldBackDeleteBehavior
+        fieldBackDeleteBehavior:SetDirection(fieldBackDeleteBehavior:BACKWARD)
+        textFieldTable:Add(backspace, fieldBackDeleteBehavior)
+
+        TextFieldStartDeleteBehavior fieldForwardDeleteBehavior
+        fieldForwardDeleteBehavior:SetDirection(fieldForwardDeleteBehavior:FORWARD)
+        textFieldTable:Add(delete, fieldForwardDeleteBehavior)
+
+        textFieldTable:Add(releaseBackspace, cancelBehavior)
+        textFieldTable:Add(releaseDelete, cancelBehavior)
+
+        TextFieldInsertBehavior fieldInsertBehavior
+        textFieldTable:Add(textInputSet, fieldInsertBehavior)
+
+        gameInput:AddInputTable(textFieldTable)
+
+        // Adding the input table for TabPanes.
 
         InputTable tabPaneTable
         tabPaneTable:SetIdentifier("TabPane")
