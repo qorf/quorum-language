@@ -4,9 +4,7 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix3
 
 /*
-This class stores different constraint values between two rigid bodies or even
-for one body, which all depends on which action you used to initialize/change
-the values stored inside this ConstraintDescription3D.
+This class stores different constraint values that allows us to describe a joint constraint.
 */
 class ConstraintDescription3D 
     Vector3 linearJointAxis //this class can be seen as Jacobian matrix breaking into vectors
@@ -15,17 +13,25 @@ class ConstraintDescription3D
     Vector3 minvJt0
     Vector3 minvJt1
     number diag = 0
-    
+    boolean isLinearConstraint = false
     /*
+    relativePosition1: relative position of constraint coordinate system center in world coordinates
+    relativePosition2: relative position of constraint coordinate system center in world coordinates
     This action intializeds the description such that this ConstraintDescription3D is used for
     the constraint between two different rigid bodies.
     */
     action Initialize(Matrix3 world2A, Matrix3 world2B, Vector3 relativePosition1, 
                       Vector3 relativePosition2, Vector3 jointAxis, Vector3 inertiaInverseA,
                       number massInverseA, Vector3 inertiaInverseB, number massInverseB)
-        linearJointAxis:Set(jointAxis)
         
-        aJ:Set(relativePosition1):CrossProduct(linearJointAxis)
+
+        linearJointAxis:Set(jointAxis)
+//        output "linear joint axis initialized to: mat"
+//        linearJointAxis:Output()
+//        isLinearConstraint = true
+
+        aJ:Set(relativePosition1)
+        aJ:CrossProduct(linearJointAxis)
         world2A:Transform(aJ)
          
         bJ:Set(linearJointAxis)
@@ -49,8 +55,15 @@ class ConstraintDescription3D
     used to store the angular constraint between two rigid bodies.
     */
     action Initialize(Vector3 jointAxis, Matrix3 world2A, Matrix3 world2B, Vector3 inertiaInverseA, Vector3 inertiaInverseB)
+        
+
         linearJointAxis:Set(0, 0, 0)
         
+
+//        output "linear joint axis initialized to: for angular constraints"
+//        linearJointAxis:Output()
+
+
         aJ:Set(jointAxis)
         world2A:Transform(aJ)
 
@@ -73,6 +86,9 @@ class ConstraintDescription3D
     */
     action Initialize(Vector3 axisInA, Vector3 axisInB, Vector3 inertiaInverseA, Vector3 inertiaInverseB)
         linearJointAxis:Set(0, 0, 0)
+
+//        output "linear joint axis initialized to: for angular constraints"
+//        linearJointAxis:Output()
         aJ:Set(axisInA)
 
         bJ:Set(axisInB)
@@ -87,10 +103,12 @@ class ConstraintDescription3D
         diag = minvJt0:DotProduct(aJ) + minvJt1:DotProduct(bJ)
     end
 
-    /*
+
+/*
+    
     This action initializes this ConstraintDescription3D such that this class is
     used to store one constraitn on one rigid body.
-    */
+    
     action Initialize(Matrix3 world2A, Vector3 relativePosition1, Vector3 relativePosition2,
                       Vector3 jointAxis, Vector3 inertiaInverseA, number massInverseA)
         linearJointAxis:Set(jointAxis)
@@ -111,12 +129,26 @@ class ConstraintDescription3D
         minvJt1:Set(0, 0, 0)
         diag = massInverseA + minvJt0:DotProduct(aJ)
     end
+*/
+
+
+    action GetLinearJointAxis returns Vector3
+//        output "getting linear joint axis GetLinearJointAxis"
+//        linearJointAxis:Output()
+//        output isLinearConstraint
+
+
+        return linearJointAxis
+    end
 
     /*
     This action returns a number whose reciprocal will be used to scale the 
     impulse change applied to linear velocity.
     */
     action GetDiagonal returns number
+//        output "linear joint axis GetDiagonal"
+//        linearJointAxis:Output()
+//        output isLinearConstraint
         return diag
     end
 
@@ -126,6 +158,9 @@ class ConstraintDescription3D
     describes 2 constraints on the same rigid body.
     */
     action GetNonDiagonal(ConstraintDescription3D descriptionB, number massInverseA) returns number
+//        output "linear joint axis GetNonDiagonal"
+//        linearJointAxis:Output()
+//        output isLinearConstraint
         ConstraintDescription3D jacA = me
         number lin = massInverseA * jacA:linearJointAxis:DotProduct(descriptionB:linearJointAxis)
         number ang = jacA:minvJt0:DotProduct(descriptionB:aJ)
@@ -138,6 +173,12 @@ class ConstraintDescription3D
     describes 2 constraints shared by two different rigid bodies.
     */
     action GetNonDiagonal(ConstraintDescription3D descriptionB, number massInverseA, number massInverseB) returns number
+        
+//                output "linear joint axis GetNonDiagonal"
+//        linearJointAxis:Output()
+//        output isLinearConstraint
+
+
         ConstraintDescription3D jacA = me
 
         Vector3 lin
@@ -172,6 +213,11 @@ class ConstraintDescription3D
     are stored inside this ConstraintDescription3D.
     */
     action GetRelativeVelocity(Vector3 linearVelocityA, Vector3 angularVelocityA, Vector3 linearVelocityB, Vector3 angularVelocityB) returns number
+        
+//        output "linear joint axis GetRelativeVelocity"
+//        linearJointAxis:Output()
+//        output isLinearConstraint
+
         Vector3 linrel
         linrel:Set(linearVelocityA):Subtract(linearVelocityB)
 

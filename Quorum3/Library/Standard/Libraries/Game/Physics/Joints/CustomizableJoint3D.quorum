@@ -15,77 +15,61 @@ use Libraries.Game.Collision.PhysicsPosition3D
 /*
 This class is a class that allows a joint to have the ability to rotate around any axis and move anywhere in 3D space.
 */
-class SixDegreesOfFreedomJoint3D is Joint3D
+class CustomizableJoint3D is Joint3D
 
     Math math
     PhysicsPosition3D frameInA  
     PhysicsPosition3D frameInB  
-    Array<ConstraintDescription3D> jacobianLinear/*[3]*/ 
-    Array<ConstraintDescription3D> jacobianAng/*[3]*/
+
+    ConstraintDescription3D jacobianLinear0
+    ConstraintDescription3D jacobianLinear1
+    ConstraintDescription3D jacobianLinear2
+
+    ConstraintDescription3D jacobianAng0
+    ConstraintDescription3D jacobianAng1
+    ConstraintDescription3D jacobianAng2
+
     TranslationalLimitMotor3D linearLimits
-    Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
+
+    RotationalLimitMotor3D angularLimits0
+    RotationalLimitMotor3D angularLimits1
+    RotationalLimitMotor3D angularLimits2
+
     number timeStep = 0
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
     Vector3 calculatedAxisAngleDifference
-    Array<Vector3> calculatedAxis/*[3]*/ 
+
+    Vector3 calculatedAxis0
+    Vector3 calculatedAxis1
+    Vector3 calculatedAxis2
+
     Vector3 anchorPosition
     Vector3 calculatedLinearDifference
     boolean useLinearReferenceFrameA  = true
 
-    on create
-    Vector3 dummy
-    ConstraintDescription3D filler
-    RotationalLimitMotor3D ghost
-
-    calculatedAxis:Add(dummy)
-    calculatedAxis:Add(dummy)
-    calculatedAxis:Add(dummy)
-    angularLimits:Add(ghost)
-    angularLimits:Add(ghost)
-    angularLimits:Add(ghost)
-    jacobianAng:Add(filler)
-    jacobianAng:Add(filler)
-    jacobianAng:Add(filler)
-    jacobianLinear:Add(filler)
-    jacobianLinear:Add(filler)
-    jacobianLinear:Add(filler)
-    parent:Joint3D:SetType(parent:Joint3D:SixDegreesOfFreedom)
-    end
 
     /*
-    This action initializes the data inside this SixDegreesOfFreedomJoint3D class.
-    Attribute: Parameter itemB The second item.
-    Attribute: Parameter positionB The location and the tilt of the second item.
-    Attribute: Parameter useLinearReferenceFrameB When you want to define the limits from the point of view of the second object.
-    */
-    action Initialize(Item3D itemB, PhysicsPosition3D positionB, boolean useLinearReferenceFrameB)
-        parent:Joint3D:SetItemB(itemB)
-        frameInB:Set(positionB)
-        useLinearReferenceFrameA = useLinearReferenceFrameB
-        frameInA:Set(itemB:GetCenterOfMassTransform())
-    end
-
-    /*
-    This action initializes the data inside this SixDegreesOfFreedomJoint3D class.
+    This action initializes the data inside this CustomizableJoint3D class.
     Attribute: Parameter itemA The first item.
     Attribute: Parameter itemB The second item.
-    Attribute: Parameter positionA The location and the tilt of the first item.
-    Attribute: Parameter positionB The location and the tilt of the second item.
+    Attribute: Parameter positionA The center of the joint connection in A's point of view.
+    Attribute: Parameter positionB The center of the joint connection in B's point of view.
     Attribute: Parameter useLinearReferenceFrameB When you want to define the limits from the point of view of the second object.
     */
-    action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameB)
+    action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
         parent:Joint3D:SetItemA(itemA)
         parent:Joint3D:SetItemB(itemB)
         frameInA:Set(positionA)
         frameInB:Set(positionB)
-        useLinearReferenceFrameA = useLinearReferenceFrameB
+        me:useLinearReferenceFrameA = useLinearReferenceFrameA
+        parent:Joint3D:SetType(parent:Joint3D:Customizable)
     end
 
     /*
     This action returns a number inside a matrix.
     Attribute: Parameter mat The matrix that you want to extract from.
-    Attribute: Parameter index The number that determines which element of the matrix you are extracting.
+    Attribute: Parameter index The number that determines which element of the matrix you are extracting. Matrix3 mat = [index0, index1, index2; index3, index4, index5; index6, index7, index8]
     Attribute: Returns the matrix value at row number "index mod 3" and column number "index/3"
     */
     action getMatrixElement(Matrix3 mat, integer index) returns number
@@ -99,44 +83,26 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Attribute: Returns false if this conversion was unsuccessful, true if this conversion was successful.
     */
     action MatrixToEulerXYZ(Matrix3 mat, Vector3 xyz) returns boolean
-        if getMatrixElement(mat, 2) < 1.0
+        if getMatrixElement(mat, 2) < 1.0 
             if getMatrixElement(mat, 2) > -1.0
-                xyz:SetX(math:InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5)))
+                xyz:SetX(math:InverseTangent2(-getMatrixElement(mat, 5), getMatrixElement(mat, 8))) //xyz:SetX(math:InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5)))
                 xyz:SetY(math:InverseSine(getMatrixElement(mat, 2)))
-                xyz:SetZ(math:InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1)))
+                xyz:SetZ(math:InverseTangent2(-getMatrixElement(mat, 1), getMatrixElement(mat, 0)))   //xyz:SetZ(math:InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1)))
                 return true
             else 
-                xyz:SetX(-math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
-                xyz:SetY(- 6.283185307179586232 * 0.25)
+                xyz:SetX(-math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) //xyz:SetX(-math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
+                xyz:SetY(- 6.283185307179586232 * 0.25)  //1.5707963705062866
                 xyz:SetZ(0.0)
                 return false
             end
         else 
-            xyz:SetX(math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
-            xyz:SetY(- 6.283185307179586232 * 0.25)
+            xyz:SetX(math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) //xyz:SetX(math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
+            xyz:SetY(6.283185307179586232 * 0.25)
             xyz:SetZ(0.0)
         end
         return false
     end
 
-    /*
-    This action calculates whether the objects are within the linear limits.
-    */
-    action CalculateLinearInfo()
-        Vector3 temp
-        
-        temp:Set(calculatedTransformB:GetOrigin())
-        temp:Subtract(calculatedTransformA:GetOrigin())
-
-        Matrix3 basisInv
-        basisInv:Set(calculatedTransformA:GetBasis():Inverse())
-        basisInv:Transform(calculatedLinearDifference)
-
-        linearLimits:SetCurrentLinearDiff(calculatedLinearDifference)
-        linearLimits:TestLimitValue(0, calculatedLinearDifference:GetX())
-        linearLimits:TestLimitValue(1, calculatedLinearDifference:GetY())
-        linearLimits:TestLimitValue(2, calculatedLinearDifference:GetZ())
-    end
 
     /*
     This action calculates the angular difference between object A and object B.
@@ -147,7 +113,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 
 	mat:Set(calculatedTransformA:GetBasis())
 	mat:Inverse()
-	relativeFrame:Multiply(mat, calculatedTransformB:GetBasis())
+	relativeFrame:Multiply(mat, calculatedTransformB:GetBasis())   //relativeFrame = mat * calculatedTransformB:GetBasis()
 
 	MatrixToEulerXYZ(relativeFrame, calculatedAxisAngleDifference)
 
@@ -160,26 +126,27 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         axis22:Set(axis2)
 
         Vector3 cAxis1
-	calculatedAxis:Set(1, axis2:CrossProduct(axis0))
-        cAxis1:Set(calculatedAxis:Get(1))
-	calculatedAxis:Set(0, cAxis1:CrossProduct(axis22))
-	calculatedAxis:Set(2, axis0:CrossProduct(calculatedAxis:Get(1)))
+	calculatedAxis1:Set(axis2:CrossProduct(axis0))
+        cAxis1:Set(calculatedAxis1)
+	calculatedAxis0:Set(cAxis1:CrossProduct(axis22))
+	calculatedAxis2:Set(axis0:CrossProduct(calculatedAxis1))
     end
 
     /*
-    This action calculates the angular difference between objects A and B and calculates whether
+    This action calculates the angular difference and position difference of the joint between objects A and B, and calculates whether
     the objects are within the position limits.
     */
     action CalculateTransforms() 
 	calculatedTransformA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
-	calculatedTransformA:Multiply(frameInA)
+	calculatedTransformA:Multiply(frameInA)                 //joint for A in global coordinates
 
 	calculatedTransformB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
-	calculatedTransformB:Multiply(frameInB)
-
-        CalculateLinearInfo()            
+	calculatedTransformB:Multiply(frameInB)                 //joint for B in global coordinates
+  
 	CalculateAngleInfo()
     end  
+
+
 
     /*
     This action finds the values that are useful to calculate if the two objects are within the position limits.
@@ -201,14 +168,31 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         tmp2:Set(pivotBInW)
 	tmp2:Subtract(parent:Joint3D:itemB:GetCenterOfMassPosition())
 
-        ConstraintDescription3D linearJacobian
-        linearJacobian:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+
+        if (jacobianLinearIndex = 0)
+            jacobianLinear0:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
                                 parent:Joint3D:itemA:GetInverseInertiaLocal(), 
 				parent:Joint3D:itemA:GetInverseMass(),
 				parent:Joint3D:itemB:GetInverseInertiaLocal(),
 				parent:Joint3D:itemB:GetInverseMass())
-	jacobianLinear:Set(jacobianLinearIndex, linearJacobian)
+        elseif (jacobianLinearIndex = 1)
+            jacobianLinear1:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+                                parent:Joint3D:itemA:GetInverseInertiaLocal(), 
+				parent:Joint3D:itemA:GetInverseMass(),
+				parent:Joint3D:itemB:GetInverseInertiaLocal(),
+				parent:Joint3D:itemB:GetInverseMass())
+        elseif (jacobianLinearIndex = 2)
+            jacobianLinear2:Initialize(mat1,mat2,tmp1,tmp2,normalWorld,
+                                parent:Joint3D:itemA:GetInverseInertiaLocal(), 
+				parent:Joint3D:itemA:GetInverseMass(),
+				parent:Joint3D:itemB:GetInverseInertiaLocal(),
+				parent:Joint3D:itemB:GetInverseMass())
+        else
+            output "invalid index"
+        end
     end
+
+
 
     /*
     This action finds values that are useful for calculating the angular difference between the two objects.
@@ -222,14 +206,34 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         mat2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetBasis())
 	mat2:Transpose()
 
-        ConstraintDescription3D angularJacobian
-        angularJacobian:Initialize(jointAxisW,
+        if (jacobianAngularIndex = 0)
+            jacobianAng0:Initialize(jointAxisW,
 				mat1,
 				mat2,
 				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
 				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
-        jacobianAng:Set(jacobianAngularIndex, angularJacobian)
+        elseif (jacobianAngularIndex = 1)
+            jacobianAng1:Initialize(jointAxisW,
+				mat1,
+				mat2,
+				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
+				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
+        elseif (jacobianAngularIndex = 2)
+            jacobianAng2:Initialize(jointAxisW,
+				mat1,
+				mat2,
+				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
+				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
+        else
+            output "invalid index"
+        end
     end
+
+
+
+
+
+
 
     /*
     This action tests if the relative angle between the two objects is within the angular limit that we defined.
@@ -246,40 +250,41 @@ class SixDegreesOfFreedomJoint3D is Joint3D
             angle = calculatedAxisAngleDifference:GetZ()
         end
 
-	angularLimits:Get(axisIndex):TestLimitValue(angle)
-	return angularLimits:Get(axisIndex):NeedApplyTorques()
+
+        //adjust the angle 
+        //angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
+
+        //test limits
+        if axisIndex = 0
+            //angularLimits0:SetCurrentPosition(angle)
+            angularLimits0:TestLimitValue(angle)
+            return angularLimits0:NeedApplyTorques()
+        elseif axisIndex = 1
+            //angularLimits1:SetCurrentPosition(angle)
+            angularLimits1:TestLimitValue(angle)
+            return angularLimits1:NeedApplyTorques()
+        elseif axisIndex = 2
+            //angularLimits2:SetCurrentPosition(angle)
+            angularLimits2:TestLimitValue(angle)
+            return angularLimits2:NeedApplyTorques()
+        else
+            output "invalid index"
+            return false
+        end
     end  
 
-    /*
-    This action tests if the position of the two objects is within the position limits that we have set.
-    Attribute: Parameter axisIndex The axis that you want to test, 0 for x, 1 for y, 2 for z.
-    Attribute: Returns false if outside of limit, true if within limit.
-    */
-    action TestLinearLimitMotor(integer axisIndex) returns boolean
-	number diff = 0
 
-        if axisIndex = 0
-            diff = calculatedLinearDifference:GetX()
-        elseif axisIndex = 1
-            diff = calculatedLinearDifference:GetY()
-        elseif axisIndex = 2
-            diff = calculatedLinearDifference:GetZ()
-        end
 
-	linearLimits:TestLimitValue(axisIndex, diff) 
-	return linearLimits:NeedApplyForces(axisIndex)
-    end
 
     /*
-    This action calls the BuildAngularJacobian and BuildLinearJacobian.
+    This action calls the BuildAngularJacobian and BuildLinearJacobian. This action is called by the Collision Solver.
     */
-    action BuildJacobian() 
+    action BuildJacobian
 	linearLimits:SetAccumulatedImpulse(0, 0, 0)
-        integer i = 0
-        repeat 3 times
-            angularLimits:Get(i):SetAccumulatedImpulse(0)
-            i = i + 1
-	end
+        angularLimits0:SetAccumulatedImpulse(0)
+        angularLimits1:SetAccumulatedImpulse(0)
+        angularLimits2:SetAccumulatedImpulse(0)
+
 	CalculateTransforms()
 		
 	Vector3 tmpVec
@@ -292,7 +297,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	Vector3 normalWorld
         i = 0
 	repeat 3 times
-            if  TestLinearLimitMotor(i)
+            if  linearLimits:IsLimited(i)
                 if useLinearReferenceFrameA 
                     normalWorld:Set(calculatedTransformA:GetBasis():GetColumn(i))
                 else 
@@ -306,12 +311,15 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	i = 0
         repeat 3 times
             if TestAngularLimitMotor(i)    
-                normalWorld:Set(GetAxis(i))
+                normalWorld:Set(me:GetAxis(i))
                 BuildAngularJacobian(i, normalWorld)
             end
             i = i + 1
 	end
     end
+
+
+
 
     /*
     This action solves the constraint of this joint and make sure that objects A and B is able to move with the joint constraint applied.
@@ -326,15 +334,26 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	number jacDiagABInv = 0
 	Vector3 linearAxis
         integer i = 0
+
+
         repeat 3 times
-            if linearLimits:NeedApplyForces(i)
-		jacDiagABInv = 1 / jacobianLinear:Get(i):GetDiagonal()
-		if useLinearReferenceFrameA 
+            if linearLimits:IsLimited(i)
+                if (i = 0)
+                    jacDiagABInv = 1 / jacobianLinear0:GetDiagonal()
+                elseif (i = 1)
+                    jacDiagABInv = 1 / jacobianLinear1:GetDiagonal()
+                elseif (i = 2)
+                    jacDiagABInv = 1 / jacobianLinear2:GetDiagonal()
+                end
+
+
+                if useLinearReferenceFrameA
                     linearAxis:Set(calculatedTransformA:GetBasis():GetColumn(i))
-		else 
+                else
                     linearAxis:Set(calculatedTransformB:GetBasis():GetColumn(i))
-		end
-		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB(), pointInB, i, linearAxis, anchorPosition)
+                end
+
+                linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB(), pointInB, i, linearAxis, anchorPosition)
             end
             i = i + 1
         end
@@ -342,18 +361,33 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	Vector3 angularAxis
 	number angularJacDiagABInv = 0
         i = 0
-        repeat 3 times
-            if angularLimits:Get(i):NeedApplyTorques()
-		angularAxis:Set(GetAxis(i))
-                angularJacDiagABInv = 1 / jacobianAng:Get(i):GetDiagonal()
-                angularLimits:Get(i):SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
-            end  
-            i = i + 1
-	end
+
+        if angularLimits0:NeedApplyTorques()
+            angularAxis:Set(GetAxis(0))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits0:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
+
+        if angularLimits1:NeedApplyTorques()
+            angularAxis:Set(GetAxis(1))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits1:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
+
+        if angularLimits2:NeedApplyTorques()
+            angularAxis:Set(GetAxis(2))
+            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularLimits2:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+        end  
     end
+
+
 
     action updateRHS(number timeStep) 
     end    
+
+
+
 
     /*
     This action returns the rotational axis in global coordinates.
@@ -361,8 +395,21 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Attribute: Returns the rotational axis in global coordinates.
     */
     action GetAxis(integer axisIndex) returns Vector3
-        return calculatedAxis:Get(axisIndex)
+        if (axisIndex = 0)
+            return calculatedAxis0
+        elseif (axisIndex = 1)
+            return calculatedAxis1
+        elseif (axisIndex = 2)
+            return calculatedAxis2
+        else 
+            output "invalid index"
+            Vector3 out
+            return out
+        end
     end
+
+
+
 
     /*
     This action returns the relative angle.
@@ -441,9 +488,9 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Attribute: Parameter angularLower The lower angular limit.
     */
     action SetAngularLowerLimit(Vector3 angularLower) 
-	angularLimits:Get(0):SetLoLimit(angularLower:GetX())
-	angularLimits:Get(1):SetLoLimit(angularLower:GetY())
-	angularLimits:Get(2):SetLoLimit(angularLower:GetZ())
+	angularLimits0:SetLoLimit(angularLower:GetX())
+	angularLimits1:SetLoLimit(angularLower:GetY())
+	angularLimits2:SetLoLimit(angularLower:GetZ())
     end            
 
     /*
@@ -451,9 +498,9 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Attribute: Parameter angularUpper The upper angular limit.
     */
     action SetAngularUpperLimit(Vector3 angularUpper) 
-	angularLimits:Get(0):SetHiLimit(angularUpper:GetX())
-	angularLimits:Get(1):SetHiLimit(angularUpper:GetY())
-	angularLimits:Get(2):SetHiLimit(angularUpper:GetZ())
+	angularLimits0:SetHiLimit(angularUpper:GetX())
+	angularLimits1:SetHiLimit(angularUpper:GetY())
+	angularLimits2:SetHiLimit(angularUpper:GetZ())
     end    
 
     /*
@@ -462,7 +509,17 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Attribute: Returns the angular limit stored inside a RotationalLimitMotor3D object.
     */
     action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor3D
-	return angularLimits:Get(index)
+        if (index = 0)
+            return angularLimits0
+        elseif (index = 1)
+            return angularLimits1
+        elseif (index = 2)
+            return angularLimits2
+        else
+            output "invalid index"
+            RotationalLimitMotor3D out
+            return out
+        end
     end
 
     /*
@@ -492,8 +549,18 @@ class SixDegreesOfFreedomJoint3D is Joint3D
                 linearLimits:GetUpperLimit():SetZ(hi)
             end
 	else 
-            angularLimits:Get(axis - 3):SetLoLimit(lo)
-            angularLimits:Get(axis - 3):SetHiLimit(hi)
+            if (axis-3 = 0)
+                angularLimits0:SetLoLimit(lo)
+                angularLimits0:SetHiLimit(hi)
+            elseif (axis-3 = 1)
+                angularLimits1:SetLoLimit(lo)
+                angularLimits1:SetHiLimit(hi)
+            elseif (axis-3 = 2)
+                angularLimits2:SetLoLimit(lo)
+                angularLimits2:SetHiLimit(hi)
+            else
+                output "invalid index"
+            end
 	end
     end            
 	
@@ -506,7 +573,17 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	if limitIndex < 3
             return linearLimits:IsLimited(limitIndex)
 	end
-	return angularLimits:Get(limitIndex - 3):IsLimited()
+
+        if (limitIndex - 3 = 0)
+            return angularLimits0:IsLimited()
+        elseif (limitIndex - 3 = 1)
+            return angularLimits1:IsLimited()
+        elseif (limitIndex - 3 = 2)
+            return angularLimits2:IsLimited()
+        else
+            output "invalid index"
+            return false
+        end
     end
 
     /*
@@ -528,9 +605,13 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	Vector3 tmp1
 	Vector3 tmp2
 
-	tmp1:Set(pA:Scale(weight))
-	tmp2:Set(pB:Scale(1 - weight))
-        tmp1:Add(tmp2)
+	tmp1:Set(pA)
+        tmp1:Scale(weight)
+
+	tmp2:Set(pB)
+        tmp2:Scale(1.0 - weight)
+
+        tmp1:Add(tmp2)    //temp1 = temp1 + temp2
 	anchorPosition:Set(tmp1)
     end            
 end

@@ -71,8 +71,8 @@ class Item3D is Item
     boolean collideWithChildren = false
     boolean hasMoved = false
 
-    PhysicsPosition3D collisionTransform
-    PhysicsPosition3D collisionTransform0
+    PhysicsPosition3D collisionTransform        //projected position
+    PhysicsPosition3D collisionTransform0       //previous position
     PhysicsPosition3D interpolationTransform
 
     CollisionShape3D shape = undefined
@@ -2662,6 +2662,10 @@ class Item3D is Item
         return properties:GetRestitution()
     end
 
+    /*
+    This action lets the 3D collision solver actions (inside the class CollisionSolver3D) know that if this object needs its physics to be updated.
+    Attribute: Parameter flag True if physics needs to be updated; false if physics doesn't need to be updated, which is when this object is a "unmovable" object in the physics space.
+    */
     action SetCollisionGroupFlag(boolean flag)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2674,10 +2678,14 @@ class Item3D is Item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
-
         return properties:GetCollisionGroupFlag()
     end
 
+    /*
+    This action sets where in the "list of objects that needs to be updated because collision happened" that this object resides in.
+    This "list of objects that needs to be updated because collision happened" is stored inside the CollisionSolver3D class as tempSolverBodyPool.
+    Attribute: Parameter index the index at which this object resides in in the tempSolverBodyPool.
+    */
     action SetCollisionGroupIndex(integer index)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2983,6 +2991,10 @@ class Item3D is Item
     end
 
     action GetCenterOfMassTransform returns PhysicsPosition3D
+//        output "In Item3D-----"
+//        collisionTransform:Output()
+//        output "previous"
+//        collisionTransform0:Output()
         return collisionTransform
     end
 
@@ -3098,6 +3110,36 @@ class Item3D is Item
 
         properties:InternalApplyImpulse(linearComponent, angularComponent, impulseMagnitude)
     end
+
+
+    /*
+    ACTIONS MADE FOR JOINTS.
+    */
+    action ApplyLinearImpulseToCenter(Vector3 impulse)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulseToCenter(impulse)  //exists
+    end
+
+    action ApplyImpulse(Vector3 impulse, Vector3 localPositionToApply)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulse(impulse, localPositionToApply)
+    end
+
+    action ApplyTorqueImpulse(Vector3 torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyTorque(torque)
+    end
+
+
 
     action GetPushVelocity returns Vector3
         if properties = undefined

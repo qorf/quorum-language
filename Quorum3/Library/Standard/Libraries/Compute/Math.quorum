@@ -160,6 +160,12 @@ class Math
     */
     system action InverseSine(number value) returns number
 
+
+
+
+
+
+
     /*
     This action calculates the inverse cosine of a number value in radians.
 
@@ -174,6 +180,30 @@ class Math
 
     */
     system action InverseCosine(number value) returns number
+
+
+
+
+
+
+    constant text inverseTangent2Error = "Math InverseTangent2 error: x and y can't both be zero."
+
+    //return result in radians
+    action InverseTangent2(number x, number y) returns number
+        if x > 0
+            return pi/2 - InverseTangent(x,y)
+        elseif (x < 0) and (y >= 0)
+            return pi/2 - InverseTangent(x,y)
+        elseif (x < 0) and (y < 0)
+            return InverseTangent(x/y)-pi
+        elseif (x = 0) and (y > 0)
+            return 0
+        elseif (x = 0) and (y < 0)
+            return pi
+        else
+            alert(inverseTangent2Error)
+        end
+    end
 
     /*
     This action calculates the inverse tangent of a number value in radians.
@@ -499,4 +529,23 @@ class Math
     */
     system action RadiansToDegrees(number radians)returns number
 
+
+    /*
+    This action calculates the maximum between two numbers.
+    */
+    action MaximumOf(number a, number b) returns number
+        if (a > b)
+            return a
+        else
+            return b
+        end
+    end
+
+
+    /*
+    This action calculates the remainder between two numbers.
+    */
+    action Remainder(number a, number b) returns number
+        return (a - b * Floor(a/b))
+    end
 end

@@ -1,0 +1,61 @@
+package Libraries.Interface.Controls
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.SpreadsheetSelection
+
+
+class Spreadsheet is Control
+    Array<Column> columns
+    SpreadsheetSelection selection
+    
+    on create
+        FlowLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+        SetInputGroup("Spreadsheet")
+
+        SetFocusable(true)
+        selection:Initialize(me)
+        SetAccessibilityCode(parent:Item:TABLE)
+        SetName("Table")
+    end
+
+    action Add(Column column)
+        columns:Add(column)
+
+        parent:Item2D:Add(column)
+    end
+
+    action GetSelection returns SpreadsheetSelection
+        return selection
+    end
+
+    /*
+        This action selects a single cell in the spreadsheet. In this case,
+        a single cell.
+    */
+    action Select(Cell cell)
+
+    end
+
+    action MoveSelectionUp
+
+    end
+
+    action MoveSelectionDown
+
+    end
+
+    action MoveSelectionLeft
+
+    end
+
+    action MoveSelectionRight
+
+    end
+end
