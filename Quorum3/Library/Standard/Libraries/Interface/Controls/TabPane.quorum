@@ -59,6 +59,14 @@ class TabPane is Control
         viewArea:SetLayout(manual)
     end
 
+    action SetViewAreaLayout(Layout layout)
+        viewArea:SetLayout(layout)
+    end
+
+    action GetViewAreaLayout returns Layout
+        return viewArea:GetLayout()
+    end
+
     private action SetCurrentItem(Item2D item)
         if currentItem not= undefined
             viewArea:Remove(currentItem)
