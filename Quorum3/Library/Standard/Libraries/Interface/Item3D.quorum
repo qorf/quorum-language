@@ -2662,6 +2662,10 @@ class Item3D is Item
         return properties:GetRestitution()
     end
 
+    /*
+    This action lets the 3D collision solver actions (inside the class CollisionSolver3D) know that if this object needs its physics to be updated.
+    Attribute: Parameter flag True if physics needs to be updated; false if physics doesn't need to be updated, which is when this object is a "unmovable" object in the physics space.
+    */
     action SetCollisionGroupFlag(boolean flag)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2672,13 +2676,16 @@ class Item3D is Item
 
     action GetCollisionGroupFlag returns boolean
         if properties = undefined
-            //output "properties is undefined"
             alert(PHYSICS_ERROR_MESSAGE)
         end
-        //output "properties is defined"
         return properties:GetCollisionGroupFlag()
     end
 
+    /*
+    This action sets where in the "list of objects that needs to be updated because collision happened" that this object resides in.
+    This "list of objects that needs to be updated because collision happened" is stored inside the CollisionSolver3D class as tempSolverBodyPool.
+    Attribute: Parameter index the index at which this object resides in in the tempSolverBodyPool.
+    */
     action SetCollisionGroupIndex(integer index)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)

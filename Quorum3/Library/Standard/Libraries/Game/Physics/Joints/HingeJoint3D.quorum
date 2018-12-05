@@ -14,50 +14,50 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 
 class HingeJoint3D is Joint3D
-        Math math
-        PhysicsPosition3D frameInA  
-        PhysicsPosition3D frameInB  
+    Math math
+    PhysicsPosition3D frameInA  
+    PhysicsPosition3D frameInB  
 
-        Array<ConstraintDescription3D> jac/*[3]*/ 
-        Array<ConstraintDescription3D> jacAng/*[3]*/
-
-
-        ConstraintDescription3D jac0
-        ConstraintDescription3D jac1
-        ConstraintDescription3D jac2
+    Array<ConstraintDescription3D> jac/*[3]*/ 
+    Array<ConstraintDescription3D> jacAng/*[3]*/
 
 
+    ConstraintDescription3D jac0
+    ConstraintDescription3D jac1
+    ConstraintDescription3D jac2
 
 
-        ConstraintDescription3D jacAng0
-        ConstraintDescription3D jacAng1
-        ConstraintDescription3D jacAng2
 
 
-        number motorTargetVelocity = 0
-        number maxMotorImpulse = 0
-        number limitSoftness = 0.9
-
-	number biasFactor = 0.3         //The bias should be in the range of 0.2 - 0.5
-	number relaxationFactor = 1
+    ConstraintDescription3D jacAng0
+    ConstraintDescription3D jacAng1
+    ConstraintDescription3D jacAng2
 
 
-        //these initial values make it so that the joint is free upon starting
-	number lowerLimit = math:RaiseToPower(10, 30)	
-	number upperLimit = math:RaiseToPower(10, -30)	
-	
-	number kHinge = 0
+    number motorTargetVelocity = 0
+    number maxMotorImpulse = 0
+    number limitSoftness = 0.9
 
-	number limitSign = 0
-	number correction = 0
+    number biasFactor = 0.3         
+    number relaxationFactor = 1
 
-	number accLimitImpulse = 0
 
-	boolean angularOnly = false
-	boolean enableAngularMotor = false
-	boolean solveLimit = false
+    //these initial values make it so that the joint is free upon starting
+    number lowerLimit = math:RaiseToPower(10, 30)	
+    number upperLimit = math:RaiseToPower(10, -30)	
 
-        number epsilon = 1.1920928955078125 * (math:RaiseToPower(10, -07))
+    number kHinge = 0
+
+    number limitSign = 0
+    number correction = 0
+
+    number accLimitImpulse = 0
+
+    boolean angularOnly = false
+    boolean enableAngularMotor = false
+    boolean solveLimit = false
+
+    number epsilon = 1.1920928955078125 * (math:RaiseToPower(10, -07))
 
     on create
         ConstraintDescription3D filler
@@ -135,10 +135,6 @@ class HingeJoint3D is Joint3D
 
         frameInB:GetBasis():Set(rbAxisB1:GetX(), rbAxisB2:GetX(), -axisInB:GetX(), rbAxisB1:GetY(), rbAxisB2:GetY(), -axisInB:GetY(), rbAxisB1:GetZ(), rbAxisB2:GetZ(), -axisInB:GetZ())
 
-//        output "Initializing"
-//        frameInA:Output()
-//        frameInB:Output()
-
 
         lowerLimit = math:RaiseToPower(10, 30)	
 	upperLimit = math:RaiseToPower(10, -30)	
@@ -149,7 +145,7 @@ class HingeJoint3D is Joint3D
     end
 
 
-    action BuildJacobian()
+    action BuildJacobian
         Vector3 temp
         Vector3 temp1
         Vector3 temp2
@@ -195,16 +191,7 @@ class HingeJoint3D is Joint3D
                 normal0:Set(1,0,0)
             end
 
-//            output "before plane space"
-//            normal:Get(0):Output()
-//            normal:Get(1):Output()
-//            normal:Get(2):Output()
             PlaneSpace1(normal0, normal1, normal2) 
-//            output "after plane space"
-//            normal:Get(0):Output()
-//            normal:Get(1):Output()
-//            normal:Get(2):Output()
-
 
             mat1:Set(centerOfMassA:GetBasis())    
             mat1:Transpose()
@@ -313,7 +300,6 @@ class HingeJoint3D is Joint3D
     end
 
     action SolveJoint(number timeStep)
-        
         Vector3 temp
         Vector3 temp2
         Vector3 tempVec
@@ -321,20 +307,11 @@ class HingeJoint3D is Joint3D
 
         PhysicsPosition3D centerOfMassA
         PhysicsPosition3D centerOfMassB
-        //output "------- Setting A ---------"
+
         centerOfMassA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
-        //output "------- Setting B ---------"
+
         centerOfMassB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
         
-
-
-//        output "Center of " + parent:Joint3D:itemA:GetDescription()
-//        centerOfMassA:Output()  
-//        
-//        output "Center of " + parent:Joint3D:itemB:GetDescription()
-//        centerOfMassB:Output()
-
-
 
 
         Vector3 pivotAInW
@@ -345,14 +322,12 @@ class HingeJoint3D is Joint3D
         Vector3 pivotBInW
 
         pivotBInW:Set(frameInB:GetOrigin()) 
-//        output "framInB position"
-//        pivotBInW:Output()
+
         centerOfMassB:Transform(pivotBInW)
-//        output "transformed"
-//        pivotBInW:Output()
 
 
-        number tau = 0.3
+
+        number tau = 0.5 //bigger tau means more error correction
 
         if (not angularOnly)
             Vector3 rel_pos1
@@ -406,8 +381,6 @@ class HingeJoint3D is Joint3D
                 Vector3 impulse_vector 
 
                 impulse_vector:Set(normal)
-                //output "Direction to apply for A"
-                //normal:Output()
 
                 impulse_vector:Scale(impulse)
 
@@ -703,5 +676,10 @@ class HingeJoint3D is Joint3D
 
     action GetMaxMotorImpulse returns number
         return maxMotorImpulse
+    end
+
+    //The bias should be in the range of 0.2 - 0.5
+    action SetBiasFactor(number bias)
+        biasFactor = bias
     end
 end

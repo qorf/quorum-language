@@ -2599,14 +2599,18 @@ class Layer3D is Layer
         end
 
         i = 0
+        //output "In Solve physics in Layer3D, joint count is: " + joints:GetSize()
         repeat joints:GetSize() times
             Joint3D joint = joints:Get(i)
             joint:SetInCollisionGroup(false)
+            //output "This is the joint with itemA as " + joint:GetItemA():GetDescription()
             i = i + 1
         end
 
+        //output "The total number of objects in this layer is: " + items:GetSize()
         i = 0
         repeat items:GetSize() times
+            
             Item3D seed = items:Get(i)
             if not seed:IsPhysicsEnabled()
                 // continue with loop -- this item does not need physics solved
@@ -2670,20 +2674,23 @@ class Layer3D is Layer
                             edge = edge:GetNext()
                         end
 
-                        JointEdge3D jointEdge = body:GetJointList()
+                        JointEdge3D jointEdge = body:GetJointList()  //gets the joints that are associated with the current body, starting with the first joint
+                        //output "currently finding the collision and joints for item " + body:GetDescription()
                         repeat while jointEdge not= undefined
-                            Joint3D joint = jointEdge:GetJoint()
+                            Joint3D joint = jointEdge:GetJoint()  
                             if joint:InCollisionGroup()
+                                //output "found a joint that has already been set"
                                 // continue with group -- the joint has already been
                                 // accounted for in the collision group
                             else
                                 Item3D other = jointEdge:GetOther()
 
                                 island:Add(joint)
+                                //output "Added a joint to CollisionGroup3D"
                                 joint:SetInCollisionGroup(true)
 
                                 if other:GetCollisionGroupFlag()
-                                    // continuee with group -- the other item is
+                                    // continue with group -- the other item is
                                     // already in the group
                                 else
                                     stack:Push(other)
@@ -2869,7 +2876,7 @@ class Layer3D is Layer
     action AddJoint(Joint3D joint)
         joints:Add(joint)
 
-        joint:GetEdgeA():SetJoint(joint)
+        joint:GetEdgeA():SetJoint(joint)    //add this joint to the beginning of the linked list for itemA
         joint:GetEdgeA():SetOther(joint:GetItemB())
         joint:GetEdgeA():SetPrevious(undefined)
         joint:GetEdgeA():SetNext(joint:GetItemA():GetJointList())
