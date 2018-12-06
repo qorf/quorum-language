@@ -118,6 +118,11 @@ public class ByteArray {
         return value;
     }
     
+    public int IntegerFromByte(int a) {
+        int value = a;
+        return value;
+    }
+    
     public int UnsignedIntegerFromByte(int a) {
         int value = a & 0x00FF;
         return value;
