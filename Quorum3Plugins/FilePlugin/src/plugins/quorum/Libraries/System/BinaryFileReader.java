@@ -16,6 +16,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Containers.ByteArray;
 import quorum.Libraries.Containers.ByteArray_;
+import quorum.Libraries.Interface.Events.FileLoadEvent;
+import quorum.Libraries.Interface.Events.FileLoadListener_;
+import quorum.Libraries.System.BinaryFileReader_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -70,6 +74,13 @@ public class BinaryFileReader {
     
     public void OpenForReadNative(String path) throws FileNotFoundException {
         file = new java.io.File(path);
+    }
+    
+    public void OpenForRead(File_ file, FileLoadListener_ listener) throws FileNotFoundException {
+        this.file = new java.io.File(file.GetAbsolutePath());
+        FileLoadEvent event = new FileLoadEvent();
+        event.Set(file, (BinaryFileReader_)me_);
+        listener.OnLoad(event);
     }
     
     public void Close() throws IOException {
