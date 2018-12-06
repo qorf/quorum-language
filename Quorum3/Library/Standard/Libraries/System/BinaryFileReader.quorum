@@ -1,5 +1,7 @@
 package Libraries.System
+
 use Libraries.Containers.ByteArray
+use Libraries.Interface.Events.FileLoadListener
 
 /*
 The BinaryFileReader class is used to read files written in binary, one byte at
@@ -63,4 +65,14 @@ class BinaryFileReader
     action OpenForRead(File file)
         OpenForReadNative(file:GetAbsolutePath())
     end
+
+    /*
+    This action asynchronously loads the file, and when it has completed loading,
+    will call the FileLoadListener's OnLoad() action.
+
+    Attribute: Parameter file The file to load asynchronously.
+    Attribute: Parameter listener A FileLoadListener to call when the file loading has completed.
+    */
+    system action OpenForRead(File file, FileLoadListener listener)
+
 end
