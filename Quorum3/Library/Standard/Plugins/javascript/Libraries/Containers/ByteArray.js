@@ -126,7 +126,36 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
         var view = new DataView(buffer);
         for (var i = 0; i < array.length; i++){
             view.setInt8(i, array[i]);
-        }  
+        } 
+        
+        /*
+         * BigInt is currently only supported in Chrome, other browsers are
+         * still working on implementing. The following code block works, but 
+         * there is a loss in precision out of the range of (-(2^53 - 1)) to 
+         * (2^53 - 1). 
+         */
+        
+        if(this.IsBigEndian()){
+            var high = view.getInt32(0, !(this.IsBigEndian()));
+            var low = view.getUint32(4, !(this.IsBigEndian()));
+        } else {
+            var low = view.getUint32(0, !(this.IsBigEndian()));
+            var high = view.getInt32(4, !(this.IsBigEndian()));
+        }
+        
+        if(high >= 2**63){
+            combined = (-(2**64-(high*2**32+low)));
+        } else {
+            combined = (high*2**32+low);
+        }
+        if(!Number.isSafeInteger(combined))
+            console.warn(combined, 'Precision may be lost.');
+
+        return combined;
+        
+        
+        /* Only supported in Chrome. 
+        
         if(this.IsBigEndian()){
             var high = BigInt(view.getInt32(0, !(this.IsBigEndian())));
             var low = BigInt(view.getUint32(4, !(this.IsBigEndian())));
@@ -137,6 +166,9 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
         high = high << BigInt(32);
         var combined = high + low;
         return combined;
+        
+        
+        */
     };
     
     this.GetSignedBuffer$quorum_array = function(arr){
