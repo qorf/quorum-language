@@ -19,7 +19,7 @@ class RotationalLimitMotor3D
     number maxLimitForce = 300                      //maximum force on limit
     number damping = 1
     number limitSoftness = 0.5
-    number ERP = 0.5//!< Error tolerance factor when joint is at limit
+    number ERP = 0.9//!< Error tolerance factor when joint is at limit
     number bounce = 0           //restitution factor
     boolean enableMotor = false
     number currentLimitError = 0        //how much is violated at a certain limit

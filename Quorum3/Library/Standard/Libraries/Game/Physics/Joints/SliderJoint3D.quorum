@@ -108,7 +108,8 @@ class SliderJoint3D is Joint3D
 
 
     /*
-    positionA: make sure so that the x-axis of the slider joint's orientation is pointing toward the direction of the slide
+    positionA: The orientation and location of the slider joint relative to itemA's coordinate system. Make sure so that the x-axis of the slider joint's orientation is pointing toward the direction of the slide relative to ItemA's frame.
+    positionB: The orientation and location of the slider joint relative to itemB's coordinate system
     */
     action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
         parent:Joint3D:SetType(parent:Joint3D:Slider)

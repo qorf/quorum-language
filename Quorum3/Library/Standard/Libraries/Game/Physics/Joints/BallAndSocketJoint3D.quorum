@@ -197,4 +197,13 @@ class BallAndSocketJoint3D is Joint3D
     action UpdateRHS(number timeStep)
     end
 
+
+    action SetDamping(number dampingFactor)
+        damping = dampingFactor
+    end
+
+
+    action SetTau(number tau)
+        me:tau = tau
+    end
 end
