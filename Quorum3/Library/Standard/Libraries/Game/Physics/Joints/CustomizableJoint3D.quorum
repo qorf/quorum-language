@@ -50,12 +50,12 @@ class CustomizableJoint3D is Joint3D
 
 
     /*
-    This action initializes the data inside this CustomizableJoint3D class.
+    This action initializes the joint.
     Attribute: Parameter itemA The first item.
     Attribute: Parameter itemB The second item.
-    Attribute: Parameter positionA The center of the joint connection in A's point of view.
-    Attribute: Parameter positionB The center of the joint connection in B's point of view.
-    Attribute: Parameter useLinearReferenceFrameB When you want to define the limits from the point of view of the second object.
+    Attribute: Parameter positionA The center and orientation of the joint connection in A's point of view.
+    Attribute: Parameter positionB The center and orientation of the joint connection in B's point of view.
+    Attribute: Parameter useLinearReferenceFrameA This is set to true when you want to define the limits from the point of view of the first object's center and orientation.
     */
     action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
         parent:Joint3D:SetItemA(itemA)
@@ -68,6 +68,7 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action returns a number inside a matrix.
+    This action is used internally.
     Attribute: Parameter mat The matrix that you want to extract from.
     Attribute: Parameter index The number that determines which element of the matrix you are extracting. Matrix3 mat = [index0, index1, index2; index3, index4, index5; index6, index7, index8]
     Attribute: Returns the matrix value at row number "index mod 3" and column number "index/3"
@@ -78,6 +79,7 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action converts a rotational matrix to a another representation of rotation: Euler angles.
+    This action is used internally.
     Attribute: Parameter mat The matrix that you are going to convert from.
     Attribute: Parameter xyz The Euler angles.
     Attribute: Returns false if this conversion was unsuccessful, true if this conversion was successful.
@@ -106,8 +108,9 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action calculates the angular difference between object A and object B.
+    This action is used internally.
     */
-    action CalculateAngleInfo() 
+    action CalculateAngleInfo
 	Matrix3 mat
 	Matrix3 relativeFrame
 
@@ -133,10 +136,10 @@ class CustomizableJoint3D is Joint3D
     end
 
     /*
-    This action calculates the angular difference and position difference of the joint between objects A and B, and calculates whether
-    the objects are within the position limits.
+    This action calculates the angular difference and position difference of the joint between objects A and B.
+    This action is used internally.
     */
-    action CalculateTransforms() 
+    action CalculateTransforms
 	calculatedTransformA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
 	calculatedTransformA:Multiply(frameInA)                 //joint for A in global coordinates
 
@@ -150,6 +153,7 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action finds the values that are useful to calculate if the two objects are within the position limits.
+    This action is used internally.
     */
     action BuildLinearJacobian(integer jacobianLinearIndex, Vector3 normalWorld, Vector3 pivotAInW, Vector3 pivotBInW) 
 	Matrix3 mat1
@@ -196,6 +200,7 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action finds values that are useful for calculating the angular difference between the two objects.
+    This action is used internally.
     */
     action BuildAngularJacobian(integer jacobianAngularIndex, Vector3 jointAxisW) 
         Matrix3 mat1 
@@ -237,6 +242,7 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action tests if the relative angle between the two objects is within the angular limit that we defined.
+    This action is used internally.
     Attribute: Parameter axisIndex The axis that you want to test, 0 for x, 1 for y, 2 for z.
     Attribute: Returns false if outside of limit, true if within limit.
     */
@@ -277,7 +283,8 @@ class CustomizableJoint3D is Joint3D
 
 
     /*
-    This action calls the BuildAngularJacobian and BuildLinearJacobian. This action is called by the Collision Solver.
+    This action calls the BuildAngularJacobian and BuildLinearJacobian. This action is called by the Collision Solver to gather information on the joint before calling the SolveJoint action.
+    This action is used internally.
     */
     action BuildJacobian
 	linearLimits:SetAccumulatedImpulse(0, 0, 0)
@@ -322,7 +329,8 @@ class CustomizableJoint3D is Joint3D
 
 
     /*
-    This action solves the constraint of this joint and make sure that objects A and B is able to move with the joint constraint applied.
+    This action solves the constraint of this joint and make sure that objects A and B is able to move accordint to the joint constraint applied.
+    This action is used internally.
     */
     action SolveJoint(number localtimeStep) 
 	timeStep = localtimeStep
@@ -431,7 +439,7 @@ class CustomizableJoint3D is Joint3D
     This action returns the position and tilt of the object A.
     Attribute: Returns the position and tilt of the object A.
     */
-    action GetCalculatedTransformA() returns PhysicsPosition3D
+    action GetCalculatedTransformA returns PhysicsPosition3D
         PhysicsPosition3D out
         out:Set(calculatedTransformA)
 	return out
@@ -441,27 +449,27 @@ class CustomizableJoint3D is Joint3D
     This action returns the position and tilt of the object B.
     Attribute: Returns the position and tilt of the object B.
     */
-    action GetCalculatedTransformB() returns PhysicsPosition3D
+    action GetCalculatedTransformB returns PhysicsPosition3D
         PhysicsPosition3D out
 	out:Set(calculatedTransformB)
 	return out
     end
 
     /*
-    This action returns the position and tilt of the object A.
-    Attribute: Returns the position and tilt of the object A.
+    This action returns the position and tilt of the joint relative to object A.
+    Attribute: Returns the position and tilt of the joint relative to object A.
     */
-    action GetFrameOffsetA() returns PhysicsPosition3D 
+    action GetFrameOffsetA returns PhysicsPosition3D 
         PhysicsPosition3D out
 	out:Set(frameInA)
 	return out
     end    
 
     /*
-    This action returns the position and tilt of the object B.
-    Attribute: Returns the position and tilt of the object B.
+    This action returns the position and tilt of the joint relative to object B.
+    Attribute: Returns the position and tilt of the joint relative to object B.
     */
-    action GetFrameOffsetB() returns PhysicsPosition3D
+    action GetFrameOffsetB returns PhysicsPosition3D
         PhysicsPosition3D out
 	out:Set(frameInB)
 	return out
@@ -526,7 +534,7 @@ class CustomizableJoint3D is Joint3D
     This action returns the position limit. 
     Attribute: Returns the position limit stored inside a TranslationalLimitMotor3D object.
     */
-    action GetTranslationalLimitMotor() returns TranslationalLimitMotor3D
+    action GetTranslationalLimitMotor returns TranslationalLimitMotor3D
 	return linearLimits
     end    
 
@@ -588,8 +596,9 @@ class CustomizableJoint3D is Joint3D
 
     /*
     This action calculates the center of the system that composes of object A and object B.
+    This action is used internally.
     */
-    action CalculateAnchorPosition() 
+    action CalculateAnchorPosition
 	number imA = parent:Joint3D:GetItemA():GetInverseMass()
 	number imB = parent:Joint3D:GetItemB():GetInverseMass()
 	number weight = 0

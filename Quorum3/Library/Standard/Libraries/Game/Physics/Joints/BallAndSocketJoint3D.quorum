@@ -13,12 +13,10 @@ use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 
-
+/*
+This class is a joint that is similar to the joint between a person's shoulder and arm, where the arm can freely rotate about the shoulder.
+*/
 class BallAndSocketJoint3D is Joint3D
-
-
-
-    //JacobianEntry[] jac
     ConstraintDescription3D jac0
     ConstraintDescription3D jac1
     ConstraintDescription3D jac2
@@ -32,7 +30,13 @@ class BallAndSocketJoint3D is Joint3D
     number damping = 1
     number impulseClamp = 0
 
-    //Point2PointConstraint
+    /*
+    This action initializes the joint.
+    Attribute: Parameter itemA The first item.
+    Attribute: Parameter itemB The second item.
+    Attribute: Parameter pivotInA The location of the joint relative to the first item.
+    Attribute: Parameter pivotInB The location of the joint relative to the second item.
+    */
     action Initialize(Item3D itemA, Item3D itemB, Vector3 pivotInA, Vector3 pivotInB)
         parent:Joint3D:SetItemA(itemA)
         parent:Joint3D:SetItemB(itemB)
@@ -41,7 +45,11 @@ class BallAndSocketJoint3D is Joint3D
         me:pivotInB = pivotInB
     end
 
-    action BuildJacobian()
+    /*
+    This action is called by the Collision Solver to gather information on the joint before calling the SolveJoint action.
+    This action is used internally.
+    */
+    action BuildJacobian
         parent:Joint3D:appliedImpulse = 0
 
         Vector3 normal
@@ -90,18 +98,19 @@ class BallAndSocketJoint3D is Joint3D
     end
 
 
-
+    /*
+    This action solves the constraint of this joint and make sure that objects A and B is able to move accordint to the joint constraint applied.
+    This action is used internally.
+    */
     action SolveJoint(number timeStep)
         Vector3 temp
         Vector3 temp2
         Vector3 tempVec
 
-
-
-            PhysicsPosition3D centerOfMassA
-            PhysicsPosition3D centerOfMassB
-            centerOfMassA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
-            centerOfMassB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
+        PhysicsPosition3D centerOfMassA
+        PhysicsPosition3D centerOfMassB
+        centerOfMassA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
+        centerOfMassB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
 
         Vector3 pivotAInW
         pivotAInW:Set(pivotInA)
@@ -195,15 +204,5 @@ class BallAndSocketJoint3D is Joint3D
 
 
     action UpdateRHS(number timeStep)
-    end
-
-
-    action SetDamping(number dampingFactor)
-        damping = dampingFactor
-    end
-
-
-    action SetTau(number tau)
-        me:tau = tau
     end
 end

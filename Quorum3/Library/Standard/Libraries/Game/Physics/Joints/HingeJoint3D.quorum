@@ -72,7 +72,13 @@ class HingeJoint3D is Joint3D
 
 
     /*
-    axisInA: unit vector that specifieds which axis that object A is allowed to spin around.
+    This action initializes the joint.
+    Attribute: Parameter itemA The first item.
+    Attribute: Parameter itemB The second item.
+    Attribute: Parameter pivotInA The location of the hinge joint relative to item A.
+    Attribute: Parameter pivotInB The location of the hinge joint relative to item B.
+    Attribute: Parameter axisInA The unit vector that specifieds which axis that object A is allowed to spin around.
+    Attribute: Parameter axisInB The unit vector that specifieds which axis that object B is allowed to spin around.
     */
     action Initialize(Item3D itemA, Item3D itemB, Vector3 pivotInA, Vector3 pivotInB, Vector3 axisInA, Vector3 axisInB)
         parent:Joint3D:SetItemA(itemA)
@@ -144,7 +150,10 @@ class HingeJoint3D is Joint3D
         solveLimit = false
     end
 
-
+    /*
+    This action is called by the Collision Solver to gather information on the joint before calling the SolveJoint action.
+    This action is used internally.
+    */
     action BuildJacobian
         Vector3 temp
         Vector3 temp1
@@ -154,15 +163,10 @@ class HingeJoint3D is Joint3D
         Matrix3 mat1
         Matrix3 mat2
 
-
         PhysicsPosition3D centerOfMassA
         PhysicsPosition3D centerOfMassB
         centerOfMassA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
         centerOfMassB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
-        
-
-
-
 
         parent:Joint3D:appliedImpulse = 0
 
@@ -282,6 +286,9 @@ class HingeJoint3D is Joint3D
 
 
     private number SQRT12 = 0.7071067690849304
+    /*
+    This action is used to create a coordinate system based on a normal vector.
+    */
     private action PlaneSpace1(Vector3 n, Vector3 p, Vector3 q)
         if (math:AbsoluteValue(n:GetZ()) > SQRT12)
             number a = n:GetY() * n:GetY() + n:GetZ() * n:GetZ()
@@ -299,6 +306,10 @@ class HingeJoint3D is Joint3D
         end
     end
 
+    /*
+    This action solves the constraint of this joint and make sure that objects A and B is able to move accordint to the joint constraint applied.
+    This action is used internally.
+    */
     action SolveJoint(number timeStep)
         Vector3 temp
         Vector3 temp2
@@ -554,7 +565,10 @@ class HingeJoint3D is Joint3D
     end  
     
 
-
+    /*
+    This action calculates how much the rotating objects have moved relative to their original configuration.
+    Attribute: Returns how much the rotating objects have moved relative to their original configuration.
+    */
     action GetHingeAngle returns number
         PhysicsPosition3D centerOfMassA
         PhysicsPosition3D centerOfMassB
@@ -577,6 +591,9 @@ class HingeJoint3D is Joint3D
         return atan2Fast(swingAxis:DotProduct(refAxis0), swingAxis:DotProduct(refAxis1))
     end
 
+    /*
+    This action is used to calculate the inverse tangent.
+    */
     private action atan2Fast(number y, number x) returns number
         number coeff_1 = math:pi/4.0
         number coeff_2 = 3.0*coeff_1
@@ -600,12 +617,20 @@ class HingeJoint3D is Joint3D
         end
     end
 
-
+    /*
+    This action sets whether you want to only solve for the angular constaints set by the hinge joint or not.
+    Attribute: Parameter angularOnly True if you don't want to solve for the translational constraint created by the hinge joint. Not recommended.
+    */
     action SetAngularOnly(boolean angularOnly)
         me:angularOnly = angularOnly
     end
 
-
+    /*
+    This actions lets the hinge joint rotate on its own or stop the hinge joint to rotate on its own.
+    Attribute: Parameter enableMotor True if you want to let the hinge joint rotate on its own.
+    Attribute: Parameter targetVelocity The angular velocity that you want the joint to rotate with. Positive targetVelocity defines one direction and negative targetVelocity defines the opposite direction.
+    Attribute: Parameter maxMotorImpulse The maximum force to be applied to the hinge for it to rotate.
+    */
     action EnableAngularMotor(boolean enableMotor, number targetVelocity, number maxMotorImpulse)
         me:enableAngularMotor = enableMotor
         me:motorTargetVelocity = targetVelocity
@@ -613,12 +638,24 @@ class HingeJoint3D is Joint3D
     end
 
     
-
+    /*
+    This action sets the range of angles that the hinge can rotate to.
+    Attribute: Parameter low The lower angle value.
+    Attribute: Parameter high The higher angle value.
+    */
     action SetLimit(number low, number high)
         SetLimit(low, high, 0.9, 0.3, 1.0)
     end
 
 
+    /*
+    This action sets the range of angles that the hinge can rotate to.
+    Attribute: Parameter low The lower angle value in radians.
+    Attribute: Parameter high The higher angle value in radians.
+    Attribute: Parameter softness At what fraction should the velocity limits starts to be solved. For example, if softness is 0.8, that means the physics will try to correct for the joint when the objects are at 0.8*(velocity limit range). Recommended values are from 0.8 to 1.
+    Attribute: Parameter bias Because during simulation, errors in position of the objects pile up due to rounding errors, this sets how much you want to correct for that error. Default value is 0.3, and the recommended range is [0.2 to 0.5].
+    Attribute: Parameter relaxation How lenient are you with the objects going out of the limit range in fractions. (0 very lenient, 1 very hard). Default value is 1.
+    */
     action SetLimit(number low, number high, number softness, number bias, number relaxation)
         lowerLimit = low
         upperLimit = high   
@@ -627,58 +664,85 @@ class HingeJoint3D is Joint3D
         relaxationFactor = relaxation   
     end
 
+    /*
+    This action returns the lower angle value that the hinge can rotate to.
+    */
     action GetLowerLimit returns number
         return lowerLimit
     end
 
 
+    /*
+    This action returns the upper angle value that the hinge can rotate to.
+    */
     action GetUpperLimit returns number 
         return upperLimit
     end
 
-
+    /*
+    This action returns the location of the joint relative to object A.
+    */
     action GetAFrame(PhysicsPosition3D outputFrame) returns PhysicsPosition3D
         outputFrame:Set(frameInA)
         return outputFrame
     end
 
-
+    /*
+    This action returns the location of the joint relative to object B.
+    */
     action GetBFrame(PhysicsPosition3D outputFrame) returns PhysicsPosition3D
         outputFrame:Set(frameInB)
         return outputFrame
     end
 
-
+    /*
+    This action returns whether the angular limits has been reached.
+    */
     action GetSolveLimit returns boolean
         return solveLimit
     end
 
-
+    /*
+    This action returns whether the angular limits has been reached.
+    */
     action GetLimitSign returns number
         return limitSign
     end
 
-
+    /*
+    This action returns whether you only care about the angular constraint for this hinge joint or not.
+    */
     action GetAngularOnly returns boolean
         return angularOnly
     end
 
-
+    /*
+    This action returns whether there is a motor on the hinge joint to let it rotate on its own.
+    */
     action GetEnableAngularMotor returns boolean
         return enableAngularMotor
     end
 
-
+    /*
+    This action returns the velocity at which the motor will rotate about.
+    */
     action GetMotorTargetVelocity returns number 
         return motorTargetVelocity
     end
 
 
+    /*
+    This action returns the maximum force that will be applied to the hinge for it to rotate.
+    */
     action GetMaxMotorImpulse returns number
         return maxMotorImpulse
     end
 
-    //The bias should be in the range of 0.2 - 0.5
+
+    /*
+    This action changes the bias factor of the hinge joint.
+    Attribute: Parameter bias Because during simulation, errors in position of the objects pile up due to rounding errors, this sets how much you want to correct for that error. Default value is 0.3, and the recommended range is [0.2 to 0.5].
+    */
     action SetBiasFactor(number bias)
         biasFactor = bias
     end

@@ -13,7 +13,10 @@ use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 
-
+/*
+This is a joint that describes how much freedom can one object rotate about another object. 
+This joint is different than the ball and socket joint in that there is an angular limit to how much the rotating object can rotate.
+*/
 class ConeTwistJoint3D is Joint3D
 
     ConstraintDescription3D jac0
@@ -24,19 +27,12 @@ class ConeTwistJoint3D is Joint3D
     PhysicsPosition3D rbBFrame 
 
     number limitSoftness = 0.0
-	// softness:
-	//		0->1, recommend ~0.8->1.
-	//		describes % of limits where movement is free.
-	//		beyond this softness %, the limit is gradually enforced until the "hard" (1.0) limit is reached.
+
 
     number biasFactor  = 0.0
-	// biasFactor:
-	//		0->1?, recommend 0.3 +/-0.3 or so.
-	//		strength with which constraint resists zeroth order (angular, not angular velocity) limit violation.
+
     number relaxationFactor  = 0.0
-	// relaxationFactor:
-	//		0->1, recommend to stay near 1.
-	//		the lower the value, the less the constraint will fight velocities which violate the angular limits.
+
 
     number swingSpan1  = 0.0
     number swingSpan2  = 0.0
@@ -63,6 +59,14 @@ class ConeTwistJoint3D is Joint3D
     Math math
     number epsilon = 1.1920928955078125 * (math:RaiseToPower(10, -7))
 
+
+    /*
+    This action initializes the joint.
+    Attribute: Parameter itemA The first item.
+    Attribute: Parameter itemB The second item.
+    Attribute: Parameter positionA The center and orientation of the joint connection in A's point of view.
+    Attribute: Parameter positionB The center and orientation of the joint connection in B's point of view.
+    */
     action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB)
         parent:Joint3D:SetItemA(itemA)
         parent:Joint3D:SetItemB(itemB)
@@ -79,12 +83,13 @@ class ConeTwistJoint3D is Joint3D
 
         solveTwistLimit = false 
         solveSwingLimit = false 
-
-        //angularOnly = true  //only make sure angles work first
     end
 
 
-
+    /*
+    This action is called by the Collision Solver to gather information on the joint before calling the SolveJoint action.
+    This action is used internally.
+    */
     action BuildJacobian
         Vector3 tmp 
         Vector3 tmp1
@@ -293,6 +298,9 @@ class ConeTwistJoint3D is Joint3D
 
 
     private number SQRT12 = 0.7071067690849304
+    /*
+    This action is used to create a coordinate system based on a normal vector.
+    */
     private action PlaneSpace1(Vector3 n, Vector3 p, Vector3 q)
         if (math:AbsoluteValue(n:GetZ()) > SQRT12)
             number a = n:GetY() * n:GetY() + n:GetZ() * n:GetZ()
@@ -310,6 +318,10 @@ class ConeTwistJoint3D is Joint3D
         end
     end
 
+    /*
+    This action solves the constraint of this joint and make sure that objects A and B is able to move accordint to the joint constraint applied.
+    This action is used internally.
+    */
     action SolveJoint(number timeStep)
         Vector3 tmp 
         Vector3 tmp2 
@@ -450,6 +462,9 @@ class ConeTwistJoint3D is Joint3D
         end
     end
 
+    /*
+    This action is used to calculate the inverse tangent.
+    */
     private action atan2Fast(number y, number x) returns number
         number coeff_1 = math:pi/4.0
         number coeff_2 = 3.0*coeff_1
@@ -473,6 +488,15 @@ class ConeTwistJoint3D is Joint3D
         end
     end
 
+    /*
+    This action sets the limits to the cone twist joint.
+    Attribute: Parameter inputSwingSpan1 The limit on the Z rotation axis of the joint in degrees.
+    Attribute: Parameter inputSwingSpan2 The limit on the Y rotation axis of the joint in degrees.
+    Attribute: Parameter inputTwistSpan The limit on the X rotation axis of the joint in degrees.
+    Attribute: Parameter inputSoftness At what fraction should the velocity limits starts to be solved. For example, if softness is 0.8, that means the physics will try to correct for the joint when the objects are at 0.8*(velocity limit range). Recommended values are from 0.8 to 1.
+    Attribute: Parameter inputBiasFactor Because during simulation, errors in position of the objects pile up due to rounding errors, this sets how much you want to correct for that error. Default value is 0.3, and the recommended range is [-0.3 to 0.3].
+    Attribute: Parameter inputRelaxationfactor How lenient are you with the objects going out of the limit range in fractions. (0 very lenient, 1 very hard). Default value is 1.
+    */
     action SetLimits(number inputSwingSpan1, number inputSwingSpan2, number inputTwistSpan, number inputSoftness, number inputBiasFactor, number inputRelaxationfactor)
         swingSpan1 = inputSwingSpan1
         swingSpan2 = inputSwingSpan2

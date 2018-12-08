@@ -175,14 +175,6 @@ class CollisionGroup3D
             i = i + 1
         end
 
-        //solve for collision and joints
-        //output "joint count sent to solveGroup is" + jointCount
-//        output "Sending joints to the solve group"
-//        integer s = 0
-//        repeat joints:GetSize() times
-//            output "This is the joint with itemA as " + joints:Get(s):GetItemA():GetDescription()
-//            s = s + 1
-//        end
         collisionSolver:SolveGroup(items, itemCount, manifolds, 0, manifoldCount, joints, 0, jointCount, solverInfo)
 
         if not requireSimulation

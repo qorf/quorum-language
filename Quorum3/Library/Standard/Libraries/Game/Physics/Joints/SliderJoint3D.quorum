@@ -14,8 +14,9 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 
 
-//allows the body to rotate around one axis and translate along this axis
-//may not be possible because shapes are not hollow
+/*
+This class defines a slider joint.
+*/
 class SliderJoint3D is Joint3D
     public constant number SLIDER_CONSTRAINT_DEF_SOFTNESS    = 1.0
     public constant number SLIDER_CONSTRAINT_DEF_DAMPING     = 1.0
@@ -108,8 +109,12 @@ class SliderJoint3D is Joint3D
 
 
     /*
-    positionA: The orientation and location of the slider joint relative to itemA's coordinate system. Make sure so that the x-axis of the slider joint's orientation is pointing toward the direction of the slide relative to ItemA's frame.
-    positionB: The orientation and location of the slider joint relative to itemB's coordinate system
+    This action initializes where the slider joint is and what items are associated with the slider joint.
+    Attribute: Parameter itemA The first item.
+    Attribute: Parameter itemB The second item.
+    Attribute: Parameter positionA The orientation and location of the slider joint relative to itemA's coordinate system. Make sure so that the x-axis of the slider joint's orientation is pointing toward the direction of the slide relative to ItemA's frame if useLinearReferenceFrameA is set to true.
+    Attribute: Parameter positionB The orientation and location of the slider joint relative to itemB's coordinate system.
+    Attribute: Parameter useLinearReferenceFrameA This is set to true when you want to define the limits from the point of view of the first object's center and orientation.
     */
     action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameA)
         parent:Joint3D:SetType(parent:Joint3D:Slider)
@@ -157,7 +162,10 @@ class SliderJoint3D is Joint3D
     end
 
 
-
+    /*
+    This action is called by the Collision Solver to gather information on the joint before calling the SolveJoint action.
+    This action is used internally.
+    */
     action BuildJacobian
         if (useLinearReferenceFrameA)
             BuildJacobian(parent:Joint3D:itemA, parent:Joint3D:itemB, frameInA, frameInB)
@@ -167,6 +175,10 @@ class SliderJoint3D is Joint3D
     end
 
 
+    /*
+    This action solves the constraint of this joint and make sure that objects A and B is able to move accordint to the joint constraint applied.
+    This action is used internally.
+    */
     action SolveJoint(number timeStep) 
             me:timeStep = timeStep
             if (useLinearReferenceFrameA)
@@ -180,74 +192,108 @@ class SliderJoint3D is Joint3D
 
 
     private action SolveJoint(Item3D itemA, Item3D itemB)
+        Vector3 tmp
 
-		Vector3 tmp
+        // linear
+        Vector3 velA
+        velA:Set(itemA:GetLinearVelocityAtLocalPoint(relPosA))
 
-		// linear
-		Vector3 velA
-                velA:Set(itemA:GetLinearVelocityAtLocalPoint(relPosA))
+        Vector3 velB
+        velB:Set(itemB:GetLinearVelocityAtLocalPoint(relPosB))
 
-		Vector3 velB
-                velB:Set(itemB:GetLinearVelocityAtLocalPoint(relPosB))
+        Vector3 vel
+        vel:Set(velA)
+        vel:Subtract(velB) 
 
-		Vector3 vel
-		vel:Set(velA)
-                vel:Subtract(velB) 
+        Vector3 impulse_vector 
 
-		Vector3 impulse_vector 
-                
-                integer i = 0
+        integer i = 0
 
-                repeat 3 times
-                    Vector3 normal
-                    number depthNum = 0
-                    number jacLinDiagABInvTemp = 0
+        repeat 3 times
+            Vector3 normal
+            number depthNum = 0
+            number jacLinDiagABInvTemp = 0
 
-                    if (i = 0)
-                        normal:Set(jacLin0:GetLinearJointAxis())
-                        //normal:Output()   //debugging
-                        depthNum = depth:GetX()  // calculate positional error
-                        jacLinDiagABInvTemp = jacLinDiagABInv0
-                    elseif (i = 1)
-                        normal:Set(jacLin1:GetLinearJointAxis())
-                        //normal:Output()   //debugging
-                        depthNum = depth:GetY()
-                        jacLinDiagABInvTemp = jacLinDiagABInv1
-                    elseif (i = 2)
-                        normal:Set(jacLin2:GetLinearJointAxis())
-                        //normal:Output()   //debugging
-                        depthNum = depth:GetZ()
-                        jacLinDiagABInvTemp = jacLinDiagABInv2
-                    else
-                        output "error"
+            if (i = 0)
+                normal:Set(jacLin0:GetLinearJointAxis())
+                //normal:Output()   //debugging
+                depthNum = depth:GetX()  // calculate positional error
+                jacLinDiagABInvTemp = jacLinDiagABInv0
+            elseif (i = 1)
+                normal:Set(jacLin1:GetLinearJointAxis())
+                //normal:Output()   //debugging
+                depthNum = depth:GetY()
+                jacLinDiagABInvTemp = jacLinDiagABInv1
+            elseif (i = 2)
+                normal:Set(jacLin2:GetLinearJointAxis())
+                //normal:Output()   //debugging
+                depthNum = depth:GetZ()
+                jacLinDiagABInvTemp = jacLinDiagABInv2
+            else
+                output "error"
+            end
+
+
+
+            number rel_vel = normal:DotProduct(vel)
+
+                // get parameters
+                number softness = 0 
+                number restitution = 0
+                number damping = 0
+                if (i not= 0)
+                    softness = softnessOrthoLin
+                    restitution = restitutionOrthoLin
+                    damping = dampingOrthoLin
+                else
+                    if (solveLinLim)
+                        softness = softnessLimLin
+                        restitution = restitutionLimLin
+                        damping = dampingLimLin
+                    else 
+                        softness = softnessDirLin
+                        restitution = restitutionDirLin
+                        damping = dampingDirLin
                     end
+                end
+
+                // calcutate and apply impulse
+                number normalImpulse = softness * (restitution * depthNum / timeStep - damping * rel_vel) * jacLinDiagABInvTemp
+                impulse_vector:Set(normal)
+                impulse_vector:Scale(normalImpulse)
+
+                parent:Joint3D:itemA:ApplyImpulse(impulse_vector, relPosA)
+                tmp:Set(impulse_vector)
+                tmp:MakeOpposite()
+
+                parent:Joint3D:itemB:ApplyImpulse(tmp, relPosB)
 
 
 
-                    number rel_vel = normal:DotProduct(vel)
+                if (poweredLinMotor and (i = 0))
+                    // apply linear motor
+                    if (accumulatedLinMotorImpulse < maxLinMotorForce)
+                        number desiredMotorVel = targetLinMotorVelocity
+                        number motor_relvel = desiredMotorVel + rel_vel
 
-			// get parameters
-			number softness = 0 
-                        number restitution = 0
-                        number damping = 0
-                        if (i not= 0)
-                            softness = softnessOrthoLin
-                            restitution = restitutionOrthoLin
-                            damping = dampingOrthoLin
-                        else
-                            if (solveLinLim)
-                                softness = softnessLimLin
-                                restitution = restitutionLimLin
-                                damping = dampingLimLin
-                            else 
-                                softness = softnessDirLin
-                                restitution = restitutionDirLin
-                                damping = dampingDirLin
-                            end
+                        normalImpulse = -motor_relvel*jacLinDiagABInvTemp
+
+                        // clamp accumulated impulse
+                        number new_acc = accumulatedLinMotorImpulse + math:AbsoluteValue(normalImpulse)
+                        if (new_acc > maxLinMotorForce)
+                            new_acc = maxLinMotorForce
                         end
 
-                        // calcutate and apply impulse
-			number normalImpulse = softness * (restitution * depthNum / timeStep - damping * rel_vel) * jacLinDiagABInvTemp
+                        number del = new_acc - accumulatedLinMotorImpulse
+                        if (normalImpulse < 0) 
+                            normalImpulse = -del
+                        else
+                            normalImpulse = del
+                        end
+
+                        accumulatedLinMotorImpulse = new_acc
+
+                        // apply clamped impulse
                         impulse_vector:Set(normal)
                         impulse_vector:Scale(normalImpulse)
 
@@ -256,108 +302,73 @@ class SliderJoint3D is Joint3D
                         tmp:MakeOpposite()
 
                         parent:Joint3D:itemB:ApplyImpulse(tmp, relPosB)
+                    end//end if
+                end //end if (poweredLinMotor && (i == 0))
+                i = i + 1
+        end //end for statement
+
+        // start solving angular
+        // get axes in world space
+        Vector3 axisA 
+        axisA:Set(calculatedTransformA:GetBasis():GetColumn(0))
+        Vector3 axisB
+        axisB:Set(calculatedTransformB:GetBasis():GetColumn(0))
+
+        Vector3 angVelA 
+        angVelA:Set(parent:Joint3D:itemA:GetAngularVelocity())
+
+        Vector3 angVelB 
+        angVelB:Set(parent:Joint3D:itemB:GetAngularVelocity()) 
+
+        Vector3 angVelAroundAxisA   
+        angVelAroundAxisA:Set(axisA)
+        angVelAroundAxisA:Scale(axisA:DotProduct(angVelA))
+
+        Vector3 angVelAroundAxisB   
+        angVelAroundAxisB:Set(axisB)
+        angVelAroundAxisB:Scale(axisB:DotProduct(angVelB))
 
 
+        Vector3 angAorthog
+        angAorthog:Set(angVelA)
+        angAorthog:Subtract(angVelAroundAxisA)
 
-                        if (poweredLinMotor and (i = 0))
-                            // apply linear motor
-                            if (accumulatedLinMotorImpulse < maxLinMotorForce)
-                                number desiredMotorVel = targetLinMotorVelocity
-                                number motor_relvel = desiredMotorVel + rel_vel
+        Vector3 angBorthog
+        angBorthog:Set(angVelB)
+        angBorthog:Subtract(angVelAroundAxisB)
 
-                                normalImpulse = -motor_relvel*jacLinDiagABInvTemp
-
-                                // clamp accumulated impulse
-                                number new_acc = accumulatedLinMotorImpulse + math:AbsoluteValue(normalImpulse)
-                                if (new_acc > maxLinMotorForce)
-                                    new_acc = maxLinMotorForce
-                                end
-
-                                number del = new_acc - accumulatedLinMotorImpulse
-                                if (normalImpulse < 0) 
-                                    normalImpulse = -del
-                                else
-                                    normalImpulse = del
-                                end
-                                
-                                accumulatedLinMotorImpulse = new_acc
-
-                                // apply clamped impulse
-                                impulse_vector:Set(normal)
-                                impulse_vector:Scale(normalImpulse)
-                                
-                                parent:Joint3D:itemA:ApplyImpulse(impulse_vector, relPosA)
-                                tmp:Set(impulse_vector)
-                                tmp:MakeOpposite()
-
-                                parent:Joint3D:itemB:ApplyImpulse(tmp, relPosB)
-                            end//end if
-                        end //end if (poweredLinMotor && (i == 0))
-                        i = i + 1
-                end //end for statement
-                
-		// start solving angular
-		// get axes in world space
-                Vector3 axisA 
-                axisA:Set(calculatedTransformA:GetBasis():GetColumn(0))
-                Vector3 axisB
-                axisB:Set(calculatedTransformB:GetBasis():GetColumn(0))
-
-                Vector3 angVelA 
-                angVelA:Set(parent:Joint3D:itemA:GetAngularVelocity())
-               
-                Vector3 angVelB 
-                angVelB:Set(parent:Joint3D:itemB:GetAngularVelocity()) 
-
-                Vector3 angVelAroundAxisA   
-                angVelAroundAxisA:Set(axisA)
-                angVelAroundAxisA:Scale(axisA:DotProduct(angVelA))
-
-                Vector3 angVelAroundAxisB   
-                angVelAroundAxisB:Set(axisB)
-                angVelAroundAxisB:Scale(axisB:DotProduct(angVelB))
-                
-
-                Vector3 angAorthog
-                angAorthog:Set(angVelA)
-                angAorthog:Subtract(angVelAroundAxisA)
-
-                Vector3 angBorthog
-                angBorthog:Set(angVelB)
-                angBorthog:Subtract(angVelAroundAxisB)
-
-                Vector3 velrelOrthog
-                velrelOrthog:Set(angAorthog)
-                velrelOrthog:Subtract(angBorthog)
+        Vector3 velrelOrthog
+        velrelOrthog:Set(angAorthog)
+        velrelOrthog:Subtract(angBorthog)
 
 
-                // solve orthogonal angular velocity correction
-                number len = velrelOrthog:Length()
-                if (len > 0.00001)
-                    Vector3 normalTemp
-                    normalTemp:Set(velrelOrthog)
-                    normalTemp:Normalize()
+        // solve orthogonal angular velocity correction
+        number len = velrelOrthog:Length()
+        if (len > 0.00001)
+            Vector3 normalTemp
+            normalTemp:Set(velrelOrthog)
+            normalTemp:Normalize()
 
-                    number denom = parent:Joint3D:itemA:ComputeAngularImpulseDenominator(normalTemp) + parent:Joint3D:itemB:ComputeAngularImpulseDenominator(normalTemp)
-                    velrelOrthog:Scale((1.0/denom) * dampingOrthoAng * softnessOrthoAng)
-                end
+            number denom = parent:Joint3D:itemA:ComputeAngularImpulseDenominator(normalTemp) + parent:Joint3D:itemB:ComputeAngularImpulseDenominator(normalTemp)
+            velrelOrthog:Scale((1.0/denom) * dampingOrthoAng * softnessOrthoAng)
+        end
 
-		// solve angular positional correction
-		Vector3 angularError
-                angularError:Set(axisA:CrossProduct(axisB))
-                angularError:Scale(1.0/timeStep)
+        // solve angular positional correction
+        Vector3 angularError
+        angularError:Set(axisA:CrossProduct(axisB))
+        angularError:Scale(1.0/timeStep)
 
-                number len2 = angularError:Length()
+        number len2 = angularError:Length()
 
 
-                if (len2 > 0.00001)
-                    Vector3 normal2
-                    normal2:Set(angularError)
-                    normal2:Normalize()
+        if (len2 > 0.00001)
+            Vector3 normal2
+            normal2:Set(angularError)
+            normal2:Normalize()
 
-                    number denom2  = parent:Joint3D:itemA:ComputeAngularImpulseDenominator(normal2) + parent:Joint3D:itemB:ComputeAngularImpulseDenominator(normal2)
-                    angularError:Scale(1.0/denom2 * restitutionOrthoAng * softnessOrthoAng)
-                end
+            number denom2  = parent:Joint3D:itemA:ComputeAngularImpulseDenominator(normal2) + parent:Joint3D:itemB:ComputeAngularImpulseDenominator(normal2)
+            angularError:Scale(1.0/denom2 * restitutionOrthoAng * softnessOrthoAng)
+        end
 
 
         // apply impulse
@@ -397,45 +408,45 @@ class SliderJoint3D is Joint3D
         parent:Joint3D:itemB:ApplyTorqueImpulse(tmp)
 
 
-		// apply angular motor
-		if (poweredAngMotor)
-                    if (accumulatedAngMotorImpulse < maxAngMotorForce)
-                        Vector3 velrel
-                        velrel:Set(angVelAroundAxisA)
-                        velrel:Subtract(angVelAroundAxisB)
+        // apply angular motor
+        if (poweredAngMotor)
+            if (accumulatedAngMotorImpulse < maxAngMotorForce)
+                Vector3 velrel
+                velrel:Set(angVelAroundAxisA)
+                velrel:Subtract(angVelAroundAxisB)
 
-                        number projRelVel = velrel:DotProduct(axisA)
+                number projRelVel = velrel:DotProduct(axisA)
 
-                        number desiredMotorVel = targetAngMotorVelocity
-                        number motor_relvel = desiredMotorVel - projRelVel
-                        number angImpulse = kAngle * motor_relvel
+                number desiredMotorVel = targetAngMotorVelocity
+                number motor_relvel = desiredMotorVel - projRelVel
+                number angImpulse = kAngle * motor_relvel
 
-                        // clamp accumulated impulse
-			number new_acc = accumulatedAngMotorImpulse + math:AbsoluteValue(angImpulse)
-                        if (new_acc > maxAngMotorForce)
-                            new_acc = maxAngMotorForce
-                        end 
-                        
-                        number del = new_acc - accumulatedAngMotorImpulse
+                // clamp accumulated impulse
+                number new_acc = accumulatedAngMotorImpulse + math:AbsoluteValue(angImpulse)
+                if (new_acc > maxAngMotorForce)
+                    new_acc = maxAngMotorForce
+                end 
 
-                        if (angImpulse < 0)
-                            angImpulse = -del
-                        else
-                            angImpulse = del
-                        end
-                        accumulatedAngMotorImpulse = new_acc
+                number del = new_acc - accumulatedAngMotorImpulse
 
-                        // apply clamped impulse
-			Vector3 motorImp
-                        motorImp:Set(axisA)
-                        motorImp:Scale(angImpulse)
-                        parent:Joint3D:itemA:ApplyTorqueImpulse(motorImp)
-                        
-                        tmp:Set(motorImp)
-                        tmp:MakeOpposite()
-                        parent:Joint3D:itemB:ApplyTorqueImpulse(tmp)
-                    end
-                end //if (poweredAngMotor)
+                if (angImpulse < 0)
+                    angImpulse = -del
+                else
+                    angImpulse = del
+                end
+                accumulatedAngMotorImpulse = new_acc
+
+                // apply clamped impulse
+                Vector3 motorImp
+                motorImp:Set(axisA)
+                motorImp:Scale(angImpulse)
+                parent:Joint3D:itemA:ApplyTorqueImpulse(motorImp)
+
+                tmp:Set(motorImp)
+                tmp:MakeOpposite()
+                parent:Joint3D:itemB:ApplyTorqueImpulse(tmp)
+            end
+        end //if (poweredAngMotor)
     end
 
 
@@ -639,18 +650,30 @@ class SliderJoint3D is Joint3D
     end
 
 
+    /*
+    This action sets the lower linear limit to how much the moving object should be able to slide.
+    */
     action SetLowerLinearLimit(number lowerLimit)
         me:lowerLinLimit = lowerLimit
     end
 
+    /*
+    This action sets the upper linear limit to how much the moving object should be able to slide.
+    */
     action SetUpperLinearLimit(number upperLimit)
         me:upperLinLimit = upperLimit
     end
 
+    /*
+    This action sets how much the moving object should be able to rotate along the axis of slide.
+    */
     action SetLowerAngularLimit(number lowerLimit)
         me:lowerAngLimit = lowerLimit
     end
 
+    /*
+    This action sets how much the moving object should be able to rotate along the axis of slide.
+    */
     action SetUpperAngularLimit(number upperLimit)
         me:upperAngLimit = upperLimit
     end
