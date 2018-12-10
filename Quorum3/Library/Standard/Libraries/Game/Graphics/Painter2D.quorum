@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
+use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.VertexAttributes
 
@@ -55,6 +56,11 @@ class Painter2D
     private Color color
 
     private Array<number> vertices
+
+    /*
+    An array used to store incoming Drawables and sort them by depth.
+    */
+    private Array<SortableContainer<number, Drawable>> sortingArray
 
     /*
     Values used for clipping via glScissor. The coordinates form an axis
@@ -212,7 +218,7 @@ class Painter2D
         end
     */
     action IsDrawing returns boolean
-            return drawing
+        return drawing
     end
 
     /*
@@ -274,7 +280,7 @@ class Painter2D
         Array<VertexAttribute> array
         
         VertexAttribute position
-        position:SetAttribute(position:POSITION, 2, "a_position")
+        position:SetAttribute(position:POSITION, 3, "a_position")
         VertexAttribute colorPacked
         colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
         VertexAttribute textureCoords
@@ -285,9 +291,9 @@ class Painter2D
         array:Add(textureCoords)
         attributes:SetAttributes(array)
 
-        mesh:Load(false, 4000, 6000, attributes, true)
+        mesh:Load(false, 4800, 6000, attributes, true)
 
-        vertices:SetSize(4000)
+        vertices:SetSize(4800)
 
         integer length = 6000
         Array<integer> indices
@@ -344,7 +350,9 @@ class Painter2D
 
     /*
     Deactivates this Painter2D. A deactivated Painter2D can not draw. If the Painter2D
-    is already deactived, this will cause an error.
+    is already deactived, this will cause an error. This action also flushes the
+    Painter's queue, causing any drawing queued up by the Draw action to
+    complete and displaying the new draw buffer.
 
     Attribute: Example
 
@@ -367,7 +375,23 @@ class Painter2D
 
         end
     */
-    system action End
+    action End
+        sortingArray:Sort()
+        
+        integer counter = sortingArray:GetSize()
+        repeat while counter > 0
+            counter = counter - 1
+            Drawable drawable = sortingArray:Get(counter):GetValue()
+            drawable:SetClipCoordinates(me)
+            SystemDraw(drawable)
+        end
+
+        SystemEnd()
+
+        sortingArray:Empty()
+    end
+
+    private system action SystemEnd
 
     /*
     Draws a Drawable on the screen. A Painter2D must be activated with Begin()
@@ -377,7 +401,14 @@ class Painter2D
     covered over by the Game's drawing step, keeping the drawn object from being
     seen.
     */
-    system action Draw(Drawable drawable)
+    action Draw(Drawable drawable)
+        // Consider using a pool to re-use SortableContainers rather than constantly instantiating them.
+        SortableContainer<number, Drawable> container
+        container:Set(drawable:GetGlobalZ(), drawable)
+        sortingArray:Add(container)
+    end
+
+    private system action SystemDraw(Drawable drawable)
 
     /*
     Disposes of the plugin data stored by the Painter2D, freeing up resources when

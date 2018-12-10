@@ -170,7 +170,11 @@ public class Painter2D
         if (quorumBatch.IsDrawing())
             throw new GameRuntimeError("This painter is already drawing! Call End() before calling Begin() again.");
         
-        GameStateManager.nativeGraphics.glDepthMask(false);
+        GameStateManager.nativeGraphics.glDepthMask(true);
+        GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_DEPTH_TEST);
+        GameStateManager.nativeGraphics.glDepthFunc(GraphicsManager.GL_LEQUAL);
+        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
+        
         if (useFontShader)
             fontShader.Begin();
         else if (customShader != null)
@@ -190,7 +194,7 @@ public class Painter2D
         }
     }
     
-    public void End()
+    public void SystemEnd()
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
@@ -235,7 +239,7 @@ public class Painter2D
         colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
     }
         
-    public void Draw (quorum.Libraries.Game.Graphics.Drawable_ drawable)
+    public void SystemDraw(quorum.Libraries.Game.Graphics.Drawable_ drawable)
     {
         
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
@@ -263,7 +267,7 @@ public class Painter2D
         
         if (!drawable.UsingCustomTint())
         {
-            for (int i = 2; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
+            for (int i = drawable.Get_Libraries_Game_Graphics_Drawable__C1_(); i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
                 drawable.SetVertex(i, colorValue);
         }
         
@@ -281,15 +285,14 @@ public class Painter2D
 
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
-        int count = (index / 20) * 6;
+        // Index is divided by the value of DRAWABLE_SIZE.
+        int count = (index / 24) * 6;
         
         quorumBatch.lastTexture.Bind();
         
         mesh.SetVertices(quorumBatch.GetVertices(), 0, index);
         ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().position(0);
         ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().limit(count);
-//        mesh.getIndicesBuffer().position(0);
-//        mesh.getIndicesBuffer().limit(count);
         
         if (blendingDisabled)
             GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);

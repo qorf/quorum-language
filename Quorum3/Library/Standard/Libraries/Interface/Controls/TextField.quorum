@@ -1,0 +1,870 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Glyph
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.TextFieldSelection
+use Libraries.Interface.Views.DrawableView
+use Libraries.Containers.Array
+use Libraries.Containers.MultipleLineText
+use Libraries.Containers.Support.Pair
+use Libraries.System.File
+use Libraries.Compute.Math
+
+class TextField is Control, MouseListener, MouseMovementListener, FocusListener
+
+    /*
+    All of the text contained in this object.
+    */
+    text textValue = ""
+
+    /*
+    The font used for the text. For future iterations, this will be replaced by
+    an iterable structure, along with information indicating at what line and
+    character positions the font changes.
+    */
+    Font font
+
+    /*
+    The color of characters. For future iterations, this will be replaced by an
+    iterable structure, along with information indicating at what line and
+    character positions the font changes.
+    */
+    Color characterColor
+
+    /*
+    An array of lines which are visible on the screen, where each line is
+    composed of an array of drawables representing each character on the line.
+    */
+    Array<Drawable> lineCharacters
+
+    Drawable caret
+    integer caretThickness = 1
+    Color caretColor = characterColor:Black()
+
+    // How far the first character in the view has slid to the left to show text that extends past the end of the TextField.
+    number horizontalOffset = 0.0
+
+    /*
+    Whether the caret is active or not. This does not necessarily mean the caret
+    is visible at any exact moment - the caret might be non-visible even while
+    active, for example if the caret has been idle and is blinking. This boolean
+    effectively ensures that the caret is usable, i.e., the text box has focus.
+    */
+    boolean caretActive = false
+
+    number caretIdleTime = 1.0
+    number caretBlinkTime = 0.35
+    number caretMoveDelay = 0.35
+    number caretMoveTime = 0.0325
+    number caretTimer = 0
+
+    /*
+    The caret's position is known using three values:
+        caretLine, which line the caret is on.
+        caretCharacter, the character index of the caret on its particular line.
+        caretX, the actual X position of the caret, which is used for vertical movement.
+    */
+    integer caretLine = 0
+    integer caretCharacter = 0
+    number caretX = 0
+
+    TextFieldSelection selection
+
+    /*
+    The color of the selection highlight.
+    */
+    ColorGroup selectionColor = undefined
+
+    /*
+    The texture used for the selection higlight. Initialized as a 1x1 white texture.
+    */
+    Texture selectionTexture = undefined
+
+    Control background
+
+    integer leftCharacterPadding = 9
+
+    /*
+    Values used for when text is being selected by dragging the mouse.
+    */
+    boolean draggingInText = false
+
+    /*
+    An array of listeners which are notified when the text in this TextBox
+    changes.
+    */
+    Array<TextChangeListener> textChangeListeners
+
+    Math math
+
+    on create
+        SetName("Text Field")
+        SetInputGroup("TextField")
+        SetFocusable(true)
+        AddFocusListener(me)
+        SetClipping(true)
+        AddMouseListener(me)
+        AddMouseMovementListener(me)
+
+//        SetSelectionType(parent:Selectable:RANGE_SELECTION)
+
+        Add(background)
+
+        if font:FontIsAvailable("Courier New")
+            font:LoadFont("Courier New")
+        elseif font:FontIsAvailable("Courier")
+            font:LoadFont("Courier")
+        elseif font:FontIsAvailable("cour")
+            font:LoadFont("cour")
+        elseif font:FontIsAvailable("Roboto-Black")
+            font:LoadFont("Roboto-Black")
+        elseif font:FontIsAvailable("Arial")
+            font:LoadFont("Arial")
+        else
+            Array<File> availableFontFiles = font:GetAvailableFonts()
+            if availableFontFiles:GetSize() > 0
+                font:LoadFont(availableFontFiles:Get(0))
+            end
+        end
+
+        selection:Initialize(me, "")
+        SetAccessibilityCode(parent:Item:TEXTBOX)
+
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties backgroundLayout = background:GetDefaultLayoutProperties()
+        backgroundLayout:SetPercentageWidth(1)
+        backgroundLayout:SetPercentageHeight(1)
+
+        Color color
+
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetFontColor(color:Black())
+        defaultProperties:SetFont(font)
+        defaultProperties:SetFontSize(font:GetSize())
+        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
+        defaultProperties:SetHorizontalLayoutMode(defaultProperties:STANDARD)
+        defaultProperties:SetBackgroundColor(color:White())
+        defaultProperties:SetSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
+        defaultProperties:SetSelectionFontColor(color:Black())
+
+        HideCaret()
+    end
+
+    action GetLeftCharacterPadding returns integer
+        return leftCharacterPadding
+    end
+
+    action SetLeftCharacterPadding(integer padding)
+        leftCharacterPadding = padding
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if selectionTexture = undefined
+            Texture texture
+            selectionTexture = texture
+            selectionTexture:LoadFilledRectangle(1, 1)
+        end
+
+        ColorGroup backgroundColor = properties:GetBackgroundColor()
+
+        if backgroundColor not= undefined
+            DrawableView backgroundView
+            backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
+            background:SetView2D(backgroundView)
+        end
+
+        Color color
+
+        Color fontColor = properties:GetFontColor()
+        if fontColor = undefined
+            fontColor = color:Black()
+        end
+
+        caretColor = fontColor
+
+        ColorGroup highlightColor = properties:GetSelectionColor()
+        if highlightColor = undefined
+            highlightColor = color:CustomColor(0.75, 0.75, 1, 1)
+        end
+
+        selectionColor = highlightColor
+
+        GetLineDrawables()
+    end
+
+    /*
+    Makes everything from scratch. For initialization purposes.
+    */
+    private action GetLineDrawables
+        if selectionTexture = undefined
+            // If we don't have a selection texture, the graphics haven't been
+            // loaded yet, and we should wait until they are to create the
+            // drawables for text.
+            return now
+        end
+
+        LayoutProperties currentProperties = GetCurrentLayoutProperties()
+        Color fontColor = currentProperties:GetFontColor()
+        Color selectedFontColor = currentProperties:GetSelectionFontColor()
+
+        if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
+            font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
+        end
+
+        // Ensure caret is correct size.
+        InitializeCaret()
+        
+        lineCharacters:Empty()
+        background:Empty()
+
+        integer size = textValue:GetSize()
+        integer lineHeight = font:GetLineHeight()
+
+        integer characterCounter = 0
+        number x = leftCharacterPadding + horizontalOffset
+        repeat size times
+            Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
+            Drawable draw = glyph:drawable
+
+            boolean highlighted = false
+
+            if characterCounter >= selection:GetStartIndex() and characterCounter < selection:GetEndIndex()
+                highlighted = true
+            end
+
+            if highlighted
+                Drawable highlight
+                highlight:Load(selectionTexture)
+                highlight:SetSize(glyph:horizontalAdvance, lineHeight)
+                highlight:SetColor(selectionColor)
+                highlight:SetX(x)
+                background:Add(highlight)
+            end
+
+            if draw not= undefined
+                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight())
+                lineCharacters:Add(draw)
+                background:Add(draw)
+
+                if highlighted
+                    draw:SetColor(selectedFontColor)
+                else
+                    draw:SetColor(fontColor)
+                end
+            end
+            x = x + glyph:horizontalAdvance
+            characterCounter = characterCounter + 1
+        end
+
+        PositionCaret()
+        background:Add(caret)
+    end
+
+    private action InitializeCaret
+        if caret:IsLoaded() = false
+            caret:LoadFilledRectangle(1, 1)
+            caret:SetName("TextBox Caret")
+        end
+
+        integer thickness = caretThickness
+        if GetCurrentLayoutProperties() not= undefined
+            thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetInterfaceScale())
+        end
+
+        caret:SetSize(thickness, font:GetLineHeight())
+        caret:SetColor(caretColor)
+    end
+
+    /*
+    Positions the caret on the screen using the caretLine and caretCharacter
+    values. Also calculates the new x position of the caret, which is returned.
+    Depending on context, this value can be saved to overwrite the previous
+    caretX, or ignored to preserve the old value.
+    */
+    private action PositionCaret returns number
+
+        number x = horizontalOffset
+        text lineCharacters = textValue
+
+        integer counter = 0
+        repeat while counter < caretCharacter
+            Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
+            x = x + glyph:horizontalAdvance
+            counter = counter + 1
+        end
+
+        caret:SetPosition(x + leftCharacterPadding, 0)
+        return x + leftCharacterPadding
+    end
+
+    private action EmptySelectionEvent(boolean textChanged)
+        integer index = caretCharacter
+
+        selection:Set(index, index, true, textChanged)
+
+        // Report the new selection here.
+        UpdateVisualSelection()
+    end
+
+    private action SelectionMoveLeft
+
+        integer index = caretCharacter
+
+        if (index < selection:GetStartIndex())
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex), false)
+        else
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true, false)
+        end
+
+        // Report the new selection here.
+        UpdateVisualSelection()
+    end
+
+    private action SelectionMoveRight
+
+        integer index = caretCharacter
+
+        if (index > selection:GetEndIndex())
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true, false)
+        else
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex), false)
+        end
+
+        // Report the new selection here.
+        UpdateVisualSelection()
+    end
+
+    /*
+    Update the drawables to reflect the selection.
+    */
+    private action UpdateVisualSelection
+        GetLineDrawables()
+    end
+
+    /*
+    Sets the caret to a particular index. Left private because it does not
+    adjust the selection, update the visuals, or trigger any events, and is only 
+    used in preparation for other calls which will perform some tasks from the 
+    caret's position and then trigger the appropriate events.
+    */
+    private action SetCaretToIndex(integer index)
+        caretCharacter = index
+    end
+
+    action MoveCaretLeft(boolean selecting)
+        if not caretActive
+            return now
+        end
+
+        integer oldIndex = caretCharacter
+
+        if caretCharacter = 0
+            if (not selecting) and (not selection:IsEmpty())
+                EmptySelectionEvent(false)
+            end
+
+            return now
+        else
+            caretCharacter = caretCharacter - 1
+        end
+        FitCharacterOnScreen(caretCharacter)
+        caretX = PositionCaret()
+        ShowCaret()
+
+        if selecting
+            SelectionMoveLeft()
+        else
+            EmptySelectionEvent(false)
+        end
+    end
+
+    action MoveCaretRight(boolean selecting)
+        if not caretActive
+            return now
+        end
+
+        integer oldIndex = caretCharacter
+
+        text lineText = textValue
+        integer size = lineText:GetSize()
+
+        if caretCharacter >= size
+            if (not selecting) and (not selection:IsEmpty())
+                EmptySelectionEvent(false)
+            end
+
+            return now
+        else
+            caretCharacter = caretCharacter + 1
+        end
+        FitCharacterOnScreen(caretCharacter)
+        caretX = PositionCaret()
+        ShowCaret()
+
+        if selecting
+            SelectionMoveRight()
+        else
+            EmptySelectionEvent(false)
+        end
+    end
+
+    /*
+    Fits a character horizontally in the TextField.
+    */
+    private action FitCharacterOnScreen(integer character)
+        if character = 0
+            horizontalOffset = 0
+            return now
+        end
+
+        number x = 0
+        integer characterCounter = 0
+
+        repeat character times
+            Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
+            x = x + glyph:horizontalAdvance
+            characterCounter = characterCounter + 1
+        end
+
+        if (x + horizontalOffset < 0 or x + horizontalOffset > GetWidth())
+            horizontalOffset = -x
+        end
+    end
+
+    action ShowCaret
+        caret:Show()
+        caretActive = true
+        caretTimer = caretIdleTime
+    end
+
+    action HideCaret
+        caret:Hide()
+        caretActive = false
+    end
+
+    action DeleteBackward
+        if (not selection:IsEmpty())
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex()))
+            DeleteSelection()
+            NotifyTextChangeListeners(changeEvent)
+            return now
+        end
+
+        integer index = caretCharacter
+        if index = 0
+            return now
+        end
+
+        integer toDelete = 1
+
+        text deletedText = textValue:GetSubtext(index - toDelete, index)
+        text preText = ""
+        text postText = ""
+        if (index - toDelete) > 0
+            preText = textValue:GetSubtext(0, index - toDelete)
+        end
+        if (index < textValue:GetSize())
+            postText = textValue:GetSubtext(index, textValue:GetSize())
+        end
+
+        textValue = preText + postText
+        caretCharacter = caretCharacter - toDelete
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action DeleteForward
+        if (not selection:IsEmpty())
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex()))
+            DeleteSelection()
+            NotifyTextChangeListeners(changeEvent)
+            return now
+        end
+
+        if caretCharacter = textValue:GetSize()
+            return now
+        end
+
+        integer toDelete = 1
+
+        integer index = caretCharacter
+        text deletedText = textValue:GetSubtext(index, index + toDelete)
+
+        text preText = ""
+        text postText = ""
+        if index > 0
+            preText = textValue:GetSubtext(0, index)
+        end
+        if (index + toDelete < textValue:GetSize())
+            postText = textValue:GetSubtext(index + toDelete, textValue:GetSize())
+        end
+
+        textValue = preText + postText
+
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action DeleteSelection
+        if selection:IsEmpty()
+            return now
+        end
+
+        caretCharacter = selection:GetStartIndex()
+        integer endIndex = selection:GetEndIndex()
+
+        text preText = ""
+        text postText = ""
+        if caretCharacter > 0
+            preText = textValue:GetSubtext(0, caretCharacter)
+        end
+        if (endIndex < textValue:GetSize())
+            postText = textValue:GetSubtext(endIndex, textValue:GetSize())
+        end
+
+        textValue = preText + postText
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+    end
+
+    action Delete(integer startIndex, integer endIndex)
+        if startIndex = endIndex
+            return now
+        end
+
+        caretCharacter = startIndex
+
+        text preText = ""
+        text postText = ""
+        if caretCharacter > 0
+            preText = textValue:GetSubtext(0, caretCharacter)
+        end
+        if (endIndex < textValue:GetSize())
+            postText = textValue:GetSubtext(endIndex, textValue:GetSize())
+        end
+
+        textValue = preText + postText
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+    end
+
+    action Insert(integer index, text value)
+        SetCaretToIndex(index)
+        Insert(value)
+    end
+
+    action Insert(text value)
+        text deletedText = ""
+
+        if (not selection:IsEmpty())
+            deletedText = textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex())
+            DeleteSelection()
+        end
+
+        text preText = ""
+        text postText = ""
+        if caretCharacter > 0
+            preText = textValue:GetSubtext(0, caretCharacter)
+        end
+        if caretCharacter < textValue:GetSize()
+            postText = textValue:GetSubtext(caretCharacter, textValue:GetSize())
+        end
+
+        textValue = preText + value + postText
+        
+        caretCharacter = caretCharacter + value:GetSize()
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action DraggedMouse(MouseEvent event)
+        if draggingInText
+            MousePositionCaret(event, true)
+        end
+    end
+
+    action ClickedMouse(MouseEvent event)
+        if event:GetSource() not= undefined and event:GetSource() is Item2D
+            // Assume main text area was clicked.
+            draggingInText = true
+            MousePositionCaret(event, false)
+        end
+    end
+
+    action ReleasedMouse(MouseEvent event)
+        draggingInText = false
+    end
+
+    private action MousePositionCaret(MouseEvent event, boolean dragging)
+
+        integer index = caretCharacter
+
+        PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+        
+        if dragging
+            if index = caretCharacter
+                return now
+            end
+
+            boolean atEnd = selection:IsCaretAtEnd()
+
+            if atEnd
+                if caretCharacter < selection:GetStartIndex()
+                    Select(GetCaretIndex(), selection:GetStartIndex(), false)
+                else
+                    Select(selection:GetStartIndex(), GetCaretIndex(), true)
+                end
+            else
+                if GetCaretIndex() > selection:GetEndIndex()
+                    Select(selection:GetEndIndex(), GetCaretIndex(), true)
+                else
+                    Select(GetCaretIndex(), selection:GetEndIndex(), false)
+                end
+            end
+        else
+            EmptySelectionEvent(false)
+        end
+        ShowCaret()
+    end
+
+    private action PositionCaretFromCoordinates(number x, number y)
+        integer index = GetNearestCharacter(x)
+        caretCharacter = index
+        caretX = PositionCaret()
+    end
+
+    /*
+    For the given line, find the character index for the closest possible cursor
+    position. Used for vertical caret navigation.
+    */
+    private action GetNearestCharacter(number position) returns integer
+        text lineText = textValue
+        integer size = lineText:GetSize()
+
+        position = position - leftCharacterPadding
+
+        number x1 = horizontalOffset
+        number x2 = horizontalOffset
+        integer counter = 0
+        number distance1 = position
+        repeat while counter < size
+            Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
+            x2 = x1 + glyph:horizontalAdvance
+            number distance2 = math:AbsoluteValue(position - x2)
+            if distance1 < distance2
+                return counter
+            end
+            
+            distance1 = distance2
+            x1 = x2
+            counter = counter + 1
+        end
+
+        return counter
+    end
+
+    action GainedFocus(FocusEvent event)
+        ShowCaret()
+    end
+
+    action LostFocus(FocusEvent event)
+        HideCaret()
+    end
+
+    action Update(number seconds)
+        if caretActive
+            caretTimer = caretTimer - seconds
+            if caretTimer < 0
+                caretTimer = caretTimer + caretBlinkTime
+                if caret:IsShowing()
+                    caret:Hide()
+                else
+                    caret:Show()
+                end
+            end
+        end
+    end
+
+    action SetCaretIdleTime(number time)
+        caretIdleTime = time
+    end
+
+    action SetCaretMoveDelay(number time)
+        caretMoveDelay = time
+    end
+
+    action SetCaretMoveTime(number time)
+        caretMoveTime = time
+    end
+
+    action GetCaretIdleTime returns number
+        return caretIdleTime
+    end
+
+    action GetCaretMoveDelay returns number
+        return caretMoveDelay
+    end
+
+    action GetCaretMoveTime returns number
+        return caretMoveTime
+    end
+
+    action GetCaretIndex returns integer
+        return caretCharacter
+    end
+
+    action GetText returns text
+        return textValue
+    end
+
+    action Empty
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", GetText())
+
+        textValue = ""
+        caretCharacter = 0
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action SetText(text value)
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, GetText())
+
+        textValue = value
+        caretCharacter = 0
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent(true)
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action AppendToText(text value)
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, "")
+        
+        textValue = textValue + value
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    action Select(integer startIndex, integer endIndex)
+        Select(startIndex, endIndex, true)
+    end
+
+    action Select(integer startIndex, integer endIndex, boolean caretAtEnd)
+        if startIndex < 0
+            startIndex = 0
+        end
+
+        if endIndex > textValue:GetSize()
+            endIndex = textValue:GetSize()
+        end
+
+        selection:Set(startIndex, endIndex, caretAtEnd, false)
+        UpdateVisualSelection()
+    end
+
+    action GetSelection returns TextFieldSelection
+        return selection
+    end
+
+    action AddTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Add(listener)
+    end
+
+    action RemoveTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Remove(listener)
+    end
+
+    action GetTextChangeListeners returns Array<TextChangeListener>
+        return textChangeListeners
+    end
+
+    private action NotifyTextChangeListeners(TextChangeEvent event)
+        integer counter = 0
+        repeat while counter < textChangeListeners:GetSize()
+            textChangeListeners:Get(counter):TextChanged(event)
+            counter = counter + 1
+        end
+        GameStateManager manager
+        manager:GetInput():NotifyTextChangeListeners(event)
+    end
+end
