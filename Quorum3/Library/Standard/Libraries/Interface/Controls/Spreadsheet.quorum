@@ -31,8 +31,41 @@ class Spreadsheet is Control
         parent:Item2D:Add(column)
     end
 
+    action Add(integer position, Column column)
+        columns:Add(position, column)
+
+        parent:Item2D:Add(column)
+    end
+
+    action GetColumn(integer i) returns Column
+        return columns:Get(i)
+    end
+
+    action RemoveColumn(Column column)
+        columns:Remove(column)
+        parent:Item2D:Remove(column)
+    end
+
+    action RemoveColumnAt(integer column)
+        Column c = columns:RemoveAt(column)
+        parent:Item2D:Remove(c)
+    end
+
+    action GetColumnsSize returns integer
+        return columns:GetSize()
+    end
+
     action GetSelection returns SpreadsheetSelection
         return selection
+    end
+
+    action IsColumnsEmpty returns boolean
+        return columns:IsEmpty()
+    end
+
+    action Empty 
+        columns:Empty()
+        parent:Item2D:Empty()
     end
 
     /*

@@ -23,4 +23,37 @@ class Column is Control
 
         parent:Item2D:Add(cell)
     end
+
+    action Add(integer position, Cell cell)
+        cells:Add(position, cell)
+
+        parent:Item2D:Add(cell)
+    end
+
+    action GetCell(integer i) returns Cell
+        return cells:Get(i)
+    end
+
+    action RemoveCell(Cell cell)
+        cells:Remove(cell)
+        parent:Item2D:Remove(cell)
+    end
+
+    action RemoveColumnAt(integer column)
+        Cell c = cells:RemoveAt(column)
+        parent:Item2D:Remove(c)
+    end
+
+    action GetColumnsSize returns integer
+        return cells:GetSize()
+    end
+
+    action IsCellsEmpty returns boolean
+        return cells:IsEmpty()
+    end
+
+    action Empty 
+        cells:Empty()
+        parent:Item2D:Empty()
+    end
 end
