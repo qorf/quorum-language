@@ -34,6 +34,12 @@ class FlowLayout is Layout
                     container:LoadGraphics(containerProperties)
                 end
 
+                // If the container's height fits the contents, we assume
+                // the height is 0 and correct it after laying out.
+                if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
+                    containerHeight = 0
+                end
+
                 containerBorder = containerProperties:GetBorderThickness()
 
                 if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_FONT
@@ -80,9 +86,10 @@ class FlowLayout is Layout
                                 Control control = cast(Control, item)
                                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                                 if properties not= undefined
-                                    if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
-                                        fitContainerContents = true
+                                    if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS 
+                                        // Resize the control and allow it to set its own dimensions.
                                         control:Resize()
+                                        fitContainerContents = true
                                     end
 
                                     if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
@@ -156,8 +163,7 @@ class FlowLayout is Layout
                     Boolean used to ensure we don't perform redundant resizing
                     on a control.
                     */
-                    boolean alreadyFitContents = fitContainerContents and 
-                        (properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS)
+                    boolean alreadyFitContents = fitContainerContents and properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
 
                     if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS and alreadyFitContents = false
                         alreadyFitContents = true
@@ -179,8 +185,8 @@ class FlowLayout is Layout
                         width = control:GetWidth()
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
                         width = containerWidth - x
-                    elseif properties:GetHorizontalLayoutMode() not= properties:MAINTAIN_ASPECT_RATIO
-                        width = containerWidth * properties:GetPercentageWidth() + (properties:GetPixelWidth() + leftPadding + rightPadding) * properties:GetInterfaceScale()
+                    elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
+                        width = (containerWidth - containerBorder * 2 - properties:GetLeftPadding() - properties:GetRightPadding()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
                     end
 
                     x = x + leftPadding
@@ -232,7 +238,7 @@ class FlowLayout is Layout
         end
 
         if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
-            container:SetHeight(containerHeight - nextY)
+            container:SetHeight(-nextY)
 
             /*
             We had to place all elements before to determine the height of the
@@ -246,37 +252,7 @@ class FlowLayout is Layout
             nextY = containerHeight
             repeat while counter < items:GetSize()
                 Item2D item = items:Get(counter)
-
-                number leftPadding = 0
-                number rightPadding = 0
-                number topPadding = 0
-                number bottomPadding = 0
-
-                if item is Control
-                    Control control = cast(Control, item)
-                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                    if properties not= undefined
-                        leftPadding = properties:GetLeftPadding()
-                        rightPadding = properties:GetRightPadding()
-                        topPadding = properties:GetTopPadding()
-                        bottomPadding = properties:GetBottomPadding()
-                    end
-                end
-
-                x = x + leftPadding
-
-                if x + item:GetWidth() + rightPadding > containerWidth
-                    currentY = nextY
-                    x = leftPadding
-                end
-
-                if currentY - item:GetHeight() - topPadding - bottomPadding < nextY
-                    nextY = currentY - item:GetHeight() - topPadding - bottomPadding
-                end
-
-                item:SetPosition(x, currentY - item:GetHeight() - topPadding)
-                x = x + item:GetWidth() + rightPadding
-
+                item:MoveY(containerHeight)
                 counter = counter + 1
             end
         end
