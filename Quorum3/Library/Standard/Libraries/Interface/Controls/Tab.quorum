@@ -17,6 +17,8 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
 
 class Tab is ToggleButton
     
@@ -36,6 +38,7 @@ class Tab is ToggleButton
 
         FlowLayout flow
         layout = flow
+        flow:SetIgnoreHidden(true)
         SetLayout(flow)
 
         iconLayoutProperties = icon:GetDefaultLayoutProperties()
@@ -243,8 +246,59 @@ class Tab is ToggleButton
         SetView2D(view)
 
         Icon closeIcon
-        Color color
-        closeIcon:LoadFilledRectangle(10, 10, color:Red())
+        
+        Color color 
+        color = color:White()
+        Texture theX = GenerateX(100, 25, 10, color)
+        closeIcon:Load(theX)
         closeButton:SetIcon(closeIcon)
+    end
+
+    action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(size, size, format)
+        
+        Color circle
+        circle:SetColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0)
+        map:FillCircle(size / 2, size / 2, cast(integer, size * 0.43), circle)
+        integer x = buffer
+        integer y = buffer
+        repeat while x < size - buffer
+            map:SetPixel(x, y, color)
+            map:SetPixel(x, size - y - 1, color)
+
+            integer theWidth = 1
+            repeat while theWidth < width
+                if y + theWidth < size - buffer
+                    map:SetPixel(x, y + theWidth, color)
+                end
+
+                if x + theWidth < size - buffer
+                    map:SetPixel(x + theWidth, y, color)
+                end
+                theWidth = theWidth + 1
+            end
+
+            theWidth = 1
+            repeat while theWidth < width
+                if x + theWidth < size - buffer
+                    map:SetPixel(x + theWidth, size - y - 1, color)
+                end
+
+                if size  - buffer- y - theWidth - 1 >= 0
+                    map:SetPixel(x, size - y - theWidth - 1, color)
+                end
+                theWidth = theWidth + 1
+            end
+
+            x = x + 1
+            y = y + 1
+        end
+
+        Texture texture
+        texture:LoadFromPixelMap(map)
+        return texture
     end
 end
