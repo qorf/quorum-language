@@ -114,6 +114,15 @@ class Control is Item2D
         end
     end
 
+    action Add(Item2D newItem)
+        if newItem is Control
+            Control c = cast(Control, newItem)
+            c:SetInterfaceScale(GetInterfaceScale())
+        end
+
+        parent:Item2D:Add(newItem)
+    end
+
     action AddControlActivationListener(ControlActivationListener listener)
         listeners:Add(listener)
     end
