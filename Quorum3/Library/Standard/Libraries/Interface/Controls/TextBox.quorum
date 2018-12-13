@@ -187,25 +187,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         textValue:DisableTextWrapping()
 
-        if font:FontIsAvailable("FiraCode-Retina")
-            font:LoadFont("FiraCode-Retina")
-        elseif font:FontIsAvailable("FiraCode-Regular")
-            font:LoadFont("FiraCode-Regular")
-        elseif font:FontIsAvailable("Courier")
-            font:LoadFont("Courier")
-        elseif font:FontIsAvailable("Courier New")
-            font:LoadFont("Courier New")
-        elseif font:FontIsAvailable("cour")
-            font:LoadFont("cour")
-        elseif font:FontIsAvailable("Roboto-Black")
-            font:LoadFont("Roboto-Black")
-        elseif font:FontIsAvailable("Arial")
-            font:LoadFont("Arial")
-        else
-            Array<File> availableFontFiles = font:GetAvailableFonts()
-            if availableFontFiles:GetSize() > 0
-                font:LoadFont(availableFontFiles:Get(0))
-            end
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
         end
 
         selection:Initialize(me, "")

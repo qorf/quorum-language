@@ -109,10 +109,14 @@ class MenuItem is Control
         menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
 
         Font font
-        font:LoadFont("Arial")
-        font:SetSize(14)
-        menuProperties:SetFont(font)
-        menuProperties:SetFontSize(14)
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            menuProperties:SetFont(font)
+            menuProperties:SetFontSize(defaultFontSize)
+        end
         menuProperties:SetVerticalLayoutMode(menuProperties:FIT_FONT)
 
         menuProperties:SetBorderThickness(1)
@@ -153,6 +157,19 @@ class MenuItem is Control
         Add(label)
         Add(shortcutLabel)
         Add(arrow)
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
+    end
+
+    action GetDefaultFontSize returns integer
+        return 14
     end
 
     action SetShortcut(InputSet set)

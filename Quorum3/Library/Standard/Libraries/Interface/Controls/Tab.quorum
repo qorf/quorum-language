@@ -53,11 +53,16 @@ class Tab is ToggleButton
         defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
+
         Font font
-        font:LoadFont("Arial")
-        font:SetSize(16)
-        defaultProperties:SetFont(font)
-        defaultProperties:SetFontSize(16)
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            defaultProperties:SetFont(font)
+            defaultProperties:SetFontSize(defaultFontSize)
+        end  
 
         labelLayoutProperties = label:GetDefaultLayoutProperties()
         buttonLayoutProperties = closeButton:GetDefaultLayoutProperties()
@@ -87,6 +92,19 @@ class Tab is ToggleButton
         Add(icon)
         Add(label)
         Add(closeButton)
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
+    end
+
+    action GetDefaultFontSize returns integer
+        return 14
     end
 
     action SetRelatedItem(Item2D item)

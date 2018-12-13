@@ -28,12 +28,15 @@ class TabPane is Control
         bar:SetTabPane(me)
         
         Font font
-        font:LoadFont("Arial")
-        font:SetSize(22)
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            SetFont(font)
+            SetFontSize(font:GetSize())
+        end
         
-        SetFont(font)
-        SetFontSize(font:GetSize())
-
         LayoutProperties paneProperties = GetDefaultLayoutProperties()
         paneProperties:SetHorizontalLayoutMode(paneProperties:STANDARD)
         paneProperties:SetVerticalLayoutMode(paneProperties:STANDARD)
@@ -57,6 +60,19 @@ class TabPane is Control
 
         FlowLayout flow
         viewArea:SetLayout(flow)
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
+    end
+
+    action GetDefaultFontSize returns integer
+        return 22
     end
 
     action SetViewAreaLayout(Layout layout)

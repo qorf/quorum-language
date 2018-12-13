@@ -12,6 +12,7 @@ use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.System.File
 
 class Control is Item2D
 
@@ -480,5 +481,61 @@ class Control is Item2D
     action GetInterfaceScale returns number
         return defaultProperties:GetInterfaceScale()
     end
+    
+    /*
+        This action defines what the default font is for this control. This allows
+        individual controls to customize their default font properties on a per control
+        basis.
 
+        Attribute: Example
+
+        use Libraries.Interface.Controls.TextBox
+
+        TextBox box
+        text name = box:GetDefaultFontName()
+        output name
+    */
+    action GetDefaultFontName returns text
+        text name = undefined
+        Font font
+        if font:FontIsAvailable("FiraCode-Retina")
+            name = "FiraCode-Retina"
+        elseif font:FontIsAvailable("FiraCode-Regular")
+            name = "FiraCode-Regular"
+        elseif font:FontIsAvailable("Courier")
+            name = "Courier"
+        elseif font:FontIsAvailable("Courier New")
+            name = "Courier New"
+        elseif font:FontIsAvailable("cour")
+            name = "cour"
+        elseif font:FontIsAvailable("Roboto-Black")
+            name = "Roboto-Black"
+        elseif font:FontIsAvailable("Arial")
+            name = "Arial"
+        else
+            Array<File> availableFontFiles = font:GetAvailableFonts()
+            if availableFontFiles:GetSize() > 0
+                File file = availableFontFiles:Get(0)
+                name = file:GetPath()
+            end
+        end
+        return name
+    end
+
+    /*
+        This action defines what the default font size for this control. This allows
+        individual controls to customize their default font properties on a per control
+        basis.
+
+        Attribute: Example
+
+        use Libraries.Interface.Controls.TextBox
+
+        TextBox box
+        integer size = box:GetDefaultFontSize()
+        output size
+    */
+    action GetDefaultFontSize returns integer
+        return 12
+    end
 end

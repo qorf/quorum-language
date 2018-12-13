@@ -56,10 +56,14 @@ class TreeItem is Control
         SetLayout(treeItemLayout)
 
         Font font
-        font:LoadFont("Arial")
-        font:SetSize(14)
-        treeItemProperties:SetFont(font)
-        treeItemProperties:SetFontSize(14)
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            treeItemProperties:SetFont(font)
+            treeItemProperties:SetFontSize(defaultFontSize)
+        end        
 
         FlowLayout flow
         layout = flow
@@ -73,6 +77,19 @@ class TreeItem is Control
         panel:AddLayoutProperties(panelProperties)
 
         SetAccessibilityCode(parent:Item:TREE_ITEM)
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
+    end
+
+    action GetDefaultFontSize returns integer
+        return 14
     end
     
     action HideExpandButton

@@ -23,17 +23,29 @@ class Cell is Control
         properties:SetPercentageWidth(1)
 
         Font font
-        font:LoadFont("Arial")
-        integer size = 30
-        font:SetSize(size)
-        properties:SetFont(font)
-        properties:SetFontSize(size)
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            properties:SetFont(font)
+            properties:SetFontSize(defaultFontSize)
+        end
 
         SetInputGroup("SpreadsheetCell")
         SetClipping(true)
         Add(label)
         SetAccessibilityCode(parent:Item:CELL)
         SetName("Cell")
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
     end
 
     action LoadGraphics(LayoutProperties properties)
