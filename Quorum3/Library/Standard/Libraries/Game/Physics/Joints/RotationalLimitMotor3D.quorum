@@ -19,17 +19,12 @@ class RotationalLimitMotor3D
     number maxLimitForce = 300                      //maximum force on limit
     number damping = 1
     number limitSoftness = 0.5
-    number ERP = 0.9//!< Error tolerance factor when joint is at limit
+    number ERP = 0.5//Error tolerance factor when joint is at limit
     number bounce = 0           //restitution factor
     boolean enableMotor = false
     number currentLimitError = 0        //how much is violated at a certain limit
     integer currentLimit = 0            //0 = free, 1 = at low limit, 2 = at high limit
     number accumulatedImpulse = 0
-    
-
-
-    //number currentPosition = 0
-
 
     /*
     This action sets the values of this RotationalLimitMotor3D using another RotationalLimitMotor3D.
@@ -64,7 +59,7 @@ class RotationalLimitMotor3D
     Attribute: Returns 0 if this motor is not enabled so there will be no torque from this motor, 1 when there will be torque from this motor.
     */
     action NeedApplyTorques() returns boolean
-    	if currentLimit = 0 and enableMotor = false 
+    	if (currentLimit = 0) and (enableMotor = false)
             return false
         end    
     	return true
@@ -135,7 +130,7 @@ class RotationalLimitMotor3D
         // clip correction impulse
 	number clippedMotorImpulse = 0
 
-	// todo: should clip against accumulated impulse
+
 	if unclippedMotorImpulse > 0
             if unclippedMotorImpulse > maxMotorForce
                 clippedMotorImpulse = maxMotorForce 
@@ -157,13 +152,6 @@ class RotationalLimitMotor3D
 	number oldaccumImpulse = accumulatedImpulse
 	number sum = oldaccumImpulse + clippedMotorImpulse
 
-        /*
-        if sum > hi or sum < lo
-            accumulatedImpulse = 0
-        else 
-            accumulatedImpulse = sum
-        end
-        */
 
         if sum > hi
             accumulatedImpulse = 0
@@ -186,7 +174,6 @@ class RotationalLimitMotor3D
 	end
 
 	return clippedMotorImpulse
-        //return 0
     end  
 
     /*

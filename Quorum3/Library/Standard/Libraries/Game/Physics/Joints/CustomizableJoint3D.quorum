@@ -14,11 +14,12 @@ use Libraries.Game.Collision.PhysicsPosition3D
 
 /*
 This class is a class that allows a joint to have the ability to rotate around any axis and move anywhere in 3D space.
+The angular limit in the x-direction is from -pi to pi; y-direction is from -pi/2 to pi/2; z-direction is from -pi/2 to pi/2.
 */
 class CustomizableJoint3D is Joint3D
 
     Math math
-    PhysicsPosition3D frameInA  
+    PhysicsPosition3D frameInA  //joint location with respect to object A
     PhysicsPosition3D frameInB  
 
     ConstraintDescription3D jacobianLinear0
@@ -87,12 +88,12 @@ class CustomizableJoint3D is Joint3D
     action MatrixToEulerXYZ(Matrix3 mat, Vector3 xyz) returns boolean
         if getMatrixElement(mat, 2) < 1.0 
             if getMatrixElement(mat, 2) > -1.0
-                xyz:SetX(math:InverseTangent2(-getMatrixElement(mat, 5), getMatrixElement(mat, 8))) //xyz:SetX(math:InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5)))
+                xyz:SetX(math:InverseTangent2(-getMatrixElement(mat, 5), getMatrixElement(mat, 8))) 
                 xyz:SetY(math:InverseSine(getMatrixElement(mat, 2)))
-                xyz:SetZ(math:InverseTangent2(-getMatrixElement(mat, 1), getMatrixElement(mat, 0)))   //xyz:SetZ(math:InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1)))
+                xyz:SetZ(math:InverseTangent2(-getMatrixElement(mat, 1), getMatrixElement(mat, 0))) 
                 return true
             else 
-                xyz:SetX(-math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) //xyz:SetX(-math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
+                xyz:SetX(-math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) 
                 xyz:SetY(- 6.283185307179586232 * 0.25)  //1.5707963705062866
                 xyz:SetZ(0.0)
                 return false
@@ -256,10 +257,6 @@ class CustomizableJoint3D is Joint3D
             angle = calculatedAxisAngleDifference:GetZ()
         end
 
-
-        //adjust the angle 
-        //angle = AdjustAngleToLimits(angle, angularLimits:Get(axisIndex):GetLoLimit(), angularLimits:Get(axisIndex):GetHiLimit())
-
         //test limits
         if axisIndex = 0
             //angularLimits0:SetCurrentPosition(angle)
@@ -368,7 +365,6 @@ class CustomizableJoint3D is Joint3D
 
 	Vector3 angularAxis
 	number angularJacDiagABInv = 0
-        i = 0
 
         if angularLimits0:NeedApplyTorques()
             angularAxis:Set(GetAxis(0))
@@ -378,13 +374,13 @@ class CustomizableJoint3D is Joint3D
 
         if angularLimits1:NeedApplyTorques()
             angularAxis:Set(GetAxis(1))
-            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularJacDiagABInv = 1 / jacobianAng1:GetDiagonal()
             angularLimits1:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
         end  
 
         if angularLimits2:NeedApplyTorques()
             angularAxis:Set(GetAxis(2))
-            angularJacDiagABInv = 1 / jacobianAng0:GetDiagonal()
+            angularJacDiagABInv = 1 / jacobianAng2:GetDiagonal()
             angularLimits2:SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
         end  
     end
