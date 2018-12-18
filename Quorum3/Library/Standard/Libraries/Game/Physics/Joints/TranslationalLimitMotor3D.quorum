@@ -13,33 +13,21 @@ This class stores information of how much a 3D joint (so that the body can slide
 class TranslationalLimitMotor3D
 
     Math math
-    Vector3 lowerLimit 
-    Vector3 upperLimit 
+    Vector3 lowerLimit //lower limit <x,y,z>
+    Vector3 upperLimit //upper limit <x,y,z>
     Vector3 accumulatedImpulse
 	
+
+    //set constants to default values
     number limitSoftness = 0.7
     number damping = 1.0
     number restitution = 0.5
 
-    Array<boolean> enableMotor /*[3]*/
-    Vector3 targetVelocity
-    Vector3 maxMotorForce
-    Vector3 maxLimitForce
-    Vector3 currentLimitError
-    Vector3 currentLinearDiff
-    Array<integer> currentLimit /*[3]*/
-      
+ 
     on create
         lowerLimit:Set(0,0,0)
         upperLimit:Set(0,0,0)
         accumulatedImpulse:Set(0,0,0)
-
-        maxMotorForce:Set(0.1, 0.1, 0.1)
-        maxLimitForce:Set(300.0, 300.0, 300.0)
-        repeat 3 times
-            enableMotor:Add(false)
-            currentLimit:Add(0)
-        end
     end 
     
     /*
@@ -57,7 +45,7 @@ class TranslationalLimitMotor3D
     end    
 
     /*
-    This action lets you know if any of the sliding has been limited.
+    This action lets you know if any of the sliding has been limited. When upper limit < lower limit: the axis is free; when upper limit = lower limit: the axis is fixed; when upper limit > lower limit: the axis is limited between lower and upper limits.
     Attribute: Parameter limitIndex The indicator of which axis you want to check, 0 for x, 1 for y, and 2 for z.
     Attrubute: Returns 0 there is no limit, 1 the axis that you are checking has a limit set.
     */
@@ -73,92 +61,7 @@ class TranslationalLimitMotor3D
     end   
 
     /*
-    This action tells you whether you need to apply forces to the objects that is constrained by this joint.
-    Attribute: Parameter index The axis that you want to check, 0 for x, 1 for y, and 2 for z.
-    Attribute: Returns 0 for you don't need to apply forces on the axis that you check, 1 you do need to apply forces.
-    */
-    action NeedApplyForces(integer index) returns boolean
-        if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false
-            return false
-        end
-        return true
-    end
-
-    /*
-    This action tests whether the current position of the object is within the limit of the range of how much that object can slide.
-    Attribute: Parameter limitIndex 0, 1, 2 that denotes x, y, or z coordinate.
-    Attribute: Parameter testValue The current position of the object in either 0, 1, or 2 direction.
-    Attribute: Returns 0 if the limits aren't set in the first place or test value is within limit, 1 if test value is lower than the lowest limit, 2 if the test value is higher than the highest limit.
-    */
-    action TestLimitValue(integer limitIndex, number testValue) returns integer
-        number loLimit = 0
-        number hiLimit = 0
-
-        //get value from the right place
-        if limitIndex = 0
-            loLimit = lowerLimit:GetX()
-            hiLimit = upperLimit:GetX()
-        elseif limitIndex = 1
-            loLimit = lowerLimit:GetY()
-            hiLimit = upperLimit:GetY()
-        elseif limitIndex = 2
-            loLimit = lowerLimit:GetZ()
-            hiLimit = upperLimit:GetZ()  
-        end
-
-        //start testing
-        if loLimit > hiLimit        //there is no error
-            currentLimit:Set(limitIndex, 0)
-            if limitIndex = 0
-                currentLimitError:SetX(0)
-            elseif limitIndex = 1
-                currentLimitError:SetY(0)
-            elseif limitIndex = 2
-                currentLimitError:SetZ(0)   
-            end
-            return 0
-        end
-
-        if testValue < loLimit      //violates the lower limit
-            currentLimit:Set(limitIndex, 2)
-            if limitIndex = 0
-                currentLimitError:SetX(testValue - loLimit)
-            elseif limitIndex = 1
-                currentLimitError:SetY(testValue - loLimit)
-            elseif limitIndex = 2
-                currentLimitError:SetZ(testValue - loLimit)   
-            end
-            return 2
-        elseif testValue > hiLimit      //violates the higher limit
-            currentLimit:Set(limitIndex, 1)
-            if limitIndex = 0
-                currentLimitError:SetX(testValue - hiLimit)
-            elseif limitIndex = 1
-                currentLimitError:SetY(testValue - hiLimit)
-            elseif limitIndex = 2
-                currentLimitError:SetZ(testValue - hiLimit)   
-            end
-            return 1
-        end
-
-
-        //if reached here, that means there is no violation
-        currentLimit:Set(limitIndex, 0)
-        if limitIndex = 0
-            currentLimitError:SetX(0)
-        elseif limitIndex = 1
-            currentLimitError:SetY(0)
-        elseif limitIndex = 2
-            currentLimitError:SetZ(0)   
-        end
-        return 0
-    end
-
-
-
-
-    /*
-    This action makes sure that the bodies joined together by this TranslationalLimitMotor is at where they are supposed to be.
+    This action makes sure that the bodies joined together by this TranslationalLimitMotor is at where they are supposed to be based on their translational limits.
     Attribute: Returns the velocity that you want to add to the current velocity to make sure that the slider is within the position range that we want it to be.
     */
     action SolveLinearAxis(number timeStep, number jacDiagABInv, Item3D body1, Vector3 pointInA, Item3D body2, Vector3 pointInB, integer limitIndex, Vector3 axisNormalOnA, Vector3 anchorPos) returns number
@@ -355,22 +258,6 @@ class TranslationalLimitMotor3D
     */
     action GetRestitution() returns number
         return restitution
-    end
-
-    /*
-    This action returns how far you are from the range of the positions that the slider can be in.
-    Attribute: Returns the position error.
-    */
-    action GetCurrentLinearDiff() returns Vector3
-        return currentLinearDiff
-    end
-    
-    /*
-    This action sets how far you are from the range of the positions that the slider can be in.
-    Attribute: Parameter diff The position error.
-    */
-    action SetCurrentLinearDiff(Vector3 diff) 
-        currentLinearDiff:Set(diff)
     end
 end
 
