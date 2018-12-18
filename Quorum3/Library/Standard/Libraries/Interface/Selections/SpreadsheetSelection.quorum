@@ -19,8 +19,10 @@ class SpreadsheetSelection is Selection
     */
     action Set(Cell cell)
         if cell not= undefined
-            SetDisplayName(cell:GetText())
             singleSelection = cell
+            SetDisplayName(cell:GetText())
+        else
+            Empty()
         end
     end
 
@@ -31,6 +33,6 @@ class SpreadsheetSelection is Selection
      /* This action empties the selection path. */
     action Empty
         singleSelection = undefined
-        parent:Selection:displayName = ""
+        SetDisplayName("")
     end
 end

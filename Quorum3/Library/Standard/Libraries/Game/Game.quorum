@@ -66,8 +66,6 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
-use Libraries.Interface.Behaviors.Controls.SpreadsheetCellClickDownBehavior
-use Libraries.Interface.Behaviors.Controls.SpreadsheetCellTouchDownBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
@@ -655,11 +653,8 @@ class Game
         InputTable spreadsheetCellTable
         spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
 
-        SpreadsheetCellClickDownBehavior spreadsheetCellClickDownBehavior
-        SpreadsheetCellTouchDownBehavior spreadsheetCellTouchDownBehavior
-
-        spreadsheetCellTable:Add(clickDown, spreadsheetCellClickDownBehavior)
-        spreadsheetCellTable:Add(touchDown, spreadsheetCellTouchDownBehavior)
+        spreadsheetCellTable:Add(clickDown, downBehavior)
+        spreadsheetCellTable:Add(touchDown, upBehavior)
 
         gameInput:AddInputTable(spreadsheetCellTable)
 

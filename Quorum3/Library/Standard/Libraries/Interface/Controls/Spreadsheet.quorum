@@ -27,7 +27,7 @@ class Spreadsheet is Control
 
     action Add(Column column)
         columns:Add(column)
-
+        column:SetSpreadsheet(me)
         parent:Item2D:Add(column)
     end
 
@@ -43,6 +43,7 @@ class Spreadsheet is Control
 
     action RemoveColumn(Column column)
         columns:Remove(column)
+        column:SetSpreadsheet(undefined)
         parent:Item2D:Remove(column)
     end
 
@@ -73,7 +74,25 @@ class Spreadsheet is Control
         a single cell.
     */
     action Select(Cell cell)
+        Cell oldSelection = selection:Get()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
 
+        if cell not= undefined
+            cell:GainedSelection()
+        end
+
+        selection:Set(cell)
+    end
+
+    action Deselect
+        Cell oldSelection = selection:Get()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
+
+        selection:Empty()
     end
 
     action MoveSelectionUp

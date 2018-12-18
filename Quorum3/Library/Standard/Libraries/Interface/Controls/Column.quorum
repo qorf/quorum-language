@@ -6,6 +6,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 class Column is Control
     Array<Cell> cells
     boolean hasHeader = true
+    Spreadsheet spreadsheet = undefined
 
     on create
         FlowLayout layout
@@ -50,6 +51,14 @@ class Column is Control
 
     action IsCellsEmpty returns boolean
         return cells:IsEmpty()
+    end
+
+    action SetSpreadsheet(Spreadsheet sheet)
+        spreadsheet = sheet
+    end
+
+    action GetSpreadsheet returns Spreadsheet
+        return spreadsheet
     end
 
     action Empty 

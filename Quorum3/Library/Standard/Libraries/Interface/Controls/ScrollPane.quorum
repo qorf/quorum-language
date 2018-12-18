@@ -14,6 +14,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.ScrollPaneLayout
 
 class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelListener
 
@@ -61,7 +62,17 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     boolean automaticRegionSizing = true
 
     on create
+        /* 
+        The scroll anchor is set to use FILL, as this has special meaning to
+        the ScrollPaneLayout, as noted in its comments. The scroll anchor will
+        either be the requested size in pixels, or it will fit the size of the
+        container (whichever is larger).
+        */
         scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
+        scrollAnchorLayout:SetHorizontalLayoutMode(scrollAnchorLayout:FILL)
+        scrollAnchorLayout:SetVerticalLayoutMode(scrollAnchorLayout:FILL)
+        scrollAnchor:SetPercentageWidth(1)
+        scrollAnchor:SetPercentageHeight(1)
         scrollAnchorLayout:SetPercentageX(0)
         scrollAnchorLayout:SetPercentageY(1)
         scrollAnchorLayout:SetPercentageOriginY(1)
@@ -77,8 +88,8 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         AddMouseListener(me)
         AddMouseMovementListener(me)
 
-        ManualLayout layout
-        parent:Control:SetLayout(layout)
+        ScrollPaneLayout scrollLayout
+        parent:Control:SetLayout(scrollLayout)
 
         scrollAnchor:SetName("Scroll Anchor")
         verticalBar:SetName("Vertical Scroll Track")

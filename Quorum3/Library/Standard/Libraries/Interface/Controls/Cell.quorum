@@ -74,33 +74,121 @@ class Cell is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
-        if GetView2D() is LabelBoxView
-            LabelBoxView view = cast(LabelBoxView, GetView2D())
-            LayoutProperties properties = GetDefaultLayoutProperties()
-            ColorGroup useColor = properties:GetSelectionColor()
-            if useColor not= undefined
-                view:SetBackgroundColor(useColor)
-            end
+        Spreadsheet sheet = GetSpreadsheet()
+        LayoutProperties sheetProperties = undefined
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        if sheet not= undefined
+            sheetProperties = sheet:GetDefaultLayoutProperties()
         end
 
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+
+        if sheetProperties not= undefined and sheetProperties:GetSelectionColor() not= undefined
+            backgroundColor = sheetProperties:GetSelectionColor()
+        elseif properties not= undefined and properties:GetSelectionColor() not= undefined
+            backgroundColor = properties:GetSelectionColor()
+        else
+            Color color
+            backgroundColor = color:Blue()
+        end
+
+        if sheetProperties not= undefined and sheetProperties:GetSelectionFontColor() not= undefined
+            textColor = sheetProperties:GetSelectionFontColor()
+        elseif properties not= undefined and properties:GetSelectionFontColor() not= undefined
+            textColor = properties:GetSelectionFontColor()
+        else
+            Color color
+            textColor = color:White()
+        end
+
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            view:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
     end
 
     action LostSelection
         parent:Control:LostSelection()
+        Spreadsheet sheet = GetSpreadsheet()
+        LayoutProperties sheetProperties = undefined
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        if sheet not= undefined
+            sheetProperties = sheet:GetDefaultLayoutProperties()
+        end
+
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+
+        if sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
+            backgroundColor = sheetProperties:GetBackgroundColor()
+        elseif properties not= undefined and properties:GetBackgroundColor() not= undefined
+            backgroundColor = properties:GetBackgroundColor()
+        else
+            Color color
+            backgroundColor = color:White()
+        end
+
+        if sheetProperties not= undefined and sheetProperties:GetFontColor() not= undefined
+            textColor = sheetProperties:GetFontColor()
+        elseif properties not= undefined and properties:GetFontColor() not= undefined
+            textColor = properties:GetFontColor()
+        else
+            Color color
+            textColor = color:Black()
+        end
+
         if GetView2D() is LabelBoxView
             LabelBoxView view = cast(LabelBoxView, GetView2D())
-            LayoutProperties properties = GetDefaultLayoutProperties()
-            if properties:GetBackgroundColor() not= undefined
-                view:SetBackgroundColor(properties:GetBackgroundColor())
-            end
+            view:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
+    end
+
+    action ClickedMouse
+        parent:Control:ClickedMouse()
+        Select()
+    end
+
+    action Select
+        // Don't actually select here! Go to the Spreadsheet and ask it to 
+        // select us. We do this to allow the Spreadsheet to update the
+        // selection and deselect the old selection.
+        Spreadsheet sheet = GetSpreadsheet()
+        if sheet not= undefined
+            sheet:Select(me)
         end
     end
 
-    action ClickDown
-
+    action Deselect
+        // Don't actually select here! Go to the Spreadsheet and ask it to 
+        // select us. We do this to allow the Spreadsheet to update the
+        // selection and deselect the old selection.
+        Spreadsheet sheet = GetSpreadsheet()
+        if sheet not= undefined
+            sheet:Deselect()
+        end
     end
 
-    action TouchDown
+    action GetColumn returns Column
+        Item2D item = GetParent()
+        repeat while (item is Column = false) and (item not= undefined)
+            item = item:GetParent()
+        end
+        return cast(Column, item)
+    end
 
+    action GetSpreadsheet returns Spreadsheet
+        Column column = GetColumn()
+        if column not= undefined
+            return column:GetSpreadsheet()
+        else
+            return undefined
+        end
     end
 end
