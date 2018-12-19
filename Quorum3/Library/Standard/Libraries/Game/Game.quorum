@@ -66,6 +66,7 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetActivationBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
@@ -635,29 +636,6 @@ class Game
 
         gameInput:AddInputTable(menuBarTable)
 
-        InputTable spreadsheetTable
-        spreadsheetTable:SetIdentifier("Spreadsheet")
-        SpreadsheetDownBehavior spreadsheetDownBehavior
-        SpreadsheetUpBehavior spreadsheetUpBehavior
-        SpreadsheetLeftBehavior spreadsheetLeftBehavior
-        SpreadsheetRightBehavior spreadsheetRightBehavior
-
-        spreadsheetTable:Add(downArrow, spreadsheetDownBehavior)
-        spreadsheetTable:Add(upArrow, spreadsheetUpBehavior)
-        spreadsheetTable:Add(leftArrow, spreadsheetLeftBehavior)
-        spreadsheetTable:Add(rightArrow, spreadsheetRightBehavior)
-
-        gameInput:AddInputTable(spreadsheetTable)
-
-
-        InputTable spreadsheetCellTable
-        spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
-
-        spreadsheetCellTable:Add(clickDown, downBehavior)
-        spreadsheetCellTable:Add(touchDown, upBehavior)
-
-        gameInput:AddInputTable(spreadsheetCellTable)
-
         InputTable treeItemTable
         treeItemTable:SetIdentifier("TreeItem")
         InputSet doubleClickSet
@@ -699,6 +677,31 @@ class Game
         treeTable:Add(enterSet, treeActivateBehavior)
 
         AddInputTable(treeTable)
+
+        InputTable spreadsheetTable
+        spreadsheetTable:SetIdentifier("Spreadsheet")
+        SpreadsheetDownBehavior spreadsheetDownBehavior
+        SpreadsheetUpBehavior spreadsheetUpBehavior
+        SpreadsheetLeftBehavior spreadsheetLeftBehavior
+        SpreadsheetRightBehavior spreadsheetRightBehavior
+        SpreadsheetActivationBehavior spreadsheetActivate
+
+        spreadsheetTable:Add(downArrow, spreadsheetDownBehavior)
+        spreadsheetTable:Add(upArrow, spreadsheetUpBehavior)
+        spreadsheetTable:Add(leftArrow, spreadsheetLeftBehavior)
+        spreadsheetTable:Add(rightArrow, spreadsheetRightBehavior)
+        spreadsheetTable:Add(spaceSet, spreadsheetActivate)
+
+        gameInput:AddInputTable(spreadsheetTable)
+
+        InputTable spreadsheetCellTable
+        spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
+
+        spreadsheetCellTable:Add(clickDown, downBehavior)
+        spreadsheetCellTable:Add(touchDown, upBehavior)
+        spreadsheetCellTable:Add(doubleClickSet, spreadsheetActivate)
+
+        gameInput:AddInputTable(spreadsheetCellTable)
     end
 
     /*

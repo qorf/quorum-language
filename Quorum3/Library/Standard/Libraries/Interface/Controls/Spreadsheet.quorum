@@ -1,13 +1,18 @@
 package Libraries.Interface.Controls
 use Libraries.Containers.Array
+use Libraries.Containers.Support.Pair
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
-
+use Libraries.Interface.Behaviors.Behavior
 
 class Spreadsheet is Control
     Array<Column> columns
     SpreadsheetSelection selection
+
+    // The cellBehavior is called when a Cell would be activated if it doesn't
+    // have an activation behavior of its own defined.
+    Behavior cellBehavior = undefined
     
     on create
         FlowLayout layout
@@ -86,6 +91,25 @@ class Spreadsheet is Control
         selection:Set(cell)
     end
 
+    /*
+    This action selects a single Cell at the provided x and y coordinates,
+    where the x coordinate represents the column and the y coordinate represents
+    the row.
+    */
+    action Select(integer x, integer y)
+        Cell oldSelection = selection:Get()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
+
+        Cell cell = GetCell(x, y)
+        if cell not= undefined
+            cell:GainedSelection()
+        end
+
+        selection:Set(x, y)
+    end
+
     action Deselect
         Cell oldSelection = selection:Get()
         if oldSelection not= undefined
@@ -96,18 +120,105 @@ class Spreadsheet is Control
     end
 
     action MoveSelectionUp
-
+        integer x = selection:GetX()
+        integer y = selection:GetY()
+        
+        if y > 0
+            Select(x, y - 1)
+        end
     end
 
     action MoveSelectionDown
-
+        integer x = selection:GetX()
+        integer y = selection:GetY()
+        
+        if x >= 0 and x < columns:GetSize()
+            Column column = columns:Get(x)
+            if y < column:GetSize() - 1
+                Select(x, y + 1)
+            end
+        end
     end
 
     action MoveSelectionLeft
+        integer x = selection:GetX()
+        integer y = selection:GetY()
 
+        if selection:GetX() > 0
+            Select(x - 1, y)
+        end
     end
 
     action MoveSelectionRight
+        integer x = selection:GetX()
+        integer y = selection:GetY()
+        
+        if selection:GetX() < columns:GetSize() - 1
+            Select(x + 1, y)
+        end
+    end
 
+    /*
+    This action returns the coordinates of a cell within the Spreadsheet within
+    a Pair object. The first value of the Pair is the x coordinate, representing
+    which column contains the cell. The second value of the Pair is the y
+    coordinate, representing which row contains the cell.
+
+    This action can potentially iterate over every cell in the Spreadsheet, and
+    should be used sparingly if working with lots of cells.
+    */
+    action GetCellCoordinates(Cell cell) returns Pair<integer>
+        integer x = 0
+        Pair<integer> pair
+
+        repeat while x < columns:GetSize()
+            Column column = columns:Get(x)
+            integer y = column:GetCellIndex(cell)
+            if y > -1
+                pair:Set(x, y)
+                return pair
+            end
+            x = x + 1
+        end
+
+        // If the cell couldn't be found, return -1 for each coordinate.
+        pair:Set(-1, -1)
+        return pair
+    end
+
+    /*
+    This action returns the index of the column within the Spreadsheet, or
+    returns -1 if the column is not a part of this Spreadsheet.
+    */
+    action GetColumnIndex(Column column) returns integer
+        return columns:GetFirstLocation(column)
+    end
+
+    /*
+    This action gets the cell located at the given coordinates, where the x
+    coordinate represents the column and the y coordinate represents the row.
+    */
+    action GetCell(integer x, integer y) returns Cell
+        return columns:Get(x):GetCell(y)
+    end
+
+    /*
+    This action sets the cell activation Behavior for this Spreadsheet. If a
+    cell would ever be activated (such as by a double-click), if it doesn't have
+    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    be used instead.
+    */
+    action SetCellActivationBehavior(Behavior behavior)
+        cellBehavior = behavior
+    end
+
+    /*
+    This action returns the cell activation Behavior for this Spreadsheet. If a
+    cell would ever be activated (such as by a double-click), if it doesn't have
+    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    be used instead.
+    */
+    action GetCellActivationBehavior returns Behavior
+        return cellBehavior
     end
 end

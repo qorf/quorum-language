@@ -1,38 +1,95 @@
 package Libraries.Interface.Selections
 use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Cell
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Containers.Support.Pair
 
 class SpreadsheetSelection is Selection
-    Cell singleSelection = undefined
+    integer x = -1
+    integer y = -1
 
     action Initialize(Item item)
         Initialize(item, "")
     end
 
     action IsEmpty returns boolean
-        return singleSelection = undefined
+        return x < 0 and y < 0
     end
 
     /*
         This action selects a single cell in the spreadsheet. In this case, 
         the x represents the column number and the y represents the row.
     */
+    action Set(integer x, integer y)
+        Spreadsheet sheet = GetSpreadsheet()
+        if sheet not= undefined
+            Cell cell = sheet:GetCell(x, y)
+            if cell not= undefined
+                me:x = x
+                me:y = y
+                SetDisplayName(cell:GetText())
+                return now
+            end
+        end
+
+        // If the Spreadsheet or Cell couldn't be found, set selection to empty.
+        Empty()
+    end
+
+    /*
+        This action selects a single cell in the spreadsheet.
+    */
     action Set(Cell cell)
         if cell not= undefined
-            singleSelection = cell
-            SetDisplayName(cell:GetText())
-        else
-            Empty()
+            Spreadsheet sheet = GetSpreadsheet()
+            if sheet not= undefined
+                Pair<integer> coords = sheet:GetCellCoordinates(cell)
+                if coords:GetFirstValue() > -1 and coords:GetSecondValue() > -1
+                    x = coords:GetFirstValue()
+                    y = coords:GetSecondValue()
+                    SetDisplayName(cell:GetText())
+                    return now
+                end
+            end
         end
+
+        // If we couldn't set it to the cell, empty the selection.
+        Empty()
     end
 
     action Get returns Cell
-        return singleSelection
+        Spreadsheet sheet = GetSpreadsheet()
+        if sheet not= undefined and IsEmpty() = false
+            return sheet:GetCell(x, y)
+        end
+        return undefined
     end
 
-     /* This action empties the selection path. */
+    action GetSpreadsheet returns Spreadsheet
+        Item item = GetItem()
+        if item is Spreadsheet
+            return cast(Spreadsheet, item)
+        end
+        return undefined
+    end
+
+    /*
+    The Empty action sets the selection to be empty, or in other words, there is
+    no cell actively selected. When the selection is empty, the x and y 
+    coordinates will be -1.
+    */
     action Empty
-        singleSelection = undefined
+        x = -1
+        y = -1
         SetDisplayName("")
+    end
+
+    action GetX returns integer
+        return x
+    end
+
+    action GetY returns integer
+        return y
     end
 end

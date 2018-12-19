@@ -6,11 +6,19 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ControlActivationEvent
 
 class Cell is Control
     text value = ""
     constant integer DEFAULT_PADDING = 6
     Label label
+
+    // The Behavior to use when the Cell is activated (e.g. by double click).
+    // If this is undefined, the Cell will attempt to use a Behavior defined by
+    // the Spreadsheet instead.
+    Behavior activationBehavior = undefined
 
     on create
         FlowLayout layout
@@ -189,6 +197,37 @@ class Cell is Control
             return column:GetSpreadsheet()
         else
             return undefined
+        end
+    end
+
+    action GetActivationBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action SetActivationBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action Activate(BehaviorEvent event)
+        if GetActivationBehavior() not= undefined
+            parent:Control:Activate(event)
+        else
+            Spreadsheet sheet = GetSpreadsheet()
+            if sheet = undefined or sheet:GetCellActivationBehavior() = undefined
+                return now
+            end
+
+            Behavior behavior = sheet:GetCellActivationBehavior()
+
+            if not event:GetItem():Equals(me)
+                event = event:Copy()
+                event:SetItem(me)
+            end
+            behavior:Run(event)
+
+            ControlActivationEvent controlEvent
+            controlEvent:Set(me, event)
+            NotifyControlActivationListeners(controlEvent)
         end
     end
 end
