@@ -2661,70 +2661,70 @@ class Item2D is Item
             return now
         end
 
-        if IsClipping()
-            if painter:IsClipping()
-                number startLeft = painter:GetClipX()
-                number startRight = painter:GetClipX2()
-                number left = startLeft
-                number right = startRight
-                number x = GetGlobalX()
-                number y = GetGlobalY()
-                number width = GetWidth()
-                number height = GetHeight()
-                if x > left
-                    left = x
-                end
-                if (x + width) < right
-                    right = x + width
-                end
-                if left > right
-                    return now
-                end
-
-                number startBottom = painter:GetClipY()
-                number startTop = painter:GetClipY2()
-                number bottom = startBottom
-                number top = startTop
-                if y > bottom
-                    bottom = y
-                end
-                if (y + height) < top
-                    top = y + height
-                end
-                if bottom > top
-                    return now
-                end
-
-                painter:SetClipCoordinates(left, bottom, right, top)
-
-                integer counter = children:GetSize()
-                repeat while counter > 0
-                    counter = counter - 1
-                    children:Get(counter):Draw(painter)
-                end
-
-                if visualView not= undefined
-                    visualView:Draw(painter)
-                end
-
-                painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
-            else
-                painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
-                painter:SetClipping(true)
-
-                integer counter = children:GetSize()
-                repeat while counter > 0
-                    counter = counter - 1
-                    children:Get(counter):Draw(painter)
-                end
-
-                if visualView not= undefined
-                    visualView:Draw(painter)
-                end
-
-                painter:SetClipping(false)
-            end
-        else
+//        if IsClipping()
+//            if painter:IsClipping()
+//                number startLeft = painter:GetClipX()
+//                number startRight = painter:GetClipX2()
+//                number left = startLeft
+//                number right = startRight
+//                number x = GetGlobalX()
+//                number y = GetGlobalY()
+//                number width = GetWidth()
+//                number height = GetHeight()
+//                if x > left
+//                    left = x
+//                end
+//                if (x + width) < right
+//                    right = x + width
+//                end
+//                if left > right
+//                    return now
+//                end
+//
+//                number startBottom = painter:GetClipY()
+//                number startTop = painter:GetClipY2()
+//                number bottom = startBottom
+//                number top = startTop
+//                if y > bottom
+//                    bottom = y
+//                end
+//                if (y + height) < top
+//                    top = y + height
+//                end
+//                if bottom > top
+//                    return now
+//                end
+//
+//                painter:SetClipCoordinates(left, bottom, right, top)
+//
+//                integer counter = children:GetSize()
+//                repeat while counter > 0
+//                    counter = counter - 1
+//                    children:Get(counter):Draw(painter)
+//                end
+//
+//                if visualView not= undefined
+//                    visualView:Draw(painter)
+//                end
+//
+//                painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
+//            else
+//                painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
+//                painter:SetClipping(true)
+//
+//                integer counter = children:GetSize()
+//                repeat while counter > 0
+//                    counter = counter - 1
+//                    children:Get(counter):Draw(painter)
+//                end
+//
+//                if visualView not= undefined
+//                    visualView:Draw(painter)
+//                end
+//
+//                painter:SetClipping(false)
+//            end
+//        else
 
             integer counter = children:GetSize()
             repeat while counter > 0
@@ -2735,7 +2735,7 @@ class Item2D is Item
             if visualView not= undefined
                 visualView:Draw(painter)
             end
-        end
+//        end
     end
 
     /*
@@ -2754,6 +2754,35 @@ class Item2D is Item
         boolean applyClipping = false
 
         Item2D item = me
+        Item2D viewAnchor = undefined
+        repeat while item not= undefined
+            if item:IsClipping()
+                applyClipping = true
+                if item:GetGlobalX() > left
+                    left = item:GetGlobalX()
+                end
+                if item:GetGlobalX() + item:GetWidth() < right
+                    right = item:GetGlobalX() + item:GetWidth()
+                end
+                if item:GetGlobalY() > bottom
+                    bottom = item:GetGlobalY()
+                end
+                if item:GetGlobalY() + item:GetHeight() < top
+                    top = item:GetGlobalY() + item:GetHeight()
+                end
+            end
+
+            if item is View2D
+                View2D view = cast(View2D, cast(Object, item))
+                viewAnchor = view:GetItem()
+            end
+
+            item = item:GetParent()
+        end
+
+        // Repeat steps again for the parent hierarchy of the Item this View
+        // represents, if this object is a View2D.
+        item = viewAnchor
         repeat while item not= undefined
             if item:IsClipping()
                 applyClipping = true
