@@ -28,7 +28,7 @@ class Column is Control
     action Add(integer position, Cell cell)
         cells:Add(position, cell)
 
-        parent:Item2D:Add(cell)
+        parent:Item2D:Add(position, cell)
     end
 
     action GetCell(integer i) returns Cell

@@ -22,6 +22,7 @@ class Cell is Control
 
     on create
         FlowLayout layout
+        layout:SetIgnoreHidden(true)
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()

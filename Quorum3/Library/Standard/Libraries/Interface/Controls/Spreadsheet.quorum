@@ -221,4 +221,39 @@ class Spreadsheet is Control
     action GetCellActivationBehavior returns Behavior
         return cellBehavior
     end
+
+    action ExpandRow(TreeTableCell cell)
+        Array<TreeTableRow> rows = cell:GetRows()
+
+        integer index = columns:Get(0):GetCellIndex(cell)
+
+        if index < 0
+            return now
+        end
+
+        integer i = 0
+        integer columnSize = columns:GetSize()
+
+        repeat while i < rows:GetSize()
+            TreeTableRow row = rows:Get(i)
+            index = index + 1
+
+            integer j = 0
+            repeat while j < columnSize
+                output "Adding " + row:Get(j):GetName() + " at " + index
+                Column column = columns:Get(j)
+                column:Add(index, row:Get(j))
+                j = j + 1
+            end
+
+            i = i + 1
+        end
+
+        Resize()
+    end
+
+    action CloseRow(TreeTableCell cell)
+        // To-do
+        output "CloseRow()"
+    end
 end

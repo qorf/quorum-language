@@ -1,0 +1,57 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.DefaultTreeMenuView
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Behaviors.Controls.TreeTableCellExpandBehavior
+
+class TreeTableCell is Cell
+
+    Array<TreeTableRow> rows
+    ToggleButton expandButton
+
+    on create
+        Add(0, expandButton)
+//        expandButton:Hide()
+
+        LayoutProperties properties = expandButton:GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(1.0)
+        properties:SetPercentageHeight(1.0)
+
+        TreeTableCellExpandBehavior behavior
+        behavior:SetCell(me)
+        expandButton:SetBehavior(behavior)
+    end
+
+    action Add(TreeTableRow row)
+        rows:Add(row)
+        row:SetParentCell(me)
+    end
+
+    action Remove(TreeTableRow row)
+        rows:Remove(row)
+        row:SetParentCell(undefined)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        parent:Cell:LoadGraphics(properties)
+        
+        View2D view = properties:GetView2D()
+
+        if view = undefined
+            DefaultTreeMenuView arrow
+            arrow:Initialize(100, 100)
+            view = arrow
+        end
+
+//        expandButton:SetView2D(view)
+    end
+
+    action GetRows returns Array<TreeTableRow>
+        return rows
+    end
+
+end

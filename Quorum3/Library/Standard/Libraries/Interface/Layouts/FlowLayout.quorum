@@ -229,6 +229,7 @@ class FlowLayout is Layout
                         nextY = verticalSpace
                     end
 
+                    output "Setting " + control:GetName() + " to " + x + ", " + (currentY - control:GetHeight() - topPadding)
                     control:SetPosition(x, currentY - control:GetHeight() - topPadding)
                     x = x + control:GetWidth() + rightPadding
                 end
