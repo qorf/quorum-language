@@ -71,6 +71,10 @@ class Turtle is Drawable
     number startTimer = 0
     number startDelay = 1
 
+    // A hack to get around abnormally long delta times on the first few frames.
+    // The game will wait this many frames of animation before processing commands.
+    integer waitFrames = 10
+
     Array<text> pathToSpeechArray
 
     on create
@@ -107,6 +111,11 @@ class Turtle is Drawable
     end
 
     action Update(number seconds)
+        if waitFrames > 0
+            waitFrames = waitFrames - 1
+            return now
+        end
+
         if startTimer < startDelay
             startTimer = startTimer + seconds
             if startTimer < startDelay
