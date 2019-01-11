@@ -13,6 +13,9 @@ class SpreadsheetActivationBehavior is Behavior
             if cell not= undefined
                 cell:Activate(event)
             end
+        elseif event:GetItem() is Cell
+            Cell cell = cast(Cell, event:GetItem())
+            cell:Activate(event)
         end
     end
 

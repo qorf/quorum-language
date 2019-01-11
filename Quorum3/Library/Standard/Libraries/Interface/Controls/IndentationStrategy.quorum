@@ -11,7 +11,7 @@ class IndentationStrategy
     that line. In a TextBox this is typically done by pressing the TAB key.
     */
     action AddIndentation(TextBox textBox, integer line, integer index)
-        MultipleLineText textValue = textBox:GetLines()
+        MultipleLineText textValue = textBox:GetMultipleLineText()
         integer characterIndex = textValue:CharacterIndexFromLineIndex(line) + index
         integer toAdd = indentationSize - (index mod indentationSize)
         text spaces = ""
@@ -31,7 +31,7 @@ class IndentationStrategy
             return now
         end
 
-        MultipleLineText textValue = textBox:GetLines()
+        MultipleLineText textValue = textBox:GetMultipleLineText()
         text lineText = textValue:GetLines():Get(line):GetText()
 
         // If there are any non-space characters before the index, return early.

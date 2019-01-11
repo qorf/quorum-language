@@ -652,17 +652,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     /*
-    For testing purposes.
-    */
-    action SetCaretPosition(integer line, integer index)
-        caretLine = line
-        caretCharacter = index
-        caretX = PositionCaret()
-
-        EmptySelectionEvent(false)
-    end
-
-    /*
     Sets the caret to a particular index. Left private because it does not
     adjust the selection, update the visuals, or trigger any events, and is only 
     used in preparation for other calls which will perform some tasks from the 
@@ -671,6 +660,25 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     private action SetCaretToIndex(integer index)
         caretLine = textValue:LineIndexFromCharacterIndex(index)
         caretCharacter = index - textValue:CharacterIndexFromLineIndex(caretLine)
+
+        text lineText = GetCurrentLineText()
+        text separator = textValue:GetLineSeparator()
+        integer size = lineText:GetSize()
+        if lineText:EndsWith(separator)
+            size = size - separator:GetSize()
+
+            /*
+            If the caret character exceeds the size of the line, then the caret is
+            in the middle of a multiple-character line separator. (Note that this
+            isn't possible if the separator is a single character -- if the index
+            would exceed a single-character separator, it already would've been
+            placed on the next line automatically by LineIndexFromCharacterIndex().)
+            */
+            if caretCharacter > size
+                caretLine = caretLine + 1
+                caretCharacter = 0
+            end
+        end
     end
 
     action MoveCaretLeft(boolean selecting)
@@ -678,7 +686,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretIndex()
+        integer oldIndex = GetCaretPosition()
 
         if caretCharacter = 0
             if caretLine = 0
@@ -719,7 +727,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretIndex()
+        integer oldIndex = GetCaretPosition()
 
         text lineText = GetCurrentLineText()
         text separator = textValue:GetLineSeparator()
@@ -803,7 +811,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretIndex()
+        integer oldIndex = GetCaretPosition()
 
         caretLine = caretLine + 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
@@ -836,7 +844,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretIndex()
+        integer oldIndex = GetCaretPosition()
 
         caretLine = caretLine - 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
@@ -1070,7 +1078,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             DeleteSelection()
         end
 
-        textValue = textValue:Insert(GetCaretIndex(), value)
+        textValue = textValue:Insert(GetCaretPosition(), value)
         
         text separator = textValue:GetLineSeparator()
 
@@ -1197,16 +1205,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             boolean atEnd = selection:IsCaretAtEnd()
 
             if atEnd
-                if GetCaretIndex() < selection:GetStartIndex()
-                    Select(GetCaretIndex(), selection:GetStartIndex(), false)
+                if GetCaretPosition() < selection:GetStartIndex()
+                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
                 else
-                    Select(selection:GetStartIndex(), GetCaretIndex(), true)
+                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
                 end
             else
-                if GetCaretIndex() > selection:GetEndIndex()
-                    Select(selection:GetEndIndex(), GetCaretIndex(), true)
+                if GetCaretPosition() > selection:GetEndIndex()
+                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
                 else
-                    Select(GetCaretIndex(), selection:GetEndIndex(), false)
+                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
                 end
             end
         else
@@ -1452,23 +1460,68 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return caretMoveTime
     end
 
+    /*
+    The SetCaretPosition action places the caret at the requested global index
+    within the text of the TextBox. Note that if the index requested would be in
+    the middle of a line separator, the caret will be placed at the end of the
+    line separator on the next line, which can cause the actual index of the
+    caret to be slightly higher.
+    */
+    action SetCaretPosition(integer index)
+        SetCaretToIndex(index)
+        caretX = PositionCaret()
+
+        EmptySelectionEvent(false)
+    end
+
+    /*
+    The SetCaretPositionToLine action sets the caret to the beginning of the
+    specified line.
+    */
+    action SetCaretPositionToLine(integer line)
+        SetCaretPosition(GetIndexOfLine(line))
+    end
+
+    /*
+    The GetCaretLine action returns the index of the line that the caret is
+    currently located on.
+    */
     action GetCaretLine returns integer
         return caretLine
     end
 
-    action GetCaretIndex returns integer
+    /*
+    The GetCaretPosition action returns the global index of the caret within the
+    TextBox.
+    */
+    action GetCaretPosition returns integer
         return textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
     end
 
-    action GetCaretLineIndex returns integer
+    /*
+    The GetCaretLinePosition action returns the index of the caret within the
+    line it is currently located. To get the global index, use GetCaretPosition
+    instead, or to get the line that the caret is on, use GetCaretLine.
+    */
+    action GetCaretLinePosition returns integer
         return caretCharacter
     end
 
+    /*
+    This action will return the global index of the beginning of the given line.
+    */
     action GetIndexOfLine(integer line) returns integer
         return textValue:CharacterIndexFromLineIndex(line)
     end
 
-    action GetLines returns MultipleLineText
+    /*
+    This action will return the number of lines in the text.
+    */
+    action GetLineCount returns integer
+        return textValue:GetLineCount()
+    end
+
+    action GetMultipleLineText returns MultipleLineText
         return textValue
     end
 
