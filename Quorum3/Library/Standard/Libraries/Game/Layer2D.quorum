@@ -963,15 +963,24 @@ class Layer2D is Layer
     to use this action directly.
     */
     action Update(number seconds)
+        integer counter = 0
+        repeat items:GetSize() times
+            Item2D item = items:Get(counter)
+
+            if item is Control
+                Control control = cast(Control, item)
+                if control:NeedsLayout()
+                    shouldLayout = true
+                end
+            end
+
+            item:UpdateAll(seconds)
+            counter = counter + 1
+        end
+
         if shouldLayout and layerLayout not= undefined
             layerLayout:Layout(undefined, controls, camera:GetWidth(), camera:GetHeight())
             shouldLayout = false
-        end
-
-        integer counter = 0
-        repeat items:GetSize() times
-            items:Get(counter):UpdateAll(seconds)
-            counter = counter + 1
         end
     end
     

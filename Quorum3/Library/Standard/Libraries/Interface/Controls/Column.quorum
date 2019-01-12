@@ -22,13 +22,13 @@ class Column is Control
     action Add(Cell cell)
         cells:Add(cell)
 
-        parent:Item2D:Add(cell)
+        parent:Control:Add(cell)
     end
 
     action Add(integer position, Cell cell)
         cells:Add(position, cell)
 
-        parent:Item2D:Add(position, cell)
+        parent:Control:Add(position, cell)
     end
 
     action GetCell(integer i) returns Cell
@@ -42,7 +42,7 @@ class Column is Control
 
     action RemoveCellAt(integer column)
         Cell c = cells:RemoveAt(column)
-        parent:Item2D:Remove(c)
+        parent:Item2D:Remove(column)
     end
 
     action GetSize returns integer

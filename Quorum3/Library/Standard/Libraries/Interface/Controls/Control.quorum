@@ -43,6 +43,12 @@ class Control is Item2D
     */
     Layout layout = undefined
 
+    /*
+    Whether or not this Control should automatically be laid out during the
+    next Update loop.
+    */
+    boolean needsLayout = false
+
     action ClickedMouse
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
@@ -116,12 +122,33 @@ class Control is Item2D
     end
 
     action Add(Item2D newItem)
+        parent:Item2D:Add(newItem)
+
         if newItem is Control
             Control c = cast(Control, newItem)
             c:SetInterfaceScale(GetInterfaceScale())
+            c:RequestLayout()
         end
+    end
 
-        parent:Item2D:Add(newItem)
+    action Add(integer index, Item2D newItem)
+        parent:Item2D:Add(index, newItem)
+
+        if newItem is Control
+            Control c = cast(Control, newItem)
+            c:SetInterfaceScale(GetInterfaceScale())
+            c:RequestLayout()
+        end
+    end
+
+    action Remove(Item2D item) returns boolean
+        RequestLayout()
+        return parent:Item2D:Remove(item)
+    end
+
+    action Remove(integer index) returns Item2D
+        RequestLayout()
+        return parent:Item2D:Remove(index)
     end
 
     action AddControlActivationListener(ControlActivationListener listener)
@@ -537,5 +564,70 @@ class Control is Item2D
     */
     action GetDefaultFontSize returns integer
         return 12
+    end
+
+    /*
+    This action requests that this Control should be laid out by its container
+    (or the Layer2D if there is no containing Control) during the next Update.
+    */
+    action RequestLayout
+        needsLayout = true
+
+        // If the parent container fits its contents based on us, and we need to
+        // be laid out again, then the parent needs to be laid out as well, as  
+        // its size may change.
+        Item2D parentItem = GetParent()
+        if parentItem not= undefined and parentItem is Control
+            Control container = cast(Control, parentItem)
+            LayoutProperties properties = container:GetDefaultLayoutProperties()
+            boolean didIt = false
+            if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+                or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                didIt = true
+                container:RequestLayout()
+            end
+        end
+    end
+
+    /*
+    This action is used to indicate that the Control no longer needs to be laid
+    out. This is called internally by the system as needed, and shouldn't be
+    necessary for most users.
+    */
+    action ResetLayoutFlag
+        needsLayout = false
+    end
+
+    /*
+    This action returns whether or not the Control is in need of laying out by
+    its container (or the parent Layer2D, if no container Control exists).
+    */
+    action NeedsLayout returns boolean
+        return needsLayout
+    end
+
+    /*
+
+    */
+    action UpdateAll(number seconds)
+        Update(seconds)
+        UpdateBehaviors(seconds)
+
+        integer counter = 0
+        boolean haveResized = false
+
+        repeat GetItemCount() times
+            Item item = GetChildAsItem(counter)
+            if item is Control and haveResized = false
+                Control control = cast(Control, item)
+                if control:NeedsLayout()
+                    Resize()
+                    haveResized = true
+                end
+            end
+
+            item:UpdateAll(seconds)
+            counter = counter + 1
+        end
     end
 end
