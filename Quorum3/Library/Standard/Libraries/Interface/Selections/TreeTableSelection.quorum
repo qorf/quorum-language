@@ -1,0 +1,95 @@
+package Libraries.Interface.Selections
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Containers.Support.Pair
+
+class TreeTableSelection is Selection
+    integer x = -1
+    integer y = -1
+
+    action Initialize(Item item)
+        Initialize(item, "")
+    end
+
+    action IsEmpty returns boolean
+        return x < 0 and y < 0
+    end
+
+    /*
+        This action selects a single cell in the TreeTable. In this case, 
+        the x represents the column number and the y represents the row.
+    */
+    action Set(integer x, integer y)
+        TreeTable table = GetTreeTable()
+        if table not= undefined
+            TreeTableCell cell = table:GetCell(x, y)
+            if cell not= undefined
+                me:x = x
+                me:y = y
+                SetDisplayName(cell:GetText())
+                return now
+            end
+        end
+
+        // If the TreeTable or Cell couldn't be found, set selection to empty.
+        Empty()
+    end
+
+    /*
+        This action selects a single cell in the TreeTable.
+    */
+    action Set(TreeTableCell cell)
+        if cell not= undefined
+            TreeTable table = GetTreeTable()
+            if table not= undefined
+                Pair<integer> coords = table:GetCellCoordinates(cell)
+                if coords:GetFirstValue() > -1 and coords:GetSecondValue() > -1
+                    x = coords:GetFirstValue()
+                    y = coords:GetSecondValue()
+                    SetDisplayName(cell:GetText())
+                    return now
+                end
+            end
+        end
+
+        // If we couldn't set it to the cell, empty the selection.
+        Empty()
+    end
+
+    action Get returns TreeTableCell
+        TreeTable table = GetTreeTable()
+        if table not= undefined and IsEmpty() = false
+            return table:GetCell(x, y)
+        end
+        return undefined
+    end
+
+    action GetTreeTable returns TreeTable
+        Item item = GetItem()
+        if item is TreeTable
+            return cast(TreeTable, item)
+        end
+        return undefined
+    end
+
+    /*
+    The Empty action sets the selection to be empty, or in other words, there is
+    no cell actively selected. When the selection is empty, the x and y 
+    coordinates will be -1.
+    */
+    action Empty
+        x = -1
+        y = -1
+        SetDisplayName("")
+    end
+
+    action GetX returns integer
+        return x
+    end
+
+    action GetY returns integer
+        return y
+    end
+end

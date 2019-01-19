@@ -5,53 +5,294 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Behaviors.Controls.TreeTableCellExpandBehavior
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.FlowLayout
 
-class TreeTableCell is Cell
-
-    Array<TreeTableRow> rows
+class TreeTableCell is Control
+    
+    TreeTableRow row = undefined
     ToggleButton expandButton
 
-    on create
-        Add(0, expandButton)
-//        expandButton:Hide()
+    text value = ""
+    constant integer DEFAULT_PADDING = 6
+    boolean inFirstColumn = false
 
-        LayoutProperties properties = expandButton:GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
-        properties:SetVerticalLayoutMode(properties:STANDARD)
-        properties:SetPercentageWidth(1.0)
-        properties:SetPercentageHeight(1.0)
+    // How many pixels the content of a cell is padded per tree depth of the
+    // row this cell represents.
+    constant integer PADDING_PER_DEPTH = 8
+    Label label
+
+    // The Behavior to use when the Cell is activated (e.g. by double click).
+    // If this is undefined, the Cell will attempt to use a Behavior defined by
+    // the TreeTable instead.
+    Behavior activationBehavior = undefined
+
+    on create
+        FlowLayout layout
+        layout:SetIgnoreHidden(false)
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+
+        properties:SetPercentageWidth(1)
+
+        Font font
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            properties:SetFont(font)
+            properties:SetFontSize(defaultFontSize)
+        end
+
+        SetInputGroup("TreeTableCell")
+        SetClipping(true)
+        Add(label)
+        SetAccessibilityCode(parent:Item:CELL)
+        SetName("Cell")
+
+        // The button isn't added here, it's only added to the structure in
+        // LoadGraphics if it's necessary (e.g. this cell is in the first column
+        // and the row is expandable).
+
+        LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetPercentageWidth(1.0)
+        buttonProperties:SetPercentageHeight(1.0)
+        buttonProperties:SetLabelText(" ")
 
         TreeTableCellExpandBehavior behavior
         behavior:SetCell(me)
         expandButton:SetBehavior(behavior)
     end
 
-    action Add(TreeTableRow row)
-        rows:Add(row)
-        row:SetParentCell(me)
-    end
-
-    action Remove(TreeTableRow row)
-        rows:Remove(row)
-        row:SetParentCell(undefined)
+    action GetDefaultFontName returns text
+        Font font
+        if font:FontIsAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
     end
 
     action LoadGraphics(LayoutProperties properties)
-        parent:Cell:LoadGraphics(properties)
-        
-        View2D view = properties:GetView2D()
+        parent:Control:LoadGraphics(properties)
+        LabelBoxView view
+        Color color
+        view:Initialize(color:White(), color:Black())
+        view:SetBorderThickness(1)
 
-        if view = undefined
-            DefaultTreeMenuView arrow
-            arrow:Initialize(100, 100)
-            view = arrow
+        label:SetLeftPadding(DEFAULT_PADDING)
+        label:SetFont(properties:GetFont())
+        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+
+        SetView2D(view)
+
+        if inFirstColumn and row not= undefined
+            if GetChildren():Has(expandButton) = false
+                Add(0, expandButton)
+            end
+
+            if row:IsEmpty()
+                expandButton:Hide()
+            else
+                expandButton:Show()
+            end
+
+            LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+            expandButton:SetLeftPadding(PADDING_PER_DEPTH * GetRow():GetTreeDepth())
+
+        elseif GetChildren():Has(expandButton)
+            Remove(expandButton)
         end
-
-//        expandButton:SetView2D(view)
     end
 
-    action GetRows returns Array<TreeTableRow>
-        return rows
+    action SetText(text value)
+        me:value = value
+        label:SetText(value)
+    end
+
+    action GetText returns text
+        return value
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        TreeTable table = GetTreeTable()
+        LayoutProperties tableProperties = undefined
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        if table not= undefined
+            tableProperties = table:GetDefaultLayoutProperties()
+        end
+
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+
+        if tableProperties not= undefined and tableProperties:GetSelectionColor() not= undefined
+            backgroundColor = tableProperties:GetSelectionColor()
+        elseif properties not= undefined and properties:GetSelectionColor() not= undefined
+            backgroundColor = properties:GetSelectionColor()
+        else
+            Color color
+            backgroundColor = color:Blue()
+        end
+
+        if tableProperties not= undefined and tableProperties:GetSelectionFontColor() not= undefined
+            textColor = tableProperties:GetSelectionFontColor()
+        elseif properties not= undefined and properties:GetSelectionFontColor() not= undefined
+            textColor = properties:GetSelectionFontColor()
+        else
+            Color color
+            textColor = color:White()
+        end
+
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            view:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        TreeTable table = GetTreeTable()
+        LayoutProperties tableProperties = undefined
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        if table not= undefined
+            tableProperties = table:GetDefaultLayoutProperties()
+        end
+
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+
+        if tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
+            backgroundColor = tableProperties:GetBackgroundColor()
+        elseif properties not= undefined and properties:GetBackgroundColor() not= undefined
+            backgroundColor = properties:GetBackgroundColor()
+        else
+            Color color
+            backgroundColor = color:White()
+        end
+
+        if tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
+            textColor = tableProperties:GetFontColor()
+        elseif properties not= undefined and properties:GetFontColor() not= undefined
+            textColor = properties:GetFontColor()
+        else
+            Color color
+            textColor = color:Black()
+        end
+
+        if GetView2D() is LabelBoxView
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            view:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
+    end
+
+    action ClickedMouse
+        parent:Control:ClickedMouse()
+        Select()
+    end
+
+    action Select
+        // Don't actually select here! Go to the TreeTable and ask it to 
+        // select us. We do this to allow the TreeTable to update the
+        // selection and deselect the old selection.
+        TreeTable table = GetTreeTable()
+        if table not= undefined
+            table:Select(me)
+        end
+    end
+
+    action Deselect
+        // Don't actually select here! Go to the TreeTable and ask it to 
+        // select us. We do this to allow the TreeTable to update the
+        // selection and deselect the old selection.
+        TreeTable table = GetTreeTable()
+        if table not= undefined
+            table:Deselect()
+        end
+    end
+
+    action GetColumn returns TreeTableColumn
+        Item2D item = GetParent()
+        repeat while (item is TreeTableColumn = false) and (item not= undefined)
+            item = item:GetParent()
+        end
+        return cast(TreeTableColumn, item)
+    end
+
+    action GetTreeTable returns TreeTable
+        TreeTableColumn column = GetColumn()
+        if column not= undefined
+            return column:GetTreeTable()
+        else
+            return undefined
+        end
+    end
+
+    action GetActivationBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action SetActivationBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action Activate(BehaviorEvent event)
+        if GetActivationBehavior() not= undefined
+            parent:Control:Activate(event)
+        else
+            TreeTable table = GetTreeTable()
+            if table = undefined or table:GetCellActivationBehavior() = undefined
+                return now
+            end
+
+            Behavior behavior = table:GetCellActivationBehavior()
+
+            if not event:GetItem():Equals(me)
+                event = event:Copy()
+                event:SetItem(me)
+            end
+            behavior:Run(event)
+
+            ControlActivationEvent controlEvent
+            controlEvent:Set(me, event)
+            NotifyControlActivationListeners(controlEvent)
+        end
+    end
+
+    action SetRow(TreeTableRow row)
+        me:row = row
+    end
+
+    action GetRow returns TreeTableRow
+        return row
+    end
+
+    action SetFirstColumnFlag(boolean isInFirstColumn)
+        inFirstColumn = isInFirstColumn
+        LayoutProperties properties = GetCurrentLayoutProperties()
+        if properties not= undefined
+            properties:SetRenderingFlag(true)
+        end
     end
 
 end

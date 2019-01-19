@@ -3,14 +3,13 @@ use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Selections.SpreadsheetSelection
+use Libraries.Interface.Selections.TreeTableSelection
 use Libraries.Interface.Behaviors.Behavior
 
 class TreeTable is Control
     Array<TreeTableColumn> columns
-    Array<TreeTableItem> items
-    SpreadsheetSelection selection
-    RowMapping mapping = undefined
+    Array<TreeTableRow> rows
+    TreeTableSelection selection
 
     // The cellBehavior is called when a Cell would be activated if it doesn't
     // have an activation behavior of its own defined.
@@ -24,21 +23,12 @@ class TreeTable is Control
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
 
-        SetInputGroup("Spreadsheet")
+        SetInputGroup("TreeTable")
 
         SetFocusable(true)
         selection:Initialize(me)
         SetAccessibilityCode(parent:Item:TABLE)
-        SetName("Table")
-    end
-
-    action SetRowMapping(RowMapping rowMapping)
-        mapping = rowMapping
-        // Update all of the column cell values here.
-    end
-
-    action GetRowMapping returns RowMapping
-        return mapping
+        SetName("Tree Table")
     end
 
     action Add(TreeTableColumn column)
@@ -53,53 +43,61 @@ class TreeTable is Control
         parent:Item2D:Add(column)
     end
 
-    action Add(TreeTableItem item)
-        items:Add(item)
+    action Add(TreeTableRow row)
+        rows:Add(row)
 
-        if mapping not= undefined
-            integer counter = 0
-            repeat while counter < columns:GetSize()
-                TreeTableColumn column = columns:Get(counter)
-                integer target = column:GetSize()
-                
-                Cell cell
-                column:Add(cell)
-                column:SetCell(target, mapping:GetValue(item, counter))
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            TreeTableColumn column = columns:Get(counter)
+            integer target = column:GetSize()
 
-                counter = counter + 1
+            TreeTableCell cell = column:CreateCell()
+            cell:SetRow(row)
+
+            if counter = 0 and row:IsEmpty() = false
+                cell:SetFirstColumnFlag(true)
             end
+
+            column:Add(cell)
+            column:SetCell(target, row)
+
+            counter = counter + 1
         end
     end
 
-    action Add(integer position, TreeTableItem item)
-        items:Add(position, item)
+    action Add(integer position, TreeTableRow row)
+        rows:Add(position, row)
 
-        if mapping not= undefined
-            integer counter = 0
-            repeat while counter < columns:GetSize()
-                TreeTableColumn column = columns:Get(counter)
-                integer target = GetFlattenedIndex(position)
-                
-                Cell cell
-                column:Add(target, cell)
-                column:SetCell(target, mapping:GetValue(item, counter))
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            TreeTableColumn column = columns:Get(counter)
+            integer target = GetFlattenedIndex(position)
 
-                counter = counter + 1
+            TreeTableCell cell = column:CreateCell()
+            cell:SetRow(row)
+
+            if counter = 0 and row:IsEmpty() = false
+                cell:SetFirstColumnFlag(true)
             end
+
+            column:Add(target, cell)
+            column:SetCell(target, row)
+
+            counter = counter + 1
         end
     end
 
     /*
     This action converts a top-level index (considering only the top level
-    TreeTableItems) to a flattened index (considering all visible TreeTableItems
+    TreeTableRows) to a flattened index (considering all visible TreeTableRows
     in the TreeTable, as is relevant to cell positioning in the columns).
     */
     private action GetFlattenedIndex(integer target) returns integer
         integer total = 0
         integer counter = 0
         repeat while counter < target
-            TreeTableItem item = items:Get(counter)
-            total = total + GetActiveItemCount(item)
+            TreeTableRow row = rows:Get(counter)
+            total = total + GetActiveRowCount(row)
 
             counter = counter + 1
         end
@@ -107,16 +105,16 @@ class TreeTable is Control
         return total
     end
 
-    private action GetActiveItemCount(TreeTableItem item) returns integer
+    private action GetActiveRowCount(TreeTableRow row) returns integer
         integer total = 1
         
-        if item:IsExpanded()
-            Array<TreeTableItem> children = item:GetChildren()
+        if row:IsExpanded()
+            Array<TreeTableRow> children = row:GetChildren()
             integer counter = 0
 
             repeat while counter < children:GetSize()
-                TreeTableItem child = children:Get(counter)
-                total = total + GetActiveItemCount(child)
+                TreeTableRow child = children:Get(counter)
+                total = total + GetActiveRowCount(child)
                 counter = counter + 1
             end
         end
@@ -143,7 +141,7 @@ class TreeTable is Control
         return columns:GetSize()
     end
 
-    action GetSelection returns SpreadsheetSelection
+    action GetSelection returns TreeTableSelection
         return selection
     end
 
@@ -160,8 +158,8 @@ class TreeTable is Control
         This action selects a single cell in the spreadsheet. In this case,
         a single cell.
     */
-    action Select(Cell cell)
-        Cell oldSelection = selection:Get()
+    action Select(TreeTableCell cell)
+        TreeTableCell oldSelection = selection:Get()
         if oldSelection not= undefined
             oldSelection:LostSelection()
         end
@@ -179,12 +177,12 @@ class TreeTable is Control
     the row.
     */
     action Select(integer x, integer y)
-        Cell oldSelection = selection:Get()
+        TreeTableCell oldSelection = selection:Get()
         if oldSelection not= undefined
             oldSelection:LostSelection()
         end
 
-        Cell cell = GetCell(x, y)
+        TreeTableCell cell = GetCell(x, y)
         if cell not= undefined
             cell:GainedSelection()
         end
@@ -193,7 +191,7 @@ class TreeTable is Control
     end
 
     action Deselect
-        Cell oldSelection = selection:Get()
+        TreeTableCell oldSelection = selection:Get()
         if oldSelection not= undefined
             oldSelection:LostSelection()
         end
@@ -249,7 +247,7 @@ class TreeTable is Control
     This action can potentially iterate over every cell in the Spreadsheet, and
     should be used sparingly if working with lots of cells.
     */
-    action GetCellCoordinates(Cell cell) returns Pair<integer>
+    action GetCellCoordinates(TreeTableCell cell) returns Pair<integer>
         integer x = 0
         Pair<integer> pair
 
@@ -280,7 +278,7 @@ class TreeTable is Control
     This action gets the cell located at the given coordinates, where the x
     coordinate represents the column and the y coordinate represents the row.
     */
-    action GetCell(integer x, integer y) returns Cell
+    action GetCell(integer x, integer y) returns TreeTableCell
         return columns:Get(x):GetCell(y)
     end
 
@@ -304,10 +302,10 @@ class TreeTable is Control
         return cellBehavior
     end
 
-    action ExpandRow(TreeTableCell cell)
-        Array<TreeTableRow> rows = cell:GetRows()
+    action ExpandRow(TreeTableRow parentRow)
+        Array<TreeTableRow> rows = parentRow:GetChildren()
 
-        integer index = columns:Get(0):GetCellIndex(cell)
+        integer index = GetFlattenedIndex(rows:GetFirstLocation(parentRow))
 
         if index < 0
             return now
@@ -323,7 +321,7 @@ class TreeTable is Control
             integer j = 0
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
-                column:Add(index, row:Get(j))
+                column:AddCell(index, row)
                 j = j + 1
             end
 
@@ -331,10 +329,10 @@ class TreeTable is Control
         end
     end
 
-    action CloseRow(TreeTableCell cell)
-        Array<TreeTableRow> rows = cell:GetRows()
+    action CloseRow(TreeTableRow row)
+        Array<TreeTableRow> rows = row:GetChildren()
 
-        integer index = columns:Get(0):GetCellIndex(cell)
+        integer index = GetFlattenedIndex(rows:GetFirstLocation(row))
 
         if index < 0
             return now

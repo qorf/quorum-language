@@ -73,6 +73,11 @@ use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDownBehavior
 use Libraries.Interface.Behaviors.Controls.TreeUpBehavior
+use Libraries.Interface.Behaviors.Controls.TreeTableDownBehavior
+use Libraries.Interface.Behaviors.Controls.TreeTableLeftBehavior
+use Libraries.Interface.Behaviors.Controls.TreeTableRightBehavior
+use Libraries.Interface.Behaviors.Controls.TreeTableUpBehavior
+use Libraries.Interface.Behaviors.Controls.TreeTableActivationBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -702,6 +707,31 @@ class Game
         spreadsheetCellTable:Add(doubleClickSet, spreadsheetActivate)
 
         gameInput:AddInputTable(spreadsheetCellTable)
+
+        InputTable treeTableInputTable
+        treeTableInputTable:SetIdentifier("TreeTable")
+        TreeTableDownBehavior treeTableDownBehavior
+        TreeTableUpBehavior treeTableUpBehavior
+        TreeTableLeftBehavior treeTableLeftBehavior
+        TreeTableRightBehavior treeTableRightBehavior
+        TreeTableActivationBehavior treeTableActivate
+
+        treeTableInputTable:Add(downArrow, treeTableDownBehavior)
+        treeTableInputTable:Add(upArrow, treeTableUpBehavior)
+        treeTableInputTable:Add(leftArrow, treeTableLeftBehavior)
+        treeTableInputTable:Add(rightArrow, treeTableRightBehavior)
+        treeTableInputTable:Add(spaceSet, treeTableActivate)
+
+        gameInput:AddInputTable(treeTableInputTable)
+
+        InputTable treeTableCellTable
+        treeTableCellTable:SetIdentifier("TreeTableCell")
+
+        treeTableCellTable:Add(clickDown, downBehavior)
+        treeTableCellTable:Add(touchDown, upBehavior)
+        treeTableCellTable:Add(doubleClickSet, treeTableActivate)
+
+        gameInput:AddInputTable(treeTableCellTable)
     end
 
     /*

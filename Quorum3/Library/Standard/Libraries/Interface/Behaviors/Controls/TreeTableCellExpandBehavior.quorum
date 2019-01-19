@@ -2,7 +2,7 @@ package Libraries.Interface.Behaviors.Controls
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.TreeTableCell
-use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.TreeTable
 use Libraries.Interface.Events.BehaviorEvent
 
 class TreeTableCellExpandBehavior is Behavior
@@ -19,9 +19,9 @@ class TreeTableCellExpandBehavior is Behavior
 
     action Run(BehaviorEvent event)
         if cell not= undefined
-            Spreadsheet sheet = cell:GetSpreadsheet()
-            if sheet not= undefined
-                sheet:ExpandRow(cell)
+            TreeTable table = cell:GetTreeTable()
+            if table not= undefined
+                table:ExpandRow(cell:GetRow())
             end
         end
     end
@@ -32,9 +32,9 @@ class TreeTableCellExpandBehavior is Behavior
 
     action Dispose
         if cell not= undefined
-            Spreadsheet sheet = cell:GetSpreadsheet()
-            if sheet not= undefined
-                sheet:CloseRow(cell)
+            TreeTable table = cell:GetTreeTable()
+            if table not= undefined
+                table:CloseRow(cell:GetRow())
             end
         end
     end
