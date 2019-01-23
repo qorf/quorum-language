@@ -74,7 +74,14 @@ class TreeTableColumn is Control
         parent:Item2D:Empty()
     end
 
-    blueprint action CreateCell returns TreeTableCell
+    /*
+    This action is used to determine if this column is the first column of a
+    TreeTable. If it is, the cells in this column may have buttons to expand
+    rows. Otherwise, this action will return false.
+    */
+    action IsFirstColumn returns boolean
+        return treeTable not= undefined and treeTable:IsFirstColumn(me)
+    end
 
     action AddCell(integer index, TreeTableRow row)
         TreeTableCell cell = CreateCell()
@@ -83,5 +90,8 @@ class TreeTableColumn is Control
         SetCell(index, row)
     end
 
+    blueprint action CreateCell returns TreeTableCell
+
     blueprint action SetCell(integer index, TreeTableRow row)
+
 end
