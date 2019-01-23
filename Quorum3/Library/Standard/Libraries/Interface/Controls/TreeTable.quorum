@@ -31,16 +31,61 @@ class TreeTable is Control
         SetName("Tree Table")
     end
 
-    action Add(TreeTableColumn column)
-        columns:Add(column)
-        column:SetTreeTable(me)
-        parent:Item2D:Add(column)
+    action Add(Item2D item)
+        if item is TreeTableColumn
+            TreeTableColumn column = cast(TreeTableColumn, item)
+            columns:Add(column)
+            column:SetTreeTable(me)
+
+            PopulateColumn(column, rows)
+
+            parent:Item2D:Add(column)
+        end
     end
 
-    action Add(integer position, TreeTableColumn column)
-        columns:Add(position, column)
+    action Add(integer position, Item2D item)
+        if item is TreeTableColumn
+            TreeTableColumn column = cast(TreeTableColumn, item)
+            columns:Add(position, column)
+            column:SetTreeTable(me)
 
-        parent:Item2D:Add(column)
+            PopulateColumn(column, rows)
+
+            parent:Item2D:Add(position, column)
+        end
+    end
+
+    /*
+    A recursive function used to populate a column with all of the cells needed
+    to show currently expanded TreeTableRows. Used to ensure that if a new
+    column is added to a TreeTable that already has rows added, the new column
+    is properly up-to-date with the state of the TreeTable.
+
+    Attribute: Parameter column The column that needs to be populated.
+    Attribute: Parameter rows The TreeTableRows to be placed in the column. When first called, this should be the TreeTable's "rows" variable.
+    */
+    private action PopulateColumn(TreeTableColumn column, Array<TreeTableRow> rows)
+
+        // The "target" is the index where new cells should be placed at the end of the column.
+        // We track this so we can set the cell at the index afterwords.
+        integer target = column:GetSize()
+        integer counter = 0
+        repeat while counter < rows:GetSize()
+            TreeTableRow row = rows:Get(counter)
+            TreeTableCell cell = column:CreateCell()
+            cell:SetRow(row)
+
+            column:Add(target, cell)
+            column:SetCell(target, row)
+
+            counter = counter + 1
+            target = target + 1
+
+            if row:IsExpanded()
+                PopulateColumn(column, row:GetChildren())
+                target = column:GetSize()
+            end
+        end
     end
 
     action Add(TreeTableRow row)
@@ -53,10 +98,6 @@ class TreeTable is Control
 
             TreeTableCell cell = column:CreateCell()
             cell:SetRow(row)
-
-            if counter = 0 and row:IsEmpty() = false
-                cell:SetFirstColumnFlag(true)
-            end
 
             column:Add(cell)
             column:SetCell(target, row)
@@ -75,10 +116,6 @@ class TreeTable is Control
 
             TreeTableCell cell = column:CreateCell()
             cell:SetRow(row)
-
-            if counter = 0 and row:IsEmpty() = false
-                cell:SetFirstColumnFlag(true)
-            end
 
             column:Add(target, cell)
             column:SetCell(target, row)
@@ -314,8 +351,11 @@ class TreeTable is Control
         integer i = 0
         integer columnSize = columns:GetSize()
 
+        parentRow:SetExpandFlag(true)
+
         repeat while i < rows:GetSize()
             TreeTableRow row = rows:Get(i)
+            row:SetExpandFlag(true)
             index = index + 1
 
             integer j = 0
@@ -344,6 +384,8 @@ class TreeTable is Control
         integer i = 0
         integer columnSize = columns:GetSize()
 
+        row:SetExpandFlag(false)
+
         repeat while i < rows:GetSize()
             integer j = 0
             repeat while j < columnSize
@@ -354,5 +396,15 @@ class TreeTable is Control
 
             i = i + 1
         end
+    end
+
+    /*
+    This action is used to determine if the given column is the first column in
+    the TreeTable, which may contain buttons to expand rows. If the given column
+    is part of this TreeTable and is the first column on the left side, this
+    returns true. Otherwise, it returns false.
+    */
+    action IsFirstColumn(TreeTableColumn column) returns boolean
+        return columns:IsEmpty() = false and columns:Get(0) = column
     end
 end

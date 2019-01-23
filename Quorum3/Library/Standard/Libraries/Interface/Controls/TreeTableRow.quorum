@@ -25,6 +25,16 @@ class TreeTableRow
         return expanded
     end
 
+    /*
+    This action is used internally to allow the TreeTableRow to track whether or
+    not it is currently expanded inside a TreeTable. This action is called
+    automatically as necessary by the TreeTable and shouldn't be called manually
+    by users.
+    */
+    action SetExpandFlag(boolean expand)
+        expanded = expand
+    end
+
     action GetTreeDepth returns integer
         return treeDepth
     end

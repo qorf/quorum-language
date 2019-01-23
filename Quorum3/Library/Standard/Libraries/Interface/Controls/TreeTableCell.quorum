@@ -23,7 +23,6 @@ class TreeTableCell is Control
 
     text value = ""
     constant integer DEFAULT_PADDING = 6
-    boolean inFirstColumn = false
 
     // How many pixels the content of a cell is padded per tree depth of the
     // row this cell represents.
@@ -100,6 +99,9 @@ class TreeTableCell is Control
 
         SetView2D(view)
 
+        TreeTableColumn column = GetColumn()
+        boolean inFirstColumn = column not= undefined and column:IsFirstColumn()
+
         if inFirstColumn and row not= undefined
             if GetChildren():Has(expandButton) = false
                 Add(0, expandButton)
@@ -112,7 +114,7 @@ class TreeTableCell is Control
             end
 
             LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
-            expandButton:SetLeftPadding(PADDING_PER_DEPTH * GetRow():GetTreeDepth())
+            expandButton:SetLeftPadding(PADDING_PER_DEPTH * row:GetTreeDepth())
 
         elseif GetChildren():Has(expandButton)
             Remove(expandButton)
@@ -285,14 +287,6 @@ class TreeTableCell is Control
 
     action GetRow returns TreeTableRow
         return row
-    end
-
-    action SetFirstColumnFlag(boolean isInFirstColumn)
-        inFirstColumn = isInFirstColumn
-        LayoutProperties properties = GetCurrentLayoutProperties()
-        if properties not= undefined
-            properties:SetRenderingFlag(true)
-        end
     end
 
 end
