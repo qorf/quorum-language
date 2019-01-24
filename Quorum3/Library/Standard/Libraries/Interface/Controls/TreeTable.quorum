@@ -159,6 +159,44 @@ class TreeTable is Control
         return total
     end
 
+    /*
+    This action finds the flattened index (considering all visible TreeTableRows
+    in the TreeTable, as is relevant to cell positioning in the columns) of the
+    given TreeTableRow.
+    */
+    private action GetFlattenedIndex(TreeTableRow row) returns integer
+        Boolean found
+        integer index = GetFlattenedIndex(rows, row, found)
+
+        if found:GetValue() = true
+            return index
+        else
+            return -1
+        end
+    end
+
+    private action GetFlattenedIndex(Array<TreeTableRow> rows, TreeTableRow targetRow, Boolean found) returns integer
+        integer counter = 0
+        integer index = 0
+        repeat while counter < rows:GetSize()
+            TreeTableRow row = rows:Get(counter)
+            if row = targetRow
+                found:SetValue(true)
+                return index
+            elseif row:IsExpanded()
+                index = 1 + index + GetFlattenedIndex(row:GetChildren(), targetRow, found)
+                if found:GetValue() = true
+                    return index
+                end
+            else
+                index = index + 1
+            end
+            counter = counter + 1
+        end
+
+        return index
+    end
+
     action GetColumn(integer i) returns TreeTableColumn
         return columns:Get(i)
     end
@@ -342,7 +380,7 @@ class TreeTable is Control
     action ExpandRow(TreeTableRow parentRow)
         Array<TreeTableRow> rows = parentRow:GetChildren()
 
-        integer index = GetFlattenedIndex(rows:GetFirstLocation(parentRow))
+        integer index = GetFlattenedIndex(parentRow)
 
         if index < 0
             return now
@@ -372,7 +410,7 @@ class TreeTable is Control
     action CloseRow(TreeTableRow row)
         Array<TreeTableRow> rows = row:GetChildren()
 
-        integer index = GetFlattenedIndex(rows:GetFirstLocation(row))
+        integer index = GetFlattenedIndex(row)
 
         if index < 0
             return now
