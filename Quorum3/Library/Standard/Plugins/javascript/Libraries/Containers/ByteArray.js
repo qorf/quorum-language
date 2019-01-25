@@ -142,7 +142,18 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
             var low = view.getUint32(0, !(this.IsBigEndian()));
             var high = view.getInt32(4, !(this.IsBigEndian()));
         }
+
+        high = high.toString();
+        low = low.toString();
+        var bigIntHigh = new quorum_Libraries_Compute_BigInteger_();
+        var bigIntLow = new quorum_Libraries_Compute_BigInteger_();
+        bigIntHigh.SetValue$quorum_text(high);
+        bigIntLow.SetValue$quorum_text(low);
+        bigIntHigh = bigIntHigh.ShiftLeft$quorum_integer(32);
+        bigIntHigh = bigIntHigh.Add$quorum_Libraries_Compute_BigInteger(bigIntLow);
+        return bigIntHigh.GetText$quorum_integer(10);
         
+        /*
         if(high >= 2**63){
             combined = (-(2**64-(high*2**32+low)));
         } else {
@@ -152,7 +163,7 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
             console.warn(combined, 'Precision may be lost.');
 
         return combined;
-        
+        */
         
         /* Only supported in Chrome. 
         

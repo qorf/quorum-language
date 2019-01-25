@@ -1936,7 +1936,14 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     output result
     */
     this.CompareResult$quorum_Libraries_Compute_BigInteger = function(value){
-        
+        var val = value.GetText$quorum_integer(b);
+        var temp = JSBI.BigInt(val);
+        if (JSBI.greaterThan(this.value, temp))
+            return 1;
+        else if (JSBI.lessThan(this.value, temp))
+            return -1;
+        else
+            return 0;
     };
    
 
@@ -2030,7 +2037,20 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     output largeNumber:GetText()
     */
     this.GreatestCommonDivisor$quorum_Libraries_Compute_BigInteger = function(value) {
-        
+        var val = value.GetText$quorum_integer(b);
+        var temp = JSBI.BigInt(val);
+        if(JSBI.LT(temp, 0))
+            JSBI.unaryMinus(temp);
+        if(JSBI.LT(this.value, 0))
+            JSBI.unaryMinus(this.value);
+        while (!(JSBI.EQ(temp, 0))){
+            var temp2 = temp;
+            temp = JSBI.remainder(this.value, temp);
+            this.value = temp2;
+        }
+        var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
+        quorumTemp.SetValue$quorum_text(this.value.toString(b));
+        return quorumTemp;        
     };
 
     /*
@@ -2049,7 +2069,9 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     integer value = largeNumber:ToInteger()
     */
     this.ToInteger = function() {
-        
+        var textValue = this.value.toString(b);
+        var integerValue = parseInt(textValue, b);
+        return integerValue;
     };
 
     /*
@@ -2129,10 +2151,13 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     this.Mod$quorum_Libraries_Compute_BigInteger = function(value) {
         var val = value.GetText$quorum_integer(b);
         var temp = JSBI.BigInt(val);
-        temp = JSBI.remainder(this.value, temp);
-        var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
-        quorumTemp.SetValue$quorum_text(temp.toString(b));
-        return quorumTemp;   
+        if(JSBI.LT(temp, 0))
+            throw "Modulus not Positive";
+        else
+            temp = JSBI.remainder(this.value, temp);
+            var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
+            quorumTemp.SetValue$quorum_text(temp.toString(b));
+            return quorumTemp;   
     };
 
     /*
@@ -2275,7 +2300,12 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     output largeNumber:GetText()
     */
     this.Remainder$quorum_Libraries_Compute_BigInteger = function(value) {
-        
+        var val = value.GetText$quorum_integer(b);
+        var temp = JSBI.BigInt(val);
+        temp = JSBI.remainder(this.value, temp);
+        var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
+        quorumTemp.SetValue$quorum_text(temp.toString(b));
+        return quorumTemp; 
     };
 
     /*
@@ -2348,7 +2378,12 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     output result
     */
     this.GetSignValue = function(){
-        
+        if(JSBI.LT(this.value, 0))
+            return -1;
+        else if(JSBI.GT(this.value, 0))
+            return 1;
+        else
+            return 0;     
     };
 
     /*
