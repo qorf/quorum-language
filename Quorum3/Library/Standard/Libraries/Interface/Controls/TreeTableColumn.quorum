@@ -90,6 +90,15 @@ class TreeTableColumn is Control
         SetCell(index, row)
     end
 
+    action Refresh
+        integer counter = 0
+        repeat while counter < cells:GetSize()
+            TreeTableCell cell = cells:Get(counter)
+            SetCell(counter, cell:GetRow())
+            counter = counter + 1
+        end
+    end
+
     blueprint action CreateCell returns TreeTableCell
 
     blueprint action SetCell(integer index, TreeTableRow row)

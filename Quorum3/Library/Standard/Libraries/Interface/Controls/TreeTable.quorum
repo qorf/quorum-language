@@ -167,6 +167,7 @@ class TreeTable is Control
     private action GetFlattenedIndex(TreeTableRow row) returns integer
         Boolean found
         integer index = GetFlattenedIndex(rows, row, found)
+        output "Calculated index of " + index + ", found = " + found:GetValue()
 
         if found:GetValue() = true
             return index
@@ -427,8 +428,6 @@ class TreeTable is Control
         integer i = 0
         integer columnSize = columns:GetSize()
 
-        row:SetExpandFlag(false)
-
         repeat while i < rows:GetSize()
             TreeTableRow childRow = rows:Get(i)
             CloseRow(childRow)
@@ -442,6 +441,8 @@ class TreeTable is Control
 
             i = i + 1
         end
+
+        row:SetExpandFlag(false)
     end
 
     /*
@@ -452,5 +453,18 @@ class TreeTable is Control
     */
     action IsFirstColumn(TreeTableColumn column) returns boolean
         return columns:IsEmpty() = false and columns:Get(0) = column
+    end
+
+    /*
+    This action refreshes the TreeTable, updating all values in its cells to
+    reflect the current information in the TreeTableRows.
+    */
+    action Refresh
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            TreeTableColumn column = columns:Get(counter)
+            column:Refresh()
+            counter = counter + 1
+        end
     end
 end
