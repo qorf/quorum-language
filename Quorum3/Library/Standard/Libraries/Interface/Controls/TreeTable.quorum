@@ -408,8 +408,13 @@ class TreeTable is Control
     end
 
     action CloseRow(TreeTableRow row)
+        if row:IsExpanded() = false
+            return now
+        end
+
         Array<TreeTableRow> rows = row:GetChildren()
 
+        // We'll remove cells from the index after the parent cell.
         integer index = GetFlattenedIndex(row)
 
         if index < 0
@@ -418,13 +423,16 @@ class TreeTable is Control
 
         // We'll remove cells from the index after the parent cell.
         index = index + 1
-
+        
         integer i = 0
         integer columnSize = columns:GetSize()
 
         row:SetExpandFlag(false)
 
         repeat while i < rows:GetSize()
+            TreeTableRow childRow = rows:Get(i)
+            CloseRow(childRow)
+
             integer j = 0
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)

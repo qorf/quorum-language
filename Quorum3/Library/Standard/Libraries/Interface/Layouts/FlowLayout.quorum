@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.Label
 class FlowLayout is Layout
 
     boolean ignoreHidden = false
+    boolean singleLine = false
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
@@ -192,7 +193,7 @@ class FlowLayout is Layout
 
                     x = x + leftPadding
 
-                    if x + width > containerWidth
+                    if x + width > containerWidth and singleLine = false
                         currentY = nextY
                         x = leftPadding
                     end
@@ -226,7 +227,7 @@ class FlowLayout is Layout
 
                     number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
 
-                    if verticalSpace < nextY
+                    if verticalSpace < nextY and singleLine = false
                         nextY = verticalSpace
                     end
 
@@ -265,5 +266,13 @@ class FlowLayout is Layout
 
     action IsIgnoringHidden returns boolean
         return ignoreHidden
+    end
+
+    action SetSingleLine(boolean single)
+        singleLine = single
+    end
+
+    action IsSingleLine returns boolean
+        return singleLine
     end
 end
