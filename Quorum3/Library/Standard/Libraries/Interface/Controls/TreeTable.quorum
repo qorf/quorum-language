@@ -38,9 +38,9 @@ class TreeTable is Control
             column:SetTreeTable(me)
 
             PopulateColumn(column, rows)
-
-            parent:Item2D:Add(column)
         end
+
+        parent:Item2D:Add(item)
     end
 
     action Add(integer position, Item2D item)
@@ -50,9 +50,24 @@ class TreeTable is Control
             column:SetTreeTable(me)
 
             PopulateColumn(column, rows)
-
-            parent:Item2D:Add(position, column)
         end
+
+        parent:Item2D:Add(position, item)
+    end
+
+    action Remove(Item2D item) returns boolean
+        if item is TreeTableColumn
+            TreeTableColumn column = cast(TreeTableColumn, item)
+            columns:Remove(column)
+            column:SetTreeTable(undefined)
+        end
+
+        return parent:Item2D:Remove(item)
+    end
+
+    action RemoveColumnAt(integer column)
+        TreeTableColumn c = columns:RemoveAt(column)
+        parent:Item2D:Remove(c)
     end
 
     /*
@@ -122,6 +137,26 @@ class TreeTable is Control
 
             counter = counter + 1
         end
+    end
+
+    action Remove(TreeTableRow row) returns boolean
+        integer topIndex = rows:GetFirstLocation(row)
+        if topIndex < 0
+            return false
+        end
+
+        integer index = GetFlattenedIndex(row)
+        CloseRow(row)
+        
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            TreeTableColumn column = columns:Get(counter)
+            column:RemoveCellAt(index)
+            counter = counter + 1
+        end
+
+        rows:RemoveAt(topIndex)
+        return true
     end
 
     /*
@@ -200,17 +235,6 @@ class TreeTable is Control
 
     action GetColumn(integer i) returns TreeTableColumn
         return columns:Get(i)
-    end
-
-    action RemoveColumn(TreeTableColumn column)
-        columns:Remove(column)
-        column:SetTreeTable(undefined)
-        parent:Item2D:Remove(column)
-    end
-
-    action RemoveColumnAt(integer column)
-        TreeTableColumn c = columns:RemoveAt(column)
-        parent:Item2D:Remove(c)
     end
 
     action GetColumnsSize returns integer
