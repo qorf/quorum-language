@@ -128,13 +128,6 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
             view.setInt8(i, array[i]);
         } 
         
-        /*
-         * BigInt is currently only supported in Chrome, other browsers are
-         * still working on implementing. The following code block works, but 
-         * there is a loss in precision out of the range of (-(2^53 - 1)) to 
-         * (2^53 - 1). 
-         */
-        
         if(this.IsBigEndian()){
             var high = view.getInt32(0, !(this.IsBigEndian()));
             var low = view.getUint32(4, !(this.IsBigEndian()));
@@ -152,18 +145,6 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
         bigIntHigh = bigIntHigh.ShiftLeft$quorum_integer(32);
         bigIntHigh = bigIntHigh.Add$quorum_Libraries_Compute_BigInteger(bigIntLow);
         return bigIntHigh.GetText$quorum_integer(10);
-        
-        /*
-        if(high >= 2**63){
-            combined = (-(2**64-(high*2**32+low)));
-        } else {
-            combined = (high*2**32+low);
-        }
-        if(!Number.isSafeInteger(combined))
-            console.warn(combined, 'Precision may be lost.');
-
-        return combined;
-        */
         
         /* Only supported in Chrome. 
         

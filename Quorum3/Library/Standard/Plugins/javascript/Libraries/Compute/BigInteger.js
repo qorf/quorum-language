@@ -77,7 +77,7 @@ class JSBI extends Array {
       return x.sign ? -value : value;
     }
     const xMsd = x.__digit(xLength - 1);
-    const msdLeadingZeros = Math.clz32(xMsd);
+    const msdLeadingZeros = Math.clz32(xMsd);   //number of leading zeros in binary 32 bit representation
     const xBitLength = xLength * 32 - msdLeadingZeros;
     if (xBitLength > 1024) return x.sign ? -Infinity : Infinity;
     let exponent = xBitLength - 1;
@@ -2039,17 +2039,18 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     this.GreatestCommonDivisor$quorum_Libraries_Compute_BigInteger = function(value) {
         var val = value.GetText$quorum_integer(b);
         var temp = JSBI.BigInt(val);
+        var gcd = this.value;
         if(JSBI.LT(temp, 0))
             JSBI.unaryMinus(temp);
-        if(JSBI.LT(this.value, 0))
-            JSBI.unaryMinus(this.value);
+        if(JSBI.LT(gcd, 0))
+            JSBI.unaryMinus(gcd);
         while (!(JSBI.EQ(temp, 0))){
             var temp2 = temp;
-            temp = JSBI.remainder(this.value, temp);
-            this.value = temp2;
+            temp = JSBI.remainder(gcd, temp);
+            gcd = temp2;
         }
         var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
-        quorumTemp.SetValue$quorum_text(this.value.toString(b));
+        quorumTemp.SetValue$quorum_text(gcd.toString(b));
         return quorumTemp;        
     };
 
@@ -2069,8 +2070,10 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     integer value = largeNumber:ToInteger()
     */
     this.ToInteger = function() {
-        var textValue = this.value.toString(b);
-        var integerValue = parseInt(textValue, b);
+        var integerValue = this.value[0];
+        if(this.value.sign === true)
+            integerValue = integerValue * -1;
+        
         return integerValue;
     };
 
