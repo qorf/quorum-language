@@ -1,0 +1,21 @@
+use Libraries.System.File
+use Libraries.Containers.ByteArray
+use Libraries.System.BinaryFileReader
+use Libraries.Containers.Support.ByteReader
+
+
+File file
+file = file:GetParentDirectory():GetParentDirectory()
+file:SetPath("Library/Tests/ByteArray/HourOfCode.png")
+
+BinaryFileReader reader
+reader:OpenForRead(file)
+ByteArray value = reader:ReadBytes()
+integer byte = value:Get(0)
+output byte
+
+integer byte2 = value:Get(1)
+output byte2
+
+byte = value:IntegerFromTwoBytes(byte, byte2)
+output byte
