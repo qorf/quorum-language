@@ -202,7 +202,6 @@ class TreeTable is Control
     private action GetFlattenedIndex(TreeTableRow row) returns integer
         Boolean found
         integer index = GetFlattenedIndex(rows, row, found)
-        output "Calculated index of " + index + ", found = " + found:GetValue()
 
         if found:GetValue() = true
             return index
@@ -418,7 +417,6 @@ class TreeTable is Control
 
         repeat while i < rows:GetSize()
             TreeTableRow row = rows:Get(i)
-            row:SetExpandFlag(true)
             index = index + 1
 
             integer j = 0
@@ -437,7 +435,7 @@ class TreeTable is Control
             return now
         end
 
-        Array<TreeTableRow> rows = row:GetChildren()
+        Array<TreeTableRow> childRows = row:GetChildren()
 
         // We'll remove cells from the index after the parent cell.
         integer index = GetFlattenedIndex(row)
@@ -452,8 +450,8 @@ class TreeTable is Control
         integer i = 0
         integer columnSize = columns:GetSize()
 
-        repeat while i < rows:GetSize()
-            TreeTableRow childRow = rows:Get(i)
+        repeat while i < childRows:GetSize()
+            TreeTableRow childRow = childRows:Get(i)
             CloseRow(childRow)
 
             integer j = 0
@@ -490,5 +488,30 @@ class TreeTable is Control
             column:Refresh()
             counter = counter + 1
         end
+    end
+
+    /*
+    WORK IN PROGRESS
+
+    This action empties and repopulates the columns. This functionality will be
+    rolled into Refresh to be called intelligently.
+    */
+    action Repopulate
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            TreeTableColumn column = columns:Get(counter)
+            column:Empty()
+            PopulateColumn(column, rows)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action returns the top-level rows in the TreeTable. If the rows are
+    manipulated, the change will not be apparent in the TreeTable until Refresh
+    is called.
+    */
+    action GetRows returns Array<TreeTableRow>
+        return rows
     end
 end
