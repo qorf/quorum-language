@@ -27,6 +27,7 @@ class Main is WebResponder
     public constant text COMPILE_FLAG = "-compile"
     public constant text DOCUMENT_FLAG = "-document"
     public constant text DOCUMENT_LIBRARY = "-documentLibrary"
+    public constant text ERRORS_FLAG = "-errors"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
     public constant text LIBRARY_FLAG = "-library"
@@ -394,6 +395,24 @@ class Main is WebResponder
             end
         end
 
+        if flagValues:HasKey(ERRORS_FLAG)
+            if flagValues:GetSize() = 1
+                Array<text> names = flagValues:GetValue(ERRORS_FLAG)
+
+                if names:IsEmpty()
+                    output "I noticed you asked for a program to be compiled to the web, but that no files were passed."
+                    output GetHelpText()
+                    return now
+                end
+
+                Compile(name, names, false, true)
+                return now
+            else
+                output "I noticed a -errors flag was issued, but this flag can only be requested on its own, not with other flags."
+                return now
+            end
+        end
+
         if flagValues:HasKey(DOCUMENT_LIBRARY)
             if flagValues:HasKey(WEB_FLAG)
                 output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
@@ -435,7 +454,7 @@ class Main is WebResponder
                 return now
             end
 
-            Compile(name, names, false)
+            Compile(name, names, false, false)
             return now
         end
 
@@ -453,7 +472,7 @@ class Main is WebResponder
                 return now
             end
 
-            Compile(name, names, false)
+            Compile(name, names, false, false)
             return now
         end
 
@@ -471,7 +490,7 @@ class Main is WebResponder
                 return now
             end
 
-            Compile(name, names, true)
+            Compile(name, names, true, false)
             return now
         end
     end
@@ -515,7 +534,7 @@ class Main is WebResponder
         output "Complete in " + seconds + " seconds." 
     end
 
-    private action Compile(text name, Array<text> fileNames, boolean isWebApplication)
+    private action Compile(text name, Array<text> fileNames, boolean isWebApplication, boolean errorsOnly)
         Array<File> files
         i = 0
         repeat fileNames:GetSize() times
@@ -569,7 +588,9 @@ class Main is WebResponder
             request:SetOutputType(request:JAVASCRIPT)
         end
         
-        output compiler:GetVersion()
+        if not errorsOnly
+            output compiler:GetVersion()
+        end
 
         File main = files:Get(0)
 
@@ -584,7 +605,11 @@ class Main is WebResponder
         if manager:IsCompilationErrorFree()
             output "Build Successful"
         else
-            output result:compilerErrorManager:GetCompilerErrorsAsText()
+            if errorsOnly
+                output result:compilerErrorManager:GetCompilerErrorsAsJSON(compiler:GetVersion())
+            else
+                output result:compilerErrorManager:GetCompilerErrorsAsText()
+            end
         end
     end
 
@@ -651,6 +676,10 @@ Here are a few examples of how you can use this program:
         java -jar Quorum.jar Hello.quorum Goodbye.quorum
 
     This would cause Quorum to Compile two source code files. The first file must have a Main action.
+
+        java -jar Quorum.jar -errors Hello.quorum
+
+    This would cause Quorum to compile one source file and output the errors, if any in JavaScriptObjectNotation (JSON) format.
 
 For more information on writing programs in Quorum, visit www.quorumlanguage.com."     
         return help
