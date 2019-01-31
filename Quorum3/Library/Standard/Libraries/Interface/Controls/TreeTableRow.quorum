@@ -67,14 +67,4 @@ class TreeTableRow
     action GetChildren returns Array<TreeTableRow>
         return children
     end
-
-    // For testing purposes only!
-    text name = ""
-    action SetName(text n)
-        name = n
-    end
-
-    action GetName returns text
-        return name
-    end
 end

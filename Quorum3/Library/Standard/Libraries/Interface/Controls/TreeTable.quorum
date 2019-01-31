@@ -147,6 +147,12 @@ class TreeTable is Control
 
         integer index = GetFlattenedIndex(row)
         CloseRow(row)
+
+        // If we're about to remove the selected cell, deselect it first.
+        TreeTableCell selectedCell = selection:Get()
+        if selectedCell not= undefined and selectedCell:GetRow() = row
+            Deselect()
+        end
         
         integer counter = 0
         repeat while counter < columns:GetSize()
@@ -156,6 +162,7 @@ class TreeTable is Control
         end
 
         rows:RemoveAt(topIndex)
+
         return true
     end
 
@@ -299,6 +306,10 @@ class TreeTable is Control
     end
 
     action MoveSelectionUp
+        if selection:IsEmpty()
+            return now
+        end
+
         integer x = selection:GetX()
         integer y = selection:GetY()
         
@@ -308,6 +319,10 @@ class TreeTable is Control
     end
 
     action MoveSelectionDown
+        if selection:IsEmpty()
+            return now
+        end
+
         integer x = selection:GetX()
         integer y = selection:GetY()
         
@@ -320,6 +335,10 @@ class TreeTable is Control
     end
 
     action MoveSelectionLeft
+        if selection:IsEmpty()
+            return now
+        end
+
         integer x = selection:GetX()
         integer y = selection:GetY()
 
@@ -329,6 +348,10 @@ class TreeTable is Control
     end
 
     action MoveSelectionRight
+        if selection:IsEmpty()
+            return now
+        end
+
         integer x = selection:GetX()
         integer y = selection:GetY()
         
@@ -457,6 +480,12 @@ class TreeTable is Control
             integer j = 0
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
+
+                // If we're about to delete the selected cell, deselect it first.
+                if selection:Get() = column:GetCell(index)
+                    Deselect()
+                end
+
                 column:RemoveCellAt(index)
                 j = j + 1
             end
@@ -482,21 +511,66 @@ class TreeTable is Control
     reflect the current information in the TreeTableRows.
     */
     action Refresh
-        integer counter = 0
-        repeat while counter < columns:GetSize()
-            TreeTableColumn column = columns:Get(counter)
-            column:Refresh()
-            counter = counter + 1
+        Integer cellIndex
+        cellIndex:SetValue(0)
+
+        if NeedsRegeneration(rows, cellIndex)
+            Repopulate()
+        else
+            integer counter = 0
+            repeat while counter < columns:GetSize()
+                TreeTableColumn column = columns:Get(counter)
+                column:Refresh()
+                counter = counter + 1
+            end
         end
     end
 
     /*
-    WORK IN PROGRESS
-
-    This action empties and repopulates the columns. This functionality will be
-    rolled into Refresh to be called intelligently.
+    This action determines if the columns need to be regenerated to match the
+    contents of the TreeTableRows. This is only needed if rows have been 
+    externally rearranged.
     */
-    action Repopulate
+    private action NeedsRegeneration(Array<TreeTableRow> rows, Integer cellIndex) returns boolean
+        if columns:IsEmpty()
+            return false
+        end
+
+        TreeTableColumn column = columns:Get(0)
+
+        // If the number of rows we're expected to check from the cell index
+        // exceeds the number of cells in the column, we need to regenerate.
+        if cellIndex:GetValue() + rows:GetSize() > column:GetSize()
+            return true
+        end
+
+        integer i = 0
+        repeat while i < rows:GetSize()
+            TreeTableRow sourceRow = rows:Get(i)
+            TreeTableRow targetRow = column:GetCell(cellIndex:GetValue()):GetRow()
+            if sourceRow not= targetRow
+                return true
+            end
+
+            cellIndex:SetValue(cellIndex:GetValue() + 1)
+            i = i + 1
+
+            if sourceRow:IsExpanded()
+                boolean childrenNeedRegeneration = NeedsRegeneration(sourceRow:GetChildren(), cellIndex)
+                if childrenNeedRegeneration or (cellIndex:GetValue() + (rows:GetSize() - i) > column:GetSize())
+                    return true
+                end
+            end
+            
+        end
+
+        return false
+    end
+
+    /*
+    This action empties and repopulates the columns.
+    */
+    private action Repopulate
         integer counter = 0
         repeat while counter < columns:GetSize()
             TreeTableColumn column = columns:Get(counter)
