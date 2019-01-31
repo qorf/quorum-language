@@ -1,0 +1,35 @@
+package Libraries.Game
+
+use Libraries.Interface.Item
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+
+class DialogLayer is Layer2D
+    
+    /*
+    This action will notify mouse listeners that are a part of this layer of the
+    given mouse event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
+    */
+    action ProcessMouseEvent(MouseEvent event) returns Item
+        Item item = parent:Layer2D:ProcessMouseEvent(event)
+        event:SetEventHandled(true)
+        return item
+    end
+
+    /*
+    This action will notify touch listeners that are a part of this layer of the
+    given touch event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The TouchEvent to send to the TouchListeners.
+    */
+    action ProcessTouchEvent(TouchEvent event) returns Item
+        Item item = parent:Layer2D:ProcessTouchEvent(event)
+        event:SetEventHandled(true)
+        return item
+    end
+end

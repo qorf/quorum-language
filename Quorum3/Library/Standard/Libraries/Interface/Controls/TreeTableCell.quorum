@@ -20,6 +20,7 @@ class TreeTableCell is Control
     
     TreeTableRow row = undefined
     ToggleButton expandButton
+    TreeTableCellExpandBehavior expandBehavior
 
     text value = ""
     constant integer DEFAULT_PADDING = 6
@@ -73,9 +74,8 @@ class TreeTableCell is Control
         buttonProperties:SetPercentageHeight(1.0)
         buttonProperties:SetLabelText(" ")
 
-        TreeTableCellExpandBehavior behavior
-        behavior:SetCell(me)
-        expandButton:SetBehavior(behavior)
+        expandBehavior:SetCell(me)
+        expandButton:SetBehavior(expandBehavior)
     end
 
     action GetDefaultFontName returns text
@@ -105,6 +105,12 @@ class TreeTableCell is Control
 
         if inFirstColumn and row not= undefined
             if GetChildren():Has(expandButton) = false
+                TreeTableRow row = GetRow()
+                if row not= undefined
+                    expandButton:SetBehavior(undefined)
+                    expandButton:SetToggleState(row:IsExpanded())
+                    expandButton:SetBehavior(expandBehavior)
+                end
                 Add(0, expandButton)
             end
 

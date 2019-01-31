@@ -1,0 +1,29 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.DialogLayer
+
+class Dialog is Control
+    
+    GameStateManager manager
+
+    action Display
+        Game game = manager:GetGame()
+        DialogLayer layer
+        layer:Add(me)
+        game:AddLayer(layer)
+    end
+
+    action Close
+        // NYI
+    end
+
+    action SetParent(Item2D item)
+        if item not= undefined
+            alert("I couldn't set the item " + item:GetName() + " as the parent of the dialog " + GetName() + " because Dialogs can't have parent Items.")
+        else
+            parent:Control:SetParent(item)
+        end
+    end
+end
