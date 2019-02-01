@@ -6,6 +6,8 @@ use Libraries.Interface.Events.TouchEvent
 
 class DialogLayer is Layer2D
     
+    boolean isModal = false
+
     /*
     This action will notify mouse listeners that are a part of this layer of the
     given mouse event. This is called automatically by the Game engine as 
@@ -16,7 +18,9 @@ class DialogLayer is Layer2D
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
         Item item = parent:Layer2D:ProcessMouseEvent(event)
-        event:SetEventHandled(true)
+        if isModal
+            event:SetEventHandled(true)
+        end
         return item
     end
 
@@ -29,7 +33,37 @@ class DialogLayer is Layer2D
     */
     action ProcessTouchEvent(TouchEvent event) returns Item
         Item item = parent:Layer2D:ProcessTouchEvent(event)
-        event:SetEventHandled(true)
+        if isModal
+            event:SetEventHandled(true)
+        end
         return item
+    end
+
+    /*
+
+    */
+    action OnDisplay
+        // Fetch focus, store it to return later
+    end
+
+    /*
+
+    */
+    action OnClose
+        // Return focus to the original focus
+    end
+
+    /*
+
+    */
+    action SetModal(boolean modal)
+        isModal = modal
+    end
+
+    /*
+
+    */
+    action IsModal returns boolean
+        return isModal
     end
 end
