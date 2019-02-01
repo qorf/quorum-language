@@ -1,0 +1,8 @@
+    use Libraries.Compute.BigInteger
+
+    BigInteger largeNumber
+    BigInteger smallNumber
+    largeNumber:SetValue("6")
+    smallNumber:SetValue("4")
+    largeNumber = largeNumber:ExclusiveOr(smallNumber)
+    output largeNumber:GetText()

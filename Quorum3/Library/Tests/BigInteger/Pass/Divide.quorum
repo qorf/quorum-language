@@ -1,8 +1,13 @@
 use Libraries.Compute.BigInteger
 
-BigInteger largeNumber
-BigInteger smallNumber
-largeNumber:SetValue("3000000000")
-smallNumber:SetValue("2")
-largeNumber = largeNumber:Divide(smallNumber)
-output largeNumber:GetText()
+class Main
+    action Main
+        //output "1500000000"
+        BigInteger largeNumber
+        BigInteger smallNumber
+        largeNumber:SetValue("3000000000")
+        smallNumber:SetValue("2")
+        largeNumber = largeNumber:Divide(smallNumber)
+        output largeNumber:GetText()
+    end
+end

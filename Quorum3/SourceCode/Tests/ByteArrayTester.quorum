@@ -17,7 +17,23 @@ class ByteArrayTester
 
     action Test
         path = passPath
+        Get()
+        Set()
+        GetSubArray()
+        GetSize()
+        IsBigEndian()
+        SetBigEndian()
+        UnsignedIntegerFromByte()
+        CharacterFromByte()
+        CharacterFromTwoBytes()
+        IntegerFromByte()
         IntegerFromTwoBytes()
+        UnsignedIntegerFromTwoBytes()
+        IntegerFromFourBytes()
+        SignedIntegerFromFourUnsignedBytes()
+        NumberFromFourBytes()
+        NumberFromEightBytes()
+        TextFromEightBytes()
     end
 
     action GetName returns text
@@ -32,6 +48,119 @@ class ByteArrayTester
         me:suite = suite
     end
 
+    action Get
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Get.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Set
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Set.quorum")
+        files:Add(main)
+        results:Add(0, "10")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action GetSubArray
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetSubArray.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action GetSize
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetSize.quorum")
+        files:Add(main)
+        results:Add(0, "24415")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IsBigEndian
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IsBigEndian.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SetBigEndian
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SetBigEndian.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action UnsignedIntegerFromByte
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "UnsignedIntegerFromByte.quorum")
+        files:Add(main)
+        results:Add(0, "137")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CharacterFromByte
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CharacterFromByte.quorum")
+        files:Add(main)
+        results:Add(0, "ﾉ")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CharacterFromTwoBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CharacterFromTwoBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "襐")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IntegerFromByte
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerFromByte.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action IntegerFromTwoBytes
         Array<File> files
         Array<text> results
@@ -44,4 +173,102 @@ class ByteArrayTester
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
+
+    action UnsignedIntegerFromTwoBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "UnsignedIntegerFromTwoBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "35152")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IntegerFromFourBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerFromFourBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "78")
+        results:Add(3, "71")
+        results:Add(4, "-1991225785")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SignedIntegerFromFourUnsignedBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SignedIntegerFromFourUnsignedBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "78")
+        results:Add(3, "71")
+        results:Add(4, "-1991225785")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action NumberFromFourBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberFromFourBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "78")
+        results:Add(3, "71")
+        results:Add(4, "-2.5073895107184266E-33")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action NumberFromEightBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberFromEightBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "78")
+        results:Add(3, "71")
+        results:Add(4, "13")
+        results:Add(5, "10")
+        results:Add(6, "26")
+        results:Add(7, "10")
+        results:Add(8, "-8.091055181950927E-264")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextFromEightBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextFromEightBytes.quorum")
+        files:Add(main)
+        results:Add(0, "-119")
+        results:Add(1, "80")
+        results:Add(2, "78")
+        results:Add(3, "71")
+        results:Add(4, "13")
+        results:Add(5, "10")
+        results:Add(6, "26")
+        results:Add(7, "10")
+        results:Add(8, "-8552249625308161526")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+
 end

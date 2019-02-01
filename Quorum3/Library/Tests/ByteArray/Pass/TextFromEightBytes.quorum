@@ -3,7 +3,7 @@ use Libraries.Containers.ByteArray
 use Libraries.System.BinaryFileReader
 use Libraries.Interface.Events.FileLoadListener
 use Libraries.Interface.Events.FileLoadEvent
-//use Libraries.Containers.Support.ByteReader
+use Libraries.Containers.Support.ByteReader
 
 class Main is FileLoadListener
     action Main
@@ -18,11 +18,21 @@ class Main is FileLoadListener
         ByteArray value = event:GetBinaryFileReader():ReadBytes()
         integer byte = value:Get(0)
         output byte
-
         integer byte2 = value:Get(1)
         output byte2
-
-        byte = value:IntegerFromTwoBytes(byte, byte2)
-        output byte
+        integer byte3 = value:Get(2)
+        output byte3
+        integer byte4 = value:Get(3)
+        output byte4
+        integer byte5 = value:Get(4)
+        output byte5
+        integer byte6 = value:Get(5)
+        output byte6
+        integer byte7 = value:Get(6)
+        output byte7
+        integer byte8 = value:Get(7)
+        output byte8
+        text textValue = value:TextFromEightBytes(byte, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+        output textValue
     end
 end

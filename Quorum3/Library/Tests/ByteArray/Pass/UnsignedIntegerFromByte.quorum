@@ -17,12 +17,8 @@ class Main is FileLoadListener
     action OnLoad(FileLoadEvent event)
         ByteArray value = event:GetBinaryFileReader():ReadBytes()
         integer byte = value:Get(0)
-        output byte
-
-        integer byte2 = value:Get(1)
-        output byte2
-
-        byte = value:IntegerFromTwoBytes(byte, byte2)
+        byte = value:UnsignedIntegerFromByte(byte)
         output byte
     end
-end
+end   
+

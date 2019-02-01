@@ -1,0 +1,8 @@
+    use Libraries.Compute.BigInteger
+    
+BigInteger largeNumber
+BigInteger smallNumber
+largeNumber:SetValue("24")
+smallNumber:SetValue("12")
+largeNumber = largeNumber:GreatestCommonDivisor(smallNumber)
+output largeNumber:GetText()

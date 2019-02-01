@@ -22,7 +22,7 @@ class Main is FileLoadListener
         integer byte2 = value:Get(1)
         output byte2
 
-        byte = value:IntegerFromTwoBytes(byte, byte2)
+        byte = value:UnsignedIntegerFromTwoBytes(byte, byte2)
         output byte
     end
 end

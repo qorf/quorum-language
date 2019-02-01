@@ -1,0 +1,8 @@
+use Libraries.Compute.BigInteger
+
+BigInteger largeNumber
+BigInteger smallNumber
+largeNumber:SetValue("10")
+smallNumber:SetValue("6")
+largeNumber = largeNumber:Mod(smallNumber)
+output largeNumber:GetText()

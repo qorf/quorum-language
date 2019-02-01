@@ -18,11 +18,13 @@ class Main is FileLoadListener
         ByteArray value = event:GetBinaryFileReader():ReadBytes()
         integer byte = value:Get(0)
         output byte
-
         integer byte2 = value:Get(1)
         output byte2
-
-        byte = value:IntegerFromTwoBytes(byte, byte2)
+        integer byte3 = value:Get(2)
+        output byte3
+        integer byte4 = value:Get(3)
+        output byte4
+        byte = value:IntegerFromFourBytes(byte, byte2, byte3, byte4)
         output byte
     end
 end
