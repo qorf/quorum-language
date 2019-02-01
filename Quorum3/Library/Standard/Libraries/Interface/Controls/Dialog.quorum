@@ -2,21 +2,48 @@ package Libraries.Interface.Controls
 
 use Libraries.Game.Game
 use Libraries.Game.GameStateManager
+use Libraries.Game.Layer
 use Libraries.Game.DialogLayer
 
 class Dialog is Control
     
     GameStateManager manager
+    boolean isModal = false
 
     action Display
         Game game = manager:GetGame()
         DialogLayer layer
-        layer:Add(me)
+
+        layer:SetModal(isModal)
+
         game:AddLayer(layer)
+        layer:Add(me)
+        layer:OnDisplay()
+    end
+
+    action OnDisplay
+        
     end
 
     action Close
-        // NYI
+        Game game = manager:GetGame()
+        Layer layer = GetLayer()
+        if layer is DialogLayer
+            DialogLayer dialogLayer = cast(DialogLayer, layer)
+            dialogLayer:Remove(me)
+            dialogLayer:OnClose()
+            game:RemoveLayer(dialogLayer)
+
+            // Need to do some additional disposal/cleanup of the Layer here.
+        else
+            return now
+        end
+        
+        OnClose()
+    end
+
+    action OnClose
+
     end
 
     action SetParent(Item2D item)
@@ -25,5 +52,9 @@ class Dialog is Control
         else
             parent:Control:SetParent(item)
         end
+    end
+
+    action SetModal(boolean value)
+        isModal = value
     end
 end
