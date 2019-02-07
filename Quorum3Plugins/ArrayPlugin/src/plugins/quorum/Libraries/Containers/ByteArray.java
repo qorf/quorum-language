@@ -95,6 +95,10 @@ public class ByteArray {
         return bytes.length;
     }
     
+    public void SetSize(int size) {
+        bytes = new byte[size];
+    }
+    
     public String CharacterFromByte(int a) {
         char value = (char) a;
         return "" + value;
@@ -146,9 +150,19 @@ public class ByteArray {
         values[2] = (byte) c;
         values[3] = (byte) d;
         ByteBuffer buffer = GetWrappedBuffer(values);
-        int value = buffer.getInt();
-        value = (value << 1) >>> 1;
+        int value = buffer.getInt();       
         return value;
+    }
+    
+    public String TextFromFourBytes(int a, int b, int c, int d) {
+        byte[] values = new byte[4];
+        values[0] = (byte) a;
+        values[1] = (byte) b;
+        values[2] = (byte) c;
+        values[3] = (byte) d;
+        ByteBuffer buffer = GetWrappedBuffer(values);
+        long value = buffer.getInt() & 0xFFFFFFFF;
+        return ""+value;
     }
     
     public String TextFromEightBytes(int a, int b, int c, int d, int e, int f, int g, int h) {
