@@ -34,6 +34,7 @@ class ByteArrayTester
         NumberFromFourBytes()
         NumberFromEightBytes()
         TextFromEightBytes()
+        TextFromFourBytes()
     end
 
     action GetName returns text
@@ -54,7 +55,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "Get.quorum")
         files:Add(main)
-        results:Add(0, "-119")
+        results:Add(0, "65")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -65,7 +66,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "Set.quorum")
         files:Add(main)
-        results:Add(0, "10")
+        results:Add(0, "65")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -76,8 +77,9 @@ class ByteArrayTester
         File main
         main:SetPath(path + "GetSubArray.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
+        results:Add(0, "2")
+        results:Add(1, "65")
+        results:Add(2, "66")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -88,7 +90,18 @@ class ByteArrayTester
         File main
         main:SetPath(path + "GetSize.quorum")
         files:Add(main)
-        results:Add(0, "24415")
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SetSize
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SetSize.quorum")
+        files:Add(main)
+        results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -121,7 +134,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "UnsignedIntegerFromByte.quorum")
         files:Add(main)
-        results:Add(0, "137")
+        results:Add(0, "65")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -132,7 +145,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "CharacterFromByte.quorum")
         files:Add(main)
-        results:Add(0, "ﾉ")
+        results:Add(0, "A")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -143,9 +156,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "CharacterFromTwoBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "襐")
+        results:Add(0, "ā")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -156,7 +167,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "IntegerFromByte.quorum")
         files:Add(main)
-        results:Add(0, "-119")
+        results:Add(0, "65")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -167,9 +178,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "IntegerFromTwoBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "-30384")
+        results:Add(0, "16706")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -180,9 +189,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "UnsignedIntegerFromTwoBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "35152")
+        results:Add(0, "16706")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -193,11 +200,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "IntegerFromFourBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "78")
-        results:Add(3, "71")
-        results:Add(4, "-1991225785")
+        results:Add(0, "1094861636")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -208,11 +211,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "SignedIntegerFromFourUnsignedBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "78")
-        results:Add(3, "71")
-        results:Add(4, "-1991225785")
+        results:Add(0, "1094861636")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -223,11 +222,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "NumberFromFourBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "78")
-        results:Add(3, "71")
-        results:Add(4, "-2.5073895107184266E-33")
+        results:Add(0, "12.141422271728516")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -238,15 +233,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "NumberFromEightBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "78")
-        results:Add(3, "71")
-        results:Add(4, "13")
-        results:Add(5, "10")
-        results:Add(6, "26")
-        results:Add(7, "10")
-        results:Add(8, "-8.091055181950927E-264")
+        results:Add(0, "2393736.0078738946")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -257,15 +244,18 @@ class ByteArrayTester
         File main
         main:SetPath(path + "TextFromEightBytes.quorum")
         files:Add(main)
-        results:Add(0, "-119")
-        results:Add(1, "80")
-        results:Add(2, "78")
-        results:Add(3, "71")
-        results:Add(4, "13")
-        results:Add(5, "10")
-        results:Add(6, "26")
-        results:Add(7, "10")
-        results:Add(8, "-8552249625308161526")
+        results:Add(0, "4702394920281965316")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextFromFourBytes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextFromFourBytes.quorum")
+        files:Add(main)
+        results:Add(0, "1094861636")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

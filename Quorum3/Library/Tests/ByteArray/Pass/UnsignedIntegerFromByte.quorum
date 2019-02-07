@@ -1,24 +1,9 @@
-use Libraries.System.File
-use Libraries.Containers.ByteArray
-use Libraries.System.BinaryFileReader
-use Libraries.Interface.Events.FileLoadListener
-use Libraries.Interface.Events.FileLoadEvent
-//use Libraries.Containers.Support.ByteReader
+ use Libraries.Containers.ByteArray
 
-class Main is FileLoadListener
-    action Main
-        File file
-        file = file:GetParentDirectory():GetParentDirectory()
-        file:SetPath("Library/Tests/ByteArray/HourOfCode.png")
-        BinaryFileReader reader
-        reader:OpenForRead(file)
-    end
+    ByteArray value
+    value:SetSize(1)
+    value:Set(0, 65)
 
-    action OnLoad(FileLoadEvent event)
-        ByteArray value = event:GetBinaryFileReader():ReadBytes()
-        integer byte = value:Get(0)
-        byte = value:UnsignedIntegerFromByte(byte)
-        output byte
-    end
-end   
+    integer byte1 = value:Get(0)
+    output value:UnsignedIntegerFromByte(byte1)
 

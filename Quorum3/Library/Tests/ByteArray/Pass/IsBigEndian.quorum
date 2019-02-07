@@ -1,22 +1,6 @@
-use Libraries.System.File
 use Libraries.Containers.ByteArray
-use Libraries.System.BinaryFileReader
-use Libraries.Interface.Events.FileLoadListener
-use Libraries.Interface.Events.FileLoadEvent
-//use Libraries.Containers.Support.ByteReader
 
-class Main is FileLoadListener
-    action Main
-        File file
-        file = file:GetParentDirectory():GetParentDirectory()
-        file:SetPath("Library/Tests/ByteArray/HourOfCode.png")
-        BinaryFileReader reader
-        reader:OpenForRead(file)
-    end
+    ByteArray value
+    value:SetBigEndian(true)
+    output value:IsBigEndian()
 
-    action OnLoad(FileLoadEvent event)
-        ByteArray value = event:GetBinaryFileReader():ReadBytes()
-        boolean endian = value:IsBigEndian()
-        output endian
-    end
-end
