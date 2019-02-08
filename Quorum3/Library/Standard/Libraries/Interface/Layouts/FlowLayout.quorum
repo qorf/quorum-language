@@ -201,11 +201,14 @@ class FlowLayout is Layout
                     // When we set the size in this step, we also trigger a
                     // resize that will cascade to the entire control's hierarchy.
                     if alreadyFitContents = false
+                        boolean shouldSetSize = true
+
                         if properties:GetVerticalLayoutMode() = properties:FILL
                             height = currentY
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
                             // Set the control's width and allow it to set its own height via its contents.
                             // Setting the width triggers its layout to resize.
+                            shouldSetSize = false
                             control:SetWidth(width)
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             Font font = properties:GetFont()
@@ -222,7 +225,9 @@ class FlowLayout is Layout
                             width = properties:GetPercentageWidth() * height
                         end
 
-                        control:SetSize(width, height)
+                        if shouldSetSize
+                            control:SetSize(width, height)
+                        end
                     end
 
                     number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding

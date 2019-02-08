@@ -4,34 +4,189 @@ use Libraries.Game.Game
 use Libraries.Game.GameStateManager
 use Libraries.Game.Layer
 use Libraries.Game.DialogLayer
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Interface.Behaviors.Controls.DialogHideBehavior
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.LabelBoxView
 
 class Dialog is Control
     
+    on create
+        SetName("Dialog")
+    end
+
     GameStateManager manager
     boolean isModal = false
+    boolean showTopBar = true
 
-    action Display
+    Control topBar
+
+    action Show
         Game game = manager:GetGame()
         DialogLayer layer
 
         layer:SetModal(isModal)
-
         game:AddLayer(layer)
+
+        FlowLayout layout
+        SetLayout(layout)
+
+        ManualLayout layerLayout
+        layer:SetLayout(layerLayout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+        if showTopBar and GetChildren():Get(0):Equals(topBar) = false
+            Control bar = topBar
+            LabelBoxView barView
+
+            Color color
+            Gradient gradient
+            Color gray = color:CustomColor(0.82, 0.82, 0.82, 1)
+            Color lightGray = color:CustomColor(0.93, 0.93, 0.93, 1)
+            gradient:Set(gray, gray, lightGray, lightGray)
+            
+            barView:Initialize(gradient, color:Black())
+            barView:SetBorderThickness(1)
+            // Top, left, and right borders
+            barView:SetBorderStyle(barView:ALL)
+            bar:SetView2D(barView)
+
+            Label nameLabel
+            Font font = properties:GetFont()
+            if font = undefined
+                font = nameLabel:GetFont()
+            end
+
+            LayoutProperties barProperties = bar:GetDefaultLayoutProperties()
+            // Bar will use manual layout for now, which doesn't respect these.
+//            barProperties:SetHorizontalLayoutMode(barProperties:STANDARD)
+//            barProperties:SetVerticalLayoutMode(barProperties:FIT_FONT)
+            barProperties:SetFont(font)
+            barProperties:SetPercentageWidth(1.0)
+//            barProperties:SetPixelWidth(200)
+            barProperties:SetPixelHeight(20)
+
+            ManualLayout manualLayout
+            bar:SetLayout(manualLayout)
+
+            LayoutProperties labelProperties = nameLabel:GetDefaultLayoutProperties()
+            labelProperties:SetPercentageOriginX(0.5)
+            labelProperties:SetPercentageX(0.5)
+            labelProperties:SetPercentageOriginY(0.5)
+            labelProperties:SetPercentageY(0.5)
+            labelProperties:SetPixelY(4)
+
+            nameLabel:SetText(GetName())
+            bar:Add(nameLabel)
+
+            Button closeButton
+            DialogHideBehavior hideBehavior
+            hideBehavior:SetDialog(me)
+            closeButton:SetBehavior(hideBehavior)
+
+            Icon closeIcon
+            Color white = color:White()
+            Texture theX = GenerateX(20, 4, 2, white)
+            closeIcon:Load(theX)
+            closeIcon:SetColor(white)
+            closeButton:SetIcon(closeIcon)
+
+            LayoutProperties buttonProperties = closeButton:GetDefaultLayoutProperties()
+            buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
+            buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+            buttonProperties:SetPixelHeight(20)
+            buttonProperties:SetPixelWidth(20)
+            buttonProperties:SetPercentageOriginX(1.0)
+            buttonProperties:SetPercentageX(1)
+            buttonProperties:SetPercentageOriginY(1.0)
+            buttonProperties:SetPercentageY(1)
+            buttonProperties:SetIconColor(white)
+            buttonProperties:SetFont(undefined)
+
+            closeButton:SetName("Close")
+
+            bar:Add(closeButton)
+
+            Add(0, bar)
+        end
+
+        layer:OnShow()
         layer:Add(me)
-        layer:OnDisplay()
     end
 
-    action OnDisplay
+    private action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(size, size, format)
+        
+        Color background
+        background:SetColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0)
+
+        map:FillRectangle(1, 1, size - 2, size - 2, background)
+        map:DrawRectangle(0, 0, size, size, background)
+
+        integer x = buffer
+        integer y = buffer
+        repeat while x < size - buffer
+            map:SetPixel(x, y, color)
+            map:SetPixel(x, size - y - 1, color)
+
+            integer theWidth = 1
+            repeat while theWidth < width
+                if y + theWidth < size - buffer
+                    map:SetPixel(x, y + theWidth, color)
+                end
+
+                if x + theWidth < size - buffer
+                    map:SetPixel(x + theWidth, y, color)
+                end
+                theWidth = theWidth + 1
+            end
+
+            theWidth = 1
+            repeat while theWidth < width
+                if x + theWidth < size - buffer
+                    map:SetPixel(x + theWidth, size - y - 1, color)
+                end
+
+                if size  - buffer- y - theWidth - 1 >= 0
+                    map:SetPixel(x, size - y - theWidth - 1, color)
+                end
+                theWidth = theWidth + 1
+            end
+
+            x = x + 1
+            y = y + 1
+        end
+
+        Texture texture
+        texture:LoadFromPixelMap(map)
+        return texture
+    end
+
+    action OnShow
         
     end
 
-    action Close
+    action Hide
         Game game = manager:GetGame()
         Layer layer = GetLayer()
         if layer is DialogLayer
             DialogLayer dialogLayer = cast(DialogLayer, layer)
             dialogLayer:Remove(me)
-            dialogLayer:OnClose()
+            dialogLayer:OnHide()
             game:RemoveLayer(dialogLayer)
 
             // Need to do some additional disposal/cleanup of the Layer here.
@@ -39,10 +194,10 @@ class Dialog is Control
             return now
         end
         
-        OnClose()
+        OnHide()
     end
 
-    action OnClose
+    action OnHide
 
     end
 
