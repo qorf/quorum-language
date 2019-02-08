@@ -4,6 +4,7 @@ use Libraries.Containers.HashTable
 use Libraries.Game.InputSet
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.Iterator
 
 class InputTable 
 
@@ -34,10 +35,6 @@ class InputTable
         return table:HasKey(set)
     end
 
-    action HasValue(Behavior behavior) returns boolean
-        return table:HasValue(behavior)
-    end
-
     action GetValue(InputSet set) returns Behavior
         if table:HasKey(set)
             return table:GetValue(set)
@@ -46,8 +43,21 @@ class InputTable
         return undefined
     end
 
-    action GetKey(Behavior behavior) returns InputSet
-        return table:GetKey(behavior)
+    action Copy returns InputTable
+        InputTable t
+        
+        Iterator<InputSet> iterator = table:GetKeyIterator()
+        repeat while iterator:HasNext()
+            InputSet set = iterator:Next()
+            InputSet copy = set:Copy()
+            Behavior behavior = table:GetValue(set)
+            t:Add(copy, behavior)
+        end
+        return t
+    end
+
+    action GetInputSets returns Iterator<InputSet>
+        return table:GetKeyIterator()
     end
 
     action Empty
