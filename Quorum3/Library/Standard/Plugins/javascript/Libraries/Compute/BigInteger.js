@@ -1710,16 +1710,19 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     integer value = largeNumber:ToInteger()
     */
     this.ToInteger = function() {
+        return this.value.valueOf();
+        /*
         var integerArray = this.value.toArray(4294967296);
         console.log(integerArray);
         var index = integerArray.value.length - 1;
         var integerValue = integerArray.value[index];
         console.log(integerValue);
-        if(integerValue > 2147483647)
+        if(integerValue > 2147483647)   //twos complement
             integerValue = (~integerValue + 1) * -1;       
         if(integerArray.isNegative === true)
             integerValue = integerValue * -1;        
         return integerValue;
+        */
     };
 
     /*
