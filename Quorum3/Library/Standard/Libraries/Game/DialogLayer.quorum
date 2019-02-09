@@ -3,10 +3,13 @@ package Libraries.Game
 use Libraries.Interface.Item
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Game.Graphics.Camera
 
 class DialogLayer is Layer2D
     
     boolean isModal = false
+    GameStateManager manager
+    Item oldFocus = undefined
 
     /*
     This action will notify mouse listeners that are a part of this layer of the
@@ -40,30 +43,57 @@ class DialogLayer is Layer2D
     end
 
     /*
-
+    The OnShow action is called when a DialogLayer is used to display a Dialog.
+    This action is responsible for handling the shift in focus when a Dialog
+    appears.
     */
     action OnShow
-        // Fetch focus, store it to return later
+        // Fetch focus, store it to return later.
+        oldFocus = manager:GetFocus()
     end
 
     /*
-
+    The OnHide action is called when a DialogLayer is being removed due to a
+    Dialog closing. This action is responsible for shifting focus back to the
+    original Item after the Dialog is closed.
     */
     action OnHide
-        // Return focus to the original focus
+        // Return focus to the original focus.
+        manager:SetFocus(oldFocus)
     end
 
     /*
-
+    The SetModal action is used to determine whether the Dialog is modal or not.
+    If the Dialog is modal, the Layer will intercept input that would otherwise
+    propagate to lower Layers.
     */
     action SetModal(boolean modal)
         isModal = modal
     end
 
     /*
-
+    This IsModal action returns whether or not the Dialog that is placed on this
+    Layer is modal.
     */
     action IsModal returns boolean
         return isModal
+    end
+
+    /*
+    This action resets the DialogLayer to its default values. This is used
+    whenever a DialogLayer is recycled by a DialogLayerPool.
+    */
+    action Reset
+        GameStateManager manager
+        viewportWidth = manager:GetGameDisplay():GetWidth()
+        viewportHeight = manager:GetGameDisplay():GetHeight()
+        Camera camera = parent:Layer2D:camera
+        camera:SetFar(20000)
+        camera:SetPosition(viewportWidth/2, viewportHeight/2, 10000)
+        camera:SetSize(viewportWidth, viewportHeight)
+        camera:Update()
+
+        isModal = false
+        SetLayout(undefined)
     end
 end

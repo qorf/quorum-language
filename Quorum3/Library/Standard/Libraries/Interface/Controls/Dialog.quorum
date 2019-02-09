@@ -29,9 +29,13 @@ class Dialog is Control
 
     Control topBar
 
+    /*
+    This action displays the Dialog in the Game window. When the Dialog is
+    displayed, the OnShow() action will be called.
+    */
     action Show
         Game game = manager:GetGame()
-        DialogLayer layer
+        DialogLayer layer = game:GetDialogLayerPool():GetDialogLayer()
 
         layer:SetModal(isModal)
         game:AddLayer(layer)
@@ -125,6 +129,9 @@ class Dialog is Control
         layer:Add(me)
     end
 
+    /*
+    This action generates the texture used for the close button in the Dialog.
+    */
     private action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
         PixelMap map
         Format format
@@ -176,10 +183,18 @@ class Dialog is Control
         return texture
     end
 
+    /*
+    This action is called whenever the Dialog is displayed on the screen. This
+    action does nothing by default, but can be overriden with user-defined code.
+    */
     action OnShow
         
     end
 
+    /*
+    This action closes the Dialog, if it's currently displayed in the Game. When
+    the Dialog is hidden with this call, the OnHide() action will be called.
+    */
     action Hide
         Game game = manager:GetGame()
         Layer layer = GetLayer()
@@ -189,7 +204,7 @@ class Dialog is Control
             dialogLayer:OnHide()
             game:RemoveLayer(dialogLayer)
 
-            // Need to do some additional disposal/cleanup of the Layer here.
+            game:GetDialogLayerPool():Recycle(dialogLayer)
         else
             return now
         end
@@ -197,10 +212,20 @@ class Dialog is Control
         OnHide()
     end
 
+    /*
+    This action is called when the Dialog is hidden with the Hide() action. By
+    default this action does nothing, but it can be overriden with user-defined
+    code to perform tasks when the Dialog is closed.
+    */
     action OnHide
 
     end
 
+    /*
+    This action is typically used to set the parent of an Item2D or Control, but
+    Dialogs can't be added as children of other items directly. Calling this
+    action with any value that isn't undefined will alert a runtime error.
+    */
     action SetParent(Item2D item)
         if item not= undefined
             alert("I couldn't set the item " + item:GetName() + " as the parent of the dialog " + GetName() + " because Dialogs can't have parent Items.")
@@ -209,7 +234,23 @@ class Dialog is Control
         end
     end
 
+    /*
+    This action is used to set if the Dialog is modal or not. A modal Dialog 
+    prevents input from reaching other parts of the application while the
+    Dialog is displayed -- for example, clicking outside of the Dialog on a
+    Button will not trigger the Button if the Dialog is modal.
+    */
     action SetModal(boolean value)
         isModal = value
+    end
+
+    /*
+    This action is used to determine if the Dialog is modal or not. A modal Dialog 
+    prevents input from reaching other parts of the application while the
+    Dialog is displayed -- for example, clicking outside of the Dialog on a
+    Button will not trigger the Button if the Dialog is modal.
+    */
+    action IsModal returns boolean
+        return isModal
     end
 end

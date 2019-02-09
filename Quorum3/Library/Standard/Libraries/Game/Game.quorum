@@ -166,6 +166,9 @@ class Game
 
     private integer applicationType = -1
 
+    // A pool storing used DialogLayers for later reuse.
+    DialogLayerPool dialogLayerPool
+
     /*
     The StartGame action will start your game. Specifically, it does this:
     1. Creates the Game window.
@@ -4051,5 +4054,15 @@ class Game
     */
     action GetLayout returns Layout
         return currentLayer2D:GetLayout()
+    end
+
+    /*
+    This action returns the pool of DialogLayers usable by the Game. This should
+    never be called manually -- instead, when using Dialogs, use the Show()
+    and Hide() calls to display or close the Dialog. This action is used
+    internally by the Game engine.
+    */
+    action GetDialogLayerPool returns DialogLayerPool
+        return dialogLayerPool
     end
 end
