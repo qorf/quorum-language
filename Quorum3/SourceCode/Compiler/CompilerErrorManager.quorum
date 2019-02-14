@@ -138,6 +138,7 @@ class CompilerErrorManager
 
         total:Add("Intro", "This program did not compile. I have compiled a list of errors for you below:")
         JavaScriptObjectNotation jsonErrors
+        jsonErrors:SetArray()
         
         Iterator<CompilerError> errors = GetIterator()
         repeat while errors:HasNext()
@@ -154,7 +155,7 @@ class CompilerErrorManager
             jsonError:Add("Line", error:GetLineNumber())
             jsonError:Add("Column", error:GetColumnNumber())
             jsonError:Add("Key", error:GetStaticKey())
-            jsonErrors:Add("Error", jsonError)
+            jsonErrors:Add(jsonError)
         end
         total:Add("Errors", jsonErrors)
         return total:ToText()
