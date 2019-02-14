@@ -135,6 +135,7 @@ class LayoutProperties
     text labelText = ""
 
     ColorGroup selectionColor = undefined
+    ColorGroup selectionBorderColor = undefined
     Color selectionFontColor = undefined
 
     TextureRegion icon = undefined
@@ -501,6 +502,14 @@ class LayoutProperties
 
     action GetSelectionColor returns ColorGroup
         return selectionColor
+    end
+
+    action SetSelectionBorderColor(ColorGroup color)
+        selectionBorderColor = color
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        return selectionBorderColor
     end
 
     action SetSelectionFontColor(Color color)
