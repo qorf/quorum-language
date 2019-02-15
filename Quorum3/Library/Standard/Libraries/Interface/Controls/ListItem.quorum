@@ -1,0 +1,60 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+
+/*
+The ListItem class is used internally to represent an entry in a list. Users
+typically won't need to interact with this class unless they want to create a
+unique way of representing an entry in the list. For simple use cases, use the
+actions in List to add and remove entries.
+*/
+class ListItem is Control
+
+    Label label
+    Icon icon
+
+    on create
+        FlowLayout layout
+        layout:SetIgnoreHidden(true)
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FILL)
+        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+
+        Add(icon)
+        Add(label)
+    end
+
+    action SetText(text value)
+        label:SetText(value)
+    end
+
+    action GetText returns text
+        return label:GetText()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        if icon:GetTexture() not= properties:GetIcon():GetTextureField()
+            icon:Load(properties:GetIcon())
+        end
+
+        if icon:GetTexture() = undefined
+            icon:Hide()
+        else
+            icon:Show()
+        end
+
+        if properties:GetFont() not= label:GetFont()
+            label:SetFont(properties:GetFont())
+        end
+
+        if properties:GetFontSize() not= label:GetSize()
+            label:SetSize(properties:GetFontSize())
+        end
+    end
+end

@@ -459,6 +459,20 @@ class Control is Item2D
     /*
 
     */
+    action SetSelectionColor(ColorGroup color)
+        defaultProperties:SetSelectionColor(color)
+    end
+
+    /*
+
+    */
+    action GetSelectionColor returns ColorGroup
+        return defaultProperties:GetSelectionColor()
+    end
+
+    /*
+
+    */
     action SetBorderColor(ColorGroup color)
         defaultProperties:SetBorderColor(color)
     end
@@ -468,6 +482,20 @@ class Control is Item2D
     */
     action GetBorderColor returns ColorGroup
         return defaultProperties:GetBorderColor()
+    end
+
+    /*
+
+    */
+    action SetSelectionBorderColor(ColorGroup color)
+        defaultProperties:SetSelectionBorderColor(color)
+    end
+
+    /*
+
+    */
+    action GetSelectionBorderColor returns ColorGroup
+        return defaultProperties:GetSelectionBorderColor()
     end
 
     /*
