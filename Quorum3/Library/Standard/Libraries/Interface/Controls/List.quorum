@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.ListSelection
@@ -64,8 +65,6 @@ class List is Control
         LayoutProperties properties = GetDefaultLayoutProperties()
 
         ListItem newItem
-        newItem:SetFont(properties:GetFont())
-        newItem:SetFontSize(properties:GetFontSize())
         newItem:SetText(value)
 
         return newItem

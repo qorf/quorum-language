@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls
 
+use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
@@ -24,6 +25,16 @@ class ListItem is Control
         properties:SetHorizontalLayoutMode(properties:FILL)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
 
+        Font font
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            font:LoadFont(defaultFontName)
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            properties:SetFont(font)
+            properties:SetFontSize(defaultFontSize)
+        end
+
         Add(icon)
         Add(label)
     end
@@ -39,7 +50,7 @@ class ListItem is Control
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
 
-        if icon:GetTexture() not= properties:GetIcon():GetTextureField()
+        if properties:GetIcon() not= undefined and icon:GetTexture() not= properties:GetIcon():GetTextureField()
             icon:Load(properties:GetIcon())
         end
 
@@ -53,8 +64,10 @@ class ListItem is Control
             label:SetFont(properties:GetFont())
         end
 
-        if properties:GetFontSize() not= label:GetSize()
-            label:SetSize(properties:GetFontSize())
+        if label:GetFont() not= undefined
+            if properties:GetFontSize() not= label:GetSize()
+                label:SetSize(properties:GetFontSize())
+            end
         end
     end
 end
