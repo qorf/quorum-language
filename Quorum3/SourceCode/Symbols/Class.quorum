@@ -401,6 +401,9 @@ class Class is Symbol
         error:SetColumnNumber(method:GetColumnNumber())
         error:SetColumnNumber(method:GetColumnNumber())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
+        CompilerErrorType errorType
+        errorType:SetCurrentType(errorType:OTHER)
+        error:SetCompilerErrorType(errorType)
         return error
     end
 
