@@ -78,6 +78,9 @@ use Libraries.Interface.Behaviors.Controls.TreeTableLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeTableRightBehavior
 use Libraries.Interface.Behaviors.Controls.TreeTableUpBehavior
 use Libraries.Interface.Behaviors.Controls.TreeTableActivationBehavior
+use Libraries.Interface.Behaviors.Controls.ListDownBehavior
+use Libraries.Interface.Behaviors.Controls.ListUpBehavior
+use Libraries.Interface.Behaviors.Controls.ListActivationBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -735,6 +738,27 @@ class Game
         treeTableCellTable:Add(doubleClickSet, treeTableActivate)
 
         gameInput:AddInputTable(treeTableCellTable)
+
+        InputTable listInputTable
+        listInputTable:SetIdentifier("List")
+        ListDownBehavior listDownBehavior
+        ListUpBehavior listUpBehavior
+        ListActivationBehavior listActivate
+
+        listInputTable:Add(downArrow, listDownBehavior)
+        listInputTable:Add(upArrow, listUpBehavior)
+        listInputTable:Add(spaceSet, listActivate)
+
+        gameInput:AddInputTable(listInputTable)
+
+        InputTable listItemTable
+        listItemTable:SetIdentifier("ListItem")
+
+        listItemTable:Add(clickDown, downBehavior)
+        listItemTable:Add(touchDown, upBehavior)
+        listItemTable:Add(doubleClickSet, listActivate)
+
+        gameInput:AddInputTable(listItemTable)
     end
 
     /*

@@ -14,9 +14,9 @@ class List is Control
 
     ListSelection selection
 
-    // The cellBehavior is called when a Cell would be activated if it doesn't
-    // have an activation behavior of its own defined.
-    Behavior cellBehavior = undefined
+    // The itemBehavior is called when a ListItem would be activated if it 
+    // doesn't have an activation behavior of its own defined.
+    Behavior itemBehavior = undefined
     
     on create
         FlowLayout layout
@@ -47,6 +47,14 @@ class List is Control
         Add(position, NewListItem(entry))
     end
 
+    action Add(text entry, Icon icon)
+        Add(NewListItem(entry, icon))
+    end
+
+    action Add(integer position, text entry, Icon icon)
+        Add(position, NewListItem(entry, icon))
+    end
+
     action Add(Item2D item)
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
@@ -62,10 +70,18 @@ class List is Control
     end
 
     private action NewListItem(text value) returns Control
+        return NewListItem(value, undefined)
+    end
+
+    private action NewListItem(text value, Icon icon) returns Control
         LayoutProperties properties = GetDefaultLayoutProperties()
 
         ListItem newItem
         newItem:SetText(value)
+
+        if icon not= undefined
+            newItem:SetIcon(icon)
+        end
 
         return newItem
     end
@@ -75,6 +91,9 @@ class List is Control
     end
 
     action GetListItem(integer index) returns ListItem
+        if index < 0
+            return undefined
+        end
         return cast(ListItem, GetChildren():Get(index))
     end
 
@@ -163,22 +182,22 @@ class List is Control
     end
 
     /*
-    This action sets the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    This action sets the item activation Behavior for this List. If a ListItem
+    would ever be activated (such as by a double-click), if it doesn't have
+    its own activation Behavior, the List's item activation Behavior will
     be used instead.
     */
-    action SetCellActivationBehavior(Behavior behavior)
-        cellBehavior = behavior
+    action SetItemActivationBehavior(Behavior behavior)
+        itemBehavior = behavior
     end
 
     /*
-    This action returns the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    This action returns the item activation Behavior for this List. If a
+    ListItem would ever be activated (such as by a double-click), if it doesn't 
+    have its own activation Behavior, the List's cell activation Behavior will
     be used instead.
     */
-    action GetCellActivationBehavior returns Behavior
-        return cellBehavior
+    action GetItemActivationBehavior returns Behavior
+        return itemBehavior
     end
 end

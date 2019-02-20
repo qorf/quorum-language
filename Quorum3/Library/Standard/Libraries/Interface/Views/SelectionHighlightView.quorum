@@ -3,29 +3,22 @@ package Libraries.Interface.Views
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Painter2D
 
 class SelectionHighlightView is ControlView, Drawable
 
-    Color color = undefined
-    Gradient gradient = undefined
+    ColorGroup color = undefined
     Color unselected
 
     on create
         unselected:SetColor(1, 1, 1, 0)
     end
 
-    action Initialize(Color selectionColor)
+    action Initialize(ColorGroup selectionColor)
         color = selectionColor
-        gradient = undefined
-        LoadFilledRectangle(1, 1, unselected)
-    end
-
-    action Initialize(Gradient selectionGradient)
-        color = undefined
-        gradient = selectionGradient
         LoadFilledRectangle(1, 1, unselected)
     end
 
@@ -53,8 +46,6 @@ class SelectionHighlightView is ControlView, Drawable
     action GainedSelection
         if color not= undefined
             SetColor(color)
-        elseif gradient not= undefined
-            SetColor(gradient)
         end
     end
 
@@ -66,8 +57,6 @@ class SelectionHighlightView is ControlView, Drawable
         SelectionHighlightView content
         if color not= undefined
             content:Initialize(color)
-        elseif gradient not= undefined
-            content:Initialize(gradient)
         end
         return content
     end
