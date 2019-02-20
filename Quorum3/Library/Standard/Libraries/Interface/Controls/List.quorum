@@ -1,0 +1,184 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.ListSelection
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.LabelBoxView
+
+class List is Control
+
+    ListSelection selection
+
+    // The cellBehavior is called when a Cell would be activated if it doesn't
+    // have an activation behavior of its own defined.
+    Behavior cellBehavior = undefined
+    
+    on create
+        FlowLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+
+        Color color
+        properties:SetBackgroundColor(color:White())
+        properties:SetBorderColor(color:Black())
+
+        SetInputGroup("List")
+
+        SetFocusable(true)
+        selection:Initialize(me)
+        // TO-DO: This needs to be changed to something more appropriate.
+        SetAccessibilityCode(parent:Item:ITEM)
+        SetName("List")
+    end
+
+    action Add(text entry)
+        Add(NewListItem(entry))
+    end
+
+    action Add(integer position, text entry)
+        Add(position, NewListItem(entry))
+    end
+
+    action Add(Item2D item)
+        if not (item is ListItem)
+            alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
+        end
+        parent:Control:Add(item)
+    end
+
+    action Add(integer index, Item2D item)
+        if not (item is ListItem)
+            alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
+        end
+        parent:Control:Add(index, item)
+    end
+
+    private action NewListItem(text value) returns Control
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        ListItem newItem
+        newItem:SetText(value)
+
+        return newItem
+    end
+
+    action Get(integer index) returns text
+        return GetListItem(index):GetText()
+    end
+
+    action GetListItem(integer index) returns ListItem
+        return cast(ListItem, GetChildren():Get(index))
+    end
+
+    action GetSelection returns ListSelection
+        return selection
+    end
+
+    action GetIndexOf(ListItem item) returns integer
+        return GetChildren():GetFirstLocation(item)
+    end
+
+    action GetSize returns integer
+        return GetItemCount()
+    end
+
+    /*
+    This action selects the given ListItem, if it is present in this List.
+    */
+    action Select(ListItem item)
+        ListItem oldSelection = selection:GetListItem()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
+
+        if item not= undefined
+            item:GainedSelection()
+        end
+
+        selection:Set(item)
+    end
+
+    /*
+    This action selects the ListItem at the given index.
+    */
+    action Select(integer index)
+        ListItem oldSelection = selection:GetListItem()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
+
+        ListItem item = GetListItem(index)
+        if item not= undefined
+            item:GainedSelection()
+        end
+
+        selection:Set(index)
+    end
+
+    action Deselect
+        ListItem oldSelection = selection:GetListItem()
+        if oldSelection not= undefined
+            oldSelection:LostSelection()
+        end
+
+        selection:Empty()
+    end
+
+    action MoveSelectionUp
+        integer index = selection:GetIndex()
+        
+        if index > 0
+            Select(index - 1)
+        end
+    end
+
+    action MoveSelectionDown
+        integer index = selection:GetIndex()
+        
+        if index < GetSize() - 1
+            Select(index + 1)
+        end
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+
+        View2D view = properties:GetView2D()
+
+        if view not= undefined and view not= GetView2D()
+            SetView2D(view)
+        elseif GetView2D() = undefined
+            LabelBoxView labelBox
+            labelBox:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+            SetView2D(labelBox)
+        end
+    end
+
+    /*
+    This action sets the cell activation Behavior for this Spreadsheet. If a
+    cell would ever be activated (such as by a double-click), if it doesn't have
+    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    be used instead.
+    */
+    action SetCellActivationBehavior(Behavior behavior)
+        cellBehavior = behavior
+    end
+
+    /*
+    This action returns the cell activation Behavior for this Spreadsheet. If a
+    cell would ever be activated (such as by a double-click), if it doesn't have
+    its own activation Behavior, the Spreadsheet's cell activation Behavior will
+    be used instead.
+    */
+    action GetCellActivationBehavior returns Behavior
+        return cellBehavior
+    end
+end
