@@ -6,6 +6,7 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.CompilerErrorType
 
 class Block is Location
     HashTable<text, Variable> variables
@@ -128,6 +129,9 @@ class Block is Location
             CompilerError error
             error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:DUPLICATE)
+            error:SetCompilerErrorType(errorType)
             return error
         end
         variables:Add(variable:GetStaticKey(), variable)
@@ -194,6 +198,9 @@ class Block is Location
             CompilerError error
             error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:DUPLICATE)
+            error:SetCompilerErrorType(errorType)
             return error
         end
 
