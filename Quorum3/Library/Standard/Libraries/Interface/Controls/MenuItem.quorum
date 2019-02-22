@@ -410,15 +410,11 @@ class MenuItem is Control
     end
 
     action BeginMouseOver
-        output "Begin mouse over of " + GetName()
         MenuBar bar = GetMenuBar()
         if bar not= undefined and bar:IsSelecting()
-            output "Bar is selecting."
             if not open
-                output "Opening."
                 Open()
             end
-            output "Selecting."
             Select()
         end
     end
@@ -426,19 +422,13 @@ class MenuItem is Control
     action GainedSelection
         parent:Control:GainedSelection()
         if GetView2D() is LabelBoxView
-            output "View was label box."
             LabelBoxView view = cast(LabelBoxView, GetView2D())
             LayoutProperties properties = GetDefaultLayoutProperties()
             ColorGroup useColor = properties:GetSelectionColor()
             if useColor not= undefined
                 Color c = useColor:GetBottomLeft()
-                output "Setting to color: " + c:GetRed() + ", " + c:GetGreen() + ", " + c:GetBlue() + ", " + c:GetAlpha()
                 view:SetBackgroundColor(useColor)
-            else
-                output "Selection color was undefined."
             end
-        else
-            output "Not label box view."
         end
 
         MenuBar menuBar = GetMenuBar()
