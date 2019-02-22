@@ -140,6 +140,15 @@ class TreeTable is Control
         end
     end
 
+    action EmptyRows 
+        i = 0
+        repeat while i < columns:GetSize()
+            TreeTableColumn column = columns:Get(i)
+            column:Empty()
+            i = i + 1
+        end
+    end
+
     action Remove(TreeTableRow row) returns boolean
         integer topIndex = rows:GetFirstLocation(row)
         if topIndex < 0
@@ -426,8 +435,6 @@ class TreeTable is Control
     end
 
     action ExpandRow(TreeTableRow parentRow)
-        Array<TreeTableRow> rows = parentRow:GetChildren()
-
         integer index = GetFlattenedIndex(parentRow)
 
         if index < 0
@@ -438,7 +445,7 @@ class TreeTable is Control
         integer columnSize = columns:GetSize()
 
         parentRow:SetExpandFlag(true)
-
+        Array<TreeTableRow> rows = parentRow:GetChildren()
         repeat while i < rows:GetSize()
             TreeTableRow row = rows:Get(i)
             index = index + 1
