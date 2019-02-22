@@ -346,6 +346,8 @@ class Class is Symbol
                           + " be called, the action must be overriden in the"
                           + " base class " + me:GetStaticKey() + ".")
                        error:SetLocation(me)
+                       CompilerErrorType errorType
+                       errorType:SetCurrentType(errorType:INHERITANCE_MISSMATCHED_RETURN)
                        errors:Add(error)
                     end
                  end
@@ -402,7 +404,7 @@ class Class is Symbol
         error:SetColumnNumber(method:GetColumnNumber())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
         CompilerErrorType errorType
-        errorType:SetCurrentType(errorType:OTHER)
+        errorType:SetCurrentType(errorType:DUPLICATE)
         error:SetCompilerErrorType(errorType)
         return error
     end
@@ -1372,6 +1374,8 @@ class Class is Symbol
                     + " could be either " + a + fromPackage:GetStaticKey() + a 
                     + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
                 //TODO: Add in compiler error line and location.
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:USE_AMBIGUOUS)
                 errors:Add(error)
             end
         end
@@ -1479,6 +1483,8 @@ class Class is Symbol
                 error:SetErrorMessage("The parent name " + a + next:GetStaticKey() + a + 
                     " has the current class as a parent, but I do not understand what this would mean.") 
                 //TODO: Add in compiler error line and location.
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:INHERITANCE_CIRCULAR)
                 errors:Add(error)
 
                 isResolvingParents = false
