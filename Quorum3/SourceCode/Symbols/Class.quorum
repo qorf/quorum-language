@@ -347,7 +347,8 @@ class Class is Symbol
                           + " base class " + me:GetStaticKey() + ".")
                        error:SetLocation(me)
                        CompilerErrorType errorType
-                       errorType:SetCurrentType(errorType:INHERITANCE_MISSMATCHED_RETURN)
+                       errorType:SetCurrentType(errorType:INHERITANCE_AMBIGUOUS)
+                       error:SetCompilerErrorType(errorType)
                        errors:Add(error)
                     end
                  end
@@ -1376,6 +1377,7 @@ class Class is Symbol
                 //TODO: Add in compiler error line and location.
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:USE_AMBIGUOUS)
+                error:SetCompilerErrorType(errorType)
                 errors:Add(error)
             end
         end
@@ -1485,6 +1487,7 @@ class Class is Symbol
                 //TODO: Add in compiler error line and location.
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:INHERITANCE_CIRCULAR)
+                error:SetCompilerErrorType(errorType)
                 errors:Add(error)
 
                 isResolvingParents = false
