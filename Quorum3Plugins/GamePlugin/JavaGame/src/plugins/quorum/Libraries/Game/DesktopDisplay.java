@@ -169,6 +169,15 @@ public class DesktopDisplay {
     // primary window.
     GLCapabilities glCapabilities;
     
+    public String GetClipboard() {
+        String string = GLFW.glfwGetClipboardString(window);
+        return string;
+    }
+    
+    public void SetClipboard(String string) {
+        GLFW.glfwSetClipboardString(window, string);
+    }
+    
     public void SetupDisplay() 
     {
         if (window != 0)
