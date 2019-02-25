@@ -52,6 +52,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxOpenKeyboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCopyToClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -259,6 +261,28 @@ class Game
     end
 
     /*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appopriate system mechanisms are handled 
+        automatically.
+    */
+    action GetClipboard returns text
+        GameDisplay display = manager:GetGameDisplay()
+        return display:GetClipboard()
+    end
+    
+    /*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appopriate system mechanisms are handled 
+        automatically.
+    */
+    action SetClipboard(text value)
+        GameDisplay display = manager:GetGameDisplay()
+        display:SetClipboard(value)
+    end
+
+    /*
     Complete game set up and begin the main loop. Used from StartGame, as well
     as other places that "act like" StartGame for platforms with special timing
     considerations (e.g., StartAndroidGame).
@@ -334,6 +358,34 @@ class Game
         // Creating input sets for the default TextBox behaviors.
         InputTable textBoxTable
         textBoxTable:SetIdentifier("TextBox")
+
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet textBoxControlC
+            textBoxControlC:SetKeyboardInput(keys:C)
+            textBoxControlC:AddModifier(textBoxControlC:META)
+            TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
+            textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet textBoxControlV
+            textBoxControlV:SetKeyboardInput(keys:V)
+            textBoxControlV:AddModifier(textBoxControlC:META)
+            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
+            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+        else
+            InputSet textBoxControlC
+            textBoxControlC:SetKeyboardInput(keys:C)
+            textBoxControlC:AddModifier(textBoxControlC:CONTROL)
+            TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
+            textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet textBoxControlV
+            textBoxControlV:SetKeyboardInput(keys:V)
+            textBoxControlV:AddModifier(textBoxControlC:CONTROL)
+            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
+            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+        end
+        
 
         InputSet leftArrow
         leftArrow:SetKeyboardInput(keys:LEFT)

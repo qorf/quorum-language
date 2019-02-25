@@ -100,6 +100,17 @@ class TextBoxSelection is Selection
         return indices:GetSecondValue()
     end
 
+    /*
+        This action uses the start and end indices to obtain the text selection.
+    */
+    action GetText returns text
+        TextBox textBox = GetTextBox()
+        if textBox not= undefined
+            return textBox:GetText(GetStartIndex(), GetEndIndex())
+        end
+        return ""
+    end
+
     /* 
         The GetFirstLine action returns the first line that the selection 
         starts at. For example, if the selection started at index 5 on line 2 

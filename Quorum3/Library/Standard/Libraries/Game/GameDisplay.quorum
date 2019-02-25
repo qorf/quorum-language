@@ -98,4 +98,23 @@ class GameDisplay
     */
     blueprint action IsAvailable returns boolean
 
+    /*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appopriate system mechanisms are handled 
+        automatically.
+    */
+    action GetClipboard returns text
+        return ""
+    end
+    
+    /*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appopriate system mechanisms are handled 
+        automatically.
+    */
+    action SetClipboard(text value)
+    end
+
 end

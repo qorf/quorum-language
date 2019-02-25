@@ -1529,6 +1529,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetText()
     end
 
+    action GetText(integer startIndex, integer endIndex) returns text
+        return textValue:GetText(startIndex, endIndex)
+    end
+
     action GetCurrentLineText() returns text
         return textValue:GetLine(caretLine):GetText()
     end

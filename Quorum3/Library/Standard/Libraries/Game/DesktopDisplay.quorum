@@ -46,6 +46,10 @@ class DesktopDisplay is GameDisplay
         return config
     end
 
+    system action GetClipboard() returns text
+    
+    system action SetClipboard(text value)
+
     /*
     This action initializes the DesktopDisplay.
     */
