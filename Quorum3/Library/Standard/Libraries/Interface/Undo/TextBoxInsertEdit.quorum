@@ -1,0 +1,41 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.TextBox
+
+class TextBoxInsertEdit is Edit
+    integer caretPosition = 0
+    text value = ""
+    TextBox box = undefined
+
+    action GetTextBox returns TextBox
+        return box
+    end
+
+    action SetTextBox(TextBox box)
+        me:box = box
+    end
+
+    action GetCaretPosition returns integer
+        return caretPosition
+    end
+
+    action SetCaretPosition(integer position)
+        caretPosition = position
+    end
+
+    action GetText returns text
+        return value
+    end
+
+    action SetText(text value)
+        me:value = value
+    end
+
+    action Undo
+        box:Delete(caretPosition - value:GetSize(), caretPosition)
+    end
+
+    action Redo
+        box:Insert(caretPosition, value)
+    end
+end

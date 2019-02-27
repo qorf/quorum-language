@@ -58,6 +58,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxUndoBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxRedoBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -273,6 +275,7 @@ class Game
         Attribute: Example
 
         use Libraries.Game.Game
+        use Libraries.Interface.Undo.EditManager
 
         class Main is Game
             action Main
@@ -295,10 +298,11 @@ class Game
         This action sets the default EditManager from the system to a custom one.
 
         Attribute: Parameter The EditManager
-
+        
         Attribute: Example
 
         use Libraries.Game.Game
+        use Libraries.Interface.Undo.EditManager
 
         class Main is Game
             action Main
@@ -459,6 +463,7 @@ class Game
 
 
         if manager:GetOperatingSystem():Contains("OS X")
+            //first do copy paste
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
             textBoxControlC:AddModifier(textBoxControlC:META)
@@ -470,6 +475,19 @@ class Game
             textBoxControlV:AddModifier(textBoxControlC:META)
             TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
             textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+
+            //now do undo/redo
+            InputSet textBoxControlZ
+            textBoxControlZ:SetKeyboardInput(keys:Z)
+            textBoxControlZ:AddModifier(textBoxControlZ:META)
+            TextBoxUndoBehavior textBoxUndoBehavior
+            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
+
+            InputSet textBoxControlY
+            textBoxControlY:SetKeyboardInput(keys:Y)
+            textBoxControlY:AddModifier(textBoxControlY:META)
+            TextBoxRedoBehavior textBoxRedoBehavior
+            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -482,6 +500,19 @@ class Game
             textBoxControlV:AddModifier(textBoxControlC:CONTROL)
             TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
             textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+
+            //now do undo/redo
+            InputSet textBoxControlZ
+            textBoxControlZ:SetKeyboardInput(keys:Z)
+            textBoxControlZ:AddModifier(textBoxControlZ:CONTROL)
+            TextBoxUndoBehavior textBoxUndoBehavior
+            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
+
+            InputSet textBoxControlY
+            textBoxControlY:SetKeyboardInput(keys:Y)
+            textBoxControlY:AddModifier(textBoxControlY:CONTROL)
+            TextBoxRedoBehavior textBoxRedoBehavior
+            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
         end
         
 

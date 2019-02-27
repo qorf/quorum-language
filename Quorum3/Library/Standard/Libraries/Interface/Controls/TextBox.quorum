@@ -25,6 +25,10 @@ use Libraries.Containers.MultipleLineText
 use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
+use Libraries.Interface.Undo.EditManager
+use Libraries.Interface.Undo.TextBoxInsertEdit
+use Libraries.Interface.Undo.TextBoxDeleteEdit
+use Libraries.Game.Game
 
 class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
 
@@ -168,6 +172,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     increase or decrease indentation. The default strategy uses spaces.
     */
     IndentationStrategy indentation
+    EditManager editManager = undefined
 
     Math math
 
@@ -277,6 +282,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         horizontalBar:Add(horizontalControl)
 
         HideCaret()
+
+        GameStateManager gsm
+        Game game = gsm:GetGame()
+        editManager = game:GetEditManager()
     end
 
     action GetLeftCharacterPadding returns integer
@@ -1124,6 +1133,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Resize()
         end
 
+        TextBoxInsertEdit edit
+        edit:SetTextBox(me)
+        edit:SetCaretPosition(GetCaretPosition())
+        edit:SetText(value)
+        editManager:Add(edit)
+
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
@@ -1135,6 +1150,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         changeEvent:Initialize(me, value, deletedText)
 
         NotifyTextChangeListeners(changeEvent)
+    end
+
+    action GetEditManager returns EditManager
+        return editManager
+    end
+
+    action SetEditManager(EditManager edits)
+        me:editManager = edits
     end
 
     action SetScrollDistance(number distance)
