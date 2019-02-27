@@ -1,0 +1,41 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
+
+class TextBoxSelectToLineEndBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox textBox = cast(TextBox, item)
+        TextBoxSelection selection = textBox:GetSelection()
+
+        integer currentLine = textBox:GetCaretLine()
+        integer endIndex = 0
+
+        if textBox:GetLineCount() > currentLine + 1
+            endIndex = textBox:GetIndexOfLine(currentLine + 1) - 1
+        else
+            endIndex = textBox:GetSize()
+        end
+
+        integer startIndex = selection:GetEndIndex()
+
+        if selection:IsCaretAtEnd()
+            startIndex = selection:GetStartIndex()
+        end
+
+        textBox:SetCaretPosition(endIndex)
+        textBox:Select(startIndex, endIndex, true)
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

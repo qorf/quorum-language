@@ -200,4 +200,8 @@ class List is Control
     action GetItemActivationBehavior returns Behavior
         return itemBehavior
     end
+
+    action GetListItems returns Array<ListItem>
+        return cast(Array<ListItem>, GetChildren())
+    end
 end

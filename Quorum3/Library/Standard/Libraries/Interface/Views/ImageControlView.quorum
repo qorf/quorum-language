@@ -4,19 +4,18 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 
 class ImageControlView is Drawable, ControlView
     
     boolean resizing = true
-    Color previousColor = undefined
-    Gradient previousGradient = undefined
-
-    Color clickColor
-    Gradient clickGradient = undefined
+    ColorGroup previousColor = undefined
+    ColorGroup clickColor = undefined
 
     on create
-        clickColor = clickColor:Gray()
+        Color color
+        clickColor = color:Gray()
     end
 
     action Initialize(Drawable drawable)
@@ -41,9 +40,7 @@ class ImageControlView is Drawable, ControlView
             return now
         end
 
-        number scaleX = width / texture:GetWidth()
-        number scaleY = height / texture:GetHeight()
-        SetScale(scaleX, scaleY)
+        SetSize(width, height)
     end
 
     action UpdatePosition(number x, number y, number z)
@@ -59,13 +56,33 @@ class ImageControlView is Drawable, ControlView
         SetFlipY(flipY)
     end
 
+    private action MixColorGroups(ColorGroup c1, ColorGroup c2) returns ColorGroup
+        if c1 = undefined
+            return c2
+        elseif c2 = undefined
+            return c1
+        end
+
+        if c1 is Color and c2 is Color
+            return MixColors(cast(Color, c1), cast(Color, c2))
+        else
+            Gradient gradient
+            Color newBottomLeft = MixColors(c1:GetBottomLeft(), c2:GetBottomLeft())
+            Color newBottomRight = MixColors(c1:GetBottomRight(), c2:GetBottomRight())
+            Color newTopLeft = MixColors(c1:GetTopLeft(), c2:GetTopLeft())
+            Color newTopRight = MixColors(c1:GetTopRight(), c2:GetTopRight())
+            gradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
+            return gradient
+        end
+    end
+
     private action MixColors(Color c1, Color c2) returns Color
         Color color
 
-        color:SetColor(c1:GetRed() + c2:GetRed() / 2,
-            c1:GetGreen() + c2:GetGreen() / 2,
-            c1:GetBlue() + c2:GetBlue() / 2,
-            c1:GetAlpha() + c2:GetAlpha() / 2)
+        color:SetColor((c1:GetRed() + c2:GetRed()) / 2,
+            (c1:GetGreen() + c2:GetGreen()) / 2,
+            (c1:GetBlue() + c2:GetBlue()) / 2,
+            (c1:GetAlpha() + c2:GetAlpha()) / 2)
 
         return color
     end
@@ -79,61 +96,14 @@ class ImageControlView is Drawable, ControlView
     end
 
     action ClickedMouse
-        if UsingCustomColor()
-            previousColor = GetColor()
-            if clickColor not= undefined
-                Color newColor = MixColors(previousColor, clickColor)
-                SetColor(newColor)
-            elseif clickGradient not= undefined
-                Gradient newGradient
-
-                Color newBottomLeft = MixColors(previousColor, clickGradient:GetBottomLeft())
-                Color newBottomRight = MixColors(previousColor, clickGradient:GetBottomRight())
-                Color newTopLeft = MixColors(previousColor, clickGradient:GetTopLeft())
-                Color newTopRight = MixColors(previousColor, clickGradient:GetTopRight())
-                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
-
-                SetColor(newGradient)
-            end
-        elseif UsingCustomGradient()
-            previousGradient = GetGradient()
-            if clickColor not= undefined
-                Gradient newGradient
-
-                Color newBottomLeft = MixColors(previousGradient:GetBottomLeft(), clickColor)
-                Color newBottomRight = MixColors(previousGradient:GetBottomRight(), clickColor)
-                Color newTopLeft = MixColors(previousGradient:GetTopLeft(), clickColor)
-                Color newTopRight = MixColors(previousGradient:GetTopRight(), clickColor)
-                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
-
-                SetColor(newGradient)
-            elseif clickGradient not= undefined
-                Gradient newGradient
-
-                Color newBottomLeft = MixColors(previousGradient:GetBottomLeft(), clickGradient:GetBottomLeft())
-                Color newBottomRight = MixColors(previousGradient:GetBottomRight(), clickGradient:GetBottomRight())
-                Color newTopLeft = MixColors(previousGradient:GetTopLeft(), clickGradient:GetTopLeft())
-                Color newTopRight = MixColors(previousGradient:GetTopRight(), clickGradient:GetTopRight())
-                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
-
-                SetColor(newGradient)
-            end
-        else
-            if clickColor not= undefined
-                SetColor(clickColor)
-            elseif clickGradient not= undefined
-                SetColor(clickGradient)
-            end
-        end
+        previousColor = GetColorGroup()
+        SetColor(MixColorGroups(previousColor, clickColor))
     end
 
     action ReleasedMouse
         if previousColor not= undefined
             SetColor(previousColor)
             previousColor = undefined
-        elseif previousGradient not= undefined
-            SetColor(previousGradient)
-            previousGradient = undefined
         else
             UseDefaultColor()
         end

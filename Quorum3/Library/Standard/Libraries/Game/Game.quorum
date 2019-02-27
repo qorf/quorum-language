@@ -54,6 +54,10 @@ use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCopyToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxPasteFromClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -635,6 +639,52 @@ class Game
         touchSet:SetInputType(touchSet:TOUCH_INPUT)
         TextBoxOpenKeyboardBehavior openKeyboardBehavior
         textBoxTable:Add(touchSet, openKeyboardBehavior)
+
+        InputSet homeSet
+        homeSet:SetKeyboardInput(keys:HOME)
+        TextBoxCaretToLineStartBehavior caretLineStartBehavior
+        textBoxTable:Add(homeSet, caretLineStartBehavior)
+
+        InputSet shiftHomeSet
+        shiftHomeSet:SetKeyboardInput(keys:HOME)
+        shiftHomeSet:AddModifier(shiftHomeSet:SHIFT)
+        TextBoxSelectToLineStartBehavior selectLineStartBehavior
+        textBoxTable:Add(shiftHomeSet, selectLineStartBehavior)
+
+        InputSet shiftEndSet
+        shiftEndSet:SetKeyboardInput(keys:END)
+        shiftEndSet:AddModifier(shiftHomeSet:SHIFT)
+        TextBoxSelectToLineEndBehavior selectLineEndBehavior
+        textBoxTable:Add(shiftEndSet, selectLineEndBehavior)
+
+        InputSet endSet
+        endSet:SetKeyboardInput(keys:END)
+        TextBoxCaretToLineEndBehavior caretLineEndBehavior
+        textBoxTable:Add(endSet, caretLineEndBehavior)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet commandLeftSet
+            commandLeftSet:SetKeyboardInput(keys:LEFT)
+            commandLeftSet:AddModifier(commandLeftSet:META)
+            textBoxTable:Add(commandLeftSet, caretLineStartBehavior)
+
+            InputSet commandRightSet
+            commandRightSet:SetKeyboardInput(keys:RIGHT)
+            commandRightSet:AddModifier(commandRightSet:META)
+            textBoxTable:Add(commandRightSet, caretLineEndBehavior)
+
+            InputSet commandShiftLeftSet
+            commandShiftLeftSet:SetKeyboardInput(keys:LEFT)
+            commandShiftLeftSet:AddModifier(commandShiftLeftSet:META)
+            commandShiftLeftSet:AddModifier(commandShiftLeftSet:SHIFT)
+            textBoxTable:Add(commandShiftLeftSet, selectLineStartBehavior)
+
+            InputSet commandShiftRightSet
+            commandShiftRightSet:SetKeyboardInput(keys:RIGHT)
+            commandShiftRightSet:AddModifier(commandShiftRightSet:META)
+            commandShiftRightSet:AddModifier(commandShiftRightSet:SHIFT)
+            textBoxTable:Add(commandShiftRightSet, selectLineEndBehavior)
+        end
 
         gameInput:AddInputTable(textBoxTable)
 
