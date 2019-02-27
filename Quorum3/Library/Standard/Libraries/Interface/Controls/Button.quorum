@@ -93,8 +93,6 @@ class Button is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
-
         if icon not= undefined
             icon:Dispose()
             Remove(icon)
@@ -200,5 +198,7 @@ class Button is Control
         if view not= undefined
             SetView2D(view)
         end
+
+        parent:Control:LoadGraphics(properties)
     end
 end

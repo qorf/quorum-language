@@ -1,0 +1,51 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
+
+class TextBoxSelectToLineStartBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox textBox = cast(TextBox, item)
+        TextBoxSelection selection = textBox:GetSelection()
+
+        text lineText = textBox:GetCurrentLineText()
+        integer leadingSpaces = 0
+        boolean done = false
+
+        repeat until done
+            if leadingSpaces >= lineText:GetSize() or lineText:GetCharacter(leadingSpaces) not= " "
+                done = true
+            else
+                leadingSpaces = leadingSpaces + 1
+            end
+        end
+
+        integer caretPosition = textBox:GetCaretLinePosition()
+
+        if leadingSpaces >= caretPosition
+            leadingSpaces = 0
+        end
+
+        integer startIndex = textBox:GetIndexOfLine(textBox:GetCaretLine()) + leadingSpaces
+        integer endIndex = selection:GetEndIndex()
+
+        if selection:IsCaretAtEnd()
+            endIndex = selection:GetStartIndex()
+        end
+
+        textBox:SetCaretPosition(startIndex)
+        textBox:Select(startIndex, endIndex, false)
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

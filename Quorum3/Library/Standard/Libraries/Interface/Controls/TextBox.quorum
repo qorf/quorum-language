@@ -1521,6 +1521,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetLineCount()
     end
 
+    /*
+    This action returns the total number of characters of text in the TextBox.
+    */
+    action GetSize returns integer
+        return textValue:GetSize()
+    end
+
     action GetMultipleLineText returns MultipleLineText
         return textValue
     end
