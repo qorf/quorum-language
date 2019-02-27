@@ -117,6 +117,7 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Undo.EditManager
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -143,7 +144,6 @@ Attribute: Example
     end
 */
 class Game
-
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
@@ -152,6 +152,7 @@ class Game
     GameStateManager manager
     FocusManager focusManager
     AccessibilityManager accessibility = undefined
+    EditManager editManager
 
     public boolean exitRequested = false
 
@@ -261,10 +262,83 @@ class Game
     end
 
     /*
+        This action gets the default EditManager from the system.
+
+        Attribute: Returns The EditManager
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EditManager edits = GetEditManager()
+            end
+
+            action Update(number seconds)
+            end
+        end
+    */
+    action GetEditManager returns EditManager
+        return editManager
+    end
+
+    /*
+        This action sets the default EditManager from the system to a custom one.
+
+        Attribute: Parameter The EditManager
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EditManager edits
+                SetEditManager(edits)
+            end
+
+            action Update(number seconds)
+            end
+        end
+    */
+    action SetEditManager(EditManager edits)
+        me:editManager = edits
+    end
+
+    /*
         Not all implementations support a clipboard, but all displays support
         the operations so that they can be called everywhere. If an implementation
         supports a clipboard, the appopriate system mechanisms are handled 
-        automatically.
+        automatically. The example here would output whatever is currently
+        on the clipboard.
+
+        Attribute: Returns this action returns text from the system clipboard.
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                output GetClipboard()
+            end
+
+            action Update(number seconds)
+            end
+        end
     */
     action GetClipboard returns text
         GameDisplay display = manager:GetGameDisplay()
@@ -275,7 +349,27 @@ class Game
         Not all implementations support a clipboard, but all displays support
         the operations so that they can be called everywhere. If an implementation
         supports a clipboard, the appopriate system mechanisms are handled 
-        automatically.
+        automatically. The example here sets a message to the clipboard, which can
+        then be used across other applications.
+
+        Attribute: Parameter value this action set text to the system clipboard.
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                output SetClipboard("My Message")
+            end
+
+            action Update(number seconds)
+            end
+        end
     */
     action SetClipboard(text value)
         GameDisplay display = manager:GetGameDisplay()
