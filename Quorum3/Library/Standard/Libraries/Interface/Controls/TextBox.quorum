@@ -1567,6 +1567,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetLine(caretLine):GetText()
     end
 
+    action GetLineText(integer line) returns text
+        return textValue:GetLine(line):GetText()
+    end
+
     action Empty
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", GetText())
