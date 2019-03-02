@@ -60,6 +60,7 @@ use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxUndoBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRedoBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectAllBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -488,6 +489,13 @@ class Game
             textBoxControlY:AddModifier(textBoxControlY:META)
             TextBoxRedoBehavior textBoxRedoBehavior
             textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
+
+            //Selection
+            InputSet textBoxControlA
+            textBoxControlA:SetKeyboardInput(keys:A)
+            textBoxControlA:AddModifier(textBoxControlA:META)
+            TextBoxSelectAllBehavior textBoxSelectAllBehavior
+            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -513,6 +521,13 @@ class Game
             textBoxControlY:AddModifier(textBoxControlY:CONTROL)
             TextBoxRedoBehavior textBoxRedoBehavior
             textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
+
+            //Selection
+            InputSet textBoxControlA
+            textBoxControlA:SetKeyboardInput(keys:A)
+            textBoxControlA:AddModifier(textBoxControlA:CONTROL)
+            TextBoxSelectAllBehavior textBoxSelectAllBehavior
+            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
         end
         
 
