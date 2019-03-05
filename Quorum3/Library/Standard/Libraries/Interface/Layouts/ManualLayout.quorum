@@ -15,6 +15,7 @@ class ManualLayout is Layout
             Item2D item = items:Get(counter)
             if item is Control
                 Control control = cast(Control, item)
+                control:ResetLayoutFlag()
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
                 if properties not= undefined

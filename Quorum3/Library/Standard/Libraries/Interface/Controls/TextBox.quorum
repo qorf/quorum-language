@@ -188,6 +188,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
 //        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
+        background:SetName("TextBox Background")
         Add(background)
 
         textValue:DisableTextWrapping()
@@ -1129,8 +1130,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         number lineWidth = GetLineWidth(caretLine)
-        number thing = GetScrollRegionWidth()
-        if lineWidth > thing
+        if lineWidth > GetScrollRegionWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
