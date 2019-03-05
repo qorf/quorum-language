@@ -4,6 +4,8 @@ use Libraries.Game.Game
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Item2D
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.KeyboardListener
 use Libraries.Curriculum.TurtleProgram.ChangePropertiesCommand
 use Libraries.Curriculum.TurtleProgram.Command
 use Libraries.Curriculum.TurtleProgram.MoveCommand
@@ -13,7 +15,7 @@ use Libraries.Curriculum.TurtleProgram.SayCommand
 use Libraries.Curriculum.TurtleProgram.Turtle
 
 
-class TurtleGame is Game
+class TurtleGame is Game, KeyboardListener
 
     Color color
     Turtle turtle
@@ -23,6 +25,8 @@ class TurtleGame is Game
     number originY = 50
 
     action CreateGame
+        AddKeyboardListener(me)
+
         background:Load("media/code/Grid.png")
         Add(background)
 
