@@ -1,0 +1,62 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Color
+
+class TextStyling 
+    
+    Color color = undefined
+    Color selectionColor = undefined
+//    Font font = undefined
+//    integer fontSize = -1
+
+    integer index = -1
+    integer length = 0
+
+    action SetColor(Color color)
+        me:color = color
+    end
+
+    action GetColor returns Color
+        return color
+    end
+
+    action SetSelectionColor(Color color)
+        selectionColor = color
+    end
+
+    action GetSelectionColor returns Color
+        return selectionColor
+    end
+
+//    action SetFont(Font font)
+//        me:font = font
+//    end
+//
+//    action GetFont returns Font
+//        return font
+//    end
+//
+//    action SetFontSize(integer fontSize)
+//        me:fontSize = fontSize
+//    end
+//    
+//    action GetFontSize returns integer
+//        return fontSize
+//    end
+
+    action SetIndex(integer index)
+        me:index = index
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+
+    action SetLength(integer length)
+        me:length = length
+    end
+
+    action GetLength returns integer
+        return length
+    end
+end

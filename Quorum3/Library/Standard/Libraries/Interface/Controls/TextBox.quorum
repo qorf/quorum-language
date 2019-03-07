@@ -22,6 +22,7 @@ use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Array
 use Libraries.Containers.MultipleLineText
+use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
@@ -173,6 +174,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     IndentationStrategy indentation
     EditManager editManager = undefined
+
+    /*
+    TextStyling objects are used to indicate changes in the style of text at
+    certain points. For example, text might be a different color, size, or font.
+    
+    The "textStyles" array is sorted from lowest start index to highest start index.
+    The "styleTable" HashTable is used to associate names with styles.
+    */
+    Array<TextStyling> textStyles
+    HashTable<text, TextStyling> styleTable
 
     Math math
 
@@ -348,6 +359,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         selectionColor = highlightColor
 
+        // The font produces characters in white, which can later be set to any
+        // color in GetLineDrawables().
+        font:SetColor(color:White())
+
         parent:Control:LoadGraphics(properties)
 
         GetLineDrawables()
@@ -419,8 +434,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
-        Color fontColor = currentProperties:GetFontColor()
-        Color selectedFontColor = currentProperties:GetSelectionFontColor()
 
         if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
             font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
@@ -439,10 +452,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         lineCharacters:Empty()
         background:Empty()
 
+        integer textIndex = 0
+
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
+
+            textIndex = GetIndexOfLine(counter)
 
             text line = lines:Get(counter):GetText()
             integer size = line:GetSize()
@@ -454,6 +471,29 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             integer characterCounter = 0
             number x = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
             repeat size times
+                Color fontColor = currentProperties:GetFontColor()
+                Color selectedFontColor = currentProperties:GetSelectionFontColor()
+                
+                integer styleCounter = 0
+                repeat while styleCounter < textStyles:GetSize()
+                    TextStyling style = textStyles:Get(styleCounter)
+                    // Because the array is sorted from lowest to highest index,
+                    // if this style's index is too large, all of the remainder
+                    // will be as well.
+                    if textIndex < style:GetIndex()
+                        styleCounter = textStyles:GetSize()
+                    elseif textIndex >= style:GetIndex() and textIndex < style:GetIndex() + style:GetLength()
+                        if style:GetColor() not= undefined
+                            fontColor = style:GetColor()
+                        end
+                        if style:GetSelectionColor() not= undefined
+                            selectedFontColor = style:GetSelectionColor()
+                        end
+                    end
+
+                    styleCounter = styleCounter + 1
+                end
+
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
 
@@ -512,6 +552,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 end
                 x = x + glyph:horizontalAdvance
                 characterCounter = characterCounter + 1
+                textIndex = textIndex + 1
             end
 
             lineCharacters:Add(drawables)
@@ -934,6 +975,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
+        TextBoxEdit edit
+        edit:SetTextBox(me)
+
+        TextBoxEditState oldState = GetCurrentEditState()
+        edit:SetUndoState(oldState)
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         if index = 0
             return now
@@ -975,6 +1022,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         EmptySelectionEvent(true)
 
+        TextBoxEditState newState = GetCurrentEditState()
+        edit:SetRedoState(newState)
+        editManager:Add(edit)
+
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText)
 
@@ -989,6 +1040,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             NotifyTextChangeListeners(changeEvent)
             return now
         end
+
+        TextBoxEdit edit
+        edit:SetTextBox(me)
+
+        TextBoxEditState oldState = GetCurrentEditState()
+        edit:SetUndoState(oldState)
 
         text line = GetCurrentLineText()
 
@@ -1020,6 +1077,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ShowCaret()
 
+        TextBoxEditState newState = GetCurrentEditState()
+        edit:SetRedoState(newState)
+        editManager:Add(edit)
+
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText)
 
@@ -1030,6 +1091,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if selection:IsEmpty()
             return now
         end
+
+        TextBoxEdit edit
+        edit:SetTextBox(me)
+
+        TextBoxEditState oldState = GetCurrentEditState()
+        edit:SetUndoState(oldState)
 
         caretLine = selection:GetFirstLine()
         caretCharacter = selection:GetFirstLineIndex()
@@ -1045,6 +1112,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ShowCaret()
 
+        TextBoxEditState newState = GetCurrentEditState()
+        edit:SetRedoState(newState)
+        editManager:Add(edit)
+
         EmptySelectionEvent(true)
     end
 
@@ -1052,6 +1123,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if startIndex = endIndex
             return now
         end
+
+        TextBoxEdit edit
+        edit:SetTextBox(me)
+
+        TextBoxEditState oldState = GetCurrentEditState()
+        edit:SetUndoState(oldState)
 
         caretLine = textValue:LineIndexFromCharacterIndex(startIndex)
         caretCharacter = startIndex - textValue:CharacterIndexFromLineIndex(caretLine)
@@ -1067,6 +1144,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ShowCaret()
 
+        TextBoxEditState newState = GetCurrentEditState()
+        edit:SetRedoState(newState)
+        editManager:Add(edit)
+
         EmptySelectionEvent(true)
     end
 
@@ -1080,6 +1161,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action Insert(text value)
         TextBoxEdit edit
+        edit:SetTextBox(me)
+
         TextBoxEditState oldState = GetCurrentEditState()
         edit:SetUndoState(oldState)
 
@@ -1738,6 +1821,74 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action GetDefaultLineSeparator returns text
         return textValue:GetDefaultLineSeparator()
+    end
+
+    action AddTextStyling(text name, integer index, integer length, TextStyling styling)
+        styling:SetIndex(index)
+        styling:SetLength(length)
+        
+        integer i = 0
+        boolean inserted = false
+
+        repeat while i < textStyles:GetSize()
+            if index < textStyles:Get(i):GetIndex()
+                textStyles:Add(i, styling)
+                inserted = true
+                i = textStyles:GetSize()
+            end
+            i = i + 1
+        end
+
+        if inserted = false
+            textStyles:AddToEnd(styling)
+        end
+
+        if name not= ""
+            styleTable:Add(name, styling)
+        end
+
+        // Request re-layout in order to recalculate dimensions of text (as the
+        // new styling might change font size) and redraw text.
+        RequestLayout()
+    end
+
+    action RemoveTextStyling(text name) returns boolean
+        if styleTable:HasKey(name)
+            TextStyling style = styleTable:RemoveKey(name)
+            textStyles:Remove(style)
+            
+            // Request re-layout in order to recalculate dimensions of text (as the
+            // new styling might change font size) and redraw text.
+            RequestLayout()
+
+            return true
+        else
+            return false
+        end
+    end
+
+    action RemoveTextStyling(TextStyling style) returns boolean
+        boolean hadValue = textStyles:Remove(style)
+        if hadValue = false
+            return false
+        end
+
+        styleTable:RemoveValue(style)
+
+        // Request re-layout in order to recalculate dimensions of text (as the
+        // new styling might change font size) and redraw text.
+        RequestLayout()
+
+        return true
+    end
+
+    action ClearTextStyling
+        textStyles:Empty()
+        styleTable:Empty()
+
+        // Request re-layout in order to recalculate dimensions of text (as the
+        // new styling might change font size) and redraw text.
+        RequestLayout()
     end
 
     /*
