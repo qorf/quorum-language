@@ -17,7 +17,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import quorum.Libraries.Language.Compile.CompilerError;
 import quorum.Libraries.Language.Compile.CompilerErrorType;
 import quorum.Libraries.Language.Compile.QuorumBytecodeListener;
-
+import quorum.Libraries.Language.Compile.Lexer;
 
 /**
  *
@@ -52,10 +52,12 @@ public class Compiler {
             parser.addErrorListener(javaToQuorumErrorListener);
             
             ParseTree tree = parser.start();
-            
             ParseTreeWalker walker = new ParseTreeWalker();
             javaToQuorumListener.setTokens(tokens);
             walker.walk(javaToQuorumListener, tree);
+            Lexer quorumLexer = new Lexer();
+            quorumLexer.plugin_.setLexer(lexer);
+            listener.SetLexer(quorumLexer);
         } catch (IOException ex) {
             CompilerError error = new CompilerError();
             error.SetFile(file);
@@ -95,6 +97,9 @@ public class Compiler {
         ParseTreeWalker walker = new ParseTreeWalker();
         javaToQuorumListener.setTokens(tokens);
         walker.walk(javaToQuorumListener, tree);
+        Lexer quorumLexer = new Lexer();
+        quorumLexer.plugin_.setLexer(lexer);
+        listener.SetLexer(quorumLexer);
     }
     
     public static void main(String[] args) {
