@@ -1,16 +1,33 @@
 package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
 
 class TextStyling 
     
     Color color = undefined
     Color selectionColor = undefined
-//    Font font = undefined
-//    integer fontSize = -1
+    TextHighlight highlight = undefined
+    boolean highlightWhileSelected = true
 
     integer index = -1
     integer length = 0
+
+    action SetIndex(integer index)
+        me:index = index
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+
+    action SetLength(integer length)
+        me:length = length
+    end
+
+    action GetLength returns integer
+        return length
+    end
 
     action SetColor(Color color)
         me:color = color
@@ -28,35 +45,29 @@ class TextStyling
         return selectionColor
     end
 
-//    action SetFont(Font font)
-//        me:font = font
-//    end
-//
-//    action GetFont returns Font
-//        return font
-//    end
-//
-//    action SetFontSize(integer fontSize)
-//        me:fontSize = fontSize
-//    end
-//    
-//    action GetFontSize returns integer
-//        return fontSize
-//    end
-
-    action SetIndex(integer index)
-        me:index = index
+    action SetHighlight(TextHighlight highlight)
+        me:highlight = highlight
     end
 
-    action GetIndex returns integer
-        return index
+    action GetHighlight returns TextHighlight
+        return highlight
     end
 
-    action SetLength(integer length)
-        me:length = length
+    /*
+    This action sets whether or not the highlight provided by this TextStyling 
+    (if there is one) will be visible on selected text. If the provided value
+    is false, then the highlight will appear normally on unselected text, but
+    will not appear on selected text.
+    */
+    action SetHighlightWhileSelected(boolean visible)
+        highlightWhileSelected = visible
     end
 
-    action GetLength returns integer
-        return length
+    /*
+    This action returns whether or not the highlight provided by this
+    TextStyling (if there is one) will be visible on selected text.
+    */
+    action GetHighlightWhileSelected returns boolean
+        return highlightWhileSelected
     end
 end

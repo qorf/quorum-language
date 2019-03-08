@@ -454,6 +454,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         integer textIndex = 0
 
+        Array<TextStyling> stylesToApply
+
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
@@ -474,6 +476,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 Color fontColor = currentProperties:GetFontColor()
                 Color selectedFontColor = currentProperties:GetSelectionFontColor()
                 
+                stylesToApply:Empty()
+
                 integer styleCounter = 0
                 repeat while styleCounter < textStyles:GetSize()
                     TextStyling style = textStyles:Get(styleCounter)
@@ -483,6 +487,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     if textIndex < style:GetIndex()
                         styleCounter = textStyles:GetSize()
                     elseif textIndex >= style:GetIndex() and textIndex < style:GetIndex() + style:GetLength()
+                        stylesToApply:Add(style)
                         if style:GetColor() not= undefined
                             fontColor = style:GetColor()
                         end
@@ -497,7 +502,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
 
-                // For testing purposes only:
+                // Whether or not this portion of the text has selection highlighting.
                 boolean highlighted = false
 
                 // If we're on the first line that's selected.
@@ -537,6 +542,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 //                    highlight:LoadFilledRectangle(glyph:horizontalAdvance, lineHeight, color:CustomColor(0.75, 0.75, 1, 1))
                     highlight:SetPosition(x, yPosition - lineHeight / 4.0)
                     background:Add(highlight)
+                end
+
+                // Draw highlights from TextStylings.
+                repeat while stylesToApply:IsEmpty() = false
+                    TextStyling style = stylesToApply:RemoveFromFront()
+
+                    if (not highlighted) or style:GetHighlightWhileSelected() = true
+                        TextHighlight textHighlight = style:GetHighlight()
+                        if textHighlight not= undefined
+                            Drawable highlight = textHighlight:GetDrawable(glyph:horizontalAdvance, lineHeight)
+                            highlight:SetPosition(x + highlight:GetX(), (yPosition - lineHeight / 4.0) + highlight:GetY())
+                            background:Add(highlight)
+                        end
+                    end
                 end
 
                 if draw not= undefined
@@ -1823,12 +1842,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetDefaultLineSeparator()
     end
 
-    action AddTextStyling(text name, integer index, integer length, TextStyling styling)
-        styling:SetIndex(index)
-        styling:SetLength(length)
-        
+    action AddTextStyling(text name, TextStyling styling)
         integer i = 0
         boolean inserted = false
+        
+        integer index = styling:GetIndex()
 
         repeat while i < textStyles:GetSize()
             if index < textStyles:Get(i):GetIndex()
@@ -1889,6 +1907,19 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         // Request re-layout in order to recalculate dimensions of text (as the
         // new styling might change font size) and redraw text.
         RequestLayout()
+    end
+    
+    /*
+    Offset the index of TextStylings by the given amount, used during insertions
+    or deletions. For example, if three characters are added to the text, offset
+    the start index of all styles after the inserted text by 3.
+    */
+    private action OffsetStyleIndices(integer index, integer offset)
+        integer counter = 0
+        repeat while counter < textStyles:GetSize()
+            
+            counter = counter + 1
+        end
     end
 
     /*

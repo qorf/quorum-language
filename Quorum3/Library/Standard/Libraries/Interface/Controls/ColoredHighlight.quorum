@@ -1,0 +1,45 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+
+class ColoredHighlight is TextHighlight
+    
+    Texture texture = undefined
+    ColorGroup color = undefined
+
+    on create
+        Color c
+        color = c:Yellow()
+    end
+
+    /*
+    This action returns a Drawable representing the visual content of a text
+    highlight of a given width and height.
+    */
+    action GetDrawable(number width, number height) returns Drawable
+        if texture = undefined
+            Texture newTexture
+            texture = newTexture
+            Color c
+            newTexture:LoadFilledRectangle(1, 1, c:White())
+        end
+
+        Drawable drawable
+        drawable:Load(texture)
+        drawable:SetColor(color)
+        drawable:SetSize(width, height)
+
+        return drawable
+    end
+
+    action SetColor(Color color)
+        me:color = color
+    end
+
+    action GetColor returns ColorGroup
+        return color
+    end
+end
