@@ -11,6 +11,15 @@ class QuorumSourceListener
     File file = undefined
     CompilerErrorManager compilerErrorManager = undefined
     text source = ""
+    Lexer lexer = undefined
+
+    action GetLexer returns Lexer
+        return lexer
+    end
+
+    action SetLexer(Lexer lexer)
+        me:lexer = lexer
+    end
     
     action GetSource returns text
         return source
