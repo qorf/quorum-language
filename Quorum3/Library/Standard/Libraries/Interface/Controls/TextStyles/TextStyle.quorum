@@ -1,9 +1,9 @@
-package Libraries.Interface.Controls
+package Libraries.Interface.Controls.TextStyles
 
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.TextureRegion
 
-class TextStyling 
+class TextStyle 
     
     Color color = undefined
     Color selectionColor = undefined
@@ -21,11 +21,11 @@ class TextStyling
         return index
     end
 
-    action SetLength(integer length)
+    action SetSize(integer length)
         me:length = length
     end
 
-    action GetLength returns integer
+    action GetSize returns integer
         return length
     end
 

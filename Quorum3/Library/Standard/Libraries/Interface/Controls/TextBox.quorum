@@ -29,6 +29,8 @@ use Libraries.Compute.Math
 use Libraries.Interface.Undo.EditManager
 use Libraries.Interface.Undo.TextBoxEdit
 use Libraries.Interface.Undo.TextBoxEditState
+use Libraries.Interface.Controls.TextStyles.TextStyle
+use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Game
 
 class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
@@ -176,14 +178,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     EditManager editManager = undefined
 
     /*
-    TextStyling objects are used to indicate changes in the style of text at
+    TextStyle objects are used to indicate changes in the style of text at
     certain points. For example, text might be a different color, size, or font.
     
     The "textStyles" array is sorted from lowest start index to highest start index.
     The "styleTable" HashTable is used to associate names with styles.
     */
-    Array<TextStyling> textStyles
-    HashTable<text, TextStyling> styleTable
+    Array<TextStyle> textStyles
+    HashTable<text, TextStyle> styleTable
 
     Math math
 
@@ -454,7 +456,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         integer textIndex = 0
 
-        Array<TextStyling> stylesToApply
+        Array<TextStyle> stylesToApply
 
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         integer counter = firstLineInteger
@@ -480,13 +482,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
                 integer styleCounter = 0
                 repeat while styleCounter < textStyles:GetSize()
-                    TextStyling style = textStyles:Get(styleCounter)
+                    TextStyle style = textStyles:Get(styleCounter)
                     // Because the array is sorted from lowest to highest index,
                     // if this style's index is too large, all of the remainder
                     // will be as well.
                     if textIndex < style:GetIndex()
                         styleCounter = textStyles:GetSize()
-                    elseif textIndex >= style:GetIndex() and textIndex < style:GetIndex() + style:GetLength()
+                    elseif textIndex >= style:GetIndex() and textIndex < style:GetIndex() + style:GetSize()
                         stylesToApply:Add(style)
                         if style:GetColor() not= undefined
                             fontColor = style:GetColor()
@@ -544,9 +546,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     background:Add(highlight)
                 end
 
-                // Draw highlights from TextStylings.
+                // Draw highlights from TextStyles.
                 repeat while stylesToApply:IsEmpty() = false
-                    TextStyling style = stylesToApply:RemoveFromFront()
+                    TextStyle style = stylesToApply:RemoveFromFront()
 
                     if (not highlighted) or style:GetHighlightWhileSelected() = true
                         TextHighlight textHighlight = style:GetHighlight()
@@ -981,10 +983,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretActive = false
     end
 
-    // FOR DEBUGGING PURPOSES ONLY. Holds the last value of MultipleLineText
-    // before the deletion. 
-    MultipleLineText lastText = undefined
-
     action DeleteBackward
         if (not selection:IsEmpty())
             TextChangeEvent changeEvent
@@ -1004,8 +1002,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if index = 0
             return now
         end
-
-        lastText = textValue
 
         boolean shouldResize = false
         number oldLength = GetLineWidth(caretLine)
@@ -1193,6 +1189,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
             DeleteSelection()
         end
+
+        OffsetStyleIndices(GetCaretPosition(), value:GetSize() - deletedText:GetSize())
 
         textValue = textValue:Insert(GetCaretPosition(), value)
         
@@ -1842,15 +1840,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetDefaultLineSeparator()
     end
 
-    action AddTextStyling(text name, TextStyling styling)
+    action AddTextStyle(text name, TextStyle style)
         integer i = 0
         boolean inserted = false
         
-        integer index = styling:GetIndex()
+        integer index = style:GetIndex()
 
         repeat while i < textStyles:GetSize()
             if index < textStyles:Get(i):GetIndex()
-                textStyles:Add(i, styling)
+                textStyles:Add(i, style)
                 inserted = true
                 i = textStyles:GetSize()
             end
@@ -1858,11 +1856,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         if inserted = false
-            textStyles:AddToEnd(styling)
+            textStyles:AddToEnd(style)
         end
 
         if name not= ""
-            styleTable:Add(name, styling)
+            styleTable:Add(name, style)
         end
 
         // Request re-layout in order to recalculate dimensions of text (as the
@@ -1870,9 +1868,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         RequestLayout()
     end
 
-    action RemoveTextStyling(text name) returns boolean
+    action RemoveTextStyle(text name) returns boolean
         if styleTable:HasKey(name)
-            TextStyling style = styleTable:RemoveKey(name)
+            TextStyle style = styleTable:RemoveKey(name)
             textStyles:Remove(style)
             
             // Request re-layout in order to recalculate dimensions of text (as the
@@ -1885,7 +1883,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
-    action RemoveTextStyling(TextStyling style) returns boolean
+    action RemoveTextStyle(TextStyle style) returns boolean
         boolean hadValue = textStyles:Remove(style)
         if hadValue = false
             return false
@@ -1900,7 +1898,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return true
     end
 
-    action ClearTextStyling
+    action EmptyTextStyles
         textStyles:Empty()
         styleTable:Empty()
 
@@ -1910,14 +1908,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
     
     /*
-    Offset the index of TextStylings by the given amount, used during insertions
+    Offset the index of TextStyles by the given amount, used during insertions
     or deletions. For example, if three characters are added to the text, offset
     the start index of all styles after the inserted text by 3.
     */
     private action OffsetStyleIndices(integer index, integer offset)
         integer counter = 0
         repeat while counter < textStyles:GetSize()
-            
+            TextStyle style = textStyles:Get(counter)
+            integer styleIndex = style:GetIndex()
+            if styleIndex > index
+                style:SetIndex(styleIndex + offset)
+            elseif styleIndex <= index and styleIndex + style:GetSize() > index
+                style:SetSize(style:GetSize() + offset)
+            end
             counter = counter + 1
         end
     end
