@@ -170,6 +170,8 @@ class Compiler
         Library library = request:library
         CompilerResult result
         HashTable<text, ClassOpcode> theOpcodes = undefined
+        HashTable<text, Lexer> lexers = result:lexers
+        lexers:Empty()
         if request:opcodes not= undefined
             theOpcodes = request:opcodes
         else 
@@ -261,6 +263,11 @@ class Compiler
                 ParseSandbox(file:Read(), listener, table, errors, checker, file)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
+            Lexer luthor = listener:GetLexer()
+            if luthor not= undefined
+                text value = file:GetAbsolutePath()
+                lexers:Add(value, luthor)
+            end
             i = i + 1
         end
         profiler:Add(time:GetEpochTime())
