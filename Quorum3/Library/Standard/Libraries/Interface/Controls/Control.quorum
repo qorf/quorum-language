@@ -14,6 +14,8 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.System.File
+use Libraries.Game.InputTable
+use Libraries.Game.Game
 
 class Control is Item2D
 
@@ -99,6 +101,43 @@ class Control is Item2D
     next Update loop.
     */
     boolean needsLayout = false
+
+    /*
+        This action obtains the Input Table from this control, copies it, 
+        assigns it a group name, sets the control to use the new input table,
+        and then adds it to the global input table hash table. 
+
+        Attribute: Parameter name the name of the group for the new input table.
+        Attribute: Returns the input table copy
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Game.InputTable
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                InputTable copy = box:CopyAndActivateInputTable("New Group")
+            end
+
+            action Update(number seconds)
+            end
+        end
+    */
+    action CopyAndActivateInputTable(text name) returns InputTable
+        InputTable inputTable = GetInputTable():Copy()
+        inputTable:SetIdentifier(name)
+        SetInputGroup(name)
+
+        GameStateManager manager
+        manager:GetGame():AddInputTable(inputTable)
+        return inputTable
+    end
 
     action ClickedMouse
         if GetView2D() is ControlView
