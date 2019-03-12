@@ -992,16 +992,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        if index = 0
+            return now
+        end
+
         TextBoxEdit edit
         edit:SetTextBox(me)
 
         TextBoxEditState oldState = GetCurrentEditState()
         edit:SetUndoState(oldState)
-
-        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
-        if index = 0
-            return now
-        end
 
         boolean shouldResize = false
         number oldLength = GetLineWidth(caretLine)
@@ -1021,6 +1021,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         text deletedText = textValue:GetText(index - toDelete, index)
         textValue = textValue:Delete(index - toDelete, index)
         caretCharacter = caretCharacter - toDelete
+
+        DecrementStyleIndices(GetCaretPosition(), toDelete)
 
         if caretLine < firstLine
             GoToLine(caretLine)
@@ -1080,6 +1082,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             toDelete = 2
         end
 
+        DecrementStyleIndices(GetCaretPosition(), toDelete)
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         text deletedText = textValue:GetText(index, index + toDelete)
         textValue = textValue:Delete(index, index + toDelete)
@@ -1116,6 +1120,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretLine = selection:GetFirstLine()
         caretCharacter = selection:GetFirstLineIndex()
 
+        DecrementStyleIndices(GetCaretPosition(), selection:GetEndIndex() - selection:GetStartIndex())
+
         textValue = textValue:Delete(selection:GetStartIndex(), selection:GetEndIndex())
 
         // Force a recalculation of the width by setting its value to -1.
@@ -1145,9 +1151,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextBoxEditState oldState = GetCurrentEditState()
         edit:SetUndoState(oldState)
 
+        DecrementStyleIndices(GetCaretPosition(), endIndex - startIndex)
+
         caretLine = textValue:LineIndexFromCharacterIndex(startIndex)
         caretCharacter = startIndex - textValue:CharacterIndexFromLineIndex(caretLine)
 
+        text deletedText = textValue:GetText(startIndex, endIndex)
         textValue = textValue:Delete(startIndex, endIndex)
 
         // Force a recalculation of the width by setting its value to -1.
@@ -1162,6 +1171,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
         editManager:Add(edit)
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
 
         EmptySelectionEvent(true)
     end
@@ -1190,7 +1204,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             DeleteSelection()
         end
 
-        OffsetStyleIndices(GetCaretPosition(), value:GetSize() - deletedText:GetSize())
+        IncrementStyleIndices(GetCaretPosition(), value:GetSize())
 
         textValue = textValue:Insert(GetCaretPosition(), value)
         
@@ -1908,11 +1922,36 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
     
     /*
-    Offset the index of TextStyles by the given amount, used during insertions
-    or deletions. For example, if three characters are added to the text, offset
+    Increases the index of TextStyles by the given amount, used during insert
+    actions. For example, if three characters are added to the text, offset
     the start index of all styles after the inserted text by 3.
     */
-    private action OffsetStyleIndices(integer index, integer offset)
+//    private action OffsetStyleIndices(integer index, integer offset)
+//        integer counter = 0
+//        repeat while counter < textStyles:GetSize()
+//            TextStyle style = textStyles:Get(counter)
+//            integer styleIndex = style:GetIndex()
+//            
+//            if styleIndex <= index and styleIndex + style:GetSize() > index
+//                output "2: " + styleIndex + " <= " + index + " and " + (styleIndex + style:GetSize()) + " > " + index
+//                style:SetSize(style:GetSize() + offset)
+//                if style:GetSize() < 0
+//                    RemoveTextStyle(style)
+//                end
+//            elseif styleIndex > index
+//                output "1: " + styleIndex + " > " + index
+//                style:SetIndex(styleIndex + offset)
+//            end
+//            counter = counter + 1
+//        end
+//    end
+
+    /*
+    Increases the index of TextStyles by the given amount, used during insert
+    actions. For example, if three characters are added to the text, offset
+    the start index of all styles after the inserted text by 3.
+    */
+    private action IncrementStyleIndices(integer index, integer offset)
         integer counter = 0
         repeat while counter < textStyles:GetSize()
             TextStyle style = textStyles:Get(counter)
@@ -1922,6 +1961,70 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             elseif styleIndex <= index and styleIndex + style:GetSize() > index
                 style:SetSize(style:GetSize() + offset)
             end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    Decreases the index of TextStyles by the given amount, used during delete
+    actions. For example, if three characters are removed from the text, reduce
+    the start index of all styles after the deleted text by 3.
+    */
+    private action DecrementStyleIndices(integer index, integer offset)
+        integer counter = 0
+
+        // TextStyles that should be deleted are stored and then deleted all at
+        // once at the end of the action.
+        Array<TextStyle> toDelete
+
+        repeat while counter < textStyles:GetSize()
+            TextStyle style = textStyles:Get(counter)
+            integer styleIndex = style:GetIndex()
+            integer styleSize = style:GetSize()
+            
+            if index <= styleIndex
+                // The entire text represented by this TextStyle is being removed.
+                if index + offset > styleIndex + styleSize
+                    toDelete:Add(style)
+
+                // The deleted text is entirely before this TextStyle's contents.
+                elseif index + offset <= styleIndex
+                    style:SetIndex(styleIndex - offset)
+
+                // The deleted text is partially in this TextStyle's contents
+                // and partially outside of it.
+                else
+                    integer outer = styleIndex - index
+                    style:SetIndex(styleIndex - outer)
+                    style:SetSize(styleSize - (offset - outer))
+                end
+            elseif index > styleIndex
+                // The adjusted portion is beyond this TextStyle.
+                if index >= styleIndex + styleSize
+                    // No adjustments necessary.
+
+                // The entire text represented by this TextStyle is being removed.
+//                elseif index = styleIndex and offset >= styleSize
+//                    output "7"
+//                    RemoveTextStyle(style)
+
+                // A portion of the text in this TextStyle is being removed.
+                elseif index + offset <= styleIndex + style:GetSize()
+                    style:SetSize(styleSize - offset)
+
+                // The deleted text includes the latter portion of this TextStyle's
+                // contents and text that's outside of this TextStyle.
+                else
+                    style:SetSize(index - styleIndex)
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < toDelete:GetSize()
+            RemoveTextStyle(toDelete:Get(counter))
             counter = counter + 1
         end
     end
