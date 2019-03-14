@@ -13,6 +13,9 @@ class ColoredHighlight is TextHighlight
     on create
         Color c
         color = c:Yellow()
+
+        SetVisibleWhileSelected(false)
+        SetLineHighlight(false)
     end
 
     /*
@@ -21,10 +24,7 @@ class ColoredHighlight is TextHighlight
     */
     action GetDrawable(number width, number height) returns Drawable
         if texture = undefined
-            Texture newTexture
-            texture = newTexture
-            Color c
-            newTexture:LoadFilledRectangle(1, 1, c:White())
+            texture = GenerateTexture()
         end
 
         Drawable drawable
@@ -33,6 +33,17 @@ class ColoredHighlight is TextHighlight
         drawable:SetSize(width, height)
 
         return drawable
+    end
+
+    /*
+    Used the first time this class needs to return a Drawable to generate the
+    Texture used by drawables produced by this highlight.
+    */
+    private action GenerateTexture returns Texture
+        Texture newTexture
+        Color c
+        newTexture:LoadFilledRectangle(1, 1, c:White())
+        return newTexture
     end
 
     action SetColor(Color color)

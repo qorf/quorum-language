@@ -79,12 +79,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     number scrollRegionWidth = -1
 
-    /*
-    An array of lines which are visible on the screen, where each line is
-    composed of an array of drawables representing each character on the line.
-    */
-    Array<Array<Drawable>> lineCharacters
-
     Drawable caret
     integer caretThickness = 1
     Color caretColor = characterColor:Black()
@@ -451,17 +445,34 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         firstLine = totalLines - (totalLines * verticalViewPercentage)
         integer firstLineInteger = cast(integer, firstLine)
         
-        lineCharacters:Empty()
         background:Empty()
 
         integer textIndex = 0
 
         Array<TextStyle> stylesToApply
 
+        /*
+        While iterating over the text, many drawables are created, which are
+        stored in these arrays and only added to the background after all of
+        the drawables are made. 
+
+        The render order of these drawables is, from back-to-front:
+        preSelectionHighlights
+        selectionDrawables
+        postSelectionHighlights
+        textDrawables
+        */
+        Array<Drawable> textDrawables
+        Array<Drawable> selectionDrawables
+        Array<Drawable> preSelectionHighlights
+        Array<Drawable> postSelectionHighlights
+
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
+
+            number drawableY = yPosition - lineHeight / 4.0
 
             textIndex = GetIndexOfLine(counter)
 
@@ -471,16 +482,89 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 size = size - separator:GetSize()
             end
 
-            Array<Drawable> drawables
             integer characterCounter = 0
-            number x = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
+            integer styleCounter = 0
+            number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
+            number x = startX
+
+            // Calculate highlights on this line.
+            repeat while styleCounter < textStyles:GetSize()
+                TextStyle style = textStyles:Get(styleCounter)
+                TextHighlight highlight = style:GetHighlight()
+                
+                if highlight not= undefined
+                    integer styleStart = style:GetIndex()
+                    integer styleEnd = styleStart + style:GetSize()
+
+                    // If selection begins on this line.
+                    boolean onLine = styleStart >= textIndex and styleStart <= textIndex + size
+
+                    // If selection began on a previous line and continues on this line.
+                    onLine = onLine or styleStart <= textIndex and styleEnd > textIndex
+
+                    if onLine
+                        Drawable draw = undefined
+                        if highlight:IsLineHighlight()
+                            draw = highlight:GetDrawable(GetScrollRegionWidth(), lineHeight)
+                            draw:SetPosition(leftCharacterPadding, drawableY)
+                        else
+                            characterCounter = 0
+                            number width = 0
+                            x = startX
+                            repeat while characterCounter < size
+                                Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
+
+                                /*
+                                If we haven't reached the styled portion of the
+                                text, advance the x position that we'll place
+                                the highlight at.
+                                */
+                                if (textIndex + characterCounter < styleStart)
+                                    x = x + glyph:horizontalAdvance
+
+                                /*
+                                If we've reached the styled portion and we
+                                aren't past the end, increase the width of the
+                                eventual highlight.
+                                */
+                                elseif (textIndex + characterCounter < styleEnd)
+                                    width = width + glyph:horizontalAdvance
+                                
+                                /*
+                                If we're past the style's end point, then we're
+                                done. Exit the loop and generate the highlight.
+                                */
+                                else
+                                    characterCounter = size
+                                end
+                                characterCounter = characterCounter + 1
+                            end
+
+                            draw = highlight:GetDrawable(width, lineHeight)
+                            draw:SetPosition(x, drawableY)
+                        end
+
+                        if highlight:IsVisibleWhileSelected()
+                            postSelectionHighlights:Add(draw)
+                        else
+                            preSelectionHighlights:Add(draw)
+                        end
+                    end
+                end
+
+                styleCounter = styleCounter + 1
+            end
+
+            characterCounter = 0
+            styleCounter = 0
+            x = startX
             repeat size times
                 Color fontColor = currentProperties:GetFontColor()
                 Color selectedFontColor = currentProperties:GetSelectionFontColor()
                 
                 stylesToApply:Empty()
 
-                integer styleCounter = 0
+                styleCounter = 0
                 repeat while styleCounter < textStyles:GetSize()
                     TextStyle style = textStyles:Get(styleCounter)
                     // Because the array is sorted from lowest to highest index,
@@ -540,30 +624,29 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                     highlight:SetColor(selectionColor)
 
-//                    Color color
-//                    highlight:LoadFilledRectangle(glyph:horizontalAdvance, lineHeight, color:CustomColor(0.75, 0.75, 1, 1))
-                    highlight:SetPosition(x, yPosition - lineHeight / 4.0)
-                    background:Add(highlight)
+                    highlight:SetPosition(x, drawableY)
+//                    background:Add(highlight)
+                    selectionDrawables:Add(highlight)
                 end
 
                 // Draw highlights from TextStyles.
-                repeat while stylesToApply:IsEmpty() = false
-                    TextStyle style = stylesToApply:RemoveFromFront()
-
-                    if (not highlighted) or style:GetHighlightWhileSelected() = true
-                        TextHighlight textHighlight = style:GetHighlight()
-                        if textHighlight not= undefined
-                            Drawable highlight = textHighlight:GetDrawable(glyph:horizontalAdvance, lineHeight)
-                            highlight:SetPosition(x + highlight:GetX(), (yPosition - lineHeight / 4.0) + highlight:GetY())
-                            background:Add(highlight)
-                        end
-                    end
-                end
+//                repeat while stylesToApply:IsEmpty() = false
+//                    TextStyle style = stylesToApply:RemoveFromFront()
+//
+//                    if (not highlighted) or style:GetHighlightWhileSelected() = true
+//                        TextHighlight textHighlight = style:GetHighlight()
+//                        if textHighlight not= undefined
+//                            Drawable highlight = textHighlight:GetDrawable(glyph:horizontalAdvance, lineHeight)
+//                            highlight:SetPosition(x + highlight:GetX(), drawableY + highlight:GetY())
+//                            background:Add(highlight)
+//                        end
+//                    end
+//                end
 
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
-                    drawables:Add(draw)
-                    background:Add(draw)
+//                    background:Add(draw)
+                    textDrawables:Add(draw)
 
                     if highlighted
                         draw:SetColor(selectedFontColor)
@@ -576,7 +659,31 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 textIndex = textIndex + 1
             end
 
-            lineCharacters:Add(drawables)
+            counter = counter + 1
+        end
+
+        // Add the various Drawables we've generated to the background.
+        counter = 0
+        repeat while counter < preSelectionHighlights:GetSize()
+            background:Add(preSelectionHighlights:Get(counter))
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < selectionDrawables:GetSize()
+            background:Add(selectionDrawables:Get(counter))
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < postSelectionHighlights:GetSize()
+            background:Add(postSelectionHighlights:Get(counter))
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < textDrawables:GetSize()
+            background:Add(textDrawables:Get(counter))
             counter = counter + 1
         end
 
