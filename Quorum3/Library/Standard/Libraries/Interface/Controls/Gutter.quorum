@@ -55,7 +55,6 @@ class Gutter is Control
                 view:SetBorderStyle(properties:GetBorderStyle())
                 view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
                 SetView2D(view)
-                output "Using LabelBox view."
             end
         elseif properties:GetView2D() not= GetView2D()
             SetView2D(properties:GetView2D())
