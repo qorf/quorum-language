@@ -2034,6 +2034,23 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    action GetTextStyle(text name) returns TextStyle
+        if styleTable:HasKey(name)
+            TextStyle style = styleTable:GetValue(name)
+            return style
+        else
+            return undefined
+        end
+    end
+
+    action HasTextStyle(text name) returns boolean
+        if styleTable:HasKey(name)
+            return true
+        else
+            return false
+        end
+    end
+
     action RemoveTextStyle(TextStyle style) returns boolean
         boolean hadValue = textStyles:Remove(style)
         if hadValue = false
