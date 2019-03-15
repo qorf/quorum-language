@@ -211,6 +211,21 @@ class Control is Item2D
         end
     end
 
+    /*  
+    This action adds a different Item2D into this one. This makes a few things happen.
+        1. The added item will get this item as its parent.
+        2. The added item's x and y coordinates will become relative to this Item.
+        3. Most actions on this Item will also affect the added Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(child)
+        
+    */
     action Add(Item2D newItem)
         parent:Item2D:Add(newItem)
 
@@ -221,6 +236,19 @@ class Control is Item2D
         end
     end
 
+    /*  
+    This action adds a different Item2D into this one, storing the added Item2D
+    at a specific index in the internal array.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(0, child)
+        
+    */
     action Add(integer index, Item2D newItem)
         parent:Item2D:Add(index, newItem)
 
@@ -563,11 +591,32 @@ class Control is Item2D
     end
 
     /*
+    This action returns the Font being used by this Control. How this Font is 
+    used varies between Controls, and in some cases the Control will ignore it 
+    entirely (for example, ScrollPanes), but typically this sets the font that's
+    used for the default label on many Controls, such as Buttons. If the Font
+    is undefined, many Controls will omit their default label.
+
+    Attribute: Returns The Font being used for this Control.
+    */
+    action GetFont returns Font
+        return defaultProperties:GetFont()
+    end
+
+    /*
     This action sets the base Font size to be used by this Control, if the
     Control uses a Font.
     */
     action SetFontSize(integer size)
         defaultProperties:SetFontSize(size)
+    end
+
+    /*
+    This action returns the base Font size to be used by this Control, if the
+    Control uses a Font.
+    */
+    action GetFontSize returns integer
+        return defaultProperties:GetFontSize()
     end
 
     /*

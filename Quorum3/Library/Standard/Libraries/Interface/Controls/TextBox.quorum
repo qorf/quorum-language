@@ -181,7 +181,17 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     Array<TextStyle> textStyles
     HashTable<text, TextStyle> styleTable
 
+    /*
+    Gutters are used to display information on the side of the TextBox, such as
+    line numbers. They're stored in an Array so we can reference them when
+    updating the visuals.
+    */
+    Array<Gutter> gutters
+
     Math math
+
+    // A hard-coded Gutter for testing purposes only.
+    LineNumberGutter gutter
 
     on create
         SetName("Text Box")
@@ -294,6 +304,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         GameStateManager gsm
         Game game = gsm:GetGame()
         editManager = game:GetEditManager()
+
+        // For testing purposes only.
+        Add(gutter)
     end
 
     action GetLeftCharacterPadding returns integer
@@ -447,6 +460,17 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         
         background:Empty()
 
+        integer gutterCounter = 0
+        number gutterX = 0
+        repeat while gutterCounter < gutters:GetSize()
+            Gutter gutter = gutters:Get(gutterCounter)
+            gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
+            gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
+            gutter:SetPosition(gutterX, GetHeight() + (firstLine - firstLineInteger) * lineHeight - lineHeight)
+            gutterX = gutterX + gutter:GetWidth()
+            gutterCounter = gutterCounter + 1
+        end
+
         integer textIndex = 0
 
         Array<TextStyle> stylesToApply
@@ -484,7 +508,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
             integer characterCounter = 0
             integer styleCounter = 0
-            number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
+            number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
             number x = startX
 
             // Calculate highlights on this line.
@@ -684,6 +708,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         counter = 0
         repeat while counter < textDrawables:GetSize()
             background:Add(textDrawables:Get(counter))
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < gutters:GetSize()
+            background:Add(gutters:Get(counter))
             counter = counter + 1
         end
 
@@ -2033,31 +2063,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     actions. For example, if three characters are added to the text, offset
     the start index of all styles after the inserted text by 3.
     */
-//    private action OffsetStyleIndices(integer index, integer offset)
-//        integer counter = 0
-//        repeat while counter < textStyles:GetSize()
-//            TextStyle style = textStyles:Get(counter)
-//            integer styleIndex = style:GetIndex()
-//            
-//            if styleIndex <= index and styleIndex + style:GetSize() > index
-//                output "2: " + styleIndex + " <= " + index + " and " + (styleIndex + style:GetSize()) + " > " + index
-//                style:SetSize(style:GetSize() + offset)
-//                if style:GetSize() < 0
-//                    RemoveTextStyle(style)
-//                end
-//            elseif styleIndex > index
-//                output "1: " + styleIndex + " > " + index
-//                style:SetIndex(styleIndex + offset)
-//            end
-//            counter = counter + 1
-//        end
-//    end
-
-    /*
-    Increases the index of TextStyles by the given amount, used during insert
-    actions. For example, if three characters are added to the text, offset
-    the start index of all styles after the inserted text by 3.
-    */
     private action IncrementStyleIndices(integer index, integer offset)
         integer counter = 0
         repeat while counter < textStyles:GetSize()
@@ -2110,11 +2115,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 if index >= styleIndex + styleSize
                     // No adjustments necessary.
 
-                // The entire text represented by this TextStyle is being removed.
-//                elseif index = styleIndex and offset >= styleSize
-//                    output "7"
-//                    RemoveTextStyle(style)
-
                 // A portion of the text in this TextStyle is being removed.
                 elseif index + offset <= styleIndex + style:GetSize()
                     style:SetSize(styleSize - offset)
@@ -2133,6 +2133,80 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         repeat while counter < toDelete:GetSize()
             RemoveTextStyle(toDelete:Get(counter))
             counter = counter + 1
+        end
+    end
+
+    /*  
+    This action adds a different Item2D into this one. This makes a few things happen.
+        1. The added item will get this item as its parent.
+        2. The added item's x and y coordinates will become relative to this Item.
+        3. Most actions on this Item will also affect the added Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(child)
+        
+    */
+    action Add(Item2D item)
+        if item is Gutter
+            Gutter gutter = cast(Gutter, item)
+            gutter:SetTextBox(me)
+            gutters:Add(gutter)
+        else
+            parent:Control:Add(item)
+        end
+    end
+
+    /*  
+    This action adds a different Item2D into this one, storing the added Item2D
+    at a specific index in the internal array.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(0, child)
+        
+    */
+    action Add(integer index, Item2D item)
+        if item is Gutter
+            Gutter gutter = cast(Gutter, item)
+            gutter:SetTextBox(me)
+            gutters:Add(gutter)
+        else
+            parent:Control:Add(index, item)
+        end
+    end
+
+    /*  
+    This action removes an Item2D that was previously added to this Item2D. 
+
+    Attribute: Returns Whether or not the Item was found and removed.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child1
+        Item2D child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:Remove(child1)
+    */
+    action Remove(Item2D removed) returns boolean
+        if removed is Gutter
+            Gutter gutter = cast(Gutter, removed)
+            gutter:SetTextBox(undefined)
+            return gutters:Remove(gutter)
+        else
+            return parent:Control:Remove(removed)
         end
     end
 

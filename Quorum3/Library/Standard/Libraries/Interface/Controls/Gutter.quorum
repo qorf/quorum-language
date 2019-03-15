@@ -1,0 +1,66 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.LabelBoxView
+
+class Gutter is Control
+    
+    TextBox textBox = undefined
+
+    on create
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+
+        Color color
+
+        defaultProperties:SetBackgroundColor(color:CustomColor(233.0/255.0, 232.0/255.0, 226.0/255.0, 1))
+        defaultProperties:SetBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
+        defaultProperties:SetBorderThickness(1)
+        defaultProperties:SetBorderStyle(defaultProperties:RIGHT)
+    end
+
+    /*
+    Need the following:
+
+    GetWidth, which is provided by the user in some way to indicate the width of
+    the gutter (or the maximum width of entries).
+
+    Needs to be a Control to use the following properties:
+        Background color
+        Border color and styling
+        Selection color? (Highlight the portion of gutter corresponding to caret position)
+        Font color? (Or is determined by entry?)
+
+    Entries either must contain their information at all times or are asked to
+    update themselves just before rendering.
+        For the line number gutter, 
+    */
+
+    blueprint action UpdateLines(integer startLine, integer totalLines, number lineHeight)
+
+    action SetTextBox(TextBox box)
+        textBox = box
+    end
+
+    action GetTextBox returns TextBox
+        return textBox
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        
+        if properties:GetView2D() = undefined
+            if GetView2D() = undefined
+                LabelBoxView view
+                view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                view:SetBorderStyle(properties:GetBorderStyle())
+                view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+                SetView2D(view)
+                output "Using LabelBox view."
+            end
+        elseif properties:GetView2D() not= GetView2D()
+            SetView2D(properties:GetView2D())
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+end

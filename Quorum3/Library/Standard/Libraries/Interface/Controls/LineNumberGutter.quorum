@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
+
+class LineNumberGutter is Gutter
+   
+    Array<Label> labels
+
+    action UpdateLines(integer startLine, integer totalLines, number lineHeight)
+        // Currently regenerates everything each time.
+        // This should preserve whatever objects and information are useful
+        // between each call.
+
+        Empty()
+
+        TextBox textBox = GetTextBox()
+        integer fontSize = cast(integer, textBox:GetFontSize() * textBox:GetInterfaceScale())
+        // Temporary hard-coded value
+        integer width = 50
+
+        integer counter = 0
+        number y = lineHeight * totalLines
+        repeat while counter < totalLines
+            y = y - lineHeight
+            Label label
+            label:SetSize(fontSize)
+            label:SetText("" + (startLine + counter))
+            label:SetPosition(width - label:GetWidth(), y)
+            Add(label)
+
+            labels:Add(label)
+
+            counter = counter + 1
+        end
+
+        SetSize(width, textBox:GetHeight())
+        output "Size set to " + GetWidth() + ", " + GetHeight()
+    end
+ 
+end
