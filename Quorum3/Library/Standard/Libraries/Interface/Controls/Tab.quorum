@@ -272,7 +272,7 @@ class Tab is ToggleButton
         closeButton:SetIcon(closeIcon)
     end
 
-    action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
+    private action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
         PixelMap map
         Format format
         format:SetValue(format:RGBA8888)
