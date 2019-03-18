@@ -764,9 +764,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GoToLine(number line)
         Array<MultipleLineText> lines = textValue:GetLines()
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
-        number lineSpace = lines:GetSize() * font:GetLineHeight() - paneHeight
         number viableLines = lines:GetSize() - (paneHeight / font:GetLineHeight())
-        number newVertical = 1.0 - (line / viableLines)
+        number windowLines = (lines:GetSize() - viableLines) / 2.0
+        number newVertical = 1.0 - ((line - windowLines) / viableLines)
         UpdatePaneView(horizontal, newVertical)
     end
 
