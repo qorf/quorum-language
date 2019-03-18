@@ -20,21 +20,28 @@ class LineNumberGutter is Gutter
         integer width = 50
 
         integer counter = 0
-        number y = lineHeight * totalLines
+        number y = textBox:GetHeight()
         repeat while counter < totalLines
             y = y - lineHeight
-            Label label
+            Label label = GetLabel(counter)
             label:SetSize(fontSize)
             label:SetText("" + (startLine + counter))
             label:SetPosition(width - label:GetWidth(), y)
             Add(label)
 
-            labels:Add(label)
-
             counter = counter + 1
         end
 
-        SetSize(width, textBox:GetHeight())
+        SetSize(width, textBox:GetHeight() + lineHeight)
     end
  
+    private action GetLabel(integer index) returns Label
+        if labels:GetSize() <= index or labels:Get(index) = undefined
+            Label label
+            labels:Add(index, label)
+            return label
+        else
+            return labels:Get(index)
+        end
+    end
 end

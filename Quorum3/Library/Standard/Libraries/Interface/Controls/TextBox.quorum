@@ -466,7 +466,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Gutter gutter = gutters:Get(gutterCounter)
             gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
             gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
-            gutter:SetPosition(gutterX, GetHeight() + (firstLine - firstLineInteger) * lineHeight - lineHeight)
+            gutter:SetPosition(gutterX, (firstLine - firstLineInteger) * lineHeight)
             gutterX = gutterX + gutter:GetWidth()
             gutterCounter = gutterCounter + 1
         end
