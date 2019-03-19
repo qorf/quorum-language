@@ -2,33 +2,54 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Layouts.LayoutProperties
 
 class LineNumberGutter is Gutter
    
+    on create
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetLeftPadding(8)
+        properties:SetRightPadding(4)
+    end
+
     Array<Label> labels
 
     action UpdateLines(integer startLine, integer totalLines, number lineHeight)
-        // Currently regenerates everything each time.
-        // This should preserve whatever objects and information are useful
-        // between each call.
-
         Empty()
 
         TextBox textBox = GetTextBox()
         integer fontSize = cast(integer, textBox:GetFontSize() * textBox:GetInterfaceScale())
-        // Temporary hard-coded value
-        integer width = 50
+
+        LayoutProperties properties = GetCurrentLayoutProperties()
+        if properties = undefined
+            properties = GetDefaultLayoutProperties()
+        end
+
+        text linesInText = "" + (textBox:GetLineCount() - 1)
+        integer glyphsRequired = linesInText:GetSize()
+        /*
+        We assume the space required for the "0" glyph is a good predictor of
+        the space used for each glyph in the font. For monospaced fonts this
+        will be accurate and the choice of glyph is arbitrary. For other fonts,
+        this is only an approximation, which may require some extra space via
+        padding in order to look correct.
+        */
+        Label firstLabel = GetLabel(0)
+        Font font = firstLabel:GetFont()
+        number rightPadding = properties:GetRightPadding()
+        number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftPadding() + rightPadding
 
         integer counter = 0
         number y = textBox:GetHeight()
         repeat while counter < totalLines
-            y = y - lineHeight
             Label label = GetLabel(counter)
             label:SetSize(fontSize)
             label:SetText("" + (startLine + counter))
-            label:SetPosition(width - label:GetWidth(), y)
+            label:SetPosition(width - label:GetWidth() - rightPadding, y)
             Add(label)
 
+            y = y - lineHeight
             counter = counter + 1
         end
 

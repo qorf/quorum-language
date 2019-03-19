@@ -190,9 +190,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     Math math
 
-    // A hard-coded Gutter for testing purposes only.
-    LineNumberGutter gutter
-
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -304,9 +301,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         GameStateManager gsm
         Game game = gsm:GetGame()
         editManager = game:GetEditManager()
-
-        // For testing purposes only.
-        //Add(gutter)
     end
 
     action GetLeftCharacterPadding returns integer
@@ -466,7 +460,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Gutter gutter = gutters:Get(gutterCounter)
             gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
             gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
-            gutter:SetPosition(gutterX, (firstLine - firstLineInteger) * lineHeight)
+            gutter:SetPosition(gutterX, (firstLine - firstLineInteger) * lineHeight - lineHeight)
             gutterX = gutterX + gutter:GetWidth()
             gutterCounter = gutterCounter + 1
         end
@@ -754,6 +748,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         repeat while counter < caretCharacter
             Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
             x = x + glyph:horizontalAdvance
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < gutters:GetSize()
+            x = x + gutters:Get(counter):GetWidth()
             counter = counter + 1
         end
 
@@ -1788,6 +1788,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action GetIndexOfLine(integer line) returns integer
         return textValue:CharacterIndexFromLineIndex(line)
+    end
+
+    /*
+    This action will return the line index containing the provided global index.
+    */
+    action GetLineIndexOfCharacter(integer characterIndex) returns integer
+        return textValue:LineIndexFromCharacterIndex(characterIndex)
     end
 
     /*
