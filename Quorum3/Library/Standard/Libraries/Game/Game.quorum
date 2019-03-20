@@ -123,6 +123,7 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
+use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 
@@ -1001,6 +1002,14 @@ class Game
         listItemTable:Add(doubleClickSet, listActivate)
 
         gameInput:AddInputTable(listItemTable)
+
+        InputTable gutterTable
+        gutterTable:SetIdentifier("Gutter")
+
+        GutterClickBehavior gutterClickBehavior
+        gutterTable:Add(clickDown, gutterClickBehavior)
+
+        gameInput:AddInputTable(gutterTable)
     end
 
     /*

@@ -1090,8 +1090,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         position = position - leftCharacterPadding
 
         number x1 = 0
-        number x2 = 0
         integer counter = 0
+        repeat while counter < gutters:GetSize()
+            x1 = x1 + gutters:Get(counter):GetWidth()
+            counter = counter + 1
+        end
+
+        number x2 = x1
+        counter = 0
         number distance1 = position
         repeat while counter < size
             Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
