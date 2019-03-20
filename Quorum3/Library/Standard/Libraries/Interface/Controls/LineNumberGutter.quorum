@@ -45,7 +45,7 @@ class LineNumberGutter is Gutter
         repeat while counter < totalLines
             Label label = GetLabel(counter)
             label:SetSize(fontSize)
-            label:SetText("" + (startLine + counter))
+            label:SetText("" + (startLine + counter + 1))
             label:SetPosition(width - label:GetWidth() - rightPadding, y)
             Add(label)
 
