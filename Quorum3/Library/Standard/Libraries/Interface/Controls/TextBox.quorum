@@ -303,10 +303,24 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         editManager = game:GetEditManager()
     end
 
+    /*
+    The GetLeftCharacterPadding action returns how much padding has been added
+    to the TextBox in between the gutters (or the left side of the TextBox, if
+    there are no gutters) and the beginning of the text.
+
+    Attribute: Returns The amount of padding between the left side of the TextBox and the beginning of the text.
+    */
     action GetLeftCharacterPadding returns integer
         return leftCharacterPadding
     end
 
+    /*
+    The SetLeftCharacterPadding action sets the amount of padding in between the
+    gutters (or the left side of the TextBox if there are no gutters) and the
+    beginning of the text.
+
+    Attribute: Parameter padding The amount of padding to place between the left side of the TextBox and the beginning of the text.
+    */
     action SetLeftCharacterPadding(integer padding)
         leftCharacterPadding = padding
     end
@@ -371,6 +385,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         GetLineDrawables()
     end
 
+    /*
+    The Resize action is used to recalculate the size and position of Controls
+    that are being controlled by a Layout. Calling Resize on an Item2D won't
+    have a direct effect on it, but if the Item's children hierarchy contains
+    any Controls, those Controls will be resized.
+    */
     action Resize
         number height = GetHeight()
         number width = GetWidth()
@@ -643,27 +663,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     highlight:SetColor(selectionColor)
 
                     highlight:SetPosition(x, drawableY)
-//                    background:Add(highlight)
                     selectionDrawables:Add(highlight)
                 end
 
-                // Draw highlights from TextStyles.
-//                repeat while stylesToApply:IsEmpty() = false
-//                    TextStyle style = stylesToApply:RemoveFromFront()
-//
-//                    if (not highlighted) or style:GetHighlightWhileSelected() = true
-//                        TextHighlight textHighlight = style:GetHighlight()
-//                        if textHighlight not= undefined
-//                            Drawable highlight = textHighlight:GetDrawable(glyph:horizontalAdvance, lineHeight)
-//                            highlight:SetPosition(x + highlight:GetX(), drawableY + highlight:GetY())
-//                            background:Add(highlight)
-//                        end
-//                    end
-//                end
-
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
-//                    background:Add(draw)
                     textDrawables:Add(draw)
 
                     if highlighted
@@ -761,6 +765,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return x + leftCharacterPadding
     end
 
+    /*
+    The GoToLine action will adjust the vertical scroll position of the TextBox
+    to view the given line. The TextBox will try to position the line in the
+    center of the view pane.
+
+    Attribute: Parameter line The line index of the line that should be visible in the view.
+    */
     action GoToLine(number line)
         Array<MultipleLineText> lines = textValue:GetLines()
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
@@ -890,6 +901,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    /*
+    The MoveCaretLeft action moves the caret one position to the left, as if the
+    user had just pressed the left arrow key. If the provided boolean is true,
+    the action will adjust the selection as the caret moves.
+
+    Attribute: Parameter selecting Whether or not the selection should be modified as the caret moves.
+    */
     action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now
@@ -931,6 +949,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    /*
+    The MoveCaretRight action moves the caret one position to the right, as if 
+    the user had just pressed the right arrow key. If the provided boolean is 
+    true, the action will adjust the selection as the caret moves.
+
+    Attribute: Parameter selecting Whether or not the selection should be modified as the caret moves.
+    */
     action MoveCaretRight(boolean selecting)
         if not caretActive
             return now
@@ -1011,6 +1036,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    /*
+    The MoveCaretDown action moves the caret one position downward, as if the
+    user had just pressed the down arrow key. If the provided boolean is true,
+    the action will adjust the selection as the caret moves.
+
+    Attribute: Parameter selecting Whether or not the selection should be modified as the caret moves.
+    */
     action MoveCaretDown(boolean selecting)
         if not caretActive
             return now
@@ -1044,6 +1076,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    /*
+    The MoveCaretUp action moves the caret one position upwards, as if the
+    user had just pressed the up arrow key. If the provided boolean is true,
+    the action will adjust the selection as the caret moves.
+
+    Attribute: Parameter selecting Whether or not the selection should be modified as the caret moves.
+    */
     action MoveCaretUp(boolean selecting)
         if not caretActive
             return now
@@ -1115,17 +1154,33 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return counter
     end
 
+    /*
+    The ShowCaret action forces the caret to display. The caret will begin to
+    blink at a rate determined by the caret's idle time (see the 
+    SetCaretIdleTime action).
+    */
     action ShowCaret
         caret:Show()
         caretActive = true
         caretTimer = caretIdleTime
     end
 
+    /*
+    The HideCaret action hides the TextBox's caret. It will not be visible until
+    the caret is displayed again as a consequence of the TextBox being modified,
+    gaining selection, or calling ShowCaret.
+    */
     action HideCaret
         caret:Hide()
         caretActive = false
     end
 
+    /*
+    The DeleteBackward action deletes a portion of the text, as if the user had
+    just pressed the backspace key. If a portion of text is selected, the
+    selection will be deleted -- otherwise, the character immediately preceding
+    the caret will be deleted.
+    */
     action DeleteBackward
         if (not selection:IsEmpty())
             TextChangeEvent changeEvent
@@ -1192,6 +1247,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         NotifyTextChangeListeners(changeEvent)
     end
 
+    /*
+    The DeleteForward action deletes a portion of the text, as if the user had
+    just pressed the delete key. If a portion of text is selected, the
+    selection will be deleted -- otherwise, the character immediately following
+    the caret will be deleted.
+    */
     action DeleteForward
         if (not selection:IsEmpty())
             TextChangeEvent changeEvent
@@ -1249,6 +1310,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         NotifyTextChangeListeners(changeEvent)
     end
 
+    /*
+    The DeleteSelection action will delete the selected text in the TextBox. If
+    the TextBox's selection is empty, this action does nothing.
+    */
     action DeleteSelection
         if selection:IsEmpty()
             return now
@@ -1283,6 +1348,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         EmptySelectionEvent(true)
     end
 
+    /*
+    This action will delete the text between the given start and end text
+    indices. The start index is inclusive, and the end index is exclusive. In
+    other words, the character at the start index is deleted, but the character
+    at the end index is not.
+
+    Attribute: Parameter startIndex The index of the first character to delete.
+    Attribute: Parameter endIndex The end index of the stretch of text to be deleted. The character at this index is not deleted.
+    */
     action Delete(integer startIndex, integer endIndex)
         if startIndex = endIndex
             return now
@@ -1326,11 +1400,27 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     // For debugging purposes only.
     text lastInsertion = ""
 
+    /*
+    This action inserts the provided text at the requested global text index.
+    This action moves the caret to the requested index before the insertion, so
+    in practice the new caret position will be immediately after the inserted
+    text.
+
+    Attribute: Parameter index The index to insert the new text at.
+    Attribute: Parameter value The new text to be inserted.
+    */
     action Insert(integer index, text value)
         SetCaretToIndex(index)
         Insert(value)
     end
 
+    /*
+    This action inserts the provided text after the current caret's position.
+    After the insertion, the caret will be placed immediately following the
+    inserted text.
+
+    Attribute: Parameter value The new text to be inserted.
+    */
     action Insert(text value)
         TextBoxEdit edit
         edit:SetTextBox(me)
@@ -1718,14 +1808,36 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
     end
 
+    /*
+    This action sets how long it takes for the caret to cycle between visible
+    and hidden when the caret is idle. The time provided describes the number of
+    seconds it takes to transition from one stage to another -- e.g., if the 
+    provided time is one second, the caret will remain visible for one second,
+    then hide for one second, and so on.
+
+    Attribute: Parameter time The number of seconds the caret should wait before cycling between visible and hidden while idle.
+    */
     action SetCaretIdleTime(number time)
         caretIdleTime = time
     end
 
+    /*
+    This action sets the number of seconds the caret should wait before
+    automatically moving when the user presses and holds a movement key.
+
+    Attribute: Parameter time The number of seconds a user must hold a movement key before the caret moves automatically.
+    */
     action SetCaretMoveDelay(number time)
         caretMoveDelay = time
     end
 
+    /*
+    This action sets the number of seconds it should take for the caret to move
+    a single character when the caret is automatically moving due to the user
+    pressing and holding a movement key.
+
+    Attribute: Parameter time The number of seconds it takes for an automatically moving caret to move a single character.
+    */
     action SetCaretMoveTime(number time)
         caretMoveTime = time
     end
