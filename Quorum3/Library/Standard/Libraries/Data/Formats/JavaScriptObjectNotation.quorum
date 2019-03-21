@@ -1362,7 +1362,7 @@ class JavaScriptObjectNotation
             text value = file:Read()
             Read(value)
         else
-            output "File: " + file:GetFileName() + " is not found"
+            alert( "File: " + file:GetFileName() + " is not found")
         end
     end
 
@@ -1390,7 +1390,13 @@ class JavaScriptObjectNotation
     action Read(text data)
         // load object with JSON formatted text data 
         JavaScriptObjectNotation json = ReadToObject(data)
-        if json:GetType() = ARRAY
+        if json = undefined
+            if data = undefined or data:IsEmpty()
+                alert("JavaScriptObjectNotation returned an empty object because the text passed to it was empty or undefined")
+            else
+                alert("JavaScriptObjectNotation returned an empty object the data passed to it was invalid.")
+            end
+        elseif json:GetType() = ARRAY
             me:type = ARRAY
         else
             me:type = PARENT
