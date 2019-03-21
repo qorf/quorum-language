@@ -175,6 +175,15 @@ class InputSet
         bitmask = set:GetHashCode()
     end
 
+    /*
+        This sets the raw bitmask. It intentionally has a nasty technical to 
+        warn the user that this action should not be used unless you really, really,
+        know what you are doing.
+    */
+    action SetBitMask(integer value)
+        bitmask = value
+    end
+
     action Copy returns InputSet
         InputSet set
         set:Set(me)
