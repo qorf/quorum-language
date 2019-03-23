@@ -44,6 +44,9 @@ class TreeItem is Control
 
     Behavior activationBehavior = undefined
 
+    // Used to ensure the font isn't loaded until the TreeItem's graphics are.
+    boolean fontInitialized = false
+
     on create
         SetInputGroup("TreeItem")
         panel:SetName("Tree Panel")
@@ -54,16 +57,6 @@ class TreeItem is Control
 
         TreeLayout treeItemLayout
         SetLayout(treeItemLayout)
-
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
-            integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
-            treeItemProperties:SetFont(font)
-            treeItemProperties:SetFontSize(defaultFontSize)
-        end        
 
         FlowLayout flow
         layout = flow
@@ -465,7 +458,21 @@ class TreeItem is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
+        if fontInitialized = false
+            fontInitialized = true
+            if properties:GetFont() = undefined
+
+                Font font
+                text defaultFontName = GetDefaultFontName()
+                if defaultFontName not= undefined
+                    font:LoadFont(defaultFontName)
+                    integer defaultFontSize = GetDefaultFontSize()
+                    font:SetSize(defaultFontSize)
+                    properties:SetFont(font)
+                    properties:SetFontSize(defaultFontSize)
+                end    
+            end
+        end
 
         Color color
 
@@ -577,5 +584,7 @@ class TreeItem is Control
         itemStructure:Add(icon)
         itemStructure:Add(label)
         parent:Item2D:Add(0, itemStructure)
+
+        parent:Control:LoadGraphics(properties)
     end
 end
