@@ -67,18 +67,6 @@ class Label is Control
         end
     end
 
-    /* Alignment controls are not yet implemented, and have been commented out
-    for this release. 
-    public constant integer LEFT_ALIGN = 0
-    public constant integer RIGHT_ALIGN = 1
-    public constant integer CENTER_ALIGN = 2
-
-    public constant integer TOP_ALIGN = 0
-    public constant integer BOTTOM_ALIGN = 1
-
-    integer horizontalAlignment = CENTER_ALIGN
-    integer verticalAlignment = CENTER_ALIGN */
-
     integer horizontalMargins = 0
     integer verticalMargins = 0
 
@@ -979,5 +967,20 @@ class Label is Control
     action FitToHeight(number height)
         font:FitToHeight(height)
         textChanged = true
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        integer targetFontSize = cast(integer, properties:GetFontSize() * properties:GetInterfaceScale())
+        if font:GetSize() not= targetFontSize
+            font:SetSize(targetFontSize)
+            textChanged = true
+        end
+
+        parent:Control:LoadGraphics(properties)
     end
 end

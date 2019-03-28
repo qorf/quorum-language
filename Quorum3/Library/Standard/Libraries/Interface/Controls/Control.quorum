@@ -813,10 +813,9 @@ class Control is Item2D
         if parentItem not= undefined and parentItem is Control
             Control container = cast(Control, parentItem)
             LayoutProperties properties = container:GetDefaultLayoutProperties()
-            boolean didIt = false
+            
             if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
                 or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
-                didIt = true
                 container:RequestLayout()
             end
         end

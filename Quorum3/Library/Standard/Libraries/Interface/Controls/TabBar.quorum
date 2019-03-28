@@ -207,19 +207,9 @@ class TabBar is Control, ButtonGroup
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
-
         if properties = undefined
             return now
         end
-
-        LayoutProperties oldProperties = GetCurrentLayoutProperties()
-        if oldProperties not= properties
-            oldProperties:SetRenderingFlag(true)
-            parent:Control:currentProperties = properties
-        end
-
-        properties:SetRenderingFlag(false)
 
         View2D view = properties:GetView2D()
         if view = undefined
@@ -244,6 +234,8 @@ class TabBar is Control, ButtonGroup
         if view not= undefined
             SetView2D(view)
         end
+
+        parent:Control:LoadGraphics(properties)
     end
 
     /*

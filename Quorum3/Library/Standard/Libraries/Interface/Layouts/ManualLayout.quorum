@@ -4,6 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Language.Support.CompareResult
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Dialog
 
 class ManualLayout is Layout
 
@@ -27,11 +28,11 @@ class ManualLayout is Layout
                     number height = control:GetHeight()
 
                     if properties:IsSettingWidth()
-                        width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() 
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
                     end
 
                     if properties:IsSettingHeight()
-                        height = containerHeight * properties:GetPercentageHeight() + properties:GetPixelHeight()
+                        height = containerHeight * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
                     end
 
                     if width < properties:GetMinimumWidth()

@@ -86,6 +86,7 @@ class TabFlowLayout is Layout
 
                         if item is Control
                             Control control = cast(Control, item)
+                            control:ResetLayoutFlag()
                             LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                             if properties not= undefined
                                 if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS or properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS

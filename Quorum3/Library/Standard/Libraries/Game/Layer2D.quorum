@@ -295,6 +295,7 @@ class Layer2D is Layer
 
     private action AddControl(Control control)
         controls:Add(control)
+        control:RequestLayout()
         control:SetInterfaceScale(interfaceScale)
         shouldLayout = true
     end

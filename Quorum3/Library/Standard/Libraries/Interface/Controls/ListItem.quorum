@@ -150,8 +150,8 @@ class ListItem is Control
         end
 
         if label:GetFont() not= undefined
-            if properties:GetFontSize() not= label:GetSize()
-                label:SetSize(properties:GetFontSize())
+            if cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()) not= label:GetSize()
+                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
             end
         end
     end
