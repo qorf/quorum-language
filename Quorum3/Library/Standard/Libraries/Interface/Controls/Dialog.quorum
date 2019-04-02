@@ -49,6 +49,10 @@ class Dialog is Control
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetPercentageX(0.5)
+        properties:SetPercentageY(0.5)
+        properties:SetPercentageOriginX(0.5)
+        properties:SetPercentageOriginY(0.5)
 
         if showTopBar and GetChildren():Get(0):Equals(topBar) = false
             Control bar = topBar

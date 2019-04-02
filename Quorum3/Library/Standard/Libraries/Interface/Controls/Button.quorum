@@ -37,13 +37,6 @@ class Button is Control
         properties:SetFont(font)
         properties:SetFontSize(16)
 
-//        labelProperties:SetPercentageWidth(properties:FIT_CONTENTS)
-//        labelProperties:SetPercentageHeight(properties:FIT_CONTENTS)
-//        labelProperties:SetLeftPadding(50)
-//        labelProperties:SetRightPadding(50)
-//        labelProperties:SetTopPadding(5)
-//        labelProperties:SetBottomPadding(5)
-
         Color color
         Gradient gradient
         Color gray = color:LightGray()
@@ -169,7 +162,7 @@ class Button is Control
                 labelProperties:SetTopPadding(4)
                 labelProperties:SetBottomPadding(7)
                 label:SetFont(font)
-                label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+                label:SetSize(properties:GetFontSize())
                 label:SetText(labelText)
                 Add(label)
             end

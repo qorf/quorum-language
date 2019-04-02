@@ -7,7 +7,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.SelectionHighlightView
 
-class ControlLabel is Label, Control
+class ControlLabel is Label
     
     Color color
 
@@ -22,7 +22,7 @@ class ControlLabel is Label, Control
     end
 
     action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
+        parent:Label:LoadGraphics(properties)
 
         if properties:GetView2D() not= undefined
             SetView2D(properties:GetView2D())

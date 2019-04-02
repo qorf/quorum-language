@@ -1060,7 +1060,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
 
         if caretLine > (firstLine + visibleLines - 1)
-            GoToLine(caretLine - visibleLines + 1)
+            GoToLine(caretLine)
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -1472,7 +1472,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
             number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
-                GoToLine(caretLine - visibleLines + 1)
+                GoToLine(caretLine)
             end
         end
 
@@ -1667,8 +1667,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         horizontalControlProperties:SetPercentageX(horizontal)
         horizontalControlProperties:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetPixelWidth()) * horizontalControlProperties:GetPercentageWidth())))
 
-        verticalControl:Resize()
-        horizontalControl:Resize()
+        verticalBar:Resize()
+        horizontalBar:Resize()
 
         number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
         number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()

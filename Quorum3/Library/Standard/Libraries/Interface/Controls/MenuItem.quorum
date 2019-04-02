@@ -691,6 +691,8 @@ class MenuItem is Control
                 backgroundColor = gradient
             end
 
+            SetMenuDirection(DOWN)
+
             properties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
         else
             SetLayout(menuItemLayout)
@@ -720,7 +722,6 @@ class MenuItem is Control
         content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
         panelView = content
 
-        SetMenuDirection(direction)
         panel:SetView2D(panelView)
 
         if menuProperties:GetIcon() not= undefined
@@ -741,14 +742,18 @@ class MenuItem is Control
         end
 
 
-        label:SetFont(properties:GetFont())
-        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        Font font = properties:GetFont()
+        font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+
+        label:SetFont(font)
+        label:SetSize(properties:GetFontSize())
+        label:SetInterfaceScale(properties:GetInterfaceScale())
         label:SetText(labelText)
 
 //        Font shortcutFont
 //        shortcutFont:LoadFont("Arial")
 //        shortcutLabel:SetFont(shortcutFont)
-        shortcutLabel:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        shortcutLabel:SetSize(properties:GetFontSize())
         shortcutLabel:SetText(shortcut)
 
         if shortcut = ""

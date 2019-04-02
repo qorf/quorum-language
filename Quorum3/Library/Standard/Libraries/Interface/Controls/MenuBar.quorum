@@ -317,8 +317,6 @@ class MenuBar is Control
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
-
         if properties:GetView2D() not= undefined
             SetView2D(properties:GetView2D())
         elseif GetView2D() = undefined
@@ -328,5 +326,7 @@ class MenuBar is Control
             defaultBar:Initialize(defaultLayoutProperties:GetBackgroundColor(), defaultLayoutProperties:GetBorderColor())
             SetView2D(defaultBar)
         end
+
+        parent:Control:LoadGraphics(properties)
     end
 end

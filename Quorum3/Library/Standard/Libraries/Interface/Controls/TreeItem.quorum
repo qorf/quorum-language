@@ -502,8 +502,9 @@ class TreeItem is Control
         integer height = 10
 
         if font not= undefined
-            font:SetSize(cast (integer, properties:GetFontSize() * properties:GetInterfaceScale()))
             label:SetFont(font)
+            label:SetSize(properties:GetFontSize())
+            label:SetInterfaceScale(properties:GetInterfaceScale())
             text labelText = properties:GetLabelText()
             if labelText = ""
                 labelText = GetName()
@@ -521,8 +522,9 @@ class TreeItem is Control
         LayoutProperties itemStructureProperties = itemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
         itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
-        itemStructureProperties:SetFont(font)
-        itemStructureProperties:SetFontSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        itemStructureProperties:SetFont(label:GetFont())
+        itemStructureProperties:SetFontSize(properties:GetFontSize())
+        itemStructureProperties:SetInterfaceScale(properties:GetInterfaceScale())
         itemStructure:SetLayout(layout)
         itemStructure:SetName("TreeItem Elements")
 

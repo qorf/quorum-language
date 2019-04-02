@@ -113,8 +113,8 @@ class RadioButton is ToggleButton
             buttonView = propertiesView
         end
 
-        if label:GetSize() not= cast(integer, properties:GetFontSize() * properties:GetInterfaceScale())
-            label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        if label:GetSize() not= properties:GetFontSize()
+            label:SetSize(properties:GetFontSize())
         end
 
         if label:GetText() not= properties:GetLabelText()

@@ -19,7 +19,7 @@ class LineNumberGutter is Gutter
         Empty()
 
         TextBox textBox = GetTextBox()
-        integer fontSize = cast(integer, textBox:GetFontSize() * textBox:GetInterfaceScale())
+        integer fontSize = textBox:GetFontSize()
 
         LayoutProperties properties = GetCurrentLayoutProperties()
         if properties = undefined
