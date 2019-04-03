@@ -69,7 +69,6 @@ class MenuItem is Control
     // The default appearance of menu panels for this MenuItem and any submenus.
     View2D panelView = undefined
 
-    text shortcut = ""
     boolean open = false
 
     Behavior activationBehavior = undefined
@@ -150,6 +149,7 @@ class MenuItem is Control
         label:SetName("Label")
         icon:SetName("Icon")
         shortcutLabel:SetName("Shortcut")
+        shortcutLabel:SetText("")
         arrow:SetName("Arrow")
         arrow:Hide()
 
@@ -318,11 +318,11 @@ class MenuItem is Control
     end
 
     action SetShortcut(text shortcut)
-        me:shortcut = shortcut
+        shortcutLabel:SetText(shortcut)
     end
     
     action GetShortcut returns text
-        return shortcut
+        return shortcutLabel:GetText()
     end
 
     action SetAppearance(MenuItemView content)
@@ -750,13 +750,9 @@ class MenuItem is Control
         label:SetInterfaceScale(properties:GetInterfaceScale())
         label:SetText(labelText)
 
-//        Font shortcutFont
-//        shortcutFont:LoadFont("Arial")
-//        shortcutLabel:SetFont(shortcutFont)
         shortcutLabel:SetSize(properties:GetFontSize())
-        shortcutLabel:SetText(shortcut)
 
-        if shortcut = ""
+        if shortcutLabel:GetText() = ""
             shortcutLabel:Hide()
         else
             shortcutLabel:Show()

@@ -20,16 +20,10 @@ use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
 use Libraries.Game.GameStateManager
 
-class MenuBar is Control
+class MenuBar is MenuRoot
     Layout defaultLayout = undefined
     LayoutProperties defaultLayoutProperties
     Array<MenuItem> menus
-
-    boolean isSelecting = false
-
-    MenuSelection selection
-
-    Array<MenuChangeListener> listeners
 
     on create
         FlowLayout layout
@@ -56,7 +50,6 @@ class MenuBar is Control
         // Necessary for keyboard input to work correctly.
         SetFocusable(true)
 
-        selection:Initialize(me)
         SetAccessibilityCode(parent:Item:MENU_BAR)
         SetName("Menu Bar")
     end
@@ -76,18 +69,6 @@ class MenuBar is Control
         item:SetMenuBar(me)
     end
 
-    action GetSelection returns MenuSelection
-        return selection
-    end
-
-    action GetMultipleSelection returns Array<MenuSelection>
-        return undefined
-    end
-
-    action HasMultipleSelection returns boolean
-        return false
-    end
-
     action Close
         integer counter = 0
         repeat while counter < menus:GetSize()
@@ -97,86 +78,8 @@ class MenuBar is Control
         SetSelectingState(false)
     end
 
-    action Select(Array<MenuItem> path)
-        if path:IsEmpty()//if the user sent an empty path, deselect everything 
-            Deselect()
-            return now
-        end
-        Array<MenuItem> pathCopy = path:CopyToArray()
-        MenuItem item = undefined
-
-        if not path:IsEmpty()
-            item = path:RemoveFromFront()
-        end
-
-        Array<MenuItem> selectionPath = selection:GetPath()
-        MenuItem oldItem = undefined
-
-        if not selectionPath:IsEmpty()
-            oldItem = selectionPath:RemoveFromFront()
-        end
-
-        if item not= undefined
-            if item = oldItem
-                item:UpdateSelection(selectionPath, path)
-            else
-                if oldItem not= undefined
-                    oldItem:RecursiveDeselect(selectionPath)
-                end
-                item:RecursiveSelect(path)
-            end
-        end
-
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(item)
-
-        // Set our selection object with the new path, triggering a selection
-        // event.
-        selection:Set(pathCopy)
-    end
-
-    action Deselect
-        MenuSelection selection = GetSelection()
-        Deselect(selection:GetPath())
-    end
-
-    private action Deselect(Array<MenuItem> path)
-        MenuItem item = undefined
-        if not path:IsEmpty()
-            item = path:RemoveFromFront()
-        end
-
-        if item not= undefined
-            item:RecursiveDeselect(path)
-        end
-
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(item)
-
-        Array<MenuItem> newPath
-        selection:Set(newPath)
-    end
-
-    private action GetMenuItem(Array<MenuItem> path) returns MenuItem
-        if not path:IsEmpty()
-            return path:GetFromEnd()
-        end
-        return undefined
-    end
-
-    action IsSelecting returns boolean
-        return isSelecting
-    end
-
-    action SetSelectingState(boolean selecting)
-        if selecting = false
-            selection:Empty()
-        end
-        isSelecting = selecting
-    end
-
     action MoveSelectionLeft
-        Array<MenuItem> path = selection:GetPath()
+        Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() <= 2
             MenuItem name = path:Get(0)
             boolean shouldOpen = name:IsOpen()
@@ -208,7 +111,7 @@ class MenuBar is Control
     action MoveSelectionRight
         // Do a copy so modifying it here doesn't have side effects on the
         // original selection (we need to preserve it for Select to use).
-        Array<MenuItem> path = selection:GetPath():CopyToArray()
+        Array<MenuItem> path = GetSelection():GetPath():CopyToArray()
         if path:GetSize() = 1
             MenuItem name = path:Get(0)
             boolean shouldOpen = name:IsOpen()
@@ -264,51 +167,13 @@ class MenuBar is Control
     end
 
     action MoveSelectionDown
-        MenuItem item = GetMenuItem(selection:GetPath())
+        MenuItem item = GetMenuItem(GetSelection():GetPath())
         item:MenuSelectionDown()
     end
 
     action MoveSelectionUp
-        MenuItem item = GetMenuItem(selection:GetPath())
+        MenuItem item = GetMenuItem(GetSelection():GetPath())
         item:MenuSelectionUp()
-    end
-
-    action ActivateSelection
-        if IsSelecting()
-            MenuItem item = GetMenuItem(selection:GetPath())
-            if item:IsMenu()
-                item:Open()
-            else
-                item:Activate()
-                Close()
-            end
-        end
-    end
-
-    action AddMenuChangeListener(MenuChangeListener listener)
-        listeners:Add(listener)
-    end
-
-    action RemoveMenuChangeListener(MenuChangeListener listener)
-        listeners:Remove(listener)
-    end
-
-    action NotifyMenuChangeListeners(MenuChangeEvent event)
-        integer counter = 0
-        if event:GetEventType() = event:OPENED
-            repeat while counter < listeners:GetSize()
-                listeners:Get(counter):OpenedMenu(event)
-                counter = counter + 1
-            end
-        elseif event:GetEventType() = event:CLOSED
-            repeat while counter < listeners:GetSize()
-                listeners:Get(counter):ClosedMenu(event)
-                counter = counter + 1
-            end
-        end
-
-        GameStateManager manager
-        manager:GetInput():NotifyMenuChangeListeners(event)
     end
 
     /*

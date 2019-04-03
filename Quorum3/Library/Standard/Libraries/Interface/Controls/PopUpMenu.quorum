@@ -1,0 +1,28 @@
+package Libraries.Interface.Controls
+
+class PopUpMenu is MenuRoot
+    
+    // Blueprints to be implemented:
+
+    // Add directly to the base MenuPanel.
+    blueprint action Add(Array<MenuItem> menuHeaders)
+
+    // Add directly to the base MenuPanel.
+    blueprint action Add(MenuItem item)
+
+    // Close each item on the base MenuPanel.
+    blueprint action Close
+
+    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    blueprint action MoveSelectionLeft
+
+    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    blueprint action MoveSelectionRight
+
+    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    blueprint action MoveSelectionUp
+
+    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    blueprint action MoveSelectionDown
+
+end

@@ -1009,5 +1009,9 @@ class Label is Control
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
         LoadDrawables()
+
+        if properties not= undefined
+            properties:SetRenderingFlag(false)
+        end
     end
 end
