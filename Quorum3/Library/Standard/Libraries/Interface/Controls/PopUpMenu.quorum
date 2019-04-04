@@ -1,30 +1,133 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.LabelBoxView
 
 class PopUpMenu is MenuRoot
     
-    // Blueprints to be implemented:
+    MenuPanel panel
 
-    // Add directly to the base MenuPanel.
-    blueprint action Add(Array<MenuItem> menuHeaders)
+    on create
+        ManualLayout layout
+        SetLayout(layout)
 
-    // Add directly to the base MenuPanel.
-    blueprint action Add(MenuItem item)
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetBorderThickness(2)
+    end
 
-    // Close each item on the base MenuPanel.
-    blueprint action Close
+    action Add(Array<MenuItem> menuHeaders)
+        // Add directly to the base MenuPanel.
+
+        integer counter = 0
+        repeat while counter < menuHeaders:GetSize()
+            Add(menuHeaders:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    action Add(MenuItem item)
+        // Add directly to the base MenuPanel.
+        item:SetMenuRoot(me)
+        panel:Add(item)
+    end
+
+    action Open
+        Add(panel)
+    end
+
+    action Close
+        // Close each item on the base MenuPanel.
+
+        integer counter = 0
+        Array<Item2D> children = GetMenuItems()
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            
+            if child is MenuItem
+                MenuItem item = cast(MenuItem, child)
+                item:Close()
+            end
+
+            counter = counter + 1
+        end
+
+        Remove(panel)
+    end
 
     // Closely mirrors MenuBar's related action, but without concern for the top bar.
-    blueprint action MoveSelectionLeft
+    action MoveSelectionLeft
+        Array<MenuItem> path = GetSelection():GetPath()
+        if path:GetSize() > 1
+            path:RemoveFromEnd()
+            Select(path)
+        end
+    end
 
     // Closely mirrors MenuBar's related action, but without concern for the top bar.
-    blueprint action MoveSelectionRight
+    action MoveSelectionRight
+        // Do a copy so modifying it here doesn't have side effects on the
+        // original selection (we need to preserve it for Select to use).
+        Array<MenuItem> path = GetSelection():GetPath():CopyToArray()
+        if path:GetSize() > 0
+            MenuItem item = GetMenuItem(path)
+            if item:IsMenu()
+                if not item:IsOpen()
+                    item:Open()
+                end
+                item:GetMenuItems():Next():Select()
+            end
+        end
+    end
 
-    // Closely mirrors MenuBar's related action, but without concern for the top bar.
-    blueprint action MoveSelectionUp
+    action MoveSelectionDown
+        Array<MenuItem> path = GetSelection():GetPath()
+        if path:GetSize() = 0
+            Array<Item2D> items = GetMenuItems()
+            if items:IsEmpty() = false
+                MenuItem item = cast(MenuItem, items:Get(0))
+                Array<MenuItem> selectionPath
+                selectionPath:Add(item)
+                Select(selectionPath)
+            end
+        else
+            MenuItem item = GetMenuItem(path)
+            item:MenuSelectionDown()
+        end
+    end
 
-    // Closely mirrors MenuBar's related action, but without concern for the top bar.
-    blueprint action MoveSelectionDown
+    action MoveSelectionUp
+        Array<MenuItem> path = GetSelection():GetPath()
+        if path:GetSize() = 0
+            Array<Item2D> items = GetMenuItems()
+            if items:IsEmpty() = false
+                MenuItem item = cast(MenuItem, items:GetFromEnd())
+                Array<MenuItem> selectionPath
+                selectionPath:Add(item)
+                Select(selectionPath)
+            end
+        else
+            MenuItem item = GetMenuItem(GetSelection():GetPath())
+            item:MenuSelectionUp()
+        end
+    end
 
+    action LoadGraphics(LayoutProperties properties)
+        Color color
+
+        LabelBoxView content
+        content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+        content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
+        content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
+
+        panel:SetView2D(content)
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    private action GetMenuItems returns Array<Item2D>
+        return panel:GetChildren()
+    end
 end

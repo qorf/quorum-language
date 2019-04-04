@@ -53,7 +53,7 @@ class MenuItem is Control
     Array<MenuItem> menuItems
 
     MenuItem parentMenu = undefined
-    MenuBar menuBar = undefined
+    MenuRoot menuRoot = undefined
 
     public constant integer DEFAULT = 0
     public constant integer LEFT = 1
@@ -184,14 +184,13 @@ class MenuItem is Control
 
     action Add(MenuItem item)
 
-        MenuBar bar = GetMenuBar()
         MenuItemView menuView = undefined
 
         if menuItems:IsEmpty() and GetParentMenu() not= undefined
             arrow:Show()
         end
 
-        item:SetMenuBar(menuBar)
+        item:SetMenuRoot(menuRoot)
         item:SetParentMenu(me)
         panel:Add(item)
         menuItems:Add(item)
@@ -268,7 +267,7 @@ class MenuItem is Control
             panel:Resize()
             PositionPanel()
             
-            MenuBar bar = GetMenuBar()
+            MenuRoot bar = GetMenuRoot()
             if bar not= undefined
                 MenuChangeEvent event
                 event:Set(bar, me, event:OPENED)
@@ -302,7 +301,7 @@ class MenuItem is Control
             open = false
             Remove(panelAnchor)
 
-            MenuBar bar = GetMenuBar()
+            MenuRoot bar = GetMenuRoot()
             if bar not= undefined
                 MenuChangeEvent event
                 event:Set(bar, me, event:CLOSED)
@@ -328,9 +327,9 @@ class MenuItem is Control
     action SetAppearance(MenuItemView content)
         content:SetText(GetName())
         content:SetShortcut(GetShortcut())
-        if not (menuItems:IsEmpty()) and GetMenuBar() not= undefined
+        if not (menuItems:IsEmpty()) and GetMenuRoot() not= undefined
             content:EnableMenuArrow(true)
-            GetMenuBar():Resize()
+            GetMenuRoot():Resize()
         else
             content:EnableMenuArrow(false)
         end
@@ -359,17 +358,17 @@ class MenuItem is Control
         end
     end
 
-    action GetMenuBar returns MenuBar
-        return menuBar
+    action GetMenuRoot returns MenuRoot
+        return menuRoot
     end
 
-    action SetMenuBar(MenuBar bar)
-        menuBar = bar
+    action SetMenuRoot(MenuRoot root)
+        menuRoot = root
 
         integer counter = 0
         repeat while counter < menuItems:GetSize()
             MenuItem child = menuItems:Get(counter)
-            child:SetMenuBar(bar)
+            child:SetMenuRoot(root)
             counter = counter + 1
         end
     end
@@ -393,13 +392,13 @@ class MenuItem is Control
     action ClickedMouse
         parent:Control:ClickedMouse()
 
-        MenuBar bar = GetMenuBar()
+        MenuRoot bar = GetMenuRoot()
         if bar not= undefined
             if bar:IsSelecting()
                 Activate()
-                MenuBar menuBar = GetMenuBar()
-                if menuBar not= undefined
-                    menuBar:Close()
+                MenuRoot menuRoot = GetMenuRoot()
+                if menuRoot not= undefined
+                    menuRoot:Close()
                 end
             else
                 Select()
@@ -410,7 +409,7 @@ class MenuItem is Control
     end
 
     action BeginMouseOver
-        MenuBar bar = GetMenuBar()
+        MenuRoot bar = GetMenuRoot()
         if bar not= undefined and bar:IsSelecting()
             if not open
                 Open()
@@ -431,9 +430,9 @@ class MenuItem is Control
             end
         end
 
-        MenuBar menuBar = GetMenuBar()
-        if menuBar not= undefined
-            menuBar:SetSelectingState(true)
+        MenuRoot menuRoot = GetMenuRoot()
+        if menuRoot not= undefined
+            menuRoot:SetSelectingState(true)
         end
     end
 
@@ -453,20 +452,20 @@ class MenuItem is Control
     end
 
     action Select
-        // Don't actually select here! Go to MenuBar and ask it to select us.
-        // We do this to allow the MenuBar to fully update its information,
+        // Don't actually select here! Go to MenuRoot and ask it to select us.
+        // We do this to allow the MenuRoot to fully update its information,
         // deselect the previous selection, and prevent infinite loops.
-        if menuBar not= undefined
-            menuBar:Select(GetMenuPath())
+        if menuRoot not= undefined
+            menuRoot:Select(GetMenuPath())
         end
     end
 
     action Deselect
-        // Don't actually select here! Go to MenuBar and ask it to deselect us.
-        // We do this to allow the MenuBar to fully update its information,
+        // Don't actually select here! Go to MenuRoot and ask it to deselect us.
+        // We do this to allow the MenuRoot to fully update its information,
         // deselect this, and prevent infinite loops.
-        if menuBar not= undefined
-            menuBar:Deselect()
+        if menuRoot not= undefined
+            menuRoot:Deselect()
         end
     end
 
@@ -675,7 +674,7 @@ class MenuItem is Control
         ColorGroup backgroundColor = properties:GetBackgroundColor()
         ColorGroup selectionColor = properties:GetSelectionColor()
 
-        if GetParentMenu() = undefined
+        if GetParentMenu() = undefined and (GetMenuRoot() is PopUpMenu) = false
             rootLayout:SetIgnoreHidden(true)
             SetLayout(rootLayout)
 

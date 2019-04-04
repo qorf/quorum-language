@@ -66,7 +66,7 @@ class MenuBar is MenuRoot
     action Add(MenuItem item)
         menus:Add(item)
         parent:Item2D:Add(item)
-        item:SetMenuBar(me)
+        item:SetMenuRoot(me)
     end
 
     action Close
