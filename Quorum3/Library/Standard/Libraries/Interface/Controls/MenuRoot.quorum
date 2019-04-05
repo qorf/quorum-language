@@ -19,6 +19,8 @@ class MenuRoot is Control
 
     on create
         selection:Initialize(me)
+
+        SetInputGroup("MenuRoot")
     end
 
     blueprint action Add(Array<MenuItem> menuHeaders)
@@ -34,6 +36,13 @@ class MenuRoot is Control
     blueprint action MoveSelectionUp
 
     blueprint action MoveSelectionDown
+
+    /*
+    The HasBar action is used to specify if this MenuRoot uses a special layout
+    for the first menu items (i.e., the first set of the menu items is placed in
+    a menu bar, unlike submenus which use menu panels).
+    */
+    blueprint action HasBar returns boolean
 
     action GetSelection returns MenuSelection
         return selection

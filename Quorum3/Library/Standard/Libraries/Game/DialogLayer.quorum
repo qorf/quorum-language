@@ -93,6 +93,12 @@ class DialogLayer is Layer2D
         camera:SetSize(viewportWidth, viewportHeight)
         camera:Update()
 
+        Empty()
+        EmptyMouseListeners()
+        EmptyMouseMovementListeners()
+        EmptyMouseWheelListeners()
+        EmptyTouchListeners()
+
         isModal = false
         SetLayout(undefined)
     end

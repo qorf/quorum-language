@@ -2,12 +2,12 @@ package Libraries.Interface.Behaviors.Controls
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Interface.Controls.MenuBar
+use Libraries.Interface.Controls.MenuRoot
 
-class MenuBarUpBehavior is Behavior
+class MenuRootUpBehavior is Behavior
     action Run(BehaviorEvent event)
-        if event:GetItem() is MenuBar
-            MenuBar bar = cast(MenuBar, event:GetItem())
+        if event:GetItem() is MenuRoot
+            MenuRoot bar = cast(MenuRoot, event:GetItem())
             bar:MoveSelectionUp()
         end
     end

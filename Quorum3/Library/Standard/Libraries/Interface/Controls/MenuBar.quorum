@@ -45,8 +45,6 @@ class MenuBar is MenuRoot
         defaultLayoutProperties:SetBackgroundColor(gradient)
         defaultLayoutProperties:SetBorderColor(color:Black())
 
-        SetInputGroup("MenuBar")
-
         // Necessary for keyboard input to work correctly.
         SetFocusable(true)
 
@@ -193,5 +191,14 @@ class MenuBar is MenuRoot
         end
 
         parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+    The HasBar action is used to specify if this MenuRoot uses a special layout
+    for the first menu items (i.e., the first set of the menu items is placed in
+    a menu bar, unlike submenus which use menu panels).
+    */
+    action HasBar returns boolean
+        return true
     end
 end

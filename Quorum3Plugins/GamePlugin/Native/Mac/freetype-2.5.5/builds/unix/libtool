@@ -1,6 +1,6 @@
 #! /bin/sh
 # Generated automatically by config.status () 
-# Libtool was configured on host a301instructor.local:
+# Libtool was configured on host occam.CS.unlv.edu:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
@@ -70,13 +70,13 @@ PATH_SEPARATOR=":"
 
 # The host system.
 host_alias=
-host=x86_64-apple-darwin13.4.0
-host_os=darwin13.4.0
+host=x86_64-apple-darwin15.6.0
+host_os=darwin15.6.0
 
 # The build system.
 build_alias=
-build=x86_64-apple-darwin13.4.0
-build_os=darwin13.4.0
+build=x86_64-apple-darwin15.6.0
+build_os=darwin15.6.0
 
 # A sed program that does not truncate output.
 SED="/usr/bin/sed"
@@ -94,7 +94,7 @@ EGREP="/usr/bin/grep -E"
 FGREP="/usr/bin/grep -F"
 
 # A BSD- or MS-compatible name lister.
-NM="/usr/bin/nm"
+NM="/usr/bin/nm -B"
 
 # Whether we need soft or hard links.
 LN_S="ln -s"
@@ -162,7 +162,7 @@ lock_old_archive_extraction=yes
 LTCC="gcc"
 
 # LTCC compiler flags.
-LTCFLAGS="-g -O2 -DDARWIN_NO_CARBON  -DFT_CONFIG_OPTION_SYSTEM_ZLIB  -DFT_CONFIG_OPTION_USE_BZIP2"
+LTCFLAGS="-g -O2 -DDARWIN_NO_CARBON"
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([BCDEGRST][BCDEGRST]*\\)[	 ][	 ]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p' | sed '/ __gnu_lto/d'"
@@ -276,7 +276,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/6.0  /usr/local/lib"
+sys_lib_search_path_spec="/Library/Developer/CommandLineTools/usr/lib/clang/8.0.0  /usr/local/lib"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
@@ -296,7 +296,7 @@ striplib="strip -x"
 
 
 # The linker used to build libraries.
-LD="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld"
+LD="/Library/Developer/CommandLineTools/usr/bin/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"

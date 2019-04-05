@@ -186,7 +186,7 @@ class MenuItem is Control
 
         MenuItemView menuView = undefined
 
-        if menuItems:IsEmpty() and GetParentMenu() not= undefined
+        if menuItems:IsEmpty() and (GetParentMenu() not= undefined or GetMenuRoot():HasBar() = false)
             arrow:Show()
         end
 
@@ -222,7 +222,7 @@ class MenuItem is Control
         me:direction = direction
 
         if direction = DEFAULT
-            if GetParentMenu() = undefined
+            if GetParentMenu() = undefined and GetMenuRoot():HasBar() = true
                 direction = DOWN
             else
                 direction = RIGHT
@@ -674,7 +674,7 @@ class MenuItem is Control
         ColorGroup backgroundColor = properties:GetBackgroundColor()
         ColorGroup selectionColor = properties:GetSelectionColor()
 
-        if GetParentMenu() = undefined and (GetMenuRoot() is PopUpMenu) = false
+        if GetParentMenu() = undefined and GetMenuRoot():HasBar()
             rootLayout:SetIgnoreHidden(true)
             SetLayout(rootLayout)
 

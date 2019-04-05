@@ -32,6 +32,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.WebApplication
 use Libraries.Game.FocusManager
+use Libraries.Language.Errors.UndefinedObjectError
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -2974,7 +2975,11 @@ class Item2D is Item
         xf1:GetPosition():SetX(sweep:GetCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetX() + xf1:GetSine() * sweep:GetLocalCenter():GetY())
         xf1:GetPosition():SetY(sweep:GetCenter():GetY() - xf1:GetSine() * sweep:GetLocalCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetY()) 
 
-        Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, me:transform)
+        check
+            Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, me:transform)
+        detect error is UndefinedObjectError
+            alert("I tried to synchronize an Item's nodes but a reference was undefined. This usually happens because the Item was added to the Game or to another Item more than once, and then it was removed.")
+        end
 
         integer i = 0
         repeat children:GetSize() times

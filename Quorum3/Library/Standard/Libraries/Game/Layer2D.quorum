@@ -1486,7 +1486,7 @@ class Layer2D is Layer
             layer:AddMouseListener(myListener)
             AddLayer(layer)
 
-            layer:RemoveMouseListener(listener)
+            layer:RemoveMouseListener(myListener)
         end
 
         action Update(number seconds)
@@ -1528,7 +1528,7 @@ class Layer2D is Layer
             layer:AddMouseMovementListener(myListener)
             AddLayer(layer)
 
-            layer:RemoveMouseMovementListener(listener)
+            layer:RemoveMouseMovementListener(myListener)
         end
 
         action Update(number seconds)
@@ -1570,7 +1570,7 @@ class Layer2D is Layer
             layer:AddMouseWheelListener(myListener)
             AddLayer(layer)
 
-            layer:RemoveMouseWheelListener(listener)
+            layer:RemoveMouseWheelListener(myListener)
         end
 
         action Update(number seconds)
@@ -1611,7 +1611,7 @@ class Layer2D is Layer
             layer:AddTouchListener(myListener)
             AddLayer(layer)
 
-            layer:RemoveTouchListener(listener)
+            layer:RemoveTouchListener(myListener)
         end
 
         action Update(number seconds)
@@ -1622,6 +1622,154 @@ class Layer2D is Layer
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove all MouseListeners from the layer. 
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseListener.
+        MouseListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseListener(myListener)
+            AddLayer(layer)
+
+            layer:EmptyMouseListeners()
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action EmptyMouseListeners
+        mouseListeners:Empty()
+    end
+
+    /*
+    This action will remove all MouseMovementListeners from the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseMovementListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseMovementListener.
+        MouseMovementListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseMovementListener(myListener)
+            AddLayer(layer)
+
+            layer:EmptyMouseMovementListeners()
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action EmptyMouseMovementListeners
+        mouseMovementListeners:Empty()
+    end
+
+    /*
+    This action will remove all MouseWheelListeners from the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseWheelListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseWheelListener.
+        MouseWheelListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseWheelListener(myListener)
+            AddLayer(layer)
+
+            layer:EmptyMouseWheelListeners()
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action EmptyMouseWheelListeners
+        mouseWheelListeners:Empty()
+    end
+
+    /*
+    This action will remove all TouchListeners from the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.TouchListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from TouchListener.
+        TouchListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddTouchListener(myListener)
+            AddLayer(layer)
+
+            layer:EmptyTouchListeners()
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action EmptyTouchListeners
+        touchListeners:Empty()
     end
 
     /*

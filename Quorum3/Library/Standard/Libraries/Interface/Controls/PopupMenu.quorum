@@ -1,21 +1,39 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputMonitor
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 
-class PopUpMenu is MenuRoot
+class PopupMenu is MenuRoot, MouseListener
     
     MenuPanel panel
+    Dialog dialog
+    GameStateManager manager
+    InputMonitor monitor
 
     on create
         ManualLayout layout
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetBorderThickness(2)
+        properties:SetBorderThickness(4)
+
+        dialog:SetTopBarVisible(false)
+        dialog:SetModal(false)
+        dialog:Add(me)
+
+        Add(panel)
+
+        // Necessary for keyboard input to work correctly.
+        SetFocusable(true)
+
+        SetName("Pop-Up Menu")
     end
 
     action Add(Array<MenuItem> menuHeaders)
@@ -34,8 +52,25 @@ class PopUpMenu is MenuRoot
         panel:Add(item)
     end
 
+    action OpenAtCursor
+        OpenAt(monitor:GetMouseX(), manager:GetGameDisplay():GetHeight() - monitor:GetMouseY())
+    end
+
+    action OpenAt(number x, number y)
+        LayoutProperties properties = dialog:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(y)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+        Open()
+    end
+
     action Open
-        Add(panel)
+        dialog:Show()
+        dialog:GetLayer():AddMouseListener(me)
+        Focus()
     end
 
     action Close
@@ -54,7 +89,7 @@ class PopUpMenu is MenuRoot
             counter = counter + 1
         end
 
-        Remove(panel)
+        dialog:Hide()
     end
 
     // Closely mirrors MenuBar's related action, but without concern for the top bar.
@@ -92,6 +127,24 @@ class PopUpMenu is MenuRoot
                 selectionPath:Add(item)
                 Select(selectionPath)
             end
+        elseif path:GetSize() = 1
+            integer counter = 0
+            MenuItem previous = path:Get(0)
+            Array<Item2D> menuItems = GetMenuItems()
+            repeat while counter < menuItems:GetSize()
+                Item2D item = menuItems:Get(counter)
+                if item:Equals(previous)
+
+                    // Select next item in the list, if there is one.
+                    if counter + 1 < menuItems:GetSize()
+                        MenuItem menuItem = cast(MenuItem, menuItems:Get(counter + 1))
+                        menuItem:Select()
+                    end
+
+                    return now
+                end
+                counter = counter + 1
+            end
         else
             MenuItem item = GetMenuItem(path)
             item:MenuSelectionDown()
@@ -108,6 +161,24 @@ class PopUpMenu is MenuRoot
                 selectionPath:Add(item)
                 Select(selectionPath)
             end
+        elseif path:GetSize() = 1
+            integer counter = 0
+            MenuItem previous = path:Get(0)
+            Array<Item2D> menuItems = GetMenuItems()
+            repeat while counter < menuItems:GetSize()
+                Item2D item = menuItems:Get(counter)
+                if item:Equals(previous)
+
+                    // Select the previous element in the menu, if there is one.
+                    if counter - 1 >= 0
+                        MenuItem menuItem = cast(MenuItem, menuItems:Get(counter - 1))
+                        menuItem:Select()
+                    end
+
+                    return now
+                end
+                counter = counter + 1
+            end
         else
             MenuItem item = GetMenuItem(GetSelection():GetPath())
             item:MenuSelectionUp()
@@ -119,12 +190,31 @@ class PopUpMenu is MenuRoot
 
         LabelBoxView content
         content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-        content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
         content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
 
         panel:SetView2D(content)
 
         parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+    The PopupMenu listens for mouse clicks outside of the menu. If the user
+    clicks outside the menu, the menu closes.
+    */
+    action ClickedMouse(MouseEvent event)
+        if event:eventType = event:CLICKED_MOUSE and event:GetSource() = undefined
+            event:SetEventHandled(false)
+            Close()
+        end
+    end
+
+    /*
+    The HasBar action is used to specify if this MenuRoot uses a special layout
+    for the first menu items (i.e., the first set of the menu items is placed in
+    a menu bar, unlike submenus which use menu panels).
+    */
+    action HasBar returns boolean
+        return false
     end
 
     private action GetMenuItems returns Array<Item2D>

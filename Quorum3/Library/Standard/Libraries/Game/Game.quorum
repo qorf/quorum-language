@@ -66,11 +66,11 @@ use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
 use Libraries.Interface.Behaviors.Controls.MouseOnBehavior
 use Libraries.Interface.Behaviors.Controls.MouseOffBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarDownBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarActivateBehavior
-use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootDownBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootLeftBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootRightBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootActivateBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootUpBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
@@ -868,27 +868,27 @@ class Game
 
         gameInput:AddInputTable(menuItemTable)
 
-        InputTable menuBarTable
-        menuBarTable:SetIdentifier("MenuBar")
+        InputTable menuRootTable
+        menuRootTable:SetIdentifier("MenuRoot")
 
-        MenuBarDownBehavior menuDownBehavior
-        MenuBarUpBehavior menuUpBehavior
-        MenuBarLeftBehavior menuLeftBehavior
-        MenuBarRightBehavior menuRightBehavior
-        MenuBarActivateBehavior menuRunBehavior
+        MenuRootDownBehavior menuDownBehavior
+        MenuRootUpBehavior menuUpBehavior
+        MenuRootLeftBehavior menuLeftBehavior
+        MenuRootRightBehavior menuRightBehavior
+        MenuRootActivateBehavior menuRunBehavior
 
-        menuBarTable:Add(downArrow, menuDownBehavior)
-        menuBarTable:Add(upArrow, menuUpBehavior)
-        menuBarTable:Add(leftArrow, menuLeftBehavior)
-        menuBarTable:Add(rightArrow, menuRightBehavior)
+        menuRootTable:Add(downArrow, menuDownBehavior)
+        menuRootTable:Add(upArrow, menuUpBehavior)
+        menuRootTable:Add(leftArrow, menuLeftBehavior)
+        menuRootTable:Add(rightArrow, menuRightBehavior)
 
         InputSet spaceBar
         spaceBar:SetKeyboardInput(keys:SPACE)
 
-        menuBarTable:Add(spaceBar, menuRunBehavior)
-        menuBarTable:Add(enter, menuRunBehavior)
+        menuRootTable:Add(spaceBar, menuRunBehavior)
+        menuRootTable:Add(enter, menuRunBehavior)
 
-        gameInput:AddInputTable(menuBarTable)
+        gameInput:AddInputTable(menuRootTable)
 
         InputTable treeItemTable
         treeItemTable:SetIdentifier("TreeItem")

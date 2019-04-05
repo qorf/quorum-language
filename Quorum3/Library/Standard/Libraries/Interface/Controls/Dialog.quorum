@@ -21,6 +21,14 @@ class Dialog is Control
     
     on create
         SetName("Dialog")
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetPercentageX(0.5)
+        properties:SetPercentageY(0.5)
+        properties:SetPercentageOriginX(0.5)
+        properties:SetPercentageOriginY(0.5)
     end
 
     GameStateManager manager
@@ -47,12 +55,6 @@ class Dialog is Control
         layer:SetLayout(layerLayout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:STANDARD)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetPercentageX(0.5)
-        properties:SetPercentageY(0.5)
-        properties:SetPercentageOriginX(0.5)
-        properties:SetPercentageOriginY(0.5)
 
         if showTopBar and GetChildren():Get(0):Equals(topBar) = false
             Control bar = topBar
@@ -66,7 +68,7 @@ class Dialog is Control
             
             barView:Initialize(gradient, color:Black())
             barView:SetBorderThickness(1)
-            // Top, left, and right borders
+            // Top, bottom, left, and right borders
             barView:SetBorderStyle(barView:ALL)
             bar:SetView2D(barView)
 
@@ -259,4 +261,23 @@ class Dialog is Control
     action IsModal returns boolean
         return isModal
     end
+
+    /*
+    This action determines whether or not the top bar should be visible on this
+    Dialog. This value must be set before the Dialog is shown -- if this is
+    changed while the Dialog is open, it won't affect the Dialog until the next
+    time it's opened.
+    */
+    action SetTopBarVisible(boolean enable)
+        showTopBar = enable
+    end
+
+    /*
+    This action returns whether or not the top bar will be displayed as part of
+    this Dialog when it opens.
+    */
+    action IsTopBarVisible returns boolean
+        return showTopBar
+    end
+
 end

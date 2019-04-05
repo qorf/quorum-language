@@ -63,8 +63,8 @@ version_info := 17:4:11
 # Variables needed for `freetype-config' and `freetype.pc'.
 #
 REQUIRES_PRIVATE   := 
-LIBS_PRIVATE       := -lz -lbz2
-LIBSSTATIC_CONFIG  := -lfreetype -lz -lbz2
+LIBS_PRIVATE       := 
+LIBSSTATIC_CONFIG  := -lfreetype
 build_libtool_libs := 
 ft_version         := 17.4.11
 
