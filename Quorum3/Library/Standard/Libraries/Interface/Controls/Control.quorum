@@ -102,6 +102,8 @@ class Control is Item2D
     */
     boolean needsLayout = false
 
+    PopupMenu contextMenu = undefined
+
     /*
         This action obtains the Input Table from this control, copies it, 
         assigns it a group name, sets the control to use the new input table,
@@ -861,5 +863,23 @@ class Control is Item2D
             item:UpdateAll(seconds)
             counter = counter + 1
         end
+    end
+
+    /*
+    The SetContextMenu action attaches a PopupMenu to this Control, which can
+    be opened by interacting with it (most commonly by right-clicking on the
+    Control).
+    */
+    action SetContextMenu(PopupMenu menu)
+        contextMenu = menu
+    end
+
+    /*
+    The GetContextMenu action returns this Control's context menu, if it has
+    one. A context menu is a PopupMenu which appears when a user wants additonal
+    context about this Control (most commonly by right-clicking on the Control).
+    */
+    action GetContextMenu returns PopupMenu
+        return contextMenu
     end
 end

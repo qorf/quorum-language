@@ -77,6 +77,7 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetActivationBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
+use Libraries.Interface.Behaviors.Controls.TreeOpenContextMenuBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
@@ -124,6 +125,7 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
+use Libraries.Interface.Behaviors.Controls.OpenContextMenuBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 
@@ -908,6 +910,11 @@ class Game
         treeItemTable:Add(clickSet, clickDownBehavior)
         treeItemTable:Add(touchDown, clickDownBehavior)
 
+        InputSet rightClickSet
+        rightClickSet:SetMouseInput(mouse:RIGHT)
+        OpenContextMenuBehavior openContextMenuBehavior
+        treeItemTable:Add(rightClickSet, openContextMenuBehavior)
+
         AddInputTable(treeItemTable)
 
         InputTable treeTable
@@ -929,6 +936,13 @@ class Game
         enterSet:SetKeyboardInput(keys:ENTER)
         TreeActivateBehavior treeActivateBehavior
         treeTable:Add(enterSet, treeActivateBehavior)
+
+        // On Windows, Shift-F10 opens context menus just like right-clicking.
+        InputSet shiftF10Set
+        shiftF10Set:SetKeyboardInput(keys:F10)
+        shiftF10Set:AddModifier(shiftF10Set:SHIFT)
+        TreeOpenContextMenuBehavior treeOpenContextMenuBehavior
+        treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
 
         AddInputTable(treeTable)
 
