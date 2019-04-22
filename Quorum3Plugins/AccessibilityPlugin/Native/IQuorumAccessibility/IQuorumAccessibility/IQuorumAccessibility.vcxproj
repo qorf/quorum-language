@@ -158,6 +158,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>uiautomationcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)..\..\..\..\Quorum3\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll" "$(SolutionDir)IQuorumAccessibility\Release\AccessibilityManagerWindows64.dll</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ButtonControl.cpp" />
