@@ -132,23 +132,6 @@ public class AccessibilityManager
     // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateItem(String name, String description, Item_ item);
-//    private long NativeWin32CreateItem(String name, String description, Item_ item)
-//    {
-//        System.out.println("CREATE ITEM - HELP");
-//        /*
-//        
-//        AADSFLAKSDFJSD
-//        ADSLKFJASDF
-//        ASDLFKNASDFLK
-//        ASDFLASDKFALSDKFJ
-//        ASDFLKJASDFLJASD
-//        ASDFLKJADSLFKJA
-//        ADLFKASDLFKJ
-//        ASDLFKJSDLKFJ
-//        FLDKNLKCXJFASD
-//        */
-//        return 0l;
-//    }
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
     //      Returns: null on failure, otherwise the native pointer associated with item
@@ -295,7 +278,7 @@ public class AccessibilityManager
                     parentMenu = parentMenuItem;
                 
                 // Get parent MenuBar
-                Long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuBar());
+                Long menuBar = ITEM_MAP.get((Item_)menuItem.GetMenuRoot());
                 
                 if (menuBar == null)
                     return false;
@@ -434,13 +417,22 @@ public class AccessibilityManager
     //      Returns: boolean of success or failure.
     public boolean SetFocus(Item_ item)
     {
+        System.out.println("Focusing " + item.GetName());
+        
         // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(item);
 
         if (nativePointer != null)
-            return NativeWin32SetFocus(nativePointer) != 0;
+        {
+            boolean result = NativeWin32SetFocus(nativePointer) != 0;
+            System.out.println("Result of focus on " + item.GetName() + " = " + result);
+            return result;
+        }
         else
+        {
+            System.out.println("No native pointer for " + item.GetName());
             return false;
+        }
     }
     
     public boolean NativeMenuChanged(MenuChangeEvent_ event)
@@ -557,7 +549,7 @@ public class AccessibilityManager
         {
             TextBox_ textbox = (TextBox_)item;
         
-            NativeWin32UpdateCaretPosition(nativePointer, textbox.GetText(), textbox.GetCaretIndex());
+            NativeWin32UpdateCaretPosition(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
     }
     
