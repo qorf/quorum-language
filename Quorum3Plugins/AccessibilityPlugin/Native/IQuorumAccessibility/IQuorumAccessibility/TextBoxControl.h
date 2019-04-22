@@ -80,7 +80,7 @@ class TextBoxControl : public Item
 		//			end up making the native code fall behind Quorum at times. It also causes
 		//			Quorum to slow down.
 		// TODO: Fix the busy waiting solution.
-		int GetCaretIndex();
+		int GetCaretPosition();
 		int GetCaretLine();
 		int GetIndexOfLine(int line);
 		int GetLineLength();

@@ -12,6 +12,8 @@ static jint JNI_VERSION = JNI_VERSION_1_8;
 // This is the handle to the main game window. It is set during initialization and must never be changed.
 HWND GLFWParentWindow = NULL;
 
+IUIAutomation* iuiAutomation = NULL;
+
 JavaVM* jvm;
 JNIEnv* thisEnv = NULL;
 
@@ -67,7 +69,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	// Load the method ids
 	JavaClass_TextBox.GetCaretLine = env->GetMethodID(JavaClass_TextBox.me, "GetCaretLine", "()I");
-	JavaClass_TextBox.GetCaretIndex = env->GetMethodID(JavaClass_TextBox.me, "GetCaretIndex", "()I");
+	JavaClass_TextBox.GetCaretPosition = env->GetMethodID(JavaClass_TextBox.me, "GetCaretPosition", "()I");
 	JavaClass_TextBox.GetIndexOfLine = env->GetMethodID(JavaClass_TextBox.me, "GetIndexOfLine", "(I)I");
 	JavaClass_TextBox.GetText = env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_TextBox.GetCurrentLineText = env->GetMethodID(JavaClass_TextBox.me, "GetCurrentLineText", "()Ljava/lang/String;");
@@ -143,6 +145,11 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
+	
+	// Used to initialize the iuiAutomation variable in Resources.h, which is used to access IUIAutomation methods.
+	HRESULT result = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**)&iuiAutomation);
+	std::cout << "Initialized iuiAutomation variable? " << SUCCEEDED(result) << std::endl;
+	std::cout.flush();
 	env->GetJavaVM(&jvm);
 }
 
@@ -160,6 +167,11 @@ HWND GetMainWindowHandle()
 	return GLFWParentWindow;
 }
 
+IUIAutomation* GetIUIAutomation()
+{
+	return iuiAutomation;
+}
+
 JNIEnv* GetJNIEnv()
 {
 	// double check it's all ok
@@ -167,7 +179,7 @@ JNIEnv* GetJNIEnv()
 	if (getEnvStat == JNI_EDETACHED)
 	{
 		if (jvm->AttachCurrentThread((void **)&thisEnv, NULL) != 0)
-			;//	OutputToFile("Failed to attach");
+			std::cout << "Failed to attach (GetJNIEnv)\n";//	OutputToFile("Failed to attach");
 
 	}
 	else if (getEnvStat == JNI_OK)

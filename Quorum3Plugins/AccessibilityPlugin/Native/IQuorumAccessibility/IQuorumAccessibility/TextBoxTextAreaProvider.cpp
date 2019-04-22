@@ -408,7 +408,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 
 
-	int caretPosition = m_pTextBoxControl->GetCaretIndex();
+	int caretPosition = m_pTextBoxControl->GetCaretPosition();
 	Range closestRange(caretPosition, caretPosition);
 
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);

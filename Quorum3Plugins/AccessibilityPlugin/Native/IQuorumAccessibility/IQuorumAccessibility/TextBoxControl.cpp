@@ -193,7 +193,7 @@ int TextBoxControl::GetCaretLine()
 	return (int)index;
 }
 
-int TextBoxControl::GetCaretIndex()
+int TextBoxControl::GetCaretPosition()
 {
 	JNIEnv* env = GetJNIEnv();
 	
@@ -203,7 +203,7 @@ int TextBoxControl::GetCaretIndex()
 		// Wait for Quorum to write
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretIndex);
+		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretPosition);
 	}
 	return (int)index;
 }
@@ -415,11 +415,11 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_CaretPositionAttributeId)
 	{
 		retval.vt = VT_I4;
-		if (GetCaretIndex() == 0)
+		if (GetCaretPosition() == 0)
 		{
 			retval.lVal = CaretPosition_BeginningOfLine;
 		}
-		else if (GetCaretIndex() == GetLineLength())
+		else if (GetCaretPosition() == GetLineLength())
 		{
 			retval.lVal = CaretPosition_EndOfLine;
 		}

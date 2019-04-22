@@ -2,7 +2,7 @@
 #include <iostream>
 
 Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem) 
-	: m_ControlName(/*controlName*/CreateWideStringFromUTF8Win32("STUPID THING")), m_ControlDescription(/*controlDescription*/CreateWideStringFromUTF8Win32("STUPID DESCRIPTION")), m_ControlHWND(NULL)
+	: m_ControlName(controlName), m_ControlDescription(controlDescription), m_ControlHWND(NULL)
 {
 	javaItem = env->NewGlobalRef(jItem);
 }

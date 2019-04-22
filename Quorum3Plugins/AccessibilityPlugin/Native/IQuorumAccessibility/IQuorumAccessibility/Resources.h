@@ -1,5 +1,6 @@
 #include "../IQuorumAccessibility/Header/jni.h"
 #include <UIAnimation.h>
+#include <UIAutomation.h>
 #include <string>
 
 #ifndef Resources_HEADER
@@ -9,6 +10,9 @@
 // If new windows can be created by Quorum then messages will need to be forwarded to those instead.
 // Its defined in IQuorumAccessibility.cpp
 HWND GetMainWindowHandle();
+
+// This returns the central IUIAutomation object used to gather information about the environment.
+IUIAutomation* GetIUIAutomation();
 
 JNIEnv* GetJNIEnv();
 
@@ -29,7 +33,7 @@ struct JClass_TextBox
 {
 	jclass me;
 	jmethodID GetCaretLine;
-	jmethodID GetCaretIndex;
+	jmethodID GetCaretPosition;
 	jmethodID GetIndexOfLine;
 	jmethodID GetText;
 	jmethodID GetCurrentLineText;

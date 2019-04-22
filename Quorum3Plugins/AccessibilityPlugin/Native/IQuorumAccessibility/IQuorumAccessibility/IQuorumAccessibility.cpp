@@ -304,6 +304,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong control)
 {
+	std::cout << "NativeWin32SetFocus: control = " << (long)control << " (or " << (long long)control << ")" << std::endl;
+
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
@@ -311,11 +313,69 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
+		std::cout << "Focusing.\n";
 		// Sends the appropriate messages to all windows.
 		HWND prevFocus = SetFocus(pControl->GetHWND());
+
+		IUIAutomationElement** focused;
+		IUIAutomation* automation = GetIUIAutomation();
+		/*
+		try
+		{
+			HRESULT result = automation->GetFocusedElement(focused);
+		}
+		catch (std::exception &e)
+		{
+			std::cout << "EXCEPTION: " << e.what() << std::endl;
+			std::cout.flush();
+		}
+		*/
+		__try
+		{
+			if (automation == NULL)
+			{
+				std::cout << "Automation was NULL" << std::endl;
+				std::cout.flush();
+			}
+			else
+			{
+				std::cout << "Automation value: ";
+				std::cout.flush();
+				std::cout << automation << std::endl;
+				std::cout.flush();
+			}
+
+			//HRESULT result = automation->GetFocusedElement(focused);
+		}
+		__except (true)
+		{
+			std::cout << "SEH:" << GetExceptionCode() << std::endl;
+			std::cout.flush();
+		}
+		//std::cout << "Result of get focused element: " << SUCCEEDED(result) << std::endl;
+		//IUIAutomationElement* element = *focused;
+		//BSTR bstr;
+		//element->get_CurrentName(&bstr);
+		//std::cout << "Focused element name: " << bstr << std::endl;
+
+		std::cout.flush();
 		return PtrToLong(prevFocus);
 	}
+	else if (pControl == NULL)
+	{
+		std::cout << "pControl = NULL\n";
+	}
+	else if (pControl->GetHWND() == NULL)
+	{
+		std::cout << "pControl->GetHWND() = NULL\n";
+	}
+	else
+	{
+		std::cout << "Unknown focus error.\n";
+	}
 	
+	std::cout.flush();
+
 	return NULL;
 }
 
@@ -323,9 +383,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textbox, jstring currentLineText, jint startIndex, jint endIndex)
 {
-
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+
+	std::cout << "TextBoxTextSelectionChanged: text = " << nativeCurrentLineText << ", startIndex = " << (int)startIndex << ", endIndex = " << (int)endIndex << std::endl;
 
 	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
 	Range indices((int)startIndex, (int)endIndex);
