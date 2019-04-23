@@ -38,8 +38,8 @@ REM By default, get rid of the library package and put it back in.
 rmdir /s /q ..\..\IDE\Sodbeans\Quorum\release\modules\Library
 robocopy Library ..\..\IDE\Sodbeans\Quorum\release\modules\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
 
-rmdir /s /q "../../quorumstudio/QuorumStudio/Library"
-robocopy Library "../../quorumstudio/QuorumStudio/Library" /s /e /NFL /NDL /NJH /NJS /nc /ns /np
+rmdir /s /q "../../../quorumstudio/QuorumStudio/Library"
+robocopy Library "../../../quorumstudio/QuorumStudio/Library" /s /e /NFL /NDL /NJH /NJS /nc /ns /np
 
 echo "Copying Quorum to its final form."
 mkdir ..\Quorum
