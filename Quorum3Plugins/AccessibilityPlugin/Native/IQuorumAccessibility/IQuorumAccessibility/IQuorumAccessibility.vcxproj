@@ -118,7 +118,8 @@
       <AdditionalDependencies>uiautomationcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\Quorum3\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll"</Command>
+      <Command>copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\Quorum3\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll"
+copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\..\quorumstudio\QuorumStudio\Run\jni\AccessibilityManagerWindows64.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

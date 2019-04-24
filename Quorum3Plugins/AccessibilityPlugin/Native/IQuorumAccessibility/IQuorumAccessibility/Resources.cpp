@@ -24,12 +24,20 @@ JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
 
+void log(std::string str) {
+	std::cout << str << std::endl;
+}
+
 /**************************************************************
 * Initialize the static Java Classes and Method Id variables
 * When the library is loaded in Java this method is called automatically.
 **************************************************************/
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
+	#if LOG
+		log("JNI_OnLoad Start");
+	#endif
+
 	// Obtain the JNIEnv from the VM and confirm JNI_VERSION
 	JNIEnv* env;
 	if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
@@ -117,6 +125,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
 
+	#if LOG
+		log("JNI_OnLoad End");
+	#endif
 	// Required to return the JNI Version
 	return JNI_VERSION;
 }
@@ -127,7 +138,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 **************************************************************/
 JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 {
-
+	#if LOG
+		log("JNI_OnUnload Start");
+	#endif
 	// Obtain the JNIEnv from the VM
 	JNIEnv* env;
 	vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION);
@@ -135,13 +148,18 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 	// Destroy the global references
 	env->DeleteGlobalRef(JavaClass_AccessibilityManager.me);
 	env->DeleteGlobalRef(JavaClass_TextBox.me);
-
+	#if LOG
+		log("JNI_OnUnload Start");
+	#endif
 }
 
 // NativeWin32InitializeAccessibility: Calls CoInitialize so that COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
+	#if LOG
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility Start");
+	#endif
 	UNREFERENCED_PARAMETER(obj);
 	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
@@ -151,6 +169,9 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	std::cout << "Initialized iuiAutomation variable? " << SUCCEEDED(result) << std::endl;
 	std::cout.flush();
 	env->GetJavaVM(&jvm);
+	#if LOG
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility End");
+	#endif
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
