@@ -178,23 +178,38 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // TODO: More work needs to be done in this function to ensure clean shutdown of the library. MSDN has a clean shutdown example that details what needs to be done.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
 {
+	#if LOG
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility Start");
+	#endif
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	CoUninitialize();
+	#if LOG
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility End");
+	#endif
 }
 
 HWND GetMainWindowHandle()
 {
+	#if LOG
+		log("Resources.cpp GetMainWindowHandle");
+	#endif
 	return GLFWParentWindow;
 }
 
 IUIAutomation* GetIUIAutomation()
 {
+	#if LOG
+		log("Resources.cpp GetIUIAutomation");
+	#endif
 	return iuiAutomation;
 }
 
 JNIEnv* GetJNIEnv()
 {
+	#if LOG
+		log("Resources.cpp GetJNIEnv Start");
+	#endif
 	// double check it's all ok
 	int getEnvStat = jvm->GetEnv((void **)&thisEnv, JNI_VERSION_1_6);
 	if (getEnvStat == JNI_EDETACHED)
@@ -205,12 +220,19 @@ JNIEnv* GetJNIEnv()
 	}
 	else if (getEnvStat == JNI_OK)
 	{
+		#if LOG
+				log("Resources.cpp GetJNIEnv End (JNI_OK)");
+		#endif
 		return thisEnv;
 	}
 	else if (getEnvStat == JNI_EVERSION)
 	{
 		//OutputToFile("GetEnv: version not supported");
 	}
+
+	#if LOG
+		log("Resources.cpp GetJNIEnv End (Returned NULL)");
+	#endif
 
 	return NULL;
 }
