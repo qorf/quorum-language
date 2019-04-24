@@ -161,7 +161,7 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	{
 		m_range.begin.character =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
 		m_range.end.character = m_range.begin.character + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
-		std::cout << "Range (" << m_range.begin.character << ", " << m_range.end.character << ")" << std::endl;
+		//std::cout << "Range (" << m_range.begin.character << ", " << m_range.end.character << ")" << std::endl;
 	}
 	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{

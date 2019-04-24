@@ -8,32 +8,55 @@
 ButtonProvider::ButtonProvider(ButtonControl* pButtonControl) : m_refCount(1), m_pButtonControl(pButtonControl)
 {
 	// Nothing to do.
+	#if LOG
+		log("ButtonProvider::ButtonProvider");
+	#endif
 }
 
 ButtonProvider::~ButtonProvider()
 {
 	// Nothing to do.
+	#if LOG
+		log("ButtonProvider::ButtonProvider");
+	#endif
 }
 
 // =========== IUnknown implementation.
 
 IFACEMETHODIMP_(ULONG) ButtonProvider::AddRef()
 {
-	return InterlockedIncrement(&m_refCount);
+	#if LOG
+		log("ButtonProvider::AddRef start");
+	#endif
+	long val = InterlockedIncrement(&m_refCount);
+
+	#if LOG
+		log("ButtonProvider::AddRef end");
+	#endif
+	return val;
 }
 
 IFACEMETHODIMP_(ULONG) ButtonProvider::Release()
 {
+	#if LOG
+		log("ButtonProvider::Release start");
+	#endif
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
 	{
 		delete this;
 	}
+	#if LOG
+		log("ButtonProvider::Release end");
+	#endif
 	return val;
 }
 
 IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
 {
+	#if LOG
+		log("ButtonProvider::QueryInterface start");
+	#endif
 	if (riid == __uuidof(IUnknown))
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
@@ -53,6 +76,9 @@ IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** 
 	}
 
 	(static_cast<IUnknown*>(*ppInterface))->AddRef();
+	#if LOG
+		log("ButtonProvider::QueryInterface end");
+	#endif
 	return S_OK;
 }
 
@@ -62,17 +88,26 @@ IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** 
 // Get provider options.
 IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
+	#if LOG
+		log("ButtonProvider::get_ProviderOptions start");
+	#endif
 	if (!IsWindow(m_pButtonControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	#if LOG
+		log("ButtonProvider::get_ProviderOptions end");
+	#endif
 	return S_OK;
 }
 
 // Get the object that supports IInvokePattern.
 IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	#if LOG
+		log("ButtonProvider::GetPatternProvider start");
+	#endif
 	if (!IsWindow(m_pButtonControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -87,12 +122,18 @@ IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_r
 	{
 		*pRetVal = NULL;
 	}
+	#if LOG
+		log("ButtonProvider::GetPatternProvider end");
+	#endif
 	return S_OK;
 }
 
 // Gets custom properties.
 IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
+	#if LOG
+		log("ButtonProvider::GetPropertyValue start");
+	#endif
 	if (!IsWindow(m_pButtonControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -150,13 +191,25 @@ IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VAR
 		// If the property is found then it will have the UI Automation defaults listed in the Microsoft Developer's Network documentation.
 		// More often than not the default values are responsible for a control not functioning properly with a screen reader.
 	}
+	#if LOG
+		log("ButtonProvider::GetPropertyValue end");
+	#endif
 	return S_OK;
 }
 
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
 IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	return UiaHostProviderFromHwnd(m_pButtonControl->GetHWND(), pRetVal);
+	#if LOG
+		log("ButtonProvider::get_HostRawElementProvider start");
+	#endif
+
+		IFACEMETHODIMP face = UiaHostProviderFromHwnd(m_pButtonControl->GetHWND(), pRetVal);
+
+	#if LOG
+		log("ButtonProvider::get_HostRawElementProvider end");
+	#endif
+	return face;
 }
 
 
@@ -165,19 +218,31 @@ IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenu
 // Invoke
 IFACEMETHODIMP ButtonProvider::Invoke()
 {
+	#if LOG
+		log("ButtonProvider::Invoke start");
+	#endif
 	if (!IsWindow(m_pButtonControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 	PostMessage(m_pButtonControl->GetHWND(), QUORUM_INVOKEBUTTON, NULL, NULL);
+	#if LOG
+		log("ButtonProvider::Invoke end");
+	#endif
 	return S_OK;
 }
 
 // =========== Other Methods
 void ButtonProvider::NotifyFocusGained()
 {
+	#if LOG
+		log("ButtonProvider::NotifyFocusGained start");
+	#endif
 	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
+	#if LOG
+		log("ButtonProvider::NotifyFocusGained end");
+	#endif
 }

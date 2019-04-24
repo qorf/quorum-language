@@ -52,12 +52,12 @@ TreeControl* TreeControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
-			std::string message(messageBuffer, size);
-			std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
-			fflush(stdout);
+			//std::string message(messageBuffer, size);
+			//std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
+			//fflush(stdout);
 
 			//Free the buffer.
-			LocalFree(messageBuffer);
+			//LocalFree(messageBuffer);
 		}
 		else
 			return control;
@@ -146,7 +146,7 @@ LRESULT TreeControl::TreeControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 			if (FAILED(hr))
 			{
 				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
+				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
 			}
 		}
 	}
@@ -221,9 +221,9 @@ bool TreeControl::Initialize(_In_ HINSTANCE hInstance)
 		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
-		std::string message(messageBuffer, size);
-		std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
-		fflush(stdout);
+		//std::string message(messageBuffer, size);
+		//std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
+		//fflush(stdout);
 
 		//Free the buffer.
 		LocalFree(messageBuffer);

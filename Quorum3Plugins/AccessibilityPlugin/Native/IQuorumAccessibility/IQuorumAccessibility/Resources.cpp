@@ -166,8 +166,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	// Used to initialize the iuiAutomation variable in Resources.h, which is used to access IUIAutomation methods.
 	HRESULT result = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**)&iuiAutomation);
-	std::cout << "Initialized iuiAutomation variable? " << SUCCEEDED(result) << std::endl;
-	std::cout.flush();
+	//std::cout << "Initialized iuiAutomation variable? " << SUCCEEDED(result) << std::endl;
+	//std::cout.flush();
 	env->GetJavaVM(&jvm);
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility End");

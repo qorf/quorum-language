@@ -40,7 +40,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
-	std::cout << "Native C++ Print" << std::endl;
 }
 
 /* ==============================
@@ -304,7 +303,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong control)
 {
-	std::cout << "NativeWin32SetFocus: control = " << (long)control << " (or " << (long long)control << ")" << std::endl;
+	//std::cout << "NativeWin32SetFocus: control = " << (long)control << " (or " << (long long)control << ")" << std::endl;
 
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
@@ -313,7 +312,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
-		std::cout << "Focusing.\n";
+		//std::cout << "Focusing.\n";
 		// Sends the appropriate messages to all windows.
 		HWND prevFocus = SetFocus(pControl->GetHWND());
 
@@ -334,23 +333,23 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		{
 			if (automation == NULL)
 			{
-				std::cout << "Automation was NULL" << std::endl;
-				std::cout.flush();
+				//std::cout << "Automation was NULL" << std::endl;
+				//std::cout.flush();
 			}
 			else
 			{
-				std::cout << "Automation value: ";
-				std::cout.flush();
-				std::cout << automation << std::endl;
-				std::cout.flush();
+				//std::cout << "Automation value: ";
+				//std::cout.flush();
+				//std::cout << automation << std::endl;
+				//std::cout.flush();
 			}
 
 			//HRESULT result = automation->GetFocusedElement(focused);
 		}
 		__except (true)
 		{
-			std::cout << "SEH:" << GetExceptionCode() << std::endl;
-			std::cout.flush();
+			//std::cout << "SEH:" << GetExceptionCode() << std::endl;
+			//std::cout.flush();
 		}
 		//std::cout << "Result of get focused element: " << SUCCEEDED(result) << std::endl;
 		//IUIAutomationElement* element = *focused;
@@ -386,7 +385,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	std::cout << "TextBoxTextSelectionChanged: text = " << nativeCurrentLineText << ", startIndex = " << (int)startIndex << ", endIndex = " << (int)endIndex << std::endl;
+	//std::cout << "TextBoxTextSelectionChanged: text = " << nativeCurrentLineText << ", startIndex = " << (int)startIndex << ", endIndex = " << (int)endIndex << std::endl;
 
 	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
 	Range indices((int)startIndex, (int)endIndex);
@@ -413,7 +412,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	SendMessage(control, QUORUM_UPDATECARET, (int)caretIndex, (LPARAM)nativeFullText);
 
 	env->ReleaseStringUTFChars(fullText, nativeFullText);*/
-	std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
+	//std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
 }
 
 // NativeWin32InvokeButton: 

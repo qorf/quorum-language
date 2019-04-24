@@ -71,7 +71,7 @@ bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
 		std::string message(messageBuffer, size);
-		std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
+		//std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
 		fflush(stdout);
 
 		//Free the buffer.
@@ -116,7 +116,7 @@ ButtonControl* ButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ 
 				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
 			std::string message(messageBuffer, size);
-			std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
+			//std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
 			fflush(stdout);
 
 			//Free the buffer.
@@ -201,7 +201,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 			if (FAILED(hr))
 			{
 				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
+				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
 			}
 		}
 	}
