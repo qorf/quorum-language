@@ -102,10 +102,6 @@ public class Text {
         return ret;
     }
     
-//    public String GetSubstringNative(int startIndex, int endIndex) {
-//        return text.substring(startIndex, endIndex);
-//    }
-    
     public int CompareInt(String left, String right, boolean isIgnoringCase) {
         if(isIgnoringCase){
             return left.compareToIgnoreCase(right);
@@ -303,6 +299,12 @@ public class Text {
             a.AddNative((Object_)t);
         }
         return a;
+    }
+    
+    public static Array_ PrimitiveSplitIntoLines(String self) {
+        quorum.Libraries.Language.Types.Text value = new quorum.Libraries.Language.Types.Text();
+        value.SetValue(self);
+        return value.SplitIntoLines();
     }
     
     public static boolean PrimitiveEquals(String self, Object_ obj) {//throws Error{
