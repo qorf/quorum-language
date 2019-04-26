@@ -170,6 +170,18 @@ class File
         //end
     end
 
+     /*
+        This action sets a particular file to be executable. This only works on desktop.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        File someFile
+        someFile:SetPath("myfile.exe")
+        someFile:SetExecutable(true)
+     */
+    system action SetExecutable(boolean value)
+
     /*
         Get the path associated with this File object. If a File class
         is instantiated and the action SetPath
