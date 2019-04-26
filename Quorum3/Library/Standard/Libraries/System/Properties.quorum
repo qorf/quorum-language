@@ -116,6 +116,44 @@ class Properties
     end
 
     /*
+    This property returns whether or not the program is running on Windows.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    boolean value = properties:IsWindows()
+    output value
+    */
+    action IsWindows returns boolean
+        text os = GetOperatingSystemName()
+        if os:StartsWith("Windows")
+            return true
+        end
+
+        return false
+    end
+
+    /*
+    This property returns whether or not the program is running on Mac.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    boolean value = properties:IsMac()
+    output value
+    */
+    action IsMac returns boolean
+        text os = GetOperatingSystemName()
+        if os:StartsWith("Mac")
+            return true
+        end
+
+        return false
+    end
+
+    /*
     This helper method returns the requested web address if the project
     was a web project.
 
