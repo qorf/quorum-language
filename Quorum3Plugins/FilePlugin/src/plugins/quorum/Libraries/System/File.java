@@ -114,6 +114,10 @@ public class File {
         return inst.Move(newPath);
     }
     
+    public void SetExecutable(boolean exec) {
+        inst.SetExecutable(exec);
+    }
+    
     public boolean Copy(quorum.Libraries.System.File_ file) {
         String pathOriginal = inst.getAbsolutePathNative();
         java.io.File original = new java.io.File(pathOriginal);

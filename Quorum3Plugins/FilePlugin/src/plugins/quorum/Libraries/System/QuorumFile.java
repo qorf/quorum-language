@@ -232,4 +232,8 @@ public class QuorumFile {
             return newFile.getName();
         }        
     }
+    
+    public void SetExecutable(boolean exec) {
+        file.setExecutable(exec);
+    }
 }
