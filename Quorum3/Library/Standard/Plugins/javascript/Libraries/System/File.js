@@ -53,9 +53,6 @@ function plugins_quorum_Libraries_System_File_() {
         
         //now if the level ups are greater than 0, change the working directory
         var newWorking = this.defaultWorkingDirectory;
-//        for(var i = 0; i < levelUp; i++) {
-//            //find the last position
-//        }
         
         if (!newWorking.endsWith('/'))
             newWorking = newWorking + '/';
@@ -145,5 +142,9 @@ function plugins_quorum_Libraries_System_File_() {
     //throw exception
     this.Copy$quorum_Libraries_System_File = function (copy) {
 
+    };
+    
+    this.SetExecutable$quorum_text = function(exec) {
+        
     };
 }
