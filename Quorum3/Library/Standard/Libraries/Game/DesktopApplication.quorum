@@ -120,9 +120,14 @@ class DesktopApplication is Application
             end
 
         end 
-        
+       
         display:Destroy()
-        
+       
+        GameStateManager manager
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:Shutdown()
+        end
     end
 
     /*
