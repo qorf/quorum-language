@@ -417,20 +417,16 @@ public class AccessibilityManager
     //      Returns: boolean of success or failure.
     public boolean SetFocus(Item_ item)
     {
-        System.out.println("Focusing " + item.GetName());
-        
         // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(item);
 
         if (nativePointer != null)
         {
             boolean result = NativeWin32SetFocus(nativePointer) != 0;
-            System.out.println("Result of focus on " + item.GetName() + " = " + result);
             return result;
         }
         else
         {
-            System.out.println("No native pointer for " + item.GetName());
             return false;
         }
     }
