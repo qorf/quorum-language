@@ -11,6 +11,7 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
@@ -32,6 +33,7 @@ public class AccessibilityManager
         BUTTON,
         TOGGLE_BUTTON,
         TEXTBOX,
+        TEXT_FIELD,
         MENU_BAR,
         MENU_ITEM,
         PANE,
@@ -70,6 +72,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_(), AccessibilityCodes.BUTTON);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_(), AccessibilityCodes.TOGGLE_BUTTON);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_(), AccessibilityCodes.TEXTBOX);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_(), AccessibilityCodes.MENU_BAR);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_(), AccessibilityCodes.MENU_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_(), AccessibilityCodes.PANE);
@@ -122,9 +125,6 @@ public class AccessibilityManager
     
     private native void NativeWin32ShutdownAccessibility();
     
-    // NativePrint: For debugging
-    private native void NativePrint();
-    
     //
     // ==== Accessible Object Creation Functions
     //
@@ -149,6 +149,8 @@ public class AccessibilityManager
     //      Returns: null on failure, otherwise the native pointer associated with item
     private native long NativeWin32CreateTextBox(String name, String description, TextBox_ quorumSelf);
 
+    private native long NativeWin32CreateTextField(String name, String description, TextField_ quorumField);
+    
     // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
     //
     private native long NativeWin32CreateMenuBar(String name, Item_ item);
@@ -261,6 +263,10 @@ public class AccessibilityManager
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
                 nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox);
+                break;
+            case TEXT_FIELD:
+                // Not yet implemented (NYI)
+                nativePointer = 0;
                 break;
             case MENU_BAR:
                 nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
