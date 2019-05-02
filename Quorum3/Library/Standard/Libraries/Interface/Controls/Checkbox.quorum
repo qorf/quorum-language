@@ -59,6 +59,8 @@ class Checkbox is ToggleButton
         Add(label)
 
         checkColor = color:White()
+
+        SetAccessibilityCode(parent:Item:CHECKBOX)
     end
 
     action SetToggleState(boolean toggleState)

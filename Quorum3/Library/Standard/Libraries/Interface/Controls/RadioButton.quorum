@@ -58,6 +58,8 @@ class RadioButton is ToggleButton
         Add(label)
 
         AllowToggleOff(false)
+
+        SetAccessibilityCode(parent:Item:RADIO_BUTTON)
     end
 
     action SetToggleState(boolean toggleState)

@@ -277,25 +277,13 @@ class AccessibilityManager
     end
 
     action WindowFocusChanged(WindowFocusEvent event)
-        if (debugOutput)
-            if event:IsFocused()
-                GameStateManager manager
-                Item item = manager:GetFocus()
-                if item not= undefined
-                    output "Window gained focus. Currently focused item is " + item:GetName()
-                    if item:GetAccessibilityCode() not= item:ITEM
-                        if item:GetAccessibilityCode() = item:MENU_ITEM
-                           or item:GetAccessibilityCode() = item:TREE_ITEM
-                            
-                        else
-                            SetFocus(item)
-                        end
-                    end
-                else
-                    output "Window gained focus. Current focus is UNDEFINED"
+        if event:IsFocused()
+            GameStateManager manager
+            Item item = manager:GetFocus()
+            if item not= undefined
+                if item:GetAccessibilityCode() not= item:ITEM
+                    SetFocus(item)
                 end
-            else
-                output "Window lost focus."
             end
         end
     end
