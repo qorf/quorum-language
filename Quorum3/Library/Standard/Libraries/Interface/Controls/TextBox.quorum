@@ -45,7 +45,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     an iterable structure, along with information indicating at what line and
     character positions the font changes.
     */
-    Font font
+    Font font = undefined
 
     /*
     The color of characters. For future iterations, this will be replaced by an
@@ -207,10 +207,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         textValue:DisableTextWrapping()
 
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
-        end
+        font = GetDefaultFont()
 
         selection:Initialize(me, "")
         SetAccessibilityCode(parent:Item:TEXTBOX)

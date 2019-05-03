@@ -107,12 +107,9 @@ class MenuItem is Control
         Color color
         menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
 
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
+        Font font = GetDefaultFont()
+        if font not= undefined
             integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
             menuProperties:SetFont(font)
             menuProperties:SetFontSize(defaultFontSize)
         end
