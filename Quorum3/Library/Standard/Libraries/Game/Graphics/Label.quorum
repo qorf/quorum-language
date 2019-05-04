@@ -40,22 +40,22 @@ class Label is Control
 
         SetName("Label")
         Font font
-        if font:FontIsAvailable("Arial")
+        if font:IsFontAvailable("Arial")
             font:LoadFont("Arial")
             SetFont(font)
-        elseif font:FontIsAvailable("Arial Unicode")
+        elseif font:IsFontAvailable("Arial Unicode")
             font:LoadFont("Arial Unicode")
             SetFont(font)
-        elseif font:FontIsAvailable("Helvetica")
+        elseif font:IsFontAvailable("Helvetica")
             font:LoadFont("Helvetica")
             SetFont(font)
-        elseif font:FontIsAvailable("Georgia")
+        elseif font:IsFontAvailable("Georgia")
             font:LoadFont("Georgia")
             SetFont(font)
-        elseif font:FontIsAvailable("Times New Roman")
+        elseif font:IsFontAvailable("Times New Roman")
             font:LoadFont("Times New Roman")
             SetFont(font)
-        elseif font:FontIsAvailable("Roboto-Black")
+        elseif font:IsFontAvailable("Roboto-Black")
             font:LoadFont("Roboto-Black")
             SetFont(font)
         else
@@ -222,7 +222,7 @@ class Label is Control
                 Font font
                 Label label
 
-                if font:FontIsAvailable("Verdana")
+                if font:IsFontAvailable("Verdana")
                     font:LoadFont("Verdana")
                     label:SetFont(font)
                 else
@@ -625,7 +625,7 @@ class Label is Control
             font:SetAngle(font:GetAngle())
 
             // Dispose of the old sprites.
-            DisposeChildren()
+            //DisposeChildren()
             Empty()
 
 
@@ -988,17 +988,6 @@ class Label is Control
             LoadDrawables()
         end
         return font:GetLineHeight()
-    end
-
-    /*
-    The FitToHeight action sets the font size of this Label to the largest font 
-    size that will fit in the given height. The line height of the Font will 
-    always be less than or equal to the requested height value after the action 
-    finishes.
-    */
-    action FitToHeight(number height)
-        font:FitToHeight(height)
-        textChanged = true
     end
 
     /*

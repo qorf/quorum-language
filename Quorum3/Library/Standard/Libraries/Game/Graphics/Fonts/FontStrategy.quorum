@@ -29,7 +29,7 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Veranda")
+            if not font:IsFontAvailable("Veranda")
                 output "The font could not be found!"
                 return now
             end
@@ -116,11 +116,11 @@ class FontStrategy
 
             action CreateGame
                 Font font
-                boolean hasFont = font:FontIsAvailable("Times New Roman")
+                boolean hasFont = font:IsFontAvailable("Times New Roman")
             end
         end
     */
-    blueprint action FontIsAvailable(text fontName) returns boolean
+    blueprint action IsFontAvailable(text fontName) returns boolean
 
     /*
     This action will set the size of the font. The default font size is 14.

@@ -50,7 +50,7 @@ class Cell is Control
 
     action GetDefaultFontName returns text
         Font font
-        if font:FontIsAvailable("Arial")
+        if font:IsFontAvailable("Arial")
             return "Arial"
         else
             return parent:Control:GetDefaultFontName()

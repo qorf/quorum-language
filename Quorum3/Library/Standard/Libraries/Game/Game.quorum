@@ -38,6 +38,7 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -4004,7 +4005,9 @@ class Game
     end
 
     /*
-
+    This action sets the FocusManager to be used for the Game. The FocusManager
+    is responsible for moving focus between Items, which is essential for GUIs
+    to function correctly.
     */
     action SetFocusManager(FocusManager focus)
         focusManager:SetFocus(undefined)
@@ -4016,10 +4019,28 @@ class Game
     end
 
     /*
-
+    This action returns the FocusManager to be used for the Game. 
+    The FocusManager is responsible for moving focus between Items, which is
+    essential for GUIs to function correctly.
     */
     action GetFocusManager returns FocusManager
         return focusManager
+    end
+
+    /*
+    This action sets the FontManager to be used for the Game. The FontManager is
+    responsible for loading and storing font information.
+    */
+    action SetFontManager(FontManager fontManager)
+        manager:SetFontManager(fontManager)
+    end
+
+    /*
+    This action returns the FontManager in use by the Game. The FontManager is
+    responsible for loading and storing font information.
+    */
+    action GetFontManager returns FontManager
+        return manager:GetFontManager()
     end
 
     /*

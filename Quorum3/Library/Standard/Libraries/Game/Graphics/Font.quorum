@@ -3,13 +3,12 @@ package Libraries.Game.Graphics
 use Libraries.System.File
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
-use Libraries.Game.Graphics.Fonts.FontStrategy
-use Libraries.Game.Graphics.Fonts.FreeTypeStrategy
-use Libraries.Game.Graphics.Fonts.QuorumStrategy
+use Libraries.Game.Graphics.Fonts.FontManager
 
 /*
 The Font class is used to load a font from the system. 
@@ -28,7 +27,7 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Verdana")
+            if not font:IsFontAvailable("Verdana")
                 output "The font could not be found!"
                 return now
             end
@@ -40,46 +39,25 @@ Attribute: Example
     end
 */
 class Font 
-    FontStrategy strategy = undefined
+    GameStateManager gameStateManager
     
+    boolean isSystemFont = true
+    text fontName = ""
+    integer fontSize = 14
+    number angle = 0
+
+    Color color
+
+    text subFont = ""
+    text style = ""
+
     on create
         Setup()
     end
     
     private action Setup
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-
-        boolean useFreeType = os:Contains("Windows")
-        mac = os:Contains("Mac OS X")
-        sim = os:Contains("iOS Simulator")
-        device = os:Contains("iOS Device")
-
-        useFreeType = useFreeType or mac or sim or device
-
-        if useFreeType
-            FreeTypeStrategy freeStrategy
-            strategy = freeStrategy
-        else    // Linux and Android
-            QuorumStrategy quorumStrategy
-            strategy = quorumStrategy
-        end
-        Color color
         color = color:Black()
         SetColor(color)
-    end
-
-    /*
-    This action forces the Font to use the QuorumStrategy class while loading
-    fonts and creating glyphs.
-
-    Attribute: Example
-
-        
-    */
-    action UseQuorumStrategy
-        QuorumStrategy quorumStrategy
-        strategy = quorumStrategy
     end
 
     /*
@@ -109,7 +87,7 @@ class Font
         end
     */
     action SetStyle(text style)
-        strategy:SetStyle(style)
+        me:style = style
     end
 
     /*
@@ -139,7 +117,7 @@ class Font
         end
     */
     action ChangeSubFont(text style)
-        strategy:ChangeSubFont(style)
+        subFont = style
     end
 
     /*
@@ -160,7 +138,6 @@ class Font
 
             action CreateGame
                 Font font
-                font:UseQuorumStrategy()
                 File file
                 file:SetPath("CustomFont.ttf")
                 font:LoadFont(file)
@@ -168,7 +145,8 @@ class Font
         end
     */
     action LoadFont(File fontFile)
-        strategy:LoadFont(fontFile)
+        isSystemFont = false
+        fontName = fontFile:GetAbsolutePath()
     end
 
     /*
@@ -195,7 +173,12 @@ class Font
         end
     */
     action LoadFont(text fontName)
-        strategy:LoadFont(fontName)
+        if IsFontAvailable(fontName) = false
+            alert("I couldn't find a system font named " + fontName + ".")
+        end
+
+        isSystemFont = true
+        me:fontName = fontName
     end
 
     /*
@@ -219,12 +202,13 @@ class Font
 
             action CreateGame
                 Font font
-                output font:FontIsAvailable("Times New Roman")
+                output font:IsFontAvailable("Times New Roman")
             end
         end
     */
-    action FontIsAvailable(text fontName) returns boolean
-        return strategy:FontIsAvailable(fontName)
+    action IsFontAvailable(text fontName) returns boolean
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:IsFontAvailable(fontName)
     end
 
     /*
@@ -249,7 +233,7 @@ class Font
         end
     */
     action SetSize (integer newSize)
-        strategy:SetSize(newSize)
+        fontSize = newSize
     end
 
     /*
@@ -275,7 +259,7 @@ class Font
         end
     */
     action GetSize returns integer
-        return strategy:GetSize()
+        return fontSize
     end
 
     /*
@@ -301,7 +285,7 @@ class Font
         end
     */
     action Rotate(number rotation)
-        strategy:Rotate(rotation)
+        angle = angle + rotation
     end
 
     /*
@@ -327,7 +311,7 @@ class Font
         end
     */
     action SetAngle(number newAngle)
-        strategy:SetAngle(newAngle)
+        angle = newAngle
     end
 
     /*
@@ -354,7 +338,7 @@ class Font
         end
     */
     action SetColor(Color newColor)
-        strategy:SetColor(newColor)
+        color = newColor
     end
 
     /*
@@ -380,7 +364,7 @@ class Font
         end
     */
     action GetColor returns Color
-        return strategy:GetColor()
+        return color
     end
 
     /*
@@ -406,7 +390,7 @@ class Font
         end
     */
     action GetAngle returns number
-        return strategy:GetAngle()
+        return angle
     end
 
     /*
@@ -431,7 +415,13 @@ class Font
         end
     */
     action Dispose
-        strategy:Dispose()
+        fontName = ""
+        isSystemFont = true
+        fontSize = 14
+        angle = 0
+        subFont = ""
+        style = ""
+        color = color:Black()
     end
 
     /*
@@ -461,7 +451,12 @@ class Font
         end
     */
     action GetGlyph(text character) returns Glyph
-        return strategy:GetGlyph(character)
+        FontManager manager = gameStateManager:GetFontManager()
+        Glyph glyph = manager:GetGlyph(me, character)
+        if glyph:drawable not= undefined
+            glyph:drawable:SetColor(color)
+        end
+        return glyph
     end
 
     /*
@@ -488,7 +483,7 @@ class Font
         end
     */
     action IsLoaded returns boolean
-        return strategy:IsLoaded()
+        return fontName not= ""
     end
 
     /*
@@ -514,7 +509,8 @@ class Font
         end
     */
     action GetLineHeight returns integer
-        return strategy:GetLineHeight()
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetLineHeight(me)
     end
 
     /*
@@ -549,7 +545,8 @@ class Font
         end
     */
     action GetAvailableFonts returns Array<File>
-        return strategy:GetAvailableFonts()
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetAvailableFonts()
     end
     
     /*
@@ -580,35 +577,38 @@ class Font
         end
     */
     action GetKerning(text currentCharacter, text nextCharacter) returns integer
-        return strategy:GetKerning(currentCharacter, nextCharacter)
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetKerning(me, currentCharacter, nextCharacter)
     end
 
     action GetMaximumAscent returns integer
-        return strategy:GetMaximumAscent()
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetMaximumAscent(me)
     end
 
     action GetMaximumDescent returns integer
-        return strategy:GetMaximumDescent()
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetMaximumDescent(me)
     end
 
     action GetLineGap returns integer
-        return strategy:GetLineGap()
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetLineGap(me)
     end
 
     /*
-    This action sets the font's size to the largest font size that will fit in
-    the given height. The line height of the Font will always be less than or
-    equal to the height value after the action finishes.
+    This action returns an identifier that uniquely identifies whatever Font has
+    been loaded by this object. This is used to request Font information from
+    the FontManager. Most users will never need to use this action directly.
     */
-    action FitToHeight(number height)
-        integer counter = 0
-        number lineHeight = 0
-        repeat while lineHeight <= height
-            counter = counter + 1
-            SetSize(counter)
-            lineHeight = GetLineHeight()
-        end
+    action GetIdentifier returns text
+        FontManager manager = gameStateManager:GetFontManager()
 
-        SetSize(counter - 1)
+        text systemText = manager:SYSTEM_PREFIX
+        text delimiter = manager:FONT_DELIMITER
+        if isSystemFont = false
+            systemText = manager:FILE_PREFIX
+        end
+        return systemText + delimiter + fontName + delimiter + fontSize + delimiter + angle
     end
 end

@@ -1,0 +1,271 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+use Libraries.System.File
+use Libraries.System.Properties
+
+class FontManager 
+    
+    /*
+    The goal of the design is to make each Font object nothing more than a
+    container to describe details of the requested font, and stringify these
+    parameters into a HashTable key. Every time the Font would request a glyph,
+    it instead gets it from here, via a hashed font (or a new font that is
+    hashed if nothing previously exists).
+
+    A system font's ID is defined as:
+    SYSTEM:FontName:Size:Angle
+
+    A font loaded from a user-specified file is defined as:
+    FILE:FontName:Size:Angle
+
+    Unused:
+    Style <TBD>
+    SubFont <TBD>
+    Color (Not used here, set locally by Font when returning a glyph)
+    */
+
+    // A prefix used to indicate a system font.
+    public constant text SYSTEM_PREFIX = "SYSTEM"
+
+    // A prefix used to indicate a locally loaded font file.
+    public constant text FILE_PREFIX = "FILE"
+
+    // A delimiting character used to separate portions of a Font's identifier.
+    public constant text FONT_DELIMITER = "$"
+
+    // Each font uniquely produces a string key to the table.
+    HashTable<text, FontStrategy> fontTable
+
+    action GetGlyph(Font font, text character) returns Glyph
+        FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
+        return strategy:GetGlyph(character)
+    end
+
+    action GetLineHeight(Font font) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetLineHeight()
+        else
+            return 0
+        end
+    end
+
+    action GetKerning(Font font, text character, text nextCharacter) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetKerning(character, nextCharacter)
+        else
+            return 0
+        end
+    end
+
+    action GetMaximumAscent(Font font) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetMaximumAscent()
+        else
+            return 0
+        end
+    end
+
+    action GetMaximumDescent(Font font) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetMaximumDescent()
+        else
+            return 0
+        end
+    end
+
+    action GetLineGap(Font font) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetLineGap()
+        else
+            return 0
+        end
+    end
+
+    /*
+    This action will look in the default system font folder and look for a font
+    of the given name. If a font is found with the same name, the action will
+    return true. Otherwise, it returns false.
+
+    Attribute: Parameter fontName The name of the font to check for on the system.
+
+    Attribute: Returns Returns true if the font is on the system, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.FontManager
+        use Libraries.Game.GameStateManager
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                GameStateManager gameStateManager
+                FontManager fontManager = gameStateManager:GetFontManager()
+                boolean hasFont = fontManager:IsFontAvailable("Times New Roman")
+            end
+        end
+    */
+    action IsFontAvailable(text fontName) returns boolean
+        File fontFile
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+
+        if os:Contains("Windows")
+            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
+            fontFile:SetWorkingDirectory("/Library/Fonts")
+        elseif os:Contains("iOS Device")
+            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
+        else
+            // Find fonts for a linux system.
+        end
+
+        fontFile:SetPath(fontName + ".ttf")
+        if fontFile:Exists()
+           return true
+        end
+
+        fontFile:SetPath(fontName + ".ttc")
+        if fontFile:Exists()
+            return true
+        end
+                
+        fontFile:SetPath(fontName + ".otf")
+        if fontFile:Exists()
+            return true
+        end
+
+        fontFile:SetPath(fontName + ".dfont")
+        if fontFile:Exists()
+            return true
+        end
+
+        return false
+    end
+
+    /*
+    This action will return an array of all files found in the system's default
+    font folder.
+
+    Attribute: Returns Returns an array with all the font files on the system.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Fonts.FontManager
+        use Libraries.Game.GameStateManager
+        use Libraries.System.File
+        use Libraries.Containers.Array
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                GameStateManager gameState
+                FontManager manager = gameState:GetFontManager()
+                Array<File> fontFiles = font:GetAvailableFonts()
+                integer index = 0
+                output "The following fonts are available on the system: "
+                repeat fontFiles:GetSize() times
+                    File temp = fontFiles:Get(index)
+                    output temp:GetPath()
+                    index = index + 1
+                end
+            end
+        end
+    */
+    action GetAvailableFonts returns Array<File>
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+
+        Array<File> fontFiles = undefined
+        File fontDirectory
+
+        if os:Contains("Windows")
+            fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
+            fontDirectory:SetWorkingDirectory("/Library/Fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
+        elseif os:Contains("iOS Device")
+            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
+        else
+            // Find fonts for a linux system.
+        end
+
+        return fontFiles
+    end
+
+    private action GetFontStrategy(text key) returns FontStrategy
+        if fontTable:HasKey(key)
+            return fontTable:GetValue(key)
+        else
+            FontStrategy strategy = CreateFontStrategy()
+
+            // A Text object is used to circumvent a bug in text primitives
+            // where the Split function breaks on Java regular expression characters.
+            Text keyValue
+            keyValue:SetValue(key)
+            Array<text> fontValues = keyValue:Split(FONT_DELIMITER)
+
+            strategy:SetSize(cast(integer, fontValues:Get(2)))
+            strategy:SetAngle(cast(number, fontValues:Get(3)))
+
+            if fontValues:Get(0) = SYSTEM_PREFIX
+                strategy:LoadFont(fontValues:Get(1))
+            else
+                File file
+                file:SetAbsolutePath(fontValues:Get(1))
+                strategy:LoadFont(file)
+            end
+
+            fontTable:Add(key, strategy)
+
+            return strategy
+        end
+    end
+
+    integer counter = 0
+
+    private action CreateFontStrategy returns FontStrategy
+        counter = counter + 1
+
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+
+        boolean useFreeType = os:Contains("Windows")
+        mac = os:Contains("Mac OS X")
+        sim = os:Contains("iOS Simulator")
+        device = os:Contains("iOS Device")
+
+        useFreeType = useFreeType or mac or sim or device
+
+        FontStrategy strategy = undefined
+
+        if useFreeType
+            FreeTypeStrategy freeStrategy
+            strategy = freeStrategy
+        else    // Linux and Android
+            QuorumStrategy quorumStrategy
+            strategy = quorumStrategy
+        end
+        Color color
+        color = color:White()
+        strategy:SetColor(color)
+        return strategy
+    end
+end
