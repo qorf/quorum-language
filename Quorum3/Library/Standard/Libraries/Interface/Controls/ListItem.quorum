@@ -36,12 +36,9 @@ class ListItem is Control
         properties:SetPercentageWidth(1.0)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
 
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
+        Font font = GetDefaultFont()
+        if font not= undefined
             integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
             properties:SetFont(font)
             properties:SetFontSize(defaultFontSize)
         end

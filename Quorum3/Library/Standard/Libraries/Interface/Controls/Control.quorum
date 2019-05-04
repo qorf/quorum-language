@@ -785,6 +785,35 @@ class Control is Item2D
     end
 
     /*
+        This action obtains the default font for this control. This allows
+        individual controls to customize their default font properties on a per control
+        basis. By default, the system asks for the default system font name on a 
+        per control basis, then loads that font and returns it. Font loading is
+        shared, so loading many fonts of the same type and size is not particularly
+        expensive and can be done without much concern for memory requirements.
+
+        Attribute: Example
+
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Game.Graphics.Font
+
+        TextBox box
+        text name = box:GetDefaultFont()
+        output name
+    */
+    action GetDefaultFont returns Font
+        Font font
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            font:LoadFont(defaultFontName)
+            return font
+        end
+        return undefined
+    end
+
+    /*
         This action defines what the default font size for this control. This allows
         individual controls to customize their default font properties on a per control
         basis.

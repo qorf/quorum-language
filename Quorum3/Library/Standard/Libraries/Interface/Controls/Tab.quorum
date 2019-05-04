@@ -54,12 +54,9 @@ class Tab is ToggleButton
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
 
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
+        Font font = GetDefaultFont()
+        if font not= undefined
             integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
             defaultProperties:SetFont(font)
             defaultProperties:SetFontSize(defaultFontSize)
         end  
