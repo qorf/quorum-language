@@ -14,6 +14,8 @@ import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.DesktopGraphics;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Graphics.AndroidGraphics;
+import quorum.Libraries.Game.Graphics.Fonts.FontManager;
+import quorum.Libraries.Game.Graphics.Fonts.FontManager_;
 
 /**
  * A helper class that contains static references to individual components that
@@ -33,6 +35,7 @@ public class GameStateManager
     public static Application_ application;
     public static GameDisplay_ display;
     public static GraphicsManager_ graphics;
+    public static FontManager_ fonts = new FontManager();
     public static GameInput_ input;
 
     public static String nativePath;
@@ -136,6 +139,16 @@ public class GameStateManager
     public GameInput_ GetInput()
     {
         return input;
+    }
+    
+    public void SetFontManager(FontManager_ fontManager)
+    {
+        fonts = fontManager;
+    }
+    
+    public FontManager_ GetFontManager()
+    {
+        return fonts;
     }
     
     public void SetNativePath(String path)
