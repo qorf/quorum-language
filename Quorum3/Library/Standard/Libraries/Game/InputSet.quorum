@@ -2,6 +2,8 @@ package Libraries.Game
 
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.MouseEvent
 
 class InputSet 
 
@@ -143,15 +145,15 @@ class InputSet
     end
 
     action GetInputTrigger returns integer
-        return bits:And(1, bits:ShiftRight(bitmask, VALUE_SIZE + TYPE_SIZE))
+        return GetBits(TRIGGER_SIZE, VALUE_SIZE + TYPE_SIZE)
     end
 
     action GetInputType returns integer
-        return bits:And(1, bits:ShiftRight(bitmask, VALUE_SIZE))
+        return GetBits(TYPE_SIZE, VALUE_SIZE)
     end
 
     action GetInputValue returns integer
-        return bits:And(bitmask, bits:Negate(bits:ShiftLeft(-1, VALUE_SIZE)))
+        return GetBits(VALUE_SIZE, 0)
     end
 
     action GetModifiers returns Array<integer>
@@ -222,8 +224,69 @@ class InputSet
         bitmask = bits:Or(bits:And(bitmask, zeroBits), valueBits)
     end
 
+    /*
+    This action returns the requested number of bits at the requested position
+    (the position is 0 indexed). For example, a bitCount of 3 and a position of 
+    4, from the following mask:
+        ...00000110000
+    Our example would return 3 (011).
+    */
+    private action GetBits(integer bitCount, integer position) returns integer
+        integer mask = bits:ShiftLeft(1, bitCount) - 1
+        mask = bits:ShiftLeft(mask, position)
+        return bits:And(bitmask, mask)
+    end
+
     action GetDisplayName returns text
-        return ""
+        text result = ""
+        if HasModifier(CONTROL)
+            result = result + "Control + "
+        end
+        if HasModifier(META)
+            result = result + "Command + "
+        end
+        if HasModifier(ALT)
+            result = result + "Alt + "
+        end
+        if HasModifier(SHIFT)
+            result = result + "Shift + "
+        end
+
+        integer type = GetInputType()
+
+        if type = KEYBOARD_INPUT
+            KeyboardEvent keys
+            text toText = keys:ToText(GetInputValue())
+            if toText:GetSize() = 1
+                toText = toText:ToUpperCase()
+            end
+            result = result + toText
+
+        elseif type = MOUSE_INPUT
+            MouseEvent buttons
+            result = result + "Mouse " + buttons:ToText(GetInputValue())
+
+        elseif type = MOUSE_WHEEL_INPUT
+            return result + "Mouse Wheel Scroll"
+
+        elseif type = MOUSE_MOVEMENT_INPUT
+            integer value = GetInputValue()
+            if value = 0
+                return result + "Mouse Move"
+            else
+                MouseEvent buttons
+                return result + "Mouse " + buttons:ToText(value) + " Drag"
+            end
+
+        elseif type = TOUCH_INPUT
+            return result + "Tap"
+        elseif type = TEXT_INPUT
+            return result + "Text Input"
+        elseif type = TOUCH_MOVEMENT_INPUT
+            return result + "Drag"
+        end
+
+        return result
     end
     
     action ToText returns text
