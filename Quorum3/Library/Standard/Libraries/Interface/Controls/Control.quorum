@@ -895,11 +895,11 @@ class Control is Item2D
     end
 
     /*
-    The SetContextMenu action attaches a PopupMenu to this Control, which can
+    The SetPopupMenu action attaches a PopupMenu to this Control, which can
     be opened by interacting with it (most commonly by right-clicking on the
     Control).
     */
-    action SetContextMenu(PopupMenu menu)
+    action SetPopupMenu(PopupMenu menu)
         contextMenu = menu
     end
 
@@ -908,7 +908,7 @@ class Control is Item2D
     one. A context menu is a PopupMenu which appears when a user wants additonal
     context about this Control (most commonly by right-clicking on the Control).
     */
-    action GetContextMenu returns PopupMenu
+    action GetPopupMenu returns PopupMenu
         return contextMenu
     end
 end

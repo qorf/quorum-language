@@ -78,7 +78,7 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetActivationBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
-use Libraries.Interface.Behaviors.Controls.TreeOpenContextMenuBehavior
+use Libraries.Interface.Behaviors.Controls.TreeOpenPopupMenuBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
@@ -126,7 +126,7 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
-use Libraries.Interface.Behaviors.Controls.OpenContextMenuBehavior
+use Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 
@@ -913,7 +913,7 @@ class Game
 
         InputSet rightClickSet
         rightClickSet:SetMouseInput(mouse:RIGHT)
-        OpenContextMenuBehavior openContextMenuBehavior
+        OpenPopupMenuBehavior openContextMenuBehavior
         treeItemTable:Add(rightClickSet, openContextMenuBehavior)
 
         AddInputTable(treeItemTable)
@@ -942,7 +942,7 @@ class Game
         InputSet shiftF10Set
         shiftF10Set:SetKeyboardInput(keys:F10)
         shiftF10Set:AddModifier(shiftF10Set:SHIFT)
-        TreeOpenContextMenuBehavior treeOpenContextMenuBehavior
+        TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
 
         AddInputTable(treeTable)

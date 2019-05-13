@@ -6,13 +6,13 @@ use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.Tree
 use Libraries.Interface.Controls.PopupMenu
 
-class TreeOpenContextMenuBehavior is Behavior
+class TreeOpenPopupMenuBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is Tree
             Tree tree = cast(Tree, event:GetItem())
             TreeItem item = tree:GetSelection():GetTreeItem()
             if item not= undefined
-                PopupMenu menu = item:GetContextMenu()
+                PopupMenu menu = item:GetPopupMenu()
 
                 if menu = undefined
                     return now
