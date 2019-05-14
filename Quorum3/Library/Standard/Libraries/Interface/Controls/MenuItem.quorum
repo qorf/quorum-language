@@ -95,6 +95,7 @@ class MenuItem is Control
         panelProperties = panel:GetDefaultLayoutProperties()
         panelAnchor:Add(panel)
         ManualLayout layout
+        layout:ApplyToContainer(true)
         panelAnchor:SetLayout(layout)
         panelAnchor:SetName("Panel Anchor")
 
@@ -107,12 +108,9 @@ class MenuItem is Control
         Color color
         menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
 
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
+        Font font = GetDefaultFont()
+        if font not= undefined
             integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
             menuProperties:SetFont(font)
             menuProperties:SetFontSize(defaultFontSize)
         end
@@ -161,7 +159,7 @@ class MenuItem is Control
 
     action GetDefaultFontName returns text
         Font font
-        if font:FontIsAvailable("Arial")
+        if font:IsFontAvailable("Arial")
             return "Arial"
         else
             return parent:Control:GetDefaultFontName()
@@ -230,22 +228,36 @@ class MenuItem is Control
             end
         end
 
+        LayoutProperties anchorProperties = panelAnchor:GetDefaultLayoutProperties()
+
         if direction = LEFT
+            anchorProperties:SetPercentageX(0)
+            anchorProperties:SetPercentageY(0)
+
             panelProperties:SetPercentageOriginX(1)
             panelProperties:SetPercentageOriginY(1)
             panelProperties:SetPercentageX(0)
             panelProperties:SetPercentageY(1)
         elseif direction = RIGHT
+            anchorProperties:SetPercentageX(1)
+            anchorProperties:SetPercentageY(0)
+
             panelProperties:SetPercentageOriginX(0)
             panelProperties:SetPercentageOriginY(1)
             panelProperties:SetPercentageX(1)
             panelProperties:SetPercentageY(1)
         elseif direction = DOWN
+            anchorProperties:SetPercentageX(0)
+            anchorProperties:SetPercentageY(0)
+
             panelProperties:SetPercentageOriginX(0)
             panelProperties:SetPercentageOriginY(1)
             panelProperties:SetPercentageY(0)
             panelProperties:SetPercentageX(0)
         elseif direction = UP
+            anchorProperties:SetPercentageX(0)
+            anchorProperties:SetPercentageY(1)
+
             panelProperties:SetPercentageOriginX(0)
             panelProperties:SetPercentageOriginY(0)
             panelProperties:SetPercentageX(0)
@@ -266,7 +278,6 @@ class MenuItem is Control
             open = true
             Add(panelAnchor)
             panel:Resize()
-            PositionPanel()
             
             MenuRoot bar = GetMenuRoot()
             if bar not= undefined

@@ -29,7 +29,7 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Verdana")
+            if not font:IsFontAvailable("Verdana")
                 output "The font could not be found!"
                 return now
             end
@@ -390,7 +390,7 @@ class QuorumStrategy is FontStrategy
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
         elseif os:Contains("Web Browser")
-            if FontIsAvailable(fontName)
+            if IsFontAvailable(fontName)
                 return fontName + ".ttf"
             else 
                 return ""
@@ -445,11 +445,11 @@ class QuorumStrategy is FontStrategy
 
             action CreateGame
                 Font font
-                boolean hasFont = font:FontIsAvailable("Times New Roman")
+                boolean hasFont = font:IsFontAvailable("Times New Roman")
             end
         end
     */
-    action FontIsAvailable(text fontName) returns boolean
+    action IsFontAvailable(text fontName) returns boolean
         text os = GetOS()
         if os:Contains("Web Browser")
             if fontName = "Roboto-Black"

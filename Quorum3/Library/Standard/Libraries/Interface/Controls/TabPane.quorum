@@ -27,12 +27,9 @@ class TabPane is Control
 
         bar:SetTabPane(me)
         
-        Font font
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
+        Font font = GetDefaultFont()
+        if font not= undefined
             integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
             SetFont(font)
             SetFontSize(font:GetSize())
         end
@@ -64,7 +61,7 @@ class TabPane is Control
 
     action GetDefaultFontName returns text
         Font font
-        if font:FontIsAvailable("Arial")
+        if font:IsFontAvailable("Arial")
             return "Arial"
         else
             return parent:Control:GetDefaultFontName()

@@ -760,19 +760,19 @@ class Control is Item2D
     action GetDefaultFontName returns text
         text name = undefined
         Font font
-        if font:FontIsAvailable("FiraCode-Retina")
+        if font:IsFontAvailable("FiraCode-Retina")
             name = "FiraCode-Retina"
-        elseif font:FontIsAvailable("FiraCode-Regular")
+        elseif font:IsFontAvailable("FiraCode-Regular")
             name = "FiraCode-Regular"
-        elseif font:FontIsAvailable("Courier")
+        elseif font:IsFontAvailable("Courier")
             name = "Courier"
-        elseif font:FontIsAvailable("Courier New")
+        elseif font:IsFontAvailable("Courier New")
             name = "Courier New"
-        elseif font:FontIsAvailable("cour")
+        elseif font:IsFontAvailable("cour")
             name = "cour"
-        elseif font:FontIsAvailable("Roboto-Black")
+        elseif font:IsFontAvailable("Roboto-Black")
             name = "Roboto-Black"
-        elseif font:FontIsAvailable("Arial")
+        elseif font:IsFontAvailable("Arial")
             name = "Arial"
         else
             Array<File> availableFontFiles = font:GetAvailableFonts()
@@ -782,6 +782,35 @@ class Control is Item2D
             end
         end
         return name
+    end
+
+    /*
+        This action obtains the default font for this control. This allows
+        individual controls to customize their default font properties on a per control
+        basis. By default, the system asks for the default system font name on a 
+        per control basis, then loads that font and returns it. Font loading is
+        shared, so loading many fonts of the same type and size is not particularly
+        expensive and can be done without much concern for memory requirements.
+
+        Attribute: Example
+
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Game.Graphics.Font
+
+        TextBox box
+        text name = box:GetDefaultFont()
+        output name
+    */
+    action GetDefaultFont returns Font
+        Font font
+        text defaultFontName = GetDefaultFontName()
+        if defaultFontName not= undefined
+            integer defaultFontSize = GetDefaultFontSize()
+            font:SetSize(defaultFontSize)
+            font:LoadFont(defaultFontName)
+            return font
+        end
+        return undefined
     end
 
     /*
@@ -866,11 +895,11 @@ class Control is Item2D
     end
 
     /*
-    The SetContextMenu action attaches a PopupMenu to this Control, which can
+    The SetPopupMenu action attaches a PopupMenu to this Control, which can
     be opened by interacting with it (most commonly by right-clicking on the
     Control).
     */
-    action SetContextMenu(PopupMenu menu)
+    action SetPopupMenu(PopupMenu menu)
         contextMenu = menu
     end
 
@@ -879,7 +908,7 @@ class Control is Item2D
     one. A context menu is a PopupMenu which appears when a user wants additonal
     context about this Control (most commonly by right-clicking on the Control).
     */
-    action GetContextMenu returns PopupMenu
+    action GetPopupMenu returns PopupMenu
         return contextMenu
     end
 end

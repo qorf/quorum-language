@@ -5,6 +5,7 @@ use Libraries.Game.Game
 use Libraries.Game.GameDisplay
 use Libraries.Game.GameInput
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Item
 use Libraries.Interface.AccessibilityManager
 
@@ -89,18 +90,28 @@ class GameStateManager
     end
 
     /*
-
+    This action sets the AccessibilityManager to be used across the Game.
     */
     action SetAccessibilityManager(AccessibilityManager accessibility)
         GetGame():SetAccessibilityManager(accessibility)
     end
 
     /*
-
+    This action returns the AccessibilityManager that is being used across the Game.
     */
     action GetAccessibilityManager returns AccessibilityManager
         return GetGame():GetAccessibilityManager()
     end
+
+    /*
+    This action sets the FontManager to be used across the Game.
+    */
+    system action SetFontManager(FontManager manager)
+
+    /*
+    This action returns the FontManager which is being used across the Game.
+    */
+    system action GetFontManager returns FontManager
 
     /*
     This action sets a path to the native file used to load the engine's C

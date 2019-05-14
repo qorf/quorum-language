@@ -38,6 +38,7 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -77,7 +78,7 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetActivationBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
-use Libraries.Interface.Behaviors.Controls.TreeOpenContextMenuBehavior
+use Libraries.Interface.Behaviors.Controls.TreeOpenPopupMenuBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
@@ -125,7 +126,7 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
-use Libraries.Interface.Behaviors.Controls.OpenContextMenuBehavior
+use Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 
@@ -912,7 +913,7 @@ class Game
 
         InputSet rightClickSet
         rightClickSet:SetMouseInput(mouse:RIGHT)
-        OpenContextMenuBehavior openContextMenuBehavior
+        OpenPopupMenuBehavior openContextMenuBehavior
         treeItemTable:Add(rightClickSet, openContextMenuBehavior)
 
         AddInputTable(treeItemTable)
@@ -941,7 +942,7 @@ class Game
         InputSet shiftF10Set
         shiftF10Set:SetKeyboardInput(keys:F10)
         shiftF10Set:AddModifier(shiftF10Set:SHIFT)
-        TreeOpenContextMenuBehavior treeOpenContextMenuBehavior
+        TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
 
         AddInputTable(treeTable)
@@ -4004,7 +4005,9 @@ class Game
     end
 
     /*
-
+    This action sets the FocusManager to be used for the Game. The FocusManager
+    is responsible for moving focus between Items, which is essential for GUIs
+    to function correctly.
     */
     action SetFocusManager(FocusManager focus)
         focusManager:SetFocus(undefined)
@@ -4016,10 +4019,28 @@ class Game
     end
 
     /*
-
+    This action returns the FocusManager to be used for the Game. 
+    The FocusManager is responsible for moving focus between Items, which is
+    essential for GUIs to function correctly.
     */
     action GetFocusManager returns FocusManager
         return focusManager
+    end
+
+    /*
+    This action sets the FontManager to be used for the Game. The FontManager is
+    responsible for loading and storing font information.
+    */
+    action SetFontManager(FontManager fontManager)
+        manager:SetFontManager(fontManager)
+    end
+
+    /*
+    This action returns the FontManager in use by the Game. The FontManager is
+    responsible for loading and storing font information.
+    */
+    action GetFontManager returns FontManager
+        return manager:GetFontManager()
     end
 
     /*

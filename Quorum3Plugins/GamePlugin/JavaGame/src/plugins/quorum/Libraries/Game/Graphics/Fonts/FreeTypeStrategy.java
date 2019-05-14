@@ -20,10 +20,8 @@ public class FreeTypeStrategy
     
     static long libHandle = 0;
     
-    // FOR DEBUGGING PURPOSES ONLY
-    static boolean outputHeight = true;
-    
-    long faceHandle;        // Identifies the face used by this font. 
+    // Identifies the face used by this font.
+    long faceHandle; 
     
     Color_ color;
     

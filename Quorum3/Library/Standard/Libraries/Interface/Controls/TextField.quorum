@@ -38,7 +38,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     an iterable structure, along with information indicating at what line and
     character positions the font changes.
     */
-    Font font
+    Font font = undefined
 
     /*
     The color of characters. For future iterations, this will be replaced by an
@@ -126,12 +126,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         Add(background)
 
-        text defaultFontName = GetDefaultFontName()
-        if defaultFontName not= undefined
-            font:LoadFont(defaultFontName)
-            integer defaultFontSize = GetDefaultFontSize()
-            font:SetSize(defaultFontSize)
-        end
+        font = GetDefaultFont()
 
         selection:Initialize(me, "")
         SetAccessibilityCode(parent:Item:TEXT_FIELD)

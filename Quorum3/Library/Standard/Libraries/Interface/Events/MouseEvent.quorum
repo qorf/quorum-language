@@ -869,4 +869,64 @@ class MouseEvent
         return clickCount
     end
 
+    /*
+    The ToText action returns a textual representation of the provided mouse
+    button code.
+
+    Attribute: Parameter buttonCode A mouse button code, such as LEFT, RIGHT, or ANY.
+    Attribute: Returns A text representation of the given button code, or "Unknown" if the code isn't recognized.
+    */
+    action ToText(integer buttonCode) returns text
+        if buttonCode = ANY
+            return "Any"
+        elseif buttonCode = NONE
+            return "None"
+        end
+
+        text result = ""
+        boolean combination = false
+
+        if bits:And(RIGHT, buttonCode) not= 0
+            if combination
+                result = result + " + "
+            end
+
+            result = result + "Right"
+            combination = true
+        end
+
+        if bits:And(MIDDLE, buttonCode) not= 0
+            if combination
+                result = result + " + "
+            end
+
+            result = result + "Middle"
+            combination = true
+        end
+
+        if bits:And(BACK, buttonCode) not= 0
+            if combination
+                result = result + " + "
+            end
+
+            result = result + "Back"
+            combination = true
+        end
+
+        if bits:And(FORWARD, buttonCode) not= 0
+            if combination
+                result = result + " + "
+            end
+
+            result = result + "Forward"
+            combination = true
+        end
+
+        if result not= ""
+            return result
+        else
+            return "Unknown"
+        end
+    end
+
 end

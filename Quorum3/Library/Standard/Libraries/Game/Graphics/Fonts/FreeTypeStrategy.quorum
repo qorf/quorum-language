@@ -28,7 +28,7 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:FontIsAvailable("Verdana")
+            if not font:IsFontAvailable("Verdana")
                 output "The font could not be found!"
                 return now
             end
@@ -259,11 +259,11 @@ class FreeTypeStrategy is FontStrategy
 
             action CreateGame
                 Font font
-                boolean hasFont = font:FontIsAvailable("Times New Roman")
+                boolean hasFont = font:IsFontAvailable("Times New Roman")
             end
         end
     */
-    action FontIsAvailable(text fontName) returns boolean
+    action IsFontAvailable(text fontName) returns boolean
         if FindFontExtension(fontName) = ""
             return false
         else
