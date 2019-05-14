@@ -12,19 +12,19 @@
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-post-compile">
-        <copy todir="../../Quorum3/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile">
+        <copy todir="../../Quorum/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile">
             <fileset dir="build/classes/plugins/quorum/Libraries/Language/Compile">
               <include name="*"/>
             </fileset>
         </copy>
         
-        <copy todir="../../Quorum3/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile/Translate">
+        <copy todir="../../Quorum/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile/Translate">
             <fileset dir="build/classes/plugins/quorum/Libraries/Language/Compile/Translate">
               <include name="*"/>
             </fileset>
         </copy>
         
-        <copy todir="../../Quorum3/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile/Test">
+        <copy todir="../../Quorum/Library/Standard/Plugins/plugins/quorum/Libraries/Language/Compile/Test">
             <fileset dir="build/classes/plugins/quorum/Libraries/Language/Compile/Test">
               <include name="*"/>
             </fileset>
