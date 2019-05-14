@@ -667,15 +667,15 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
             if atEnd
                 if caretCharacter < selection:GetStartIndex()
-                    Select(GetCaretIndex(), selection:GetStartIndex(), false)
+                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
                 else
-                    Select(selection:GetStartIndex(), GetCaretIndex(), true)
+                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
                 end
             else
-                if GetCaretIndex() > selection:GetEndIndex()
-                    Select(selection:GetEndIndex(), GetCaretIndex(), true)
+                if GetCaretPosition() > selection:GetEndIndex()
+                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
                 else
-                    Select(GetCaretIndex(), selection:GetEndIndex(), false)
+                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
                 end
             end
         else
@@ -766,12 +766,19 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return caretMoveTime
     end
 
-    action GetCaretIndex returns integer
+    action GetCaretPosition returns integer
         return caretCharacter
     end
 
     action GetText returns text
         return textValue
+    end
+
+    /*
+    This action returns the total number of characters of text in the TextField.
+    */
+    action GetSize returns integer
+        return textValue:GetSize()
     end
 
     action Empty

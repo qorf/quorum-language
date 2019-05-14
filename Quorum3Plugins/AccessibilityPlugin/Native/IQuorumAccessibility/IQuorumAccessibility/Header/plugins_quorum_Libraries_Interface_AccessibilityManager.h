@@ -85,6 +85,14 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *, jobject, jlong, jstring, jint);
 
+//
+// ===== TextField
+//
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextField(JNIEnv*, jobject, jstring, jstring, jobject);
+
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextFieldTextSelectionChanged(JNIEnv*, jobject, jlong, jstring, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif

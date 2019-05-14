@@ -204,7 +204,7 @@ IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenu
 		log("ButtonProvider::get_HostRawElementProvider start");
 	#endif
 
-		IFACEMETHODIMP face = UiaHostProviderFromHwnd(m_pButtonControl->GetHWND(), pRetVal);
+		HRESULT face = UiaHostProviderFromHwnd(m_pButtonControl->GetHWND(), pRetVal);
 
 	#if LOG
 		log("ButtonProvider::get_HostRawElementProvider end");

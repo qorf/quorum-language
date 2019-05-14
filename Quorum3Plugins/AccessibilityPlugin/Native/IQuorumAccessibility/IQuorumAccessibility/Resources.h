@@ -8,7 +8,7 @@
 #define Resources_HEADER
 
 #ifndef LOG
-#define LOG 1
+#define LOG 0
 #endif
 
 // This returns the main game engine window handle for Quorum which messages must be forwarded to.
@@ -52,6 +52,21 @@ struct JClass_TextBoxSelection
 	jmethodID GetStartIndex;
 	jmethodID GetEndIndex;
 };
+struct JClass_TextField
+{
+	jclass me;
+	jmethodID GetCaretPosition;
+	jmethodID GetText;
+	jmethodID GetSelection;
+	jmethodID GetSize;
+};
+struct JClass_TextFieldSelection
+{
+	jclass me;
+	jmethodID IsEmpty;
+	jmethodID GetStartIndex;
+	jmethodID GetEndIndex;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -62,6 +77,8 @@ struct JClass_Item
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
 extern JClass_TextBoxSelection JavaClass_TextBoxSelection;
+extern JClass_TextField JavaClass_TextField;
+extern JClass_TextFieldSelection JavaClass_TextFieldSelection;
 extern JClass_Item JavaClass_Item;
 
 

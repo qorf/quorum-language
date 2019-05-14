@@ -1,3 +1,4 @@
+#pragma once
 #include "TextBoxControl.h"
 
 // Used to create Int SafeArray for RuntimeId

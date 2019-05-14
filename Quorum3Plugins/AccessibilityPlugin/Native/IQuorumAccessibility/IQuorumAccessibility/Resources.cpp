@@ -20,6 +20,8 @@ JNIEnv* thisEnv = NULL;
 JClass_AccessibilityManager JavaClass_AccessibilityManager;
 JClass_TextBox JavaClass_TextBox;
 JClass_TextBoxSelection JavaClass_TextBoxSelection;
+JClass_TextField JavaClass_TextField;
+JClass_TextFieldSelection JavaClass_TextFieldSelection;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
@@ -101,6 +103,45 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextBoxSelection.IsEmpty = env->GetMethodID(JavaClass_TextBoxSelection.me, "IsEmpty", "()Z");
 	JavaClass_TextBoxSelection.GetStartIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetStartIndex", "()I");
 	JavaClass_TextBoxSelection.GetEndIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetEndIndex", "()I");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+	#pragma endregion
+
+	/*********
+	* TextField
+	*********/
+	#pragma region TextField
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/TextField_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_TextField.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	JavaClass_TextField.GetCaretPosition = env->GetMethodID(JavaClass_TextField.me, "GetCaretPosition", "()I");
+	JavaClass_TextField.GetText = env->GetMethodID(JavaClass_TextField.me, "GetText", "()Ljava/lang/String;");
+	JavaClass_TextField.GetSelection = env->GetMethodID(JavaClass_TextField.me, "GetSelection", "()Lquorum/Libraries/Interface/Selections/TextFieldSelection_;");
+	JavaClass_TextField.GetSize = env->GetMethodID(JavaClass_TextField.me, "GetSize", "()I");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+	#pragma endregion
+
+	/******************
+	* TextFieldSelection
+	******************/
+	#pragma region TextFieldSelection
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Selections/TextFieldSelection_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_TextFieldSelection.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextBoxSelection.me, "IsEmpty", "()Z");
+	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetStartIndex", "()I");
+	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetEndIndex", "()I");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);

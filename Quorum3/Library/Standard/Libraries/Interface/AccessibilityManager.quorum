@@ -11,6 +11,7 @@ use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Events.WindowFocusEvent
 use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Selections.TextFieldSelection
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Selections.TreeSelection
@@ -19,6 +20,7 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.TextField
 use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
@@ -56,6 +58,8 @@ class AccessibilityManager
     //                       For example, a word or character has been added to the selection.
     private system action TextSelectionChanged(TextBoxSelection selection)
 
+    private system action TextSelectionChanged(TextFieldSelection selection)
+
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
     private system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
@@ -70,9 +74,11 @@ class AccessibilityManager
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
         if selection is TextBoxSelection
-            
             TextBoxSelection textSelection = cast(TextBoxSelection, selection)
+            TextSelectionChanged(textSelection)
 
+        elseif selection is TextFieldSelection
+            TextFieldSelection textSelection = cast(TextFieldSelection, selection)
             TextSelectionChanged(textSelection)
 
         elseif selection is TabPaneSelection
@@ -146,10 +152,12 @@ class AccessibilityManager
                     or item:GetAccessibilityCode() = item:TREE
                     or item:GetAccessibilityCode() = item:TREE_ITEM
                     or item:GetAccessibilityCode() = item:TEXTBOX
+                    or item:GetAccessibilityCode() = item:TEXT_FIELD
 
                 if (debugOutput)
                     output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
                 end
+
                 NativeAdd(item)
             else
                 // Until other controls are properly fleshed out create an ITEM
@@ -158,6 +166,7 @@ class AccessibilityManager
                 if (debugOutput)
                     output "Adding " + item:GetAccessibilityType() + ": " + item:GetName() + " as CUSTOM."
                 end
+
                 item:SetAccessibilityCode(item:CUSTOM)
                 NativeAdd(item)
             end
@@ -233,6 +242,7 @@ class AccessibilityManager
                     or item:GetAccessibilityCode() = item:TREE
                     or item:GetAccessibilityCode() = item:TREE_ITEM
                     or item:GetAccessibilityCode() = item:TEXTBOX
+                    or item:GetAccessibilityCode() = item:TEXT_FIELD
 
 
                 if (debugOutput)

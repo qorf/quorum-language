@@ -15,6 +15,7 @@
 #include "MenuItemControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
+#include "TextfieldControl.h"
 
 // For Debug Output
 #include <iostream>
@@ -157,6 +158,28 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
 	return PtrToLong(pTextboxControl);
+
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextField(JNIEnv* env, jobject obj, jstring textFieldName, jstring description, jobject self)
+{
+	UNREFERENCED_PARAMETER(obj);
+	const char* nativeTextFieldName = env->GetStringUTFChars(textFieldName, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+
+	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextFieldName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	jobject nativeSelf = env->NewGlobalRef(self);
+
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	TextFieldControl* textFieldControl = TextFieldControl::Create(env, GetModuleHandle(NULL), GetMainWindowHandle(), wTextboxName, wDescription, nativeSelf);
+
+	env->ReleaseStringUTFChars(textFieldName, nativeTextFieldName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return PtrToLong(textFieldControl);
 
 }
 
@@ -303,8 +326,6 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong control)
 {
-	//std::cout << "NativeWin32SetFocus: control = " << (long)control << " (or " << (long long)control << ")" << std::endl;
-
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
@@ -312,68 +333,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
-		//std::cout << "Focusing.\n";
 		// Sends the appropriate messages to all windows.
 		HWND prevFocus = SetFocus(pControl->GetHWND());
 
-		IUIAutomationElement** focused;
-		IUIAutomation* automation = GetIUIAutomation();
-		/*
-		try
-		{
-			HRESULT result = automation->GetFocusedElement(focused);
-		}
-		catch (std::exception &e)
-		{
-			std::cout << "EXCEPTION: " << e.what() << std::endl;
-			std::cout.flush();
-		}
-		*/
-		__try
-		{
-			if (automation == NULL)
-			{
-				//std::cout << "Automation was NULL" << std::endl;
-				//std::cout.flush();
-			}
-			else
-			{
-				//std::cout << "Automation value: ";
-				//std::cout.flush();
-				//std::cout << automation << std::endl;
-				//std::cout.flush();
-			}
-
-			//HRESULT result = automation->GetFocusedElement(focused);
-		}
-		__except (true)
-		{
-			//std::cout << "SEH:" << GetExceptionCode() << std::endl;
-			//std::cout.flush();
-		}
-		//std::cout << "Result of get focused element: " << SUCCEEDED(result) << std::endl;
-		//IUIAutomationElement* element = *focused;
-		//BSTR bstr;
-		//element->get_CurrentName(&bstr);
-		//std::cout << "Focused element name: " << bstr << std::endl;
-
-		std::cout.flush();
 		return PtrToLong(prevFocus);
 	}
-	else if (pControl == NULL)
-	{
-		std::cout << "pControl = NULL\n";
-	}
-	else if (pControl->GetHWND() == NULL)
-	{
-		std::cout << "pControl->GetHWND() = NULL\n";
-	}
-	else
-	{
-		std::cout << "Unknown focus error.\n";
-	}
-	
-	std::cout.flush();
 
 	return NULL;
 }
@@ -385,13 +349,25 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	//std::cout << "TextBoxTextSelectionChanged: text = " << nativeCurrentLineText << ", startIndex = " << (int)startIndex << ", endIndex = " << (int)endIndex << std::endl;
-
 	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
 	Range indices((int)startIndex, (int)endIndex);
 
 	SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
 	SendMessage(pTextBox->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)&indices);
+
+	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+}
+
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextFieldTextSelectionChanged(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)
+{
+	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+
+	TextFieldControl* textFieldControl = static_cast<TextFieldControl*>(LongToPtr((long)textField));
+	Range indices((int)startIndex, (int)endIndex);
+
+	SendMessage(textFieldControl->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
+	SendMessage(textFieldControl->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)& indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }

@@ -16,6 +16,7 @@ import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 
 /**
@@ -192,6 +193,8 @@ public class AccessibilityManager
     //
     private native boolean NativeWin32TextBoxTextSelectionChanged(long nativePointer, String TextValue, int startIndex, int endIndex);
     
+    private native boolean NativeWin32TextFieldTextSelectionChanged(long nativePointer, String textValue, int startIndex, int endIndex);
+    
     // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
     //
     private native boolean NativeWin32UpdateCaretPosition(long nativePointer, String fullText, int caretIndex);
@@ -265,8 +268,8 @@ public class AccessibilityManager
                 nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox);
                 break;
             case TEXT_FIELD:
-                // Not yet implemented (NYI)
-                nativePointer = 0;
+                TextField_ textField = (TextField_)item;
+                nativePointer = NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
                 break;
             case MENU_BAR:
                 nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
@@ -542,6 +545,22 @@ public class AccessibilityManager
         NativeWin32TextBoxTextSelectionChanged(nativePointer, textbox.GetText(),
             selection.GetStartIndex(), selection.GetEndIndex());
         
+    }
+    
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+        TextField_ textField = selection.GetTextField();
+        
+        if (textField == null)
+            return;
+        
+        Long nativePointer = ITEM_MAP.get((Item_)textField);
+        
+        if (nativePointer == null)
+            return;
+        
+        NativeWin32TextFieldTextSelectionChanged(nativePointer, textField.GetText(),
+            selection.GetStartIndex(), selection.GetEndIndex());
     }
     
     public void CaretPositionChanged(Item_ item, Text_ fullText)

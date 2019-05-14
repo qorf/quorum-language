@@ -413,7 +413,6 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
-
 }
 
 // get_DocumentRange: Retrieves a text range that encloses the main text of a document.
