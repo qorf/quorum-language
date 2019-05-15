@@ -34,14 +34,29 @@ cp Run/Quorum.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 cp Library/Compiled/Run/QuorumStandardLibrary.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/QuorumStandardLibrary.jar
 cp Library/Compiled/Run/QuorumStandardPlugins.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/QuorumStandardPlugins.jar
 
-#chmod -R +rw ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
-
 #By default, get rid of the library package and put it back in.
 rm -r ../../IDE/Sodbeans/Quorum/release/modules/Library
 cp -r Library ../../IDE/Sodbeans/Quorum/release/modules
 
 rm -r ../../../quorumstudio/QuorumStudio/Library
 cp -r Library ../../../quorumstudio/QuorumStudio
+
+echo "Copying to New NetBeans Installation"
+
+cp Run/Quorum.jar ../../../sodbeans/Sodbeans/Quorum/release/modules/ext/Quorum.jar
+cp Library/Compiled/Run/QuorumStandardLibrary.jar ../../../sodbeans/Sodbeans/Quorum/release/modules/ext/QuorumStandardLibrary.jar
+cp Library/Compiled/Run/QuorumStandardPlugins.jar ../../../sodbeans/Sodbeans/Quorum/release/modules/ext/QuorumStandardPlugins.jar
+
+#By default, get rid of the library package and put it back in.
+rm -r ../../../sodbeans/Sodbeans/Quorum/release/modules/Library
+cp -r Library ../../../sodbeans/Sodbeans/Quorum/release/modules
+
+rm -r ../../../quorumstudio/QuorumStudio/Library
+cp -r Library ../../../quorumstudio/QuorumStudio
+
+#chmod -R +rw ../../../sodbeans/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
+
+
 
 #Make the folder and all of its contents read only
 #chmod -R-w ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/

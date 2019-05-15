@@ -35,8 +35,18 @@ copy Library\Compiled\Run\QuorumStandardLibrary.jar ..\..\IDE\Sodbeans\Quorum\re
 copy Library\Compiled\Run\QuorumStandardPlugins.jar ..\..\IDE\Sodbeans\Quorum\release\modules\ext\QuorumStandardPlugins.jar
 
 REM By default, get rid of the library package and put it back in.
-rmdir /s /q ..\..\IDE\Sodbeans\Quorum\release\modules\Library
-robocopy Library ..\..\IDE\Sodbeans\Quorum\release\modules\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
+rmdir /s /q ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\Library
+robocopy Library ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
+
+echo "Copying to New NetBeans Installation"
+REM rm ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
+copy Run\Quorum.jar ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\ext\Quorum.jar
+copy Library\Compiled\Run\QuorumStandardLibrary.jar ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\ext\QuorumStandardLibrary.jar
+copy Library\Compiled\Run\QuorumStandardPlugins.jar ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\ext\QuorumStandardPlugins.jar
+
+REM By default, get rid of the library package and put it back in.
+rmdir /s /q ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\Library
+robocopy Library ..\..\..\sodbeans\Sodbeans\Quorum\release\modules\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
 
 rmdir /s /q "../../../quorumstudio/QuorumStudio/Library"
 robocopy Library "../../../quorumstudio/QuorumStudio/Library" /s /e /NFL /NDL /NJH /NJS /nc /ns /np
