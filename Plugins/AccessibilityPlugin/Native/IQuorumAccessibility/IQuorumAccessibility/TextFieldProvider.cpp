@@ -13,32 +13,52 @@ TextFieldProvider::~TextFieldProvider()
 
 HRESULT __stdcall TextFieldProvider::get_ProviderOptions(ProviderOptions* pRetVal)
 {
+	#if LOG
+	log("TextFieldProvider::get_ProviderOptions Start");
+	#endif
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
 	*pRetVal = ProviderOptions_ServerSideProvider;
+
+	#if LOG
+	log("TextFieldProvider::get_ProviderOptions Finished");
+	#endif
+
 	return S_OK;
 }
 
 HRESULT __stdcall TextFieldProvider::GetPatternProvider(PATTERNID patternId, IUnknown** pRetVal)
 {
+	#if LOG
+	log("TextFieldProvider::GetPatternProvider Start");
+	#endif
+
 	switch (patternId)
 	{
 		case UIA_TextPatternId:
-		case UIA_ValuePatternId:
+		//case UIA_ValuePatternId:
 			*pRetVal = static_cast<IRawElementProviderSimple*>(this);
 			break;
 		default:
 			*pRetVal = NULL;
 	}
 
+	#if LOG
+	log("TextFieldProvider::GetPatternProvider Finish");
+	#endif
+
 	return S_OK;
 }
 
 HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VARIANT* pRetVal)
 {
+	#if LOG
+	log("TextFieldProvider::GetPropertyValue Start");
+	#endif
+
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -47,7 +67,7 @@ HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VAR
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"text field");
+		pRetVal->bstrVal = SysAllocString(L"text_field");
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
@@ -116,45 +136,84 @@ HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VAR
 		// More often than not the default values are responsible for a control not functioning properly with a screen reader.
 	}
 
+	#if LOG
+	log("TextFieldProvider::GetPropertyValue Finish");
+	#endif
+
 	return S_OK;
 }
 
 HRESULT __stdcall TextFieldProvider::get_HostRawElementProvider(IRawElementProviderSimple** pRetVal)
 {
+	#if LOG
+	log("TextFieldProvider::get_HostRawElementProvider Start");
+	#endif
 
 	HRESULT face = UiaHostProviderFromHwnd(textFieldControl->GetHWND(), pRetVal);
+
+	#if LOG
+	log("TextFieldProvider::get_HostRawElementProvider Finish");
+	#endif
 
 	return face;
 }
 
 void TextFieldProvider::NotifyFocusGained()
 {
+	#if LOG
+	log("TextFieldProvider::NotifyFocusGained Start");
+	#endif
+
 	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
+
+	#if LOG
+	log("TextFieldProvider::NotifyFocusGained Finish");
+	#endif
 }
 
 IFACEMETHODIMP_(ULONG) TextFieldProvider::AddRef()
 {
+	#if LOG
+	log("TextFieldProvider::AddRef Start");
+	#endif
+
 	long val = InterlockedIncrement(&referenceCount);
+
+	#if LOG
+	log("TextFieldProvider::AddRef Finish");
+	#endif
 
 	return val;
 }
 
 IFACEMETHODIMP_(ULONG) TextFieldProvider::Release()
 {
+	#if LOG
+	log("TextFieldProvider::Release Start");
+	#endif
+
 	long val = InterlockedDecrement(&referenceCount);
 	if (val == 0)
 	{
 		delete this;
 	}
 
+	#if LOG
+	log("TextFieldProvider::Release Finish");
+	#endif
+
 	return val;
 }
 
 IFACEMETHODIMP TextFieldProvider::QueryInterface(REFIID riid, void** ppInterface)
 {
+	#if LOG
+	log("TextFieldProvider::QueryInterface Start");
+	#endif
+
 	if (riid == __uuidof(IUnknown))
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
@@ -163,32 +222,85 @@ IFACEMETHODIMP TextFieldProvider::QueryInterface(REFIID riid, void** ppInterface
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
 	}
-	else if (riid == __uuidof(IValueProvider))
-	{
-		*ppInterface = static_cast<IValueProvider*>(this);
-	}
+	//else if (riid == __uuidof(IValueProvider))
+	//{
+	//	*ppInterface = static_cast<IValueProvider*>(this);
+	//}
 	else if (riid == __uuidof(ITextProvider))
 	{
 		*ppInterface = static_cast<ITextProvider*>(this);
 	}
 	else
 	{
+		#if LOG
+		log("TextFieldProvider::QueryInterface Finish (E_NOINTERFACE)");
+		#endif
 		*ppInterface = NULL;
 		return E_NOINTERFACE;
 	}
 
 	(static_cast<IUnknown*>(*ppInterface))->AddRef();
+
+	#if LOG
+	log("TextFieldProvider::QueryInterface Finish");
+	#endif
+
 	return S_OK;
 }
 
-IFACEMETHODIMP TextFieldProvider::GetSelection(SAFEARRAY** retVal)
+IFACEMETHODIMP TextFieldProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal)
 {
-	// NYI
-	return NULL;
+	#if LOG
+	log("TextFieldProvider::GetSelection Start");
+	#endif
+
+	if (!IsWindow(textFieldControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	Range caretRange = textFieldControl->GetSelectionRange();
+
+
+	ITextRangeProvider* selectionRangeProvider = new TextFieldTextRange(textFieldControl->GetHWND(), textFieldControl, caretRange);
+	HRESULT hr = S_OK;
+	if (selectionRangeProvider == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+	}
+	else
+	{
+		*retVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
+		if (*retVal == NULL)
+		{
+			hr = E_OUTOFMEMORY;
+		}
+		else
+		{
+			long index = 0;
+			hr = SafeArrayPutElement(*retVal, &index, selectionRangeProvider);
+			if (FAILED(hr))
+			{
+				SafeArrayDestroy(*retVal);
+				*retVal = NULL;
+			}
+		}
+		selectionRangeProvider->Release();
+	}
+
+	#if LOG
+	log("TextFieldProvider::GetSelection Finish");
+	#endif
+
+	return hr;
 }
 
-IFACEMETHODIMP TextFieldProvider::GetVisibleRanges(SAFEARRAY** retVal)
+IFACEMETHODIMP TextFieldProvider::GetVisibleRanges(_Outptr_result_maybenull_ SAFEARRAY** retVal)
 {
+	#if LOG
+	log("TextFieldProvider::GetVisibleRanges Start");
+	#endif
+
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -196,11 +308,20 @@ IFACEMETHODIMP TextFieldProvider::GetVisibleRanges(SAFEARRAY** retVal)
 
 	// Not Implemented yet.
 	*retVal = NULL;
+
+	#if LOG
+	log("TextFieldProvider::GetVisibleRanges Finish");
+	#endif
+
 	return S_OK;
 }
 
-IFACEMETHODIMP TextFieldProvider::RangeFromChild(IRawElementProviderSimple* childElement, ITextRangeProvider** retVal)
+IFACEMETHODIMP TextFieldProvider::RangeFromChild(_In_opt_ IRawElementProviderSimple* childElement, _Outptr_result_maybenull_ ITextRangeProvider** retVal)
 {
+	#if LOG
+	log("TextFieldProvider::RangeFromChild Start");
+	#endif
+
 	UNREFERENCED_PARAMETER(childElement);
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
@@ -209,11 +330,20 @@ IFACEMETHODIMP TextFieldProvider::RangeFromChild(IRawElementProviderSimple* chil
 
 	// There are no children of this text control
 	*retVal = NULL;
+
+	#if LOG
+	log("TextFieldProvider::RangeFromChild Finish");
+	#endif
+
 	return S_OK;
 }
 
-IFACEMETHODIMP TextFieldProvider::RangeFromPoint(UiaPoint screenLocation, ITextRangeProvider** retVal)
+IFACEMETHODIMP TextFieldProvider::RangeFromPoint(UiaPoint screenLocation, _Outptr_result_maybenull_ ITextRangeProvider** retVal)
 {
+	#if LOG
+	log("TextFieldProvider::RangeFromPoint Start");
+	#endif
+
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -230,21 +360,52 @@ IFACEMETHODIMP TextFieldProvider::RangeFromPoint(UiaPoint screenLocation, ITextR
 	Range closestRange(caretPosition, caretPosition);
 
 	*retVal = new TextFieldTextRange(textFieldControl->GetHWND(), textFieldControl, closestRange);
+
+	#if LOG
+	log("TextFieldProvider::RangeFromPoint Finish");
+	#endif
+
 	return (*retVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
-IFACEMETHODIMP TextFieldProvider::get_DocumentRange(ITextRangeProvider** retVal)
+IFACEMETHODIMP TextFieldProvider::get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider** retVal)
 {
-	// NYI
-	return NULL;
-}
+	#if LOG
+	log("TextFieldProvider::get_DocumentRange Start");
+	#endif
 
-IFACEMETHODIMP TextFieldProvider::get_SupportedTextSelection(SupportedTextSelection* retVal)
-{
 	if (!IsWindow(textFieldControl->GetHWND()))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
+
+	// Get the full text range that encompasses the document. From the first character on the first line
+	// all the way to the last character on the last line.
+	Range fullDocumentRange = { { 0 }, textFieldControl->GetTextFieldEndpoint() };
+
+	*retVal = new TextFieldTextRange(textFieldControl->GetHWND(), textFieldControl, fullDocumentRange);
+
+	#if LOG
+	log("TextFieldProvider::get_DocumentRange Finish");
+	#endif
+
+	return (*retVal == NULL) ? E_OUTOFMEMORY : S_OK;
+}
+
+IFACEMETHODIMP TextFieldProvider::get_SupportedTextSelection(_Out_ SupportedTextSelection* retVal)
+{
+	#if LOG
+	log("TextFieldProvider::get_SupportedTextSelection Start");
+	#endif
+
+	if (!IsWindow(textFieldControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	#if LOG
+	log("TextFieldProvider::get_SupportedTextSelection Finish");
+	#endif
 
 	*retVal = SupportedTextSelection_Single;
 	return S_OK;
@@ -252,19 +413,47 @@ IFACEMETHODIMP TextFieldProvider::get_SupportedTextSelection(SupportedTextSelect
 
 IFACEMETHODIMP TextFieldProvider::get_IsReadOnly(BOOL* returnValue)
 {
+	#if LOG
+	log("TextFieldProvider::get_IsReadOnly Start");
+	#endif
+
 	// Currently hard-coded to false -- Quorum text fields can't be read-only in the current version.
-	*returnValue = VARIANT_TRUE;
+	*returnValue = VARIANT_FALSE;
+
+	#if LOG
+	log("TextFieldProvider::get_IsReadOnly Finish");
+	#endif
+
 	return S_OK;
 }
 
 IFACEMETHODIMP TextFieldProvider::SetValue(LPCWSTR value)
 {
+	#if LOG
+	log("TextFieldProvider::SetValue Start");
+	#endif
+
 	// NYI
-	return E_NOTIMPL;
+
+	#if LOG
+	log("TextFieldProvider::SetValue Finish");
+	#endif
+
+	return UIA_E_NOTSUPPORTED;
 }
 
 IFACEMETHODIMP TextFieldProvider::get_Value(BSTR* returnValue)
 {
-	// NYI
-	return E_NOTIMPL;
+	#if LOG
+	log("TextFieldProvider::get_Value Start");
+	#endif
+
+	std::wstring text = textFieldControl->GetText();
+	*returnValue = SysAllocStringLen(text.data(), text.size());
+
+	#if LOG
+	log("TextFieldProvider::get_Value Finish");
+	#endif
+
+	return S_OK;
 }

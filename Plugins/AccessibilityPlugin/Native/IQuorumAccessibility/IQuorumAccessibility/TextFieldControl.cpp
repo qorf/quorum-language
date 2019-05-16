@@ -27,6 +27,10 @@ TextFieldControl::~TextFieldControl()
 // RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
 bool TextFieldControl::Initialize(_In_ HINSTANCE hInstance)
 {
+	#if LOG
+		log("TextFieldControl::Initialize Start");
+	#endif
+
 	WNDCLASSEXW wc;
 
 	ZeroMemory(&wc, sizeof(wc));
@@ -57,11 +61,19 @@ bool TextFieldControl::Initialize(_In_ HINSTANCE hInstance)
 		return false;
 	}
 
+	#if LOG
+	log("TextFieldControl::Initialize Finished");
+	#endif
+
 	return true;
 }
 
 TextFieldControl* TextFieldControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* controlName, _In_ WCHAR* controlDescription, jobject jItem)
 {
+	#if LOG
+	log("TextFieldControl::Create Start");
+	#endif
+
 	if (!initialized)
 	{
 		initialized = Initialize(instance);
@@ -101,29 +113,49 @@ TextFieldControl* TextFieldControl::Create(JNIEnv* env, _In_ HINSTANCE instance,
 		}
 		else
 		{
-
 			if (UiaClientsAreListening())
 				control->GetTextFieldProvider();
+
+			#if LOG
+			log("TextFieldControl::Initialize Finished Successfully");
+			#endif
 
 			return control;
 		}
 	}
+
+	#if LOG
+	log("TextFieldControl::Initialize Finished (RETURNED NULL)");
+	#endif
 
 	return NULL; // Indicates failure to create window.
 }
 
 TextFieldProvider* TextFieldControl::GetTextFieldProvider()
 {
+	#if LOG
+	log("TextFieldControl::GetTextFieldProvider Start");
+	#endif
+
 	if (textFieldProvider == NULL)
 	{
 		textFieldProvider = new TextFieldProvider(this);
 		UiaRaiseAutomationEvent(textFieldProvider, UIA_Window_WindowOpenedEventId);
 	}
+
+	#if LOG
+	log("TextFieldControl::GetTextFieldProvider Finished");
+	#endif
+
 	return textFieldProvider;
 }
 
 int TextFieldControl::GetCaretPosition()
 {
+	#if LOG
+	log("TextFieldControl::GetCaretPosition Start");
+	#endif
+
 	JNIEnv* env = GetJNIEnv();
 
 	jint index = 0;
@@ -134,11 +166,20 @@ int TextFieldControl::GetCaretPosition()
 
 		index = env->CallIntMethod(GetMe(), JavaClass_TextField.GetCaretPosition);
 	}
+
+	#if LOG
+	log("TextFieldControl::GetCaretPosition Finished");
+	#endif
+
 	return (int)index;
 }
 
 int TextFieldControl::GetSize()
 {
+	#if LOG
+	log("TextFieldControl::GetTextFieldProvider Start");
+	#endif
+
 	JNIEnv* env = GetJNIEnv();
 
 	jint length = 0;
@@ -154,6 +195,10 @@ int TextFieldControl::GetSize()
 
 std::wstring TextFieldControl::GetText()
 {
+	#if LOG
+	log("TextFieldControl::GetText Start");
+	#endif
+
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
@@ -166,30 +211,49 @@ std::wstring TextFieldControl::GetText()
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 
-		/* It's not clear if this component is necessary for TextField.
-		TextBoxTextAreaProvider* eventControl = new TextBoxTextAreaProvider(GetHWND(), this);
+		TextFieldProvider* eventControl = new TextFieldProvider(this);
 		if (eventControl != NULL && UiaClientsAreListening())
 		{
 			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
 			eventControl->Release();
 		}
-		*/
+
+
+		#if LOG
+		log("TextFieldControl::GetText Finished Successfully");
+		#endif
 
 		return wFullText;
 	}
+
+	#if LOG
+	log("TextFieldControl::GetText Finished (EMPTY STRING)");
+	#endif
 
 	return L"";
 }
 
 void TextFieldControl::SetControlFocus(_In_ bool focus)
 {
+	#if LOG
+	log("TextFieldControl::SetControlFocus Start");
+	#endif
+
 	focused = focus;
 	if (focused)
 		textFieldProvider->NotifyFocusGained();
+
+	#if LOG
+	log("TextFieldControl::SetControlFocus Finished");
+	#endif
 }
 
 LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	#if LOG
+	log("TextFieldControl::StaticTextFieldControlWndProc Start");
+	#endif
+
 	TextFieldControl* pThis = reinterpret_cast<TextFieldControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
@@ -207,8 +271,15 @@ LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd,
 
 	if (pThis != NULL)
 	{
+		#if LOG
+		log("TextFieldControl::StaticTextFieldControlWndProc Finished (via Non-Static Proc)");
+		#endif
 		return pThis->TextFieldControlWndProc(hwnd, message, wParam, lParam);
 	}
+
+	#if LOG
+	log("TextFieldControl::StaticTextFieldControlWndProc Finished");
+	#endif
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
@@ -216,6 +287,10 @@ LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd,
 // Control window procedure.
 LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	#if LOG
+	log("TextFieldControl::TextFieldControlWndProc Start");
+	#endif
+
 	LRESULT lResult = 0;
 
 	switch (message)
@@ -287,11 +362,19 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 
 	}
 
+	#if LOG
+	log("TextFieldControl::TextFieldControlWndProc Finished");
+	#endif
+
 	return lResult;
 }
 
 VARIANT TextFieldControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
 {
+	#if LOG
+	log("TextFieldControl::GetAttributeAtPoint Start");
+	#endif
+
 	UNREFERENCED_PARAMETER(start);
 	VARIANT retval;
 	VariantInit(&retval);
@@ -443,16 +526,29 @@ VARIANT TextFieldControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTR
 		retval.lVal = CaretBidiMode_LTR;
 	}
 
+	#if LOG
+	log("TextFieldControl::GetAttributeAtPoint Finished");
+	#endif
+
 	return retval;
 }
 
 bool TextFieldControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint* end)
 {
+	#if LOG
+	log("TextFieldControl::StepCharacter Start");
+	#endif
+
 	*end = start;
 	if (forward)
 	{
 		if (end->character >= GetSize())
+		{
+			#if LOG
+			log("TextFieldControl::GetAttributeAtPoint Finished (returned FALSE, >= case");
+			#endif
 			return false;
+		}
 
 		end->character++;
 	}
@@ -460,6 +556,9 @@ bool TextFieldControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Ou
 	{
 		if (end->character <= 0)
 		{
+			#if LOG
+			log("TextFieldControl::GetAttributeAtPoint Finished (returned FALSE, <= case)");
+			#endif
 			return false;
 		}
 		else
@@ -467,11 +566,20 @@ bool TextFieldControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Ou
 			end->character--;
 		}
 	}
+
+	#if LOG
+	log("TextFieldControl::GetAttributeAtPoint Finished (returned TRUE)");
+	#endif
+
 	return true;
 }
 
 EndPoint TextFieldControl::GetTextFieldEndpoint()
 {
+	#if LOG
+	log("TextFieldControl::GetTextFieldEndpoint Start");
+	#endif
+
 	EndPoint endOfText(0);
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
@@ -486,5 +594,36 @@ EndPoint TextFieldControl::GetTextFieldEndpoint()
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 	}
+
+	#if LOG
+	log("TextFieldControl::GetTextFieldEndpoint Finished");
+	#endif
+
 	return endOfText;
+}
+
+Range TextFieldControl::GetSelectionRange()
+{
+	JNIEnv* env = GetJNIEnv();
+	Range selectionRange = { {0}, {0} };
+
+	if (env != NULL)
+	{
+		jint index = 0;
+		jobject JO_selection;
+
+		// Wait for Quorum to write
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+
+		JO_selection = env->CallObjectMethod(GetMe(), JavaClass_TextField.GetSelection);
+
+		index = env->CallIntMethod(JO_selection, JavaClass_TextFieldSelection.GetStartIndex);
+		selectionRange.begin.character = (int)index;
+
+		index = env->CallIntMethod(JO_selection, JavaClass_TextFieldSelection.GetEndIndex);
+		selectionRange.end.character = (int)index;
+
+	}
+
+	return selectionRange;
 }

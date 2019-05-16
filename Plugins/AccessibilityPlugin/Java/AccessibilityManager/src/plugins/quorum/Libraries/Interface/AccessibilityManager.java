@@ -269,7 +269,7 @@ public class AccessibilityManager
                 break;
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
-                nativePointer = NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
+                nativePointer = 0;//NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
                 break;
             case MENU_BAR:
                 nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
@@ -559,8 +559,8 @@ public class AccessibilityManager
         if (nativePointer == null)
             return;
         
-        NativeWin32TextFieldTextSelectionChanged(nativePointer, textField.GetText(),
-            selection.GetStartIndex(), selection.GetEndIndex());
+//        NativeWin32TextFieldTextSelectionChanged(nativePointer, textField.GetText(),
+//            selection.GetStartIndex(), selection.GetEndIndex());
     }
     
     public void CaretPositionChanged(Item_ item, Text_ fullText)
