@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Number32BitArray
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector2
@@ -65,19 +66,27 @@ class Mesh is Disposable
         return temp
     end
 
+    action SetVertices(Number32BitArray vertices)
+       SetVertices(vertices, 0, vertices:GetSize()) 
+    end
+
     action SetVertices(Array<number> vertices)
        SetVertices(vertices, 0, vertices:GetSize()) 
+    end
+
+    action SetVertices(Number32BitArray vertices, integer offset, integer count)
+        me:vertices:SetVertices(vertices, offset, count)
     end
 
     action SetVertices(Array<number> vertices, integer offset, integer count)
         me:vertices:SetVertices(vertices, offset, count)
     end
 
-    action UpdateVertices(integer targetOffset, Array<number> source)
+    action UpdateVertices(integer targetOffset, Number32BitArray source)
         UpdateVertices(targetOffset, source, 0, source:GetSize())
     end
 
-    action UpdateVertices(integer targetOffset, Array<number> source, integer sourceOffset, integer count)
+    action UpdateVertices(integer targetOffset, Number32BitArray source, integer sourceOffset, integer count)
         vertices:UpdateVertices(targetOffset, source, sourceOffset, count)
     end
 
@@ -179,5 +188,4 @@ class Mesh is Disposable
     are maintained so that they can be reloaded in case of context loss.
     */
     private system action RemoveReloadableMesh
-
 end

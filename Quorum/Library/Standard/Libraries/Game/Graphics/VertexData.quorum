@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
 use Libraries.Game.Disposable
 
@@ -34,15 +35,23 @@ class VertexData is Disposable
     and the user should provide the number of vertices to use from the array
     by supplying the count.
     */
+    blueprint action SetVertices(Number32BitArray vertices, integer offset, integer count)
+
+    /*
+    This action sets the vertices of this VertexData to match the given array
+    of numbers. This will also set an offset of the given amount in to the array,
+    and the user should provide the number of vertices to use from the array
+    by supplying the count.
+    */
     blueprint action SetVertices(Array<number> vertices, integer offset, integer count)
 
-    blueprint action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+    blueprint action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
 
     // Used to invalidate the data when applicable, e.g. due to context loss.
     blueprint action Reload
 
     // Used to load an Array<number> into the VertexData's buffer.
-    blueprint action FillVertexBuffer(Array<number> vertices)
+    blueprint action FillVertexBuffer(Number32BitArray vertices)
 
     /*
     This action is never called or used. It exists only as a hack to force the

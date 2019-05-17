@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.VertexData
 use Libraries.Containers.Array
 
@@ -40,6 +41,11 @@ class VertexArray is VertexData
     and the user should provide the number of vertices to use from the array
     by supplying the count.
     */
+    action SetVertices(Number32BitArray vertices, integer offset, integer count)
+        SendToBridgeArray(vertices, offset, count)
+        SetVerticesNative(offset, count)
+    end
+
     action SetVertices(Array<number> vertices, integer offset, integer count)
         SendToBridgeArray(vertices, offset, count)
         SetVerticesNative(offset, count)
@@ -47,7 +53,7 @@ class VertexArray is VertexData
 
     private system action SetVerticesNative(integer offset, integer count)
 
-    action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+    action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
         SendToBridgeArray(vertices, sourceOffset, count)
         UpdateVerticesNative(targetOffset, sourceOffset, count)
     end
@@ -63,7 +69,7 @@ class VertexArray is VertexData
     This action directly copies an array of vertices into the buffer of this
     VertexArray.
     */
-    action FillVertexBuffer(Array<number> vertices)
+    action FillVertexBuffer(Number32BitArray vertices)
         SendToBridgeArray(vertices)
         PopulateVertexBuffer()
     end
@@ -79,10 +85,20 @@ class VertexArray is VertexData
     private system action PrepareBridgeArray(integer length)
 
     /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
-    private action SendToBridgeArray(Array<number> array)
+    private action SendToBridgeArray(Number32BitArray array)
         PrepareBridgeArray(array:GetSize())
         integer index = 0
         repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
+    /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Number32BitArray array, integer offset, integer count)
+        PrepareBridgeArray(count)
+        integer index = offset
+        repeat count times
             SendToBridgeArray(index, array:Get(index))
             index = index + 1
         end
