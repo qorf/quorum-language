@@ -1,6 +1,5 @@
 package Libraries.Interface.Layouts
 
-use Libraries.Language.Support.CompareResult
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
@@ -589,28 +588,28 @@ class LayoutProperties
         needsRendering = shouldRender
     end
 
-    action Compare(Object object) returns CompareResult
+    action Compare(Object object) returns integer
         if object is LayoutProperties
             LayoutProperties layout = cast(LayoutProperties, object)
             number myWidth = GetMaximumContainerWidth()
             number testWidth = layout:GetMaximumContainerWidth()
-            CompareResult result
 
+            integer result = 0
             if myWidth < testWidth
-                result:result = result:SMALLER
+                result = -1
             elseif myWidth = testWidth
                 number myHeight = GetMaximumContainerHeight()
                 number testHeight = layout:GetMaximumContainerHeight()
 
                 if myHeight < testHeight
-                    result:result = result:SMALLER
+                    result = -1
                 elseif myHeight = testHeight
-                    result:result = result:EQUAL
+                    result = 0
                 else
-                    result:result = result:LARGER
+                    result = 1
                 end
             else
-                result:result = result:LARGER
+                result = 1
             end
 
             return result

@@ -100,25 +100,24 @@ class SortableContainer <Type1, Type2>
     end
 
     /*
-    The Compare action will return a CompareResult. If the given parameter is a
+    The Compare action will return an integer. If the given parameter is a
     SortableContainer, the result will indicate whether the sorter value of the
     container was smaller, equal, or larger than the sorter value of this
     SortableContainer. If the object isn't a SortableContainer, the
-    CompareResult will instead be the comparison of the hash values of the
+    integer will instead be the comparison of the hash values of the
     two objects.
 
     Attribute: Example
 
         use Libraries.Game.SortableContainer
-        use Libraries.Language.Support.CompareResult
 
         SortableContainer<integer, text> container1
         SortableContainer<integer, text> container2
         container1:Set(2, "The second value")
         container2:Set(1, "The first value")
-        CompareResult result = container1:Compare(container2)
+        integer result = container1:Compare(container2) //1 (larger), 0 (equal), or -1 (smaller)
     */
-    action Compare(Object object) returns CompareResult
+    action Compare(Object object) returns integer
         if not (object is SortableContainer)
             return parent:Object:Compare(object)
         end

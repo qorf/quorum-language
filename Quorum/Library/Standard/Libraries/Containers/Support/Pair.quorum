@@ -39,8 +39,8 @@ class Pair <Type>
         Attribute: Returns The larger value in the pair.
     */
     action GetGreatestValue returns Type
-        CompareResult result = first:Compare(second)
-        if result:result = result:LARGER
+        integer result = first:Compare(second)
+        if result = 1
             return first
         else
             return second
@@ -51,8 +51,8 @@ class Pair <Type>
         Attribute: Returns The smaller value in the pair.
     */
     action GetLeastValue returns Type
-        CompareResult result = first:Compare(second)
-        if result:result = result:SMALLER
+        integer result = first:Compare(second)
+        if result = -1
             return first
         else
             return second

@@ -62,27 +62,21 @@ class CollisionPair
     Attribute: Parameter otherPair The CollisionPair to compare to.
     Attribute: Returns whether the current CollisionPair is SMALLER, EQUAL, or LARGER than the otherPair.
     */
-    action Compare(CollisionPair otherPair) returns CompareResult
-        CompareResult result
+    action Compare(CollisionPair otherPair) returns integer
         if me:nodeIDA < otherPair:nodeIDA
-            result:result = result:SMALLER
-            return result
+            return  -1
         end
 
         if me:nodeIDA = otherPair:nodeIDA
             if me:nodeIDB < otherPair:nodeIDB
-                result:result = result:SMALLER
-                return result
+                return -1
             elseif me:nodeIDB = otherPair:nodeIDB
-                result:result = result:EQUAL
-                return result
+                return 0
             else
-                result:result = result:LARGER
-                return result
+                return 1
             end
         end
 
-        result:result = result:LARGER
-        return result
+        return 1
     end
 end

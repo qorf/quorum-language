@@ -4,7 +4,6 @@ use Libraries.Containers.Array
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
 use Libraries.Language.Object
-use Libraries.Language.Support.CompareResult
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Environment
@@ -45,7 +44,7 @@ class Renderable
 
     private system action SetNative(Renderable renderable)
 
-    action Compare(Object object) returns CompareResult
+    action Compare(Object object) returns integer
 
         Camera cam = GetCamera()
 
@@ -53,7 +52,7 @@ class Renderable
             return parent:Object:Compare(object)
         end
 
-        CompareResult result
+        integer result = 0
         Renderable other = cast(Renderable, object)
 
         if material = undefined or other:material = undefined
@@ -79,10 +78,10 @@ class Renderable
 
         if not blend1 = blend2
             if blend1
-                result:result = result:LARGER
+                result = 1
                 return result
             else
-                result:result = result:SMALLER
+                result = -1
                 return result
             end
         end
@@ -92,7 +91,7 @@ class Renderable
 
         integer distance = cast(integer, (1000.0 * cam:GetPosition():DistanceSquared(tempV1))) - cast(integer, (1000.0 * cam:GetPosition():DistanceSquared(tempV2)))
         if distance = 0
-            result:result = result:EQUAL
+            result = 0
             return result
         end
 
@@ -102,9 +101,9 @@ class Renderable
         end
 
         if smaller
-            result:result = result:SMALLER
+            result = -1
         else
-            result:result = result:LARGER
+            result = 1
         end
 
         return result

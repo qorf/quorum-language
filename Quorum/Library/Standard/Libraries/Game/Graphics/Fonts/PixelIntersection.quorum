@@ -1,6 +1,5 @@
 package Libraries.Game.Graphics.Fonts
 
-use Libraries.Language.Support.CompareResult
 use Libraries.Game.Graphics.Fonts.all
 
 /*
@@ -173,7 +172,6 @@ class PixelIntersection
 
         use Libraries.Game.Graphics.Fonts.all
         use Libraries.Game.Game
-        use Libraries.Language.Support.CompareResult
 
         class Main is Game
             action Main
@@ -183,15 +181,12 @@ class PixelIntersection
             action CreateGame
                 PixelIntersection pixel
                 PixelIntersection pixel2
-                CompareResult result
-                result = pixel:Compare(pixel2)
+                integer result = pixel:Compare(pixel2)
             end
         end
     */
-    action Compare(Object intersection) returns CompareResult
-        CompareResult result
+    action Compare(Object intersection) returns integer
         PixelIntersection intersection2 = cast(PixelIntersection, intersection)
-        result = me:xPosition:Compare(intersection2:GetXPosition())
-        return result
+        return me:xPosition:Compare(intersection2:GetXPosition())
     end
 end

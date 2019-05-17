@@ -1,7 +1,6 @@
 package Libraries.Language.Types
 
 use Libraries.Language.Object
-use Libraries.Language.Support.CompareResult
 
 /*
 The Boolean class is the object representation of the primitive type boolean. 
@@ -70,36 +69,32 @@ class Boolean
     end
 
     /*
-        This action compares two object values and returns a CompareResult.
+        This action compares two object values and returns an integer.
         The compare result is either larger if this hash code is larger than
         the object passed as a parameter, smaller, or equal.
 
         Attribute: Parameter object The object to compare to.
-        Attribute: Returns The Comprare result, Smaller, Equal, or Larger. 
+        Attribute: Returns The Comprare result, Smaller (-1), Equal (0), or Larger (1).
 
         Attribute: Example
-        use Libraries.Language.Support.CompareResult
         Boolean o
         Boolean t
         
-        CompareResult result = o:Compare(t)
+        integer result = o:Compare(t) //1 (larger), 0 (equal), or -1 (smaller)
     */  
-    action Compare(Object object) returns CompareResult
-        CompareResult result
-
+    action Compare(Object object) returns integer
         boolean thisOne = me:value
         Boolean b = cast(Boolean, object)
 
         boolean other = b:GetValue()
 
         if thisOne = other
-            result:result = result:EQUAL
+            return 0
         elseif thisOne = false and other = true
-            result:result = result:SMALLER
+            return -1
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
 
     /*
