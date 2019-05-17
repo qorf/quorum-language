@@ -1162,6 +1162,11 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         TypeChecker checker = GetTypeChecker()
 
+        //so far as I can tell, this only happens when we have a cascading error,
+        //which doesn't need to be reported to the user.
+        if field = undefined
+            return now
+        end
         Type fieldType = field:GetType()
         if fieldType:IsMappedToGeneric()
             text map = fieldType:GetMappedGeneric()

@@ -5,17 +5,28 @@ class ClassAttribute
     public text name = ""
     public integer value = 0
 
-    action Compare(Object object) returns CompareResult
-        CompareResult result
+    action Compare(Object object) returns integer
         ClassAttribute attribute = cast(ClassAttribute, object)
         if value > attribute:value //reverse the order
-            result:result = result:SMALLER
+            return -1
         elseif value < attribute:value
-            result:result = result:LARGER
+            return 1
         else 
-            result:result = result:EQUAL
+            return 0
         end
-
-        return result
     end
+//
+//    action Compare(Object object) returns CompareResult
+//        CompareResult result
+//        ClassAttribute attribute = cast(ClassAttribute, object)
+//        if value > attribute:value //reverse the order
+//            result:result = result:SMALLER
+//        elseif value < attribute:value
+//            result:result = result:LARGER
+//        else 
+//            result:result = result:EQUAL
+//        end
+//
+//        return result
+//    end
 end
