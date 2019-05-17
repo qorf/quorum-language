@@ -13,7 +13,7 @@ import quorum.Libraries.Language.Errors.InvalidLocationError;
  */
 public class Number32BitArray {
     public java.lang.Object me_ = null;
-    private float[] floats;
+    public float[] floats;
     
     public double Get(int index) throws InvalidLocationError {
         if(floats == null || index >= floats.length || index < 0) {
