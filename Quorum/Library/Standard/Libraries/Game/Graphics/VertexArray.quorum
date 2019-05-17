@@ -74,6 +74,8 @@ class VertexArray is VertexData
         PopulateVertexBuffer()
     end
 
+    private system action SendToBridgeArray(Number32BitArray vertices)
+
     /*
     Directly copies the data stored in the bridge array into the buffer
     stored in the plugin class.
@@ -83,16 +85,6 @@ class VertexArray is VertexData
     /* Used to inform the plugin that we are about to send a new array of
     doubles with the given length. */
     private system action PrepareBridgeArray(integer length)
-
-    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
-    private action SendToBridgeArray(Number32BitArray array)
-        PrepareBridgeArray(array:GetSize())
-        integer index = 0
-        repeat array:GetSize() times
-            SendToBridgeArray(index, array:Get(index))
-            index = index + 1
-        end
-    end
 
     /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
     private action SendToBridgeArray(Number32BitArray array, integer offset, integer count)
