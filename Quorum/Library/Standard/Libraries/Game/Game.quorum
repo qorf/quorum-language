@@ -72,6 +72,7 @@ use Libraries.Interface.Behaviors.Controls.MenuRootLeftBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootRightBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootActivateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootUpBehavior
+use Libraries.Interface.Behaviors.Controls.MenuRootCloseBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
@@ -879,6 +880,7 @@ class Game
         MenuRootLeftBehavior menuLeftBehavior
         MenuRootRightBehavior menuRightBehavior
         MenuRootActivateBehavior menuRunBehavior
+        MenuRootCloseBehavior menuCloseBehavior
 
         menuRootTable:Add(downArrow, menuDownBehavior)
         menuRootTable:Add(upArrow, menuUpBehavior)
@@ -890,6 +892,11 @@ class Game
 
         menuRootTable:Add(spaceBar, menuRunBehavior)
         menuRootTable:Add(enter, menuRunBehavior)
+
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        
+        menuRootTable:Add(escapeSet, menuCloseBehavior)
 
         gameInput:AddInputTable(menuRootTable)
 
