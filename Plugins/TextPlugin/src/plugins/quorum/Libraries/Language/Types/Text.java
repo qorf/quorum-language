@@ -319,7 +319,7 @@ public class Text {
         return self.equals(t.GetValue());
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
+    public static int PrimitiveCompare(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -327,21 +327,18 @@ public class Text {
 //            throw(error);
         }
         
-        quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
         Text_ t = (Text_)obj;
         int result = self.compareTo(t.GetValue());
         if(result == 0){
-            r.result = r.EQUAL;
+            return 0;
         } else if(result > 0){
-            r.result = r.LARGER;
+            return 1;
         } else {
-            r.result = r.SMALLER;
-        }
-        return r;
-        
+            return -1;
+        }       
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
+    public static int PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -349,18 +346,15 @@ public class Text {
 //            throw(error);
         }
         
-        quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
         Text_ t = (Text_)obj;
         int result = self.compareToIgnoreCase(t.GetValue());
         if(result == 0){
-            r.result = r.EQUAL;
+            return 0;
         } else if(result > 0){
-            r.result = r.LARGER;
+            return 1;
         } else {
-            r.result = r.SMALLER;
+            return -1;
         }
-        return r;
-        
     }
     
     public static boolean PrimitiveContains(String self, String right) {//throws Error{
