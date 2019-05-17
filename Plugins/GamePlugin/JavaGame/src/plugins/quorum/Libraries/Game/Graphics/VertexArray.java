@@ -28,6 +28,8 @@ import quorum.Libraries.Game.Graphics.VertexAttribute_;
 
 // Dependencies to remove:
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
+import quorum.Libraries.Containers.Number32BitArray;
+import quorum.Libraries.Containers.Number32BitArray_;
 
 
 /** <p>
@@ -235,6 +237,13 @@ public class VertexArray extends VertexData
     public void PrepareBridgeArray(int length)
     {
         bridgeArray = new float[length];
+    }
+    
+    public void SendToBridgeArray(Number32BitArray_ vertices)
+    {
+        Number32BitArray array = (Number32BitArray) vertices;
+        plugins.quorum.Libraries.Containers.Number32BitArray plugin = array.plugin_;
+        bridgeArray = plugin.floats;
     }
     
     public void SendToBridgeArray(int index, double value)

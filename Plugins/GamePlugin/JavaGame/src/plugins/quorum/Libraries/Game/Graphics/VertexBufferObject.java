@@ -8,16 +8,14 @@ package plugins.quorum.Libraries.Game.Graphics;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameStateManager;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
-//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
-
-import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.VertexAttribute_;
 import quorum.Libraries.Game.Graphics.VertexAttributes_;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import quorum.Libraries.Containers.Number32BitArray;
+import quorum.Libraries.Containers.Number32BitArray_;
 
 /**
  *
@@ -235,6 +233,13 @@ public class VertexBufferObject extends VertexData
     public void PrepareBridgeArray(int length)
     {
         bridgeArray = new float[length];
+    }
+    
+    public void SendToBridgeArray(Number32BitArray_ vertices)
+    {
+        Number32BitArray array = (Number32BitArray) vertices;
+        plugins.quorum.Libraries.Containers.Number32BitArray plugin = array.plugin_;
+        bridgeArray = plugin.floats;
     }
     
     public void SendToBridgeArray(int index, double value)
