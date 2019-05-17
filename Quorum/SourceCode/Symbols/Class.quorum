@@ -2328,19 +2328,33 @@ class Class is Symbol
         CalculateStaticKey()
     end
 
-    action Compare(Object object) returns CompareResult
-        CompareResult result
+    action Compare(Object object) returns integer
         Class right = cast(Class, object)
         text l = GetStaticKey()
         text r = right:GetStaticKey()
 
         if l < r
-            result:result = result:SMALLER
+            return -1
         elseif l = r
-            result:result = result:EQUAL
+            return 0
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
+//
+//    action Compare(Object object) returns CompareResult
+//        CompareResult result
+//        Class right = cast(Class, object)
+//        text l = GetStaticKey()
+//        text r = right:GetStaticKey()
+//
+//        if l < r
+//            result:result = result:SMALLER
+//        elseif l = r
+//            result:result = result:EQUAL
+//        else
+//            result:result = result:LARGER
+//        end
+//        return result
+//    end
 end

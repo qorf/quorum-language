@@ -124,17 +124,15 @@ public class Number {
         return "" + self;
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(double self, quorum.Libraries.Language.Object_ obj){
-        quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
+    public static int PrimitiveCompare(double self, quorum.Libraries.Language.Object_ obj){
         Number_ t = (Number_)obj;
         if(self == t.GetValue()){
-            r.result = r.EQUAL;
+            return 0;
         } else if(self > t.GetValue()){
-            r.result = r.LARGER;
+            return 1;
         } else {
-            r.result = r.SMALLER;
+            return -1;
         }
-        return r;
     }
     
     public String GetHex(){

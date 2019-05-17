@@ -1,5 +1,3 @@
-use Libraries.Language.Support.CompareResult
-
 class Main
     action Main
         Text t1 
@@ -9,11 +7,11 @@ class Main
         t1:SetValue(p1)
         t2:SetValue(p2)
 
-        CompareResult result
+        integer result = 0
         result = p1:CompareIgnoringCase(p2)
-        output result:result = result:EQUAL
+        output result = 0
         result = t1:CompareIgnoringCase(t2)
-        output result:result = result:EQUAL
+        output result = 0
         
         p1 = "Abc"
         p2 = "abcDEF"
@@ -21,9 +19,9 @@ class Main
         t2:SetValue(p2)
 
         result = p1:CompareIgnoringCase(p2)
-        output result:result = result:SMALLER
+        output result = -1
         result = t1:CompareIgnoringCase(t2)
-        output result:result = result:SMALLER
+        output result = -1
         
         p1 = "Abc"
         p2 = "ab"
@@ -31,9 +29,9 @@ class Main
         t2:SetValue(p2)
 
         result = p1:CompareIgnoringCase(p2)
-        output result:result = result:LARGER
+        output result = 1
         result = t1:CompareIgnoringCase(t2)
-        output result:result = result:LARGER
+        output result = 1
         
         p1 = "abc"
         p2 = "ABC"
@@ -41,8 +39,8 @@ class Main
         t2:SetValue(p2)
 
         result = p1:CompareIgnoringCase(p2)
-        output result:result = result:EQUAL
+        output result = 0
         result = t1:CompareIgnoringCase(t2)
-        output result:result = result:EQUAL
+        output result = 0
     end
 end

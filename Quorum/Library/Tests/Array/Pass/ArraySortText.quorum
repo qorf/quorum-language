@@ -1,7 +1,6 @@
 use Libraries.Containers.Array
 use Libraries.Compute.Random
 use Libraries.Containers.Iterator
-use Libraries.Language.Support.CompareResult
 
 class Main
     action Main
@@ -18,8 +17,8 @@ class Main
         result = ""
         repeat while after:HasNext()
             out = after:Next()
-            CompareResult res = out:Compare(first)
-            if res:result = res:LARGER or res:result = res:EQUAL
+            integer res = out:Compare(first)
+            if res = 1 or res = 0
                 first = out
             else
                 isSorted = false

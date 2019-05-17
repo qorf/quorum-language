@@ -547,19 +547,33 @@ class Action is Symbol
         return result
     end
 
-    action Compare(Object object) returns CompareResult
-        CompareResult result
+    action Compare(Object object) returns integer
         Action right = cast(Action, object)
         text l = GetName()
         text r = right:GetName()
 
         if l < r
-            result:result = result:SMALLER
+            return -1
         elseif l = r
-            result:result = result:EQUAL
+            return 0
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
+//
+//    action Compare(Object object) returns CompareResult
+//        CompareResult result
+//        Action right = cast(Action, object)
+//        text l = GetName()
+//        text r = right:GetName()
+//
+//        if l < r
+//            result:result = result:SMALLER
+//        elseif l = r
+//            result:result = result:EQUAL
+//        else
+//            result:result = result:LARGER
+//        end
+//        return result
+//    end
 end

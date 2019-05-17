@@ -102,17 +102,15 @@ public class Boolean {
         return result;
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(boolean self, quorum.Libraries.Language.Object_ obj){
-        quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
+    public static int PrimitiveCompare(boolean self, quorum.Libraries.Language.Object_ obj){
         Boolean_ t = (Boolean_)obj;
         if(self == t.GetValue()){
-            r.result = r.EQUAL;
+            return 0;
         } else if(self == false && t.GetValue() == true){
-            r.result = r.SMALLER;
+            return -1;
         } else {
-            r.result = r.LARGER;
+            return 1;
         }
-        return r;
     }
     
     public int GetHashCode() {

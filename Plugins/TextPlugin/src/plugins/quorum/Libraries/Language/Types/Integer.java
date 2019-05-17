@@ -76,17 +76,15 @@ public class Integer {
         return "" + self;
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(int self, quorum.Libraries.Language.Object_ obj){
-        quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
+    public static int PrimitiveCompare(int self, quorum.Libraries.Language.Object_ obj){
         Integer_ t = (Integer_)obj;
         if(self == t.GetValue()){
-            r.result = r.EQUAL;
+            return 0;
         } else if(self > t.GetValue()){
-            r.result = r.LARGER;
+            return 1;
         } else {
-            r.result = r.SMALLER;
+            return -1;
         }
-        return r;
     }
     
     public int BitCount(){

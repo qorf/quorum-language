@@ -676,8 +676,8 @@ class Array <Type>
         repeat while leftTemp <= leftEnd and centerTemp <= right 
             Type l = original:Get(leftTemp)
             Type r = original:Get(centerTemp)
-            CompareResult result = l:Compare(r)
-            if  result:result = result:SMALLER or result:result = result:EQUAL
+            integer result = l:Compare(r)
+            if  result = -1 or result = 0
                 temp:Set(position, original:Get(leftTemp))
                 leftTemp = leftTemp + 1
             else 

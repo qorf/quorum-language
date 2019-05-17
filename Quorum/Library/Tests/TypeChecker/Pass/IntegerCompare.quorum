@@ -1,4 +1,3 @@
-use Libraries.Language.Support.CompareResult
 
 class Main
     action Main
@@ -6,8 +5,8 @@ class Main
         var1:SetValue(-13)
         Integer var2
         var2:SetValue(450)
-        CompareResult result = var1:Compare(var2)
-        boolean final = result:result = result:SMALLER
+        integer result = var1:Compare(var2)
+        boolean final = result = -1
         output final
     end
 end

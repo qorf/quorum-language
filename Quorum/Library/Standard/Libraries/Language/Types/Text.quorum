@@ -1,7 +1,6 @@
 package Libraries.Language.Types
 
 use Libraries.Language.Object
-use Libraries.Language.Support.CompareResult
 use Libraries.Containers.Array
 use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Language.Errors.UndefinedObjectError
@@ -461,7 +460,7 @@ class Text is Object
 
     private system action EqualsIgnoringCaseNative(text left, text right) returns boolean
     /*
-        This action compares two object values and returns a CompareResult.
+        This action compares two object values and returns an integer.
         The compare result is either larger if this hash code is larger than
         the object passed as a parameter, smaller, or equal.
 
@@ -469,13 +468,11 @@ class Text is Object
         Attribute: Returns The Comprare result, Smaller, Equal, or Larger. 
 
         Attribute: Example
-        use Libraries.Language.Support.CompareResult
         Text o
         Text t
-        CompareResult result = o:Compare(t)
+        integer result = o:Compare(t) //1 (larger), 0 (equal), or -1 (smaller)
     */ 
-    action Compare(Object object) returns CompareResult
-        CompareResult result
+    action Compare(Object object) returns integer
         text thisOne = me:value
         Text b = cast(Text, object)
         text other = b:GetValue()
@@ -483,13 +480,12 @@ class Text is Object
         integer nativeResult = CompareInt(thisOne, other, false)
 
         if nativeResult = 0
-            result:result = result:EQUAL
+            return 0
         elseif nativeResult < 0
-            result:result = result:SMALLER
+            return -1
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
 
     /*
@@ -504,10 +500,9 @@ class Text is Object
         use Libraries.Language.Support.CompareResult
         Text o
         Text t
-        CompareResult result = o:CompareIgnoringCase(t)
+        integer result = o:CompareIgnoringCase(t) //1 (larger), 0 (equal), or -1 (smaller)
     */ 
-    action CompareIgnoringCase(Object object) returns CompareResult
-        CompareResult result
+    action CompareIgnoringCase(Object object) returns integer
         text thisOne = me:value
         Text b = cast(Text, object)
         text other = b:GetValue()
@@ -515,13 +510,12 @@ class Text is Object
         integer nativeResult = CompareInt(thisOne, other, true)
 
         if nativeResult = 0
-            result:result = result:EQUAL
+            return 0
         elseif nativeResult < 0
-            result:result = result:SMALLER
+            return -1
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
 
     private system action CompareInt(text left, text right, boolean isIgnoringCase) returns integer

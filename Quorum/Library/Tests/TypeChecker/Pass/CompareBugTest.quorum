@@ -1,7 +1,3 @@
-use Libraries.Language.Support.CompareResult
-// not quite sure what happens here but this thing throws weird errors
-// PMD: Test case was wrong before...needed Integer object to use Compare, not primitive
-
 class CompareBugTest
     Integer power
     
@@ -18,16 +14,14 @@ class CompareBugTest
     end
     
     action Comp(CompareBugTest otherPower) returns text
-        CompareResult outcome = power:Compare(otherPower:GetPower())
+        integer result = power:Compare(otherPower:GetPower())
         t = ""
-        if outcome:result = outcome:LARGER
+        if result = 1
             t = "Larger"
-        elseif outcome:result = outcome:SMALLER
+        elseif result = -1
             t = "Smaller"
-        elseif outcome:result = outcome:EQUAL
+        elseif result = 0
             t = "Equal"
-        elseif outcome:result = outcome:INVALID
-            t = "Invalid"
         end
         return t
     end

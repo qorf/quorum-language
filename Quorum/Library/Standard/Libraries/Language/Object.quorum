@@ -1,7 +1,5 @@
 package Libraries.Language
 
-use Libraries.Language.Support.CompareResult
-
 /*
 The Object class is the basic building block of all classes. This means 
 everything is an Object and some of it's basic functionality is available
@@ -55,31 +53,31 @@ class Object
     system action GetHashCode() returns integer
 
     /*
-        This action compares two object hash codes and returns a CompareResult.
-        The compare result is either larger if this hash code is larger than
-        the object passed as a parameter, smaller, or equal.
+        This action compares two object hash codes and returns an integer.
+        The result is larger if this hash code is larger than
+        the object passed as a parameter, smaller, or equal. In this case,
+        -1 means smaller, 0 means equal, and 1 means larger. This action was changed
+        in Quorum 7 to return an integer, instead of a CompareResult object, because
+        the previous implementation was causing efficiency issues.
 
         Attribute: Parameter object The object to compare to.
         Attribute: Returns The Compare result, Smaller, Equal, or Larger. 
 
         Attribute: Example
-        use Libraries.Language.Support.CompareResult
         Object o
         Object t
-        CompareResult result = o:Compare(t)
+        integer result = o:Compare(t) //1 (larger), 0 (equal), or -1 (smaller)
     */ 
-    action Compare(Object object) returns CompareResult
-        CompareResult result
+    action Compare(Object object) returns integer
         integer myHash = me:GetHashCode()
         integer oHash = object:GetHashCode()
 
         if myHash < oHash
-            result:result = result:SMALLER
+            return -1
         elseif myHash = oHash
-            result:result = result:EQUAL
+            return 0
         else
-            result:result = result:LARGER
+            return 1
         end
-        return result
     end
 end
