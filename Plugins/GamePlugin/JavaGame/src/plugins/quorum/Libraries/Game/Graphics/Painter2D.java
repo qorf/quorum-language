@@ -3,12 +3,6 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-//import plugins.quorum.Libraries.Game.libGDX.Mesh;
-//import plugins.quorum.Libraries.Game.libGDX.Mesh.VertexDataType;
-//import plugins.quorum.Libraries.Game.libGDX.VertexAttribute;
-//import plugins.quorum.Libraries.Game.libGDX.VertexAttributes.Usage;
-//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
-//import plugins.quorum.Libraries.Game.libGDX.Matrix4;
 import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Compute.Matrix4;
@@ -290,7 +284,7 @@ public class Painter2D
         
         quorumBatch.lastTexture.Bind();
         
-        mesh.SetVertices(quorumBatch.GetVertices(), 0, index);
+        mesh.SetVertices(quorumBatch.GetVertices());//, 0, index);
         ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().position(0);
         ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().limit(count);
         
