@@ -14,7 +14,6 @@ use Libraries.Interface.Events.CollisionEvent3D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Graphics.Painter3D
@@ -106,6 +105,7 @@ class Layer3D is Layer
     boolean subStepping = false
     boolean stepComplete = true
     boolean requireSimulation = false
+    Math math
 
     number inverseDeltaTime0 = 0
 
@@ -129,7 +129,8 @@ class Layer3D is Layer
     possible candidates for mouse and touch events. Since it will be reused
     often, it must be emptied after each use.
     */
-    Array<SortableContainer<number, Item3D>> eventTargetArray
+    Array<Item3D> eventTargetArray
+    Item3DDepthComparison depthSorter
 
     on create
         PerspectiveCamera cam
@@ -1106,9 +1107,7 @@ class Layer3D is Layer
         repeat allItems:GetSize() times
             temp = allItems:Get(counter)
             if RayIntersectsItem(ray, temp)
-                SortableContainer<number, Item3D> container
-                container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
-                eventTargetArray:Add(container)
+                eventTargetArray:Add(temp)
             end
 
             counter = counter + 1
@@ -1117,14 +1116,15 @@ class Layer3D is Layer
         boolean processing = true
 
         if eventTargetArray:GetSize() not= 0
-            eventTargetArray:Sort()
+            depthSorter:SetOrigin(origin)
+            eventTargetArray:Sort(depthSorter)
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
-                event:SetSource(eventTargetArray:Get(counter):GetValue())
-                eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
+                event:SetSource(eventTargetArray:Get(counter))
+                eventTargetArray:Get(counter):ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
                 if event:WasEventHandled()
-                    result = eventTargetArray:Get(counter):GetValue()
+                    result = eventTargetArray:Get(counter)
                 end
                 counter = counter + 1
             end
@@ -1222,9 +1222,7 @@ class Layer3D is Layer
         repeat allItems:GetSize() times
             temp = allItems:Get(counter)
             if RayIntersectsItem(ray, temp)
-                SortableContainer<number, Item3D> container
-                container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
-                eventTargetArray:Add(container)
+                eventTargetArray:Add(temp)
             end
 
             counter = counter + 1
@@ -1233,14 +1231,15 @@ class Layer3D is Layer
         boolean processing = true
 
         if eventTargetArray:GetSize() not= 0
-            eventTargetArray:Sort()
+            depthSorter:SetOrigin(origin)
+            eventTargetArray:Sort(depthSorter)
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
-                event:SetSource(eventTargetArray:Get(counter):GetValue())
-                eventTargetArray:Get(counter):GetValue():ProcessTouchEvent(event)
+                event:SetSource(eventTargetArray:Get(counter))
+                eventTargetArray:Get(counter):ProcessTouchEvent(event)
                 processing = not event:WasEventHandled()
                 if event:WasEventHandled()
-                    result = eventTargetArray:Get(counter):GetValue()
+                    result = eventTargetArray:Get(counter)
                 end
                 counter = counter + 1
             end
@@ -2751,8 +2750,6 @@ class Layer3D is Layer
 
         collisionManager:FindNewCollisions()
     end
-    
-    Math math
 
     action SynchronizeTransforms
         PhysicsPosition3D predictedTransform

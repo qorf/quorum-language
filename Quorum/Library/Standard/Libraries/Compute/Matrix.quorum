@@ -33,6 +33,7 @@ end
 */
 class Matrix
     private Table<number> table
+    Math math
 
     private action CheckReference(integer row, integer column)
         if column < 0
@@ -1760,7 +1761,6 @@ class Matrix
     end
     */
     action GetStandardDeviation returns number
-        Math math
         return math:SquareRoot(GetVariance())
     end
 

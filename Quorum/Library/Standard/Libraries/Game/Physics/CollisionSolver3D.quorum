@@ -31,6 +31,7 @@ class CollisionSolver3D
     Array<integer> orderFrictionConstraintPool
 
     integer seed = 0
+    Math math
 
     on create
         repeat MAX_SOLVER_POINTS times
@@ -920,7 +921,6 @@ class CollisionSolver3D
                 Vector3 n = cp:GetWorldNormalOnB()
                 Vector3 p = cpd:GetFrictionWorldTangential0()
                 Vector3 q = cpd:GetFrictionWorldTangential1()
-                Math math
 
                 if math:AbsoluteValue(n:GetZ()) > math:SquareRoot(0.5)
                     number a = n:GetY() * n:GetY() + n:GetZ() * n:GetZ()
@@ -1049,7 +1049,6 @@ class CollisionSolver3D
         seed = 0
     end
 
-    Math math
     BitwiseOperations bo
 
     /*

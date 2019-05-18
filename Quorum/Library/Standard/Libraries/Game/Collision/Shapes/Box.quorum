@@ -20,6 +20,7 @@ class Box is CollisionShape3D
     Vector3 localBoundingBoxMinimum
     Vector3 localBoundingBoxMaximum
     boolean isLocalBoundingBoxValid = false
+    Math math
 
     on create
         parent:CollisionShape3D:SetType(parent:CollisionShape3D:BOX)
@@ -98,8 +99,6 @@ class Box is CollisionShape3D
         halfExtentsWithMargin:SetX(halfExtents:GetX() + margin)
         halfExtentsWithMargin:SetY(halfExtents:GetY() + margin)
         halfExtentsWithMargin:SetZ(halfExtents:GetZ() + margin)
-
-        Math math
 
         Matrix3 abs_b
         abs_b:Set(transform:GetBasis())

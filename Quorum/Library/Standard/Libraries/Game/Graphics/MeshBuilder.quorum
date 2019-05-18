@@ -15,6 +15,7 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.BoundingBox
 use Libraries.Game.NumberUtilities
+use Libraries.Containers.Integer32BitArray
 
 class MeshBuilder 
 
@@ -313,8 +314,24 @@ begin(createAttributes(attributes), primitiveType);
 
         EndPart()
         
-        newMesh:SetVertices(vertices)
-        newMesh:SetIndices(indices)
+        Number32BitArray newVertices
+        newVertices:SetSize(vertices:GetSize())
+        integer i = 0
+        repeat while i < vertices:GetSize()
+            newVertices:Set(i, vertices:Get(i))
+            i = i + 1
+        end
+
+        newMesh:SetVertices(newVertices)
+
+
+        Integer32BitArray newIndices
+        newIndices:SetSize(indices:GetSize())
+        repeat while i < indices:GetSize()
+            newIndices:Set(i, indices:Get(i))
+            i = i + 1
+        end
+        newMesh:SetIndices(newIndices)
 
         integer counter = 0
         MeshPart meshPart = undefined

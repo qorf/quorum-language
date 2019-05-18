@@ -43,6 +43,7 @@ class Line
     integer y1 = -1
     /*The ending y-coordinate of the line.*/
     integer y2 = -1
+    Math math
 
     /*
     This action computes the nonzero value of the line. This may need to be
@@ -100,8 +101,6 @@ class Line
         end
     */ 
     action GetXInterceptsNumber(integer xPixelSize, integer yPixelSize, integer unitsPerEM, integer yScreenSize, integer oldNonZero) returns HashTable<integer, XCoordinateList>
-        Math math
-        
         integer pixelX1 = CalculateCoordinate(x1, xPixelSize, unitsPerEM, 0)   
         integer pixelX2 = CalculateCoordinate(x2, xPixelSize, unitsPerEM, 0)
         integer pixelY1 = CalculateCoordinate(y1, yPixelSize, unitsPerEM, yScreenSize)
@@ -136,7 +135,6 @@ class Line
     */ 
     private action BresenhamLineAlgorithm (integer x1, integer y1, integer x2, integer y2) returns HashTable<integer, XCoordinateList>
         HashTable<integer, XCoordinateList> intercepts
-        Math math
 
         // attempt at new algorithm
         /*

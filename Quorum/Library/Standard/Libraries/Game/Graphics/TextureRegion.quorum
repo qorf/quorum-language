@@ -29,6 +29,7 @@ class TextureRegion is Disposable
 
     integer regionWidth = 0
     integer regionHeight = 0
+    Math math
 
     /*
     This action loads an entire texture into the TextureRegion.
@@ -113,7 +114,6 @@ class TextureRegion is Disposable
         number inverseTextureHeight = 1.0/texture:GetHeight()
         SetRegion(x * inverseTextureWidth, y * inverseTextureHeight, (x + width) * inverseTextureWidth, (y + height) * inverseTextureHeight)
         
-        Math math
         regionWidth = math:AbsoluteValue(width)
         regionHeight = math:AbsoluteValue(height)
 
@@ -128,7 +128,6 @@ class TextureRegion is Disposable
 
         integer textureWidth = cast(integer, texture:GetWidth())
         integer textureHeight = cast(integer, texture:GetHeight())
-        Math math
 
         regionWidth = cast(integer, math:Round(math:AbsoluteValue(right - left) * textureWidth))
         regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottom - top) * textureHeight))
@@ -197,8 +196,6 @@ class TextureRegion is Disposable
     far right side of the texture.
     */
     action SetLeftSide(number left)
-    
-        Math math
         leftSide = left
         regionWidth = cast(integer, math:Round(math:AbsoluteValue(rightSide - leftSide) * texture:GetWidth()))
 
@@ -219,8 +216,6 @@ class TextureRegion is Disposable
     far top side of the texture.
     */
     action SetTopSide(number top)
-    
-        Math math
         topSide = top
         regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottomSide - topSide) * texture:GetHeight()))
 
@@ -241,8 +236,6 @@ class TextureRegion is Disposable
     far right side of the texture.
     */
     action SetRightSide(number right)
-        
-        Math math
         rightSide = right
         regionWidth = cast(integer, math:Round(math:AbsoluteValue(rightSide - leftSide) * texture:GetWidth()))
 
@@ -263,8 +256,6 @@ class TextureRegion is Disposable
     far top side of the texture.
     */
     action SetBottomSide(number bottom)
-    
-        Math math
         bottomSide = bottom
         regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottomSide - topSide) * texture:GetHeight()))
 
@@ -274,10 +265,7 @@ class TextureRegion is Disposable
     This action returns the x coordinate where the region begins on the Texture.
     */
     action GetRegionX returns integer
-    
-        Math math
         return cast(integer, math:Round(leftSide * texture:GetWidth()))
-    
     end
 
     /*
@@ -291,10 +279,7 @@ class TextureRegion is Disposable
     This action returns the y coordinate where the region begins on the Texture.
     */
     action GetRegionY returns integer
-
-        Math math
         return cast(integer, math:Round(topSide * texture:GetHeight()))
-
     end
 
     /*

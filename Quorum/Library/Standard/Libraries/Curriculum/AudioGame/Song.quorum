@@ -6,7 +6,7 @@ use Libraries.Sound.Audio
 use Libraries.Sound.AudioSamples
 
 class Song
-
+    Math math
     Array<AudioSamples> arrayOfAudio
     Array<number> arrayOfFrequencies
     integer sampleCounter = 0
@@ -16,7 +16,6 @@ class Song
         if sampleCounter < 10
             arrayOfFrequencies:Add(frequency)
 
-            Math math
             number twoPI = math:pi * 2
             AudioSamples sample
             sample:SetChannels(1)

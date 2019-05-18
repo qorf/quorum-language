@@ -20,7 +20,7 @@ class LocalCollisionPoints3D
     public constant integer MAX_COLLISION_POINTS = 4
 
     Array<CollisionPoint3D> points  //this array tells you what kind of tact was made
-
+    Math math
     Item3D body0
     Item3D body1
     integer pointCount = 0
@@ -137,7 +137,6 @@ class LocalCollisionPoints3D
             res3 = cross:LengthSquared()
         end
 
-        Math math
         res0 = math:AbsoluteValue(res0)
         res1 = math:AbsoluteValue(res1)
         res2 = math:AbsoluteValue(res2)

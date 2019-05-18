@@ -46,10 +46,10 @@ class VertexArray is VertexData
         SetVerticesNative(offset, count)
     end
 
-    action SetVertices(Array<number> vertices, integer offset, integer count)
-        SendToBridgeArray(vertices, offset, count)
-        SetVerticesNative(offset, count)
-    end
+//    action SetVertices(Array<number> vertices, integer offset, integer count)
+//        SendToBridgeArray(vertices, offset, count)
+//        SetVerticesNative(offset, count)
+//    end
 
     private system action SetVerticesNative(integer offset, integer count)
 
@@ -97,16 +97,15 @@ class VertexArray is VertexData
     end
 
     /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
-    private action SendToBridgeArray(Array<number> array, integer offset, integer count)
-        PrepareBridgeArray(count)
-        integer index = offset
-        repeat count times
-            SendToBridgeArray(index, array:Get(index))
-            index = index + 1
-        end
-    end
+//    private action SendToBridgeArray(Array<number> array, integer offset, integer count)
+//        PrepareBridgeArray(count)
+//        integer index = offset
+//        repeat count times
+//            SendToBridgeArray(index, array:Get(index))
+//            index = index + 1
+//        end
+//    end
 
     /* Sends a value to be stored in the bridge array at the given index. */
     private system action SendToBridgeArray(integer index, number value)
-
 end

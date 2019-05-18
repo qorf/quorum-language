@@ -2,9 +2,10 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
-use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Item2DDepthComparison
+use Libraries.Containers.Integer32BitArray
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -61,7 +62,9 @@ class Painter2D
     /*
     An array used to store incoming Drawables and sort them by depth.
     */
-    private Array<SortableContainer<number, Drawable>> sortingArray
+    private Array<Drawable> sortingArray
+
+    Item2DDepthComparison depthSorter
 
     /*
     Values used for clipping via glScissor. The coordinates form an axis
@@ -297,7 +300,7 @@ class Painter2D
         vertices:SetSize(4800)
 
         integer length = 6000
-        Array<integer> indices
+        Integer32BitArray indices
         indices:SetSize(length)
 
         integer indexCounter = 0
@@ -377,12 +380,12 @@ class Painter2D
         end
     */
     action End
-        sortingArray:Sort()
+        sortingArray:Sort(depthSorter)
         
         integer counter = sortingArray:GetSize()
         repeat while counter > 0
             counter = counter - 1
-            Drawable drawable = sortingArray:Get(counter):GetValue()
+            Drawable drawable = sortingArray:Get(counter)
             drawable:SetClipCoordinates(me)
             SystemDraw(drawable)
         end
@@ -403,10 +406,7 @@ class Painter2D
     seen.
     */
     action Draw(Drawable drawable)
-        // Consider using a pool to re-use SortableContainers rather than constantly instantiating them.
-        SortableContainer<number, Drawable> container
-        container:Set(drawable:GetGlobalZ(), drawable)
-        sortingArray:Add(container)
+        sortingArray:Add(drawable)
     end
 
     private system action SystemDraw(Drawable drawable)

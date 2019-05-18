@@ -41,6 +41,7 @@ class BezierCurveGlyphPoints
     Array<Array<integer>> compoundEndpoints
     /*Contains all of the coordinates for the Bezier curves of compound glyph components.*/
     Array<Array<CoordinateVector>> compoundPoints
+    Math math
 
     /*
     This action sets whether or not the BezierCurveGlyphPoints is a simple glyph.
@@ -716,7 +717,6 @@ class BezierCurveGlyphPoints
     */  
     action ScalePoints(number scale)
         integer i = 0
-        Math math
 
         repeat while i < points:GetSize()
             integer x = cast(integer, math:Floor(points:Get(i):GetX() * scale))
@@ -756,8 +756,6 @@ class BezierCurveGlyphPoints
     */
     action ScaleXAndYDifferently(number xScale, number yScale)
         integer i = 0
-        Math math
-
         repeat while i < points:GetSize()
             integer x = cast(integer, math:Floor(points:Get(i):GetX() * xScale))
             integer y = cast(integer, math:Floor(points:Get(i):GetY() * yScale))

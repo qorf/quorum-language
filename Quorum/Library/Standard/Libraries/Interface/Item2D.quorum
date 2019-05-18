@@ -33,6 +33,7 @@ use Libraries.Game.Application
 use Libraries.Game.WebApplication
 use Libraries.Game.FocusManager
 use Libraries.Language.Errors.UndefinedObjectError
+use Libraries.Containers.Number32BitArray
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -103,7 +104,7 @@ class Item2D is Item
     private boolean verticesChanged = true
     private Rectangle bounds
 
-    Array<number> vertices
+    Number32BitArray vertices
 
     //the shape of that bounds this 2D object
     CollisionShape2D shape = undefined
@@ -747,7 +748,7 @@ class Item2D is Item
     */
     action SetOffset(number xAmount, number yAmount)
         if (xAmount not= offset:GetX() or yAmount not= offset:GetY()) and verticesChanged = false
-            Array<number> vertices = GetVertices()
+            Number32BitArray vertices = GetVertices()
             number adjustX = xAmount - GetOffsetX()
             number adjustY = yAmount - GetOffsetY()
             
@@ -794,7 +795,7 @@ class Item2D is Item
     */
     action SetOffset(number xAmount, number yAmount, number zAmount)
         if verticesChanged = false
-            Array<number> vertices = GetVertices()
+            Number32BitArray vertices = GetVertices()
 
             if xAmount not= offset:GetX()
                 number adjustX = xAmount - GetOffsetX()
@@ -1595,7 +1596,7 @@ class Item2D is Item
     This action is primarily for internal use, and most users will never need to
     use this action directly.
     */
-    action GetVertices returns Array<number>
+    action GetVertices returns Number32BitArray
         return vertices
     end
 
@@ -3226,6 +3227,7 @@ class Item2D is Item
             return now
         end
 
+        Vector2 displacement
         integer i = 0
         repeat while i < nodeCount
             Item2DNode node = nodes:Get(i)
@@ -3263,7 +3265,6 @@ class Item2D is Item
                 maximum:SetY(boundingBox2:GetMaximum():GetY())
             end
 
-            Vector2 displacement
             displacement:SetX(transform2:GetPosition():GetX() - transform1:GetPosition():GetX())
             displacement:SetY(transform2:GetPosition():GetY() - transform1:GetPosition():GetY())
 

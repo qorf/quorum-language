@@ -20,6 +20,7 @@ class Cylinder is CollisionShape3D
     Vector3 localBoundingBoxMinimum
     Vector3 localBoundingBoxMaximum
     boolean isLocalBoundingBoxValid = false
+    Math math
 
     integer upAxis = 1  //by default the axis of the cylinder aligns with the y-axis
 
@@ -82,8 +83,6 @@ class Cylinder is CollisionShape3D
         localCenter:Set(localBoundingBoxMaximum)
         localCenter:Add(localBoundingBoxMinimum)
         localCenter:Scale(0.5)
-
-        Math math
 
         Matrix3 abs_b
         abs_b:Set(transform:GetBasis()) //the rotational part of the current cylinder shape
@@ -418,7 +417,6 @@ class Cylinder is CollisionShape3D
         number halfHeight = GetCoordinate(halfExtents, cylinderUpAxis)
 
         number d = 0
-        Math math
         number s = math:SquareRoot(GetCoordinate(vector, XX) * GetCoordinate(vector, XX) + GetCoordinate(vector, ZZ) * GetCoordinate(vector, ZZ))
 
         if s not= 0

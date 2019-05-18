@@ -65,6 +65,7 @@ class FontRasterizer
     integer yMinimum = int:GetMaximumValue()
     /*Uppermost coordinate position, on the y-axis, of the pixelmap.*/
     integer yMaximum = int:GetMinimumValue()
+    Math math
 
     /*
     This action calculates and returns a scaled coordinate position of a coordinate, based
@@ -104,7 +105,7 @@ class FontRasterizer
     private action CalculateGlyphHeight(Array<Line> lines, Array<integer> maximums) returns integer
         integer lowestPoint = 0
         integer highestPoint = 0
-        Math math
+        
 
         if lines:GetSize() > 0
             Line line = lines:Get(0)
@@ -141,7 +142,6 @@ class FontRasterizer
     private action CalculateGlyphWidth(Array<Line> lines) returns integer
         integer leftPoint = 0
         integer rightPoint = 0
-        Math math
 
         if lines:GetSize() > 0
             Line line = lines:Get(0)
@@ -273,7 +273,6 @@ class FontRasterizer
         integer lowerY = 0
         integer upperX = pixelmap:GetWidth()
         integer upperY = pixelmap:GetHeight()
-        Math math
         offsety = math:AbsoluteValue(upperY-maximums:Get(1)-1)
 
         integer i = 0
@@ -298,7 +297,6 @@ class FontRasterizer
         integer lowerY = 0
         integer upperX = pixelmap:GetWidth()
         integer upperY = pixelmap:GetHeight()
-        Math math
         offsety = math:AbsoluteValue(upperY-maximums:Get(1)-1)
 
         GlyphProfile profiles = CreateAntiAliasedGlyphProfile(outline, unitsPerEM)
@@ -451,8 +449,6 @@ class FontRasterizer
         TODO: Seems like this may be recursing too much in some cases. Set limit?    
     */
     private action FlatCurveAlgorithm(number startX, number startY, number controlX, number controlY, number endX, number endY, Array<CoordinateVector> vals, integer recursionLimit)
-        Math absoluteValue
-
         if(recursionLimit < 50)
             // Midpoints of the lines between start/end and control points
             number xStartToxControlMid = (startX + controlX) / 2
@@ -464,7 +460,7 @@ class FontRasterizer
 
             number dx = endX-startX
             number dy = endY-startY
-            number d = absoluteValue:AbsoluteValue(((controlX-endX)*dy-(controlY-endY)*dx))
+            number d = math:AbsoluteValue(((controlX-endX)*dy-(controlY-endY)*dx))
 
             // need to add end points to the array
             if(d*d <= (dx*dx + dy*dy))

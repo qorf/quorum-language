@@ -5,7 +5,7 @@ use Libraries.Compute.Math
 use Libraries.Sound.Audio
 
 class Microphone 
-    
+    Math math
     /*
     The Record action makes the Microphone begin recording. This call is
     non-blocking, which means code will continue to execute after calling this
@@ -163,7 +163,6 @@ class Microphone
     audio:PlayUntilDone()
     */
     action RecordUntilDone(number seconds) returns AudioSamples
-        Math math
         integer size = GetSize()
         SetSizeInSeconds(seconds)
         Record()
@@ -301,7 +300,6 @@ class Microphone
     end
     */
     action SetSizeInSeconds(number seconds)
-        Math math
         SetSize((cast(integer, math:Round(44100.0 * seconds))))
     end
 

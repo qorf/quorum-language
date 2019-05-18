@@ -16,7 +16,7 @@ NOTE: this class can be seen as the class that stores a 4x4 transformation matri
 class PhysicsPosition3D 
     Matrix3 basis   //the "tilt" of the 3D object, or the basis that is used to describe the local coordinate system of the 3D object 
     Vector3 origin  //the position of the 3D object's origin with respect to the origin of the global coordinates
-
+    Math math
 
 
     action Output
@@ -188,8 +188,6 @@ class PhysicsPosition3D
     action GetRotation returns Quaternion
         Quaternion quaternion
         number trace = basis:row0column0 + basis:row1column1 + basis:row2column2
-        
-        Math math
 
         Array<number> temp
         temp:SetSize(4)

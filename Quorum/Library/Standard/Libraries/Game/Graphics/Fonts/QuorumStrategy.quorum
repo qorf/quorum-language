@@ -77,6 +77,7 @@ class QuorumStrategy is FontStrategy
     private integer bold = -1
     private integer italic = -1
     private integer boldItalic = -1
+    Math math
 
     // TTC files contain several font tables in them. This array stores
     // indecies that are used to access these subtables. For example, if a ttc
@@ -736,7 +737,6 @@ class QuorumStrategy is FontStrategy
         if glyphTable:HasKey(character)
             return glyphTable:GetValue(character):CopyGlyph()
         else
-            Math math
             BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints(character)
             // ^ change to read from fileInformation instead of fileReader 
 

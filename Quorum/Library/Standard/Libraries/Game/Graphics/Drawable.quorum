@@ -16,6 +16,7 @@ use Libraries.Game.Collision.Shapes.Polygon
 use Libraries.Compute.Vector2
 use Libraries.Language.Errors.Error
 use Libraries.System.File
+use Libraries.Containers.Number32BitArray
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -87,6 +88,7 @@ class Drawable is TextureRegion, Item2D
     private ColorGroup colorGroup = undefined
     private boolean useCustomColor = false
     private boolean useCustomGradient = false
+    Math math
 
     /*
         This action will create a new texture from the image file located at the
@@ -277,8 +279,6 @@ class Drawable is TextureRegion, Item2D
 
         SetTexture(newTexture)
         SetRegion(sourceX, sourceY, sourceWidth, sourceHeight)
-
-        Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
     end
@@ -354,7 +354,6 @@ class Drawable is TextureRegion, Item2D
     action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         SetTexture(region:GetTextureField())
         SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
-        Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
     end
@@ -425,7 +424,7 @@ class Drawable is TextureRegion, Item2D
     action SetColor(ColorGroup tint)
         colorGroup = tint
 
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
 
         vertices:Set(C1, tint:GetBottomLeft():EncodeColorAsNumber())
         vertices:Set(C2, tint:GetTopLeft():EncodeColorAsNumber())
@@ -464,32 +463,6 @@ class Drawable is TextureRegion, Item2D
         colorGroup:GetTopRight():SetAlpha(alpha)
         colorGroup:GetBottomLeft():SetAlpha(alpha)
         colorGroup:GetBottomRight():SetAlpha(alpha)
-
-        /*
-        The old SetAlpha code. The goal was to set the alpha efficiently by
-        only modifying the alpha bits. This code did not work correctly due to
-        issues in converting the bits between data types between Java and 
-        Quorum. The current code is slower but functional. This should be
-        revisited in the future for optimization.
-
-        BitwiseOperations ops
-        NumberUtilities utility
-
-        Array<number> vertices = GetVertices()
-
-        integer intBits = utility:EncodeNumberAsInteger(vertices:Get(C1))
-        integer alphaBits = ops:ShiftLeft(cast(integer, 255 * alpha), 24)
-
-        intBits = ops:And(intBits, 16777215)
-        intBits = ops:Or(intBits, alphaBits)
-
-        number colorValue = utility:EncodeColorIntegerAsNumber(intBits)
-        
-        vertices:Set(C1, colorValue)
-        vertices:Set(C2, colorValue)
-        vertices:Set(C3, colorValue)
-        vertices:Set(C4, colorValue)
-        */
     end
 
     /*
@@ -528,7 +501,7 @@ class Drawable is TextureRegion, Item2D
         BitwiseOperations ops
         NumberUtilities utility
 
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
 
         integer alphaBits = ops:ShiftLeft(cast(integer, 255 * alpha), 24)
         integer blueBits = ops:ShiftLeft(cast(integer, 255 * blue), 16)
@@ -543,21 +516,6 @@ class Drawable is TextureRegion, Item2D
         vertices:Set(C3, colorValue)
         vertices:Set(C4, colorValue)
     end
-
-    /*
-    This action will set the color tint of a Drawable using a number value whose
-    bits are set to represent a particular color. This is used primarily for
-    internal use and should not be needed by most users.
-    */
-//    action SetColor(number colorValue)
-//        EnableCustomColor()
-//        Array<number> vertices = GetVertices()
-//
-//        vertices:Set(C1, colorValue)
-//        vertices:Set(C2, colorValue)
-//        vertices:Set(C3, colorValue)
-//        vertices:Set(C4, colorValue)
-//    end
 
     /*
     This action returns the color filter stored in the Drawable. To see if it's
@@ -681,7 +639,7 @@ class Drawable is TextureRegion, Item2D
     */
     action SetRegion(number left, number top, number right, number bottom)
         parent:TextureRegion:SetRegion(left, top, right, bottom)
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
 
         vertices:Set(U1, left)
         vertices:Set(V1, bottom)
@@ -703,7 +661,7 @@ class Drawable is TextureRegion, Item2D
     */
     action SetLeftSide(number left)
         parent:TextureRegion:SetLeftSide(left)
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
         vertices:Set(U1, left)
         vertices:Set(U2, left)
     end
@@ -715,7 +673,7 @@ class Drawable is TextureRegion, Item2D
     */
     action SetTopSide(number top)
         parent:TextureRegion:SetTopSide(top)
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
         vertices:Set(V2, top)
         vertices:Set(V3, top)
     end
@@ -727,7 +685,7 @@ class Drawable is TextureRegion, Item2D
     */
     action SetRightSide(number right)
         parent:TextureRegion:SetRightSide(right)
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
         vertices:Set(U3, right)
         vertices:Set(U4, right)
     end
@@ -739,7 +697,7 @@ class Drawable is TextureRegion, Item2D
     */
     action SetBottomSide(number bottom)
         parent:TextureRegion:SetBottomSide(bottom)
-        Array<number> vertices = GetVertices()
+        Number32BitArray vertices = GetVertices()
         vertices:Set(V1, bottom)
         vertices:Set(V4, bottom)
     end
@@ -771,7 +729,7 @@ class Drawable is TextureRegion, Item2D
     action FlipX
         parent:TextureRegion:FlipX()
 
-        Array<number> vertices = parent:Item2D:vertices
+        Number32BitArray vertices = parent:Item2D:vertices
 
         number temp = vertices:Get(U1)
         vertices:Set(U1, vertices:Get(U3))
@@ -810,7 +768,7 @@ class Drawable is TextureRegion, Item2D
     action FlipY
         parent:TextureRegion:FlipY()
 
-        Array<number> vertices = parent:Item2D:vertices
+        Number32BitArray vertices = parent:Item2D:vertices
 
         number temp = vertices:Get(V1)
         vertices:Set(V1, vertices:Get(V3))

@@ -11,7 +11,6 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
-use Libraries.Containers.Support.SortableContainer
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
@@ -85,6 +84,7 @@ class Layer2D is Layer
     Painter2D painter
 
     GameStateManager manager
+    Item2DDepthComparison depthSorter
 
     CollisionManager2D collisionManager
     boolean automaticallyClearForces = true
@@ -1189,7 +1189,7 @@ class Layer2D is Layer
     */
     private action GetDepthSortedItems returns Array<Item2D>
         Array<Item2D> resultArray
-        Array<SortableContainer<number, Item2D>> sortArray
+        Array<Item2D> sortArray
 
         integer i = items:GetSize()
         repeat while i > 0
@@ -1197,11 +1197,11 @@ class Layer2D is Layer
             GetDepthSortedItems(items:Get(i), sortArray)
         end
 
-        sortArray:Sort()
+        sortArray:Sort(depthSorter)
 
         integer counter = 0
         repeat while counter < sortArray:GetSize()
-            resultArray:Add(sortArray:Get(counter):GetValue())
+            resultArray:Add(sortArray:Get(counter))
             counter = counter + 1
         end
 
@@ -1212,7 +1212,7 @@ class Layer2D is Layer
     Used by GetDepthSortedItems() to recursively collect items. The given item
     adds itself to the array then recurses on the children elements.
     */
-    private action GetDepthSortedItems(Item2D item, Array<SortableContainer<number, Item2D>> array)
+    private action GetDepthSortedItems(Item2D item, Array<Item2D> array)
         Array<Item2D> children = item:GetChildren()
         integer i = children:GetSize()
         repeat while i > 0
@@ -1220,9 +1220,7 @@ class Layer2D is Layer
             GetDepthSortedItems(children:Get(i), array)
         end
 
-        SortableContainer<number, Item2D> container
-        container:Set(item:GetGlobalZ(), item)
-        array:Add(container)
+        array:Add(item)
     end
 
     /*
