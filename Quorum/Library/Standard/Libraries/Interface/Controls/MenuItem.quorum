@@ -775,4 +775,22 @@ class MenuItem is Control
 
         parent:Control:LoadGraphics(properties)
     end
+
+    /*
+    The Resize action is used to recalculate the size and position of Controls
+    that are being controlled by a Layout. Calling Resize on an Item2D won't
+    have a direct effect on it, but if the Item's children hierarchy contains
+    any Controls, those Controls will be resized.
+    */
+    action Resize
+        if parent:Item2D:isResizing
+            return now
+        end
+
+        parent:Item2D:Resize()
+
+        if GetLayout() is FlowLayout
+            panelAnchor:Resize()
+        end
+    end
 end
