@@ -285,40 +285,37 @@ public class DesktopDisplay {
         }
     }
 
+    int[] x = new int[1], y = new int[1];
+    int[] width = new int[1], height = new int[1];
     public int GetDisplayX() {
-        int[] x = new int[1], y = new int[1];
         GLFW.glfwGetWindowPos(window, x, y);
         return x[0];
     }
 
     public int GetDisplayY() {
-        int[] x = new int[1], y = new int[1];
         GLFW.glfwGetWindowPos(window, x, y);
         return y[0];
     }
 
     public int GetWindowWidth() {
-        int[] width = new int[1], height = new int[1];
+        
         GLFW.glfwGetWindowSize(window, width, height);
         return width[0];
     }
 
     public int GetWindowHeight() {
-        int[] width = new int[1], height = new int[1];
         GLFW.glfwGetWindowSize(window, width, height);
         return height[0];
     }
     
     public int GetWidth()
     {
-        int[] width = new int[1], height = new int[1];
         GLFW.glfwGetFramebufferSize(window, width, height);
         return width[0];
     }
     
     public int GetHeight()
     {
-        int[] width = new int[1], height = new int[1];
         GLFW.glfwGetFramebufferSize(window, width, height);
         return height[0];
     }

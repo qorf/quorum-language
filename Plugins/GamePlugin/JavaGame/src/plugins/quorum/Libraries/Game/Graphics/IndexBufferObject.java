@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
+import quorum.Libraries.Containers.Integer32BitArray;
+import quorum.Libraries.Containers.Integer32BitArray_;
 
 /**
  *
@@ -151,6 +153,13 @@ public class IndexBufferObject extends IndexData
     public void SendToBridgeArray(int index, int value)
     {
         bridgeArray[index] = value;
+    }
+    
+    public void SendToBridgeArray(Integer32BitArray_ vertices)
+    {
+        Integer32BitArray array = (Integer32BitArray) vertices;
+        plugins.quorum.Libraries.Containers.Integer32BitArray plugin = array.plugin_;
+        bridgeArray = plugin.ints;
     }
     
     public void PutBridgeArray()

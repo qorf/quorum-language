@@ -23,6 +23,8 @@ import java.nio.ShortBuffer;
 
 // Dependencies to remove:
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
+import quorum.Libraries.Containers.Integer32BitArray;
+import quorum.Libraries.Containers.Integer32BitArray_;
 
 public class IndexArray extends IndexData 
 {
@@ -148,6 +150,13 @@ public class IndexArray extends IndexData
     public void SendToBridgeArray(int index, int value)
     {
         bridgeArray[index] = value;
+    }
+    
+    public void SendToBridgeArray(Integer32BitArray_ vertices)
+    {
+        Integer32BitArray array = (Integer32BitArray) vertices;
+        plugins.quorum.Libraries.Containers.Integer32BitArray plugin = array.plugin_;
+        bridgeArray = plugin.ints;
     }
     
     public void PutBridgeArray()
