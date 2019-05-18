@@ -74,8 +74,12 @@ class VertexArray is VertexData
         PopulateVertexBuffer()
     end
 
-    private system action SendToBridgeArray(Number32BitArray vertices)
+    action SetVertices(Number32BitArray vertices)
+        SendToBridgeArray(vertices)
+        PopulateVertexBuffer()
+    end
 
+    system action SendToBridgeArray(Number32BitArray vertices)
     /*
     Directly copies the data stored in the bridge array into the buffer
     stored in the plugin class.

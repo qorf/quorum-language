@@ -29,6 +29,11 @@ class VertexBufferObject is VertexData
         SetVerticesNative(offset, count)
     end
 
+    action SetVertices(Number32BitArray vertices)
+        SendToBridgeArray(vertices)
+        PopulateVertexBuffer()
+    end
+
 //    action SetVertices(Array<number> vertices, integer offset, integer count)
 //        SendToBridgeArray(vertices, offset, count)
 //        SetVerticesNative(offset, count)

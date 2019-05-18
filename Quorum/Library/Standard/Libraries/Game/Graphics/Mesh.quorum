@@ -68,16 +68,16 @@ class Mesh is Disposable
     end
 
     action SetVertices(Number32BitArray vertices)
-       SetVertices(vertices, 0, vertices:GetSize()) 
+       me:vertices:SetVertices(vertices)//, 0, vertices:GetSize()) 
     end
 
 //    action SetVertices(Array<number> vertices)
 //       SetVertices(vertices, 0, vertices:GetSize()) 
 //    end
 
-    action SetVertices(Number32BitArray vertices, integer offset, integer count)
-        me:vertices:SetVertices(vertices, offset, count)
-    end
+//    action SetVertices(Number32BitArray vertices, integer offset, integer count)
+//        me:vertices:SetVertices(vertices, offset, count)
+//    end
 
 //    action SetVertices(Array<number> vertices, integer offset, integer count)
 //        me:vertices:SetVertices(vertices, offset, count)

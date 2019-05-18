@@ -29,6 +29,8 @@ class VertexData is Disposable
     */
     blueprint action GetAttributes returns VertexAttributes
 
+    blueprint action SetVertices(Number32BitArray vertices)
+
     /*
     This action sets the vertices of this VertexData to match the given array
     of numbers. This will also set an offset of the given amount in to the array,
