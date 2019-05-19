@@ -220,6 +220,7 @@ class Item2D is Item
     constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
     Math math
+    PhysicsPosition2D synchronizeNodesTempPosition
 
     on create
         vertices:SetSize(DRAWABLE_SIZE)
@@ -396,9 +397,7 @@ class Item2D is Item
         widthSet = true
 
         if widthSet and heightSet
-            Polygon polygon
-            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
-            SetShape(polygon)
+            ManageShape()
         end
 
         if updateTransform
@@ -442,9 +441,7 @@ class Item2D is Item
         heightSet = true
 
         if widthSet and heightSet
-            Polygon polygon
-            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
-            SetShape(polygon)
+            ManageShape()
         end
 
         if updateTransform
@@ -472,6 +469,19 @@ class Item2D is Item
         end
         
         Resize()
+    end
+
+    private action ManageShape
+        if shape not= undefined and shape is Polygon
+            Polygon polygon = cast(Polygon, shape)
+            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
+            ManageLayers()
+        else
+            Polygon polygon
+            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
+            me:shape = polygon
+            ManageLayers()
+        end
     end
 
     /*
@@ -900,10 +910,7 @@ class Item2D is Item
     action SetSize(number newWidth, number newHeight)
         dimensions:Set(newWidth, newHeight)
 
-        Polygon polygon
-        // This may need to consider scale in the future.
-        polygon:SetAsBox(newWidth, newHeight)
-        SetShape(polygon)
+        ManageShape()
 
         if updateTransform
             UpdateTransformX()
@@ -2131,19 +2138,23 @@ class Item2D is Item
 
         Resize()
 
-        Iterator<Item2D> childIterator = GetItems()
-        if childIterator:HasNext()
+        
+        integer itemSize = GetItemCount()
+        if itemSize > 0
+        //Iterator<Item2D> childIterator = GetItems()
+        //if childIterator:HasNext()
 
             // Code used to scale Items about their center.
             Item2D temp = undefined
             number globalX = GetGlobalX()
             number globalY = GetGlobalY()
 
-
-            repeat while childIterator:HasNext()
-                temp = childIterator:Next()
+            integer i = 0
+            repeat while i < itemSize//childIterator:HasNext()
+                temp = GetItem(i)//childIterator:Next()
                 temp:SetOffset(globalX + temp:GetX() * (me:scale:GetX() - 1), globalY + temp:GetY() * (me:scale:GetY() - 1))
                 temp:SetScale(scale)
+                i = i + 1
             end
         end
 
@@ -2189,19 +2200,22 @@ class Item2D is Item
 
         Resize()
 
-        Iterator<Item2D> childIterator = GetItems()
-        if childIterator:HasNext()
+        integer itemSize = GetItemCount()
+        if itemSize > 0
+        //Iterator<Item2D> childIterator = GetItems()
+        //if childIterator:HasNext()
 
             // Code used to scale Items about their center.
             Item2D temp = undefined
             number globalX = GetGlobalX()
             number globalY = GetGlobalY()
 
-
-            repeat while childIterator:HasNext()
-                temp = childIterator:Next()
+            integer i = 0
+            repeat while i < itemSize//childIterator:HasNext()
+                temp = GetItem(i) //childIterator:Next()
                 temp:SetOffset(globalX + temp:GetX() * (scale:GetX() - 1), globalY + temp:GetY() * (scale:GetY() - 1))
                 temp:SetScale(newX, newY)
+                i = i + 1
             end
         end
 
@@ -2969,15 +2983,13 @@ class Item2D is Item
     internally and users should not need to use this action.
     */
     action SynchronizeNodes
-        PhysicsPosition2D xf1
-
-        xf1:SetSine(math:Sine(sweep:GetAngle()))
-        xf1:SetCosine(math:Cosine(sweep:GetAngle()))
-        xf1:GetPosition():SetX(sweep:GetCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetX() + xf1:GetSine() * sweep:GetLocalCenter():GetY())
-        xf1:GetPosition():SetY(sweep:GetCenter():GetY() - xf1:GetSine() * sweep:GetLocalCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetY()) 
+        synchronizeNodesTempPosition:SetSine(math:Sine(sweep:GetAngle()))
+        synchronizeNodesTempPosition:SetCosine(math:Cosine(sweep:GetAngle()))
+        synchronizeNodesTempPosition:GetPosition():SetX(sweep:GetCenter():GetX() - synchronizeNodesTempPosition:GetCosine() * sweep:GetLocalCenter():GetX() + synchronizeNodesTempPosition:GetSine() * sweep:GetLocalCenter():GetY())
+        synchronizeNodesTempPosition:GetPosition():SetY(sweep:GetCenter():GetY() - synchronizeNodesTempPosition:GetSine() * sweep:GetLocalCenter():GetX() - synchronizeNodesTempPosition:GetCosine() * sweep:GetLocalCenter():GetY()) 
 
         check
-            Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, me:transform)
+            Synchronize(layer:GetCollisionManager():GetBroadphase(), synchronizeNodesTempPosition, me:transform)
         detect error is UndefinedObjectError
             alert("I tried to synchronize an Item's nodes but a reference was undefined. This usually happens because the Item was added to the Game or to another Item more than once, and then it was removed.")
         end
@@ -3064,6 +3076,10 @@ class Item2D is Item
     action SetShape(CollisionShape2D shape)
         me:shape = shape:Copy()
 
+        ManageLayers()
+    end
+
+    private action ManageLayers
         if layerSet
             if collidable
                 if not nodesSet
@@ -3076,7 +3092,6 @@ class Item2D is Item
             end
         end
     end
-
     /*
     This item returns the collision shape of this item. The collision shape is the
     shape the collision system will use to test for collisions with this item.

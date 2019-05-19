@@ -218,9 +218,9 @@ class FontManager
 
             // A Text object is used to circumvent a bug in text primitives
             // where the Split function breaks on Java regular expression characters.
-            Text keyValue
-            keyValue:SetValue(key)
-            Array<text> fontValues = keyValue:Split(FONT_DELIMITER)
+//            text keyValue = key
+//            keyValue:SetValue(key)
+            Array<text> fontValues = key:Split("\" + FONT_DELIMITER)
 
             strategy:SetSize(cast(integer, fontValues:Get(2)))
             strategy:SetAngle(cast(number, fontValues:Get(3)))

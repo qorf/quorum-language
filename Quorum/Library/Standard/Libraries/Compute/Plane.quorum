@@ -13,6 +13,8 @@ class Plane
 
     Vector3 normal
     number d = 0
+    Vector3 tempVector
+    Vector3 tempVector2
 
     /*
     This action sets the plane's normal vector and distance form the origin.
@@ -55,11 +57,9 @@ class Plane
     Attribute: Parameter point3 The thrid point
     */
     action Set(Vector3 point1, Vector3 point2, Vector3 point3)
-        Vector3 tempVector
         tempVector:Set(point1)
         tempVector:Subtract(point2)
         
-        Vector3 tempVector2
         tempVector2:Set(point2)
         tempVector2:Subtract(point3)
 
@@ -192,5 +192,4 @@ class Plane
     action GetDistance returns number
         return d
     end
-    
 end
