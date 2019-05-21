@@ -104,6 +104,8 @@ class Layer2D is Layer
 
     boolean physicsEnabled = false
 
+    /* This allows us to turn off collisions for the entire game. */
+    private boolean collide = true
     /*
     Used to layout controls in this Layer.
     */
@@ -117,6 +119,16 @@ class Layer2D is Layer
         OrthographicCamera cam
         camera = cam
         collisionManager:SetLayer(me)
+    end
+
+    /* This allows us to know if collisions are on or off for the layer. */
+    action IsColliding returns boolean
+        return collide
+    end
+
+    /* This allows us to turn collisions on or off for the layer. */
+    action SetColliding(boolean collide)
+        me:collide = collide
     end
 
     /*
@@ -1829,6 +1841,9 @@ class Layer2D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
+        if not collide
+            return now
+        end
         SetUpdateTransforms(false)
 
         if newItemAdded

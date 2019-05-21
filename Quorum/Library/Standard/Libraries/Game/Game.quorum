@@ -184,8 +184,22 @@ class Game
 
     private integer applicationType = -1
 
+    /* This allows us to turn off collisions for the entire game. */
+    private boolean collide = true
+
     // A pool storing used DialogLayers for later reuse.
     DialogLayerPool dialogLayerPool
+
+
+    /* This allows us to know if collisions are on or off for the layer. */
+    action IsColliding returns boolean
+        return collide
+    end
+
+    /* This allows us to turn collisions on or off for the layer. */
+    action SetColliding(boolean collide)
+        me:collide = collide
+    end
 
     /*
     The StartGame action will start your game. Specifically, it does this:
@@ -1235,7 +1249,9 @@ class Game
         UpdateAll()
         number seconds = GetSecondsBetweenFrames()
         Update(seconds)
-        TestForCollisions(seconds)
+        if collide
+            TestForCollisions(seconds)
+        end
         ClearScreen()
         DrawAll()
     end
