@@ -13,6 +13,7 @@ import static org.lwjgl.util.nfd.NativeFileDialog.NFD_CANCEL;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_OKAY;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_OpenDialog;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_SaveDialog;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_PickFolder;
 
 /**
  *  An implementation of a native file chooser using the NFD library. It covers
@@ -29,6 +30,27 @@ public class FileChooser {
         String resultPath = null;
         try {//example filter: "png,jpg;pdf"
             int result = NFD_OpenDialog(filter, path, outPath);
+            switch (result) {
+                case NFD_OKAY:
+                    resultPath = outPath.getStringUTF8(0);
+                    break;
+                case NFD_CANCEL:
+                    resultPath = null;
+                    break;
+                default: // NFD_ERROR
+                    resultPath = null;
+            }
+        } finally {
+            memFree(outPath);
+        }
+        return resultPath;
+    }
+    
+    public String ChooseFolderDialogNative(String path) {
+        PointerBuffer outPath = memAllocPointer(1);
+        String resultPath = null;
+        try {//example filter: "png,jpg;pdf"
+            int result = NFD_PickFolder(path, outPath);
             switch (result) {
                 case NFD_OKAY:
                     resultPath = outPath.getStringUTF8(0);
@@ -65,4 +87,6 @@ public class FileChooser {
         }
         return resultPath;
     }
+    
+    
 }
