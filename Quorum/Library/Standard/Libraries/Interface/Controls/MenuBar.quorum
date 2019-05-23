@@ -45,9 +45,6 @@ class MenuBar is MenuRoot
         defaultLayoutProperties:SetBackgroundColor(gradient)
         defaultLayoutProperties:SetBorderColor(color:Black())
 
-        // Necessary for keyboard input to work correctly.
-        SetFocusable(true)
-
         SetAccessibilityCode(parent:Item:MENU_BAR)
         SetName("Menu Bar")
     end
