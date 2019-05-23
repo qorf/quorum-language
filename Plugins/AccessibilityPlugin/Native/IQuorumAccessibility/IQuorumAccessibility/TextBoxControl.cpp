@@ -136,7 +136,7 @@ std::wstring TextBoxControl::GetText()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
 
@@ -164,7 +164,7 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
 
@@ -186,7 +186,6 @@ int TextBoxControl::GetCaretLine()
 	{
 		// Wait for Quorum to write
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretLine);
 	}
 
@@ -201,7 +200,7 @@ int TextBoxControl::GetCaretPosition()
 	if (env != NULL)
 	{
 		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretPosition);
 	}
@@ -216,7 +215,7 @@ int TextBoxControl::GetIndexOfLine(int line)
 	if (env != NULL)
 	{
 		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetIndexOfLine, (jint)line);
 	}
@@ -229,7 +228,7 @@ int TextBoxControl::GetLineLength()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
 
@@ -253,12 +252,9 @@ Range TextBoxControl::GetSelectionRange()
 		jobject JO_selection;
 
 		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		
 		JO_selection = env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetSelection);
-		
-		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
 		selectionRange.begin.character = (int)index;

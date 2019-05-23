@@ -326,6 +326,10 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong control)
 {
+	#if LOG
+		log("NativeWin32SetFocus Start\n");
+	#endif
+
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
@@ -335,9 +339,16 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	{
 		// Sends the appropriate messages to all windows.
 		HWND prevFocus = SetFocus(pControl->GetHWND());
+		#if LOG
+				log("NativeWin32SetFocus Finish 1\n");
+		#endif
 
 		return PtrToLong(prevFocus);
 	}
+
+	#if LOG
+		log("NativeWin32SetFocus End\n");
+	#endif
 
 	return NULL;
 }
