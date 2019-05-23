@@ -9,7 +9,7 @@ bool CheckBoxControl::Initialized = false;
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false), m_toggleState(ToggleState_Off)
+CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
 {
 }
 
@@ -144,12 +144,38 @@ bool CheckBoxControl::HasFocus()
 
 void CheckBoxControl::SetState(_In_ ToggleState controlState)
 {
-	m_toggleState = controlState;
+	jboolean toggle;
+
+	if (controlState == ToggleState_On)
+	{
+		toggle = JNI_TRUE;
+	}
+	else
+	{
+		toggle = JNI_FALSE;
+	}
+
+	//jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
+	JNIEnv* env = GetJNIEnv();
+	env->CallVoidMethod(GetMe(), JavaClass_ToggleButton.SetToggleState, toggle);
 }
 
 ToggleState CheckBoxControl::GetState()
 {
-	return m_toggleState;
+	JNIEnv* env = GetJNIEnv();
+	jboolean toggleState = env->CallBooleanMethod(GetMe(), JavaClass_ToggleButton.GetToggleState);
+	ToggleState result;
+
+	if (toggleState == JNI_FALSE)
+	{
+		result = ToggleState_Off;
+	}
+	else
+	{
+		result = ToggleState_On;
+	}
+
+	return result;
 }
 
 

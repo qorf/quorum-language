@@ -92,4 +92,9 @@ class ToggleButton is Button
     action OnToggleOff
 
     end
+
+    action Activate(BehaviorEvent event)
+        SetToggleState(not toggled)
+        parent:Control:Activate(event)
+    end
 end

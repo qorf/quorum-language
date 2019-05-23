@@ -9,7 +9,7 @@ bool RadioButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false), m_isOn(false)
+RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
 {
 }
 
@@ -130,8 +130,22 @@ RadioButtonControl* RadioButtonControl::Create(JNIEnv* env, _In_ HINSTANCE insta
 
 void RadioButtonControl::SetState(_In_ bool controlState)
 {
-	m_isOn = controlState;
-	if (m_isOn)
+	jboolean toggle;
+
+	if (controlState == ToggleState_On)
+	{
+		toggle = JNI_TRUE;
+	}
+	else
+	{
+		toggle = JNI_FALSE;
+	}
+
+	//jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
+	JNIEnv* env = GetJNIEnv();
+	env->CallVoidMethod(GetMe(), JavaClass_ToggleButton.SetToggleState, toggle);
+
+	if (controlState)
 		m_buttonProvider->Select();
 
 	if (UiaClientsAreListening())
@@ -142,7 +156,20 @@ void RadioButtonControl::SetState(_In_ bool controlState)
 
 bool RadioButtonControl::GetState()
 {
-	return m_isOn;
+	JNIEnv* env = GetJNIEnv();
+	jboolean toggleState = env->CallBooleanMethod(GetMe(), JavaClass_ToggleButton.GetToggleState);
+	ToggleState result;
+
+	if (toggleState == JNI_FALSE)
+	{
+		result = ToggleState_Off;
+	}
+	else
+	{
+		result = ToggleState_On;
+	}
+
+	return result;
 }
 
 void RadioButtonControl::SetControlFocus(_In_ bool focused)

@@ -232,7 +232,7 @@ class MenuItem is Control
 
         if direction = LEFT
             anchorProperties:SetPercentageX(0)
-            anchorProperties:SetPercentageY(0)
+            anchorProperties:SetPercentageY(1)
 
             panelProperties:SetPercentageOriginX(1)
             panelProperties:SetPercentageOriginY(1)
@@ -240,7 +240,7 @@ class MenuItem is Control
             panelProperties:SetPercentageY(1)
         elseif direction = RIGHT
             anchorProperties:SetPercentageX(1)
-            anchorProperties:SetPercentageY(0)
+            anchorProperties:SetPercentageY(1)
 
             panelProperties:SetPercentageOriginX(0)
             panelProperties:SetPercentageOriginY(1)
@@ -285,18 +285,6 @@ class MenuItem is Control
                 event:Set(bar, me, event:OPENED)
                 bar:NotifyMenuChangeListeners(event)
             end
-        end
-    end
-
-    private action PositionPanel
-        if direction = LEFT
-            panelAnchor:SetPosition(-panel:GetWidth(), GetHeight())
-        elseif direction = RIGHT
-            panelAnchor:SetPosition(GetWidth(), GetHeight())
-        elseif direction = DOWN
-            panelAnchor:SetPosition(0, 0)
-        elseif direction = UP
-            panelAnchor:SetPosition(0, GetHeight() + panel:GetHeight())
         end
     end
 
@@ -450,7 +438,6 @@ class MenuItem is Control
 
     action LostSelection
         parent:Control:LostSelection()
-        parent:Control:GainedSelection()
         if GetView2D() is LabelBoxView
             LabelBoxView view = cast(LabelBoxView, GetView2D())
             LayoutProperties properties = GetDefaultLayoutProperties()
@@ -789,8 +776,9 @@ class MenuItem is Control
 
         parent:Item2D:Resize()
 
-        if GetLayout() is FlowLayout
-            panelAnchor:Resize()
-        end
+        // We need to resize the panel anchor to allow it to re-lay itself out
+        // in the correct position, because the parent's layout will otherwise
+        // override the anchor's ManualLayout.
+        panelAnchor:Resize()
     end
 end

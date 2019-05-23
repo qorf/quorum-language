@@ -33,7 +33,6 @@ private:
 
 	bool m_focused;
 
-	bool m_isOn;
 	RadioButtonProvider* m_buttonProvider;
 
 };
