@@ -204,7 +204,7 @@ int TextBoxControl::GetCaretPosition()
 
 		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretPosition);
 	}
-	return (int)index;
+	return (int)index + 1;
 }
 
 int TextBoxControl::GetIndexOfLine(int line)
@@ -252,7 +252,7 @@ Range TextBoxControl::GetSelectionRange()
 		jobject JO_selection;
 
 		// Wait for Quorum to write
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		
 		JO_selection = env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetSelection);
 
@@ -261,7 +261,6 @@ Range TextBoxControl::GetSelectionRange()
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetEndIndex);
 		selectionRange.end.character = (int)index;
-		
 	}
 
 	return selectionRange;
