@@ -58,6 +58,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxUndoBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRedoBehavior
@@ -721,6 +723,38 @@ class Game
         shiftEndSet:AddModifier(shiftHomeSet:SHIFT)
         TextBoxSelectToLineEndBehavior selectLineEndBehavior
         textBoxTable:Add(shiftEndSet, selectLineEndBehavior)
+
+        
+        if manager:GetOperatingSystem():Contains("OS X")
+            //first do copy paste
+            InputSet textBoxSelectLeft
+            textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
+            textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
+            textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
+            TextBoxSelectWordStartBehavior textBoxSelectWordStartBehavior
+            textBoxTable:Add(textBoxSelectLeft, textBoxSelectWordStartBehavior)
+
+            InputSet textBoxSelectRight
+            textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
+            textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
+            textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
+            TextBoxSelectWordEndBehavior textBoxSelectWordEndBehavior
+            textBoxTable:Add(textBoxSelectRight, textBoxSelectWordEndBehavior)
+        else
+            InputSet textBoxSelectLeft
+            textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
+            textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
+            textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
+            TextBoxSelectWordStartBehavior textBoxSelectWordStartBehavior
+            textBoxTable:Add(textBoxSelectLeft, textBoxSelectWordStartBehavior)
+
+            InputSet textBoxSelectRight
+            textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
+            textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
+            textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
+            TextBoxSelectWordEndBehavior textBoxSelectWordEndBehavior
+            textBoxTable:Add(textBoxSelectRight, textBoxSelectWordEndBehavior)
+        end
 
         InputSet endSet
         endSet:SetKeyboardInput(keys:END)

@@ -1,0 +1,98 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
+
+class TextBoxSelectWordStartBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox textBox = cast(TextBox, item)
+        TextBoxSelection selection = textBox:GetSelection()
+
+        integer start = selection:GetStartIndex()
+        integer finish = selection:GetEndIndex()
+
+        //if the selection is before the caret, we are going to lengthen it
+        //it the selection is after the caret, we are going to shorten it.
+        integer caretPosition = textBox:GetCaretPosition()
+        if start < caretPosition or start = finish
+            if start - 1 <= 0 //we are already at the beginning, so change nothing
+                return now
+            end
+            //if not, iterate through the text until we hit white space
+            //if the first character is white space, select all the white space until 
+            //the first word
+            boolean done = false
+            boolean firstWord = false 
+            integer i = start - 1
+            repeat while i >= 0 and not done
+                text value = textBox:GetText(i, i + 1)
+                if IsWhiteSpace(value)
+                    if firstWord
+                        done = true
+                        textBox:Select(i + 1, finish, false)
+                    end
+                else 
+                    firstWord = true
+                end
+                i = i - 1
+            end
+
+            //the caret is at the beginning of the line and there is no additional white space
+            if firstWord and not done
+                textBox:Select(i + 1, finish, false)
+            end
+        else //in this case, the selection is after and we are shortening it
+            boolean done = false
+            boolean firstWord = false 
+            integer i = finish - 1
+            repeat while i >= 0 and i >= caretPosition and not done
+                text value = textBox:GetText(i, i + 1)
+                if IsWhiteSpace(value)
+                    if firstWord
+                        done = true
+                        textBox:Select(start, i + 1, false)
+                    end
+                else 
+                    firstWord = true
+                end
+                i = i - 1
+            end
+
+            //the caret is at the beginning of the line and there is no additional white space
+            if firstWord and not done
+                if i < caretPosition
+                    textBox:Select(start, start, false)
+                else
+                    textBox:Select(start, i + 1, false)
+                end
+            elseif not firstWord and not done //it was just white space, kill the selection
+                textBox:Select(start, start, false)
+            end
+        end
+    end
+
+    private action IsWhiteSpace(text value) returns boolean
+        text tab = value:GetTab()
+        text cr = value:GetCarriageReturn()
+        text lf = value:GetLineFeed()
+        text space = " "
+
+        if value = tab or value = cr or value = lf or value = space
+            return true
+        end
+
+        return false
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

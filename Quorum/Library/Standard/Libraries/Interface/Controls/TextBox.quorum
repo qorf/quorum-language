@@ -910,6 +910,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
+        //first check if there is a selection. If so, place the caret
+        //at the end of the selection
+        TextBoxSelection select = GetSelection()
+        integer start = selection:GetStartIndex()
+        integer finish = selection:GetEndIndex()
+        if finish - start > 0
+            SetCaretPosition(start)
+            return now
+        end
+
         integer oldIndex = GetCaretPosition()
 
         if caretCharacter = 0
@@ -955,6 +965,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action MoveCaretRight(boolean selecting)
         if not caretActive
+            return now
+        end
+
+        //first check if there is a selection. If so, place the caret
+        //at the end of the selection
+        TextBoxSelection select = GetSelection()
+        integer start = selection:GetStartIndex()
+        integer finish = selection:GetEndIndex()
+        if finish - start > 0
+            SetCaretPosition(finish)
             return now
         end
 
