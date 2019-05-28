@@ -4730,6 +4730,11 @@ class Item2D is Item
             end
         end
 
+        if me is Control
+            Control control = cast(Control, me)
+            control:ResetLayoutFlag()
+        end
+
         isResizing = false
     end
 

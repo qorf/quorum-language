@@ -2,6 +2,8 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Interface.Selections.MenuSelection
@@ -16,9 +18,14 @@ class MenuRoot is Control
     boolean isSelecting = false
     MenuSelection selection
     Array<MenuChangeListener> listeners
+    GameStateManager manager
+    Item previousFocus = undefined
 
     on create
         selection:Initialize(me)
+
+        // Necessary for keyboard input to work correctly.
+        SetFocusable(true)
 
         SetInputGroup("MenuRoot")
     end
@@ -64,8 +71,8 @@ class MenuRoot is Control
         Array<MenuItem> pathCopy = path:CopyToArray()
         MenuItem item = undefined
 
-        if not path:IsEmpty()
-            item = path:RemoveFromFront()
+        if not pathCopy:IsEmpty()
+            item = pathCopy:RemoveFromFront()
         end
 
         Array<MenuItem> selectionPath = selection:GetPath()
@@ -77,21 +84,18 @@ class MenuRoot is Control
 
         if item not= undefined
             if item = oldItem
-                item:UpdateSelection(selectionPath, path)
+                item:UpdateSelection(selectionPath, pathCopy)
             else
                 if oldItem not= undefined
                     oldItem:RecursiveDeselect(selectionPath)
                 end
-                item:RecursiveSelect(path)
+                item:RecursiveSelect(pathCopy)
             end
         end
 
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(item)
-
         // Set our selection object with the new path, triggering a selection
         // event.
-        selection:Set(pathCopy)
+        selection:Set(path)
     end
 
     action Deselect
@@ -107,10 +111,10 @@ class MenuRoot is Control
 
         if item not= undefined
             item:RecursiveDeselect(path)
+            
+            // Add the removed portion back to the path to undo our side effects.
+            path:AddToFront(item)
         end
-
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(item)
 
         Array<MenuItem> newPath
         selection:Set(newPath)
@@ -168,7 +172,33 @@ class MenuRoot is Control
             end
         end
 
-        GameStateManager manager
         manager:GetInput():NotifyMenuChangeListeners(event)
+    end
+
+    action GainedFocus(FocusEvent event)
+        previousFocus = event:GetLastFocus()
+    end
+
+    action LostFocus(FocusEvent event)
+        Deselect()
+        Close()
+    end
+
+    /*
+    The RestoreLastFocus action is used internally by the Menu system to restore
+    focus to the last Item that had it before the Menu was focused. This
+    action is called automatically as needed by the system, and users should not
+    have to call it manually.
+    */
+    action RestoreLastFocus
+        manager:SetFocus(previousFocus)
+    end
+
+    /*
+    The GetLastFocus action returns the Item that had the focus before the Menu
+    was focused, or undefined if no Item had focus before the Menu.
+    */
+    action GetLastFocus returns Item
+        return previousFocus
     end
 end

@@ -121,9 +121,8 @@ class FileChooser
 
                 action CreateGame
                     FileChooser chooser
-                    FileFilter filter
-                    filter:Add("png")
-                    File file = chooser:OpenFileDialog(filter)
+                    File location
+                    File file = chooser:OpenFileDialog(location)
                     if file not= undefined
                         output file:GetAbsolutePath()
                     end
@@ -188,6 +187,48 @@ class FileChooser
     */
     private system action OpenFileDialogNative(text path, text filter) returns text
 
+    /*
+        This action lets the user select a folder in a dialog, starting at the location specified
+        in the file called location.
+
+        Attribute: Parameter location The location the chooser should startup at
+
+        Attribute: Example
+
+            use Libraries.Game.Game
+            use Libraries.Interface.Controls.FileChooser
+            use Libraries.Interface.Controls.FileFilter
+            use Libraries.System.File
+
+            class Main is Game
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    FileChooser chooser
+                    File location
+                    File file = chooser:ChooseFolderDialog(location)
+                    if file not= undefined
+                        output file:GetAbsolutePath()
+                    end
+                end
+            end
+    */
+    action ChooseFolderDialog(File location) returns File
+        text path = undefined
+        if location not= undefined
+            path = location:GetAbsolutePath()
+        end
+
+        text result = ChooseFolderDialogNative(path)
+        File file
+        file:SetAbsolutePath(result)
+        return file
+    end
+
+    private system action ChooseFolderDialogNative(text path) returns text
     /*
         This action boots up a file choosing dialog at the default location 
         for a particular system. What this default is depends on the operating

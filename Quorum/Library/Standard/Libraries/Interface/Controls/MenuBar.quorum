@@ -45,9 +45,6 @@ class MenuBar is MenuRoot
         defaultLayoutProperties:SetBackgroundColor(gradient)
         defaultLayoutProperties:SetBorderColor(color:Black())
 
-        // Necessary for keyboard input to work correctly.
-        SetFocusable(true)
-
         SetAccessibilityCode(parent:Item:MENU_BAR)
         SetName("Menu Bar")
     end
@@ -78,6 +75,16 @@ class MenuBar is MenuRoot
 
     action MoveSelectionLeft
         Array<MenuItem> path = GetSelection():GetPath()
+        if path:IsEmpty()
+            if menus:IsEmpty() = false
+            Array<MenuItem> array
+                array:Add(menus:GetFromEnd())
+                Select(array)
+            end
+
+            return now
+        end
+
         if path:GetSize() <= 2
             MenuItem name = path:Get(0)
             boolean shouldOpen = name:IsOpen()
@@ -166,12 +173,16 @@ class MenuBar is MenuRoot
 
     action MoveSelectionDown
         MenuItem item = GetMenuItem(GetSelection():GetPath())
-        item:MenuSelectionDown()
+        if item not= undefined
+            item:MenuSelectionDown()
+        end
     end
 
     action MoveSelectionUp
         MenuItem item = GetMenuItem(GetSelection():GetPath())
-        item:MenuSelectionUp()
+        if item not= undefined
+            item:MenuSelectionUp()
+        end
     end
 
     /*

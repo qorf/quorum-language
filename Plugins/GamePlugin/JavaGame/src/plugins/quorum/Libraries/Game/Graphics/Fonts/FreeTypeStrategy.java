@@ -6,9 +6,16 @@
 package plugins.quorum.Libraries.Game.Graphics.Fonts;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
+import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.TextureFilter;
+import quorum.Libraries.Game.Graphics.Texture_;
 
 /**
  *
@@ -408,6 +415,85 @@ public class FreeTypeStrategy
         glyph.heightFromBaseLine = (int)(bitmapData[1]);
 
         return glyph;
+    }
+    
+    private class ImageSheetRow
+    {
+        public ImageSheetRow(int height, int endOfRow)
+        {
+            this.height = height;
+            this.endOfRow = endOfRow;
+        }
+        
+        // The end of the row is the last image that appears on this row, or
+        // 256 if this is the last row.
+        int endOfRow;
+        
+        // The height is the height of the tallest image in this row.
+        int height;
+    }
+    
+    public boolean LoadImageSheet(Texture_ texture, quorum.Libraries.Containers.HashTable_ table)
+    {
+        long[][] nativeData = new long[256][6];
+        ByteBuffer[] pixels = new ByteBuffer[256];
+        Queue<ImageSheetRow> rows = new LinkedList<>();
+        
+        IntBuffer buffer = BufferUtils.newIntBuffer(1);
+        GameStateManager.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_SIZE, buffer);
+        int maxSize = buffer.get(0);
+        int rowHeight = 0;
+        int rowWidth = 0;
+        int totalHeight = 0;
+        
+        // Load the ASCII characters.
+        for (char current = 0; current < 256; current++)
+        {
+            long[] currentData = nativeData[current];
+            
+            /* The data parameter will contain the following information after a call to LoadBitmap:
+                [0] : The distance from the cursor to the left side of the bitmap.
+                [1] : The distance from the cursor to the top side of the bitmap.
+                [2] : The number of rows in a bitmap.
+                [3] : The number of pixels in each row of the bitmap.
+                [4] : The distance to advance the cursor's X coordinate.
+                [5] : The distance to advance the cursor's Y coordinate.
+
+                LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
+            */
+            pixels[current] = LoadBitmap(currentData, current, faceHandle);
+            
+            int currentWidth = (int)currentData[3];
+            rowWidth += currentWidth;
+            
+            if (rowWidth > maxSize)
+            {
+                ImageSheetRow newRow = new ImageSheetRow(rowHeight, current - 1);
+                rows.add(newRow);
+                
+                totalHeight += rowHeight;
+                rowWidth = currentWidth;
+                rowHeight = 0;
+            }
+            
+            int currentHeight = (int)currentData[2];
+            if (currentHeight > rowHeight)
+            {
+                rowHeight = currentHeight;
+                if (totalHeight + rowHeight > maxSize)
+                {
+                    // We've exceeded the maximum size we can place in a Texture.
+                    // Return false to indicate failure.
+                    return false;
+                }
+            }
+        }
+        
+        // Assemble the ByteBuffers into a single ByteBuffer for use by PixelMap.
+        // NYI
+        
+        // True indicates successful loading of the ImageSheet and caching of Glyph data.
+        return true;
     }
     
     public int GetHeight()

@@ -107,6 +107,8 @@ class MenuItem is Control
 
         Color color
         menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
+        menuProperties:SetFontColor(color:Black())
+        menuProperties:SetSelectionFontColor(color:White())
 
         Font font = GetDefaultFont()
         if font not= undefined
@@ -232,7 +234,7 @@ class MenuItem is Control
 
         if direction = LEFT
             anchorProperties:SetPercentageX(0)
-            anchorProperties:SetPercentageY(0)
+            anchorProperties:SetPercentageY(1)
 
             panelProperties:SetPercentageOriginX(1)
             panelProperties:SetPercentageOriginY(1)
@@ -240,7 +242,7 @@ class MenuItem is Control
             panelProperties:SetPercentageY(1)
         elseif direction = RIGHT
             anchorProperties:SetPercentageX(1)
-            anchorProperties:SetPercentageY(0)
+            anchorProperties:SetPercentageY(1)
 
             panelProperties:SetPercentageOriginX(0)
             panelProperties:SetPercentageOriginY(1)
@@ -288,18 +290,6 @@ class MenuItem is Control
         end
     end
 
-    private action PositionPanel
-        if direction = LEFT
-            panelAnchor:SetPosition(-panel:GetWidth(), GetHeight())
-        elseif direction = RIGHT
-            panelAnchor:SetPosition(GetWidth(), GetHeight())
-        elseif direction = DOWN
-            panelAnchor:SetPosition(0, 0)
-        elseif direction = UP
-            panelAnchor:SetPosition(0, GetHeight() + panel:GetHeight())
-        end
-    end
-
     action Close
         if open
             integer counter = 0
@@ -320,7 +310,7 @@ class MenuItem is Control
                 bar:NotifyMenuChangeListeners(event)
             end
         end
-        LostSelection()
+        
         selectionIndex = 0
     end
 
@@ -407,11 +397,13 @@ class MenuItem is Control
         MenuRoot bar = GetMenuRoot()
         if bar not= undefined
             if bar:IsSelecting()
-                Activate()
                 MenuRoot menuRoot = GetMenuRoot()
                 if menuRoot not= undefined
-                    menuRoot:Close()
+                    //menuRoot:Close()
+                    menuRoot:RestoreLastFocus()
                 end
+
+                Activate()
             else
                 Select()
             end
@@ -442,6 +434,9 @@ class MenuItem is Control
             end
         end
 
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        label:SetColor(properties:GetSelectionFontColor())
+
         MenuRoot menuRoot = GetMenuRoot()
         if menuRoot not= undefined
             menuRoot:SetSelectingState(true)
@@ -450,7 +445,6 @@ class MenuItem is Control
 
     action LostSelection
         parent:Control:LostSelection()
-        parent:Control:GainedSelection()
         if GetView2D() is LabelBoxView
             LabelBoxView view = cast(LabelBoxView, GetView2D())
             LayoutProperties properties = GetDefaultLayoutProperties()
@@ -458,6 +452,10 @@ class MenuItem is Control
                 view:SetBackgroundColor(properties:GetBackgroundColor())
             end
         end
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        label:SetColor(properties:GetFontColor())
+
         if open
             Close()
         end
@@ -789,8 +787,9 @@ class MenuItem is Control
 
         parent:Item2D:Resize()
 
-        if GetLayout() is FlowLayout
-            panelAnchor:Resize()
-        end
+        // We need to resize the panel anchor to allow it to re-lay itself out
+        // in the correct position, because the parent's layout will otherwise
+        // override the anchor's ManualLayout.
+        panelAnchor:Resize()
     end
 end

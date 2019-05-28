@@ -34,7 +34,6 @@ private:
 
 	bool m_focused;
 
-	ToggleState m_toggleState;
 	CheckBoxProvider* m_buttonProvider;
 
 };

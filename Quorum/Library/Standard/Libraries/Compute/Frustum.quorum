@@ -121,35 +121,23 @@ class Frustum
     Attribute: Parameter inverseProjectionView te combined projection and view matrices
     */
     action Update(Matrix4 inverseProjectionView)
-        Object o = clipSpacePlanePointsArray:Copy()
-        planePointsArray = cast(Array<number>, o)
+        //Object o = clipSpacePlanePointsArray:Copy()
+        //planePointsArray = cast(Array<number>, o)
 
         integer i = 0
         integer j = 0
         repeat 8 times
             Vector3 v = planePoints:Get(i)
-            v:SetX(planePointsArray:Get(j))
+            v:SetX(clipSpacePlanePointsArray:Get(j))
             j = j + 1
-            v:SetY(planePointsArray:Get(j))
+            v:SetY(clipSpacePlanePointsArray:Get(j))
             j = j + 1
-            v:SetZ(planePointsArray:Get(j))
+            v:SetZ(clipSpacePlanePointsArray:Get(j))
             j = j + 1
             i = i + 1
         end
 
         inverseProjectionView:Project(inverseProjectionView, planePoints)
-//        integer i = 0
-//        integer j = 0
-//        repeat 8 times
-//            Vector3 v = planePoints:Get(i)
-//            v:SetX(planePointsArray:Get(j))
-//            j = j + 1
-//            v:SetY(planePointsArray:Get(j))
-//            j = j + 1
-//            v:SetZ(planePointsArray:Get(j))
-//            j = j + 1
-//            i = i + 1
-//        end
 
         planes:Get(0):Set(planePoints:Get(1), planePoints:Get(0), planePoints:Get(2))
         planes:Get(1):Set(planePoints:Get(4), planePoints:Get(5), planePoints:Get(7))

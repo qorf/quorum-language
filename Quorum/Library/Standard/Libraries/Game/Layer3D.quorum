@@ -123,6 +123,8 @@ class Layer3D is Layer
     should be emptied after each use.
     */
     Array<Light> lightGatheringArray
+    /* This allows us to turn off collisions for the entire game. */
+    private boolean collide = true
 
     /*
     This array is used when processing mouse or touch events. It stores the
@@ -140,6 +142,16 @@ class Layer3D is Layer
         camera:Update()
         painter:SetEnvironment(environment)
         painter:SetCamera(camera)
+    end
+
+    /* This allows us to know if collisions are on or off for the layer. */
+    action IsColliding returns boolean
+        return collide
+    end
+
+    /* This allows us to turn collisions on or off for the layer. */
+    action SetColliding(boolean collide)
+        me:collide = collide
     end
 
     /*
@@ -2325,6 +2337,9 @@ class Layer3D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
+        if not collide
+            return now
+        end
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false

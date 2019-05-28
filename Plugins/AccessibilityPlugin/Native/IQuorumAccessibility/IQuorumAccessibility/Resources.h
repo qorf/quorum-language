@@ -67,6 +67,12 @@ struct JClass_TextFieldSelection
 	jmethodID GetStartIndex;
 	jmethodID GetEndIndex;
 };
+struct JClass_ToggleButton
+{
+	jclass me;
+	jmethodID SetToggleState;
+	jmethodID GetToggleState;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -79,6 +85,7 @@ extern JClass_TextBox JavaClass_TextBox;
 extern JClass_TextBoxSelection JavaClass_TextBoxSelection;
 extern JClass_TextField JavaClass_TextField;
 extern JClass_TextFieldSelection JavaClass_TextFieldSelection;
+extern JClass_ToggleButton JavaClass_ToggleButton;
 extern JClass_Item JavaClass_Item;
 
 

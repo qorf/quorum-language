@@ -15,6 +15,7 @@ class MenuRootCloseBehavior is Behavior
             MenuSelection selection = root:GetSelection()
 
             Array<MenuItem> path = selection:GetPath()
+
             if path:GetSize() > 1
                 path:RemoveFromEnd()
                 root:Select(path)
@@ -23,7 +24,9 @@ class MenuRootCloseBehavior is Behavior
                 if root:HasBar() and path:Get(0):IsOpen()
                     path:Get(0):Close()
                 else
-                    root:Close()
+//                    root:Deselect()
+//                    root:Close()
+                    root:RestoreLastFocus()
                 end
             end
         end

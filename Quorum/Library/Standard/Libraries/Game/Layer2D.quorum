@@ -80,6 +80,7 @@ class Layer2D is Layer
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<Item2D> depthSortedArray
     Camera camera = undefined
     Painter2D painter
 
@@ -103,6 +104,8 @@ class Layer2D is Layer
 
     boolean physicsEnabled = false
 
+    /* This allows us to turn off collisions for the entire game. */
+    private boolean collide = true
     /*
     Used to layout controls in this Layer.
     */
@@ -116,6 +119,16 @@ class Layer2D is Layer
         OrthographicCamera cam
         camera = cam
         collisionManager:SetLayer(me)
+    end
+
+    /* This allows us to know if collisions are on or off for the layer. */
+    action IsColliding returns boolean
+        return collide
+    end
+
+    /* This allows us to turn collisions on or off for the layer. */
+    action SetColliding(boolean collide)
+        me:collide = collide
     end
 
     /*
@@ -996,6 +1009,7 @@ class Layer2D is Layer
             return now
         end
 
+        CalculateDepthSortedArray()
         Array<Item2D> sortedItems = GetDepthSortedItems()
 
         camera:Update()
@@ -1094,7 +1108,7 @@ class Layer2D is Layer
     Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
-    
+        CalculateDepthSortedArray()
         Array<Item2D> sortedItems = GetDepthSortedItems()
 
         boolean processing = true
@@ -1179,6 +1193,18 @@ class Layer2D is Layer
         return result
     end
 
+    private action CalculateDepthSortedArray
+        depthSortedArray:Empty()
+
+        integer i = items:GetSize()
+        repeat while i > 0
+            i = i - 1
+            GetDepthSortedItems(items:Get(i), depthSortedArray)
+        end
+
+        depthSortedArray:Sort(depthSorter)
+    end
+
     /*
     This action returns an Array of all of the visible elements on this Layer, 
     including elements nested into other Items as children, sorted by ascending 
@@ -1188,24 +1214,7 @@ class Layer2D is Layer
     mouse detection but does not match draw order.
     */
     private action GetDepthSortedItems returns Array<Item2D>
-        Array<Item2D> resultArray
-        Array<Item2D> sortArray
-
-        integer i = items:GetSize()
-        repeat while i > 0
-            i = i - 1
-            GetDepthSortedItems(items:Get(i), sortArray)
-        end
-
-        sortArray:Sort(depthSorter)
-
-        integer counter = 0
-        repeat while counter < sortArray:GetSize()
-            resultArray:Add(sortArray:Get(counter))
-            counter = counter + 1
-        end
-
-        return resultArray
+        return depthSortedArray
     end
 
     /*
@@ -1832,6 +1841,9 @@ class Layer2D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
+        if not collide
+            return now
+        end
         SetUpdateTransforms(false)
 
         if newItemAdded
