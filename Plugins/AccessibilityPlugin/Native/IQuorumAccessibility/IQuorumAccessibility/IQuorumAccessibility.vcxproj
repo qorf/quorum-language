@@ -115,7 +115,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>uiautomationcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>uiautomationcore.lib;comsuppwd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\Quorum\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll"

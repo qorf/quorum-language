@@ -2,6 +2,7 @@
 #include "../IQuorumAccessibility/Header/jni.h"
 
 #include <Windows.h>
+#include<comutil.h>
 #include <UIAutomation.h>
 
 #include "Resources.h"
@@ -369,6 +370,30 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
 
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32NotifyTextBox(JNIEnv* env, jobject obj, jlong textbox, jstring say)
+{
+	const char* nativeCurrentLineText = env->GetStringUTFChars(say, 0);
+	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+	BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
+	const char* custom = "Custom Announcement";
+	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
+
+	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
+
+	enum NotificationKind kind = NotificationKind_ActionAborted;
+	enum NotificationProcessing processing = NotificationProcessing_MostRecent;
+	
+	UiaRaiseNotificationEvent(provider, kind, processing, resultString, customBSTR);
+
+	SysFreeString(resultString);
+	SysFreeString(customBSTR);
+	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
+}
+
+
+
+
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextFieldTextSelectionChanged(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)
 {
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
@@ -392,6 +417,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(fullText);
 	UNREFERENCED_PARAMETER(caretIndex);
 
+	int a = 5;
 	/*HWND control = (HWND)textboxHWND;
 
 	const char *nativeFullText = env->GetStringUTFChars(fullText, 0);

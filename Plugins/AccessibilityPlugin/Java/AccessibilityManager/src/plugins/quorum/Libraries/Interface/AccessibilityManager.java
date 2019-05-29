@@ -331,6 +331,15 @@ public class AccessibilityManager
         return true;
     }
     
+    private native void NativeWin32NotifyTextBox(long nativePointer, String say);
+    
+    public void Notify(Item_ item, String say) {
+        Long itemToRemove = ITEM_MAP.get(item);
+        if(item instanceof TextBox_) {
+            NativeWin32NotifyTextBox(itemToRemove, say);
+        }
+    }
+    
     public boolean NativeRemove(Item_ item)
     {
         Long itemToRemove = ITEM_MAP.get(item);

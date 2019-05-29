@@ -245,7 +245,6 @@ Range TextBoxControl::GetSelectionRange()
 {
 	JNIEnv* env = GetJNIEnv();
 	Range selectionRange = { {0}, {0} };
-
 	if (env != NULL)
 	{
 		jint index = 0;
@@ -532,7 +531,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		//Range indices = *(Range*)(lParam);
 		//m_caretPosition = indices;
 
-		//UpdateCaret();
+		UpdateCaret();
 
 		break;
 	}

@@ -93,6 +93,8 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextFieldTextSelectionChanged(JNIEnv*, jobject, jlong, jstring, jint, jint);
 
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32NotifyTextBox(JNIEnv* env, jobject obj, jlong textbox, jstring say);
+
 #ifdef __cplusplus
 }
 #endif

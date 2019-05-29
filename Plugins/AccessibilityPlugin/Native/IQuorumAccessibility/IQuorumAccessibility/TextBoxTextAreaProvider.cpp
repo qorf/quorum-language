@@ -13,8 +13,9 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
 	if (eventControl != NULL)
 	{
-		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
-		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
+		//UiaRaiseAutomationPropertyChangedEvent(eventControl, UIA_ValueValuePropertyId);
+		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		HRESULT result2 = UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
 	}
 	else
@@ -333,7 +334,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-
+	
 	Range caretRange = m_pTextBoxControl->GetSelectionRange();
 
 
