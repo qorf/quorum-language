@@ -244,6 +244,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	#endif
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
+	UiaDisconnectAllProviders();
 	CoUninitialize();
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility End");

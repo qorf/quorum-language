@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include<comutil.h>
 #include <UIAutomation.h>
-
+#include <atlsafe.h>
 #include "Resources.h"
 
 #include "ItemControl.h"
@@ -391,7 +391,39 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
 }
 
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextChanged(JNIEnv* env, jobject obj, jlong textbox, jstring change)
+{
+	//const char* nativeCurrentLineText = env->GetStringUTFChars(change, 0);
+	//BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
 
+	//TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	//IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
+
+	//size_t length = strlen(nativeCurrentLineText);
+
+	//SAFEARRAYBOUND saBound;
+	//saBound.lLbound = 0;
+	//saBound.cElements = length;
+	//SAFEARRAY* psa = SafeArrayCreateVector(VT_VARIANT, 0, 1);//&saBound);
+	//VARIANT* param;
+	//HRESULT hr = SafeArrayAccessData(psa, (LPVOID*)& param);
+	//if (SUCCEEDED(hr)) {
+	//	long index = 0;
+
+	//	param->vt = VT_BSTR;
+	//	param->bstrVal = resultString;
+	//	//SafeArrayPutElement(psa, &index, param);
+
+	//	enum TextEditChangeType type = TextEditChangeType_CompositionFinalized;
+	//	HRESULT result = UiaRaiseTextEditTextChangedEvent(provider, type, psa);
+
+	//	SafeArrayUnlock(psa);
+	//}
+	//SafeArrayDestroy(psa);
+
+	//SysFreeString(resultString);
+	//env->ReleaseStringUTFChars(change, nativeCurrentLineText);
+}
 
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextFieldTextSelectionChanged(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)
