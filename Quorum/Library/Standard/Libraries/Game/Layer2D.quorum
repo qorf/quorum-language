@@ -15,6 +15,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
@@ -1226,7 +1227,10 @@ class Layer2D is Layer
         integer i = children:GetSize()
         repeat while i > 0
             i = i - 1
-            GetDepthSortedItems(children:Get(i), array)
+            Item2D child = children:Get(i)
+            if child:IsCustomDrawing() = false
+                GetDepthSortedItems(child, array)
+            end
         end
 
         array:Add(item)

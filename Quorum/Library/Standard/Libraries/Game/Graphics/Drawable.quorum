@@ -359,38 +359,6 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
-    Loads this drawable using the parameter Drawable's texture.
-
-    Attribute: Example
-
-            use Libraries.Game.Graphics.Drawable
-            use Libraries.Game.Graphics.Texture
-            use Libraries.Game.Game
-
-            class Main is Game
-
-                Drawable circle1
-                Drawable circle2
-
-                action Main
-                    StartGame()
-                end
-
-                action CreateGame
-                    circle1:LoadFilledCircle(50)
-                    circle2:QuickCopy(circle1)
-                    circle1:SetPosition(50, 100)
-                    circle2:SetPosition(250, 100)
-                    Add(circle1)
-                    Add(circle2)
-                end
-            end
-    */
-    action QuickCopy(Drawable drawable)
-        Load(drawable:GetTexture())
-    end
-
-    /*
     Sets the color filter on this Drawable. This will reduce the intensity of
     colors in the Drawable that are not part of the filter, while leaving the
     other colors that are part of the filter as the same.
@@ -999,11 +967,11 @@ class Drawable is TextureRegion, Item2D
 
     1. If the Drawable was loaded using Load(text) or Load(File), then the
     Drawable created new texture data when it was loaded. This can be safely
-    disposed, unless you copied the Drawable, e.g. with QuickCopy(Drawable).
+    disposed, unless you copied the Drawable, e.g. with Load(Drawable).
 
     2. If the Drawable was loaded as a shape, e.g. with the LoadRectangle action,
     the Drawable created new texture data when it loaded. It can be safely
-    disposed, unless you copied the Drawable, e.g. with QuickCopy(Drawable).
+    disposed, unless you copied the Drawable, e.g. with Load(Drawable).
 
     3. If the Drawable was loaded using a Texture or a TextureRegion, such as
     with the Load(Texture) action, then it is NOT safe to dispose this if there

@@ -338,6 +338,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if backgroundColor not= undefined
             DrawableView backgroundView
+            backgroundView:SetName("TextBox Background View")
             backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
             background:SetView2D(backgroundView)
         end
@@ -348,6 +349,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         DrawableView horizontalBarView
         DrawableView verticalControlView
         DrawableView horizontalControlView
+
+        verticalBarView:SetName("TextBox Vertical Bar View")
+        horizontalBarView:SetName("TextBox Horizontal Bar View")
+        verticalControlView:SetName("TextBox Vertical Control View")
+        horizontalControlView:SetName("TextBox Horizontal ControlView")
 
         verticalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
         horizontalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
@@ -655,6 +661,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
                 if highlighted
                     Drawable highlight
+                    highlight:SetName("TextBox Highlight")
                     highlight:Load(selectionTexture)
                     highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                     highlight:SetColor(selectionColor)
@@ -665,6 +672,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
+                    draw:SetName("TextBox Character " + textIndex)
                     textDrawables:Add(draw)
 
                     if highlighted

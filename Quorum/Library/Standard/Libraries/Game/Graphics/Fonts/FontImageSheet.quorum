@@ -1,12 +1,28 @@
 package Libraries.Game.Graphics.Fonts
 
 use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureRegion
 
 class FontImageSheet 
     
     Texture imageSheet
-    HashTable<integer, TextureRegion> regionTable
+    HashTable<text, Glyph> glyphTable
 
+    action SupportsCharacter(text character) returns boolean
+        return glyphTable:HasKey(character)
+    end
+
+    action GetGlyph(text character) returns Glyph
+        return glyphTable:GetValue(character):CopyGlyph()
+    end
+
+    action GetTexture returns Texture
+        return imageSheet
+    end
+
+    action Dispose
+        imageSheet:Dispose()
+        glyphTable:Empty()
+    end
 end

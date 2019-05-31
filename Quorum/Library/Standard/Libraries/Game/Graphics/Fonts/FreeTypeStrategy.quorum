@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
+use Libraries.Game.Graphics.Texture
 
 /*
 The FreeTypeStrategy class is used to load fonts on the system using the FreeType
@@ -45,6 +46,9 @@ class FreeTypeStrategy is FontStrategy
     private integer height = 0
     private boolean initialized = false
     private HashTable<text, Glyph> glyphTable
+
+    private FontImageSheet imageSheet = undefined
+    private boolean loadedImageSheet = false
 
     private text style = ""
 
@@ -540,7 +544,10 @@ class FreeTypeStrategy is FontStrategy
     */
     action GetGlyph(text character) returns Glyph
         text char = character:GetCharacter(0)
-        if glyphTable:HasKey(char)
+
+        if IsImageSheetAvailable() and imageSheet:SupportsCharacter(char)
+            return imageSheet:GetGlyph(char)
+        elseif glyphTable:HasKey(char)
             return glyphTable:GetValue(char):CopyGlyph()
         else
             Glyph temp = GetGlyphNative(char)
@@ -550,6 +557,29 @@ class FreeTypeStrategy is FontStrategy
     end
 
     private system action GetGlyphNative(text character) returns Glyph
+
+    private action IsImageSheetAvailable returns boolean
+        if loadedImageSheet = false
+            FontImageSheet sheet
+            boolean success = LoadImageSheet(sheet)
+
+            if success
+                imageSheet = sheet
+            end
+
+            loadedImageSheet = true
+        end
+
+        return (imageSheet = undefined) = false
+    end
+
+    private system action LoadImageSheet(FontImageSheet sheet) returns boolean
+
+    // FOR DEBUGGING ONLY. Remove after ImageSheet testing.
+    action GetDebugTexture returns Texture
+        IsImageSheetAvailable()
+        return imageSheet:GetTexture()
+    end
 
     /*
     This action calculates the kerning value between a pair of characters and then
@@ -714,6 +744,11 @@ class FreeTypeStrategy is FontStrategy
             end
         end
         glyphTable:Empty()
+
+        // Reset the FontImageSheet as well.
+        imageSheet:Dispose()
+        imageSheet = undefined
+        loadedImageSheet = false
     end
 
     action GetMaximumAscent returns integer

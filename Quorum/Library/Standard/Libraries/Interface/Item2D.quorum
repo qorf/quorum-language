@@ -188,6 +188,14 @@ class Item2D is Item
     */
     View2D visualView = undefined
 
+    /*
+    Whether or not this Item should be responsible for deciding custom rendering
+    for itself and its children. Used primarily as a performance gain for custom 
+    objects. When custom rendering is used, this item's children aren't included
+    in the game's depth buffering step.
+    */
+    boolean isCustomDrawing = false
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -2677,81 +2685,16 @@ class Item2D is Item
             return now
         end
 
-//        if IsClipping()
-//            if painter:IsClipping()
-//                number startLeft = painter:GetClipX()
-//                number startRight = painter:GetClipX2()
-//                number left = startLeft
-//                number right = startRight
-//                number x = GetGlobalX()
-//                number y = GetGlobalY()
-//                number width = GetWidth()
-//                number height = GetHeight()
-//                if x > left
-//                    left = x
-//                end
-//                if (x + width) < right
-//                    right = x + width
-//                end
-//                if left > right
-//                    return now
-//                end
-//
-//                number startBottom = painter:GetClipY()
-//                number startTop = painter:GetClipY2()
-//                number bottom = startBottom
-//                number top = startTop
-//                if y > bottom
-//                    bottom = y
-//                end
-//                if (y + height) < top
-//                    top = y + height
-//                end
-//                if bottom > top
-//                    return now
-//                end
-//
-//                painter:SetClipCoordinates(left, bottom, right, top)
-//
-//                integer counter = children:GetSize()
-//                repeat while counter > 0
-//                    counter = counter - 1
-//                    children:Get(counter):Draw(painter)
-//                end
-//
-//                if visualView not= undefined
-//                    visualView:Draw(painter)
-//                end
-//
-//                painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
-//            else
-//                painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
-//                painter:SetClipping(true)
-//
-//                integer counter = children:GetSize()
-//                repeat while counter > 0
-//                    counter = counter - 1
-//                    children:Get(counter):Draw(painter)
-//                end
-//
-//                if visualView not= undefined
-//                    visualView:Draw(painter)
-//                end
-//
-//                painter:SetClipping(false)
-//            end
-//        else
 
-            integer counter = children:GetSize()
-            repeat while counter > 0
-                counter = counter - 1
-                children:Get(counter):Draw(painter)
-            end
-
-            if visualView not= undefined
-                visualView:Draw(painter)
-            end
+//        integer counter = children:GetSize()
+//        repeat while counter > 0
+//            counter = counter - 1
+//            children:Get(counter):Draw(painter)
 //        end
+
+        if visualView not= undefined
+            visualView:Draw(painter)
+        end
     end
 
     /*
@@ -2825,6 +2768,51 @@ class Item2D is Item
         else
             painter:SetClipping(false)
         end
+    end
+
+    /*
+    The SetCustomDrawing action is used to indicate that this Item wants to
+    directly manage how itself and its children are drawn. When this is set to
+    true, the Item must be responsible for determining this rendering via the
+    CustomDraw(Painter2D) action -- if this action isn't overridden, the Item
+    and its children won't be drawn. This is an advanced feature only necessary 
+    for complex custom components, and most users will not need to use this 
+    functionality.
+
+    Attribute: Parameter isCustom True if this Item should use custom drawing, or false to use default drawing rules.
+    */
+    action SetCustomDrawing(boolean isCustom)
+        isCustomDrawing = isCustom
+    end
+
+    /*
+    The IsCustomDrawing action returns whether or not this Item is directly
+    managing how itself and its children are drawn. When this value is true,
+    the Item is responsible for determining its rendering via the
+    CustomDraw(Painter2D) action -- if this action isn't overridden, the Item
+    and its children won't be drawn. This is an advanced feature only necessary 
+    for complex custom components, and most users will not need to use this 
+    functionality.
+
+    Attribute: Returns Whether or not this Item is currently using custom drawing rules.
+    */
+    action IsCustomDrawing returns boolean
+        return isCustomDrawing
+    end
+
+    /*
+    The CustomDraw action is used to perform custom drawing on this Item and its
+    children. This is only called during the Game engine's draw phase if this
+    Item has enabled custom drawing via the SetCustomDrawing action. This is
+    an advanced feature, and shouldn't be used by most users.
+
+    If custom drawing is enabled, this action must be overriden -- if it isn't,
+    neither this Item nor its children will be drawn. This action is responsible
+    for instructing the provided Painter on how to draw this item and its
+    children, and in what order to do so. 
+    */
+    action CustomDraw(Painter2D painter)
+
     end
 
     /*
