@@ -1,6 +1,7 @@
 
 package plugins.quorum.Libraries.Game.Graphics;
 
+import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import quorum.Libraries.Game.Graphics.Camera_;

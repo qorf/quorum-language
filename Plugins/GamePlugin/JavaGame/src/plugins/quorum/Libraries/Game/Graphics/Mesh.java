@@ -82,7 +82,6 @@ public class Mesh
         {
             if (quorumMesh.indices.GetSize() > 0)
             {
-                //System.out.println("Values = " + primitiveType + ", " + count + ", " + offset * 4);
                 GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
             }
             else
