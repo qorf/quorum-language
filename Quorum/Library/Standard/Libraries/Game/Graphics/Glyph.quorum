@@ -39,7 +39,7 @@ class Glyph
         
         if drawable not= undefined
             Drawable tempDrawable
-            tempDrawable:QuickCopy(drawable)
+            tempDrawable:Load(drawable)
             temp:drawable = tempDrawable
         else
             temp:drawable = undefined

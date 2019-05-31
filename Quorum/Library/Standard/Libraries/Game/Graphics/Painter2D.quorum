@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Item2DDepthComparison
 use Libraries.Containers.Integer32BitArray
+use Libraries.Interface.Item2D
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -62,7 +63,7 @@ class Painter2D
     /*
     An array used to store incoming Drawables and sort them by depth.
     */
-    private Array<Drawable> sortingArray
+    private Array<Item2D> sortingArray
 
     Item2DDepthComparison depthSorter
 
@@ -79,6 +80,12 @@ class Painter2D
     number clipY2 = 0
     number clipWidth = 0
     number clipHeight = 0
+
+    /*
+    Whether or not the Painter is currently processing an Item which is
+    performing custom drawing.
+    */
+    boolean customDrawingItem = false
 
     on create
         color = color:White()
@@ -382,12 +389,18 @@ class Painter2D
     action End
         sortingArray:Sort(depthSorter)
         
-        integer counter = sortingArray:GetSize()
-        repeat while counter > 0
-            counter = counter - 1
-            Drawable drawable = sortingArray:Get(counter)
-            drawable:SetClipCoordinates(me)
-            SystemDraw(drawable)
+        integer counter = 0
+        repeat while counter < sortingArray:GetSize()
+            Item2D item = sortingArray:Get(counter)
+            if item:IsCustomDrawing()
+                customDrawingItem = true
+                item:CustomDraw(me)
+                customDrawingItem = false
+            elseif item is Drawable
+                ClipAndDraw(cast(Drawable, item))
+            end
+            
+            counter = counter + 1
         end
 
         SystemEnd()
@@ -406,7 +419,30 @@ class Painter2D
     seen.
     */
     action Draw(Drawable drawable)
-        sortingArray:Add(drawable)
+        if customDrawingItem
+            ClipAndDraw(drawable)
+        else
+            sortingArray:Add(drawable)
+        end
+    end
+
+    /*
+
+    */
+    action Draw(Item2D item)
+        if item is Drawable
+            Draw(cast(Drawable, item))
+        elseif item:IsCustomDrawing() and not customDrawingItem
+            // Even though we can't draw a raw Item2D, since it's requesting
+            // custom rendering, it's processed during the draw step (possibly
+            // so it can determine how to draw its children).
+            sortingArray:Add(item)
+        end
+    end
+
+    private action ClipAndDraw(Drawable drawable)
+        drawable:SetClipCoordinates(me)
+        SystemDraw(drawable)
     end
 
     private system action SystemDraw(Drawable drawable)
@@ -554,13 +590,17 @@ class Painter2D
     Attribute: Parameter y2 The y coordinate of the top side of the rectangle.
     */
     action SetClipCoordinates(number x1, number y1, number x2, number y2)
-        clipX = x1
-        clipY = y1
-        clipX2 = x2
-        clipY2 = y2
-        clipWidth = x2 - x1
-        clipHeight = y2 - y1
-        UpdateClipping()
+        // Only update the clipping if something has changed. Updating the
+        // clipping flushes outgoing vertices to the GPU.
+        if clipX not= x1 or clipY not= y1 or clipX2 not= x2 or clipY2 not= y2
+            clipX = x1
+            clipY = y1
+            clipX2 = x2
+            clipY2 = y2
+            clipWidth = x2 - x1
+            clipHeight = y2 - y1
+            UpdateClipping()
+        end
     end
 
     /*
@@ -573,13 +613,17 @@ class Painter2D
     Attribute: Parameter height The height of the rectangle.
     */
     action SetClipDimensions(number x, number y, number width, number height)
-        clipX = x
-        clipY = y
-        clipX2 = x + width
-        clipY2 = y + height
-        clipWidth = width
-        clipHeight = height
-        UpdateClipping()
+        // Only update the clipping if something has changed. Updating the
+        // clipping flushes outgoing vertices to the GPU.
+        if clipX not= x or clipY not= y or clipWidth not= width or clipHeight not= height
+            clipX = x
+            clipY = y
+            clipX2 = x + width
+            clipY2 = y + height
+            clipWidth = width
+            clipHeight = height
+            UpdateClipping()
+        end
     end
 
     private system action UpdateClipping
