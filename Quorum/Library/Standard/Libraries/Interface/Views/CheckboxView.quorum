@@ -7,9 +7,10 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.HierarchyRenderer
 use Libraries.Interface.Layouts.LayoutProperties
 
-class CheckboxView is ToggleView, Drawable
+class CheckboxView is ToggleView, Drawable, HierarchyRenderer
 
     boolean toggled = false
     Drawable center
@@ -105,7 +106,7 @@ class CheckboxView is ToggleView, Drawable
     end
 
     action Draw(Painter2D painter)
-        parent:Drawable:Draw(painter)
+        parent:HierarchyRenderer:Draw(painter)
     end
 
     action UpdateSize(number width, number height)

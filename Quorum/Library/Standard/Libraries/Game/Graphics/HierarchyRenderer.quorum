@@ -26,7 +26,9 @@ class HierarchyRenderer is Item2D
             item:GetView2D():Draw(painter)
         end
 
-        painter:Draw(item)
+        if item is Drawable
+            painter:Draw(cast(Drawable, item))
+        end
 
         Array<Item2D> children = item:GetChildren()
         integer counter = 0

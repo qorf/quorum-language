@@ -1027,7 +1027,7 @@ class Drawable is TextureRegion, Item2D
 
         parent:Item2D:Draw(painter)
 
-        if GetTexture() not= undefined
+        if GetTexture() not= undefined and IsCustomDrawing() = false
             painter:Draw(me)
         end
     end

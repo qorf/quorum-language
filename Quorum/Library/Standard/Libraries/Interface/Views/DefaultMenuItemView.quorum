@@ -10,8 +10,9 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.HierarchyRenderer
 
-class DefaultMenuItemView is Control, MenuItemView
+class DefaultMenuItemView is Control, MenuItemView, HierarchyRenderer
     
     Label nameLabel
     Label shortcutLabel
@@ -74,7 +75,7 @@ class DefaultMenuItemView is Control, MenuItemView
     end
 
     action Draw(Painter2D painter)
-        parent:Item2D:Draw(painter)
+        parent:HierarchyRenderer:Draw(painter)
     end
 
     action UpdateSize(number width, number height)

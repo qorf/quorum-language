@@ -2685,15 +2685,12 @@ class Item2D is Item
             return now
         end
 
-
-//        integer counter = children:GetSize()
-//        repeat while counter > 0
-//            counter = counter - 1
-//            children:Get(counter):Draw(painter)
-//        end
-
         if visualView not= undefined
             visualView:Draw(painter)
+        end
+
+        if IsCustomDrawing()
+            painter:Draw(me)
         end
     end
 

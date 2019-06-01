@@ -1225,10 +1225,11 @@ class Layer2D is Layer
     private action GetDepthSortedItems(Item2D item, Array<Item2D> array)
         Array<Item2D> children = item:GetChildren()
         integer i = children:GetSize()
-        repeat while i > 0
-            i = i - 1
-            Item2D child = children:Get(i)
-            if child:IsCustomDrawing() = false
+
+        if item:IsCustomDrawing() = false
+            repeat while i > 0
+                i = i - 1
+                Item2D child = children:Get(i)
                 GetDepthSortedItems(child, array)
             end
         end
