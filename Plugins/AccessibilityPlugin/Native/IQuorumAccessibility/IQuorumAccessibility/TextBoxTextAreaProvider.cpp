@@ -82,6 +82,10 @@ IFACEMETHODIMP TextBoxTextAreaProvider::QueryInterface(_In_ REFIID riid, _Outptr
 	{
 		*ppInterface = static_cast<ITextProvider*>(this);
 	}
+	else if (riid == __uuidof(IValueProvider))
+	{
+		*ppInterface = static_cast<IValueProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -117,6 +121,11 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPatternProvider(PATTERNID patternId, 
 	if (patternId == UIA_TextPatternId)
 	{
 		*pRetVal = static_cast<ITextProvider *>(this);
+		(*pRetVal)->AddRef();
+	}
+	if (patternId == UIA_ValuePatternId)
+	{
+		*pRetVal = static_cast<IValueProvider*>(this);
 		(*pRetVal)->AddRef();
 	}
 
@@ -433,5 +442,52 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
+}
+
+IFACEMETHODIMP TextBoxTextAreaProvider::get_IsReadOnly(BOOL* returnValue)
+{
+	#if LOG
+	log("TextFieldProvider::get_IsReadOnly Start");
+	#endif
+
+	// Currently hard-coded to false -- Quorum text fields can't be read-only in the current version.
+	* returnValue = VARIANT_FALSE;
+
+	#if LOG
+	log("TextFieldProvider::get_IsReadOnly Finish");
+	#endif
+
+	return S_OK;
+}
+
+IFACEMETHODIMP TextBoxTextAreaProvider::SetValue(LPCWSTR value)
+{
+	#if LOG
+	log("TextFieldProvider::SetValue Start");
+	#endif
+
+	// NYI
+
+	#if LOG
+	log("TextFieldProvider::SetValue Finish");
+	#endif
+
+	return UIA_E_NOTSUPPORTED;
+}
+
+IFACEMETHODIMP TextBoxTextAreaProvider::get_Value(BSTR* returnValue)
+{
+	#if LOG
+	log("TextFieldProvider::get_Value Start");
+	#endif
+
+	std::wstring text = m_pTextBoxControl->GetText();
+	*returnValue = SysAllocStringLen(text.data(), text.size());
+
+	#if LOG
+	log("TextFieldProvider::get_Value Finish");
+	#endif
+
+	return S_OK;
 }
 

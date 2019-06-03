@@ -1,6 +1,7 @@
 class TextBoxControl;
 
 class TextBoxTextAreaProvider : public ITextProvider,
+								public IValueProvider,
 								public IRawElementProviderSimple,
 								public IRawElementProviderFragment
 {
@@ -36,6 +37,10 @@ class TextBoxTextAreaProvider : public ITextProvider,
 		IFACEMETHODIMP get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider ** retVal);
 		IFACEMETHODIMP get_SupportedTextSelection(_Out_ SupportedTextSelection * retVal);
 
+		// Methods from IValueProvider.
+		IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
+		IFACEMETHODIMP SetValue(LPCWSTR value);
+		IFACEMETHODIMP get_Value(BSTR* returnValue);
 
 	private:
 
