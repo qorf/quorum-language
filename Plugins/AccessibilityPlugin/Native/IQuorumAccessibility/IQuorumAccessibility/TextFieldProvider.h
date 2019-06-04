@@ -28,10 +28,10 @@ class TextFieldProvider : public IRawElementProviderSimple, public ITextProvider
 		IFACEMETHODIMP get_Value(BSTR* returnValue);
 
 		// Inherited via IRawElementProviderSimple
-		virtual HRESULT __stdcall get_ProviderOptions(ProviderOptions* pRetVal) override;
-		virtual HRESULT __stdcall GetPatternProvider(PATTERNID patternId, IUnknown** pRetVal) override;
-		virtual HRESULT __stdcall GetPropertyValue(PROPERTYID propertyId, VARIANT* pRetVal) override;
-		virtual HRESULT __stdcall get_HostRawElementProvider(IRawElementProviderSimple** pRetVal) override;
+		IFACEMETHODIMP get_ProviderOptions(ProviderOptions* pRetVal) override;
+		IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, IUnknown** pRetVal) override;
+		IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, VARIANT* pRetVal) override;
+		IFACEMETHODIMP get_HostRawElementProvider(IRawElementProviderSimple** pRetVal) override;
 	private:
 		virtual ~TextFieldProvider();
 		// Reference Counter for this COM object

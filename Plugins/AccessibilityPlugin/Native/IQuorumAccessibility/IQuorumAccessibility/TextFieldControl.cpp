@@ -140,7 +140,7 @@ TextFieldProvider* TextFieldControl::GetTextFieldProvider()
 	if (textFieldProvider == NULL)
 	{
 		textFieldProvider = new TextFieldProvider(this);
-		UiaRaiseAutomationEvent(textFieldProvider, UIA_Window_WindowOpenedEventId);
+		//UiaRaiseAutomationEvent(textFieldProvider, UIA_Window_WindowOpenedEventId);
 	}
 
 	#if LOG
@@ -215,7 +215,6 @@ std::wstring TextFieldControl::GetText()
 		if (eventControl != NULL && UiaClientsAreListening())
 		{
 			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
-			eventControl->Release();
 		}
 
 
@@ -305,7 +304,6 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-				provider->Release();
 			}
 
 			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());

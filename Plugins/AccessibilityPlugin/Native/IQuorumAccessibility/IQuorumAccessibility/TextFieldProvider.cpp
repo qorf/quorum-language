@@ -21,7 +21,7 @@ HRESULT __stdcall TextFieldProvider::get_ProviderOptions(ProviderOptions* pRetVa
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 
 	#if LOG
 	log("TextFieldProvider::get_ProviderOptions Finished");
@@ -40,7 +40,7 @@ HRESULT __stdcall TextFieldProvider::GetPatternProvider(PATTERNID patternId, IUn
 	{
 		case UIA_TextPatternId:
 		//case UIA_ValuePatternId:
-			*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+			*pRetVal = static_cast<ITextProvider*>(this);
 			break;
 		default:
 			*pRetVal = NULL;
@@ -56,7 +56,7 @@ HRESULT __stdcall TextFieldProvider::GetPatternProvider(PATTERNID patternId, IUn
 HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VARIANT* pRetVal)
 {
 	#if LOG
-	log("TextFieldProvider::GetPropertyValue Start");
+	log("TextFieldProvider::GetPropertyValue Start" + propertyId);
 	#endif
 
 	if (!IsWindow(textFieldControl->GetHWND()))
@@ -202,7 +202,7 @@ IFACEMETHODIMP_(ULONG) TextFieldProvider::Release()
 	}
 
 	#if LOG
-	log("TextFieldProvider::Release Finish");
+	log("TextFieldProvider::Release Finish: ");
 	#endif
 
 	return val;
@@ -217,10 +217,17 @@ IFACEMETHODIMP TextFieldProvider::QueryInterface(REFIID riid, void** ppInterface
 	if (riid == __uuidof(IUnknown))
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+#if LOG
+		log("TextFieldProvider::QueryInterface Finish (IRawElementProviderSimple Unkown Case)");
+#endif
 	}
 	else if (riid == __uuidof(IRawElementProviderSimple))
 	{
 		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+#if LOG
+		log("TextFieldProvider::QueryInterface Finish (IRawElementProviderSimple)");
+#endif
+		
 	}
 	//else if (riid == __uuidof(IValueProvider))
 	//{
@@ -229,6 +236,9 @@ IFACEMETHODIMP TextFieldProvider::QueryInterface(REFIID riid, void** ppInterface
 	else if (riid == __uuidof(ITextProvider))
 	{
 		*ppInterface = static_cast<ITextProvider*>(this);
+		#if LOG
+			log("TextFieldProvider::QueryInterface Finish (TextProvider)");
+		#endif
 	}
 	else
 	{
