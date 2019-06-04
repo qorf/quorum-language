@@ -269,7 +269,7 @@ public class AccessibilityManager
                 break;
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
-                nativePointer = 0;//NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
+                nativePointer = NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
                 break;
             case MENU_BAR:
                 nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
