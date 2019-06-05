@@ -3,7 +3,7 @@
 
 class TextFieldControl;
 
-class TextFieldProvider : public IRawElementProviderSimple, public ITextProvider//, public IValueProvider
+class TextFieldProvider : public IRawElementProviderSimple, public ITextProvider, public IValueProvider
 {
 	public:
 		TextFieldProvider(TextFieldControl* parentControl);

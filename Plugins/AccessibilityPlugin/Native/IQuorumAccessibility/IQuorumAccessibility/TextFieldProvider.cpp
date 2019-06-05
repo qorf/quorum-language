@@ -21,7 +21,7 @@ HRESULT __stdcall TextFieldProvider::get_ProviderOptions(ProviderOptions* pRetVa
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider;
 
 	#if LOG
 	log("TextFieldProvider::get_ProviderOptions Finished");
@@ -39,11 +39,17 @@ HRESULT __stdcall TextFieldProvider::GetPatternProvider(PATTERNID patternId, IUn
 	switch (patternId)
 	{
 		case UIA_TextPatternId:
-		//case UIA_ValuePatternId:
 			*pRetVal = static_cast<ITextProvider*>(this);
+			break;
+		case UIA_ValuePatternId:
+			*pRetVal = static_cast<IValueProvider*>(this);
 			break;
 		default:
 			*pRetVal = NULL;
+	}
+
+	if (*pRetVal != NULL) {
+		(static_cast<IUnknown*>(*pRetVal))->AddRef();
 	}
 
 	#if LOG
@@ -74,6 +80,13 @@ HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VAR
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(textFieldControl->GetName());
 	}
+	//else if (propertyId == UIA_ValueValuePropertyId)
+	//{
+	//	pRetVal->vt = VT_BSTR;
+	//	BSTR r;
+	//	get_Value(&r);
+	//	pRetVal->bstrVal = r;
+	//}
 	else if (propertyId == UIA_HelpTextPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -229,10 +242,13 @@ IFACEMETHODIMP TextFieldProvider::QueryInterface(REFIID riid, void** ppInterface
 #endif
 		
 	}
-	//else if (riid == __uuidof(IValueProvider))
-	//{
-	//	*ppInterface = static_cast<IValueProvider*>(this);
-	//}
+	else if (riid == __uuidof(IValueProvider))
+	{
+		*ppInterface = static_cast<IValueProvider*>(this);
+	#if LOG
+		log("TextFieldProvider::QueryInterface Finish (IValueProvider)");
+	#endif
+	}
 	else if (riid == __uuidof(ITextProvider))
 	{
 		*ppInterface = static_cast<ITextProvider*>(this);
@@ -444,7 +460,7 @@ IFACEMETHODIMP TextFieldProvider::SetValue(LPCWSTR value)
 	#endif
 
 	// NYI
-
+	
 	#if LOG
 	log("TextFieldProvider::SetValue Finish");
 	#endif

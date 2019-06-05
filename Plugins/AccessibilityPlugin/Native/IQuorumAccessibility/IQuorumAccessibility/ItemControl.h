@@ -17,7 +17,7 @@ public:
 	ItemProvider* GetItemProvider();
 
 	static ItemControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription, jobject jItem);
-
+	virtual void Focus(bool focused);
 	bool HasFocus();
 
 private:
@@ -27,7 +27,7 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus(_In_ bool focused);
+	
 
 	bool m_focused;
 

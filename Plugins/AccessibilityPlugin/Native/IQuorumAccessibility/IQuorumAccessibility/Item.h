@@ -12,7 +12,7 @@ class Item
 {
 public:
 	Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem);
-	virtual void SetControlFocus(_In_ bool Focused);
+	virtual void Focus(bool isFocused);
 	virtual bool HasFocus();
 
 	HWND GetHWND();
@@ -29,7 +29,7 @@ protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
 	HWND   m_ControlHWND;
-
+	bool focused;
 	jobject javaItem;
 };
 

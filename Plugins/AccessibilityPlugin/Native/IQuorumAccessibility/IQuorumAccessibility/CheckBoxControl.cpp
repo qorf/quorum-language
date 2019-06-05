@@ -9,7 +9,7 @@ bool CheckBoxControl::Initialized = false;
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
+CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
 {
 }
 
@@ -130,16 +130,10 @@ CheckBoxControl* CheckBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _
 }
 
 
-void CheckBoxControl::SetControlFocus(_In_ bool focused)
+void CheckBoxControl::Focus(bool focused)
 {
-	m_focused = focused;
-	if (focused)
-		m_buttonProvider->NotifyFocusGained();
-}
-
-bool CheckBoxControl::HasFocus()
-{
-	return m_focused;
+	this->focused = focused;
+	m_buttonProvider->NotifyFocusGained();
 }
 
 void CheckBoxControl::SetState(_In_ ToggleState controlState)
@@ -238,12 +232,12 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus(true);
+		this->Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->SetControlFocus(false);
+		this->Focus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

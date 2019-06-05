@@ -110,7 +110,7 @@ void MenuItemControl::Collapse()
 	GetMenuItemProvider()->Collapse();
 }
 
-void MenuItemControl::SetControlFocus(_In_ bool focused)
+void MenuItemControl::Focus(bool isFocused)
 {
 }
 

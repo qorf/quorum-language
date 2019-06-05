@@ -19,19 +19,13 @@ public:
 	void InvokeButton(_In_ HWND hwnd);
 	void SetState(_In_ bool controlState);
 	bool GetState();
-
-	bool HasFocus();
-
+	virtual void Focus(bool isFocused) override;
 private:
 	static LRESULT CALLBACK StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK RadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
-
-	void SetControlFocus(_In_ bool focused);
-
-	bool m_focused;
 
 	RadioButtonProvider* m_buttonProvider;
 

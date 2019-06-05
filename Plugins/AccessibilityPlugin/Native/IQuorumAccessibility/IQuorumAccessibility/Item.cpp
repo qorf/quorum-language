@@ -7,13 +7,13 @@ Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescriptio
 	javaItem = env->NewGlobalRef(jItem);
 }
 
-void Item::SetControlFocus(_In_ bool focused)
+void Item::Focus(bool isFocused)
 {
 }
 
 bool Item::HasFocus()
 {
-	return false;
+	return focused;
 }
 
 HWND Item::GetHWND()

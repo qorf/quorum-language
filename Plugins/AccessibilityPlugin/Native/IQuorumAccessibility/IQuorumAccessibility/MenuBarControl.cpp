@@ -76,11 +76,6 @@ MenuBarProvider* MenuBarControl::GetMenuBarProvider()
 	return m_menuBarProvider;
 }
 
-bool MenuBarControl::HasFocus()
-{
-	return m_focused;
-}
-
 MenuItemControl* MenuBarControl::GetSelectedMenuItem()
 {
 	return m_pSelectedMenuItem;
@@ -94,6 +89,8 @@ void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenu
 		m_pSelectedMenuItem->GetMenuItemProvider()->NotifyElementSelected();
 	}
 }
+
+
 
 LRESULT MenuBarControl::StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
@@ -152,12 +149,12 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus(true);
+		this->Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->SetControlFocus(false);
+		this->Focus(false);
 		break;
 	}
 	case QUORUM_SETNAME:
@@ -234,9 +231,9 @@ bool MenuBarControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-void MenuBarControl::SetControlFocus(_In_ bool isFocused)
+void MenuBarControl::Focus(bool isFocused)
 {
-	m_focused = isFocused;
+	this->focused = focused;
 	if (isFocused && UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(GetMenuBarProvider(), UIA_MenuModeStartEventId);

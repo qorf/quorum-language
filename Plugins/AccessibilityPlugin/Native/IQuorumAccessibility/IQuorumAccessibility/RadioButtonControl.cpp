@@ -9,7 +9,7 @@ bool RadioButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
+RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
 {
 }
 
@@ -172,16 +172,10 @@ bool RadioButtonControl::GetState()
 	return result;
 }
 
-void RadioButtonControl::SetControlFocus(_In_ bool focused)
+void RadioButtonControl::Focus(bool isFocused)
 {
-	m_focused = focused;
-	if (focused)
-		m_buttonProvider->NotifyFocusGained();
-}
-
-bool RadioButtonControl::HasFocus()
-{
-	return m_focused;
+	this->focused = focused;
+	m_buttonProvider->NotifyFocusGained();
 }
 
 LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -242,12 +236,12 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus(true);
+		this->Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->SetControlFocus(false);
+		this->Focus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

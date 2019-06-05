@@ -24,6 +24,7 @@ class TextFieldControl : public Item
 		std::wstring GetText();
 		EndPoint GetTextFieldEndpoint();
 		Range GetSelectionRange();
+		virtual void Focus(bool isFocused) override;
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint* end);
@@ -33,9 +34,7 @@ class TextFieldControl : public Item
 		LRESULT CALLBACK TextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 		static bool Initialize(_In_ HINSTANCE hInstance);
-		void SetControlFocus(_In_ bool focus);
-
+		void UpdateCaret();
 		TextFieldProvider* textFieldProvider;
 		static bool initialized;
-		bool focused;
 };

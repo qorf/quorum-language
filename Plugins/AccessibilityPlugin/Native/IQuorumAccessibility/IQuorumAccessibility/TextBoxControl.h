@@ -92,9 +92,7 @@ class TextBoxControl : public Item
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-
-
-		bool HasFocus();
+		virtual void Focus(bool isFocused) override;
 
 	private:
 		static LRESULT CALLBACK StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -102,12 +100,8 @@ class TextBoxControl : public Item
 		
 		static bool Initialize(_In_ HINSTANCE hInstance);
 		static bool Initialized;
-		
-		void SetControlFocus(_In_ bool focused);
 
 		void UpdateCaret();
-
-		bool m_focused;
 
 		TextBoxProvider* m_pTextBoxProvider;
 		jobject m_JO_me;

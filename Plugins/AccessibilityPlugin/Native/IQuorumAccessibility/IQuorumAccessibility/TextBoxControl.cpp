@@ -9,7 +9,7 @@
 bool TextBoxControl::Initialized = false;
 
 TextBoxControl::TextBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me)
-	: Item(env, name, description, me), m_focused(false), m_pTextBoxProvider(NULL), m_JO_me(me)
+	: Item(env, name, description, me),  m_pTextBoxProvider(NULL), m_JO_me(me)
 {
 }
 
@@ -119,16 +119,10 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 	return m_pTextBoxProvider;
 }
 
-void TextBoxControl::SetControlFocus(_In_ bool focused)
+void TextBoxControl::Focus(bool isFocused)
 {
-	m_focused = focused;
-	if (focused)
-		NotifyFocusGained(GetHWND(), this);
-}
-
-bool TextBoxControl::HasFocus()
-{
-	return m_focused;
+	this->focused = isFocused;
+	NotifyFocusGained(GetHWND(), this);
 }
 
 std::wstring TextBoxControl::GetText()
@@ -399,7 +393,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_IsActiveAttributeId)
 	{
 		retval.vt = VT_BOOL;
-		retval.boolVal = m_focused ? VARIANT_TRUE : VARIANT_FALSE;
+		retval.boolVal = focused ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (attribute == UIA_SelectionActiveEndAttributeId)
 	{
@@ -517,12 +511,12 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case WM_SETFOCUS:
 	{
-		SetControlFocus(true);
+		Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		SetControlFocus(false);
+		Focus(false);
 		break;
 	}
 	case QUORUM_UPDATESELECTION:

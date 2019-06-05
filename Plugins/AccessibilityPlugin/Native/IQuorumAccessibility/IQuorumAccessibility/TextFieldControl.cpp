@@ -10,7 +10,7 @@ bool TextFieldControl::initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-TextFieldControl::TextFieldControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), textFieldProvider(NULL), focused(false)
+TextFieldControl::TextFieldControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), textFieldProvider(NULL)
 {
 }
 
@@ -142,6 +142,7 @@ TextFieldProvider* TextFieldControl::GetTextFieldProvider()
 		textFieldProvider = new TextFieldProvider(this);
 		//UiaRaiseAutomationEvent(textFieldProvider, UIA_Window_WindowOpenedEventId);
 	}
+	
 
 	#if LOG
 	log("TextFieldControl::GetTextFieldProvider Finished");
@@ -232,16 +233,16 @@ std::wstring TextFieldControl::GetText()
 	return L"";
 }
 
-void TextFieldControl::SetControlFocus(_In_ bool focus)
+void TextFieldControl::Focus(bool focus)
 {
 	#if LOG
 	log("TextFieldControl::SetControlFocus Start");
 	#endif
 
-	focused = focus;
-	if (focused)
+	this->focused = focus;
+	if (focused) {
 		textFieldProvider->NotifyFocusGained();
-
+	}
 	#if LOG
 	log("TextFieldControl::SetControlFocus Finished");
 	#endif
@@ -281,6 +282,15 @@ LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd,
 	#endif
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
+void TextFieldControl::UpdateCaret()
+{
+	TextFieldProvider* eventControl = GetTextFieldProvider();
+	if (eventControl != NULL && UiaClientsAreListening())
+	{
+		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+	}
 }
 
 // Control window procedure.
@@ -325,12 +335,12 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 	}
 	case WM_SETFOCUS:
 	{
-		SetControlFocus(true);
+		Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		SetControlFocus(false);
+		Focus(false);
 		break;
 	}
 	case QUORUM_UPDATESELECTION:
@@ -339,7 +349,7 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 		//Range indices = *(Range*)(lParam);
 		//m_caretPosition = indices;
 
-		//UpdateCaret();
+		UpdateCaret();
 
 		break;
 	}

@@ -34,7 +34,7 @@ public:
 
 	void Expand();
 	void Collapse();
-
+	virtual void Focus(bool focused) override;
 private:
 
 	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
@@ -57,5 +57,5 @@ private:
 	// If this is null then the MenuBar is the direct parent of this control.
 	MenuItemControl* m_pParentMenuItem;
 
-	void SetControlFocus(_In_ bool focused);
+	
 };

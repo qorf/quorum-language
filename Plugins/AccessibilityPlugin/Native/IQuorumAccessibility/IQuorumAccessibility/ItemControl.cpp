@@ -118,12 +118,11 @@ ItemControl* ItemControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 
 }
 
-void ItemControl::SetControlFocus(_In_ bool focused)
+void ItemControl::Focus(bool focused)
 {
-	m_focused = focused;
-	if (focused)
+	if (focused) {
 		this->m_pItemProvider->NotifyFocusGained();
-
+	}
 }
 
 bool ItemControl::HasFocus()
@@ -189,12 +188,12 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus(true);
+		this->Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->SetControlFocus(false);
+		this->Focus(false);
 		break;
 	}
 	case QUORUM_SETNAME:

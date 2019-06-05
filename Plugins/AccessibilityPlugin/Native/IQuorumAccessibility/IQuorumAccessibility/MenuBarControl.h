@@ -23,8 +23,7 @@ public:
 
 	MenuItemControl* GetSelectedMenuItem();
 	void SetSelectedMenuItem(_In_opt_ MenuItemControl* selectedMenuItem);
-
-	bool HasFocus();
+	virtual void Focus(bool isFocused) override;
 private:
 
 	static LRESULT CALLBACK StaticMenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -33,7 +32,7 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus(_In_ bool isFocused);
+	
 
 	bool m_focused;
 

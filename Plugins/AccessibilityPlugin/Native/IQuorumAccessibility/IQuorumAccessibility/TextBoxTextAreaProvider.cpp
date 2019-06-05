@@ -15,7 +15,7 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	{
 		//UiaRaiseAutomationPropertyChangedEvent(eventControl, UIA_ValueValuePropertyId);
 		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
-		HRESULT result2 = UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
+		//HRESULT result2 = UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
 	}
 	else
@@ -157,7 +157,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_EditControlTypeId;
+		pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{

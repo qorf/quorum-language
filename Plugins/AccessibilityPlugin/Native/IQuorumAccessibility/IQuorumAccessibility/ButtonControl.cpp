@@ -10,7 +10,7 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL), m_focused(false)
+ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
 {
 }
 
@@ -136,17 +136,10 @@ ButtonControl* ButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ 
 
 }
 
-void ButtonControl::SetControlFocus(_In_ bool focused)
+void ButtonControl::Focus(bool focused)
 {
-	m_focused = focused;
-	if (focused)
-		m_buttonProvider->NotifyFocusGained();
-
-}
-
-bool ButtonControl::HasFocus()
-{
-	return m_focused;
+	this->focused = focused;
+	m_buttonProvider->NotifyFocusGained();
 }
 
 LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -207,12 +200,12 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	}
 	case WM_SETFOCUS:
 	{
-		this->SetControlFocus(true);
+		this->Focus(true);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		this->SetControlFocus(false);
+		this->Focus(false);
 		break;
 	}
 	case QUORUM_INVOKEBUTTON:

@@ -20,8 +20,7 @@ public:
 
 	void SetState(_In_ ToggleState controlState);
 	ToggleState GetState();
-
-	bool HasFocus();
+	virtual void Focus(bool isFocused) override;
 
 private:
 	static LRESULT CALLBACK StaticToggleButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -30,10 +29,5 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	void SetControlFocus(_In_ bool focused);
-
-	bool m_focused;
-
 	CheckBoxProvider* m_buttonProvider;
-
 };
