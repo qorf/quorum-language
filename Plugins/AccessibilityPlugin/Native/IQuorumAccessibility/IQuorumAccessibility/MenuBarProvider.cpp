@@ -86,7 +86,14 @@ IFACEMETHODIMP MenuBarProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	if (propertyId == UIA_AccessKeyPropertyId)
+	if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		ULONG Id = m_pMenuBarControl->GetHashCode();
+
+		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+	}
+	else if (propertyId == UIA_AccessKeyPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"ALT");

@@ -24,8 +24,6 @@ public:
 
 	void SetShortcut(std::wstring shortcut);
 	const WCHAR* GetShortcut();
-	
-	int GetId();
 
 	int GetMenuItemIndex();
 	void SetMenuItemIndex(_In_ int index);
@@ -36,9 +34,6 @@ public:
 	void Collapse();
 	virtual void Focus(bool focused) override;
 private:
-
-	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
-	int m_uniqueId;
 
 	// Where this MenuItem is located in the collection.
 	int m_myIndex;

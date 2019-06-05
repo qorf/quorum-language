@@ -101,7 +101,14 @@ IFACEMETHODIMP CheckBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	if (propertyId == UIA_LocalizedControlTypePropertyId)
+	if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		ULONG Id = m_pButtonControl->GetHashCode();
+
+		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+	}
+	else if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"check box");

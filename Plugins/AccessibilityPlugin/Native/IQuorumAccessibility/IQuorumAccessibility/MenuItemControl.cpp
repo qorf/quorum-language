@@ -7,7 +7,7 @@
 
 MenuItemControl::MenuItemControl(JNIEnv* env, _In_ std::wstring menuItemName, _In_ std::wstring menuItemShortcut, _In_ bool isMenu, _In_ int uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar, jobject jItem)
 	: Item(env, menuItemName, L"", jItem), m_shortcut(menuItemShortcut), m_pParentMenuBar(parentMenuBar),
-	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_uniqueId(uniqueId), m_myIndex(-1), m_isMenu(isMenu)
+	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_myIndex(-1), m_isMenu(isMenu)
 {
 }
 
@@ -62,11 +62,6 @@ void MenuItemControl::SetShortcut(std::wstring shortcut)
 const WCHAR * MenuItemControl::GetShortcut()
 {
 	return m_shortcut.c_str();
-}
-
-int MenuItemControl::GetId()
-{
-	return m_uniqueId;
 }
 
 // GetMenuItemIndex: Retreives the MenuItem index by iterating through the collection.

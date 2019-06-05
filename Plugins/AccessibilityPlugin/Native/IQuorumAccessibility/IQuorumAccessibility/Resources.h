@@ -78,6 +78,7 @@ struct JClass_Item
 	jclass me;
 	jmethodID GetName;
 	jmethodID GetDescription;
+	jmethodID GetHashCode;
 };
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;

@@ -16,20 +16,19 @@ public:
 	virtual bool HasFocus();
 
 	HWND GetHWND();
-
 	void SetName(_In_ std::wstring name);
 	const WCHAR* GetName();
-
 	void SetDescription(_In_ std::wstring description);
 	const WCHAR* GetDescription();
-
 	jobject GetMe();
-
+	int GetHashCode();
+	void SetHashCode(int hash);
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
 	HWND   m_ControlHWND;
 	bool focused;
+	int objectHash;
 	jobject javaItem;
 };
 
