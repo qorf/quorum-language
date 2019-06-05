@@ -279,7 +279,6 @@ IFACEMETHODIMP TextFieldTextRange::GetEnclosingElement(_Outptr_result_maybenull_
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	//*pRetVal = new TextBoxTextAreaProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 	*pRetVal = new TextFieldProvider(textFieldControl);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }

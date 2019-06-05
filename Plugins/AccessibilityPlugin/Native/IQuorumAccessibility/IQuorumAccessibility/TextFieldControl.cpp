@@ -240,9 +240,6 @@ void TextFieldControl::Focus(bool focus)
 	#endif
 
 	this->focused = focus;
-	if (focused) {
-		textFieldProvider->NotifyFocusGained();
-	}
 	#if LOG
 	log("TextFieldControl::SetControlFocus Finished");
 	#endif
@@ -345,12 +342,7 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 	}
 	case QUORUM_UPDATESELECTION:
 	{
-
-		//Range indices = *(Range*)(lParam);
-		//m_caretPosition = indices;
-
 		UpdateCaret();
-
 		break;
 	}
 	case QUORUM_SETNAME:
