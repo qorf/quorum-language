@@ -141,9 +141,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextFieldSelection.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
 	// Load the method ids
-	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextBoxSelection.me, "IsEmpty", "()Z");
-	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetStartIndex", "()I");
-	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetEndIndex", "()I");
+	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextFieldSelection.me, "IsEmpty", "()Z");
+	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetStartIndex", "()I");
+	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetEndIndex", "()I");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
