@@ -364,7 +364,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
 	Range indices((int)startIndex, (int)endIndex);
 
-	SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
+	//SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
 	SendMessage(pTextBox->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)&indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
@@ -434,7 +434,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TextFieldControl* textFieldControl = static_cast<TextFieldControl*>(LongToPtr((long)textField));
 	Range indices((int)startIndex, (int)endIndex);
 
-	SendMessage(textFieldControl->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
+	//SendMessage(textFieldControl->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
 	SendMessage(textFieldControl->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)& indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);

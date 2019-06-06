@@ -104,7 +104,7 @@ IFACEMETHODIMP MenuItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		ULONG Id = m_pMenuItemControl->GetId();
+		ULONG Id = m_pMenuItemControl->GetHashCode();
 
 		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
 	}
@@ -265,7 +265,7 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 // which makes the ID unique among instances of the control, and the Automation Id.
 IFACEMETHODIMP MenuItemProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
-	int id = m_pMenuItemControl->GetId();
+	int id = m_pMenuItemControl->GetHashCode();
 	int rId[] = { UiaAppendRuntimeId, id };
 	
 	HRESULT hr = S_OK;
@@ -371,7 +371,7 @@ void MenuItemProvider::NotifyMenuItemRemoved()
 		parentProvider->AddRef();
 
 		// Construct the runtime ID for the removed child
-		int id = m_pMenuItemControl->GetId();
+		int id = m_pMenuItemControl->GetHashCode();
 		int rId[] = { UiaAppendRuntimeId, id };
 
 		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, (sizeof(rId) / sizeof(rId[0])));

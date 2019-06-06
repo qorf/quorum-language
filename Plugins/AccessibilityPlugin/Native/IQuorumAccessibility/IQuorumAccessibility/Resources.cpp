@@ -142,9 +142,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextFieldSelection.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
 	// Load the method ids
-	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextBoxSelection.me, "IsEmpty", "()Z");
-	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetStartIndex", "()I");
-	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextBoxSelection.me, "GetEndIndex", "()I");
+	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextFieldSelection.me, "IsEmpty", "()Z");
+	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetStartIndex", "()I");
+	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetEndIndex", "()I");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
@@ -182,7 +182,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	//env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_Item.GetName = env->GetMethodID(JavaClass_Item.me, "GetName", "()Ljava/lang/String;");
 	JavaClass_Item.GetDescription = env->GetMethodID(JavaClass_Item.me, "GetDescription", "()Ljava/lang/String;");
-
+	JavaClass_Item.GetHashCode = env->GetMethodID(JavaClass_Item.me, "GetHashCode", "()I");
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion

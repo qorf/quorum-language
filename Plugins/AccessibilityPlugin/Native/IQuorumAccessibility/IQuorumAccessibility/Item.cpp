@@ -5,6 +5,19 @@ Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescriptio
 	: m_ControlName(controlName), m_ControlDescription(controlDescription), m_ControlHWND(NULL)
 {
 	javaItem = env->NewGlobalRef(jItem);
+	jclass itemReference = env->GetObjectClass(javaItem);
+	jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
+
+	jint hash = reinterpret_cast<jint>(env->CallObjectMethod(javaItem, method));
+	SetHashCode(hash);
+}
+
+int Item::GetHashCode() {
+	return objectHash;
+}
+
+void Item::SetHashCode(int hash) {
+	this->objectHash = hash;
 }
 
 void Item::Focus(bool isFocused)

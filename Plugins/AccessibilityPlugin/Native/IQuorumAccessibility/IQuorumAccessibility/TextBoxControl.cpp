@@ -3,7 +3,6 @@
 #include <strsafe.h>
 
 #include "TextBoxControl.h"
-#include "TextBoxTextAreaProvider.h"
 #include "TextBoxProvider.h"
 
 bool TextBoxControl::Initialized = false;
@@ -23,7 +22,6 @@ TextBoxControl::~TextBoxControl()
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
-
 	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -97,17 +95,11 @@ TextBoxControl* TextBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In
 		}
 		else
 		{
-			if (UiaClientsAreListening())
-			{
-				control->GetTextBoxProvider();
-			}
-
+			//control->GetTextBoxProvider();
 			return control;
 		}
 	}
-
 	return NULL; // Indicates failure to create window.
-
 }
 
 TextBoxProvider* TextBoxControl::GetTextBoxProvider()
@@ -122,7 +114,6 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 void TextBoxControl::Focus(bool isFocused)
 {
 	this->focused = isFocused;
-	NotifyFocusGained(GetHWND(), this);
 }
 
 std::wstring TextBoxControl::GetText()
@@ -139,11 +130,10 @@ std::wstring TextBoxControl::GetText()
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 
-		TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(GetHWND(), this);
+		TextBoxProvider* eventControl = GetTextBoxProvider();
 		if (eventControl != NULL && UiaClientsAreListening())
 		{
 			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
-			eventControl->Release();
 		}
 
 		return wFullText;
@@ -178,7 +168,7 @@ int TextBoxControl::GetCaretLine()
 	jint index = 0;
 	if (env != NULL)
 	{
-		// Wait for Quorum to write
+		// Wait for one frame of animation to complete
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretLine);
 	}
@@ -261,7 +251,12 @@ Range TextBoxControl::GetSelectionRange()
 
 void TextBoxControl::UpdateCaret()
 {
-	NotifyCaretPositionChanged(GetHWND(), this);
+	//NotifyCaretPositionChanged(GetHWND(), this);
+	TextBoxProvider* eventControl = GetTextBoxProvider();
+	if (eventControl != NULL && UiaClientsAreListening())
+	{
+		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+	}
 }
 
 jobject TextBoxControl::GetMe()
@@ -485,14 +480,11 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			IRawElementProviderSimple* provider = new TextBoxProvider(hwnd, this);
+			IRawElementProviderSimple* provider = this->GetTextBoxProvider();//new TextBoxProvider(hwnd, this);
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-				provider->Release();
 			}
-
-			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
 		}
 		break;
 	}
@@ -501,11 +493,12 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		IRawElementProviderSimple* provider = this->GetTextBoxProvider();
 		if (provider != NULL)
 		{
+			provider->Release();
 			HRESULT hr = UiaDisconnectProvider(provider);
 			if (FAILED(hr))
 			{
 				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
+				std::cout << "UiaDisconnectProvider failed TextBoxControl.cpp: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
 			}
 		}
 	}
@@ -521,12 +514,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case QUORUM_UPDATESELECTION:
 	{
-		
-		//Range indices = *(Range*)(lParam);
-		//m_caretPosition = indices;
-
 		UpdateCaret();
-
 		break;
 	}
 	case QUORUM_SETNAME:
