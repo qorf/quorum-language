@@ -13,10 +13,12 @@ import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
+import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
+import quorum.Libraries.Interface.Selections.TreeSelection_;
 
 
 /**
@@ -597,6 +599,25 @@ public class AccessibilityManager
             Thread.sleep(1);
         }
 
+    }
+    
+    /*
+    Used by the native layer. Given a Tree_ object, returns a pointer for the
+    selected TreeItem, or 0 if there's no selection.
+    */
+    public static long GetTreeSelectionPointer(Tree_ tree)
+    {
+        TreeSelection_ selection = tree.GetSelection();
+        Item_ item = selection.GetTreeItem();
+        if (item == null)
+            return 0;
+        
+        Long itemPointer = ITEM_MAP.get(item);
+        
+        if (itemPointer == null)
+            return 0;
+        else
+            return itemPointer;
     }
     
 }

@@ -61,6 +61,10 @@ IFACEMETHODIMP TreeItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 	{
 		*ppInterface = static_cast<IExpandCollapseProvider*>(this);
 	}
+	else if (riid == __uuidof(ISelectionItemProvider))
+	{
+		*ppInterface = static_cast<ISelectionItemProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -82,6 +86,11 @@ IFACEMETHODIMP TreeItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 	*pRetVal = NULL;
 
 	if (patternId == UIA_ExpandCollapsePatternId)
+	{
+		AddRef();
+		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (patternId == UIA_SelectionItemPatternId)
 	{
 		AddRef();
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
@@ -388,6 +397,40 @@ void TreeItemProvider::NotifyElementExpandCollapse()
 
 		UiaRaiseAutomationPropertyChangedEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId, oldValue, newValue);
 	}
+}
+
+HRESULT __stdcall TreeItemProvider::Select(void)
+{
+	// NYI
+	return S_OK;
+}
+
+HRESULT __stdcall TreeItemProvider::AddToSelection(void)
+{
+	// NYI
+	return S_OK;
+}
+
+HRESULT __stdcall TreeItemProvider::RemoveFromSelection(void)
+{
+	// NYI
+	return S_OK;
+}
+
+HRESULT __stdcall TreeItemProvider::get_IsSelected(BOOL* pRetVal)
+{
+	TreeControl* tree = m_pTreeItemControl->GetParentTree();
+	BOOL selected = (tree->GetSelectedTreeItem() == m_pTreeItemControl);
+
+	*pRetVal = selected;
+	return S_OK;
+}
+
+HRESULT __stdcall TreeItemProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal)
+{
+	*pRetVal = static_cast<IRawElementProviderSimple*>(this->GetParentProvider());
+
+	return S_OK;
 }
 
 IUnknown* TreeItemProvider::GetParentProvider()

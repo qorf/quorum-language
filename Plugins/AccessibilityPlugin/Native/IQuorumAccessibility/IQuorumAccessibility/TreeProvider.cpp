@@ -4,6 +4,7 @@
 #include "TreeProvider.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
+#include "TreeItemProvider.h"
 
 TreeProvider::TreeProvider(_In_ TreeControl * pTreeControl) : m_refCount(1), m_pTreeControl(pTreeControl)
 {
@@ -289,6 +290,63 @@ IFACEMETHODIMP TreeProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProvi
 
 TreeProvider::~TreeProvider()
 {
+}
+
+HRESULT __stdcall TreeProvider::GetSelection(SAFEARRAY** pRetVal)
+{
+	if (!IsWindow(m_pTreeControl->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	JNIEnv* env = GetJNIEnv();
+	long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeSelectionPointer, m_pTreeControl->GetMe());
+
+	if (selectionPointer == 0)
+	{
+		*pRetVal = NULL;
+		return S_OK;
+	}
+
+	TreeItemControl* treeItemControl = static_cast<TreeItemControl*>(LongToPtr((long)selectionPointer));
+	TreeItemProvider* treeItemProvider = treeItemControl->GetTreeItemProvider();
+
+	HRESULT hr = S_OK;
+
+	*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
+	if (*pRetVal == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+	}
+	else
+	{
+		long index = 0;
+		hr = SafeArrayPutElement(*pRetVal, &index, treeItemProvider);
+		if (FAILED(hr))
+		{
+			SafeArrayDestroy(*pRetVal);
+			*pRetVal = NULL;
+		}
+		else
+		{
+			// Since the provider is being passed out of our domain, we need to increment its reference counter.
+			treeItemProvider->AddRef();
+		}
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall TreeProvider::get_CanSelectMultiple(BOOL* pRetVal)
+{
+	*pRetVal = false;
+	return S_OK;
+}
+
+HRESULT __stdcall TreeProvider::get_IsSelectionRequired(BOOL* pRetVal)
+{
+	*pRetVal = false;
+	return S_OK;
 }
 
 
