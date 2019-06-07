@@ -1,6 +1,7 @@
 class TreeControl;
 
-class TreeProvider : public IRawElementProviderSimple,
+class TreeProvider :	public ISelectionProvider,
+						public IRawElementProviderSimple,
 						public IRawElementProviderFragment,
 						public IRawElementProviderFragmentRoot
 {
@@ -30,9 +31,15 @@ public:
 	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 
+	// ISelectionProvider methods
+	virtual HRESULT __stdcall GetSelection(SAFEARRAY** pRetVal) override;
+	virtual HRESULT __stdcall get_CanSelectMultiple(BOOL* pRetVal) override;
+	virtual HRESULT __stdcall get_IsSelectionRequired(BOOL* pRetVal) override;
+
 private:
 	virtual ~TreeProvider();
 	ULONG m_refCount;
 
 	TreeControl* m_pTreeControl;
+
 };

@@ -33,7 +33,7 @@ struct JClass_AccessibilityManager
 {
 	jclass me;
 	jmethodID WaitForUpdate;
-
+	jmethodID GetTreeSelectionPointer;
 };
 struct JClass_TextBox
 {

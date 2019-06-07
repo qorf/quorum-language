@@ -1,7 +1,10 @@
+#pragma once
+
 class TreeItemControl;
 class TreeControl;
 
-class TreeItemProvider : public IRawElementProviderSimple,
+class TreeItemProvider : public ISelectionItemProvider,
+						 public IRawElementProviderSimple,
 						 public IRawElementProviderFragment,
 						 public IExpandCollapseProvider
 {
@@ -38,6 +41,12 @@ public:
 	void NotifyElementSelected();
 	IUnknown* GetParentProvider();
 
+	// Inherited via ISelectionItemProvider
+	virtual HRESULT __stdcall Select(void) override;
+	virtual HRESULT __stdcall AddToSelection(void) override;
+	virtual HRESULT __stdcall RemoveFromSelection(void) override;
+	virtual HRESULT __stdcall get_IsSelected(BOOL* pRetVal) override;
+	virtual HRESULT __stdcall get_SelectionContainer(IRawElementProviderSimple** pRetVal) override;
 
 private:
 	virtual ~TreeItemProvider();
@@ -51,4 +60,5 @@ private:
 	TreeItemControl* m_pTreeItemControl;
 
 	ExpandCollapseState m_expandCollapseState;
+
 };
