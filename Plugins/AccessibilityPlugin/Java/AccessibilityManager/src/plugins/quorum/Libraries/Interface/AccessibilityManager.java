@@ -24,13 +24,13 @@ import quorum.Libraries.Interface.Selections.TreeSelection_;
 
 
 /**
- *
- * @author Matthew Raybuck
+ * This is the Java Windows side of the Accessibility. 
+ * 
+ * @author Matthew Raybuck, William Allee, and Andreas Stefik
  */
 public class AccessibilityManager 
 {
-    enum AccessibilityCodes
-    {
+    enum AccessibilityCodes {
         NOT_ACCESSIBLE,
         ITEM,
         CUSTOM,
@@ -54,18 +54,15 @@ public class AccessibilityManager
         TREE_TABLE
     }
             
-    enum MenuChanges
-    {
+    enum MenuChanges {
         EXPANDED,
         COLLAPSED;
     }
     
-    enum TreeChanges
-    {
+    enum TreeChanges {
         EXPANDED,
         COLLAPSED;
     }
-    
     private static final HashMap<Integer, AccessibilityCodes> ACCESSIBILITYCODES_MAP = new HashMap<>();
     private static final HashMap<Integer, MenuChanges> MENUCHANGES_MAP = new HashMap<>();
     private static final HashMap<Integer, TreeChanges> TREECHANGES_MAP = new HashMap<>();
@@ -100,7 +97,6 @@ public class AccessibilityManager
         
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
-
         TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__OPENED_(), TreeChanges.EXPANDED);
         TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__CLOSED_(), TreeChanges.COLLAPSED);
         
@@ -108,23 +104,21 @@ public class AccessibilityManager
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
-            
             String nativeFile;
             
-            if (System.getProperty("os.arch").contains("x86"))
+            if (System.getProperty("os.arch").contains("x86")) {
                 nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows32.dll";
-            else
+            }
+            else {
                 nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
-            
+            }
             System.load(nativeFile);
-            
-            NativeWin32InitializeAccessibility(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window));
+            InitializeAccessibilityNative(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window));
         }
         catch (URISyntaxException ex) 
         {
             Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     } 
     
     public AccessibilityManager(){};
@@ -132,125 +126,55 @@ public class AccessibilityManager
     
     private static volatile long frameCount = 0;
     
-    // Container to associate the Quorum item with its respective native pointer.
+    /** Container to associate the Quorum item with its respective native pointer. */
     private static final HashMap<Item_, Long> ITEM_MAP = new HashMap<>();
 
-    // ====== Native Windows API (Win32) Function Declarations
-
-    private static native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
+    /* Native Windows API (Win32) Function Declarations */
+    private static native void InitializeAccessibilityNative(long GLFW_WindowHandle);
+    private native void ShutdownAccessibilityNative();
     
-    private native void NativeWin32ShutdownAccessibility();
-    
-    //
-    // ==== Accessible Object Creation Functions
-    //
-    
-    // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
-    //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateItem(String name, String description, Item_ item);
-    
-    // NativeWin32CreatePushButton: Creates a button control in UI Automation.
-    //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateButton(String name, String description, Item_ item);
-    
-    // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
-    //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateCheckBox(String name, String description, Item_ item);
-    
-    // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
-    //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateRadioButton(String name, String description, Item_ item);
-
-    // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
-    //      Returns: null on failure, otherwise the native pointer associated with item
-    private native long NativeWin32CreateTextBox(String name, String description, TextBox_ quorumSelf);
-
-    private native long NativeWin32CreateTextField(String name, String description, TextField_ quorumField);
-    
-    // NativeWin32CreateMenuBar: Creates a MenuBar control in UI Automation
-    //
-    private native long NativeWin32CreateMenuBar(String name, Item_ item);
-
-    private native long NativeWin32CreateTree(String name, Item_ item);
-
-    /*
-    
-        Creates a Tab Pane natively
+    /**
+     Accessible Object Creation Functions
     */
-    private native long NativeWin32CreateTabPane(String name, Item_ item);
-    
-    private native long NativeWin32CreateTab(long parent, String name, Item_ item);
-    
-    // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
-    //
-    private native long NativeWin32CreateMenuItem(String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
-    
-    private native long NativeWin32CreateTreeItem(String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
-    
-    
-    // NativeWin32Remove: Removes a item control from UI Automation hierarchy.
-    //
-    private native boolean NativeWin32Remove(long itemToRemove);
-    
-    // NativeWin32RemoveMenuItem: Removes a MenuItem control from UI Automation hierarchy.
-    //
-    private native boolean NativeWin32RemoveMenuItem(long itemToRemove);
-    
-    private native boolean NativeWin32RemoveTreeItem(long itemToRemove);
+    private native long CreateItemNative(long parent, String name, String description, Item_ item);
+    private native long CreateButtonNative(long parent, String name, String description, Item_ item);
+    private native long CreateCheckBoxNative(long parent, String name, String description, Item_ item);
+    private native long CreateRadioButtonNative(long parent, String name, String description, Item_ item);
+    private native long CreateTextBoxNative(long parent, String name, String description, TextBox_ quorumSelf);
+    private native long CreateTextFieldNative(long parent, String name, String description, TextField_ quorumField);
+    private native long CreateMenuBarNative(long parent, String name, Item_ item);
+    private native long CreateTreeNative(long parent, String name, Item_ item);
+    private native long CreateTabPaneNative(long parent, String name, Item_ item);
+    private native long CreateTabNative(long parent, String name, Item_ item);
+    private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
+    private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
+    private native boolean RemoveNative(long itemToRemove);
+    private native boolean RemoveMenuItemNative(long itemToRemove);
+    private native boolean RemoveTreeItemNative(long itemToRemove);
 
     
-    //
-    // ==== Accessible Object Event Response Functions
-    //
-    
-    // NativeWin32InvokeButton: Calls the native method that will raise a UI Automation that tells the screen reader that the button was iteracted with.
-    //
-    private native boolean NativeWin32InvokeButton(long nativePointer);
-    
-    // NativeWin32UpdateToggleStatus: Calls the native method that is responsible for updating the native control's toggle status (on or off)
-    //                                and raising the appropriate UI Automation event.
-    private native boolean NativeWin32UpdateToggleStatus(long nativePointer, boolean selected);
-
-    // NativeWin32TextBoxTextSelectionChanged:
-    //
-    private native boolean NativeWin32TextBoxTextSelectionChanged(long nativePointer, String TextValue, int startIndex, int endIndex);
-    
-    private native boolean NativeWin32TextFieldTextSelectionChanged(long nativePointer, String textValue, int startIndex, int endIndex);
-    
-    // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
-    //
-    private native boolean NativeWin32UpdateCaretPosition(long nativePointer, String fullText, int caretIndex);
-    
-    // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
-    //      Returns: null on failure, otherwise the native pointer of previously focused item.
-    private native long NativeWin32SetFocus(long nativePointer);
-
-        // NativeWin32SelectMenuItem: Selects a MenuItem control in the UI Automation hierarchy.
-    //
-    private native boolean NativeWin32SelectMenuItem(long selectedMenuItem);
-    
-    // NativeWin32DeselectMenuItem: Deselects a MenuItem control in the UI Automation hierarchy.
-    //
-    private native boolean NativeWin32DeselectMenuItem(long menubar);
-
-    private native boolean NativeWin32MenuExpanded(long nativePointer);
-    
-    private native boolean NativeWin32MenuCollapsed(long nativePointer);
-    
-    private native boolean NativeWin32SelectTreeItem(long selectedMenuItem);
-    
-    private native boolean NativeWin32SubtreeExpanded(long nativePointer);
-    
-    private native boolean NativeWin32SubtreeCollapsed(long nativePointer);
-    
-    //
-    // ====== Accessiblity Manager Function Declarations
-    //
+    /**
+    Accessible Object Event Response Functions
+    */
+    private native boolean InvokeButtonNative(long nativePointer);
+    private native boolean UpdateToggleStatusNative(long nativePointer, boolean selected);
+    private native boolean TextBoxTextSelectionChangedNative(long nativePointer, String TextValue, int startIndex, int endIndex);
+    private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
+    private native boolean UpdateCaretPositionNative(long nativePointer, String fullText, int caretIndex);
+    private native long SetFocusNative(long nativePointer);
+    private native boolean SelectMenuItemNative(long selectedMenuItem);
+    private native boolean DeselectMenuItemNative(long menubar);
+    private native boolean MenuExpandedNative(long nativePointer);
+    private native boolean MenuCollapsedNative(long nativePointer);
+    private native boolean SelectTreeItemNative(long selectedMenuItem);
+    private native boolean SubtreeExpandedNative(long nativePointer);
+    private native boolean SubtreeCollapsedNative(long nativePointer);
+    private native void NotifyTextBoxNative(long nativePointer, String say);
     
     // Shutdown: Closes the COM library on the native level.
     public void Shutdown()
     {
-        NativeWin32ShutdownAccessibility();
+        ShutdownAccessibilityNative();
     }
     
     public boolean NativeAdd(Item_ item)
@@ -260,40 +184,35 @@ public class AccessibilityManager
         if (ITEM_MAP.get(item) != null)
             return true;
 
+        long parentLong = GetAccessibleParentHelper(item);
         switch(code)
         {
             case ITEM:
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case CUSTOM:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case CHECKBOX:
-                // This Create function will need more parameters for state information
-                // Since checkboxes don't exist some assumptions are made on the native level
-                // that won't be accurate if the correct info isn't passed down.
-                nativePointer = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case RADIO_BUTTON:
-                // This Create function will need more parameters for state information
-                // Since dedicated radio buttons don't exist some assumptions are made 
-                // on the native level that won't be accurate if the correct info isn't passed down.
-                nativePointer = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case BUTTON:
-                nativePointer = NativeWin32CreateButton(item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
-                nativePointer = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox);
+                nativePointer = CreateTextBoxNative(parentLong, textbox.GetName(), textbox.GetDescription(), textbox);
                 break;
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
-                nativePointer = NativeWin32CreateTextField(textField.GetName(), textField.GetDescription(), textField);
+                nativePointer = CreateTextFieldNative(parentLong, textField.GetName(), textField.GetDescription(), textField);
                 break;
             case MENU_BAR:
-                nativePointer = NativeWin32CreateMenuBar(item.GetName(), item);
+                nativePointer = CreateMenuBarNative(parentLong, item.GetName(), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -313,14 +232,14 @@ public class AccessibilityManager
                 if (menuBar == null)
                     return false;
                 
-                nativePointer = NativeWin32CreateMenuItem(menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item);
+                nativePointer = CreateMenuItemNative(parentLong, menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item);
                 break;
             case TREE:
-                nativePointer = NativeWin32CreateTree(item.GetName(), item);
+                nativePointer = CreateTreeNative(parentLong, item.GetName(), item);
                 break;
             case TREE_ITEM:
+            {
                 TreeItem_ treeItem = (TreeItem_)item;
-                
                 // Get parent MenuItem pointer if it exists.
                 Long parentTreeItem = ITEM_MAP.get((Item_)treeItem.GetParentTreeItem());
                 long parentSubtree = 0;
@@ -336,25 +255,15 @@ public class AccessibilityManager
                 if (parentTree == null)
                     return false;
                     
-                nativePointer = NativeWin32CreateTreeItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
+                nativePointer = CreateTreeItemNative(parentLong, treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
+            }
                 break;
             case TAB_PANE:
-                TabPane_ tabPane = (TabPane_) item;
-
-                nativePointer = NativeWin32CreateTabPane(tabPane.GetName(), tabPane);
+                nativePointer = CreateTabPaneNative(parentLong, item.GetName(), item);
                 break;
             case TAB:
-                Tab_ tab = (Tab_) item;
-                Item_ parent = item.GetAccessibleParent();
-                long parentLong = -1;
-                if(parent != null) {
-                    Long l = ITEM_MAP.get( parent);
-                    if(l != null) {
-                        parentLong = l;
-                    }
-                }      
-                nativePointer = NativeWin32CreateTab(parentLong, tab.GetName(), tab);
-                break;
+                nativePointer = CreateTabNative(parentLong, item.GetName(), item);
+            break;
             default: //if the code doesn't match one of these, don't add it, including the NOT_ACCESSIBLE 
                 nativePointer = 0;
                 break;
@@ -366,16 +275,25 @@ public class AccessibilityManager
 
         // Add item and respective pointer to collection.
         ITEM_MAP.put(item, nativePointer);
-        
         return true;
     }
     
-    private native void NativeWin32NotifyTextBox(long nativePointer, String say);
+    private long GetAccessibleParentHelper(Item_ item) {
+        Item_ parent = item.GetAccessibleParent();
+        long parentLong = -1;
+        if(parent != null) {
+            Long l = ITEM_MAP.get( parent);
+            if(l != null) {
+                parentLong = l;
+            }
+        }
+        return parentLong;
+    }
     
     public void Notify(Item_ item, String say) {
         Long itemToRemove = ITEM_MAP.get(item);
         if(item instanceof TextBox_) {
-            NativeWin32NotifyTextBox(itemToRemove, say);
+            NotifyTextBoxNative(itemToRemove, say);
         }
     }
     
@@ -398,23 +316,22 @@ public class AccessibilityManager
             case CHECKBOX:
             case MENU_BAR:
             case TREE:
-                wasRemoved = NativeWin32Remove(itemToRemove);
+                wasRemoved = RemoveNative(itemToRemove);
                 break;
             case MENU_ITEM:
-                wasRemoved = NativeWin32RemoveMenuItem(itemToRemove);
+                wasRemoved = RemoveMenuItemNative(itemToRemove);
                 break;
             case TREE_ITEM:
-                wasRemoved = NativeWin32RemoveTreeItem(itemToRemove);
+                wasRemoved = RemoveTreeItemNative(itemToRemove);
                 break;
             default:
                 return false;
         }
         
-        if (wasRemoved)
+        if (wasRemoved) {
             ITEM_MAP.remove(item);
-        
+        }
         return true;
-
     }
     
     public boolean Select(Item_ item)
@@ -422,25 +339,22 @@ public class AccessibilityManager
         Long selectedItem;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean Selected;
-        
-        // Retreive native pointer for given object
         selectedItem = ITEM_MAP.get(item);
 
-        if (selectedItem == null)
+        if (selectedItem == null) {
             return false;
-        
+        }
         switch(code)
         {
             case MENU_ITEM:
-                Selected = NativeWin32SelectMenuItem(selectedItem);
+                Selected = SelectMenuItemNative(selectedItem);
                 break;
             case TREE_ITEM:
-                Selected = NativeWin32SelectTreeItem(selectedItem);
+                Selected = SelectTreeItemNative(selectedItem);
                 break;
             default:
                 Selected = false;
         }
-        
         return Selected;
     }
     
@@ -449,7 +363,6 @@ public class AccessibilityManager
         Long deselectedItem;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean Deselected;
-        
         switch(code)
         {
             case MENU_ITEM:
@@ -457,7 +370,7 @@ public class AccessibilityManager
                 deselectedItem = ITEM_MAP.get(item);
                                 
                 if (deselectedItem != null)
-                    Deselected = NativeWin32DeselectMenuItem(deselectedItem);
+                    Deselected = DeselectMenuItemNative(deselectedItem);
                 else
                     Deselected = false;
                 
@@ -465,21 +378,19 @@ public class AccessibilityManager
             default:
                 Deselected = false;
         }
-        
         return Deselected;
     }
     
-    // SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
-    //           Accessibility Manager.
-    //      Returns: boolean of success or failure.
+    /** SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
+               Accessibility Manager.
+          Returns: boolean of success or failure.
+    * */
     public boolean SetFocus(Item_ item)
     {
-        // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(item);
-
         if (nativePointer != null)
         {
-            boolean result = NativeWin32SetFocus(nativePointer) != 0;
+            boolean result = SetFocusNative(nativePointer) != 0;
             return result;
         }
         else
@@ -496,24 +407,24 @@ public class AccessibilityManager
         boolean wasChanged = false;
         
         // Retreive native pointer for given object
-        if (itemToChange == null)
+        if (itemToChange == null) {
             return true;
+        }
         
         switch(code)
         {
             case EXPANDED:
             {
-                wasChanged = NativeWin32MenuExpanded(itemToChange);
+                wasChanged = MenuExpandedNative(itemToChange);
                 break;
             }
             case COLLAPSED:
             {
-                wasChanged = NativeWin32MenuCollapsed(itemToChange);
+                wasChanged = MenuCollapsedNative(itemToChange);
                 break;
             }
             default:
         }
-        
         return wasChanged;
     }
     
@@ -525,29 +436,29 @@ public class AccessibilityManager
         boolean wasChanged = false;
         
         // Retreive native pointer for given object
-        if (itemToChange == null)
+        if (itemToChange == null) {
             return true;
-        
+        }
         switch(code)
         {
             case EXPANDED:
             {
-                wasChanged = NativeWin32SubtreeExpanded(itemToChange);
+                wasChanged = SubtreeExpandedNative(itemToChange);
                 break;
             }
             case COLLAPSED:
             {
-                wasChanged = NativeWin32SubtreeCollapsed(itemToChange);
+                wasChanged = SubtreeCollapsedNative(itemToChange);
                 break;
             }
             default:
         }
-        
         return wasChanged;
     }
     
-    // InvokeButton: Invoke a button through UI Automation
-    //      Returns: boolean of success or failure.
+    /** InvokeButton: Invoke a button through UI Automation
+          Returns: boolean of success or failure.
+    * */
     public boolean InvokeButton(Item_ button)
     {
         // Retreive native pointer for given object
@@ -555,24 +466,23 @@ public class AccessibilityManager
         
         if (nativePointer != 0)
         {
-            return NativeWin32InvokeButton(nativePointer);
+            return InvokeButtonNative(nativePointer);
         }
         else
             return false;
-
     }
     
-    // UpdateToggleState: Update the selected status of a toggle button down at the native
-    //                    level. This can be used for any button that can be toggled.
-    //      Returns: boolean of success or failure
+    /** UpdateToggleState: Update the selected status of a toggle button down at the native
+                        level. This can be used for any button that can be toggled.
+          Returns: boolean of success or failure
+    * */
     public boolean UpdateToggleState(Item_ button, boolean selected)
     {
-        // Retreive native pointer for given object
         Long nativePointer = ITEM_MAP.get(button);
         
         if (nativePointer != null)
         {
-            return NativeWin32UpdateToggleStatus(nativePointer, selected);
+            return UpdateToggleStatusNative(nativePointer, selected);
         }
         else            
             return false;
@@ -581,33 +491,30 @@ public class AccessibilityManager
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
         TextBox_ textbox = selection.GetTextBox();
-        
-        if (textbox == null)
+        if (textbox == null) {
             return;
-        
+        }
         Long nativePointer = ITEM_MAP.get((Item_)textbox);
         
-        if (nativePointer == null)
+        if (nativePointer == null) {
             return;
-        
-        NativeWin32TextBoxTextSelectionChanged(nativePointer, textbox.GetText(),
+        }
+        TextBoxTextSelectionChangedNative(nativePointer, textbox.GetText(),
             selection.GetStartIndex(), selection.GetEndIndex());
-        
     }
     
     public void TextSelectionChanged(TextFieldSelection_ selection)
     {
         TextField_ textField = selection.GetTextField();
-        
-        if (textField == null)
+        if (textField == null) {
             return;
-        
+        }
         Long nativePointer = ITEM_MAP.get((Item_)textField);
         
-        if (nativePointer == null)
+        if (nativePointer == null) {
             return;
-        
-        NativeWin32TextFieldTextSelectionChanged(nativePointer, textField.GetText(),
+        }
+        TextFieldTextSelectionChangedNative(nativePointer, textField.GetText(),
             selection.GetStartIndex(), selection.GetEndIndex());
     }
     
@@ -618,7 +525,7 @@ public class AccessibilityManager
         {
             TextBox_ textbox = (TextBox_)item;
         
-            NativeWin32UpdateCaretPosition(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
+            UpdateCaretPositionNative(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
     }
     
@@ -635,7 +542,6 @@ public class AccessibilityManager
             // Do nothing.
             Thread.sleep(1);
         }
-
     }
     
     /*
@@ -656,5 +562,4 @@ public class AccessibilityManager
         else
             return itemPointer;
     }
-    
 }
