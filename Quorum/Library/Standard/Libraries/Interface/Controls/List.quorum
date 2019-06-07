@@ -35,8 +35,12 @@ class List is Control
         SetFocusable(true)
         selection:Initialize(me)
         // TO-DO: This needs to be changed to something more appropriate.
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:LIST)
         SetName("List")
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
     end
 
     action Add(text entry)

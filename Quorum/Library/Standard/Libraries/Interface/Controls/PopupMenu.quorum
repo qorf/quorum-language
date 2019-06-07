@@ -33,6 +33,10 @@ class PopupMenu is MenuRoot, MouseListener
         SetName("Pop-Up Menu")
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(Array<MenuItem> menuHeaders)
         // Add directly to the base MenuPanel.
 

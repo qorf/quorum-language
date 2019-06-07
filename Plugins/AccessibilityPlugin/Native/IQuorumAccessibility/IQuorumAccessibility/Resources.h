@@ -73,6 +73,14 @@ struct JClass_ToggleButton
 	jmethodID SetToggleState;
 	jmethodID GetToggleState;
 };
+struct JClass_TabPane
+{
+	jclass me;
+};
+struct JClass_Tab
+{
+	jclass me;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -88,12 +96,4 @@ extern JClass_TextField JavaClass_TextField;
 extern JClass_TextFieldSelection JavaClass_TextFieldSelection;
 extern JClass_ToggleButton JavaClass_ToggleButton;
 extern JClass_Item JavaClass_Item;
-
-
-
-
-
-
-
-
 #endif

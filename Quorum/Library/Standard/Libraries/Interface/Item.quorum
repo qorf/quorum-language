@@ -28,6 +28,11 @@ use Libraries.Compute.Math
     Attribute: Author William Allee
 */
 class Item 
+    /* The not accessible flag indicates that the accessibility system should ignore this item.
+        Any item can override it, but it is the default to prevent flooding the system
+        with a great deal of UI helper classes.
+    */
+    public constant integer NOT_ACCESSIBLE = -1
     public constant integer ITEM = 0
     public constant integer CUSTOM = 1
     public constant integer CHECKBOX = 2
@@ -42,12 +47,14 @@ class Item
     public constant integer TREE_ITEM = 11
     public constant integer TOOLBAR = 12
     public constant integer TAB = 13
-    public constant integer TABPANE = 14
+    public constant integer TAB_PANE = 14
     public constant integer TABLE = 15
     public constant integer CELL = 16
     public constant integer TEXT_FIELD = 17
+    public constant integer LIST = 18
+    public constant integer TREE_TABLE = 19
 
-    private integer accessibilityCode = 0
+    private integer accessibilityCode = NOT_ACCESSIBLE
 
     text name = "Unnamed"
     text description = ""
@@ -932,10 +939,30 @@ class Item
     end
 
     /*
+        This action returns the nearest parent object that is accessible. This 
+        can be anything that the programmer wants to be accessible, from user interface
+        components in a 2D interface to 3D components relative in 3-space on screen. 
+        By default, items have no accessible parent and are self-contained, but 
+        user interface components normally override the behavior so that controls
+        can be logically nested within each other.
+
+        attribute: returns Item
+    */
+    action GetAccessibleParent returns Item
+        return undefined
+    end
+
+    action IsAccessibleParent returns boolean
+        return false
+    end
+
+    /*
         This action returns the name of the accessiblity code for this Item as Text
     */
     action GetAccessibilityType() returns text
-        if (accessibilityCode = ITEM)
+        if (accessibilityCode = NOT_ACCESSIBLE)
+            return "NOT_ACCESSIBLE"
+        elseif (accessibilityCode = ITEM)
             return "ITEM"
         elseif (accessibilityCode = CUSTOM)
             return "CUSTOM"
@@ -963,8 +990,10 @@ class Item
             return "TOOLBAR"
         elseif (accessibilityCode = TAB)
             return "TAB"
-        elseif (accessibilityCode = TABPANE)
-            return "TABPANE"
+        elseif (accessibilityCode = TAB_PANE)
+            return "TAB_PANE"
+        elseif (accessibilityCode = TREE_TABLE)
+            return "TREE_TABLE"
         else
             return "ITEM"
         end

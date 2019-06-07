@@ -91,6 +91,10 @@ class Tab is ToggleButton
         Add(closeButton)
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action GetDefaultFontName returns text
         Font font
         if font:IsFontAvailable("Arial")

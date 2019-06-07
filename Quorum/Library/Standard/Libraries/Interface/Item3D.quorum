@@ -935,6 +935,17 @@ class Item3D is Item
         return parentItem
     end
 
+    action GetAccessibleParent returns Item
+        Item3D par = GetParent()
+        repeat while par not= undefined
+            if par:IsAccessibleParent()
+                return par
+            end
+            par = par:GetParent()
+        end
+        return undefined
+    end
+
     /*
     This action will return the Matrix4 containing the transformations applied
     to the Item3D, including its global position, rotation, and scaling.

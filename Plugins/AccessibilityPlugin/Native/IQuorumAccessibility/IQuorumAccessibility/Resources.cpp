@@ -23,6 +23,8 @@ JClass_TextBoxSelection JavaClass_TextBoxSelection;
 JClass_TextField JavaClass_TextField;
 JClass_TextFieldSelection JavaClass_TextFieldSelection;
 JClass_ToggleButton JavaClass_ToggleButton;
+JClass_TabPane JavaClass_TabPane;
+JClass_Tab JavaClass_Tab;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
@@ -168,6 +170,41 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
 
+	/*************
+	* Tab
+	*************/
+#pragma region Tab
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Tab_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_Tab.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
+	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
+
+	/*************
+	* TabPane
+	*************/
+#pragma region TabPane
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/TabPane_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_TabPane.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
+	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
 	/******
 	* Item
 	******/
@@ -215,15 +252,13 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 	#endif
 }
 
-// NativeWin32InitializeAccessibility: Calls CoInitialize so that COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
-//									   CoUninitialize must be called the same number of times as CoInitialize.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibilityNative(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility Start");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(obj);
-	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
+	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
 	
 	// Used to initialize the iuiAutomation variable in Resources.h, which is used to access IUIAutomation methods.
@@ -232,23 +267,23 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	//std::cout.flush();
 	env->GetJavaVM(&jvm);
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility End");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility End");
 	#endif
 }
 
-// NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
+// ShutdownAccessibility: Closes the COM library gracefully.
 // TODO: More work needs to be done in this function to ensure clean shutdown of the library. MSDN has a clean shutdown example that details what needs to be done.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibilityNative(JNIEnv *env, jobject obj)
 {
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility Start");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	UiaDisconnectAllProviders();
 	CoUninitialize();
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility End");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibility End");
 	#endif
 }
 

@@ -23,7 +23,7 @@ class TabPane is Control
         SetName("Tab Pane")
         viewArea:SetName("Tab View Area")
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:TABPANE)
+        SetAccessibilityCode(parent:Item:TAB_PANE)
 
         bar:SetTabPane(me)
         
@@ -57,6 +57,10 @@ class TabPane is Control
 
         FlowLayout flow
         viewArea:SetLayout(flow)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
     end
 
     action GetDefaultFontName returns text

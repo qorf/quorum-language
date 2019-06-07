@@ -39,6 +39,10 @@ class Tree is Control
         SetAccessibilityCode(parent:Item:TREE)
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(TreeItem item)
         item:SetTree(me)
         treeItems:Add(item)
