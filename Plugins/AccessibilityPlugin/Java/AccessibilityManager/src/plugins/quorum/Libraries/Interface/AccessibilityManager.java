@@ -11,6 +11,8 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.TabPane_;
+import quorum.Libraries.Interface.Controls.Tab_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
@@ -27,6 +29,7 @@ public class AccessibilityManager
 {
     enum AccessibilityCodes
     {
+        NOT_ACCESSIBLE,
         ITEM,
         CUSTOM,
         CHECKBOX,
@@ -34,7 +37,6 @@ public class AccessibilityManager
         BUTTON,
         TOGGLE_BUTTON,
         TEXTBOX,
-        TEXT_FIELD,
         MENU_BAR,
         MENU_ITEM,
         PANE,
@@ -42,9 +44,14 @@ public class AccessibilityManager
         TREE_ITEM,
         TOOLBAR,
         TAB,
-        TABPANE;
+        TAB_PANE,
+        TABLE,
+        CELL,
+        TEXT_FIELD,
+        LIST,
+        TREE_TABLE
     }
-    
+            
     enum MenuChanges
     {
         EXPANDED,
@@ -66,6 +73,7 @@ public class AccessibilityManager
     
     static
     {
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_(), AccessibilityCodes.NOT_ACCESSIBLE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__ITEM_(), AccessibilityCodes.ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CUSTOM_(), AccessibilityCodes.CUSTOM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHECKBOX_(), AccessibilityCodes.CHECKBOX);
@@ -73,7 +81,6 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__BUTTON_(), AccessibilityCodes.BUTTON);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOGGLE_BUTTON_(), AccessibilityCodes.TOGGLE_BUTTON);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXTBOX_(), AccessibilityCodes.TEXTBOX);
-        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_BAR_(), AccessibilityCodes.MENU_BAR);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__MENU_ITEM_(), AccessibilityCodes.MENU_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PANE_(), AccessibilityCodes.PANE);
@@ -81,7 +88,13 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_ITEM_(), AccessibilityCodes.TREE_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLBAR_(), AccessibilityCodes.TOOLBAR);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_(), AccessibilityCodes.TAB);
-        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABPANE_(), AccessibilityCodes.TABPANE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_PANE_(), AccessibilityCodes.TAB_PANE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABLE_(), AccessibilityCodes.TABLE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CELL_(), AccessibilityCodes.CELL);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_(), AccessibilityCodes.LIST);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_TABLE_(), AccessibilityCodes.TREE_TABLE);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -158,6 +171,13 @@ public class AccessibilityManager
 
     private native long NativeWin32CreateTree(String name, Item_ item);
 
+    /*
+    
+        Creates a Tab Pane natively
+    */
+    private native long NativeWin32CreateTabPane(String name, Item_ item);
+    
+    private native long NativeWin32CreateTab(long parent, String name, Item_ item);
     
     // NativeWin32CreateMenuItem: Creates a MenuItem control in UI Automation.
     //
@@ -235,7 +255,6 @@ public class AccessibilityManager
     {
         long nativePointer;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        
         if (ITEM_MAP.get(item) != null)
             return true;
 
@@ -317,13 +336,31 @@ public class AccessibilityManager
                     
                 nativePointer = NativeWin32CreateTreeItem(treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
                 break;
-            default: // Assume Item
-                nativePointer = NativeWin32CreateItem(item.GetName(), item.GetDescription(), item);
+            case TAB_PANE:
+                TabPane_ tabPane = (TabPane_) item;
+
+                nativePointer = NativeWin32CreateTabPane(tabPane.GetName(), tabPane);
+                break;
+            case TAB:
+                Tab_ tab = (Tab_) item;
+                Item_ parent = item.GetAccessibleParent();
+                long parentLong = -1;
+                if(parent != null) {
+                    Long l = ITEM_MAP.get( parent);
+                    if(l != null) {
+                        parentLong = l;
+                    }
+                }      
+                nativePointer = NativeWin32CreateTab(parentLong, tab.GetName(), tab);
+                break;
+            default: //if the code doesn't match one of these, don't add it, including the NOT_ACCESSIBLE 
+                nativePointer = 0;
                 break;
         }
         
-        if (nativePointer == 0)
+        if (nativePointer == 0) {
             return false;
+        }
 
         // Add item and respective pointer to collection.
         ITEM_MAP.put(item, nativePointer);
