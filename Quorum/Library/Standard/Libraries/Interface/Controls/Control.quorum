@@ -830,39 +830,6 @@ class Control is Item2D
         return 14
     end
 
-//    public constant integer ITEM = 0
-//    public constant integer CUSTOM = 1
-//    public constant integer CHECKBOX = 2
-//    public constant integer RADIO_BUTTON = 3
-//    public constant integer BUTTON = 4
-//    public constant integer TOGGLE_BUTTON = 5
-//    public constant integer TEXTBOX = 6
-//    public constant integer MENU_BAR = 7
-//    public constant integer MENU_ITEM = 8
-//    public constant integer PANE = 9
-//    public constant integer TREE = 10
-//    public constant integer TREE_ITEM = 11
-//    public constant integer TOOLBAR = 12
-//    public constant integer TAB = 13
-//    public constant integer TABPANE = 14
-//    public constant integer TABLE = 15
-//    public constant integer CELL = 16
-//    public constant integer TEXT_FIELD = 17
-
-    action GetAccessibleParent returns Item
-        Item2D par = GetParent()
-        repeat while par not= undefined
-            integer code = par:GetAccessibilityCode()
-            if code = parent:Item:TAB_PANE or //only a few container types
-                code = parent:Item:PANE or
-                code = parent:Item:TOOLBAR
-                return par
-            end
-            par = par:GetParent()
-        end
-        return undefined
-    end
-
     /*
     This action requests that this Control should be laid out by its container
     (or the Layer2D if there is no containing Control) during the next Update.

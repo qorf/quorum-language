@@ -30,6 +30,10 @@ class Spreadsheet is Control
         SetName("Table")
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(Column column)
         columns:Add(column)
         column:SetSpreadsheet(me)

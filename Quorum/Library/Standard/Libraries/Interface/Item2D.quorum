@@ -1234,6 +1234,17 @@ class Item2D is Item
         return parentItem
     end
 
+    action GetAccessibleParent returns Item
+        Item2D par = GetParent()
+        repeat while par not= undefined
+            if par:IsAccessibleParent()
+                return par
+            end
+            par = par:GetParent()
+        end
+        return undefined
+    end
+
     /*  
     This action adds a different Item2D into this one. This makes a few things happen.
         1. The added item will get this item as its parent.

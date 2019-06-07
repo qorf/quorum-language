@@ -39,6 +39,10 @@ class List is Control
         SetName("List")
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(text entry)
         Add(NewListItem(entry))
     end

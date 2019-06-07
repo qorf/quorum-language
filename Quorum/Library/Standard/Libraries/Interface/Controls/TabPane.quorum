@@ -59,6 +59,10 @@ class TabPane is Control
         viewArea:SetLayout(flow)
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action GetDefaultFontName returns text
         Font font
         if font:IsFontAvailable("Arial")

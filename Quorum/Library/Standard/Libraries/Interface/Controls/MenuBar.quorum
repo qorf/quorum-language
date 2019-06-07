@@ -49,6 +49,10 @@ class MenuBar is MenuRoot
         SetName("Menu Bar")
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(Array<MenuItem> menuHeaders)
         integer counter = 0
         repeat while counter < menuHeaders:GetSize()
