@@ -397,12 +397,6 @@ class MenuItem is Control
         MenuRoot bar = GetMenuRoot()
         if bar not= undefined
             if bar:IsSelecting()
-                MenuRoot menuRoot = GetMenuRoot()
-                if menuRoot not= undefined
-                    //menuRoot:Close()
-                    menuRoot:RestoreLastFocus()
-                end
-
                 Activate()
             else
                 Select()
@@ -666,13 +660,22 @@ class MenuItem is Control
     action Activate(BehaviorEvent event)
         if IsMenu()
             if open
-                Close()
+                if menuRoot not= undefined
+                    menuRoot:Close()
+                else
+                    Close()
+                end
             else
                 Open()
             end
         end
 
         parent:Control:Activate(event)
+
+        if IsMenu() = false and menuRoot not= undefined
+            menuRoot:SetSelectingState(false)
+            menuRoot:RestoreLastFocus()
+        end
     end
 
     /*

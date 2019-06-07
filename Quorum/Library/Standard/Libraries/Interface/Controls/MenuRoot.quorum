@@ -133,7 +133,7 @@ class MenuRoot is Control
 
     action SetSelectingState(boolean selecting)
         if selecting = false
-            selection:Empty()
+            Deselect()
         end
         isSelecting = selecting
     end
@@ -145,7 +145,6 @@ class MenuRoot is Control
                 item:Open()
             else
                 item:Activate()
-                Close()
             end
         end
     end
