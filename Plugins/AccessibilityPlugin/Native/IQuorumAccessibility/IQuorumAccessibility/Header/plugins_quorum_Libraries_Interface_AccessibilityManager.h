@@ -97,6 +97,12 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextChanged(JNIEnv* env, jobject obj, jlong textbox, jstring change);
 
+
+//tabs
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTabPane(JNIEnv* env, jobject obj, jstring name, jobject jItem);
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTab(JNIEnv* env, jobject obj, jlong parentHandle, jstring name, jobject jItem);
+
 #ifdef __cplusplus
 }
 #endif

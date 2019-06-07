@@ -310,7 +310,7 @@ IFACEMETHODIMP TreeItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRaw
 
 
 
-IFACEMETHODIMP TreeItemProvider::get_ExpandCollapseState(ExpandCollapseState * pRetVal)
+IFACEMETHODIMP TreeItemProvider::get_ExpandCollapseState(_Out_ ExpandCollapseState * pRetVal)
 {
 	*pRetVal = m_expandCollapseState;
 	return S_OK;

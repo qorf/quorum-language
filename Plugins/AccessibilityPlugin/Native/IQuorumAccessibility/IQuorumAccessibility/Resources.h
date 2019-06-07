@@ -73,6 +73,14 @@ struct JClass_ToggleButton
 	jmethodID SetToggleState;
 	jmethodID GetToggleState;
 };
+struct JClass_TabPane
+{
+	jclass me;
+};
+struct JClass_Tab
+{
+	jclass me;
+};
 struct JClass_Item
 {
 	jclass me;

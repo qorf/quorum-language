@@ -21,6 +21,7 @@
 // For Debug Output
 #include <iostream>
 #include <string>
+#include "TabPaneControl.h"
 
 // DllMain: Entry point for dll. Nothing to do here.
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
@@ -61,7 +62,6 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-
 	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
 	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
 	ItemControl* pItemControl = ItemControl::Create(env, GetModuleHandle(NULL), GetMainWindowHandle(), wItemName, wDescription, jItem);
@@ -83,7 +83,6 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-
 	ButtonControl* pButtonControl;
 
 	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
@@ -221,6 +220,39 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
 
 	return PtrToLong(menuItemControl);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTabPane(JNIEnv* env, jobject obj, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), GetMainWindowHandle(), wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTab(JNIEnv* env, jobject obj, jlong parentHandle,  jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = GetMainWindowHandle();
+	if (parentHandle != -1) {
+		Item* theParent = static_cast<Item*>(LongToPtr((long)parentHandle));
+		handle = theParent->GetHWND();
+	}
+	// For now the parent window for this control is the main game window. Once Quourum has able to create additional windows
+	// then GetMainWindowHandle() will need to be replaced by which open window the accessible object is being created for.
+	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
 }
 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTree(JNIEnv* env, jobject obj, jstring treeName, jobject jItem)

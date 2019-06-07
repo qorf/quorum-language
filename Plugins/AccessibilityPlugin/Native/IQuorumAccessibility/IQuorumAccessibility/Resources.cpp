@@ -23,6 +23,8 @@ JClass_TextBoxSelection JavaClass_TextBoxSelection;
 JClass_TextField JavaClass_TextField;
 JClass_TextFieldSelection JavaClass_TextFieldSelection;
 JClass_ToggleButton JavaClass_ToggleButton;
+JClass_TabPane JavaClass_TabPane;
+JClass_Tab JavaClass_Tab;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
@@ -167,6 +169,41 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
 
+	/*************
+	* Tab
+	*************/
+#pragma region Tab
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Tab_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_Tab.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
+	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
+
+	/*************
+	* TabPane
+	*************/
+#pragma region TabPane
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/TabPane_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_TabPane.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
+	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
 	/******
 	* Item
 	******/
@@ -222,7 +259,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(obj);
-	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
+	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
 	
 	// Used to initialize the iuiAutomation variable in Resources.h, which is used to access IUIAutomation methods.
