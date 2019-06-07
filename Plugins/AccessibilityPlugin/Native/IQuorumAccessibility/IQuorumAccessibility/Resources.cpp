@@ -252,12 +252,10 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 	#endif
 }
 
-// NativeWin32InitializeAccessibility: Calls CoInitialize so that COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
-//									   CoUninitialize must be called the same number of times as CoInitialize.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibilityNative(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility Start");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(obj);
 	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
@@ -269,23 +267,23 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	//std::cout.flush();
 	env->GetJavaVM(&jvm);
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility End");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility End");
 	#endif
 }
 
-// NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
+// ShutdownAccessibility: Closes the COM library gracefully.
 // TODO: More work needs to be done in this function to ensure clean shutdown of the library. MSDN has a clean shutdown example that details what needs to be done.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibilityNative(JNIEnv *env, jobject obj)
 {
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility Start");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	UiaDisconnectAllProviders();
 	CoUninitialize();
 	#if LOG
-		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility End");
+		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibility End");
 	#endif
 }
 
