@@ -4,6 +4,8 @@
 // Used to create Int SafeArray for RuntimeId
 SAFEARRAY* BuildIntSafeArray(_In_reads_(length) const int * data, _In_ int length);
 
+class TextBoxControl;
+
 class TextBoxProvider : public ITextProvider,
 						public IValueProvider,
 						public IRawElementProviderSimple//,
@@ -44,7 +46,7 @@ public:
 	IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
 	IFACEMETHODIMP SetValue(LPCWSTR value);
 	IFACEMETHODIMP get_Value(BSTR* returnValue);
-
+	ULONG GetReferenceCount();
 private:
 	
 	ULONG m_refCount;

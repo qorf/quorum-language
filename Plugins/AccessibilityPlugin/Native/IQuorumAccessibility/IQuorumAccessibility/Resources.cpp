@@ -26,6 +26,7 @@ JClass_ToggleButton JavaClass_ToggleButton;
 JClass_TabPane JavaClass_TabPane;
 JClass_Tab JavaClass_Tab;
 JClass_ToolBar JavaClass_ToolBar;
+JClass_Dialog JavaClass_Dialog;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
@@ -200,32 +201,36 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	// Assign the ClassId as a Global Reference
 	JavaClass_TabPane.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
-
-	// Load the method ids
-	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
-	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
-
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion
 
 	/*************
-* ToolBar
-*************/
+	* ToolBar
+	*************/
 #pragma region ToolBar
 // Load the class id
 	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/ToolBar_");
 
 	// Assign the ClassId as a Global Reference
 	JavaClass_ToolBar.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
-
-	// Load the method ids
-	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
-	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
-
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion
+
+	/*************
+	* Dialog
+	*************/
+#pragma region Dialog
+// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Dialog_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_Dialog.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
+
 
 	/******
 	* Item

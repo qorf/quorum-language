@@ -132,6 +132,10 @@ IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_
 	return S_OK;
 }
 
+ULONG TextBoxProvider::GetReferenceCount() {
+	return m_refCount;
+}
+
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
 

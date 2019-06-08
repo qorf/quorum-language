@@ -490,10 +490,13 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case WM_DESTROY:
 	{
-		IRawElementProviderSimple* provider = this->GetTextBoxProvider();
+		TextBoxProvider* provider = this->GetTextBoxProvider();
 		if (provider != NULL)
 		{
-			provider->Release();
+			//while (provider->GetReferenceCount() > 0) {
+			//	provider->Release();
+			//}
+			
 			HRESULT hr = UiaDisconnectProvider(provider);
 			if (FAILED(hr))
 			{

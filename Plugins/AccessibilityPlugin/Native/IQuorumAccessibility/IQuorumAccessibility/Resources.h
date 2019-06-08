@@ -87,6 +87,10 @@ struct JClass_ToolBar
 {
 	jclass me;
 };
+struct JClass_Dialog
+{
+	jclass me;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -103,4 +107,5 @@ extern JClass_TextFieldSelection JavaClass_TextFieldSelection;
 extern JClass_ToggleButton JavaClass_ToggleButton;
 extern JClass_Item JavaClass_Item;
 extern JClass_ToolBar JavaClass_ToolBar;
+extern JClass_Dialog JavaClass_Dialog;
 #endif
