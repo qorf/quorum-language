@@ -147,6 +147,7 @@ public class AccessibilityManager
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
+    private native long CreateToolBarNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
@@ -258,6 +259,9 @@ public class AccessibilityManager
                     
                 nativePointer = CreateTreeItemNative(parentLong, treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
             }
+                break;
+            case TOOLBAR:
+                nativePointer = CreateToolBarNative(parentLong, item.GetName(), item);
                 break;
             case TAB_PANE:
                 nativePointer = CreateTabPaneNative(parentLong, item.GetName(), item);
