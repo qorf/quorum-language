@@ -29,6 +29,7 @@ class Dialog is Control
         properties:SetPercentageY(0.5)
         properties:SetPercentageOriginX(0.5)
         properties:SetPercentageOriginY(0.5)
+        SetAccessibilityCode(parent:Item:DIALOG)
     end
 
     GameStateManager manager
@@ -280,4 +281,7 @@ class Dialog is Control
         return showTopBar
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
 end
