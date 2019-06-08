@@ -18,6 +18,7 @@ import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
+import quorum.Libraries.Interface.Selections.TabPaneSelection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 import quorum.Libraries.Interface.Selections.TreeSelection_;
@@ -561,5 +562,27 @@ public class AccessibilityManager
             return 0;
         else
             return itemPointer;
+    }
+    
+    public static void SetTabSelection(TabPane_ tabs, Tab_ tab) {
+        tabs.Select(tab);
+    }
+    /*
+    This requests the selected tab from the tab pane and retrieves its pointer.
+    */
+    public static long GetTabPaneSelectionPointer(TabPane_ tabs) {
+        TabPaneSelection_ selection = tabs.GetSelection();
+        Item_ item = selection.GetTab();
+        if (item == null) {
+            return 0;
+        }
+        Long itemPointer = ITEM_MAP.get(item);
+        
+        if (itemPointer == null) {
+            return 0;
+        }
+        else {
+            return itemPointer;
+        }
     }
 }
