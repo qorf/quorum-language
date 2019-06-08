@@ -76,10 +76,6 @@ TabControl* TabPaneControl::GetSelectedTab()
 void TabPaneControl::SetSelectedTab(_In_opt_ TabControl* tab)
 {
 	selectedTab = tab;
-	if (selectedTab != nullptr && UiaClientsAreListening())
-	{
-		//selectedTab->GetProvider()->NotifyElementSelected();
-	}
 }
 
 LRESULT TabPaneControl::StaticTabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)

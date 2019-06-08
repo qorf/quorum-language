@@ -25,6 +25,7 @@ JClass_TextFieldSelection JavaClass_TextFieldSelection;
 JClass_ToggleButton JavaClass_ToggleButton;
 JClass_TabPane JavaClass_TabPane;
 JClass_Tab JavaClass_Tab;
+JClass_ToolBar JavaClass_ToolBar;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
@@ -67,7 +68,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	// Load the method ids
 	JavaClass_AccessibilityManager.WaitForUpdate = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "WaitForUpdate", "()V");
 	JavaClass_AccessibilityManager.GetTreeSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Tree_;)J");
-
+	JavaClass_AccessibilityManager.GetTabPaneSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTabPaneSelectionPointer", "(Lquorum/Libraries/Interface/Controls/TabPane_;)J");
+	JavaClass_AccessibilityManager.SetTabSelection = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "SetTabSelection", "(Lquorum/Libraries/Interface/Controls/TabPane_;Lquorum/Libraries/Interface/Controls/Tab_;)V");
+	
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
@@ -205,6 +208,25 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion
+
+	/*************
+* ToolBar
+*************/
+#pragma region ToolBar
+// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/ToolBar_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_ToolBar.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	//JavaClass_ToggleButton.SetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "SetToggleState", "(Z)V");
+	//JavaClass_ToggleButton.GetToggleState = env->GetMethodID(JavaClass_ToggleButton.me, "GetToggleState", "()Z");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
+
 	/******
 	* Item
 	******/

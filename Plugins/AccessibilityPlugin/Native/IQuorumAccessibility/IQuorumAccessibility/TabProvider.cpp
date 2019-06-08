@@ -39,6 +39,10 @@ IFACEMETHODIMP TabProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppI
 	{
 		*ppInterface = static_cast<IRawElementProviderFragment*>(this);
 	}
+	else if (riid == __uuidof(ISelectionItemProvider))
+	{
+		*ppInterface = static_cast<ISelectionItemProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -57,7 +61,18 @@ IFACEMETHODIMP TabProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 
 IFACEMETHODIMP TabProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	*pRetVal = NULL;
+	switch (patternId)
+	{
+	case UIA_SelectionItemPatternId:
+		*pRetVal = static_cast<ISelectionItemProvider*>(this);
+		break;
+	default:
+		*pRetVal = NULL;
+	}
+
+	if (*pRetVal != NULL) {
+		(static_cast<IUnknown*>(*pRetVal))->AddRef();
+	}
 
 	return S_OK;
 }
@@ -254,11 +269,16 @@ IFACEMETHODIMP TabProvider::AddToSelection() {
 
 //Indicates whether an item is selected.
 IFACEMETHODIMP TabProvider::get_IsSelected(BOOL* pRetVal) {
+	BOOL selected = (parent->GetSelectedTab() == control);
+
+	*pRetVal = selected;
 	return S_OK;
 }
 
 //Specifies the provider that implements ISelectionProviderand acts as the container for the calling object.
 IFACEMETHODIMP TabProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal) {
+
+	*pRetVal = parent->GetProvider();
 	return S_OK;
 }
 
@@ -269,5 +289,12 @@ IFACEMETHODIMP TabProvider::RemoveFromSelection() {
 
 //Deselects any selected itemsand then selects the current element.
 IFACEMETHODIMP TabProvider::Select() {
+	if (!IsWindow(control->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	JNIEnv* env = GetJNIEnv();
+	env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.SetTabSelection, parent->GetMe(), control->GetMe());
 	return S_OK;
 }

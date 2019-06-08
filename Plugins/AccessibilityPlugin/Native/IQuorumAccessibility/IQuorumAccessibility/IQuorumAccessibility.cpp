@@ -17,11 +17,12 @@
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextfieldControl.h"
+#include "TabPaneControl.h"
+#include "ToolBarControl.h"
 
 // For Debug Output
 #include <iostream>
 #include <string>
-#include "TabPaneControl.h"
 
 // DllMain: Entry point for dll. Nothing to do here.
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
@@ -230,6 +231,18 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return PtrToLong(pane);
 }
 
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateToolBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	ToolBarControl* pane = ToolBarControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
 
 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeNative(JNIEnv* env, jobject obj, jlong parent, jstring treeName, jobject jItem)

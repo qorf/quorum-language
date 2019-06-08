@@ -42,11 +42,11 @@ public:
 	IUnknown* GetParentProvider();
 
 	// Inherited via ISelectionItemProvider
-	virtual HRESULT __stdcall Select(void) override;
-	virtual HRESULT __stdcall AddToSelection(void) override;
-	virtual HRESULT __stdcall RemoveFromSelection(void) override;
-	virtual HRESULT __stdcall get_IsSelected(BOOL* pRetVal) override;
-	virtual HRESULT __stdcall get_SelectionContainer(IRawElementProviderSimple** pRetVal) override;
+	IFACEMETHODIMP Select(void) override;
+	IFACEMETHODIMP AddToSelection(void) override;
+	IFACEMETHODIMP RemoveFromSelection(void) override;
+	IFACEMETHODIMP get_IsSelected(BOOL* pRetVal) override;
+	IFACEMETHODIMP get_SelectionContainer(IRawElementProviderSimple** pRetVal) override;
 
 private:
 	virtual ~TreeItemProvider();

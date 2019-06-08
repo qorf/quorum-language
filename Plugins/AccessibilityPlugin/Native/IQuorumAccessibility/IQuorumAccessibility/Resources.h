@@ -34,6 +34,8 @@ struct JClass_AccessibilityManager
 	jclass me;
 	jmethodID WaitForUpdate;
 	jmethodID GetTreeSelectionPointer;
+	jmethodID GetTabPaneSelectionPointer;
+	jmethodID SetTabSelection;
 };
 struct JClass_TextBox
 {
@@ -81,6 +83,10 @@ struct JClass_Tab
 {
 	jclass me;
 };
+struct JClass_ToolBar
+{
+	jclass me;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -96,4 +102,5 @@ extern JClass_TextField JavaClass_TextField;
 extern JClass_TextFieldSelection JavaClass_TextFieldSelection;
 extern JClass_ToggleButton JavaClass_ToggleButton;
 extern JClass_Item JavaClass_Item;
+extern JClass_ToolBar JavaClass_ToolBar;
 #endif

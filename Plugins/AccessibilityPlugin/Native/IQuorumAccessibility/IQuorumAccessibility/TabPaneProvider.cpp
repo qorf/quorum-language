@@ -42,13 +42,19 @@ IFACEMETHODIMP TabPaneProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void**
 	{
 		*ppInterface = static_cast<IRawElementProviderFragmentRoot*>(this);
 	}
+	else if (riid == __uuidof(ISelectionProvider))
+	{
+		*ppInterface = static_cast<ISelectionProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
 		return E_NOINTERFACE;
 	}
 
-	(static_cast<IUnknown*>(*ppInterface))->AddRef();
+	if (*ppInterface != NULL) {
+		(static_cast<IUnknown*>(*ppInterface))->AddRef();
+	}
 	return S_OK;
 }
 
@@ -72,7 +78,18 @@ IFACEMETHODIMP TabPaneProvider::GetPatternProvider(PATTERNID patternId, _Outptr_
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = NULL;
+	switch (patternId)
+	{
+	case UIA_SelectionPatternId:
+		*pRetVal = static_cast<ISelectionProvider*>(this);
+		break;
+	default:
+		*pRetVal = NULL;
+	}
+
+	if (*pRetVal != NULL) {
+		(static_cast<IUnknown*>(*pRetVal))->AddRef();
+	}
 	return S_OK;
 }
 
@@ -84,7 +101,14 @@ IFACEMETHODIMP TabPaneProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	if (propertyId == UIA_NamePropertyId)
+	if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		ULONG Id = control->GetHashCode();
+
+		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+	}
+	else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(this->control->GetName());
@@ -301,11 +325,56 @@ IFACEMETHODIMP TabPaneProvider::GetFocus(_Outptr_result_maybenull_ IRawElementPr
 
 //ISelectionProvider
 IFACEMETHODIMP TabPaneProvider::get_CanSelectMultiple(BOOL* pRetVal) {
+	*pRetVal = false;
 	return S_OK;
 }
+
 IFACEMETHODIMP TabPaneProvider::get_IsSelectionRequired(BOOL* pRetVal) {
+	*pRetVal = true;
 	return S_OK;
 }
+
 IFACEMETHODIMP TabPaneProvider::GetSelection(SAFEARRAY** pRetVal) {
-	return S_OK;
+	if (!IsWindow(control->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	JNIEnv* env = GetJNIEnv();
+	long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTabPaneSelectionPointer, control->GetMe());
+
+	if (selectionPointer == 0)
+	{
+		*pRetVal = NULL;
+		return S_OK;
+	}
+
+	TabControl* theControl = static_cast<TabControl*>(LongToPtr((long)selectionPointer));
+	control->SetSelectedTab(theControl);
+	TabProvider* theProvider = theControl->GetProvider();
+
+	HRESULT hr = S_OK;
+
+	*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
+	if (*pRetVal == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+	}
+	else
+	{
+		long index = 0;
+		hr = SafeArrayPutElement(*pRetVal, &index, theProvider);
+		if (FAILED(hr))
+		{
+			SafeArrayDestroy(*pRetVal);
+			*pRetVal = NULL;
+		}
+		else
+		{
+			// Since the provider is being passed out of our domain, we need to increment its reference counter.
+			theProvider->AddRef();
+		}
+	}
+
+	return hr;
 }

@@ -4,7 +4,8 @@ class TabControl;
 class TabPaneControl;
 
 class TabProvider : public IRawElementProviderSimple,
-					public IRawElementProviderFragment
+					public IRawElementProviderFragment,
+					public ISelectionItemProvider
 {
 public:
 	TabProvider(TabControl* pControl, TabPaneControl* parent);

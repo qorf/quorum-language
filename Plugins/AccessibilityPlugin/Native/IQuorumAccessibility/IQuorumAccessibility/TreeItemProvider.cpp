@@ -399,25 +399,25 @@ void TreeItemProvider::NotifyElementExpandCollapse()
 	}
 }
 
-HRESULT __stdcall TreeItemProvider::Select(void)
+IFACEMETHODIMP TreeItemProvider::Select(void)
 {
 	// NYI
 	return S_OK;
 }
 
-HRESULT __stdcall TreeItemProvider::AddToSelection(void)
+IFACEMETHODIMP TreeItemProvider::AddToSelection(void)
 {
 	// NYI
 	return S_OK;
 }
 
-HRESULT __stdcall TreeItemProvider::RemoveFromSelection(void)
+IFACEMETHODIMP TreeItemProvider::RemoveFromSelection(void)
 {
 	// NYI
 	return S_OK;
 }
 
-HRESULT __stdcall TreeItemProvider::get_IsSelected(BOOL* pRetVal)
+IFACEMETHODIMP TreeItemProvider::get_IsSelected(BOOL* pRetVal)
 {
 	TreeControl* tree = m_pTreeItemControl->GetParentTree();
 	BOOL selected = (tree->GetSelectedTreeItem() == m_pTreeItemControl);
@@ -426,7 +426,7 @@ HRESULT __stdcall TreeItemProvider::get_IsSelected(BOOL* pRetVal)
 	return S_OK;
 }
 
-HRESULT __stdcall TreeItemProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal)
+IFACEMETHODIMP TreeItemProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal)
 {
 	*pRetVal = static_cast<IRawElementProviderSimple*>(this->GetParentProvider());
 

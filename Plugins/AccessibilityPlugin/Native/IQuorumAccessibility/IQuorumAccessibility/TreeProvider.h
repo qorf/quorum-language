@@ -32,9 +32,9 @@ public:
 	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 
 	// ISelectionProvider methods
-	virtual HRESULT __stdcall GetSelection(SAFEARRAY** pRetVal) override;
-	virtual HRESULT __stdcall get_CanSelectMultiple(BOOL* pRetVal) override;
-	virtual HRESULT __stdcall get_IsSelectionRequired(BOOL* pRetVal) override;
+	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal) override;
+	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal) override;
+	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal) override;
 
 private:
 	virtual ~TreeProvider();

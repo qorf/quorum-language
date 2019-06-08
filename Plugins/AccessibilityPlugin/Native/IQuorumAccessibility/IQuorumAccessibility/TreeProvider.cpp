@@ -292,7 +292,7 @@ TreeProvider::~TreeProvider()
 {
 }
 
-HRESULT __stdcall TreeProvider::GetSelection(SAFEARRAY** pRetVal)
+IFACEMETHODIMP TreeProvider::GetSelection(SAFEARRAY** pRetVal)
 {
 	if (!IsWindow(m_pTreeControl->GetHWND()))
 	{
@@ -337,13 +337,13 @@ HRESULT __stdcall TreeProvider::GetSelection(SAFEARRAY** pRetVal)
 	return hr;
 }
 
-HRESULT __stdcall TreeProvider::get_CanSelectMultiple(BOOL* pRetVal)
+IFACEMETHODIMP TreeProvider::get_CanSelectMultiple(BOOL* pRetVal)
 {
 	*pRetVal = false;
 	return S_OK;
 }
 
-HRESULT __stdcall TreeProvider::get_IsSelectionRequired(BOOL* pRetVal)
+IFACEMETHODIMP TreeProvider::get_IsSelectionRequired(BOOL* pRetVal)
 {
 	*pRetVal = false;
 	return S_OK;

@@ -1,17 +1,17 @@
-#include "TabControl.h"
+#include "ToolBarControl.h"
 
-bool TabControl::Initialized = false;
+bool ToolBarControl::Initialized = false;
 
-TabControl::TabControl(JNIEnv* env, _In_ std::wstring name, _In_ TabPaneControl* parentControl, jobject jItem)
-	: Item(env, name, L"", jItem), parent(parentControl), provider(NULL)
+ToolBarControl::ToolBarControl(JNIEnv* env, WCHAR* name, jobject jItem)
+	: Item(env, name, L"", jItem), provider(NULL)
 {
 }
 
-TabControl::~TabControl()
+ToolBarControl::~ToolBarControl()
 {
 }
 
-TabControl* TabControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, TabPaneControl* parent, _In_ WCHAR* name, jobject jItem)
+ToolBarControl* ToolBarControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* name, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -20,10 +20,10 @@ TabControl* TabControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND p
 
 	if (Initialized)
 	{
-		TabControl* control = new TabControl(env, name, parent, jItem);
+		ToolBarControl* control = new ToolBarControl(env, name, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_TAB",
+			L"QUORUM_TOOLBAR",
 			name,
 			WS_VISIBLE | WS_CHILD,
 			-1,
@@ -53,17 +53,17 @@ TabControl* TabControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND p
 	return NULL; // Indicates failure to create window.
 }
 
-bool TabControl::Initialize(_In_ HINSTANCE hInstance)
+bool ToolBarControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
 	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = StaticTabControlWndProc;
+	wc.lpfnWndProc = StaticToolBarControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_TAB";
+	wc.lpszClassName = L"QUORUM_TOOLBAR";
 
 	if (RegisterClassExW(&wc) == 0)
 	{
@@ -87,13 +87,13 @@ bool TabControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-LRESULT TabControl::StaticTabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT ToolBarControl::StaticToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	TabControl* pThis = reinterpret_cast<TabControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	ToolBarControl* pThis = reinterpret_cast<ToolBarControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
 		CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<TabControl*>(createStruct->lpCreateParams);
+		pThis = reinterpret_cast<ToolBarControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
 		pThis->m_ControlHWND = hwnd;
 	}
@@ -106,13 +106,13 @@ LRESULT TabControl::StaticTabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _
 
 	if (pThis != NULL)
 	{
-		return pThis->TabControlWndProc(hwnd, message, wParam, lParam);
+		return pThis->ToolBarControlWndProc(hwnd, message, wParam, lParam);
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-LRESULT TabControl::TabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT ToolBarControl::ToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
 
@@ -165,20 +165,12 @@ LRESULT TabControl::TabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WP
 	return lResult;
 }
 
-TabPaneControl* TabControl::GetParent()
-{
-	return parent;
-}
-
-TabProvider* TabControl::GetProvider()
+ToolBarProvider* ToolBarControl::GetProvider()
 {
 	if (provider == NULL)
 	{
-		provider = new TabProvider(this, parent);
+		provider = new ToolBarProvider(this);
 		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return provider;
 }
-
-
-
