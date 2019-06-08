@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.LabelBoxView
+
+class ToolBar is Control
+    on create
+        SetFocusable(true)
+        SetName("Toolbar")
+
+        FlowLayout toolbarLayout
+        SetLayout(toolbarLayout)
+
+        LayoutProperties toolbarProperties = GetDefaultLayoutProperties()
+        toolbarProperties:SetHorizontalLayoutMode(toolbarProperties:STANDARD)
+        toolbarProperties:SetVerticalLayoutMode(toolbarProperties:STANDARD)
+        toolbarProperties:SetPercentageWidth(1)
+        toolbarProperties:SetPixelHeight(30)
+        SetAccessibilityCode(parent:Item:TOOLBAR)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        Gradient gradient
+        Color color
+        gradient:Set(color:LightGray(), color:LightGray(), color:White(), color:White())
+        
+        LabelBoxView content
+        content:Initialize(gradient, color:Black(), "")
+        content:SetBorderThickness(0)
+        SetView2D(content)
+
+        parent:Control:LoadGraphics(properties)
+    end
+end
