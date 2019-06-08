@@ -52,7 +52,8 @@ public class AccessibilityManager
         CELL,
         TEXT_FIELD,
         LIST,
-        TREE_TABLE
+        TREE_TABLE,
+        DIALOG
     }
             
     enum MenuChanges {
@@ -95,6 +96,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_(), AccessibilityCodes.LIST);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_TABLE_(), AccessibilityCodes.TREE_TABLE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__DIALOG_(), AccessibilityCodes.DIALOG);
         
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -148,6 +150,7 @@ public class AccessibilityManager
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
     private native long CreateToolBarNative(long parent, String name, Item_ item);
+    private native long CreateDialogNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
@@ -268,7 +271,10 @@ public class AccessibilityManager
                 break;
             case TAB:
                 nativePointer = CreateTabNative(parentLong, item.GetName(), item);
-            break;
+                break;
+            case DIALOG:
+                nativePointer = CreateDialogNative(parentLong, item.GetName(), item);
+                break;
             default: //if the code doesn't match one of these, don't add it, including the NOT_ACCESSIBLE 
                 nativePointer = 0;
                 break;
