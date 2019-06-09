@@ -182,10 +182,16 @@ public class AccessibilityManager
     private native boolean SubtreeCollapsedNative(long nativePointer);
     private native void NotifyTextBoxNative(long nativePointer, String say);
     
+    private native boolean IsScreenReaderListeningNative();
+    
     // Shutdown: Closes the COM library on the native level.
     public void Shutdown()
     {
         ShutdownAccessibilityNative();
+    }
+    
+    public boolean IsScreenReaderListening() {
+        return IsScreenReaderListeningNative();
     }
     
     public boolean NativeAdd(Item_ item)
@@ -285,6 +291,7 @@ public class AccessibilityManager
                 nativePointer = CreateTabPaneNative(parentLong, item.GetName(), item);
                 break;
             case TAB:
+                System.out.println("Tab added");
                 Tab_ tab = (Tab_)item;
                 TabPane_ pane = tab.GetTabPane();
                 long paneLong = GetItemPointer(pane);
