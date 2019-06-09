@@ -104,11 +104,18 @@ class TabPane is Control
     end
 
     action Add(Array<Tab> array)
-        bar:Add(array)
+        i = 0
+        repeat while i < array:GetSize()
+            Tab tab = array:Get(i)
+            bar:Add(tab)
+            tab:SetTabPane(me)
+            i = i + 1
+        end
     end
 
     action Add(Tab tab)
         bar:Add(tab)
+        tab:SetTabPane(me)
     end
 
     action Remove(Tab tab)

@@ -21,7 +21,7 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 
 class Tab is ToggleButton
-    
+    TabPane container = undefined
     Item2D relatedItem = undefined
     Layout layout = undefined
     LayoutProperties defaultProperties = undefined
@@ -89,6 +89,20 @@ class Tab is ToggleButton
         Add(icon)
         Add(label)
         Add(closeButton)
+    end
+
+    /*
+        This action gets the containing tab pane for this tab.
+    */
+    action GetTabPane returns TabPane
+        return container
+    end
+
+    /*
+        This action sets the containing tab pane for this tab.
+    */
+    action SetTabPane(TabPane pane)
+        me:container = pane
     end
 
     action IsAccessibleParent returns boolean
