@@ -20,6 +20,8 @@
 #include "TabPaneControl.h"
 #include "ToolBarControl.h"
 #include "DialogControl.h"
+#include "ListControl.h"
+#include "ListItemControl.h"
 
 // For Debug Output
 #include <iostream>
@@ -41,6 +43,14 @@ HWND CalculateParentWindowHandle(jlong parent) {
 		handle = theParent->GetHWND();
 	}
 	return handle;
+}
+
+Item* GetItemPointer(jlong item) {
+	if (item > 0) {
+		Item* theParent = static_cast<Item*>(LongToPtr((long)item));
+		return theParent;
+	}
+	return 0;
 }
 
 #pragma region Create Accessible Object
@@ -214,20 +224,44 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND handle = CalculateParentWindowHandle(parent);
 	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	TabPaneControl* tabPaneControl = static_cast<TabPaneControl*>(GetItemPointer(parent));
+	TabControl* pane = TabControl::Create(env, GetModuleHandle(NULL), handle, tabPaneControl, wName, jItem);
+	env->ReleaseStringUTFChars(name, nativeName);
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	ListControl* pane = ListControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
 	return PtrToLong(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabNative(JNIEnv* env, jobject obj, jlong parent,  jstring name, jobject jItem)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListItemNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	HWND handle = CalculateParentWindowHandle(parent);
-	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
-
+	ListControl* listControl = static_cast<ListControl*>(GetItemPointer(parent));
+	ListItemControl* pane = ListItemControl::Create(env, GetModuleHandle(NULL), handle, listControl, wName, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
 	return PtrToLong(pane);
 }
