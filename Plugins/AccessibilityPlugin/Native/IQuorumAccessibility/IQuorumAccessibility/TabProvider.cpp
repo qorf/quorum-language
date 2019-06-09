@@ -1,6 +1,6 @@
 #include "TabProvider.h"
 
-TabProvider::TabProvider(TabControl* pControl, TabPaneControl* parent) : referenceCount(1), control(pControl), parent(parent)
+TabProvider::TabProvider(TabControl* pControl, TabPaneControl* parent) : referenceCount(1), control(pControl), parent(parent), child(NULL)
 {
 }
 
@@ -39,6 +39,10 @@ IFACEMETHODIMP TabProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppI
 	{
 		*ppInterface = static_cast<IRawElementProviderFragment*>(this);
 	}
+	else if (riid == __uuidof(IRawElementProviderFragmentRoot))
+	{
+		*ppInterface = static_cast<IRawElementProviderFragmentRoot*>(this);
+	}
 	else if (riid == __uuidof(ISelectionItemProvider))
 	{
 		*ppInterface = static_cast<ISelectionItemProvider*>(this);
@@ -73,7 +77,6 @@ IFACEMETHODIMP TabProvider::GetPatternProvider(PATTERNID patternId, _Outptr_resu
 	if (*pRetVal != NULL) {
 		(static_cast<IUnknown*>(*pRetVal))->AddRef();
 	}
-
 	return S_OK;
 }
 
@@ -138,8 +141,16 @@ IFACEMETHODIMP TabProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIAN
 	return S_OK;
 }
 
-// Gets the UI Automation provider for the host window. 
-// Return NULL since TreeItems are not directly hosted in a window and therefore don't have an HWND
+/*
+Microsoft's documentation is vague here. It seems to imply that since we're a root, we should return ourselves:
+
+https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/nf-uiautomationcore-irawelementprovidersimple-get_hostrawelementprovider
+
+However, when we do that, it breaks in the inspector, while returning NULL does not, so we're going with null. If, for some reason,
+this ends up being wrong, the replacement code is 
+
+return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
+*/
 IFACEMETHODIMP TabProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	*pRetVal = NULL;
@@ -245,12 +256,7 @@ IFACEMETHODIMP TabProvider::SetFocus()
 IFACEMETHODIMP TabProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal)
 {
 
-	IRawElementProviderFragmentRoot* pRoot = NULL;
-
-	if (parent != NULL)
-	{
-		pRoot = parent->GetProvider();
-	}
+	IRawElementProviderFragmentRoot* pRoot = static_cast<IRawElementProviderFragmentRoot*>(this);
 
 	if (pRoot == NULL)
 	{
@@ -258,6 +264,45 @@ IFACEMETHODIMP TabProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawEleme
 	}
 	pRoot->AddRef();
 	*pRetVal = pRoot;
+	return S_OK;
+}
+
+// Retrieves the IRawElementProviderFragment interface for the item at the specified 
+// point (in client coordinates).
+IFACEMETHODIMP TabProvider::ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
+{
+	if (!IsWindow(control->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	// Since the accessible objects are 1x1 pixel boxes hidden in the corner of the application we'd need quorum to
+	// give us the client coordinates.
+	// Not implemented yet
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+// Retrieves the provider for the item that is selected when the control gets focus.
+IFACEMETHODIMP TabProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
+{
+	if (!IsWindow(control->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	*pRetVal = child;
+
+
+	//TabControl* tab = control->GetSelectedTab();
+	//if (tab != nullptr)
+	//{
+	//	// Get Provider
+	//	IRawElementProviderFragment* provider = (IRawElementProviderFragment*)(tab->GetProvider());
+
+	//	*pRetVal = provider;
+	//}
+
 	return S_OK;
 }
 

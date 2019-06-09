@@ -5,6 +5,7 @@ class TabPaneControl;
 
 class TabProvider : public IRawElementProviderSimple,
 					public IRawElementProviderFragment,
+					public IRawElementProviderFragmentRoot,
 					public ISelectionItemProvider
 {
 public:
@@ -28,6 +29,12 @@ public:
 	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
 	IFACEMETHODIMP SetFocus();
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal);
+
+	/* We also need the IRawElementProviderFragmentRoot because tabs can have multiple items inside them, including the close button and the 
+	   an item, like a panel, textbox, or something else.
+	*/
+	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
+	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
 
 	//ISelectionItemProvider
 	//Adds the current element to the collection of selected items.

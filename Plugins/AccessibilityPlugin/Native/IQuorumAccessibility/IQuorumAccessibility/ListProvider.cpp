@@ -153,7 +153,7 @@ IFACEMETHODIMP ListProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"tab");
+		pRetVal->bstrVal = SysAllocString(L"list");
 	}
 	else if (propertyId == UIA_OrientationPropertyId)
 	{

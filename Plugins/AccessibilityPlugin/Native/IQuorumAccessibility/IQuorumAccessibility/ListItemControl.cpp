@@ -74,9 +74,9 @@ bool ListItemControl::Initialize(_In_ HINSTANCE hInstance)
 		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)& messageBuffer, 0, NULL);
 
-		//std::string message(messageBuffer, size);
-		//std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
-		//fflush(stdout);
+		std::string message(messageBuffer, size);
+		std::cout << "RegisterButtonControl Error " << errorMessageID << ": " << message << std::endl;
+		fflush(stdout);
 
 		//Free the buffer.
 		LocalFree(messageBuffer);

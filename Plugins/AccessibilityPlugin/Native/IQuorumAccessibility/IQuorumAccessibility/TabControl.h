@@ -19,7 +19,7 @@ public:
 
 	TabPaneControl* GetParent();
 	TabProvider* GetProvider();
-
+	//ButtonControl* GetCloseButton();
 private:
 	static LRESULT CALLBACK StaticTabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK TabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);

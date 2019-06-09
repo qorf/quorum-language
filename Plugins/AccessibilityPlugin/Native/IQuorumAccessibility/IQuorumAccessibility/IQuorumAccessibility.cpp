@@ -53,6 +53,15 @@ Item* GetItemPointer(jlong item) {
 	return 0;
 }
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_IsScreenReaderListeningNative(JNIEnv* env, jobject obj) {
+	if (UiaClientsAreListening()) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 #pragma region Create Accessible Object
 
 // CreateItem: This is the most generic accessible object that can be created. It only contains a name and a description.
