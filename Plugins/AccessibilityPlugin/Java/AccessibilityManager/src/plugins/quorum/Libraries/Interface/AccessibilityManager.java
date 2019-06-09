@@ -6,6 +6,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import quorum.Libraries.Interface.Controls.ListItem_;
+import quorum.Libraries.Interface.Controls.List_;
 
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
@@ -52,6 +54,7 @@ public class AccessibilityManager
         CELL,
         TEXT_FIELD,
         LIST,
+        LIST_ITEM,
         TREE_TABLE,
         DIALOG
     }
@@ -94,6 +97,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CELL_(), AccessibilityCodes.CELL);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_(), AccessibilityCodes.LIST);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_ITEM_(), AccessibilityCodes.LIST_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_TABLE_(), AccessibilityCodes.TREE_TABLE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__DIALOG_(), AccessibilityCodes.DIALOG);
@@ -151,6 +155,8 @@ public class AccessibilityManager
     private native long CreateTabNative(long parent, String name, Item_ item);
     private native long CreateToolBarNative(long parent, String name, Item_ item);
     private native long CreateDialogNative(long parent, String name, Item_ item);
+    private native long CreateListNative(long parent, String name, Item_ item);
+    private native long CreateListItemNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
@@ -204,6 +210,15 @@ public class AccessibilityManager
                 break;
             case RADIO_BUTTON:
                 nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case LIST:
+                nativePointer = CreateListNative(parentLong, item.GetName(), item);
+                break;
+            case LIST_ITEM:
+                ListItem_ listItem = (ListItem_)item;
+                List_ list = listItem.GetList();
+                long listItemLong = GetItemPointer(list);
+                nativePointer = CreateListItemNative(listItemLong, item.GetName(), item);
                 break;
             case BUTTON:
                 nativePointer = CreateButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
@@ -270,7 +285,10 @@ public class AccessibilityManager
                 nativePointer = CreateTabPaneNative(parentLong, item.GetName(), item);
                 break;
             case TAB:
-                nativePointer = CreateTabNative(parentLong, item.GetName(), item);
+                Tab_ tab = (Tab_)item;
+                TabPane_ pane = tab.GetTabPane();
+                long paneLong = GetItemPointer(pane);
+                nativePointer = CreateTabNative(paneLong, item.GetName(), item);
                 break;
             case DIALOG:
                 nativePointer = CreateDialogNative(parentLong, item.GetName(), item);
@@ -287,6 +305,17 @@ public class AccessibilityManager
         // Add item and respective pointer to collection.
         ITEM_MAP.put(item, nativePointer);
         return true;
+    }
+    
+    private long GetItemPointer(Item_ item) {
+        long parentLong = -1;
+        if(item != null) {
+            Long l = ITEM_MAP.get(item);
+            if(l != null) {
+                parentLong = l;
+            }
+        }
+        return parentLong;
     }
     
     private long GetAccessibleParentHelper(Item_ item) {
@@ -321,11 +350,23 @@ public class AccessibilityManager
         switch(code)
         {
             case ITEM:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case CUSTOM:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case BUTTON:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case RADIO_BUTTON:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case CHECKBOX:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case MENU_BAR:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             case TREE:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
@@ -334,6 +375,9 @@ public class AccessibilityManager
                 break;
             case TREE_ITEM:
                 wasRemoved = RemoveTreeItemNative(itemToRemove);
+                break;
+            case DIALOG:
+                wasRemoved = RemoveNative(itemToRemove);
                 break;
             default:
                 return false;
