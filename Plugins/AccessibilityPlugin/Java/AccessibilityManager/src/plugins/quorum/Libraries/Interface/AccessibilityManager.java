@@ -157,6 +157,9 @@ public class AccessibilityManager
     private native long CreateDialogNative(long parent, String name, Item_ item);
     private native long CreateListNative(long parent, String name, Item_ item);
     private native long CreateListItemNative(long parent, String name, Item_ item);
+    private native long CreateSpreadsheetNative(long parent, String name, Item_ item);
+    private native long CreateCellNative(long parent, String name, Item_ item);
+    private native long CreateTreeTableNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
@@ -216,6 +219,15 @@ public class AccessibilityManager
                 break;
             case RADIO_BUTTON:
                 nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case TABLE:
+                nativePointer = CreateSpreadsheetNative(parentLong, item.GetName(), item);
+                break;
+            case TREE_TABLE:
+                nativePointer = CreateTreeTableNative(parentLong, item.GetName(), item);
+                break;
+            case CELL:
+                nativePointer = CreateCellNative(parentLong, item.GetName(), item);
                 break;
             case LIST:
                 nativePointer = CreateListNative(parentLong, item.GetName(), item);
@@ -291,7 +303,6 @@ public class AccessibilityManager
                 nativePointer = CreateTabPaneNative(parentLong, item.GetName(), item);
                 break;
             case TAB:
-                System.out.println("Tab added");
                 Tab_ tab = (Tab_)item;
                 TabPane_ pane = tab.GetTabPane();
                 long paneLong = GetItemPointer(pane);
