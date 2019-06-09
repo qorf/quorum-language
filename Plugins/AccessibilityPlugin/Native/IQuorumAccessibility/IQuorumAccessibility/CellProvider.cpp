@@ -1,0 +1,218 @@
+#include "CellProvider.h"
+
+CellProvider::CellProvider(CellControl* pControl, SpreadsheetControl* parent) : 
+	referenceCount(1), control(pControl), parent(parent), expanded(ExpandCollapseState_Collapsed)
+{
+}
+
+CellProvider::~CellProvider()
+{
+}
+
+// =========== IUnknown implementation.
+
+IFACEMETHODIMP_(ULONG) CellProvider::AddRef()
+{
+	return InterlockedIncrement(&referenceCount);
+}
+
+IFACEMETHODIMP_(ULONG) CellProvider::Release()
+{
+	long val = InterlockedDecrement(&referenceCount);
+	if (val == 0)
+	{
+		delete this;
+	}
+	return val;
+}
+
+IFACEMETHODIMP CellProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
+{
+	if (riid == __uuidof(IUnknown))
+	{
+		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (riid == __uuidof(IRawElementProviderSimple))
+	{
+		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (riid == __uuidof(ITableItemProvider))
+	{
+		*ppInterface = static_cast<ITableItemProvider*>(this);
+	}
+	else if (riid == __uuidof(IGridItemProvider))
+	{
+		*ppInterface = static_cast<IGridItemProvider*>(this);
+	}
+	else if (riid == __uuidof(IExpandCollapseProvider))
+	{
+		*ppInterface = static_cast<IExpandCollapseProvider*>(this);
+	}
+	else
+	{
+		*ppInterface = NULL;
+		return E_NOINTERFACE;
+	}
+
+	(static_cast<IUnknown*>(*ppInterface))->AddRef();
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
+{
+	*pRetVal = ProviderOptions_ServerSideProvider;
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
+{
+	switch (patternId)
+	{
+	case UIA_GridItemPatternId:
+		*pRetVal = static_cast<IGridItemProvider*>(this);
+		break;
+	case UIA_TableItemPatternId:
+		*pRetVal = static_cast<ITableItemProvider*>(this);
+		break;
+	case UIA_ExpandCollapsePatternId:
+		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+		break;
+	default:
+		*pRetVal = NULL;
+	}
+
+	if (*pRetVal != NULL) {
+		(static_cast<IUnknown*>(*pRetVal))->AddRef();
+	}
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
+{
+	if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		ULONG Id = control->GetHashCode();
+
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(control->GetName());
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(control->GetDescription());
+	}
+	else if (propertyId == UIA_ControlTypePropertyId)
+	{
+		pRetVal->vt = VT_I4;
+		pRetVal->lVal = UIA_TabItemControlTypeId;
+	}
+	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_FALSE; //tabs in our system cannot receive the focus directly, only the tab pane or the containing item
+	}
+	else if (propertyId == UIA_IsControlElementPropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_IsContentElementPropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_LocalizedControlTypePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"cell block 1138");
+	}
+	else if (propertyId == UIA_IsEnabledPropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_FALSE;
+	}
+	else
+	{
+		pRetVal->vt = VT_EMPTY;
+	}
+	return S_OK;
+}
+
+/*
+Microsoft's documentation is vague here. It seems to imply that since we're a root, we should return ourselves:
+
+https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/nf-uiautomationcore-irawelementprovidersimple-get_hostrawelementprovider
+
+However, when we do that, it breaks in the inspector, while returning NULL does not, so we're going with null. If, for some reason,
+this ends up being wrong, the replacement code is
+
+return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
+*/
+IFACEMETHODIMP CellProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
+{
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) {
+	return S_OK;
+}
+IFACEMETHODIMP CellProvider::get_ColumnSpan(int* pRetVal) {
+	return S_OK;
+}
+IFACEMETHODIMP CellProvider::get_ContainingGrid(IRawElementProviderSimple** pRetVal) {
+	return S_OK;
+}
+IFACEMETHODIMP CellProvider::get_Row(int* pRetVal) {
+	return S_OK;
+}
+IFACEMETHODIMP CellProvider::get_RowSpan(int* pRetVal) {
+	return S_OK;
+}
+
+//ITableItemProvider Methods
+IFACEMETHODIMP CellProvider::GetColumnHeaderItems(SAFEARRAY** pRetVal) {
+	return S_OK;
+}
+IFACEMETHODIMP CellProvider::GetRowHeaderItems(SAFEARRAY** pRetVal) {
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::get_ExpandCollapseState(ExpandCollapseState* pRetVal)
+{
+	*pRetVal = expanded;
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::Expand()
+{
+	expanded = ExpandCollapseState_Expanded;
+	NotifyElementExpandCollapse();
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::Collapse()
+{
+	expanded = ExpandCollapseState_Collapsed;
+	NotifyElementExpandCollapse();
+	return S_OK;
+}
+
+void CellProvider::NotifyElementExpandCollapse()
+{
+	// Raise a UI Automation Event
+	if (UiaClientsAreListening())
+	{ //no idea if this is correct for trees, but it seems to be implied by the often incorrect documentation
+		UiaRaiseAutomationEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId);
+	}
+}

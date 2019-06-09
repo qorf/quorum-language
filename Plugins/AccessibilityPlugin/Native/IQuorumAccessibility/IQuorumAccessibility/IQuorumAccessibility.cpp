@@ -22,6 +22,9 @@
 #include "DialogControl.h"
 #include "ListControl.h"
 #include "ListItemControl.h"
+#include "SpreadsheetControl.h"
+#include "TreeTableControl.h"
+#include "CellControl.h"
 
 // For Debug Output
 #include <iostream>
@@ -282,6 +285,46 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND handle = CalculateParentWindowHandle(parent);
 	ToolBarControl* pane = ToolBarControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSpreadsheetNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	SpreadsheetControl* pane = SpreadsheetControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeTableNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	TreeTableControl* pane = TreeTableControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+
+	return PtrToLong(pane);
+}
+
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+
+	HWND handle = CalculateParentWindowHandle(parent);
+	SpreadsheetControl* parentControl = static_cast<SpreadsheetControl*>(GetItemPointer(parent));
+	CellControl* pane = CellControl::Create(env, GetModuleHandle(NULL), handle, parentControl, wName, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 

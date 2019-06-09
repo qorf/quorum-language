@@ -99,6 +99,18 @@ struct JClass_ListItem
 {
 	jclass me;
 };
+struct JClass_Spreadsheet
+{
+	jclass me;
+};
+struct JClass_TreeTable
+{
+	jclass me;
+};
+struct JClass_Cell
+{
+	jclass me;
+};
 struct JClass_Item
 {
 	jclass me;
@@ -117,5 +129,8 @@ extern JClass_Item JavaClass_Item;
 extern JClass_ToolBar JavaClass_ToolBar;
 extern JClass_Dialog JavaClass_Dialog;
 extern JClass_Dialog JavaClass_List;
+extern JClass_Dialog JavaClass_Spreadsheet;
+extern JClass_Dialog JavaClass_TreeTable;
+extern JClass_Dialog JavaClass_Cell;
 extern JClass_Dialog JavaClass_ListItem;
 #endif
