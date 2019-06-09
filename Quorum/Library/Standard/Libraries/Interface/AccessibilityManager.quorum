@@ -139,43 +139,7 @@ class AccessibilityManager
     end
 
     action Add(Item item)
-//
-//        // Add item to accessibility hierarchy if its accessibility type is supported.
-//        if item:GetAccessibilityCode() not= item:ITEM
-//
-//            // TODO: This section can be removed once everything is supported
-//            if  item:GetAccessibilityCode() = item:MENU_ITEM
-//                    or item:GetAccessibilityCode() = item:MENU_BAR
-//                    or item:GetAccessibilityCode() = item:BUTTON
-//                    or item:GetAccessibilityCode() = item:CHECKBOX
-//                    or item:GetAccessibilityCode() = item:RADIO_BUTTON
-//                    or item:GetAccessibilityCode() = item:TREE
-//                    or item:GetAccessibilityCode() = item:TREE_ITEM
-//                    or item:GetAccessibilityCode() = item:TEXTBOX
-//                    or item:GetAccessibilityCode() = item:TEXT_FIELD
-//
-//                if (debugOutput)
-//                    output "Adding " + item:GetAccessibilityType() + ": " + item:GetName()
-//                end
-//
-//                NativeAdd(item)
-//            else
-//                // Until other controls are properly fleshed out create an ITEM
-//                // accessibility object for unsupported types. That way at the 
-//                // very least the name of the GUI component will be spoken on focus.
-//                if (debugOutput)
-//                    output "Adding " + item:GetAccessibilityType() + ": " + item:GetName() + " as CUSTOM."
-//                end
-//
-//                item:SetAccessibilityCode(item:CUSTOM)
-//                NativeAdd(item)
-//            end
-            
-            // TODO: Once all GUI controls have been implemented properly then
-            //       remove the above if statment and uncomment this line.
         NativeAdd(item)
-//        end        
-
         // Add the children
         if item is Item2D
             Item2D temp = cast(Item2D, item)
@@ -199,13 +163,11 @@ class AccessibilityManager
                 Add(child)
             end
         end
-
-        
     end
 
     action Remove(Item item)
-
         // If the item being removed has children then remove them first.
+        //Is this necessary or does the native layer figure this out?
         if item is Item2D
             Item2D temp = cast(Item2D, item)
             Array<Item2D> children = temp:GetChildren()
@@ -229,33 +191,7 @@ class AccessibilityManager
             end
         end
 
-        // Remove item from accessibility hierarchy if its accessibility type is supported.
-        // Otherwise, leave it for now.
-        if item:GetAccessibilityCode() not= item:ITEM
-
-            // TODO: This section can be removed once everything is supported
-            if  item:GetAccessibilityCode() = item:MENU_ITEM
-                    or item:GetAccessibilityCode() = item:MENU_BAR
-                    or item:GetAccessibilityCode() = item:BUTTON
-                    or item:GetAccessibilityCode() = item:CHECKBOX
-                    or item:GetAccessibilityCode() = item:RADIO_BUTTON
-                    or item:GetAccessibilityCode() = item:TREE
-                    or item:GetAccessibilityCode() = item:TREE_ITEM
-                    or item:GetAccessibilityCode() = item:TEXTBOX
-                    or item:GetAccessibilityCode() = item:TEXT_FIELD
-
-
-                if (debugOutput)
-                    output "Removing " + item:GetAccessibilityType() + ": " + item:GetName()
-                end
-                NativeRemove(item)
-            end
-            
-            // TODO: Once all GUI controls have been implemented properly then
-            //       remove the above if statment and uncomment this line.
-            //NativeRemove(item)
-        end
-
+        NativeRemove(item)
     end
 
     action MenuChanged(MenuChangeEvent event)
@@ -305,4 +241,5 @@ class AccessibilityManager
     */
     system action Shutdown
 
+    system action IsScreenReaderListening returns boolean
 end
