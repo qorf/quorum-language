@@ -119,7 +119,8 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\Quorum\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll"
-copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\..\quorumstudio\QuorumStudio\Run\jni\AccessibilityManagerWindows64.dll"</Command>
+copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\..\quorumstudio\QuorumStudio\Run\jni\AccessibilityManagerWindows64.dll"
+copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "C:\Users\stefi\Documents\NetBeansProjects\GameApplication\Run\jni\AccessibilityManagerWindows64.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -166,12 +167,20 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
   <ItemGroup>
     <ClCompile Include="ButtonControl.cpp" />
     <ClCompile Include="ButtonProvider.cpp" />
+    <ClCompile Include="CellControl.cpp" />
+    <ClCompile Include="CellProvider.cpp" />
     <ClCompile Include="CheckBoxControl.cpp" />
     <ClCompile Include="CheckBoxProvider.cpp" />
+    <ClCompile Include="DialogControl.cpp" />
+    <ClCompile Include="DialogProvider.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="IQuorumAccessibility.cpp" />
     <ClCompile Include="ItemControl.cpp" />
     <ClCompile Include="ItemProvider.cpp" />
+    <ClCompile Include="ListControl.cpp" />
+    <ClCompile Include="ListItemControl.cpp" />
+    <ClCompile Include="ListItemProvider.cpp" />
+    <ClCompile Include="ListProvider.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MenuBarControl.cpp" />
     <ClCompile Include="MenuBarProvider.cpp" />
@@ -180,28 +189,45 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
     <ClCompile Include="RadioButtonControl.cpp" />
     <ClCompile Include="RadioButtonProvider.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="SpreadsheetControl.cpp" />
+    <ClCompile Include="SpreadsheetProvider.cpp" />
+    <ClCompile Include="TabControl.cpp" />
+    <ClCompile Include="TabPaneProvider.cpp" />
     <ClCompile Include="Subtree.cpp" />
+    <ClCompile Include="TabPaneControl.cpp" />
+    <ClCompile Include="TabProvider.cpp" />
     <ClCompile Include="TextBoxControl.cpp" />
     <ClCompile Include="TextBoxProvider.cpp" />
-    <ClCompile Include="TextBoxTextAreaProvider.cpp" />
     <ClCompile Include="TextBoxTextRange.cpp" />
     <ClCompile Include="TextFieldControl.cpp" />
     <ClCompile Include="TextFieldProvider.cpp" />
     <ClCompile Include="TextFieldTextRange.cpp" />
+    <ClCompile Include="ToolBarControl.cpp" />
+    <ClCompile Include="ToolBarProvider.cpp" />
     <ClCompile Include="TreeControl.cpp" />
     <ClCompile Include="TreeItemControl.cpp" />
     <ClCompile Include="TreeItemProvider.cpp" />
     <ClCompile Include="TreeProvider.cpp" />
+    <ClCompile Include="TreeTableControl.cpp" />
+    <ClCompile Include="TreeTableProvider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ButtonControl.h" />
     <ClInclude Include="ButtonProvider.h" />
+    <ClInclude Include="CellControl.h" />
+    <ClInclude Include="CellProvider.h" />
     <ClInclude Include="CheckBoxControl.h" />
     <ClInclude Include="CheckBoxProvider.h" />
+    <ClInclude Include="DialogControl.h" />
+    <ClInclude Include="DialogProvider.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="CustomMessages.h" />
     <ClInclude Include="ItemControl.h" />
     <ClInclude Include="ItemProvider.h" />
+    <ClInclude Include="ListControl.h" />
+    <ClInclude Include="ListItemControl.h" />
+    <ClInclude Include="ListItemProvider.h" />
+    <ClInclude Include="ListProvider.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MenuBarControl.h" />
     <ClInclude Include="MenuBarProvider.h" />
@@ -210,18 +236,27 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
     <ClInclude Include="RadioButtonControl.h" />
     <ClInclude Include="RadioButtonProvider.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="SpreadsheetControl.h" />
+    <ClInclude Include="SpreadsheetProvider.h" />
     <ClInclude Include="Subtree.h" />
+    <ClInclude Include="TabControl.h" />
+    <ClInclude Include="TabPaneControl.h" />
+    <ClInclude Include="TabPaneProvider.h" />
+    <ClInclude Include="TabProvider.h" />
     <ClInclude Include="TextBoxControl.h" />
     <ClInclude Include="TextBoxProvider.h" />
-    <ClInclude Include="TextBoxTextAreaProvider.h" />
     <ClInclude Include="TextBoxTextRange.h" />
     <ClInclude Include="TextFieldControl.h" />
     <ClInclude Include="TextFieldProvider.h" />
     <ClInclude Include="TextFieldTextRange.h" />
+    <ClInclude Include="ToolBarControl.h" />
+    <ClInclude Include="ToolBarProvider.h" />
     <ClInclude Include="TreeControl.h" />
     <ClInclude Include="TreeItemControl.h" />
     <ClInclude Include="TreeItemProvider.h" />
     <ClInclude Include="TreeProvider.h" />
+    <ClInclude Include="TreeTableControl.h" />
+    <ClInclude Include="TreeTableProvider.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
