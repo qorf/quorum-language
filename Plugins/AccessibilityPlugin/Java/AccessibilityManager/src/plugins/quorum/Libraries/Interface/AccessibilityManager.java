@@ -204,6 +204,9 @@ public class AccessibilityManager
         if (ITEM_MAP.get(item) != null)
             return true;
 
+        if (code == AccessibilityCodes.NOT_ACCESSIBLE)
+            return false;
+        
         long parentLong = GetAccessibleParentHelper(item);
         switch(code)
         {
