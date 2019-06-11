@@ -1236,13 +1236,13 @@ class Item2D is Item
 
     action GetAccessibleParent returns Item
         Item2D par = GetParent()
-        repeat while par not= undefined
-            if par:IsAccessibleParent()
-                return par
-            end
-            par = par:GetParent()
+        if par = undefined
+            return undefined
+        elseif par:IsAccessibleParent()
+            return par
+        else
+            return par:GetAccessibleParent()
         end
-        return undefined
     end
 
     /*  
