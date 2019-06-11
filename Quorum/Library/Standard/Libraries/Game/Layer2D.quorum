@@ -115,11 +115,29 @@ class Layer2D is Layer
 
     Array<Control> controls
     boolean shouldLayout = false
+    boolean shouldSortDepthBuffer = true
 
     on create
         OrthographicCamera cam
         camera = cam
         collisionManager:SetLayer(me)
+    end
+
+    /*
+        Call this action if you want to learn if depth 
+        buffer sorting is on. By default, depth buffer sorting is on.
+    */
+    action IsDepthBufferSorting returns boolean
+        return shouldSortDepthBuffer
+    end
+
+    /*
+        Call this action if you want to manually tell the layer to turn off depth 
+        buffer sorting. This can be appropriate if all items in the layer are 
+        at the same level of depth. By default, depth buffer sorting is on.
+    */
+    action SetDepthBufferSorting(boolean sort)
+        me:shouldSortDepthBuffer = sort
     end
 
     /* This allows us to know if collisions are on or off for the layer. */
@@ -1203,7 +1221,9 @@ class Layer2D is Layer
             GetDepthSortedItems(items:Get(i), depthSortedArray)
         end
 
-        depthSortedArray:Sort(depthSorter)
+        if shouldSortDepthBuffer
+            depthSortedArray:Sort(depthSorter)
+        end
     end
 
     /*

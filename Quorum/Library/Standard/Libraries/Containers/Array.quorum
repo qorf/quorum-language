@@ -34,6 +34,7 @@ class Array <Type>
     private system action SetNative(integer location, Type value)
     private system action GetNative(integer location) returns Type
     private system action SetSizeNative(integer size)
+    private system action SetSizeNoFillNative(integer size)
     private system action AddNative(integer location, Type value)
     private system action AddNative(Type value)
     private system action RemoveAtNative(integer location) returns Type
@@ -131,7 +132,6 @@ class Array <Type>
         else
             SetSizeNative(size)
         end
-            
     end
 
     /*
@@ -599,9 +599,12 @@ class Array <Type>
         myArray:Sort()
     */
     action Sort
+        integer size = GetSize()
+        if size = 0 or size = 1
+            return now //it is already sorted
+        end
         Array<Type> temp
-        temp:SetMaxSize(me:GetSize())
-        temp:SetSize(me:GetSize())
+        temp:SetSizeNoFillNative(me:GetSize())
         MergeSort(me, temp, 0, me:GetSize() - 1)
     end
 

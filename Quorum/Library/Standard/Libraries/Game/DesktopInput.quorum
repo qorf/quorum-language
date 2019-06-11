@@ -53,6 +53,10 @@ class DesktopInput is GameInput
 
     BitwiseOperations bits
 
+    InputSet set
+    InputSet multiSet = undefined
+    InputSet anySet
+
     /*
     The target of the last Mouse movement event. This is used to track where the
     mouse cursor is for the purpose of triggering "BEGIN" and "FINISH" type
@@ -95,9 +99,9 @@ class DesktopInput is GameInput
             return now
         end
 
-        InputSet set = keyboardModifiers:Copy()
-        InputSet multiSet = undefined
-        InputSet anySet = keyboardModifiers:Copy()
+        set:Set(keyboardModifiers)
+        multiSet = undefined
+        anySet:Set(keyboardModifiers)
 
         RecentInputTimer recentInput = undefined
 

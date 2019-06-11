@@ -40,6 +40,14 @@ function plugins_quorum_Libraries_Containers_Array_() {
             this.array_.push(null);
         }
     };
+    
+    this.SetSizeNoFillNative$quorum_integer = function (size) {
+        this.array_ = [];
+        var value = this.GetSize();
+        for (i = value; i < size; i++) {
+            this.array_.push(null);
+        } //In JavaScript mode, you have to fill it, I think
+    };
 
     this.GetMaxSize = function () {
         return this.maxSize;

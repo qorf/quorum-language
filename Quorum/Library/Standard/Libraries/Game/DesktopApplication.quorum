@@ -15,7 +15,7 @@ main loop, and exiting a game. Most users will never use this class directly.
 This particular implementation of Application is meant for use on Desktops.
 */
 class DesktopApplication is Application
-
+    DesktopConfiguration configuration
     /*
     The Setup action is used for initial set up of the Game's resources, and
     will begin the game's main loop. This is automatically used by the Game
@@ -70,7 +70,6 @@ class DesktopApplication is Application
 
             boolean shouldRender = false
 
-            DesktopConfiguration configuration
             configuration = cast(DesktopConfiguration, display:GetConfiguration())
 
             configuration:x = display:GetDisplayX()
@@ -96,15 +95,6 @@ class DesktopApplication is Application
             else
                 shouldrender = true
             end
-
-//            if(true)
-//                shouldrender = true 
-//            end
-
-//            if(display:shouldrender)
-//                shouldrender = display:shouldrender
-//            end
-
 
             if(shouldrender)
                display:UpdateTime()
