@@ -15,7 +15,7 @@ class TabPane is Control
     
     TabBar bar
     Item2D currentItem = undefined
-    Control viewArea
+    TabViewArea viewArea
     TabPaneSelection selection
 
     on create
@@ -107,15 +107,15 @@ class TabPane is Control
         i = 0
         repeat while i < array:GetSize()
             Tab tab = array:Get(i)
-            bar:Add(tab)
             tab:SetTabPane(me)
+            bar:Add(tab)
             i = i + 1
         end
     end
 
     action Add(Tab tab)
-        bar:Add(tab)
         tab:SetTabPane(me)
+        bar:Add(tab)
     end
 
     action Remove(Tab tab)
@@ -190,6 +190,14 @@ class TabPane is Control
 
     action GetSelection returns TabPaneSelection
         return selection
+    end
+
+    action GetSelectedTab returns Tab
+        if selection = undefined
+            return undefined
+        end
+
+        return selection:GetTab()
     end
 
     action AddTabChangeListener(TabChangeListener listener)

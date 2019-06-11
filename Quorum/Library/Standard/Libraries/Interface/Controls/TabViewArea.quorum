@@ -1,0 +1,31 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+
+class TabViewArea is Control
+    on create
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+    end
+
+    action GetAccessibleParent returns Item
+        Item2D parentItem = GetParent()
+
+        if parentItem is TabPane
+            TabPane pane = cast(TabPane, parentItem)
+            Tab currentTab = pane:GetSelectedTab()
+
+            if currentTab not= undefined and currentTab:IsAccessibleParent()
+                return currentTab
+            elseif pane:IsAccessibleParent()
+                return pane
+            end
+        end
+
+        return parent:Item2D:GetAccessibleParent()
+    end
+
+    action IsAccessibleParent returns boolean
+        return false
+    end
+end
