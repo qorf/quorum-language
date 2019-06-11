@@ -24,7 +24,6 @@ public class Array {
         array[location] = value;
     }
     
-    
     public Object_ GetNative(int location) {
         return array[location];
     }
@@ -44,6 +43,11 @@ public class Array {
             
             array = newArray;
         }
+        this.size = size;
+    }
+    
+    public void SetSizeNoFillNative(int size) {
+        array = new Object_[size];
         this.size = size;
     }
     
