@@ -36,6 +36,10 @@ struct JClass_AccessibilityManager
 	jmethodID GetTreeSelectionPointer;
 	jmethodID GetTabPaneSelectionPointer;
 	jmethodID SetTabSelection;
+
+	// Used for cells and Spreadsheets/TreeTable.
+	jmethodID GetCellColumnIndex;
+	jmethodID GetCellRowIndex;
 };
 struct JClass_TextBox
 {

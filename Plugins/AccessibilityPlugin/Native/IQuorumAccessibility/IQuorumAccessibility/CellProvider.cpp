@@ -164,19 +164,52 @@ IFACEMETHODIMP CellProvider::get_HostRawElementProvider(_Outptr_result_maybenull
 	return S_OK;
 }
 
-IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) {
+IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint index = 0;
+	if (env != NULL)
+	{
+		index = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetCellColumnIndex, control->GetMe());
+		*pRetVal = (int)index;
+	}
+
 	return S_OK;
 }
-IFACEMETHODIMP CellProvider::get_ColumnSpan(int* pRetVal) {
+
+IFACEMETHODIMP CellProvider::get_ColumnSpan(int* pRetVal) 
+{
+	// Currently, cells in Quorum can't span multiple columns.
+	*pRetVal = 1;
+
 	return S_OK;
 }
-IFACEMETHODIMP CellProvider::get_ContainingGrid(IRawElementProviderSimple** pRetVal) {
+IFACEMETHODIMP CellProvider::get_ContainingGrid(IRawElementProviderSimple** pRetVal) 
+{
+	*pRetVal = parent->GetProvider();
+
 	return S_OK;
 }
-IFACEMETHODIMP CellProvider::get_Row(int* pRetVal) {
+IFACEMETHODIMP CellProvider::get_Row(int* pRetVal) 
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint index = 0;
+	if (env != NULL)
+	{
+		index = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetCellRowIndex, control->GetMe());
+		*pRetVal = (int)index;
+	}
+
 	return S_OK;
 }
-IFACEMETHODIMP CellProvider::get_RowSpan(int* pRetVal) {
+
+IFACEMETHODIMP CellProvider::get_RowSpan(int* pRetVal) 
+{
+	// Currently, cells in Quorum can't span multiple rows.
+	*pRetVal = 1;
+
 	return S_OK;
 }
 

@@ -6,17 +6,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import quorum.Libraries.Interface.Controls.Cell_;
+import quorum.Libraries.Interface.Controls.Column_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.List_;
-
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
 import quorum.Libraries.Interface.Controls.Tab_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
+import quorum.Libraries.Interface.Controls.TreeTableCell_;
+import quorum.Libraries.Interface.Controls.TreeTableColumn_;
+import quorum.Libraries.Interface.Controls.TreeTable_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
@@ -24,6 +29,7 @@ import quorum.Libraries.Interface.Selections.TabPaneSelection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 import quorum.Libraries.Interface.Selections.TreeSelection_;
+import quorum.Libraries.Language.Object_;
 
 
 /**
@@ -642,6 +648,7 @@ public class AccessibilityManager
     public static void SetTabSelection(TabPane_ tabs, Tab_ tab) {
         tabs.Select(tab);
     }
+    
     /*
     This requests the selected tab from the tab pane and retrieves its pointer.
     */
@@ -659,5 +666,73 @@ public class AccessibilityManager
         else {
             return itemPointer;
         }
+    }
+    
+    /*
+    Used by the native layer. Returns the index of the column containing the
+    provided cell. The cell given might be a Cell object or a TreeTableCell. If
+    the value couldn't be retrieved for some reason, this returns -1.
+    */
+    public static int GetCellColumnIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+            
+            if (column != null)
+            {
+                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
+                if (spreadsheet != null)
+                    return spreadsheet.GetColumnIndex(column);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+            
+            if (column != null)
+            {
+                TreeTable_ treeTable = cell.GetTreeTable();
+                if (treeTable != null)
+                    return treeTable.GetColumnIndex(column);
+            }
+        }
+        
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+    
+    /*
+    Used by the native layer. Returns the index of the row containing a cell
+    (its y-index, essentially). The cell given might be a Cell object or a
+    TreeTableCell. If the value can't be retrieved, this returns -1.
+    */
+    public static int GetCellRowIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+            
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+            
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+        
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
     }
 }
