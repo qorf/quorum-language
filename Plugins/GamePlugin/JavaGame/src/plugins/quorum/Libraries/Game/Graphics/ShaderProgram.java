@@ -153,6 +153,8 @@ public class ShaderProgram
     
     IntBuffer params = BufferUtils.newIntBuffer(1);
     IntBuffer type = BufferUtils.newIntBuffer(1);
+    private static float[] floatsFromMatrix3 = new float[9];
+    private static float[] floatsFromMatrix4 = new float[16];
 
     /** Constructs a new ShaderProgram and immediately compiles it.
      * 
@@ -593,7 +595,8 @@ public class ShaderProgram
     {
         GraphicsManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
-        gl.glUniformMatrix4fv(location, 1, transpose, MatrixToArray(matrix), 0);
+        MatrixToArray(matrix);
+        gl.glUniformMatrix4fv(location, 1, transpose, floatsFromMatrix4, 0);
     }
 
     /** Sets the uniform matrix with the given name. Throws an IllegalArgumentException in case it is not called in between a
@@ -626,7 +629,8 @@ public class ShaderProgram
     {
         GraphicsManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
-        gl.glUniformMatrix3fv(location, 1, transpose, MatrixToArray(matrix), 0);
+        MatrixToArray(matrix);
+        gl.glUniformMatrix3fv(location, 1, transpose, floatsFromMatrix3, 0);
     }
         
     /*
@@ -1055,44 +1059,36 @@ public class ShaderProgram
         return fragmentShaderSource;
     }
         
-    private static float[] MatrixToArray(Matrix3_ mat)
+    private static void MatrixToArray(Matrix3_ mat)
     {
-        float[] temp = new float[9];
-
-        temp[0] = (float)mat.Get_Libraries_Compute_Matrix3__row0column0_();
-        temp[1] = (float)mat.Get_Libraries_Compute_Matrix3__row1column0_();
-        temp[2] = (float)mat.Get_Libraries_Compute_Matrix3__row2column0_();
-        temp[3] = (float)mat.Get_Libraries_Compute_Matrix3__row0column1_();
-        temp[4] = (float)mat.Get_Libraries_Compute_Matrix3__row1column1_();
-        temp[5] = (float)mat.Get_Libraries_Compute_Matrix3__row2column1_();
-        temp[6] = (float)mat.Get_Libraries_Compute_Matrix3__row0column2_();
-        temp[7] = (float)mat.Get_Libraries_Compute_Matrix3__row1column2_();
-        temp[8] = (float)mat.Get_Libraries_Compute_Matrix3__row2column2_();
-
-        return temp;
+        floatsFromMatrix3[0] = (float)mat.Get_Libraries_Compute_Matrix3__row0column0_();
+        floatsFromMatrix3[1] = (float)mat.Get_Libraries_Compute_Matrix3__row1column0_();
+        floatsFromMatrix3[2] = (float)mat.Get_Libraries_Compute_Matrix3__row2column0_();
+        floatsFromMatrix3[3] = (float)mat.Get_Libraries_Compute_Matrix3__row0column1_();
+        floatsFromMatrix3[4] = (float)mat.Get_Libraries_Compute_Matrix3__row1column1_();
+        floatsFromMatrix3[5] = (float)mat.Get_Libraries_Compute_Matrix3__row2column1_();
+        floatsFromMatrix3[6] = (float)mat.Get_Libraries_Compute_Matrix3__row0column2_();
+        floatsFromMatrix3[7] = (float)mat.Get_Libraries_Compute_Matrix3__row1column2_();
+        floatsFromMatrix3[8] = (float)mat.Get_Libraries_Compute_Matrix3__row2column2_();
     }
         
-    private static float[] MatrixToArray(Matrix4_ mat)
+    private static void MatrixToArray(Matrix4_ mat)
     {
-        float[] temp = new float[16];
-
-        temp[0] = (float)mat.Get_Libraries_Compute_Matrix4__row0column0_();
-        temp[1] = (float)mat.Get_Libraries_Compute_Matrix4__row1column0_();
-        temp[2] = (float)mat.Get_Libraries_Compute_Matrix4__row2column0_();
-        temp[3] = (float)mat.Get_Libraries_Compute_Matrix4__row3column0_();
-        temp[4] = (float)mat.Get_Libraries_Compute_Matrix4__row0column1_();
-        temp[5] = (float)mat.Get_Libraries_Compute_Matrix4__row1column1_();
-        temp[6] = (float)mat.Get_Libraries_Compute_Matrix4__row2column1_();
-        temp[7] = (float)mat.Get_Libraries_Compute_Matrix4__row3column1_();
-        temp[8] = (float)mat.Get_Libraries_Compute_Matrix4__row0column2_();
-        temp[9] = (float)mat.Get_Libraries_Compute_Matrix4__row1column2_();
-        temp[10] = (float)mat.Get_Libraries_Compute_Matrix4__row2column2_();
-        temp[11] = (float)mat.Get_Libraries_Compute_Matrix4__row3column2_();
-        temp[12] = (float)mat.Get_Libraries_Compute_Matrix4__row0column3_();
-        temp[13] = (float)mat.Get_Libraries_Compute_Matrix4__row1column3_();
-        temp[14] = (float)mat.Get_Libraries_Compute_Matrix4__row2column3_();
-        temp[15] = (float)mat.Get_Libraries_Compute_Matrix4__row3column3_();
-
-        return temp;
+        floatsFromMatrix4[0] = (float)mat.Get_Libraries_Compute_Matrix4__row0column0_();
+        floatsFromMatrix4[1] = (float)mat.Get_Libraries_Compute_Matrix4__row1column0_();
+        floatsFromMatrix4[2] = (float)mat.Get_Libraries_Compute_Matrix4__row2column0_();
+        floatsFromMatrix4[3] = (float)mat.Get_Libraries_Compute_Matrix4__row3column0_();
+        floatsFromMatrix4[4] = (float)mat.Get_Libraries_Compute_Matrix4__row0column1_();
+        floatsFromMatrix4[5] = (float)mat.Get_Libraries_Compute_Matrix4__row1column1_();
+        floatsFromMatrix4[6] = (float)mat.Get_Libraries_Compute_Matrix4__row2column1_();
+        floatsFromMatrix4[7] = (float)mat.Get_Libraries_Compute_Matrix4__row3column1_();
+        floatsFromMatrix4[8] = (float)mat.Get_Libraries_Compute_Matrix4__row0column2_();
+        floatsFromMatrix4[9] = (float)mat.Get_Libraries_Compute_Matrix4__row1column2_();
+        floatsFromMatrix4[10] = (float)mat.Get_Libraries_Compute_Matrix4__row2column2_();
+        floatsFromMatrix4[11] = (float)mat.Get_Libraries_Compute_Matrix4__row3column2_();
+        floatsFromMatrix4[12] = (float)mat.Get_Libraries_Compute_Matrix4__row0column3_();
+        floatsFromMatrix4[13] = (float)mat.Get_Libraries_Compute_Matrix4__row1column3_();
+        floatsFromMatrix4[14] = (float)mat.Get_Libraries_Compute_Matrix4__row2column3_();
+        floatsFromMatrix4[15] = (float)mat.Get_Libraries_Compute_Matrix4__row3column3_();
     }
 }
