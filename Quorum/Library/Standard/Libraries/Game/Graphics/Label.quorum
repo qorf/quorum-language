@@ -70,7 +70,6 @@ class Label is Control
     integer horizontalMargins = 0
     integer verticalMargins = 0
 
-    Font font
     private text targetText = "TEXT"
     private boolean textChanged = true
 
@@ -237,7 +236,7 @@ class Label is Control
     */
     action SetFont(Font newFont)
         textChanged = true
-        font = newFont
+        parent:Control:SetFont(newFont)
     end
 
     /*
@@ -292,38 +291,6 @@ class Label is Control
     */
     action GetText returns text
         return targetText
-    end
-
-    /*
-    This action will set the Font that is being used by this label. By default,
-    labels will attempt to use Arial, Georgia, Times New Roman, or the first
-    font that can be found on the system, if possible.
-
-    Attribute: Example
-
-        use Libraries.Game.Graphics.Label
-        use Libraries.Game.Graphics.Font
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            Font font = undefined
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Label label
-                label:SetText("Hello world!")
-                label:SetPosition(200, 200)
-                Add(label)
-                font = label:GetFont()
-            end
-        end
-    */
-    action GetFont returns Font
-        return font
     end
 
     /*
@@ -412,7 +379,7 @@ class Label is Control
     */
     action SetColor(Color color)
         textChanged = true
-        font:SetColor(color)
+        GetFont():SetColor(color)
     end
 
     /*
@@ -480,7 +447,7 @@ class Label is Control
         end
     */
     action GetColor returns Color
-        return font:GetColor()
+        return GetFont():GetColor()
     end
 
     /*
@@ -540,7 +507,7 @@ class Label is Control
     */
     action Rotate(number angle)
         textChanged = true
-        font:Rotate(angle)
+        GetFont():Rotate(angle)
         parent:Item2D:Rotate(angle)
     end
 
@@ -569,7 +536,7 @@ class Label is Control
     */
     action SetAngle(number angle)
         textChanged = true
-        font:SetAngle(angle)
+        GetFont():SetAngle(angle)
     end
 
     /*
@@ -597,7 +564,7 @@ class Label is Control
         end
     */
     action GetAngle returns number
-        return font:GetAngle()
+        return GetFont():GetAngle()
     end
 
     /*
@@ -605,6 +572,7 @@ class Label is Control
     the label's text. 
     */
     private action LoadDrawables
+        Font font = GetFont()
         if font:IsLoaded() and manager:IsDisplayAvailable()
             textChanged = false
 
@@ -625,7 +593,6 @@ class Label is Control
             font:SetAngle(font:GetAngle())
 
             // Dispose of the old sprites.
-            //DisposeChildren()
             Empty()
 
 
@@ -984,10 +951,7 @@ class Label is Control
         end
     */
     action GetLineHeight returns integer
-        if textChanged
-            LoadDrawables()
-        end
-        return font:GetLineHeight()
+        return GetFont():GetLineHeight()
     end
 
     /*

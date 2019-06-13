@@ -14,7 +14,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.ManualLayout
-use Libraries.Interface.Layouts.ScrollPaneLayout
+use Libraries.Interface.Layouts.FlowLayout
 
 class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelListener
 
@@ -34,8 +34,8 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     number scrollDistance = 3
     integer barThickness = 20
 
-    number scrollRegionWidth = 200
-    number scrollRegionHeight = 1000
+    constant number defaultScrollRegionWidth = 200
+    constant number defaultScrollRegionHeight = 500
     number vertical = 1.0
     number horizontal = 0
 
@@ -46,6 +46,13 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     integer verticalMode = VISIBLE_IF_NEEDED
     integer horizontalMode = VISIBLE_IF_NEEDED
 
+    public constant integer FIT_CONTENTS_VERTICALLY = 1
+    public constant integer FIT_CONTENTS_HORIZONTALLY = 2
+    public constant integer MANUAL_REGION_SIZING = 3
+
+    // This is set in the on create block to FIT_CONTENTS_VERTICALLY.
+    integer regionSizingMode = 0
+
     /*
     Values used for when the control is dragged along the scroll track.
     */
@@ -53,42 +60,27 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     boolean verticalChanging = true
     number clickPointOffset = 0
 
-    LayoutProperties scrollAnchorLayout = undefined
     LayoutProperties horizontalBarLayout
     LayoutProperties horizontalControlLayout
     LayoutProperties verticalBarLayout
     LayoutProperties verticalControlLayout
 
-    boolean automaticRegionSizing = true
-
     on create
         /* 
-        The scroll anchor is set to use FILL, as this has special meaning to
-        the ScrollPaneLayout, as noted in its comments. The scroll anchor will
-        either be the requested size in pixels, or it will fit the size of the
-        container (whichever is larger).
+        The scroll anchor's properties are set to their initial values as part
+        of the SetScrollRegionResizing action.
         */
-        scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
-        scrollAnchorLayout:SetHorizontalLayoutMode(scrollAnchorLayout:FILL)
-        scrollAnchorLayout:SetVerticalLayoutMode(scrollAnchorLayout:FILL)
-        scrollAnchor:SetPercentageWidth(1)
-        scrollAnchor:SetPercentageHeight(1)
-        scrollAnchorLayout:SetPercentageX(0)
-        scrollAnchorLayout:SetPercentageY(1)
-        scrollAnchorLayout:SetPercentageOriginY(1)
-        scrollAnchorLayout:SetPixelWidth(scrollRegionWidth)
-        scrollAnchorLayout:SetPixelHeight(scrollRegionHeight)
+        SetScrollRegionResizing(FIT_CONTENTS_VERTICALLY)
 
-        scrollAnchor:SetWidth(scrollRegionWidth)
-        scrollAnchor:SetHeight(scrollRegionHeight)
-        scrollAnchor:AddLayoutProperties(scrollAnchorLayout)
         parent:Item2D:Add(scrollAnchor)
+
         SetClipping(true)
         AddMouseWheelListener(me)
         AddMouseListener(me)
         AddMouseMovementListener(me)
 
-        ScrollPaneLayout scrollLayout
+        ManualLayout scrollLayout
+//        ScrollPaneLayout scrollLayout
         parent:Control:SetLayout(scrollLayout)
 
         scrollAnchor:SetName("Scroll Anchor")
@@ -159,6 +151,56 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         Color color
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetBackgroundColor(color:White())
+    end
+
+    /*
+    This action determines how the scroll region of this ScrollPane resizes
+    itself relative to its contents. This should be one of the three resizing
+    modes of this class, FIT_CONTENTS_VERTICALLY, FIT_CONTENTS_HORIZONTALLY, or
+    MANUAL_REGION_SIZING. The default value is FIT_CONTENTS_VERTICALLY.
+    */
+    action SetScrollRegionResizing(integer mode)
+        regionSizingMode = mode
+
+        LayoutProperties properties = scrollAnchor:GetDefaultLayoutProperties()
+
+        if mode = FIT_CONTENTS_VERTICALLY
+            properties:SetPercentageWidth(1.0)
+            properties:SetPixelWidth(0)
+            properties:SetPercentageHeight(0)
+            properties:SetPixelHeight(0)
+            properties:SetHorizontalLayoutMode(properties:STANDARD)
+            properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+            FlowLayout flow
+            scrollAnchor:SetLayout(flow)
+
+        elseif mode = FIT_CONTENTS_HORIZONTALLY
+            properties:SetPercentageHeight(1.0)
+            properties:SetPixelHeight(0)
+            properties:SetPercentageWidth(0)
+            properties:SetPixelWidth(0)
+            properties:SetVerticalLayoutMode(properties:STANDARD)
+            properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+
+            FlowLayout flow
+            scrollAnchor:SetLayout(flow)
+
+        elseif mode = MANUAL_REGION_SIZING
+            properties:SetPercentageY(1)
+            properties:SetPercentageOriginY(1)
+            properties:SetPercentageX(0)
+
+            properties:SetPercentageWidth(0)
+            properties:SetPixelWidth(defaultScrollRegionWidth)
+            properties:SetPercentageHeight(0)
+            properties:SetPixelHeight(defaultScrollRegionHeight)
+            properties:SetHorizontalLayoutMode(properties:STANDARD)
+            properties:SetVerticalLayoutMode(properties:STANDARD)
+
+            ManualLayout manual
+            scrollAnchor:SetLayout(manual)
+        end
     end
 
     action IsAccessibleParent returns boolean
@@ -260,7 +302,7 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
 
     action Add(Item2D item)
         scrollAnchor:Add(item)
-        Resize()
+        scrollAnchor:RequestLayout()
     end
 
     action Add(integer index, Item2D item)
@@ -284,8 +326,15 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     end
 
     action ScrolledMouse(MouseEvent event)
-        number y = GetVerticalTrackPercentage(verticalControl:GetY() + event:scrollAmount * scrollDistance * 10)
-        UpdatePaneView(horizontal, y)
+        number verticalHeight = GetHeight()
+        if horizontalBar:IsShowing()
+            verticalHeight = verticalHeight - barThickness
+        end
+
+        if GetScrollRegionHeight() > verticalHeight
+            number y = GetVerticalTrackPercentage(verticalControl:GetY() + event:scrollAmount * scrollDistance * 10)
+            UpdatePaneView(horizontal, y)
+        end
     end
 
     action DraggedMouse(MouseEvent event)
@@ -323,17 +372,12 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     end
 
     action SetRegionSize(number width, number height)
-        scrollRegionWidth = width
-        scrollRegionHeight = height
         scrollAnchor:SetWidth(width)
         scrollAnchor:SetHeight(height)
+        LayoutProperties scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
         scrollAnchorLayout:SetPixelWidth(width)
         scrollAnchorLayout:SetPixelHeight(height)
         Resize()
-    end
-
-    action SetAutomaticRegionSizing(boolean sizing)
-        automaticRegionSizing = sizing
     end
 
     action FitRegionToContents
@@ -406,8 +450,9 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         horizontalControlLayout:SetPercentageX(horizontal)
         horizontalControlLayout:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetPixelWidth()) * horizontalControlLayout:GetPercentageWidth())))
 
-        scrollAnchorLayout:SetPixelY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
-        scrollAnchorLayout:SetPixelX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
+        LayoutProperties scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
+        scrollAnchorLayout:SetPixelY(-vertical * (GetScrollRegionHeight() - (GetHeight() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetPixelX(-horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())))
 
         if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
             verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
@@ -422,17 +467,19 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
     end
 
     action GetScrollRegionWidth returns number
-        if scrollRegionWidth < GetWidth()
-            return GetWidth()
+        if scrollAnchor:NeedsLayout()
+            scrollAnchor:Resize()
         end
-        return scrollRegionWidth
+
+        return scrollAnchor:GetWidth()
     end
 
     action GetScrollRegionHeight returns number
-        if scrollRegionHeight < GetHeight()
-            return GetHeight()
+        if scrollAnchor:NeedsLayout()
+            scrollAnchor:Resize()
         end
-        return scrollRegionHeight
+
+        return scrollAnchor:GetHeight()
     end
 
     private action GetSharedSpaceOffset returns number
@@ -452,5 +499,17 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
 
     action SetLayout(Layout layout)
         scrollAnchor:SetLayout(layout)
+    end
+
+    action SetVerticalBarVisibility(integer mode)
+        verticalMode = mode
+    end
+
+    action SetHorizontalBarVisibility(integer mode)
+        horizontalMode = mode
+    end
+
+    action GetScrollRegionProperties returns LayoutProperties
+        return scrollAnchor:GetDefaultLayoutProperties()
     end
 end

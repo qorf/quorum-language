@@ -137,6 +137,14 @@ class ManualLayout is Layout
                         end
                     elseif properties:IsSettingHeight()
                         control:SetHeight(height)
+                    else
+                        /*
+                        Setting the size of a control triggers its Resize. Even
+                        if we're not changing its size, we need to ensure that
+                        the Resize propagates all the way through the children
+                        hierarchy.
+                        */
+                        control:Resize()
                     end
                 end
             end

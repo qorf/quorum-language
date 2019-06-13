@@ -63,7 +63,8 @@ class Cell is Control
 
         label:SetLeftPadding(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
-        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        label:SetFontSize(properties:GetFontSize())
+        label:SetInterfaceScale(properties:GetInterfaceScale())
 
         SetView2D(view)
     end
