@@ -670,12 +670,11 @@ class MenuItem is Control
             end
         end
 
-        parent:Control:Activate(event)
-
-        if IsMenu() = false and menuRoot not= undefined
+        if IsMenu() = false and menuRoot not= undefined and menuRoot:IsSelecting()
             menuRoot:SetSelectingState(false)
             menuRoot:RestoreLastFocus()
         end
+        parent:Control:Activate(event)
     end
 
     /*

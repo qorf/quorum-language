@@ -1127,9 +1127,10 @@ class Layer2D is Layer
     Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
-        CalculateDepthSortedArray()
         Array<Item2D> sortedItems = GetDepthSortedItems()
-
+        if sortedItems = undefined or sortedItems:IsEmpty()
+            return undefined
+        end
         boolean processing = true
         integer counter = 0
         Item2D temp = undefined
