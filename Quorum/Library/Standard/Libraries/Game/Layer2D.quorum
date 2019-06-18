@@ -1041,7 +1041,7 @@ class Layer2D is Layer
         integer counter = sortedItems:GetSize()
         repeat while counter > 0
             counter = counter - 1
-            sortedItems:Get(counter):Draw(painter)
+            sortedItems:Get(counter):QueueForDrawing(painter)
         end
 
         painter:End()

@@ -7,8 +7,8 @@ use Libraries.Interface.Views.View2D
 
 class DrawableView is Drawable, View2D
     
-    action Draw(Painter2D painter)
-        parent:Drawable:Draw(painter)
+    action QueueForDrawing(Painter2D painter)
+        parent:Drawable:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

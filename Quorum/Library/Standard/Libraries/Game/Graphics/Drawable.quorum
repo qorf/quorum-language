@@ -1016,19 +1016,19 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
-    The Draw action is what makes a Drawable appear on the screen. This action
+    The QueueForDrawing action is what makes a Drawable appear on the screen. This action
     will automatically be called by the Game class if the Drawable has been
     added to the Game with the Add(Item) action. 
     */
-    action Draw(Painter2D painter)
+    action QueueForDrawing(Painter2D painter)
         if not IsShowing()
             return now
         end
 
-        parent:Item2D:Draw(painter)
+        parent:Item2D:QueueForDrawing(painter)
 
         if GetTexture() not= undefined and IsCustomDrawing() = false
-            painter:Draw(me)
+            painter:QueueForDrawing(me)
         end
     end
 

@@ -787,11 +787,11 @@ class Label is Control
     game engine automatically, so most users will not need to use this action
     directly.
     */
-    action Draw(Painter2D painter)
+    action QueueForDrawing(Painter2D painter)
         if textChanged
             LoadDrawables()
         end
-        parent:Item2D:Draw(painter)
+        parent:Item2D:QueueForDrawing(painter)
     end
 
     /*

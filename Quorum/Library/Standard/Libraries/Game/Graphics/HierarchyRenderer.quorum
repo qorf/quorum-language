@@ -13,7 +13,7 @@ class HierarchyRenderer is Item2D
         SetCustomDrawing(true)
     end
 
-    action CustomDraw(Painter2D painter)
+    action Draw(Painter2D painter)
         DrawChildren(me, painter)
     end
 
@@ -23,11 +23,11 @@ class HierarchyRenderer is Item2D
         end
 
         if item:GetView2D() not= undefined
-            item:GetView2D():Draw(painter)
+            item:GetView2D():QueueForDrawing(painter)
         end
 
         if item is Drawable
-            painter:Draw(cast(Drawable, item))
+            painter:QueueForDrawing(cast(Drawable, item))
         end
 
         Array<Item2D> children = item:GetChildren()

@@ -394,7 +394,7 @@ class Painter2D
             Item2D item = sortingArray:Get(counter)
             if item:IsCustomDrawing()
                 customDrawingItem = true
-                item:CustomDraw(me)
+                item:Draw(me)
                 customDrawingItem = false
             elseif item is Drawable
                 ClipAndDraw(cast(Drawable, item))
@@ -418,7 +418,7 @@ class Painter2D
     covered over by the Game's drawing step, keeping the drawn object from being
     seen.
     */
-    action Draw(Drawable drawable)
+    action QueueForDrawing(Drawable drawable)
         if customDrawingItem
             ClipAndDraw(drawable)
         else
@@ -429,9 +429,9 @@ class Painter2D
     /*
 
     */
-    action Draw(Item2D item)
+    action QueueForDrawing(Item2D item)
         if item is Drawable
-            Draw(cast(Drawable, item))
+            QueueForDrawing(cast(Drawable, item))
         elseif item:IsCustomDrawing() and not customDrawingItem
             // Even though we can't draw a raw Item2D, since it's requesting
             // custom rendering, it's processed during the draw step (possibly

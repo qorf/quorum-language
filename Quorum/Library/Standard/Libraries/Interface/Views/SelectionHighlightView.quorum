@@ -22,8 +22,8 @@ class SelectionHighlightView is ControlView, Drawable
         LoadFilledRectangle(1, 1, unselected)
     end
 
-    action Draw(Painter2D painter)
-        parent:Drawable:Draw(painter)
+    action QueueForDrawing(Painter2D painter)
+        parent:Drawable:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

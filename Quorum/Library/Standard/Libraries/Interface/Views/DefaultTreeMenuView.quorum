@@ -36,8 +36,8 @@ class DefaultTreeMenuView is Drawable, ToggleView
         return texture
     end
 
-    action Draw(Painter2D painter)
-        parent:Drawable:Draw(painter)
+    action QueueForDrawing(Painter2D painter)
+        parent:Drawable:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

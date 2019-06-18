@@ -74,8 +74,8 @@ class DefaultMenuItemView is Control, MenuItemView, HierarchyRenderer
         arrow:SetName("DefaultMenuItemView Arrow")
     end
 
-    action Draw(Painter2D painter)
-        parent:HierarchyRenderer:Draw(painter)
+    action QueueForDrawing(Painter2D painter)
+        parent:HierarchyRenderer:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

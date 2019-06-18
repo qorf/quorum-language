@@ -183,7 +183,7 @@ class Item2D is Item
 
     /*
     Visual content attached to this Item2D. Visual content is drawn during calls
-    to Draw(Painter2D), but isn't added to the Game in the same way children
+    to QueueForDrawing(Painter2D), but isn't added to the Game in the same way children
     are, and thus isn't eligible for things like events.
     */
     View2D visualView = undefined
@@ -2689,7 +2689,7 @@ class Item2D is Item
     Libraries.Game.Graphics.Drawable class, can be. To see how they draw, see
     their documentation.
     */
-    action Draw(Painter2D painter)
+    action QueueForDrawing(Painter2D painter)
         PrepareVertices()
     
         if not IsShowing()
@@ -2697,11 +2697,11 @@ class Item2D is Item
         end
 
         if visualView not= undefined
-            visualView:Draw(painter)
+            visualView:QueueForDrawing(painter)
         end
 
         if IsCustomDrawing()
-            painter:Draw(me)
+            painter:QueueForDrawing(me)
         end
     end
 
@@ -2782,7 +2782,7 @@ class Item2D is Item
     The SetCustomDrawing action is used to indicate that this Item wants to
     directly manage how itself and its children are drawn. When this is set to
     true, the Item must be responsible for determining this rendering via the
-    CustomDraw(Painter2D) action -- if this action isn't overridden, the Item
+    Draw(Painter2D) action -- if this action isn't overridden, the Item
     and its children won't be drawn. This is an advanced feature only necessary 
     for complex custom components, and most users will not need to use this 
     functionality.
@@ -2797,7 +2797,7 @@ class Item2D is Item
     The IsCustomDrawing action returns whether or not this Item is directly
     managing how itself and its children are drawn. When this value is true,
     the Item is responsible for determining its rendering via the
-    CustomDraw(Painter2D) action -- if this action isn't overridden, the Item
+    Draw(Painter2D) action -- if this action isn't overridden, the Item
     and its children won't be drawn. This is an advanced feature only necessary 
     for complex custom components, and most users will not need to use this 
     functionality.
@@ -2809,7 +2809,7 @@ class Item2D is Item
     end
 
     /*
-    The CustomDraw action is used to perform custom drawing on this Item and its
+    The Draw action is used to perform custom drawing on this Item and its
     children. This is only called during the Game engine's draw phase if this
     Item has enabled custom drawing via the SetCustomDrawing action. This is
     an advanced feature, and shouldn't be used by most users.
@@ -2819,7 +2819,7 @@ class Item2D is Item
     for instructing the provided Painter on how to draw this item and its
     children, and in what order to do so. 
     */
-    action CustomDraw(Painter2D painter)
+    action Draw(Painter2D painter)
 
     end
 
@@ -4652,7 +4652,7 @@ class Item2D is Item
 
     /*
     The SetClipping action is used to enable or disable clipping. If
-    it is enabled, when the Item and its children are drawn as part of the Draw
+    it is enabled, when the Item and its children are drawn as part of the QueueForDrawing
     action, any pixels that would be drawn outside of the unrotated dimensions
     of the Item are not rendered. In other words, the Item will only draw inside
     the exact rectangle formed by its x, y position and its width and height.
@@ -4666,7 +4666,7 @@ class Item2D is Item
     /*
     The IsClipping action returns true if pixel clipping is enabled, or
     false if it is disabled. If it is enabled, when the Item and its children 
-    are drawn as part of the Draw action, any pixels that would be drawn outside
+    are drawn as part of the QueueForDrawing action, any pixels that would be drawn outside
     of the unrotated dimensions of the Item are not rendered. In other words, 
     the Item will only draw inside the exact rectangle formed by its x, y 
     position and its width and height.

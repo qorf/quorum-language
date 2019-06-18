@@ -105,8 +105,8 @@ class CheckboxView is ToggleView, Drawable, HierarchyRenderer
         return toggled
     end
 
-    action Draw(Painter2D painter)
-        parent:HierarchyRenderer:Draw(painter)
+    action QueueForDrawing(Painter2D painter)
+        parent:HierarchyRenderer:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)
