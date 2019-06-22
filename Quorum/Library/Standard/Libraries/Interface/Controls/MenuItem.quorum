@@ -430,6 +430,7 @@ class MenuItem is Control
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         label:SetColor(properties:GetSelectionFontColor())
+        shortcutLabel:SetColor(properties:GetSelectionFontColor())
 
         MenuRoot menuRoot = GetMenuRoot()
         if menuRoot not= undefined
@@ -449,6 +450,7 @@ class MenuItem is Control
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         label:SetColor(properties:GetFontColor())
+        shortcutLabel:SetColor(properties:GetFontColor())
 
         if open
             Close()
