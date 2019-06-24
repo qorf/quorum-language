@@ -32,6 +32,7 @@ class Library
     boolean hasScannedStandardLibrary = false
     SymbolTable librarySymbolTable
     HashTable<text, ClassOpcode> opcodes
+    HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
 
     action GetOpcodes returns Iterator<ClassOpcode>
@@ -74,6 +75,11 @@ class Library
         outputFolder = file
     end
     
+    action GetLexer(text file) returns Lexer
+        Lexer luthor = lexers:GetValue(file)
+        return luthor
+    end
+
     /* This main will regenerate the standard library from its current state
     */
     action Main
@@ -144,6 +150,11 @@ class Library
             File file = lib:Get(i)
             Parser listener
             compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+            Lexer luthor = listener:GetLexer()
+            if luthor not= undefined
+                text value = file:GetAbsolutePath()
+                lexers:Add(value, luthor)
+            end
             i = i + 1
         end
 
