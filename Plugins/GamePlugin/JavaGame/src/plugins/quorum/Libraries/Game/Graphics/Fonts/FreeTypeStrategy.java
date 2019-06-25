@@ -139,14 +139,14 @@ public class FreeTypeStrategy
             c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
             texture.plugin_.fontColor = c;
 
-            quorum.Libraries.Game.Graphics.Drawable sprite = new quorum.Libraries.Game.Graphics.Drawable();
-            sprite.Load(texture);
+            quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
+            region.LoadTextureRegion(texture);
         
-            glyph.drawable = sprite;
+            glyph.texture = region;
         }
         else
         {
-            glyph.drawable = null;
+            glyph.texture = null;
         }
         
         glyph.horizontalAdvance = (int)(bitmapData[4] >> 6);
@@ -357,10 +357,14 @@ public class FreeTypeStrategy
             TextureRegionData data = regionData[i];
             Glyph glyph = glyphs[i];
             
-            quorum.Libraries.Game.Graphics.Drawable sprite = new quorum.Libraries.Game.Graphics.Drawable();
-            sprite.Load(texture, data.x, data.y, data.width, data.height);
+            quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
+            region.LoadTextureRegion(texture, data.x, data.y, data.width, data.height);
+            /*
+            region.LoadTextureRegion(texture, (data.x + 1.0) / totalWidth, (data.y + 0.0) / totalHeight,
+                    (data.x + data.width + 1.0) / totalWidth, (data.y + data.height + 0.0) / totalHeight);
+            */
         
-            glyph.drawable = sprite;
+            glyph.texture = region;
         }
         
         // True indicates successful loading of the ImageSheet and caching of Glyph data.
