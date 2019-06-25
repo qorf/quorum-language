@@ -4,10 +4,9 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.HierarchyRenderer
 use Libraries.Interface.Layouts.LayoutProperties
 
-class RadioButtonView is ToggleView, Drawable, HierarchyRenderer
+class RadioButtonView is ToggleView, Drawable
 
     boolean toggled = false
     Drawable center
@@ -50,7 +49,7 @@ class RadioButtonView is ToggleView, Drawable, HierarchyRenderer
     end
 
     action QueueForDrawing(Painter2D painter)
-        parent:HierarchyRenderer:QueueForDrawing(painter)
+        parent:Drawable:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

@@ -234,7 +234,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         number x = leftCharacterPadding + horizontalOffset
         repeat size times
             Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
-            Drawable draw = glyph:drawable
+            Drawable draw = undefined
+            if glyph:texture not= undefined
+                Drawable newDrawable
+                draw = newDrawable
+                draw:Load(glyph:texture)
+                draw:SetColor(glyph:color)
+            end
 
             boolean highlighted = false
 

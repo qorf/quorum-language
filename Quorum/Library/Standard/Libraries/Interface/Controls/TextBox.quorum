@@ -79,7 +79,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     number scrollRegionWidth = -1
 
-    Drawable caret
     integer caretThickness = 1
     Color caretColor = characterColor:Black()
 
@@ -119,7 +118,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     Texture selectionTexture = undefined
 
-    ControlHierarchyRenderer background
+    TextBoxRenderer background
     Control horizontalBar
     Control horizontalControl
     Control verticalBar
@@ -476,7 +475,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer firstLineInteger = cast(integer, firstLine)
         
         background:Empty()
+        background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
 
+        Array<Gutter> gutters = background:GetGutters()
         integer gutterCounter = 0
         number gutterX = 0
         repeat while gutterCounter < gutters:GetSize()
@@ -494,19 +495,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         /*
         While iterating over the text, many drawables are created, which are
-        stored in these arrays and only added to the background after all of
-        the drawables are made. 
+        custom rendered by the background.
 
         The render order of these drawables is, from back-to-front:
-        preSelectionHighlights
-        selectionDrawables
-        postSelectionHighlights
-        textDrawables
+        Pre-Selection Highlights
+        Selection Drawables
+        Post-Selection Highlights
+        Text Drawables
         */
-        Array<Drawable> textDrawables
-        Array<Drawable> selectionDrawables
-        Array<Drawable> preSelectionHighlights
-        Array<Drawable> postSelectionHighlights
 
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         integer counter = firstLineInteger
@@ -586,9 +582,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                         end
 
                         if highlight:IsVisibleWhileSelected()
-                            postSelectionHighlights:Add(draw)
+                            background:AddPostSelectionHighlight(draw)
                         else
-                            preSelectionHighlights:Add(draw)
+                            background:AddPreSelectionHighlight(draw)
                         end
                     end
                 end
@@ -599,6 +595,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             characterCounter = 0
             styleCounter = 0
             x = startX
+            integer whitespaces = 0
+
             repeat size times
                 Color fontColor = currentProperties:GetFontColor()
                 Color selectedFontColor = currentProperties:GetSelectionFontColor()
@@ -627,7 +625,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 end
 
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
-                Drawable draw = glyph:drawable
+                Drawable draw = undefined
+
+                if glyph:texture not= undefined
+                    Drawable newDrawable = background:GetDrawable()
+                    draw = newDrawable
+
+                    draw:Load(glyph:texture)
+                    draw:SetColor(glyph:color)
+                end
 
                 // Whether or not this portion of the text has selection highlighting.
                 boolean highlighted = false
@@ -660,27 +666,30 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 end
 
                 if highlighted
-                    Drawable highlight
+                    Drawable highlight = background:GetDrawable()
                     highlight:SetName("TextBox Highlight")
                     highlight:Load(selectionTexture)
                     highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                     highlight:SetColor(selectionColor)
 
                     highlight:SetPosition(x, drawableY)
-                    selectionDrawables:Add(highlight)
+                    background:AddSelectionDrawable(highlight)
                 end
 
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
                     draw:SetName("TextBox Character " + textIndex)
-                    textDrawables:Add(draw)
+                    background:AddCharacter(counter, characterCounter - whitespaces, draw)
 
                     if highlighted
                         draw:SetColor(selectedFontColor)
                     else
                         draw:SetColor(fontColor)
                     end
+                else
+                    whitespaces = whitespaces + 1
                 end
+
                 x = x + glyph:horizontalAdvance
                 characterCounter = characterCounter + 1
                 textIndex = textIndex + 1
@@ -689,42 +698,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             counter = counter + 1
         end
 
-        // Add the various Drawables we've generated to the background.
-        counter = 0
-        repeat while counter < preSelectionHighlights:GetSize()
-            background:Add(preSelectionHighlights:Get(counter))
-            counter = counter + 1
-        end
-
-        counter = 0
-        repeat while counter < selectionDrawables:GetSize()
-            background:Add(selectionDrawables:Get(counter))
-            counter = counter + 1
-        end
-
-        counter = 0
-        repeat while counter < postSelectionHighlights:GetSize()
-            background:Add(postSelectionHighlights:Get(counter))
-            counter = counter + 1
-        end
-
-        counter = 0
-        repeat while counter < textDrawables:GetSize()
-            background:Add(textDrawables:Get(counter))
-            counter = counter + 1
-        end
-
-        counter = 0
-        repeat while counter < gutters:GetSize()
-            background:Add(gutters:Get(counter))
-            counter = counter + 1
-        end
-
         PositionCaret()
-        background:Add(caret)
     end
 
     private action InitializeCaret
+        Drawable caret = background:GetCaret()
+
         if caret:IsLoaded() = false
             caret:LoadFilledRectangle(1, 1)
             caret:SetName("TextBox Caret")
@@ -766,6 +745,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             counter = counter + 1
         end
 
+        Drawable caret = background:GetCaret()
         caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset - font:GetLineHeight() / 4)
         return x + leftCharacterPadding
     end
@@ -945,7 +925,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
         FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveLeft()
@@ -999,7 +979,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
         FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveRight()
@@ -1082,7 +1062,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveDown()
@@ -1120,7 +1100,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveUp()
@@ -1175,9 +1155,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     SetCaretIdleTime action).
     */
     action ShowCaret
-        caret:Show()
         caretActive = true
-        caretTimer = caretIdleTime
+        ResetCaretBlinkTimer()
+    end
+
+    private action ResetCaretBlinkTimer()
+        if caretActive
+            background:GetCaret():Show()
+            caretTimer = caretIdleTime
+        end
     end
 
     /*
@@ -1186,7 +1172,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     gaining selection, or calling ShowCaret.
     */
     action HideCaret
-        caret:Hide()
+        background:GetCaret():Hide()
         caretActive = false
     end
 
@@ -1248,7 +1234,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
 
@@ -1313,7 +1299,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
@@ -1354,7 +1340,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
@@ -1398,7 +1384,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
@@ -1502,7 +1488,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
 
@@ -1607,7 +1593,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         else
             EmptySelectionEvent(false)
         end
-        ShowCaret()
+        ResetCaretBlinkTimer()
     end
 
     private action PositionCaretFromCoordinates(number x, number y)
@@ -1814,6 +1800,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             caretTimer = caretTimer - seconds
             if caretTimer < 0
                 caretTimer = caretTimer + caretBlinkTime
+                Drawable caret = background:GetCaret()
                 if caret:IsShowing()
                     caret:Hide()
                 else
@@ -1983,7 +1970,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)
@@ -2004,7 +1991,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)
@@ -2390,7 +2377,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         Select(state:GetStartIndex(), state:GetEndIndex(), state:IsCaretAtEnd())
     end

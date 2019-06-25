@@ -1033,6 +1033,39 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
+    The Draw action is used to perform custom drawing on this Item and its
+    children. This is only called during the Game engine's draw phase if this
+    Item has enabled custom drawing via the SetCustomDrawing action. This is
+    an advanced feature, and shouldn't be used by most users.
+
+    If custom drawing is enabled, this action should be overriden -- if it isn't,
+    the Item will attempt to provide default rendering for itself, its view, and
+    its children, without regard to depth buffering. This action is responsible
+    for instructing the provided Painter on how to draw this item, the view, and 
+    its children, and in what order to do so. 
+    */
+    action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+
+        if GetTexture() not= undefined
+            painter:Draw(me)
+        end
+
+        integer counter = 0
+        Array<Item2D> children = GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+    end
+
+    /*
     This action will return true if the Drawable has been flipped across the
     x-axis, or false if it has not.
 

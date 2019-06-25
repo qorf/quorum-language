@@ -230,6 +230,8 @@ class Item2D is Item
     Math math
     PhysicsPosition2D synchronizeNodesTempPosition
 
+    GameStateManager manager
+
     on create
         vertices:SetSize(DRAWABLE_SIZE)
         scale:Set(1, 1)
@@ -1269,7 +1271,6 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Add(newItem)
@@ -1299,7 +1300,6 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Add(newItem)
@@ -1337,7 +1337,6 @@ class Item2D is Item
         if layer not= undefined
             removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(removed)
@@ -1385,7 +1384,6 @@ class Item2D is Item
         temp:SetLayer(undefined)
 
         if layer not= undefined
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(temp)
@@ -1483,7 +1481,6 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(oldItem)
@@ -2696,12 +2693,10 @@ class Item2D is Item
             return now
         end
 
-        if visualView not= undefined
-            visualView:QueueForDrawing(painter)
-        end
-
         if IsCustomDrawing()
             painter:QueueForDrawing(me)
+        elseif visualView not= undefined
+            visualView:QueueForDrawing(painter)
         end
     end
 
@@ -2814,13 +2809,26 @@ class Item2D is Item
     Item has enabled custom drawing via the SetCustomDrawing action. This is
     an advanced feature, and shouldn't be used by most users.
 
-    If custom drawing is enabled, this action must be overriden -- if it isn't,
-    neither this Item nor its children will be drawn. This action is responsible
-    for instructing the provided Painter on how to draw this item and its
-    children, and in what order to do so. 
+    If custom drawing is enabled, this action should be overriden -- if it isn't,
+    the Item will attempt to provide default rendering for itself, its view, and
+    its children, without regard to depth buffering. This action is responsible
+    for instructing the provided Painter on how to draw this item, the view, and 
+    its children, and in what order to do so. 
     */
     action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
 
+        if visualView not= undefined
+            visualView:Draw(painter)
+        end
+
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
     end
 
     /*
@@ -3394,7 +3402,6 @@ class Item2D is Item
     action EnablePhysics(boolean flag)
         physicsEnabled = flag
 
-        GameStateManager manager
         Application application = manager:GetApplication()
         if application is WebApplication and physicsEnabled
             // If width and height are 0, most likely the item is being loaded

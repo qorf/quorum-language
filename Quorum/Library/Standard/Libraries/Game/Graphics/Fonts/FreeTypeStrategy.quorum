@@ -10,6 +10,7 @@ use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
 
 /*
 The FreeTypeStrategy class is used to load fonts on the system using the FreeType
@@ -734,10 +735,10 @@ class FreeTypeStrategy is FontStrategy
     private action EmptyGlyphTable
         Iterator<Glyph> glyphs = glyphTable:GetValueIterator()
         Glyph temp = undefined
-        Drawable tempDrawable = undefined
+        TextureRegion tempDrawable = undefined
         repeat while glyphs:HasNext()
             temp = glyphs:Next()
-            tempDrawable = temp:drawable
+            tempDrawable = temp:texture
 
             if tempDrawable not= undefined
                 tempDrawable:Dispose()

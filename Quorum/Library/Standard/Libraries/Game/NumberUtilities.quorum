@@ -13,12 +13,13 @@ need to interface with this class directly.
 */
 class NumberUtilities 
 
+    BitwiseOperations ops
+
     /*
     Creates a number with the same bits as the integer parameter, ensuring that
     the returned number is a valid color code.
     */
     action EncodeColorIntegerAsNumber(integer target) returns number
-        BitwiseOperations ops
         // -16777217 is the 2's complement representation of 0xFEFFFFFF
         return EncodeIntegerAsNumber(ops:And(target, -16777217))
     end

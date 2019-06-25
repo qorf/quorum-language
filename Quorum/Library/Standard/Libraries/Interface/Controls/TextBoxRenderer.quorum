@@ -1,0 +1,317 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Containers.Queue
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Painter2D
+
+class TextBoxRenderer is Control
+
+    Array<Array<Drawable>> lines
+    Array<Drawable> selectionDrawables
+    Array<Drawable> preSelectionHighlights
+    Array<Drawable> postSelectionHighlights
+    Array<Gutter> gutters
+    Drawable caret
+
+    Queue<Drawable> drawablePool
+
+    // The line number of the first line of text we're displaying.
+    integer startLine = 0
+
+    // The array index of the first line. 
+    integer startArray = 0
+
+    on create
+        SetCustomDrawing(true)
+        Add(caret)
+    end
+
+    action GetDrawable returns Drawable
+        if drawablePool:IsEmpty() = false
+            Drawable drawable = drawablePool:RemoveFromFront()
+            return drawable
+        else
+            Drawable drawable
+            return drawable
+        end
+    end
+
+    action RecycleDrawable(Drawable drawable)
+        if drawable = undefined
+            return now
+        end
+
+        drawablePool:Add(drawable)
+    end
+
+    action Draw(Painter2D painter)
+        if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+
+        integer counter = 0
+        repeat while counter < preSelectionHighlights:GetSize()
+            preSelectionHighlights:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < selectionDrawables:GetSize()
+            painter:Draw(selectionDrawables:Get(counter))
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < postSelectionHighlights:GetSize()
+            postSelectionHighlights:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < lines:GetSize()
+            integer characterCounter = 0
+            Array<Drawable> line = lines:Get(counter)
+            repeat while characterCounter < line:GetSize()
+                painter:Draw(line:Get(characterCounter))
+                characterCounter = characterCounter + 1
+            end
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < gutters:GetSize()
+            gutters:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+
+        caret:Draw(painter)
+    end
+
+    action AddCharacter(integer line, integer index, Drawable character)
+        Array<Drawable> array = GetLine(line)
+        Add(character)
+        array:Add(index, character)
+    end
+
+    action RemoveCharacter(integer line, integer index) returns Drawable
+        Array<Drawable> array = GetLine(line)
+        Drawable character = array:RemoveAt(index)
+        Remove(character)
+        return character
+    end
+
+    action AddSelectionDrawable(Drawable selection)
+        Add(selection)
+        selectionDrawables:Add(selection)
+    end
+
+    action RemoveSelectionDrawable(Drawable selection)
+        selectionDrawables:Remove(selection)
+        Remove(selection)
+        RecycleDrawable(selection)
+    end
+
+    action AddPreSelectionHighlight(Drawable highlight)
+        Add(highlight)
+        preSelectionHighlights:Add(highlight)
+    end
+
+    action RemovePreSelectionHighlight(Drawable highlight)
+        // We don't recycle the Drawables from the pre/post highlights because
+        // we didn't create them, and so we don't know if they're being reused
+        // by whatever the original sources of the highlight drawables are.
+
+        preSelectionHighlights:Remove(highlight)
+        Remove(highlight)
+    end
+
+    action AddPostSelectionHighlight(Drawable highlight)
+        Add(highlight)
+        postSelectionHighlights:Add(highlight)
+    end
+
+    action RemovePostSelectionHighlight(Drawable highlight)
+        // We don't recycle the Drawables from the pre/post highlights because
+        // we didn't create them, and so we don't know if they're being reused
+        // by whatever the original sources of the highlight drawables are.
+
+        postSelectionHighlights:Remove(highlight)
+        Remove(highlight)
+    end
+
+    action AddGutter(Gutter gutter)
+        Add(gutter)
+        gutters:Add(gutter)
+    end
+
+    action RemoveGutter(Gutter gutter)
+        Remove(gutter)
+        gutters:Remove(gutter)
+    end
+
+    action SetCaret(Drawable newCaret)
+        caret = newCaret
+    end
+
+    action GetCaret returns Drawable
+        return caret
+    end
+
+    /*
+    This action empties the most common drawables that would need to be cleared
+    from the TextBox: the text, selection drawables, and highlighting.
+
+    This DOES NOT remove the Gutters or Caret!
+    */
+    action Empty
+        EmptyLines()
+        EmptySelectionDrawables()
+        EmptyPreSelectionHighlights()
+        EmptyPostSelectionHighlights()
+    end
+
+    action EmptyLine(integer index)
+        Array<Drawable> array = GetLine(index)
+        
+        if array not= undefined
+            RecycleLine(array)
+        end
+    end
+
+    action EmptyLines
+        integer counter = 0
+
+        repeat while counter < lines:GetSize()
+            RecycleLine(lines:Get(counter))
+            counter = counter + 1
+        end
+
+        // Reset the cyclical array start pointer to 0.
+        startArray = 0
+    end
+
+    /*
+    Recycles all Drawables in the array, and empties the array.
+    */
+    private action RecycleLine(Array<Drawable> line)
+        repeat until line:IsEmpty()
+            Drawable drawable = line:RemoveFromFront()
+            Remove(drawable)
+            RecycleDrawable(drawable)
+        end
+    end
+
+    action EmptySelectionDrawables
+        repeat until selectionDrawables:IsEmpty()
+            RemoveSelectionDrawable(selectionDrawables:Get(0))
+        end
+    end
+
+    action EmptyPreSelectionHighlights
+        repeat until preSelectionHighlights:IsEmpty()
+            RemovePreSelectionHighlight(preSelectionHighlights:Get(0))
+        end
+    end
+
+    action EmptyPostSelectionHighlights
+        repeat until postSelectionHighlights:IsEmpty()
+            RemovePostSelectionHighlight(postSelectionHighlights:Get(0))
+        end
+    end
+
+    action SetLineCount(integer lineCount)
+        if lineCount < 0
+            return now
+        elseif lineCount = 0
+            integer counter = 0
+            repeat while counter < lines:GetSize()
+                RecycleLine(lines:Get(counter))
+                counter = counter + 1
+            end
+
+            lines:Empty()
+
+            return now
+        end
+
+        repeat while lineCount > lines:GetSize()
+            Array<Drawable> line
+            lines:Add(startArray, line)
+            startArray = startArray + 1
+        end
+
+        repeat while lineCount < lines:GetSize()
+            integer index = startArray - 1
+            if index < 0
+                index = lines:GetSize() - 1
+            end
+
+            Array<Drawable> line = lines:RemoveAt(index)
+            RecycleLine(line)
+        end
+    end
+
+    action GetLineCount returns integer
+        return lines:GetSize()
+    end
+
+    action SetStartLine(integer line)
+        if line = startLine
+            return now
+        end
+
+        integer difference = line - startLine
+
+        // If the difference is larger than the number of lines we display, then
+        // the new section of text we're about to view shares no lines in common
+        // with the last view of the text, so we can get rid of the old drawables.
+        if (difference > lines:GetSize()) or (-difference > lines:GetSize())
+            Empty()
+        elseif difference > 0
+            integer counter = 0
+            repeat while counter < difference
+                RecycleLine(lines:Get( (startArray + counter) mod lines:GetSize() ))
+                counter = counter + 1
+            end
+
+            startArray = (startArray + difference) mod lines:GetSize()
+        else
+            integer counter = 0
+            repeat while counter > difference
+                integer target = startArray - counter
+                if target < 0
+                    target = lines:GetSize() - target
+                end
+
+                RecycleLine(lines:Get(target))
+                counter = counter - 1
+            end
+
+            startArray = startArray - difference
+            if startArray < 0
+                startArray = lines:GetSize() - startArray
+            end
+        end
+
+        startLine = line
+    end
+
+    action GetStartLine returns integer
+        return startLine
+    end
+
+    action GetLine(integer index) returns Array<Drawable>
+        integer offset = index - startLine
+        if offset < 0 or offset > lines:GetSize()
+            return undefined
+        end
+
+        return lines:Get((startArray + offset) mod lines:GetSize())
+    end
+
+    action GetGutters returns Array<Gutter>
+        return gutters
+    end
+
+end

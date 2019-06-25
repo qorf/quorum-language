@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
 
 /*
 The Glyph class represents a text character that is drawn as part of a Font.
@@ -9,9 +10,12 @@ internally by the Font class, and most users will never need to interface with
 this class directly.
 */
 class Glyph 
-    /* A drawable that contains the image of the text character. This can be 
+    /* A TextureRegion that contains the image of the text character. This can be 
     undefined if the character has no visual appearance, e.g. a space. */
-    public Drawable drawable = undefined
+    public TextureRegion texture = undefined
+
+    /* The color of this glyph, or undefined if none is set for this character. */
+    public Color color = undefined
 
     /* The amount of horizontal distance between this character and the next. */
     public integer horizontalAdvance = 0
@@ -31,20 +35,14 @@ class Glyph
     of the current glyph.
     */
     action CopyGlyph returns Glyph
-        Glyph temp
-        temp:horizontalAdvance = horizontalAdvance
-        temp:verticalAdvance = verticalAdvance
-        temp:lengthToGlyph = lengthToGlyph
-        temp:heightFromBaseLine = heightFromBaseLine
-        
-        if drawable not= undefined
-            Drawable tempDrawable
-            tempDrawable:Load(drawable)
-            temp:drawable = tempDrawable
-        else
-            temp:drawable = undefined
-        end
+//        Glyph temp
+//        temp:horizontalAdvance = horizontalAdvance
+//        temp:verticalAdvance = verticalAdvance
+//        temp:lengthToGlyph = lengthToGlyph
+//        temp:heightFromBaseLine = heightFromBaseLine
+//        temp:texture = texture
+//        temp:color = color
 
-        return temp
+        return me
     end
 end

@@ -51,6 +51,9 @@ class Font
     text subFont = ""
     text style = ""
 
+    text fontIdentifier = ""
+    boolean needToRecalculateID = true
+
     on create
         Setup()
     end
@@ -145,6 +148,7 @@ class Font
         end
     */
     action LoadFont(File fontFile)
+        needToRecalculateID = true
         isSystemFont = false
         fontName = fontFile:GetAbsolutePath()
     end
@@ -177,6 +181,7 @@ class Font
             alert("I couldn't find a system font named " + fontName + ".")
         end
 
+        needToRecalculateID = true
         isSystemFont = true
         me:fontName = fontName
     end
@@ -233,6 +238,7 @@ class Font
         end
     */
     action SetSize (integer newSize)
+        needToRecalculateID = true
         fontSize = newSize
     end
 
@@ -285,6 +291,7 @@ class Font
         end
     */
     action Rotate(number rotation)
+        needToRecalculateID = true
         angle = angle + rotation
     end
 
@@ -311,6 +318,7 @@ class Font
         end
     */
     action SetAngle(number newAngle)
+        needToRecalculateID = true
         angle = newAngle
     end
 
@@ -416,6 +424,7 @@ class Font
     */
     action Dispose
         fontName = ""
+        needToRecalculateID = true
         isSystemFont = true
         fontSize = 14
         angle = 0
@@ -453,9 +462,7 @@ class Font
     action GetGlyph(text character) returns Glyph
         FontManager manager = gameStateManager:GetFontManager()
         Glyph glyph = manager:GetGlyph(me, character)
-        if glyph:drawable not= undefined
-            glyph:drawable:SetColor(color)
-        end
+        glyph:color = color
         return glyph
     end
 
@@ -602,13 +609,23 @@ class Font
     the FontManager. Most users will never need to use this action directly.
     */
     action GetIdentifier returns text
+        if needToRecalculateID
+            CalculateIdentifier()
+        end
+        return fontIdentifier
+    end
+
+    private action CalculateIdentifier
+        needToRecalculateID = false
         FontManager manager = gameStateManager:GetFontManager()
 
         text systemText = manager:SYSTEM_PREFIX
-        text delimiter = manager:FONT_DELIMITER
         if isSystemFont = false
             systemText = manager:FILE_PREFIX
         end
-        return systemText + delimiter + fontName + delimiter + fontSize + delimiter + angle
+
+        text delimiter = manager:FONT_DELIMITER
+
+        fontIdentifier = systemText + delimiter + fontName + delimiter + fontSize + delimiter + angle
     end
 end

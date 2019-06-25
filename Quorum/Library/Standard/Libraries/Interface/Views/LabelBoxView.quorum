@@ -7,13 +7,12 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
-use Libraries.Game.Graphics.HierarchyRenderer
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Compute.BitwiseOperations
 
-class LabelBoxView is HierarchyRenderer, ControlView
+class LabelBoxView is Item2D, ControlView
 
     public constant integer NONE = 0
     public constant integer LEFT = 1
@@ -176,7 +175,7 @@ class LabelBoxView is HierarchyRenderer, ControlView
     end
 
     action QueueForDrawing(Painter2D painter)
-        parent:HierarchyRenderer:QueueForDrawing(painter)
+        parent:Item2D:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)

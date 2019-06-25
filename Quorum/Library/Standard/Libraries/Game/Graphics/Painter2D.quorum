@@ -397,7 +397,7 @@ class Painter2D
                 item:Draw(me)
                 customDrawingItem = false
             elseif item is Drawable
-                ClipAndDraw(cast(Drawable, item))
+                Draw(cast(Drawable, item))
             end
             
             counter = counter + 1
@@ -420,7 +420,7 @@ class Painter2D
     */
     action QueueForDrawing(Drawable drawable)
         if customDrawingItem
-            ClipAndDraw(drawable)
+            Draw(drawable)
         else
             sortingArray:Add(drawable)
         end
@@ -440,12 +440,28 @@ class Painter2D
         end
     end
 
-    private action ClipAndDraw(Drawable drawable)
+    /*
+    Immediately draws the given Drawable to the screen on top of any other
+    Drawables which have been drawn this frame, ignoring depth buffer values.
+    This should typically only be used as part of custom drawing in an Item
+    (see Item2D's SetCustomDrawing and Draw actions).
+    */
+    action Draw(Drawable drawable)
         drawable:SetClipCoordinates(me)
         SystemDraw(drawable)
     end
 
     private system action SystemDraw(Drawable drawable)
+
+    /*
+    This action is used to determine if the Painter is currently custom drawing
+    an Item2D. If it is, this returns true.
+
+    Attribute: Returns True if the Painter2D is currently custom drawing an Item2D, or false otherwise.
+    */
+    action IsCustomDrawing returns boolean
+        return customDrawingItem
+    end
 
     /*
     Disposes of the plugin data stored by the Painter2D, freeing up resources when

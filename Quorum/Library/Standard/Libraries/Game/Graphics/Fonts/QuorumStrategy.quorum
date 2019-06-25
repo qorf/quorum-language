@@ -6,6 +6,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.TextureRegion
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
@@ -788,7 +789,7 @@ class QuorumStrategy is FontStrategy
             integer heightFromBaseLine = glyphDrawable:GetHeightFromBaseline()
             
             Glyph glyph
-            glyph:drawable = glyphDrawable:GetDrawable()
+            glyph:texture = glyphDrawable:GetDrawable()
             glyph:horizontalAdvance = horizontalAdvance
             glyph:verticalAdvance = verticalAdvance
             glyph:heightFromBaseLine = heightFromBaseLine
@@ -1010,10 +1011,10 @@ class QuorumStrategy is FontStrategy
     private action EmptyGlyphTable
         Iterator<Glyph> glyphs = glyphTable:GetValueIterator()
         Glyph temp = undefined
-        Drawable tempDrawable = undefined
+        TextureRegion tempDrawable = undefined
         repeat while glyphs:HasNext()
             temp = glyphs:Next()
-            tempDrawable = temp:drawable
+            tempDrawable = temp:texture
 
             if tempDrawable not= undefined
                 tempDrawable:Dispose()

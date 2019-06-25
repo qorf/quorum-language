@@ -58,6 +58,9 @@ class Color is ColorGroup
     private number blue = 0 
     private number alpha = 0
 
+    BitwiseOperations ops
+    NumberUtilities utility
+
     /*
     This action sets a color by setting its red, green, blue, and alpha values,
     where 0 represents a total absence of that component and 1 represents a full
@@ -112,8 +115,6 @@ class Color is ColorGroup
         16711680:   00000000111111110000000000000000
         -16777216:  11111111000000000000000000000000
         */
-        BitwiseOperations ops
-
         alpha = ops:And(code, 255) / 255.0
         blue = ops:And(code, 65280) / 255.0
         green = ops:And(code, 16711680) / 255.0
@@ -1230,8 +1231,6 @@ class Color is ColorGroup
     for internal use, and most users will never need to use this action directly. */
     action GetColorCode returns integer
 
-      BitwiseOperations ops
-
       integer redValue = cast(integer, GetRed() * 255)
       integer greenValue = cast(integer, GetGreen() * 255)
       integer blueValue = cast(integer, GetBlue() * 255)
@@ -1251,9 +1250,6 @@ class Color is ColorGroup
     */
     action EncodeColorAsNumber returns number
         
-        BitwiseOperations ops
-        NumberUtilities utility
-
         integer a = ops:ShiftLeft(cast(integer, alpha * 255), 24)
         integer b = ops:ShiftLeft(cast(integer, blue * 255), 16)
         integer g = ops:ShiftLeft(cast(integer, green * 255), 8)

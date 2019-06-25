@@ -8,12 +8,11 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.HierarchyRenderer
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Views.ControlView
 
-class LabelBoxToggleView is HierarchyRenderer, ToggleView
+class LabelBoxToggleView is Item2D, ToggleView
     
     Drawable border
     Drawable background
@@ -114,7 +113,7 @@ class LabelBoxToggleView is HierarchyRenderer, ToggleView
     end
 
     action QueueForDrawing(Painter2D painter)
-        parent:HierarchyRenderer:QueueForDrawing(painter)
+        parent:Item2D:QueueForDrawing(painter)
     end
 
     action UpdateSize(number width, number height)
