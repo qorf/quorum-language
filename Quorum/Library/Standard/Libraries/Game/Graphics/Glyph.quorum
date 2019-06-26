@@ -28,21 +28,4 @@ class Glyph
 
     /* How tall the glyph is, relative to the font's base line. */
     public integer heightFromBaseLine = 0
-
-    /*
-    This action takes the current glyph and returns a new glyph that has all of
-    the same integer values and a new Drawable that is identical to the Drawable
-    of the current glyph.
-    */
-    action CopyGlyph returns Glyph
-//        Glyph temp
-//        temp:horizontalAdvance = horizontalAdvance
-//        temp:verticalAdvance = verticalAdvance
-//        temp:lengthToGlyph = lengthToGlyph
-//        temp:heightFromBaseLine = heightFromBaseLine
-//        temp:texture = texture
-//        temp:color = color
-
-        return me
-    end
 end

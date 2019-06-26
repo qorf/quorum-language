@@ -544,15 +544,13 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action GetGlyph(text character) returns Glyph
-        text char = character:GetCharacter(0)
-
-        if IsImageSheetAvailable() and imageSheet:SupportsCharacter(char)
-            return imageSheet:GetGlyph(char)
-        elseif glyphTable:HasKey(char)
-            return glyphTable:GetValue(char):CopyGlyph()
+        if IsImageSheetAvailable() and imageSheet:SupportsCharacter(character)
+            return imageSheet:GetGlyph(character)
+        elseif glyphTable:HasKey(character)
+            return glyphTable:GetValue(character)
         else
-            Glyph temp = GetGlyphNative(char)
-            glyphTable:Add(char, temp)
+            Glyph temp = GetGlyphNative(character)
+            glyphTable:Add(character, temp)
             return temp
         end
     end

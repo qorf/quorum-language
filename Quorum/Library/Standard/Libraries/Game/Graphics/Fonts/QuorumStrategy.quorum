@@ -736,7 +736,7 @@ class QuorumStrategy is FontStrategy
     action GetGlyph(text targetCharacter) returns Glyph
         text character = targetCharacter:GetCharacter(0)
         if glyphTable:HasKey(character)
-            return glyphTable:GetValue(character):CopyGlyph()
+            return glyphTable:GetValue(character)
         else
             BezierCurveGlyphPoints glyphOutline = fileReader:GetCharacterGlyphPoints(character)
             // ^ change to read from fileInformation instead of fileReader 

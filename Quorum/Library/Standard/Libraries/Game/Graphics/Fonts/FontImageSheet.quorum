@@ -1,20 +1,22 @@
 package Libraries.Game.Graphics.Fonts
 
-use Libraries.Containers.HashTable
+use Libraries.Containers.Array
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Texture
 
 class FontImageSheet 
     
     Texture imageSheet
-    HashTable<text, Glyph> glyphTable
+    Array<Glyph> glyphTable
 
     action SupportsCharacter(text character) returns boolean
-        return glyphTable:HasKey(character)
+        integer unicode = character:GetUnicodeInteger(0)
+        return unicode >= 0 and unicode < glyphTable:GetSize()
     end
 
     action GetGlyph(text character) returns Glyph
-        return glyphTable:GetValue(character):CopyGlyph()
+        integer unicode = character:GetUnicodeInteger(0)
+        return glyphTable:Get(unicode)
     end
 
     action GetTexture returns Texture

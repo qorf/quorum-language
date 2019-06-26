@@ -702,6 +702,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
     end
 
+    private action InsertInLine(integer lineIndex, integer index, text inserted)
+        // The current text of the line. This is the "actual" text, rather than
+        // the drawables for the line (which we are updating in this action).
+        text currentLine = textValue:GetLine(lineIndex):GetText()
+
+        Array<Drawable> lineDrawables = background:GetLine(lineIndex)
+
+        // May need to position caret here
+    end
+
     private action InitializeCaret
         Drawable caret = background:GetCaret()
 
@@ -1487,11 +1497,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
-        GetLineDrawables()
+        
+        EmptySelectionEvent(true)
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
-
-        EmptySelectionEvent(true)
 
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
@@ -1800,7 +1809,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if caretActive
             caretTimer = caretTimer - seconds
             if caretTimer < 0
-                caretTimer = caretTimer + caretBlinkTime
+                caretTimer = caretBlinkTime
                 Drawable caret = background:GetCaret()
                 if caret:IsShowing()
                     caret:Hide()
