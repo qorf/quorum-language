@@ -226,9 +226,22 @@ public class FreeTypeStrategy
             int currentWidth = (int)currentData[3];
             int currentHeight = (int)currentData[2];
             
-            ByteBuffer valueCopy = BufferUtils.newByteBuffer(currentWidth * currentHeight);
-            BufferUtils.copy(value, valueCopy, (currentWidth * currentHeight));
-            pixels[current] = valueCopy;
+            if (currentWidth == 0 || currentHeight == 0)
+            {
+                // We use a single empty pixel to represent symbols that don't
+                // have a visual representation, e.g. space or new line.
+                currentWidth = 1;
+                currentHeight = 1;
+                ByteBuffer emptyPixel = BufferUtils.newByteBuffer(1);
+                emptyPixel.put(0, (byte)0);
+                pixels[current] = emptyPixel;
+            }
+            else
+            {
+                ByteBuffer valueCopy = BufferUtils.newByteBuffer(currentWidth * currentHeight);
+                BufferUtils.copy(value, valueCopy, (currentWidth * currentHeight));
+                pixels[current] = valueCopy;
+            }
             
             Glyph glyph = new Glyph();
             glyph.horizontalAdvance = (int)(currentData[4] >> 6);
@@ -302,7 +315,7 @@ public class FreeTypeStrategy
             
             for (int x = 0, subX = 0; x < totalWidth; x++, subX++, destinationIndex++)
             {
-                if (currentImage >= currentRow.endOfRow)
+                if (currentImage > currentRow.endOfRow)
                 {
                     destination.put(destinationIndex, (byte)0);
                     continue;
@@ -355,10 +368,6 @@ public class FreeTypeStrategy
             
             quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
             region.LoadTextureRegion(texture, data.x, data.y, data.width, data.height);
-            /*
-            region.LoadTextureRegion(texture, (data.x + 1.0) / totalWidth, (data.y + 0.0) / totalHeight,
-                    (data.x + data.width + 1.0) / totalWidth, (data.y + data.height + 0.0) / totalHeight);
-            */
         
             glyph.texture = region;
         }
