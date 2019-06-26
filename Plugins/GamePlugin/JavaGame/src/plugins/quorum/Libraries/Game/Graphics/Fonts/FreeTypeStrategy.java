@@ -192,7 +192,7 @@ public class FreeTypeStrategy
     public boolean LoadImageSheet(FontImageSheet_ sheet)
     {
         Texture_ texture = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__imageSheet_();
-        quorum.Libraries.Containers.HashTable_ table = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__glyphTable_();
+        quorum.Libraries.Containers.Array_ table = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__glyphTable_();
         
         long[] currentData = new long[6];
         ByteBuffer[] pixels = new ByteBuffer[256];
@@ -237,11 +237,7 @@ public class FreeTypeStrategy
             glyph.heightFromBaseLine = (int)(currentData[1]);
             glyphs[current] = glyph;
             
-            quorum.Libraries.Language.Types.Text text = new quorum.Libraries.Language.Types.Text();
-            text.SetValue("" + current);
-            
-            table.Add(text, glyph);
-            
+            table.Add(glyph);
             
             int x = rowWidth;
             rowWidth += currentWidth;
@@ -271,7 +267,7 @@ public class FreeTypeStrategy
                 }
             }
             
-            regionData[current] = new TextureRegionData(x + 1, totalHeight, currentWidth, currentHeight);
+            regionData[current] = new TextureRegionData(x, totalHeight, currentWidth, currentHeight);
         }
         
         totalHeight += rowHeight;
