@@ -97,6 +97,8 @@ use Libraries.Interface.Behaviors.Controls.TreeTableActivationBehavior
 use Libraries.Interface.Behaviors.Controls.ListDownBehavior
 use Libraries.Interface.Behaviors.Controls.ListUpBehavior
 use Libraries.Interface.Behaviors.Controls.ListActivationBehavior
+use Libraries.Interface.Behaviors.Controls.DialogEnterBehavior
+use Libraries.Interface.Behaviors.Controls.DialogEscapeBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -480,6 +482,21 @@ class Game
         shiftTabFocus:AddModifier(shiftTabFocus:SHIFT)
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
+
+        InputTable dialogTable
+        dialogTable:SetIdentifier("Dialog")
+
+        InputSet dialogEnter
+        dialogEnter:SetKeyboardInput(keys:ENTER)
+        DialogEnterBehavior dialogEnterBehavior
+        dialogTable:Add(dialogEnter, dialogEnterBehavior)
+
+        InputSet dialogEscape
+        dialogEscape:SetKeyboardInput(keys:ESCAPE)
+        DialogEscapeBehavior dialogEscapeBehavior
+        dialogTable:Add(dialogEscape, dialogEscapeBehavior)
+
+        gameInput:AddInputTable(dialogTable)
 
         // Creating input sets for the default TextBox behaviors.
         InputTable textBoxTable

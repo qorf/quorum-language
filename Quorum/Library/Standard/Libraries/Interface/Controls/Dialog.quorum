@@ -16,12 +16,15 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Behaviors.Behavior
 
 class Dialog is Control
+    Behavior defaultBehavior = undefined
     
     on create
         SetName("Dialog")
-
+        SetInputGroup("Dialog")
+        
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
@@ -37,6 +40,24 @@ class Dialog is Control
     boolean showTopBar = true
 
     Control topBar
+
+    /*
+        This action gets a default behavior for a hypothetical "ok" style button
+        that the dialog will fire if "enter" is pressed on the keyboard. If no behavior
+        is set, then no work will be done.
+    */
+    action GetBehavior returns Behavior
+        return defaultBehavior
+    end
+
+    /*
+        This action sets a default behavior for a hypothetical "ok" style button
+        that the dialog will fire if "enter" is pressed on the keyboard. If no behavior
+        is set, then no work will be done.
+    */
+    action SetBehavior(Behavior behavior)
+        defaultBehavior = behavior
+    end
 
     /*
     This action displays the Dialog in the Game window. When the Dialog is
