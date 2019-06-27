@@ -9,7 +9,6 @@ class MenuRootActivateBehavior is Behavior
         if event:GetItem() is MenuRoot
             MenuRoot bar = cast(MenuRoot, event:GetItem())
             bar:ActivateSelection()
-            bar:RestoreLastFocus()
         end
     end
 end
