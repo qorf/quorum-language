@@ -24,8 +24,6 @@ class MenuRootCloseBehavior is Behavior
                 if root:HasBar() and path:Get(0):IsOpen()
                     path:Get(0):Close()
                 else
-//                    root:Deselect()
-//                    root:Close()
                     root:RestoreLastFocus()
                 end
             end
