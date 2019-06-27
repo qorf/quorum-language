@@ -6,6 +6,8 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.ControlActivationListener
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
@@ -103,6 +105,11 @@ class Control is Item2D
     boolean needsLayout = false
 
     PopupMenu contextMenu = undefined
+
+    // SelectionListeners which are registered with this Control. They'll be
+    // informed of selection changes in this Control, if the Control has an
+    // associated selection.
+    Array<SelectionListener> selectionListeners
 
     /*
         This action obtains the Input Table from this control, copies it, 
@@ -910,5 +917,47 @@ class Control is Item2D
     */
     action GetPopupMenu returns PopupMenu
         return contextMenu
+    end
+
+    /*
+
+    */
+    action AddSelectionListener(SelectionListener listener)
+        selectionListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveSelectionListener(SelectionListener listener) returns boolean
+        return selectionListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action EmptySelectionListeners
+        selectionListeners:Empty()
+    end
+
+    /*
+
+    */
+    action GetSelectionListeners returns Array<SelectionListener>
+        return selectionListeners
+    end
+
+    /*
+    This action will notify all SelectionListeners which have been added to the
+    Control of the given SelectionEvent.
+
+    Attribute: Parameter event The SelectionEvent to send to all SelectionListeners registered with the Control.
+    */
+    action NotifySelectionListeners(SelectionEvent event)
+        integer counter = 0
+        repeat while counter < selectionListeners:GetSize()
+            selectionListeners:Get(counter):SelectionChanged(event)
+            counter = counter + 1
+        end
     end
 end

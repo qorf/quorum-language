@@ -1,6 +1,7 @@
 package Libraries.Interface.Selections
 
 use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Game.GameStateManager
 
@@ -22,6 +23,7 @@ the selection or other attributes of the component. The example shows
 just the selection changed part of the process.
 */
 class Selection 
+    GameStateManager manager
     text displayName = "Unnamed Selection"
     Item item = undefined
 
@@ -86,9 +88,14 @@ class Selection
         This action sends information that the selection was changed to all listeners.
     */
     action NotifySelectionListeners
-        GameStateManager manager
         SelectionEvent event
         event:SetSelection(me)
+
+        if item is Control
+            Control control = cast(Control, item)
+            control:NotifySelectionListeners(event)
+        end
+
         manager:GetInput():NotifySelectionListeners(event)
     end
 end
