@@ -22,7 +22,14 @@ use Libraries.Game.Graphics.Format
 
 class Tab is ToggleButton
     TabPane container = undefined
+
+    // The Item that is displayed in the TabPane when the Tab is activated.
     Item2D relatedItem = undefined
+
+    // The Item that should receive focus when the Tab is activated. If left
+    // undefined, the relatedItem is focused instead, if possible.
+    Item2D focusTarget = undefined
+
     Layout layout = undefined
     LayoutProperties defaultProperties = undefined
     LayoutProperties iconLayoutProperties = undefined
@@ -333,5 +340,13 @@ class Tab is ToggleButton
         Texture texture
         texture:LoadFromPixelMap(map)
         return texture
+    end
+
+    action SetFocusTarget(Item2D target)
+        focusTarget = target
+    end
+
+    action GetFocusTarget returns Item2D
+        return focusTarget
     end
 end

@@ -84,18 +84,27 @@ class TabPane is Control
         return viewArea:GetLayout()
     end
 
-    private action SetCurrentItem(Item2D item)
+    private action SetCurrentItem(Tab tab)
+        Item2D item = undefined
+
+        if tab not= undefined
+            item = tab:GetRelatedItem()
+        end
+
         if currentItem not= undefined
             viewArea:Remove(currentItem)
         end
         if item not= undefined
             viewArea:Add(item)
-            item:Focus()
+            if tab:GetFocusTarget() not= undefined
+                tab:GetFocusTarget():Focus()
+            else
+                item:Focus()
+            end
         else
             Focus()
         end
         currentItem = item
-        //viewArea:Resize()
         Resize()
     end
 
@@ -181,7 +190,7 @@ class TabPane is Control
         end
 
         if found
-            SetCurrentItem(tab:GetRelatedItem())
+            SetCurrentItem(tab)
         else
             SetCurrentItem(undefined)
             selection:Set(-1)
