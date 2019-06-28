@@ -94,11 +94,11 @@ class TextBoxRenderer is Control
         array:Add(index, character)
     end
 
-    action RemoveCharacter(integer line, integer index) returns Drawable
+    action RemoveCharacter(integer line, integer index)
         Array<Drawable> array = GetLine(line)
         Drawable character = array:RemoveAt(index)
         Remove(character)
-        return character
+        RecycleDrawable(character)
     end
 
     action AddSelectionDrawable(Drawable selection)
@@ -145,9 +145,9 @@ class TextBoxRenderer is Control
         gutters:Add(gutter)
     end
 
-    action RemoveGutter(Gutter gutter)
+    action RemoveGutter(Gutter gutter) returns boolean
         Remove(gutter)
-        gutters:Remove(gutter)
+        return gutters:Remove(gutter)
     end
 
     action SetCaret(Drawable newCaret)
@@ -312,6 +312,12 @@ class TextBoxRenderer is Control
 
     action GetGutters returns Array<Gutter>
         return gutters
+    end
+
+    // The TextBoxRenderer will only resize if we explicitly request it, or an
+    // underlying component has to.
+    action NeedsLayout returns boolean
+        return false
     end
 
 end
