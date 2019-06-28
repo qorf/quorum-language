@@ -149,6 +149,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     boolean barIsClicked = false
     boolean verticalChanging = true
     number clickPointOffset = 0
+    boolean moveFocusOnTab = false
 
     /*
     Values used for when text is being selected by dragging the mouse.
@@ -2153,29 +2154,73 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         NotifyTextChangeListeners(changeEvent)
     end
 
+    /*
+        This flag tells the textbox to move the focus on a tab, as opposed to 
+        doing indentation. This thus directly turns off the indentation manager.
+    */
+    action IsMoveFocusOnTab returns boolean
+        return moveFocusOnTab
+    end
+
+    /*
+        This flag tells the textbox to move the focus on a tab, as opposed to 
+        doing indentation. This thus directly turns off the indentation manager.
+    */
+    action SetMoveFocusOnTab(boolean move)
+        me:moveFocusOnTab = move
+    end
+
     action AddIndentation
-        if indentation not= undefined
-            indentation:AddIndentation(me, caretLine, caretCharacter)
+        if moveFocusOnTab
+            Item item = GetNextFocus()
+            if item not= undefined
+                item:Focus()
+            end
+        else
+            if indentation not= undefined
+                indentation:AddIndentation(me, caretLine, caretCharacter)
+            end
         end
     end
 
     action AddIndentation(integer index)
-        SetCaretToIndex(index)
-        if indentation not= undefined
-            indentation:AddIndentation(me, caretLine, caretCharacter)
+        if moveFocusOnTab
+            Item item = GetNextFocus()
+            if item not= undefined
+                item:Focus()
+            end
+        else
+            SetCaretToIndex(index)
+            if indentation not= undefined
+                indentation:AddIndentation(me, caretLine, caretCharacter)
+            end
         end
     end
 
     action RemoveIndentation
-        if indentation not= undefined
-            indentation:RemoveIndentation(me, caretLine, caretCharacter)
+        if moveFocusOnTab
+            Item item = GetPreviousFocus()
+            if item not= undefined
+                item:Focus()
+            end
+        else
+            if indentation not= undefined
+                indentation:RemoveIndentation(me, caretLine, caretCharacter)
+            end
         end
     end
 
     action RemoveIndentation(integer index)
-        SetCaretToIndex(index)
-        if indentation not= undefined
-            indentation:RemoveIndentation(me, caretLine, caretCharacter)
+        if moveFocusOnTab
+            Item item = GetPreviousFocus()
+            if item not= undefined
+                item:Focus()
+            end
+        else
+            SetCaretToIndex(index)
+            if indentation not= undefined
+                indentation:RemoveIndentation(me, caretLine, caretCharacter)
+            end
         end
     end
 
