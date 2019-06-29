@@ -1065,7 +1065,9 @@ class Game
         spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
 
         spreadsheetCellTable:Add(clickDown, downBehavior)
-        spreadsheetCellTable:Add(touchDown, upBehavior)
+        spreadsheetCellTable:Add(touchDown, downBehavior)
+        spreadsheetCellTable:Add(clickUp, upBehavior)
+        spreadsheetCellTable:Add(touchUp, upBehavior)
         spreadsheetCellTable:Add(doubleClickSet, spreadsheetActivate)
 
         gameInput:AddInputTable(spreadsheetCellTable)
@@ -1090,7 +1092,9 @@ class Game
         treeTableCellTable:SetIdentifier("TreeTableCell")
 
         treeTableCellTable:Add(clickDown, downBehavior)
-        treeTableCellTable:Add(touchDown, upBehavior)
+        treeTableCellTable:Add(touchDown, downBehavior)
+        treeTableCellTable:Add(clickUp, upBehavior)
+        treeTableCellTable:Add(touchUp, upBehavior)
         treeTableCellTable:Add(doubleClickSet, treeTableActivate)
 
         gameInput:AddInputTable(treeTableCellTable)

@@ -86,16 +86,54 @@ class TreeTableCell is Control
 
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
-        LabelBoxView view
-        Color color
-        view:Initialize(color:White(), color:Black())
-        view:SetBorderThickness(1)
+        
+        if GetView2D() = undefined
+            LabelBoxView view
+            Color color
+            view:Initialize(color:White(), color:Black())
+            view:SetBorderThickness(1)
 
+            SetView2D(view)
+        end
+
+        View2D view = GetView2D()
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+        TreeTable table = GetTreeTable()
+        LayoutProperties tableProperties = undefined
+
+        if table not= undefined
+            tableProperties = table:GetDefaultLayoutProperties()
+        end
+
+        if properties not= undefined and properties:GetBackgroundColor() not= undefined
+            backgroundColor = properties:GetBackgroundColor()
+        elseif tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
+            backgroundColor = tableProperties:GetBackgroundColor()
+        else
+            Color color
+            backgroundColor = color:White()
+        end
+
+        if properties not= undefined and properties:GetFontColor() not= undefined
+            textColor = properties:GetFontColor()
+        elseif tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
+            textColor = tableProperties:GetFontColor()
+        else
+            Color color
+            textColor = color:Black()
+        end
+
+        if GetView2D() is LabelBoxView
+            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
+            labelBox:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
         label:SetLeftPadding(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
-        label:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
-
-        SetView2D(view)
+        label:SetFontSize(properties:GetFontSize())
+        label:SetInterfaceScale(properties:GetInterfaceScale())
 
         TreeTableColumn column = GetColumn()
         boolean inFirstColumn = column not= undefined and column:IsFirstColumn()
@@ -144,19 +182,19 @@ class TreeTableCell is Control
         ColorGroup backgroundColor = undefined
         Color textColor = undefined
 
-        if tableProperties not= undefined and tableProperties:GetSelectionColor() not= undefined
-            backgroundColor = tableProperties:GetSelectionColor()
-        elseif properties not= undefined and properties:GetSelectionColor() not= undefined
+        if properties not= undefined and properties:GetSelectionColor() not= undefined
             backgroundColor = properties:GetSelectionColor()
+        elseif tableProperties not= undefined and tableProperties:GetSelectionColor() not= undefined
+            backgroundColor = tableProperties:GetSelectionColor()
         else
             Color color
             backgroundColor = color:Blue()
         end
 
-        if tableProperties not= undefined and tableProperties:GetSelectionFontColor() not= undefined
-            textColor = tableProperties:GetSelectionFontColor()
-        elseif properties not= undefined and properties:GetSelectionFontColor() not= undefined
+        if properties not= undefined and properties:GetSelectionFontColor() not= undefined
             textColor = properties:GetSelectionFontColor()
+        elseif tableProperties not= undefined and tableProperties:GetSelectionFontColor() not= undefined
+            textColor = tableProperties:GetSelectionFontColor()
         else
             Color color
             textColor = color:White()
@@ -183,19 +221,19 @@ class TreeTableCell is Control
         ColorGroup backgroundColor = undefined
         Color textColor = undefined
 
-        if tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
-            backgroundColor = tableProperties:GetBackgroundColor()
-        elseif properties not= undefined and properties:GetBackgroundColor() not= undefined
+        if properties not= undefined and properties:GetBackgroundColor() not= undefined
             backgroundColor = properties:GetBackgroundColor()
+        elseif tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
+            backgroundColor = tableProperties:GetBackgroundColor()
         else
             Color color
             backgroundColor = color:White()
         end
 
-        if tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
-            textColor = tableProperties:GetFontColor()
-        elseif properties not= undefined and properties:GetFontColor() not= undefined
+        if properties not= undefined and properties:GetFontColor() not= undefined
             textColor = properties:GetFontColor()
+        elseif tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
+            textColor = tableProperties:GetFontColor()
         else
             Color color
             textColor = color:Black()

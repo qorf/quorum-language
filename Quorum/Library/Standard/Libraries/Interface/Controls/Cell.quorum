@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.View2D
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.Font
@@ -56,17 +57,54 @@ class Cell is Control
 
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
-        LabelBoxView view
-        Color color
-        view:Initialize(color:White(), color:Black())
-        view:SetBorderThickness(1)
 
+        if GetView2D() = undefined
+            LabelBoxView view
+            Color color
+            view:Initialize(color:White(), color:Black())
+            view:SetBorderThickness(1)
+
+            SetView2D(view)
+        end
+
+        View2D view = GetView2D()
+        ColorGroup backgroundColor = undefined
+        Color textColor = undefined
+        Spreadsheet sheet = GetSpreadsheet()
+        LayoutProperties sheetProperties = undefined
+
+        if sheet not= undefined
+            sheetProperties = sheet:GetDefaultLayoutProperties()
+        end
+
+        if properties not= undefined and properties:GetBackgroundColor() not= undefined
+            backgroundColor = properties:GetBackgroundColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
+            backgroundColor = sheetProperties:GetBackgroundColor()
+        else
+            Color color
+            backgroundColor = color:White()
+        end
+
+        if properties not= undefined and properties:GetFontColor() not= undefined
+            textColor = properties:GetFontColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetFontColor() not= undefined
+            textColor = sheetProperties:GetFontColor()
+        else
+            Color color
+            textColor = color:Black()
+        end
+
+        if GetView2D() is LabelBoxView
+            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
+            labelBox:SetBackgroundColor(backgroundColor)
+        end
+
+        label:SetColor(textColor)
         label:SetLeftPadding(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
         label:SetInterfaceScale(properties:GetInterfaceScale())
-
-        SetView2D(view)
     end
 
     action SetText(text value)
@@ -91,19 +129,19 @@ class Cell is Control
         ColorGroup backgroundColor = undefined
         Color textColor = undefined
 
-        if sheetProperties not= undefined and sheetProperties:GetSelectionColor() not= undefined
-            backgroundColor = sheetProperties:GetSelectionColor()
-        elseif properties not= undefined and properties:GetSelectionColor() not= undefined
+        if properties not= undefined and properties:GetSelectionColor() not= undefined
             backgroundColor = properties:GetSelectionColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetSelectionColor() not= undefined
+            backgroundColor = sheetProperties:GetSelectionColor()
         else
             Color color
             backgroundColor = color:Blue()
         end
 
-        if sheetProperties not= undefined and sheetProperties:GetSelectionFontColor() not= undefined
-            textColor = sheetProperties:GetSelectionFontColor()
-        elseif properties not= undefined and properties:GetSelectionFontColor() not= undefined
+        if properties not= undefined and properties:GetSelectionFontColor() not= undefined
             textColor = properties:GetSelectionFontColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetSelectionFontColor() not= undefined
+            textColor = sheetProperties:GetSelectionFontColor()
         else
             Color color
             textColor = color:White()
@@ -130,19 +168,19 @@ class Cell is Control
         ColorGroup backgroundColor = undefined
         Color textColor = undefined
 
-        if sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
-            backgroundColor = sheetProperties:GetBackgroundColor()
-        elseif properties not= undefined and properties:GetBackgroundColor() not= undefined
+        if properties not= undefined and properties:GetBackgroundColor() not= undefined
             backgroundColor = properties:GetBackgroundColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
+            backgroundColor = sheetProperties:GetBackgroundColor()
         else
             Color color
             backgroundColor = color:White()
         end
 
-        if sheetProperties not= undefined and sheetProperties:GetFontColor() not= undefined
-            textColor = sheetProperties:GetFontColor()
-        elseif properties not= undefined and properties:GetFontColor() not= undefined
+        if properties not= undefined and properties:GetFontColor() not= undefined
             textColor = properties:GetFontColor()
+        elseif sheetProperties not= undefined and sheetProperties:GetFontColor() not= undefined
+            textColor = sheetProperties:GetFontColor()
         else
             Color color
             textColor = color:Black()
