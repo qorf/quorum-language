@@ -105,7 +105,7 @@ IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetV
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 
@@ -138,8 +138,6 @@ ULONG TextBoxProvider::GetReferenceCount() {
 
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
-
-
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -193,6 +191,7 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
+		std::cout << "Setting the control type property" << std::endl;
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
@@ -253,12 +252,13 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 
 IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
+	return UiaHostProviderFromHwnd(m_pTextBoxControl->GetHWND(), pRetVal);
+	/*if (!IsWindow(m_TextBoxControlHWND))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 	HRESULT face = UiaHostProviderFromHwnd(m_pTextBoxControl->GetHWND(), pRetVal);
-	return face;
+	return face;*/
 }
 
 
