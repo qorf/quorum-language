@@ -298,23 +298,27 @@ IFACEMETHODIMP TreeItemProvider::SetFocus()
 
 IFACEMETHODIMP TreeItemProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
 {
-
 	IRawElementProviderFragmentRoot* pRoot = NULL;
-	
+	if (m_pTreeItemControl == NULL) {
+		return E_FAIL;
+	}
+
 	if (m_pTreeItemControl->GetParentTree() != NULL)
 	{
 		TreeControl* pTree = m_pTreeItemControl->GetParentTree();
+		if (pTree == NULL) {
+			return E_FAIL;
+		}
 		pRoot = pTree->GetTreeProvider();
+		if (pRoot == NULL)
+		{
+			return E_FAIL;
+		}
+		pRoot->AddRef();
+		*pRetVal = pRoot;
+		return S_OK;
 	}
-
-
-	if (pRoot == NULL)
-	{
-		return E_FAIL;
-	}
-	pRoot->AddRef();
-	*pRetVal = pRoot;
-	return S_OK;
+	return E_FAIL;
 }
 
 
