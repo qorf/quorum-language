@@ -95,7 +95,7 @@ IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVa
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider;// | ProviderOptions_UseComThreading;
 	#if LOG
 		log("ButtonProvider::get_ProviderOptions end");
 	#endif
