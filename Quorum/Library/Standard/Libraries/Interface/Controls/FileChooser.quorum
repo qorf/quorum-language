@@ -175,6 +175,9 @@ class FileChooser
         end
 
         text result = OpenFileDialogNative(path, filterText)
+        if result = undefined
+            return undefined
+        end
         File file
         file:SetAbsolutePath(result)
         return file
@@ -223,6 +226,9 @@ class FileChooser
         end
 
         text result = ChooseFolderDialogNative(path)
+        if result = undefined
+            return undefined
+        end
         File file
         file:SetAbsolutePath(result)
         return file
@@ -372,6 +378,9 @@ class FileChooser
         end
 
         text result = SaveFileDialogNative(path, filterText)
+        if result = undefined
+            return undefined
+        end
         File file
         file:SetAbsolutePath(result)
         return file
