@@ -302,7 +302,9 @@ public class AccessibilityManager
                 if (parentTree == null)
                     return false;
                     
-                nativePointer = CreateTreeItemNative(parentLong, treeItem.GetName(), treeItem.GetDescription(), treeItem.IsSubtree(), treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
+                nativePointer = CreateTreeItemNative(parentLong, treeItem.GetName(), 
+                        treeItem.GetDescription(), treeItem.IsSubtree(), 
+                        treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
             }
                 break;
             case TOOLBAR:
