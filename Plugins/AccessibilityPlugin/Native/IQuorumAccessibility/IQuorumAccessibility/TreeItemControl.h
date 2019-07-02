@@ -15,7 +15,7 @@ public:
 	virtual ~TreeItemControl();
 
 	TreeControl* GetParentTree();
-	void SetParentMenuBar(_In_ TreeControl* menuBar);
+	void SetParentTreeItem(_In_ TreeControl* menuBar);
 	TreeItemControl* GetParentTreeItem();
 	TreeItemProvider* GetTreeItemProvider();
 
