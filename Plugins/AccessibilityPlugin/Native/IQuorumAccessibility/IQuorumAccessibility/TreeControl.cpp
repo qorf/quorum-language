@@ -73,7 +73,7 @@ TreeProvider* TreeControl::GetTreeProvider()
 		m_treeProvider = new TreeProvider(this);
 		UiaRaiseAutomationEvent(m_treeProvider, UIA_Window_WindowOpenedEventId);
 	}
-	return m_treeProvider;
+	return new TreeProvider(this);
 }
 
 bool TreeControl::HasFocus()

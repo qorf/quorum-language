@@ -357,7 +357,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return PtrToLong(pTreeControl);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeItemNative(JNIEnv * env, jobject obj, jlong parent, jstring treeItemName, jstring treeItemDescription, jboolean isSubtree, jboolean isExpanded, jlong parentSubtree, jlong parentTree, jobject jItem)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeItemNative(JNIEnv* env, jobject obj, 
+	jlong parent, jstring treeItemName, jstring treeItemDescription, jboolean isSubtree, jboolean isExpanded, 
+	jlong parentSubtree, jlong parentTree, jobject jItem)
 {
 	const char* nativeTreeItemName = env->GetStringUTFChars(treeItemName, 0);
 	const char* nativeTreeItemDescription = env->GetStringUTFChars(treeItemDescription, 0);
@@ -369,8 +371,22 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	TreeItemControl* parentTreeItem = NULL;
 
-	if ((long)parentSubtree != NULL)
+	if ((long)parentSubtree != NULL) {
 		parentTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)parentSubtree));
+	}
+
+	if (env != NULL)
+	{
+		jclass itemReference = env->GetObjectClass(jItem);
+		jmethodID method = env->GetMethodID(itemReference, "GetName", "()Ljava/lang/String;");
+
+		jstring fullName = reinterpret_cast<jstring>(env->CallObjectMethod(jItem, method));
+		const char* nativeName = env->GetStringUTFChars(fullName, 0);
+		WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeName);
+
+		env->ReleaseStringUTFChars(fullName, nativeName);
+
+	}
 
 	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree->CreateUniqueId(), parentTreeItem, pTree, jItem);
 

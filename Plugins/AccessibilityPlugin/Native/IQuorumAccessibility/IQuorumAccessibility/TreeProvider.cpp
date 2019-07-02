@@ -14,11 +14,13 @@ TreeProvider::TreeProvider(_In_ TreeControl * pTreeControl) : m_refCount(1), m_p
 
 IFACEMETHODIMP_(ULONG) TreeProvider::AddRef()
 {
+	//std::cout << "Add: " << m_refCount << std::endl;
 	return InterlockedIncrement(&m_refCount);
 }
 
 IFACEMETHODIMP_(ULONG) TreeProvider::Release()
 {
+	//std::cout << "Remove: " << m_refCount << std::endl;
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
 	{
@@ -159,6 +161,10 @@ IFACEMETHODIMP TreeProvider::Navigate(NavigateDirection direction, _Outptr_resul
 			{
 				iter = pTreeControl->GetTreeItemAt(0);
 				pTreeItem = static_cast<TreeItemControl*>(*iter);
+				if (pTreeItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
 			}
 			break;
@@ -169,6 +175,10 @@ IFACEMETHODIMP TreeProvider::Navigate(NavigateDirection direction, _Outptr_resul
 			{
 				iter = pTreeControl->GetTreeItemAt(pTreeControl->GetCount() - 1);
 				pTreeItem = static_cast<TreeItemControl*>(*iter);
+				if (pTreeItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
 			}
 			break;

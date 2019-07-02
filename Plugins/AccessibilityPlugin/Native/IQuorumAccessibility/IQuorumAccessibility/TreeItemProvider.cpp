@@ -101,70 +101,76 @@ IFACEMETHODIMP TreeItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 
 IFACEMETHODIMP TreeItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
-	if (propertyId == UIA_AutomationIdPropertyId)
-	{
-		ULONG Id = m_pTreeItemControl->GetId();
+	try {
+		if (propertyId == UIA_AutomationIdPropertyId)
+		{
+			int Id = m_pTreeItemControl->GetHashCode();
 
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+			pRetVal->vt = VT_BSTR;
+			pRetVal->bstrVal = SysAllocString(std::to_wstring(Id).c_str());
+		}
+		else if (propertyId == UIA_NamePropertyId)
+		{
+			pRetVal->vt = VT_BSTR;
+			pRetVal->bstrVal = SysAllocString(m_pTreeItemControl->GetName());
+		}
+		else if (propertyId == UIA_HelpTextPropertyId)
+		{
+			pRetVal->vt = VT_BSTR;
+			pRetVal->bstrVal = SysAllocString(m_pTreeItemControl->GetDescription());
+		}
+		else if (propertyId == UIA_ControlTypePropertyId)
+		{
+			pRetVal->vt = VT_I4;
+			pRetVal->lVal = UIA_TreeItemControlTypeId;
+		}
+		else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
+		{
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = !m_pTreeItemControl->IsSubtree() ? VARIANT_TRUE : VARIANT_FALSE;
+		}
+		else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId)
+		{
+			pRetVal->vt = VT_I4;
+			pRetVal->lVal = m_expandCollapseState;
+		}
+		else if (propertyId == UIA_HasKeyboardFocusPropertyId)
+		{
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = m_pTreeItemControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+			// HasKeyboardFocus is true if the Tree has focus, and this TreeItem is selected.
+		}
+		else if (propertyId == UIA_IsControlElementPropertyId)
+		{
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = VARIANT_TRUE;
+		}
+		else if (propertyId == UIA_IsContentElementPropertyId)
+		{
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = VARIANT_TRUE;
+		}
+		else if (propertyId == UIA_IsEnabledPropertyId)
+		{
+			// This tells the screen reader whether or not the control can be interacted with.
+			// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = VARIANT_TRUE;
+		}
+		else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
+		{
+			pRetVal->vt = VT_BOOL;
+			pRetVal->boolVal = VARIANT_TRUE;
+		}
+		else
+		{
+			pRetVal->vt = VT_EMPTY;
+		}
 	}
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(m_pTreeItemControl->GetName());
+	catch (...) {
+		int a = 5;
 	}
-	else if (propertyId == UIA_HelpTextPropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(m_pTreeItemControl->GetDescription());
-	}
-	else if (propertyId == UIA_ControlTypePropertyId)
-	{
-		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_TreeItemControlTypeId;
-	}
-	else if (propertyId == UIA_IsExpandCollapsePatternAvailablePropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = !m_pTreeItemControl->IsSubtree() ? VARIANT_TRUE : VARIANT_FALSE;
-	}
-	else if (propertyId == UIA_ExpandCollapseExpandCollapseStatePropertyId)
-	{
-		pRetVal->vt = VT_I4;
-		pRetVal->lVal = m_expandCollapseState;
-	}
-	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = m_pTreeItemControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
-		// HasKeyboardFocus is true if the Tree has focus, and this TreeItem is selected.
-	}
-	else if (propertyId == UIA_IsControlElementPropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_IsContentElementPropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_IsEnabledPropertyId)
-	{
-		// This tells the screen reader whether or not the control can be interacted with.
-		// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
-	{
-		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-	}
-	else
-	{
-		pRetVal->vt = VT_EMPTY;
-	}
+
 	return S_OK;
 }
 
@@ -191,7 +197,9 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	{
 		case NavigateDirection_Parent:
 		{
+			//std::cout << "Tree Item Parent:" << std::endl;
 			pFragment = static_cast<IRawElementProviderFragment*>(this->GetParentProvider());
+			
 			break;
 		}
 		case NavigateDirection_FirstChild:
@@ -200,8 +208,11 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			{
 				iter = m_pTreeItemControl->GetTreeItemAt(0);
 				pTreeItem = static_cast<TreeItemControl*>(*iter);
+				if (pTreeItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = static_cast<IRawElementProviderFragment*>(pTreeItem->GetTreeItemProvider());
-
 			}
 			break;
 		}
@@ -211,6 +222,10 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			{
 				iter = m_pTreeItemControl->GetTreeItemAt(m_pTreeItemControl->GetCount() - 1);
 				pTreeItem = static_cast<TreeItemControl*>(*iter);
+				if (pTreeItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = static_cast<IRawElementProviderFragment*>(pTreeItem->GetTreeItemProvider());
 			}
 			break;
@@ -225,6 +240,11 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			}
 			TREEITEM_ITERATOR nextIter = pSubtree->GetTreeItemAt(myIndex + 1);
 			TreeItemControl* pNext = (TreeItemControl*)(*nextIter);
+			if (pNext == NULL) {
+				*pRetVal = pFragment;
+				return S_OK;
+			}
+			//std::cout << "Name Next Sibling:" << pTreeItem->GetName() << std::endl;
 			pFragment = pNext->GetTreeItemProvider();
 			break;
 		}
@@ -238,15 +258,24 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			}
 			TREEITEM_ITERATOR nextIter = pSubtree->GetTreeItemAt(myIndex - 1);
 			TreeItemControl* pPrev = static_cast<TreeItemControl*>(*nextIter);
+			if (pPrev == NULL) {
+				*pRetVal = pFragment;
+				return S_OK;
+			}
 			pFragment = pPrev->GetTreeItemProvider();
 			break;
 		}
 	}
 
 	*pRetVal = pFragment;
-
-	if (pFragment != NULL)
-		pFragment->AddRef();
+	try {
+		if (pFragment != NULL) {
+			pFragment->AddRef();
+		}
+	}
+	catch (...) {
+		int a = 5;
+	}
 
 	return S_OK;
 }
@@ -444,10 +473,12 @@ IUnknown* TreeItemProvider::GetParentProvider()
 	TreeItemControl* pParentTreeItem = m_pTreeItemControl->GetParentTreeItem();
 	if (pParentTreeItem != NULL)
 	{
+		//std::cout << "Parent Tree Item is NOT Null: " << pParentTreeItem->GetName() << std::endl;
 		parentProvider = pParentTreeItem->GetTreeItemProvider();
 	}
 	else
 	{
+		//std::cout << "Parent Tree Item is Null" << std::endl;
 		TreeControl* pTree = m_pTreeItemControl->GetParentTree();
 		parentProvider = pTree->GetTreeProvider();
 	}
