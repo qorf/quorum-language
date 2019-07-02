@@ -184,6 +184,7 @@ public class AccessibilityManager
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
     private native boolean DeselectMenuItemNative(long menubar);
+    private native boolean SelectCellNative(long cellPointer);
     private native boolean MenuExpandedNative(long nativePointer);
     private native boolean MenuCollapsedNative(long nativePointer);
     private native boolean SelectTreeItemNative(long selectedMenuItem);
@@ -420,7 +421,7 @@ public class AccessibilityManager
     {
         Long selectedItem;
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        boolean Selected;
+        boolean selected;
         selectedItem = ITEM_MAP.get(item);
 
         if (selectedItem == null) {
@@ -429,15 +430,18 @@ public class AccessibilityManager
         switch(code)
         {
             case MENU_ITEM:
-                Selected = SelectMenuItemNative(selectedItem);
+                selected = SelectMenuItemNative(selectedItem);
                 break;
             case TREE_ITEM:
-                Selected = SelectTreeItemNative(selectedItem);
+                selected = SelectTreeItemNative(selectedItem);
+                break;
+            case CELL:
+                selected = SelectCellNative(selectedItem);
                 break;
             default:
-                Selected = false;
+                selected = false;
         }
-        return Selected;
+        return selected;
     }
     
     public boolean Deselect(Item_ item)
