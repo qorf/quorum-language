@@ -17,6 +17,7 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.Camera
 use Libraries.Game.Layer2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Sweep2D
@@ -195,6 +196,9 @@ class Item2D is Item
     in the game's depth buffering step.
     */
     boolean isCustomDrawing = false
+
+    // A reusable Vector3 used for one-off calculations, such as in GetScreenX().
+    Vector3 workVector3
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -4741,4 +4745,47 @@ class Item2D is Item
         isResizing = false
     end
 
+    /*
+    This action returns the x coordinate of the Item on the screen. If the Item
+    hasn't been attached to a Layer, this will return a "Not a Number" value
+    instead.
+    */
+    action GetScreenX returns number
+        if layer not= undefined
+            Camera camera = layer:GetCamera()
+            if camera not= undefined
+                workVector3:Set(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+                // The WorldToScreenCoordinates action modifies the values
+                // of the passed Vector3 parameter.
+                camera:WorldToScreenCoordinates(workVector3)
+                return workVector3:GetX()
+            end
+        end
+
+        // Return NaN if the Item isn't on a layer with a camera (and thus can't
+        // actually be on the screen).
+        return z:GetNotANumberValue()
+    end
+
+    /*
+    This action returns the y coordinate of the Item on the screen. If the Item
+    hasn't been attached to a Layer, this will return a "Not a Number" value
+    instead.
+    */
+    action GetScreenY returns number
+        if layer not= undefined
+            Camera camera = layer:GetCamera()
+            if camera not= undefined
+                workVector3:Set(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+                // The WorldToScreenCoordinates action modifies the values
+                // of the passed Vector3 parameter.
+                camera:WorldToScreenCoordinates(workVector3)
+                return workVector3:GetY()
+            end
+        end
+
+        // Return NaN if the Item isn't on a layer with a camera (and thus can't
+        // actually be on the screen).
+        return z:GetNotANumberValue()
+    end
 end
