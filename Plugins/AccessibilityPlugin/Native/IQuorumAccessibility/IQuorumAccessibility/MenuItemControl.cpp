@@ -37,7 +37,7 @@ MenuItemProvider * MenuItemControl::GetMenuItemProvider()
 		m_pMenuItemProvider = new MenuItemProvider(this);
 		UiaRaiseAutomationEvent(m_pMenuItemProvider, UIA_Window_WindowOpenedEventId);
 	}
-	return m_pMenuItemProvider;
+	return new MenuItemProvider(this);
 }
 
 bool MenuItemControl::IsMenu()

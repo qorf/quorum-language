@@ -73,7 +73,7 @@ MenuBarProvider* MenuBarControl::GetMenuBarProvider()
 		m_menuBarProvider = new MenuBarProvider(this);
 		UiaRaiseAutomationEvent(m_menuBarProvider, UIA_Window_WindowOpenedEventId);
 	}
-	return m_menuBarProvider;
+	return new MenuBarProvider(this);;
 }
 
 MenuItemControl* MenuBarControl::GetSelectedMenuItem()
