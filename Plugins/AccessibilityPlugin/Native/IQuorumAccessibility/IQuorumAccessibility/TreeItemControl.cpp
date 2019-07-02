@@ -20,7 +20,7 @@ TreeControl* TreeItemControl::GetParentTree()
 	return m_pParentTree;
 }
 
-void TreeItemControl::SetParentMenuBar(_In_ TreeControl* tree)
+void TreeItemControl::SetParentTreeItem(_In_ TreeControl* tree)
 {
 	m_pParentTree = tree;
 }
@@ -37,7 +37,9 @@ TreeItemProvider* TreeItemControl::GetTreeItemProvider()
 		m_pTreeItemProvider = new TreeItemProvider(this);
 		UiaRaiseAutomationEvent(m_pTreeItemProvider, UIA_Window_WindowOpenedEventId);
 	}
-	return m_pTreeItemProvider;
+	else {
+	}
+	return new TreeItemProvider(this);
 }
 
 bool TreeItemControl::IsExpanded()

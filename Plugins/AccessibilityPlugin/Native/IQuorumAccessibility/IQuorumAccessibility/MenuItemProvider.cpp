@@ -210,6 +210,10 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			{
 				iter = m_pMenuItemControl->GetMenuItemAt(0);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				if (pMenuItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
 
 			}
@@ -221,6 +225,10 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			{
 				iter = m_pMenuItemControl->GetMenuItemAt(m_pMenuItemControl->GetCount() - 1);
 				pMenuItem = static_cast<MenuItemControl*>(*iter);
+				if (pMenuItem == NULL) {
+					*pRetVal = pFragment;
+					return S_OK;
+				}
 				pFragment = static_cast<IRawElementProviderFragment*>(pMenuItem->GetMenuItemProvider());
 			}
 			break;
@@ -235,6 +243,10 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			}
 			MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex + 1);
 			MenuItemControl* pNext = (MenuItemControl*)(*nextIter);
+			if (pNext == NULL) {
+				*pRetVal = pFragment;
+				return S_OK;
+			}
 			pFragment = pNext->GetMenuItemProvider();
 			break;
 		}
@@ -248,6 +260,10 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 			}
 			MENUITEM_ITERATOR nextIter = pMenuControl->GetMenuItemAt(myIndex - 1);
 			MenuItemControl* pPrev = static_cast<MenuItemControl*>(*nextIter);
+			if (pPrev == NULL) {
+				*pRetVal = pFragment;
+				return S_OK;
+			}
 			pFragment = pPrev->GetMenuItemProvider();
 			break;
 		}
@@ -255,8 +271,10 @@ IFACEMETHODIMP MenuItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 
 	*pRetVal = pFragment;
 
-	if (pFragment != NULL)
+	if (pFragment != NULL) {
+		
 		pFragment->AddRef();
+	}
 
 	return S_OK;
 }

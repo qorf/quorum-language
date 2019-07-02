@@ -191,7 +191,6 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
-		std::cout << "Setting the control type property" << std::endl;
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
