@@ -1,0 +1,107 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Behaviors.Controls.OptionDialogCancelBehavior
+use Libraries.Interface.Behaviors.Behavior
+
+class OptionDialog is Dialog
+    Label lineLabel
+    boolean initialized = false
+    boolean selectedOk = false
+    Button ok
+    Button cancel
+
+    action GetLabelTitle returns text
+        return lineLabel:GetText()
+    end
+
+    action SetLabelTitle(text title)
+        SetName(title + " Dialog")
+        lineLabel:SetText(title)
+    end
+
+    OptionDialogCancelBehavior defaultCancelBehavior
+    Behavior cancelBehavior = cancelBehavior
+    on create
+        SetModal(true)
+        lineLabel:SetText("Are you sure?")
+        Setup()
+    end
+
+    action GetCancelBehavior returns Behavior
+        return cancelBehavior
+    end
+
+    action SetCancelBehavior(Behavior behavior)
+        cancelBehavior = behavior
+        cancel:SetBehavior(behavior)
+    end
+
+    action SetBehavior(Behavior behavior)
+        parent:Dialog:SetBehavior(behavior)
+        ok:SetBehavior(behavior)
+    end
+
+    private action Setup
+        initialized = true
+        SetPixelWidth(400)
+        SetVerticalLayoutMode(parent:Libraries.Interface.Controls.Control:FIT_CONTENTS)
+        defaultCancelBehavior:SetDialog(me)
+
+        SetNextFocus(lineLabel)
+        SetPreviousFocus(ok)
+
+        LabelBoxView view
+        Color color
+        view:SetBorderThickness(1)
+        view:SetBorderStyle(view:ALL)
+        view:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+
+        lineLabel:SetNextFocus(cancel)
+        lineLabel:SetPreviousFocus(ok)
+
+        //setup the ok button
+        ok:SetName("Ok")
+        ok:SetFontSize(14)
+        ok:SetLeftPadding(10)
+        ok:SetRightPadding(10)
+        ok:SetBottomPadding(10)
+        ok:SetTopPadding(15)
+        ok:SetHorizontalLayoutMode(ok:parent:Libraries.Interface.Controls.Control:STANDARD)
+        ok:SetPercentageWidth(0.3)
+        ok:SetFocusable(true)
+        ok:SetNextFocus(lineLabel)
+        ok:SetPreviousFocus(cancel)
+
+        cancel:SetName("Cancel")
+        cancel:SetFontSize(14)
+        cancel:SetLeftPadding(200)
+        cancel:SetBottomPadding(10)
+        cancel:SetTopPadding(15)
+        cancel:SetHorizontalLayoutMode(ok:parent:Libraries.Interface.Controls.Control:STANDARD)
+        cancel:SetPercentageWidth(0.3)
+        cancel:SetFocusable(true)
+        cancel:SetNextFocus(ok)
+        cancel:SetBehavior(defaultCancelBehavior)
+        cancel:SetPreviousFocus(lineLabel)
+
+        LayoutProperties properties
+        Control panel
+        FlowLayout findLayout
+        panel:SetLayout(findLayout)
+        panel:SetPercentageWidth(1.0)
+        panel:SetPixelHeight(50)
+        panel:SetBorderColor(color:Black())
+        panel:SetBorderThickness(1)
+
+        panel:Add(lineLabel)
+        panel:Add(cancel)
+        panel:Add(ok)
+        panel:SetView2D(view)
+        Add(panel)
+    end
+end
