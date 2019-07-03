@@ -65,7 +65,7 @@ class OptionDialog is Dialog
         lineLabel:SetPreviousFocus(ok)
 
         //setup the ok button
-        ok:SetName("Ok")
+        ok:SetName("Yes")
         ok:SetFontSize(14)
         ok:SetLeftPadding(10)
         ok:SetRightPadding(10)
@@ -77,7 +77,7 @@ class OptionDialog is Dialog
         ok:SetNextFocus(lineLabel)
         ok:SetPreviousFocus(cancel)
 
-        cancel:SetName("Cancel")
+        cancel:SetName("No")
         cancel:SetFontSize(14)
         cancel:SetLeftPadding(200)
         cancel:SetBottomPadding(10)
@@ -103,5 +103,9 @@ class OptionDialog is Dialog
         panel:Add(ok)
         panel:SetView2D(view)
         Add(panel)
+    end
+
+    action OnShow
+        ok:Focus()
     end
 end
