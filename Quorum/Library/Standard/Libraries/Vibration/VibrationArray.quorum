@@ -1,0 +1,396 @@
+package Libraries.Vibration
+
+/*
+    The VibrationArray class allows programmers to create custom vibration 
+    patterns for use with the Vibration class.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+                array:Add(2)
+                array:Add(1, 0)
+                vibrator:VibrateForever(array)
+            end
+
+        end
+
+*/
+class VibrationArray
+
+    /*
+    Adds a VibrationCommand to the VibrationArray. The VibrationCommand
+    contains a duration measured in seconds and an intensity, a number between
+    0.0 and 1.0.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+                VibrationCommand command
+
+                command:SetDuration(1)
+                command:SetIntensity(0.5)
+
+                array:Add(command)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action Add(VibrationCommand item)
+
+    /*
+    Adds a new item with the given duration to the VibrationArray. Duration is 
+    measured in seconds, and intensity defaults to 1.0, or maximum intensity.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action Add(number seconds)
+
+    /*
+    Adds a new item with the given duration and intensity to the VibrationArray.
+    Duration is measured in seconds, and intensity is a number between 0.0 and 1.0.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1, 0.5)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action Add(number seconds, number intensity)  
+  
+    /*
+    Retrieves the duration of the item stored at the given index. This returned 
+    duration is measured in seconds.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1)
+
+                number newDuration = array:GetDuration(0)
+                array:Add(newDuration)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action GetDuration(integer index) returns number
+
+    /*
+    Retrieves the intensity of the item stored at the given index. This returned 
+    intensity is a number between 0.0 and 1.0.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1, 0.5)
+
+                number newDuration = array:GetDuration(0)
+                number newIntensity = array:GetIntensity(0)
+                array:Add(newDuration, newIntensity)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action GetIntensity(integer index) returns number
+
+    /*
+    Retrieves the VibrationCommand stored at the given index, which contains
+    the duration in seconds and the intensity.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+                VibrationCommand command
+
+                command:SetDuration(1)
+                command:SetIntensity(0.5)
+
+                array:Add(command)
+
+                VibrationCommand newCommand
+                newCommand = array:Get(0)
+
+                array:Add(newCommand)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action Get(integer index) returns VibrationCommand
+
+    /*
+    Removes the item stored at the given index of the VibrationArray.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1, 0.5)
+                array:Add(2, 1)
+
+                array:Remove(0)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action Remove(integer index)
+
+    /*
+    Clears all items in the VibrationArray.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1, 0.5)
+                array:Add(2, 1)
+                array:Add(0.5, 0.75)
+                array:Add(1)
+
+                array:RemoveAll()
+
+                array:Add(1)
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action RemoveAll()
+
+    /*
+    Returns the number of items held within the VibrationArray.
+
+    Attribute: Example
+
+        use Libraries.Vibration.Vibration
+        use Libraries.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                array:Add(1, 0.5)
+                array:Add(2, 1)
+
+                output array:GetSize()
+
+                vibrator:Vibrate(array)
+            end
+
+        end
+    */
+    system action GetSize() returns integer
+
+end
