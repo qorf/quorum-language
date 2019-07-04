@@ -3,10 +3,10 @@
 
 class SpreadsheetControl;
 
-class SpreadsheetProvider : 
-							public IRawElementProviderSimple,
+class SpreadsheetProvider : public IRawElementProviderSimple,
 							public IGridProvider,
-							public ITableProvider
+							public ITableProvider,
+							public ISelectionProvider
 {
 public:
 	SpreadsheetProvider(_In_ SpreadsheetControl* control);
@@ -32,6 +32,12 @@ public:
 	IFACEMETHODIMP get_RowOrColumnMajor(RowOrColumnMajor* major);
 	IFACEMETHODIMP GetColumnHeaders(SAFEARRAY** pRetVal);
 	IFACEMETHODIMP GetRowHeaders(SAFEARRAY** pRetVal);
+
+	// ISelectionProvider methods
+	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal) override;
+	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal) override;
+	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal) override;
+
 protected:
 	
 	ULONG m_refCount;

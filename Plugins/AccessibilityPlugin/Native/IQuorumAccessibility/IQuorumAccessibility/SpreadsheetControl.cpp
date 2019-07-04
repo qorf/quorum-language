@@ -1,5 +1,6 @@
 
 #include "SpreadsheetControl.h"
+#include "CellControl.h"
 
 // For error reporting
 #include <string>
@@ -65,7 +66,7 @@ SpreadsheetProvider* SpreadsheetControl::GetProvider()
 		provider = new SpreadsheetProvider(this);
 		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
-	return provider;
+	return new SpreadsheetProvider(this);
 }
 
 CellControl* SpreadsheetControl::GetSelected()
@@ -73,9 +74,13 @@ CellControl* SpreadsheetControl::GetSelected()
 	return selected;
 }
 
-void SpreadsheetControl::SetSelected(_In_opt_ CellControl* tab)
+void SpreadsheetControl::SetSelected(_In_opt_ CellControl* cell)
 {
-	selected = tab;
+	selected = cell;
+	if (cell != nullptr && UiaClientsAreListening())
+	{
+		cell->GetProvider()->NotifyElementSelected();
+	}
 }
 
 LRESULT SpreadsheetControl::StaticSpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)

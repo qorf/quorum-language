@@ -25,6 +25,7 @@ import quorum.Libraries.Interface.Controls.TreeTable_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
+import quorum.Libraries.Interface.Selections.SpreadsheetSelection_;
 import quorum.Libraries.Interface.Selections.TabPaneSelection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
@@ -651,6 +652,26 @@ public class AccessibilityManager
             return itemPointer;
     }
     
+    /*
+    Used by the native layer. Given a Spreadsheet_ object, returns a pointer for
+    the selected TreeItem, or 0 if there's no selection.
+    */
+    public static long GetSpreadsheetSelectionPointer(Spreadsheet_ sheet)
+    {
+        SpreadsheetSelection_ selection = sheet.GetSelection();
+        Item_ item = selection.Get();
+        if (item == null)
+            return 0;
+        
+        Long itemPointer = ITEM_MAP.get(item);
+        
+        if (itemPointer == null)
+            return 0;
+        else
+            return itemPointer;
+    }
+    
+    
     public static void SetTabSelection(TabPane_ tabs, Tab_ tab) {
         tabs.Select(tab);
     }
@@ -740,5 +761,27 @@ public class AccessibilityManager
         
         // If we can't retrieve the correct position, return -1 to indicate failure.
         return -1;
+    }
+    
+    /*
+    Used by the native layer. Returns the text value of a given cell.
+    The cell given might be a Cell object or a TreeTableCell. 
+    If the value can't be retrieved, this returns the empty string.
+    */
+    public static String GetCellText(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            return cell.GetText();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            return cell.GetText();
+        }
+        
+        // If we can't retrieve the real text, return the empty string as a default.
+        return "";
     }
 }

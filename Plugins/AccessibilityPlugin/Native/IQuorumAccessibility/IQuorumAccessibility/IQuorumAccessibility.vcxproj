@@ -119,8 +119,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\Quorum\Library\Standard\Native\Libraries.Interface\AccessibilityManagerWindows64.dll"
-copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\..\quorumstudio\QuorumStudio\Run\jni\AccessibilityManagerWindows64.dll"
-copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "C:\Users\stefi\Documents\NetBeansProjects\GameApplication\Run\jni\AccessibilityManagerWindows64.dll"</Command>
+copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64.dll" "$(SolutionDir)..\..\..\..\..\quorumstudio\QuorumStudio\Run\jni\AccessibilityManagerWindows64.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

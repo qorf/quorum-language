@@ -48,6 +48,14 @@ IFACEMETHODIMP CellProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** pp
 	{
 		*ppInterface = static_cast<IExpandCollapseProvider*>(this);
 	}
+	else if (riid == __uuidof(IValueProvider))
+	{
+		*ppInterface = static_cast<IValueProvider*>(this);
+	}
+	else if (riid == __uuidof(ISelectionItemProvider))
+	{
+		*ppInterface = static_cast<ISelectionItemProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -76,6 +84,12 @@ IFACEMETHODIMP CellProvider::GetPatternProvider(PATTERNID patternId, _Outptr_res
 		break;
 	case UIA_ExpandCollapsePatternId:
 		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+		break;
+	case UIA_ValuePatternId:
+		*pRetVal = static_cast<IValueProvider*>(this);
+		break;
+	case UIA_SelectionItemPatternId:
+		*pRetVal = static_cast<ISelectionItemProvider*>(this);
 		break;
 	default:
 		*pRetVal = NULL;
@@ -109,7 +123,7 @@ IFACEMETHODIMP CellProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_TabItemControlTypeId;
+		pRetVal->lVal = UIA_DataItemControlTypeId;
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
@@ -248,4 +262,71 @@ void CellProvider::NotifyElementExpandCollapse()
 	{ //no idea if this is correct for trees, but it seems to be implied by the often incorrect documentation
 		UiaRaiseAutomationEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId);
 	}
+}
+
+// Raises a UIA Event when an item is selected.
+void CellProvider::NotifyElementSelected()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
+	}
+}
+
+IFACEMETHODIMP CellProvider::get_IsReadOnly(BOOL* returnValue)
+{
+	// Currently hard-coded to true -- Quorum cells are read-only in the current version.
+	* returnValue = VARIANT_TRUE;
+
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::SetValue(LPCWSTR value)
+{
+	// NYI
+
+	return UIA_E_NOTSUPPORTED;
+}
+
+IFACEMETHODIMP CellProvider::get_Value(BSTR* returnValue)
+{
+	std::wstring text = control->GetText();
+	*returnValue = SysAllocStringLen(text.data(), text.size());
+
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::Select(void)
+{
+	// NYI
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::AddToSelection(void)
+{
+	// NYI
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::RemoveFromSelection(void)
+{
+	// NYI
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::get_IsSelected(BOOL* pRetVal)
+{
+	SpreadsheetControl* sheet = control->GetParent();
+	BOOL selected = (sheet->GetSelected() == control);
+
+	*pRetVal = selected;
+	return S_OK;
+}
+
+IFACEMETHODIMP CellProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal)
+{
+	*pRetVal = static_cast<IRawElementProviderSimple*>(parent->GetProvider());
+
+	return S_OK;
 }

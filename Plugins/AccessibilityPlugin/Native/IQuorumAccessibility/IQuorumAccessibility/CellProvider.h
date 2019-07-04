@@ -6,7 +6,9 @@ class SpreadsheetControl;
 class CellProvider : public IRawElementProviderSimple,
 					 public ITableItemProvider,
 					 public IGridItemProvider,
-					 public IExpandCollapseProvider
+					 public IExpandCollapseProvider,
+					 public IValueProvider,
+					 public ISelectionItemProvider
 {
 public:
 	CellProvider(CellControl* pControl, SpreadsheetControl* parent);
@@ -37,6 +39,22 @@ public:
 	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState* pRetVal);
 	IFACEMETHODIMP Expand();
 	IFACEMETHODIMP Collapse();
+
+	// Methods from IValueProvider.
+	IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
+	IFACEMETHODIMP SetValue(LPCWSTR value);
+	IFACEMETHODIMP get_Value(BSTR* returnValue);
+
+	// Inherited via ISelectionItemProvider
+	IFACEMETHODIMP Select(void) override;
+	IFACEMETHODIMP AddToSelection(void) override;
+	IFACEMETHODIMP RemoveFromSelection(void) override;
+	IFACEMETHODIMP get_IsSelected(BOOL* pRetVal) override;
+	IFACEMETHODIMP get_SelectionContainer(IRawElementProviderSimple** pRetVal) override;
+
+	// Additional methods.
+	void NotifyElementSelected();
+
 private:
 	virtual ~CellProvider();
 	ExpandCollapseState expanded;

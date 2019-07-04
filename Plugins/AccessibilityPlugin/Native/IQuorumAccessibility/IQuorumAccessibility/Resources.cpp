@@ -75,9 +75,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.WaitForUpdate = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "WaitForUpdate", "()V");
 	JavaClass_AccessibilityManager.GetTreeSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Tree_;)J");
 	JavaClass_AccessibilityManager.GetTabPaneSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTabPaneSelectionPointer", "(Lquorum/Libraries/Interface/Controls/TabPane_;)J");
+	JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Spreadsheet_;)J");
 	JavaClass_AccessibilityManager.SetTabSelection = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "SetTabSelection", "(Lquorum/Libraries/Interface/Controls/TabPane_;Lquorum/Libraries/Interface/Controls/Tab_;)V");
 	JavaClass_AccessibilityManager.GetCellColumnIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellColumnIndex", "(Lquorum/Libraries/Language/Object_;)I");
-	JavaClass_AccessibilityManager.GetCellColumnIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellRowIndex", "(Lquorum/Libraries/Language/Object_;)I");
+	JavaClass_AccessibilityManager.GetCellRowIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellRowIndex", "(Lquorum/Libraries/Language/Object_;)I");
+	JavaClass_AccessibilityManager.GetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
 	
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);

@@ -19,6 +19,10 @@ public:
 
 	SpreadsheetControl* GetParent();
 	CellProvider* GetProvider();
+
+	// Gets the text contained within the cell from Quorum.
+	std::wstring GetText();
+
 private:
 	static LRESULT CALLBACK StaticCellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK CellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);

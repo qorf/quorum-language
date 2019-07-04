@@ -1,6 +1,8 @@
 package Libraries.Interface.Controls
+
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
@@ -79,8 +81,7 @@ class Spreadsheet is Control
     end
 
     /*
-        This action selects a single cell in the spreadsheet. In this case,
-        a single cell.
+    This action selects a single cell in the spreadsheet.
     */
     action Select(Cell cell)
         Cell oldSelection = selection:Get()
@@ -226,4 +227,14 @@ class Spreadsheet is Control
         return cellBehavior
     end
 
+    /*
+
+    */
+    action GainedFocus(FocusEvent event)
+        if selection:IsEmpty()
+            if columns:IsEmpty() = false and columns:Get(0):IsEmpty() = false
+                Select(0, 0)
+            end
+        end
+    end
 end

@@ -15,12 +15,14 @@ use Libraries.Interface.Selections.TextFieldSelection
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Selections.TreeSelection
+use Libraries.Interface.Selections.SpreadsheetSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Cell
 use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
@@ -116,6 +118,16 @@ class AccessibilityManager
                 end
 
                 Select(selectedTreeItem)
+            end
+
+        elseif selection is SpreadsheetSelection
+
+            SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
+
+            if not tableSelection:IsEmpty()
+                Cell cell = tableSelection:Get()
+
+                Select(cell)
             end
 
         else

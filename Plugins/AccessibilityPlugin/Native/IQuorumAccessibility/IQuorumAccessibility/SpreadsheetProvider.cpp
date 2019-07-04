@@ -1,4 +1,5 @@
 #include "SpreadsheetProvider.h"
+#include "CellProvider.h"
 
 SpreadsheetProvider::SpreadsheetProvider(_In_ SpreadsheetControl* control) : m_refCount(1), control(control)
 {
@@ -42,6 +43,10 @@ IFACEMETHODIMP SpreadsheetProvider::QueryInterface(_In_ REFIID riid, _Outptr_ vo
 	{
 		*ppInterface = static_cast<ITableProvider*>(this);
 	}
+	else if (riid == __uuidof(ISelectionProvider))
+	{
+		*ppInterface = static_cast<ISelectionProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -81,6 +86,9 @@ IFACEMETHODIMP SpreadsheetProvider::GetPatternProvider(PATTERNID patternId, _Out
 		break;
 	case UIA_TablePatternId:
 		*pRetVal = static_cast<ITableProvider*>(this);
+		break;
+	case UIA_SelectionPatternId:
+		*pRetVal = static_cast<ISelectionProvider*>(this);
 		break;
 	default:
 		*pRetVal = NULL;
@@ -191,5 +199,62 @@ IFACEMETHODIMP SpreadsheetProvider::GetColumnHeaders(SAFEARRAY** pRetVal) {
 	return S_OK;
 }
 IFACEMETHODIMP SpreadsheetProvider::GetRowHeaders(SAFEARRAY** pRetVal) {
+	return S_OK;
+}
+
+IFACEMETHODIMP SpreadsheetProvider::GetSelection(SAFEARRAY** pRetVal)
+{
+	if (!IsWindow(control->GetHWND()))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	JNIEnv* env = GetJNIEnv();
+	long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer, control->GetMe());
+
+	if (selectionPointer == 0)
+	{
+		*pRetVal = NULL;
+		return S_OK;
+	}
+
+	CellControl* cellControl = static_cast<CellControl*>(LongToPtr((long)selectionPointer));
+	CellProvider* cellProvider = cellControl->GetProvider();
+
+	HRESULT hr = S_OK;
+
+	*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
+	if (*pRetVal == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+	}
+	else
+	{
+		long index = 0;
+		hr = SafeArrayPutElement(*pRetVal, &index, cellProvider);
+		if (FAILED(hr))
+		{
+			SafeArrayDestroy(*pRetVal);
+			*pRetVal = NULL;
+		}
+		else
+		{
+			// Since the provider is being passed out of our domain, we need to increment its reference counter.
+			cellProvider->AddRef();
+		}
+	}
+
+	return hr;
+}
+
+IFACEMETHODIMP SpreadsheetProvider::get_CanSelectMultiple(BOOL* pRetVal)
+{
+	*pRetVal = false;
+	return S_OK;
+}
+
+IFACEMETHODIMP SpreadsheetProvider::get_IsSelectionRequired(BOOL* pRetVal)
+{
+	*pRetVal = false;
 	return S_OK;
 }

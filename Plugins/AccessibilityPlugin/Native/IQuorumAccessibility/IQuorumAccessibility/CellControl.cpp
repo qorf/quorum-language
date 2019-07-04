@@ -180,5 +180,21 @@ CellProvider* CellControl::GetProvider()
 	return provider;
 }
 
+std::wstring CellControl::GetText()
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring fullText = reinterpret_cast<jstring>(env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetCellText, GetMe()));
 
+		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
+		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
+
+		env->ReleaseStringUTFChars(fullText, nativeFullText);
+
+		return wFullText;
+	}
+
+	return L"";
+}
 
