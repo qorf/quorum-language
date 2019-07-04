@@ -1,0 +1,21 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.OptionDialog
+
+class OptionDialogCancelBehavior  is Behavior
+    OptionDialog dialog = undefined
+
+    action GetDialog returns OptionDialog
+        return dialog
+    end
+
+    action SetDialog(OptionDialog dialog)
+        me:dialog = dialog
+    end
+
+    action Run(BehaviorEvent event)
+        dialog:Hide()
+    end
+end
