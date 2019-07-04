@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Button
+
+class ButtonMouseOffBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is Button
+            Button button = cast(Button, event:GetItem())
+
+            if button:IsDepressed()
+                button:ReleasedMouse()
+                button:SetDepression(false)
+            end
+
+            button:EndMouseOver()
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+
+end

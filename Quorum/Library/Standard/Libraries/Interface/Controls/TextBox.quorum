@@ -2120,7 +2120,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         NotifyTextChangeListeners(changeEvent)
     end
 
-    action SetText(text value)
+    action SetText(text inputValue)
+        text value = SanitizeNewLines(inputValue)
+
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, GetText())
 
@@ -2568,5 +2570,47 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         ResetCaretBlinkTimer()
 
         Select(state:GetStartIndex(), state:GetEndIndex(), state:IsCaretAtEnd())
+    end
+
+    /* 
+    This action checks if the given text is using either Windows or UNIX style
+    new line separators, and if it's using a different new line style than the
+    current OS's style, swaps the new lines to the system's style.
+    */
+    private action SanitizeNewLines(text inputText) returns text
+        text separator = textValue:GetLineSeparator()
+        text outputText = inputText
+
+        text carriageReturn = separator:GetCarriageReturn()
+        text lineFeed = separator:GetLineFeed()
+
+        // If we're using Windows style separators.
+        if separator = (carriageReturn + lineFeed)
+            integer readIndex = 0
+            integer index = outputText:IndexOf(lineFeed, readIndex)
+            repeat while index >= 0
+                if index > 0 and outputText:GetCharacter(index - 1) = carriageReturn
+                    readIndex = index + 1
+                else
+                    if index = 0
+                        outputText = carriageReturn + outputText
+                    else
+                        text preText = outputText:GetSubtext(0, index) + carriageReturn
+                        text postText = outputText:GetSubtext(index)
+                        outputText = preText + postText
+                    end
+
+                    readIndex = index + 2
+                end
+
+                index = outputText:IndexOf(lineFeed, readIndex)
+            end
+
+        // If we're using Unix style separators.
+        elseif separator = lineFeed
+            outputText = outputText:Replace(carriageReturn + lineFeed, lineFeed)
+        end
+
+        return outputText
     end
 end

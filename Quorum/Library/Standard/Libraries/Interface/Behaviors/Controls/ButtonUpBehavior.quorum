@@ -1,0 +1,24 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Button
+
+class ButtonUpBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is Button
+            Button button = cast(Button, event:GetItem())
+            if button:IsDepressed()
+                button:SetDepression(false)
+                button:ReleasedMouse()
+                button:Activate()
+            end
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+
+end

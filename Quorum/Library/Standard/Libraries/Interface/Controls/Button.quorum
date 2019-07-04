@@ -25,6 +25,9 @@ class Button is Control
     Icon icon = undefined
     LayoutProperties labelProperties
 
+    // Whether this button has been depressed, e.g. by a mouse click.
+    boolean depressed = false
+
     on create
         FlowLayout flowLayout
         SetLayout(flowLayout)
@@ -59,11 +62,6 @@ class Button is Control
 
     action GetActivationBehavior returns Behavior
         return activationBehavior
-    end
-
-    action ReleasedMouse
-        parent:Control:ReleasedMouse()
-        Activate()
     end
 
     action SetName(text name)
@@ -193,5 +191,22 @@ class Button is Control
         end
 
         parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+    Whether or not this button is currently depressed, e.g. by a mouse click or
+    touch event.
+    */
+    action IsDepressed returns boolean
+        return depressed
+    end
+
+    /*
+    Sets whether or not this button is depressed. This is purely an internal
+    state and doesn't affect the button's appearance. This function won't need
+    to be called directly by most users.
+    */
+    action SetDepression(boolean depress)
+        depressed = depress
     end
 end

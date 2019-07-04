@@ -43,6 +43,9 @@ use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
 use Libraries.Interface.Behaviors.CancelBehavior
+use Libraries.Interface.Behaviors.Controls.ButtonUpBehavior
+use Libraries.Interface.Behaviors.Controls.ButtonDownBehavior
+use Libraries.Interface.Behaviors.Controls.ButtonMouseOffBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxStartNewLineBehavior
@@ -915,23 +918,23 @@ class Game
 
         InputSet clickDown
         clickDown:SetMouseInput(mouse:ANY)
-        ClickDownBehavior downBehavior
-        buttonTable:Add(clickDown, downBehavior)
+        ButtonDownBehavior buttonDownBehavior
+        buttonTable:Add(clickDown, buttonDownBehavior)
 
         InputSet clickUp
         clickUp:SetMouseInput(mouse:ANY)
         clickUp:SetInputTrigger(clickUp:FINISH)
-        ClickUpBehavior upBehavior
-        buttonTable:Add(clickUp, upBehavior)
+        ButtonUpBehavior buttonUpBehavior
+        buttonTable:Add(clickUp, buttonUpBehavior)
 
         InputSet touchDown
         touchDown:SetInputType(touchDown:TOUCH_INPUT)
-        buttonTable:Add(touchDown, downBehavior)
+        buttonTable:Add(touchDown, buttonDownBehavior)
 
         InputSet touchUp
         touchUp:SetInputType(touchUp:TOUCH_INPUT)
         touchUp:SetInputTrigger(touchUp:FINISH)
-        buttonTable:Add(touchUp, upBehavior)
+        buttonTable:Add(touchUp, buttonUpBehavior)
 
         InputSet mouseOn
         mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
@@ -942,8 +945,8 @@ class Game
         InputSet mouseOff
         mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
         mouseOff:SetInputTrigger(mouseOff:FINISH)
-        MouseOffBehavior offBehavior
-        buttonTable:Add(mouseOff, offBehavior)
+        ButtonMouseOffBehavior buttonOffBehavior
+        buttonTable:Add(mouseOff, buttonOffBehavior)
 
         InputSet spaceSet
         spaceSet:SetKeyboardInput(keys:SPACE)
@@ -954,6 +957,9 @@ class Game
 
         InputTable menuItemTable
         menuItemTable:SetIdentifier("MenuItem")
+
+        ClickDownBehavior downBehavior
+        ClickUpBehavior upBehavior
 
         menuItemTable:Add(clickDown, downBehavior)
         menuItemTable:Add(clickUp, upBehavior)
