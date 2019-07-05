@@ -177,7 +177,7 @@ CellProvider* CellControl::GetProvider()
 		provider = new CellProvider(this, parent);
 		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
-	return provider;
+	return new CellProvider(this, parent);
 }
 
 std::wstring CellControl::GetText()
