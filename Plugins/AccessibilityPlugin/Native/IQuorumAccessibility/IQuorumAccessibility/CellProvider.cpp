@@ -175,7 +175,6 @@ return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
 IFACEMETHODIMP CellProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
-	//return S_OK;
 }
 
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
