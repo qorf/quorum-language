@@ -105,6 +105,9 @@ class TreeTable is Control
     end
 
     action Add(TreeTableRow row)
+        row:SetParentTreeTable(me)
+        SetParentTreeTableReferences(row:GetChildren(), me)
+
         rows:Add(row)
 
         integer counter = 0
@@ -123,6 +126,9 @@ class TreeTable is Control
     end
 
     action Add(integer position, TreeTableRow row)
+        row:SetParentTreeTable(me)
+        SetParentTreeTableReferences(row:GetChildren(), me)
+
         rows:Add(position, row)
 
         integer counter = 0
@@ -135,6 +141,49 @@ class TreeTable is Control
 
             column:Add(target, cell)
             column:SetCell(target, row)
+
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action adds a new TreeTableRow as a child of the given parent row. It
+    will be placed after the parent row, at the requested 0-indexed position.
+    This action is primarily for internal use by the system, and is called
+    automatically when a child row is added to a parent row.
+    */
+    action Add(TreeTableRow newRow, TreeTableRow parentRow, integer position)
+        if columns:IsEmpty() = false and parentRow:IsEmpty() = false
+            TreeTableColumn firstColumn = columns:Get(0)
+            integer targetIndex = firstColumn:GetCellIndex(parentRow)
+            
+            if targetIndex < 0
+                return now
+            end
+            targetIndex = targetIndex + position
+
+            newRow:SetParentTreeTable(me)
+            SetParentTreeTableReferences(newRow:GetChildren(), me)
+
+            integer counter = 0
+            repeat while counter < columns:GetSize()
+                TreeTableColumn column = columns:Get(counter)
+                output "Adding at " + targetIndex + " (size = " + column:GetSize() + ")"
+                column:AddCell(targetIndex, newRow)
+                counter = counter + 1
+            end
+        end
+    end
+
+    private action SetParentTreeTableReferences(Array<TreeTableRow> rows, TreeTable table)
+        integer counter = 0
+        repeat while counter < rows:GetSize()
+            TreeTableRow row = rows:Get(counter)
+            row:SetParentTreeTable(table)
+
+            if row:IsEmpty() = false
+                SetParentTreeTableReferences(row:GetChildren(), me)
+            end
 
             counter = counter + 1
         end
@@ -172,6 +221,8 @@ class TreeTable is Control
         end
 
         rows:RemoveAt(topIndex)
+        row:SetParentTreeTable(undefined)
+        SetParentTreeTableReferences(row:GetChildren(), undefined)
 
         return true
     end

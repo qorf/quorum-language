@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 class TreeTableRow
     
     TreeTableRow parentRow = undefined
+    TreeTable parentTable = undefined
     Array<TreeTableRow> children
     boolean expanded = false
 
@@ -42,6 +43,10 @@ class TreeTableRow
     action AddRow(TreeTableRow row)
         children:Add(row)
         row:SetParent(me)
+        
+        if parentTable not= undefined
+            parentTable:Add(row, me, children:GetSize() - 1)
+        end
     end
 
     /*
@@ -66,5 +71,18 @@ class TreeTableRow
 
     action GetChildren returns Array<TreeTableRow>
         return children
+    end
+
+    /*
+    This action sets a reference to the TreeTable that this TreeTableRow is a
+    part of. This is called automatically by the system as needed, and shouldn't
+    be called directly.
+    */
+    action SetParentTreeTable(TreeTable parentTreeTable)
+        parentTable = parentTreeTable
+    end
+
+    action GetParentTreeTable returns TreeTable
+        return parentTable
     end
 end

@@ -58,17 +58,6 @@ class ToggleButton is Button
         parent:Libraries.Interface.Item2D:Update(seconds)
     end
 
-    action ReleasedMouse
-        if toggled
-            if canToggleOff
-                SetToggleState(false)
-            end
-        else
-            SetToggleState(true)
-        end
-        parent:Control:ReleasedMouse()
-    end
-
     action SetButtonGroup(ButtonGroup buttonGroup)
         group = buttonGroup
     end
@@ -94,7 +83,12 @@ class ToggleButton is Button
     end
 
     action Activate(BehaviorEvent event)
-        SetToggleState(not toggled)
-        parent:Control:Activate(event)
+        if toggled
+            if canToggleOff
+                SetToggleState(false)
+            end
+        else
+            SetToggleState(true)
+        end
     end
 end

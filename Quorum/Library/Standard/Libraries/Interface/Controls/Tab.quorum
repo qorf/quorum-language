@@ -155,14 +155,6 @@ class Tab is ToggleButton
         parent:Item2D:SetName(name)
     end
 
-    action ReleasedMouse
-        boolean state = GetToggleState()
-        if state = false
-            SetToggleState(true)
-        end
-        parent:Control:ReleasedMouse()
-    end
-
     action DisplayName(boolean display)
         displayLabel = display
         if display

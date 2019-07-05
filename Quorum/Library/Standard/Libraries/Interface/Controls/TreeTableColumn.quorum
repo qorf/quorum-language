@@ -69,6 +69,23 @@ class TreeTableColumn is Control
         return cells:GetFirstLocation(cell)
     end
 
+    /*
+    This action will return the index of the given TreeTableRow within the Column, or
+    returns -1 if the TreeTableRow wasn't in this Column.
+    */
+    action GetCellIndex(TreeTableRow row) returns integer
+        integer counter = 0
+        repeat while counter < cells:GetSize()
+            if cells:Get(counter):GetRow() = row
+                return counter
+            end
+
+            counter = counter + 1
+        end
+
+        return -1
+    end
+
     action Empty 
         cells:Empty()
         parent:Item2D:Empty()
