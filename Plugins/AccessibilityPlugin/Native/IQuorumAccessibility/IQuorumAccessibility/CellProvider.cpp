@@ -128,7 +128,7 @@ IFACEMETHODIMP CellProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_FALSE; //tabs in our system cannot receive the focus directly, only the tab pane or the containing item
+		pRetVal->boolVal = VARIANT_TRUE;// control->HasFocus(); //tabs in our system cannot receive the focus directly, only the tab pane or the containing item
 	}
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
@@ -143,7 +143,7 @@ IFACEMETHODIMP CellProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"cell block 1138");
+		pRetVal->bstrVal = SysAllocString(L"cell");
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{
@@ -153,7 +153,7 @@ IFACEMETHODIMP CellProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_FALSE;
+		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else
 	{
@@ -174,8 +174,8 @@ return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
 */
 IFACEMETHODIMP CellProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	*pRetVal = NULL;
-	return S_OK;
+	return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
+	//return S_OK;
 }
 
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
