@@ -129,6 +129,7 @@ class Checkbox is ToggleButton
             checkboxView:SetCheckColor(checkColor)
             checkboxView:Initialize(label:GetLineHeight() / 2, properties)
             buttonIcon:SetView2D(checkboxView)
+            checkboxView:SetToggleState(parent:ToggleButton:toggled)
         end
     end
 

@@ -168,7 +168,6 @@ class TreeTable is Control
             integer counter = 0
             repeat while counter < columns:GetSize()
                 TreeTableColumn column = columns:Get(counter)
-                output "Adding at " + targetIndex + " (size = " + column:GetSize() + ")"
                 column:AddCell(targetIndex, newRow)
                 counter = counter + 1
             end
