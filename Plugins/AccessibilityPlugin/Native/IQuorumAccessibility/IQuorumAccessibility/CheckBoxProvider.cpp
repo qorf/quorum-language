@@ -69,7 +69,7 @@ IFACEMETHODIMP CheckBoxProvider::get_ProviderOptions(_Out_ ProviderOptions* pRet
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 

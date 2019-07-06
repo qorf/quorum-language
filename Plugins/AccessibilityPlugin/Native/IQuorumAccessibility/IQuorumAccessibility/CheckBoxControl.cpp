@@ -160,7 +160,9 @@ ToggleState CheckBoxControl::GetState()
 	jboolean toggleState = env->CallBooleanMethod(GetMe(), JavaClass_ToggleButton.GetToggleState);
 	ToggleState result;
 
-	if (toggleState == JNI_FALSE)
+	boolean value = toggleState;
+	
+	if (!value)
 	{
 		result = ToggleState_Off;
 	}

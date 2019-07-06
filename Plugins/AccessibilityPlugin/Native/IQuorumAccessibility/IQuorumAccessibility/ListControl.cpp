@@ -136,12 +136,10 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
-		std::cout << "Got focus" << std::endl;
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		std::cout << "Lost focus" << std::endl;
 		this->Focus(false);
 		break;
 	}
