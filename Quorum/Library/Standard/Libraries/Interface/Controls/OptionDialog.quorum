@@ -74,7 +74,7 @@ class OptionDialog is Dialog
         ok:SetHorizontalLayoutMode(ok:parent:Libraries.Interface.Controls.Control:STANDARD)
         ok:SetPercentageWidth(0.3)
         ok:SetFocusable(true)
-        ok:SetNextFocus(lineLabel)
+        ok:SetNextFocus(cancel)
         ok:SetPreviousFocus(cancel)
 
         cancel:SetName("No")
@@ -87,7 +87,7 @@ class OptionDialog is Dialog
         cancel:SetFocusable(true)
         cancel:SetNextFocus(ok)
         cancel:SetBehavior(defaultCancelBehavior)
-        cancel:SetPreviousFocus(lineLabel)
+        cancel:SetPreviousFocus(ok)
 
         LayoutProperties properties
         Control panel
