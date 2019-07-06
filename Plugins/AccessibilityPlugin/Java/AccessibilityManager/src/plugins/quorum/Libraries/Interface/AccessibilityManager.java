@@ -784,4 +784,16 @@ public class AccessibilityManager
         // If we can't retrieve the real text, return the empty string as a default.
         return "";
     }
+    
+    public static String GetListItemText(Object_ object)
+    {
+        if (object instanceof ListItem_)
+        {
+            ListItem_ item = (ListItem_)object;
+            return item.GetText();
+        }
+        
+        // If we can't retrieve the real text, return the empty string as a default.
+        return "";
+    }
 }
