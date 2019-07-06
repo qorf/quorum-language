@@ -177,8 +177,23 @@ ListItemProvider* ListItemControl::GetProvider()
 		provider = new ListItemProvider(this, parent);
 		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
-	return provider;
+	return new ListItemProvider(this, parent);
 }
 
+std::wstring ListItemControl::GetText()
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring fullText = reinterpret_cast<jstring>(env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetListItemText, GetMe()));
 
+		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
+		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
 
+		env->ReleaseStringUTFChars(fullText, nativeFullText);
+
+		return wFullText;
+	}
+
+	return L"";
+}

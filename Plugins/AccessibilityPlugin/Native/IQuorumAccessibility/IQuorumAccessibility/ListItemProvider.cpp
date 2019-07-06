@@ -43,6 +43,10 @@ IFACEMETHODIMP ListItemProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void*
 	{
 		*ppInterface = static_cast<ISelectionItemProvider*>(this);
 	}
+	else if (riid == __uuidof(IValueProvider))
+	{
+		*ppInterface = static_cast<IValueProvider*>(this);
+	}
 	else
 	{
 		*ppInterface = NULL;
@@ -65,6 +69,9 @@ IFACEMETHODIMP ListItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr
 	{
 	case UIA_SelectionItemPatternId:
 		*pRetVal = static_cast<ISelectionItemProvider*>(this);
+		break;
+	case UIA_ValuePatternId:
+		*pRetVal = static_cast<IValueProvider*>(this);
 		break;
 	default:
 		*pRetVal = NULL;
@@ -104,7 +111,7 @@ IFACEMETHODIMP ListItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_FALSE; //tabs in our system cannot receive the focus directly, only the tab pane or the containing item
+		pRetVal->boolVal = VARIANT_TRUE; 
 	}
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
@@ -129,7 +136,7 @@ IFACEMETHODIMP ListItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_FALSE;
+		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else
 	{
@@ -142,8 +149,7 @@ IFACEMETHODIMP ListItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ V
 // Return NULL since TreeItems are not directly hosted in a window and therefore don't have an HWND
 IFACEMETHODIMP ListItemProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	*pRetVal = NULL;
-	return S_OK;
+	return UiaHostProviderFromHwnd(control->GetHWND(), pRetVal);
 }
 
 // Enables UI Automation to locate the element in the tree.
@@ -156,7 +162,7 @@ IFACEMETHODIMP ListItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	case NavigateDirection_Parent:
 	{
 		if (parent != NULL) {
-			pFragment = static_cast<IRawElementProviderFragment*>(parent->GetProvider());
+			//pFragment = static_cast<IRawElementProviderFragment*>(parent->GetProvider());
 		}
 		break;
 	}
@@ -164,7 +170,7 @@ IFACEMETHODIMP ListItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	{
 		if (child != NULL)
 		{
-			pFragment = child;
+			//pFragment = child;
 		}
 		break;
 	}
@@ -172,7 +178,7 @@ IFACEMETHODIMP ListItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	{
 		if (child != NULL)
 		{
-			pFragment = child;
+			//pFragment = child;
 		}
 		break;
 	}
@@ -192,6 +198,29 @@ IFACEMETHODIMP ListItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 	if (pFragment != NULL) {
 		pFragment->AddRef();
 	}
+	return S_OK;
+}
+
+IFACEMETHODIMP ListItemProvider::get_IsReadOnly(BOOL* returnValue)
+{
+	// Currently hard-coded to true -- Quorum cells are read-only in the current version.
+	*returnValue = VARIANT_TRUE;
+
+	return S_OK;
+}
+
+IFACEMETHODIMP ListItemProvider::SetValue(LPCWSTR value)
+{
+	// NYI
+
+	return UIA_E_NOTSUPPORTED;
+}
+
+IFACEMETHODIMP ListItemProvider::get_Value(BSTR* returnValue)
+{
+	std::wstring text = control->GetText();
+	*returnValue = SysAllocStringLen(text.data(), text.size());
+
 	return S_OK;
 }
 

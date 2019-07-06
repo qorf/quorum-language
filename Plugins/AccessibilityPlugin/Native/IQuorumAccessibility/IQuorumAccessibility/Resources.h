@@ -42,6 +42,7 @@ struct JClass_AccessibilityManager
 	jmethodID GetCellColumnIndex;
 	jmethodID GetCellRowIndex;
 	jmethodID GetCellText;
+	jmethodID GetListItemText;
 };
 struct JClass_TextBox
 {

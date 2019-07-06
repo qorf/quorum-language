@@ -21,6 +21,8 @@ public:
 	ListControl* GetParent();
 	ListItemProvider* GetProvider();
 
+	std::wstring GetText();
+
 private:
 	static LRESULT CALLBACK StaticListItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK ListItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);

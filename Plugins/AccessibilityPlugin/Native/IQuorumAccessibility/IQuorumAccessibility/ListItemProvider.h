@@ -6,7 +6,8 @@ class ListControl;
 
 class ListItemProvider : public IRawElementProviderSimple,
 					public IRawElementProviderFragment,
-					public ISelectionItemProvider
+					public ISelectionItemProvider,
+					public IValueProvider
 {
 public:
 	ListItemProvider(ListItemControl* pControl, ListControl* parent);
@@ -37,6 +38,11 @@ public:
 	IFACEMETHODIMP get_SelectionContainer(IRawElementProviderSimple** pRetVal);
 	IFACEMETHODIMP RemoveFromSelection();
 	IFACEMETHODIMP Select();
+
+	// Methods from IValueProvider.
+	IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
+	IFACEMETHODIMP SetValue(LPCWSTR value);
+	IFACEMETHODIMP get_Value(BSTR* returnValue);
 private:
 	virtual ~ListItemProvider();
 

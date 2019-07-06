@@ -80,7 +80,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetCellColumnIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellColumnIndex", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetCellRowIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellRowIndex", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
-	
+	JavaClass_AccessibilityManager.GetListItemText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetListItemText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
+
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
