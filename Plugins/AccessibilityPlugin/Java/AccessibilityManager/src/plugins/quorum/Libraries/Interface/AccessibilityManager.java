@@ -184,6 +184,7 @@ public class AccessibilityManager
     private native boolean UpdateCaretPositionNative(long nativePointer, String fullText, int caretIndex);
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
+    private native boolean SelectListItemNative(long selectedListItem);
     private native boolean DeselectMenuItemNative(long menubar);
     private native boolean SelectCellNative(long cellPointer);
     private native boolean MenuExpandedNative(long nativePointer);
@@ -438,6 +439,8 @@ public class AccessibilityManager
             case TREE_ITEM:
                 selected = SelectTreeItemNative(selectedItem);
                 break;
+            case LIST_ITEM:
+                selected = SelectListItemNative(selectedItem);
             case CELL:
                 selected = SelectCellNative(selectedItem);
                 break;
