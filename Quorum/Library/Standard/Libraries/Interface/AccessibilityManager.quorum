@@ -16,6 +16,8 @@ use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Interface.Selections.MenuSelection
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Interface.Selections.SpreadsheetSelection
+use Libraries.Interface.Selections.ListSelection
+use Libraries.Interface.Selections.TreeTableSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.MenuItem
@@ -23,6 +25,8 @@ use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Cell
+use Libraries.Interface.Controls.ListItem
+use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
@@ -121,20 +125,29 @@ class AccessibilityManager
             end
 
         elseif selection is SpreadsheetSelection
-
             SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
-
             if not tableSelection:IsEmpty()
                 Cell cell = tableSelection:Get()
 
                 Select(cell)
             end
+        elseif selection is ListSelection
+            ListSelection listSelection = cast(ListSelection, selection)
+            if not listSelection:IsEmpty()
+                ListItem listItem = listSelection:GetListItem()
 
+                Select(listItem)
+            end
+        elseif selection is TreeTableSelection
+            TreeTableSelection treeTableSelection = cast(TreeTableSelection, selection)
+            if not treeTableSelection:IsEmpty()
+                TreeTableCell cell = treeTableSelection:Get()
+
+                Select(cell)
+            end
         else
             // Do generic things
         end
-
-        
     end
 
     action FocusChanged(FocusEvent event)
