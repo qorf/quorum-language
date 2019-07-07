@@ -32,6 +32,10 @@ class TreeTable is Control
         SetName("Tree Table")
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action Add(Item2D item)
         if item is TreeTableColumn
             TreeTableColumn column = cast(TreeTableColumn, item)
