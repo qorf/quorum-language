@@ -136,6 +136,10 @@ LRESULT TabPaneControl::TabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
+		if (UiaClientsAreListening())
+		{
+			UiaRaiseAutomationEvent(GetProvider(), UIA_AutomationFocusChangedEventId);
+		}
 		break;
 	}
 	case WM_KILLFOCUS:

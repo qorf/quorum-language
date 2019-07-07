@@ -73,9 +73,13 @@ ListItemControl* ListControl::GetSelected()
 	return selected;
 }
 
-void ListControl::SetSelected(_In_opt_ ListItemControl* tab)
+void ListControl::SetSelected(_In_opt_ ListItemControl* item)
 {
-	selected = tab;
+	selected = item;
+	if (selected != nullptr && UiaClientsAreListening())
+	{
+		selected->GetProvider()->NotifyElementSelected();
+	}
 }
 
 LRESULT ListControl::StaticListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -136,6 +140,10 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
+		if (UiaClientsAreListening())
+		{
+			UiaRaiseAutomationEvent(GetProvider(), UIA_AutomationFocusChangedEventId);
+		}
 		break;
 	}
 	case WM_KILLFOCUS:
@@ -148,7 +156,7 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		this->SetName((WCHAR*)lParam);
 		break;
 	}
-	case QUORUM_ADD_TAB:
+	case QUORUM_ADD_LIST_ITEM:
 	{
 		ListItemControl* tab = (ListItemControl*)lParam;
 
@@ -158,7 +166,7 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 
 		break;
 	}
-	case QUORUM_REMOVE_TAB:
+	case QUORUM_REMOVE_LIST_ITEM:
 	{
 		ListItemControl* tab = (ListItemControl*)lParam;
 
@@ -167,11 +175,11 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		//subtree->RemoveTreeItem(treeItemToRemove);
 		break;
 	}
-	case QUORUM_SELECTTREEITEM:
+	case QUORUM_SELECT_LIST_ITEM:
 	{
-		ListItemControl* tab = (ListItemControl*)lParam;
+		ListItemControl* item = (ListItemControl*)lParam;
 
-		SetSelected(tab);
+		SetSelected(item);
 
 		break;
 	}

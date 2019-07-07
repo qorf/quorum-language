@@ -327,3 +327,12 @@ IFACEMETHODIMP ListItemProvider::Select() {
 	env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.SetTabSelection, parent->GetMe(), control->GetMe());
 	return S_OK;
 }
+
+void ListItemProvider::NotifyElementSelected()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
+	}
+}

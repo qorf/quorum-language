@@ -680,6 +680,22 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return true;
 }
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SelectListItemNative(JNIEnv* env, jobject obj, jlong selectedCell)
+{
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
+	ListItemControl* listItemControl = static_cast<ListItemControl*>(LongToPtr((long)selectedCell));
+	ListControl* listControl = listItemControl->GetParent();
+
+	if (!listControl->HasFocus()) {
+		SetFocus(listControl->GetHWND());
+	}
+	SendMessage(listControl->GetHWND(), QUORUM_SELECT_LIST_ITEM, 0, (LPARAM)listItemControl);
+
+	return true;
+}
+
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_MenuExpandedNative(JNIEnv *env, jobject obj, jlong menuItem)
 {
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));

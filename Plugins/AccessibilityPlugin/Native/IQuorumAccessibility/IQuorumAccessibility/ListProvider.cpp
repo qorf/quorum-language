@@ -182,31 +182,31 @@ IFACEMETHODIMP ListProvider::Navigate(NavigateDirection direction, _Outptr_resul
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	/*TreeControl* pTreeControl = this->m_pTreeControl;
-	TreeItemControl* pTreeItem = NULL;
+	ListControl* listControl = this->control;
+	ListItemControl* listItemControl = NULL;
 	IRawElementProviderFragment* pFragment = NULL;
-	TREEITEM_ITERATOR iter;
 
 	switch (direction)
 	{
 	case NavigateDirection_FirstChild:
 	{
-		if (pTreeControl->HasChildren())
-		{
-			iter = pTreeControl->GetTreeItemAt(0);
-			pTreeItem = static_cast<TreeItemControl*>(*iter);
-			pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
-		}
+		//if (pTreeControl->HasChildren())
+		//{
+		//	iter = pTreeControl->GetTreeItemAt(0);
+		//	pTreeItem = static_cast<TreeItemControl*>(*iter);
+		//	pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
+		//}
 		break;
 	}
 	case NavigateDirection_LastChild:
 	{
-		if (pTreeControl->HasChildren())
-		{
-			iter = pTreeControl->GetTreeItemAt(pTreeControl->GetCount() - 1);
-			pTreeItem = static_cast<TreeItemControl*>(*iter);
-			pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
-		}
+
+		//if (pTreeControl->HasChildren())
+		//{
+		//	iter = pTreeControl->GetTreeItemAt(pTreeControl->GetCount() - 1);
+		//	pTreeItem = static_cast<TreeItemControl*>(*iter);
+		//	pFragment = (IRawElementProviderFragment*)pTreeItem->GetTreeItemProvider();
+		//}
 		break;
 	}
 	}
@@ -214,7 +214,7 @@ IFACEMETHODIMP ListProvider::Navigate(NavigateDirection direction, _Outptr_resul
 	{
 		pFragment->AddRef();
 	}
-	*pRetVal = pFragment;*/
+	*pRetVal = pFragment;
 	* pRetVal = NULL;
 	return S_OK;
 }
@@ -316,7 +316,7 @@ IFACEMETHODIMP ListProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProvi
 	{
 		// Get Provider
 		IRawElementProviderFragment* provider = (IRawElementProviderFragment*)(tab->GetProvider());
-
+		std::cout << "Got selection" << std::endl;
 		*pRetVal = provider;
 	}
 

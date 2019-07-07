@@ -22,6 +22,7 @@ void Item::SetHashCode(int hash) {
 
 void Item::Focus(bool isFocused)
 {
+	focused = isFocused;
 }
 
 bool Item::HasFocus()

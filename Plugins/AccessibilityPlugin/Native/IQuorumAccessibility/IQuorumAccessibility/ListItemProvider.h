@@ -43,6 +43,8 @@ public:
 	IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
 	IFACEMETHODIMP SetValue(LPCWSTR value);
 	IFACEMETHODIMP get_Value(BSTR* returnValue);
+
+	void NotifyElementSelected();
 private:
 	virtual ~ListItemProvider();
 
