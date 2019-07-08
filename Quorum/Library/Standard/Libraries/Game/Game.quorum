@@ -57,6 +57,7 @@ use Libraries.Interface.Behaviors.Controls.TextFieldCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCopyToClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCutToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
@@ -506,7 +507,6 @@ class Game
         InputTable textBoxTable
         textBoxTable:SetIdentifier("TextBox")
 
-
         if manager:GetOperatingSystem():Contains("OS X")
             //first do copy paste
             InputSet textBoxControlC
@@ -514,6 +514,12 @@ class Game
             textBoxControlC:AddModifier(textBoxControlC:META)
             TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
             textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet textBoxControlX
+            textBoxControlX:SetKeyboardInput(keys:X)
+            textBoxControlX:AddModifier(textBoxControlC:META)
+            TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
+            textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
 
             InputSet textBoxControlV
             textBoxControlV:SetKeyboardInput(keys:V)
@@ -546,6 +552,12 @@ class Game
             textBoxControlC:AddModifier(textBoxControlC:CONTROL)
             TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
             textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet textBoxControlX
+            textBoxControlX:SetKeyboardInput(keys:X)
+            textBoxControlX:AddModifier(textBoxControlC:CONTROL)
+            TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
+            textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
 
             InputSet textBoxControlV
             textBoxControlV:SetKeyboardInput(keys:V)

@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+
+class TextBoxCutToClipboardBehavior is Behavior 
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox box = cast(TextBox, item)
+        TextBoxSelection selection = box:GetSelection()
+        text value = selection:GetText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(value)
+        box:DeleteSelection()
+    end
+end
