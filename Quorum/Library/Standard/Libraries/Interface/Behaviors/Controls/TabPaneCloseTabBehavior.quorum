@@ -1,0 +1,24 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.TabBar
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Item
+
+class TabPaneCloseTabBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if item is TabPane
+            TabPane pane = cast(TabPane, item)
+            Tab tab = pane:GetSelectedTab()
+            if tab not= undefined
+                if tab:GetButtonGroup() is TabBar
+                    TabBar bar = cast(TabBar, tab:GetButtonGroup())
+                    bar:Remove(tab)
+                end
+            end
+        end
+    end
+end

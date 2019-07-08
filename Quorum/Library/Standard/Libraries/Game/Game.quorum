@@ -135,6 +135,7 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
+use Libraries.Interface.Behaviors.Controls.TabPaneCloseTabBehavior
 use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
 use Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior
 use Libraries.Interface.Layouts.Layout
@@ -883,19 +884,23 @@ class Game
 
         TabPaneForwardTabBehavior forward
         TabPaneBackwardTabBehavior backward
+        TabPaneCloseTabBehavior closeTab
 
         if manager:GetOperatingSystem():Contains("OS X")
             InputSet forwardTab
             forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
             forwardTab:AddModifier(forwardTab:CONTROL)
-
             tabPaneTable:Add(forwardTab, forward)
 
             InputSet backwardTab
             backwardTab:SetKeyboardInput(keys:LEFT_BRACKET)
             backwardTab:AddModifier(forwardTab:CONTROL)
-
             tabPaneTable:Add(backwardTab, backward)
+
+            InputSet closeTabSet
+            closeTabSet:SetKeyboardInput(keys:W)
+            closeTabSet:AddModifier(forwardTab:META)
+            tabPaneTable:Add(closeTabSet, closeTab)
         else
             InputSet forwardTab
             forwardTab:SetKeyboardInput(keys:TAB)
@@ -909,6 +914,11 @@ class Game
             backwardTab:AddModifier(forwardTab:CONTROL)
 
             tabPaneTable:Add(backwardTab, backward)
+
+            InputSet closeTabSet
+            closeTabSet:SetKeyboardInput(keys:W)
+            closeTabSet:AddModifier(forwardTab:CONTROL)
+            tabPaneTable:Add(closeTabSet, closeTab)
         end
         
         gameInput:AddInputTable(tabPaneTable)
