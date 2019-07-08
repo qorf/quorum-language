@@ -2578,6 +2578,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     current OS's style, swaps the new lines to the system's style.
     */
     private action SanitizeNewLines(text inputText) returns text
+        if inputText:IsEmpty()
+            return inputText
+        end
+
         text separator = textValue:GetLineSeparator()
         text outputText = inputText
 
