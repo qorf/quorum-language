@@ -775,6 +775,10 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return textValue
     end
 
+    action GetText(integer startIndex, integer endIndex) returns text
+        return textValue:GetSubtext(startIndex, endIndex)
+    end
+
     /*
     This action returns the total number of characters of text in the TextField.
     */

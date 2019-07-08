@@ -59,6 +59,9 @@ use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCopyToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCutToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxPasteFromClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCopyToClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCutToClipboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
@@ -887,6 +890,85 @@ class Game
         TextFieldInsertBehavior fieldInsertBehavior
         textFieldTable:Add(textInputSet, fieldInsertBehavior)
 
+        //copy past for fields
+        if manager:GetOperatingSystem():Contains("OS X")
+            //first do copy paste
+            InputSet textFieldControlC
+            textFieldControlC:SetKeyboardInput(keys:C)
+            textFieldControlC:AddModifier(textFieldControlC:META)
+            TextFieldCopyToClipboardBehavior textFieldCopyToClipboardBehavior
+            textFieldTable:Add(textFieldControlC, textFieldCopyToClipboardBehavior)
+
+            InputSet textFieldControlX
+            textFieldControlX:SetKeyboardInput(keys:X)
+            textFieldControlX:AddModifier(textFieldControlX:META)
+            TextFieldCutToClipboardBehavior textFieldCutToClipboardBehavior
+            textFieldTable:Add(textFieldControlX, textFieldCutToClipboardBehavior)
+
+            InputSet textFieldControlV
+            textFieldControlV:SetKeyboardInput(keys:V)
+            textFieldControlV:AddModifier(textFieldControlV:META)
+            TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
+            textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
+
+//            //now do undo/redo
+//            InputSet textBoxControlZ
+//            textBoxControlZ:SetKeyboardInput(keys:Z)
+//            textBoxControlZ:AddModifier(textBoxControlZ:META)
+//            TextBoxUndoBehavior textBoxUndoBehavior
+//            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
+//
+//            InputSet textBoxControlY
+//            textBoxControlY:SetKeyboardInput(keys:Y)
+//            textBoxControlY:AddModifier(textBoxControlY:META)
+//            TextBoxRedoBehavior textBoxRedoBehavior
+//            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
+//
+//            //Selection
+//            InputSet textBoxControlA
+//            textBoxControlA:SetKeyboardInput(keys:A)
+//            textBoxControlA:AddModifier(textBoxControlA:META)
+//            TextBoxSelectAllBehavior textBoxSelectAllBehavior
+//            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+        else
+            InputSet textFieldControlC
+            textFieldControlC:SetKeyboardInput(keys:C)
+            textFieldControlC:AddModifier(textFieldControlC:CONTROL)
+            TextFieldCopyToClipboardBehavior textFieldCopyToClipboardBehavior
+            textFieldTable:Add(textFieldControlC, textFieldCopyToClipboardBehavior)
+
+            InputSet textFieldControlX
+            textFieldControlX:SetKeyboardInput(keys:X)
+            textFieldControlX:AddModifier(textFieldControlX:CONTROL)
+            TextFieldCutToClipboardBehavior textFieldCutToClipboardBehavior
+            textFieldTable:Add(textFieldControlX, textFieldCutToClipboardBehavior)
+
+            InputSet textFieldControlV
+            textFieldControlV:SetKeyboardInput(keys:V)
+            textFieldControlV:AddModifier(textFieldControlV:CONTROL)
+            TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
+            textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
+
+//            //now do undo/redo
+//            InputSet textBoxControlZ
+//            textBoxControlZ:SetKeyboardInput(keys:Z)
+//            textBoxControlZ:AddModifier(textBoxControlZ:CONTROL)
+//            TextBoxUndoBehavior textBoxUndoBehavior
+//            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
+//
+//            InputSet textBoxControlY
+//            textBoxControlY:SetKeyboardInput(keys:Y)
+//            textBoxControlY:AddModifier(textBoxControlY:CONTROL)
+//            TextBoxRedoBehavior textBoxRedoBehavior
+//            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
+//
+//            //Selection
+//            InputSet textBoxControlA
+//            textBoxControlA:SetKeyboardInput(keys:A)
+//            textBoxControlA:AddModifier(textBoxControlA:CONTROL)
+//            TextBoxSelectAllBehavior textBoxSelectAllBehavior
+//            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+        end
         gameInput:AddInputTable(textFieldTable)
 
         // Adding the input table for TabPanes.
