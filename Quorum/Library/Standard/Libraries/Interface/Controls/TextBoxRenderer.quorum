@@ -303,7 +303,7 @@ class TextBoxRenderer is Control
 
     action GetLine(integer index) returns Array<Drawable>
         integer offset = index - startLine
-        if offset < 0 or offset > lines:GetSize()
+        if offset < 0 or offset > lines:GetSize() or lines:IsEmpty()
             return undefined
         end
 
