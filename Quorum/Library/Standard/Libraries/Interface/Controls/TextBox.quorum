@@ -1561,6 +1561,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     Attribute: Parameter value The new text to be inserted.
     */
     action Insert(text value)
+        value = SanitizeNewLines(value)
+
         TextBoxEdit edit
         edit:SetTextBox(me)
 
