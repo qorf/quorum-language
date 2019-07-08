@@ -371,6 +371,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         caretCharacter = index
     end
 
+    action SetCaretPosition(integer index)
+        SetCaretToIndex(index)
+        caretX = PositionCaret()
+
+        EmptySelectionEvent(false)
+    end
+
     action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now

@@ -73,6 +73,7 @@ use Libraries.Interface.Behaviors.Controls.TextBoxWordJumpEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxUndoBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRedoBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectAllBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectAllBehavior
 use Libraries.Interface.Behaviors.Controls.ClickDownBehavior
 use Libraries.Interface.Behaviors.Controls.ClickUpBehavior
 use Libraries.Interface.Behaviors.Controls.ControlActivationBehavior
@@ -925,11 +926,11 @@ class Game
 //            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
 //
 //            //Selection
-//            InputSet textBoxControlA
-//            textBoxControlA:SetKeyboardInput(keys:A)
-//            textBoxControlA:AddModifier(textBoxControlA:META)
-//            TextBoxSelectAllBehavior textBoxSelectAllBehavior
-//            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+            InputSet textFieldControlA
+            textFieldControlA:SetKeyboardInput(keys:A)
+            textFieldControlA:AddModifier(textFieldControlA:META)
+            TextFieldSelectAllBehavior textFieldSelectAllBehavior
+            textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
         else
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -963,11 +964,11 @@ class Game
 //            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
 //
 //            //Selection
-//            InputSet textBoxControlA
-//            textBoxControlA:SetKeyboardInput(keys:A)
-//            textBoxControlA:AddModifier(textBoxControlA:CONTROL)
-//            TextBoxSelectAllBehavior textBoxSelectAllBehavior
-//            textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+            InputSet textFieldControlA
+            textFieldControlA:SetKeyboardInput(keys:A)
+            textFieldControlA:AddModifier(textFieldControlA:CONTROL)
+            TextFieldSelectAllBehavior textFieldSelectAllBehavior
+            textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
 
