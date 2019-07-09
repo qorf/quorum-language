@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.TreeTableSelection
@@ -658,5 +659,16 @@ class TreeTable is Control
     */
     action GetRows returns Array<TreeTableRow>
         return rows
+    end
+
+    /*
+
+    */
+    action GainedFocus(FocusEvent event)
+        if selection:IsEmpty()
+            if columns:IsEmpty() = false and columns:Get(0):IsEmpty() = false
+                Select(0, 0)
+            end
+        end
     end
 end

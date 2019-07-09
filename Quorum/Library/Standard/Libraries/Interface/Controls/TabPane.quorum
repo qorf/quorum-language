@@ -7,6 +7,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.Graphics.Font
@@ -241,6 +242,15 @@ class TabPane is Control
         parent:Control:SetFontSize(size)
         if bar not= undefined
             bar:SetFontSize(size)
+        end
+    end
+
+    /*
+
+    */
+    action GainedFocus(FocusEvent event)
+        if selection:IsEmpty() = true and bar:IsEmpty() = false
+            Get(0):Activate()
         end
     end
 end

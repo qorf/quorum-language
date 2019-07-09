@@ -175,6 +175,10 @@ class TabBar is Control, ButtonGroup
         return tabs:GetSize()
     end
 
+    action IsEmpty returns boolean
+        return tabs:IsEmpty()
+    end
+
     action AddTabChangeListener(TabChangeListener listener)
         listeners:Add(listener)
     end

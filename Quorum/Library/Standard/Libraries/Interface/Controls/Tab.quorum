@@ -17,6 +17,7 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
+use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 
@@ -196,6 +197,28 @@ class Tab is ToggleButton
             if pane not= undefined
                 pane:UpdateSelection(undefined)
             end
+        end
+    end
+
+    action Activate(BehaviorEvent event)
+        if GetToggleState() = true and CanToggleOff() = false
+            if relatedItem not= undefined
+                if focusTarget not= undefined
+                    focusTarget:Focus()
+                else
+                    relatedItem:Focus()
+                end
+            else
+                if GetButtonGroup() is TabBar
+                    TabBar bar = cast(TabBar, GetButtonGroup())
+                    TabPane pane = bar:GetTabPane()
+                    if pane not= undefined
+                        Focus()
+                    end
+                end
+            end
+        else
+            parent:ToggleButton:Activate(event)
         end
     end
 
