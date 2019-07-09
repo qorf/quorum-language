@@ -1,0 +1,28 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Selections.TextFieldSelection
+
+class TextFieldSelectAllBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextField)
+            return now
+        end
+
+        TextField field = cast(TextField, item)
+        TextFieldSelection selection = field:GetSelection()
+
+        integer endIndex = field:GetSize()
+
+        field:SetCaretPosition(endIndex)
+        field:Select(0, endIndex, true)
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

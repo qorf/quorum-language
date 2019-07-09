@@ -371,6 +371,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         caretCharacter = index
     end
 
+    action SetCaretPosition(integer index)
+        SetCaretToIndex(index)
+        caretX = PositionCaret()
+
+        EmptySelectionEvent(false)
+    end
+
     action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now
@@ -773,6 +780,10 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action GetText returns text
         return textValue
+    end
+
+    action GetText(integer startIndex, integer endIndex) returns text
+        return textValue:GetSubtext(startIndex, endIndex)
     end
 
     /*

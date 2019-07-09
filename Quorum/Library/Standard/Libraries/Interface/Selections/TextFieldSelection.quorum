@@ -57,6 +57,14 @@ class TextFieldSelection is Selection
         end
     end
 
+    action GetText returns text
+        TextField field = GetTextField()
+        if field not= undefined
+            return field:GetText(GetStartIndex(), GetEndIndex())
+        end
+        return ""
+    end
+
     /* 
         This action is a helper to obtain the TextField without casting.
  
