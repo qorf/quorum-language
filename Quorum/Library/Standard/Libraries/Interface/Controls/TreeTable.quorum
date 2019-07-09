@@ -158,6 +158,12 @@ class TreeTable is Control
     */
     action Add(TreeTableRow newRow, TreeTableRow parentRow, integer position)
         if columns:IsEmpty() = false and parentRow:IsEmpty() = false
+            if parentRow:IsExpanded() = false
+                newRow:SetParentTreeTable(me)
+                SetParentTreeTableReferences(newRow:GetChildren(), me)
+                return now
+            end
+
             TreeTableColumn firstColumn = columns:Get(0)
             integer targetIndex = firstColumn:GetCellIndex(parentRow)
             
@@ -193,12 +199,14 @@ class TreeTable is Control
     end
 
     action EmptyRows 
-        i = 0
+        integer i = 0
         repeat while i < columns:GetSize()
             TreeTableColumn column = columns:Get(i)
             column:Empty()
             i = i + 1
         end
+
+        rows:Empty()
     end
 
     action Remove(TreeTableRow row) returns boolean
@@ -500,6 +508,7 @@ class TreeTable is Control
 
         parentRow:SetExpandFlag(true)
         Array<TreeTableRow> rows = parentRow:GetChildren()
+
         repeat while i < rows:GetSize()
             TreeTableRow row = rows:Get(i)
             index = index + 1

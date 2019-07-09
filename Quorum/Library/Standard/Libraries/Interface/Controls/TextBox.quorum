@@ -1698,6 +1698,23 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             elseif source:Equals(verticalBar) or source:Equals(horizontalBar)
                 // React to click being on the bar itself.
             else // Assume main text area was clicked.
+
+                if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
+                    // See if the click should be processed by a Gutter.
+                    Array<Gutter> gutters = background:GetGutters()
+
+                    number x = event:GetX()
+                    integer counter = 0
+                    repeat while counter < gutters:GetSize()
+                        Gutter gutter = gutters:Get(counter)
+                        if x >= gutter:GetGlobalX() and x <= gutter:GetGlobalX() + gutter:GetWidth()
+                            gutter:ClickedMouse(event)
+                            return now
+                        end
+                        counter = counter + 1
+                    end
+                end
+
                 draggingInText = true
                 MousePositionCaret(event, false)
             end
