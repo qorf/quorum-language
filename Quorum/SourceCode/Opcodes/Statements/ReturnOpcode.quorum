@@ -13,12 +13,16 @@ class ReturnOpcode is QuorumOpcode
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
-        returnValue:SetBytecodeWriteOffsetToAllChildren(offset)
+        if returnValue not= undefined
+            returnValue:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
     end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        returnValue:SetMethodWriterToAllChildren(writer)
+        if returnValue not= undefined
+            returnValue:SetMethodWriterToAllChildren(writer)
+        end
     end
 
     action SetReturnValue(QuorumOpcode op)

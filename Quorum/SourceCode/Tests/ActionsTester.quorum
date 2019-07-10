@@ -80,6 +80,7 @@ class ActionsTester
         ReturnIfElseToVarNum2()
         ReturnIfElseToVarText1()
         ReturnIfElseToVarText2()
+        ReturnNowInOnCreate()
         SimpleActionPassObject()
         SimpleCastArgument()
         SimpleNestedActions()
@@ -913,6 +914,17 @@ class ActionsTester
         main:SetPath(path + "ReturnIfElseToVarText2.quorum")
         files:Add(main)
         results:Add(0, "positive")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnNowInOnCreate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnNowInOnCreate.quorum")
+        files:Add(main)
+        results:Add(0, "pass")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
