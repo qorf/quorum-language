@@ -1,9 +1,9 @@
 use Libraries.Containers.ByteArray
 
-    ByteArray value
-    value:SetSize(2)
-    value:Set(0, 1)
-    value:Set(1, 1)
-    integer byte1 = value:Get(0)
-    integer byte2 = value:Get(1)
-    output value:CharacterFromTwoBytes(byte1, byte2)
+ByteArray value
+value:SetSize(2)
+value:Set(0, 1)
+value:Set(1, 1)
+integer byte1 = value:Get(0)
+integer byte2 = value:Get(1)
+output value:CharacterFromTwoBytes(byte1, byte2)

@@ -156,7 +156,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "CharacterFromTwoBytes.quorum")
         files:Add(main)
-        results:Add(0, "ā")
+        results:Add(0, "?")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
