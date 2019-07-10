@@ -5,6 +5,8 @@ class VibrationCommand
     /*
     Sets the duration of the VibrationCommand, measured in seconds.
 
+    Attribute: Parameter seconds The number of seconds for the VibrationCommand to vibrate for.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -43,6 +45,8 @@ class VibrationCommand
 
     /*
     Returns the duration of the VibrationCommand, measured in seconds.
+
+    Attribute: Returns The duration, measured in seconds, of the VibrationCommand.
 
     Attribute: Example
 
@@ -85,6 +89,10 @@ class VibrationCommand
     /*
     Sets the intensity of the VibrationCommand, a number between 0.0 and 1.0.
 
+    Attribute: Parameter intensity The intensity for the VibrationCommand, given by
+               a number between 0.0 and 1.0, which represents the percentage
+               of maximum intensity at which to play.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -125,6 +133,8 @@ class VibrationCommand
 
     /*
     Returns the intensity of the VibrationCommand, a number between 0.0 and 1.0.
+
+    Attribute: Returns The intensity, a number between 0.0 and 1.0, of the VibrationCommand.
 
     Attribute: Example
 
