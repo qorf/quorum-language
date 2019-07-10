@@ -200,6 +200,11 @@ class Item2D is Item
     // A reusable Vector3 used for one-off calculations, such as in GetScreenX().
     Vector3 workVector3
 
+    // A pair of reusable Vector2 objects used for one-off calculations, such
+    // as GetClipCoordinates.
+    Vector2 workVector2A
+    Vector2 workVector2B
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -2712,6 +2717,28 @@ class Item2D is Item
     directly.
     */
     action SetClipCoordinates(Painter2D painter)
+        boolean applyClipping = GetClipCoordinates(workVector2A, workVector2B)
+
+        if applyClipping
+            painter:SetClipping(true)
+            painter:SetClipCoordinates(workVector2A:GetX(), workVector2B:GetX(), workVector2A:GetY(), workVector2B:GetY())
+        else
+            painter:SetClipping(false)
+        end
+    end
+
+    /*
+    This action gets the clipping coordinates of this Item2D. The coordinates
+    are returned via the two provided Vector2 parameters, the first vector
+    storing the x values of the left and right sides of the clipping coordinates
+    and the second vector storing the y values of the bottom and top sides.
+
+    The returned boolean value indicates if this Item uses these clipping
+    coordinates (i.e. if this Item or one of its parent Items has clipping
+    enabled). If the clipping is valid, the action returns true. Otherwise, it
+    returns false.
+    */
+    action GetClipCoordinates(Vector2 xCoords, Vector2 yCoords) returns boolean
         number constants = 0
         number left = constants:GetNegativeInfinityValue()
         number right = constants:GetPositiveInfinityValue()
@@ -2769,12 +2796,9 @@ class Item2D is Item
             item = item:GetParent()
         end
 
-        if applyClipping
-            painter:SetClipping(true)
-            painter:SetClipCoordinates(left, bottom, right, top)
-        else
-            painter:SetClipping(false)
-        end
+        xCoords:Set(left, right)
+        yCoords:Set(bottom, top)
+        return applyClipping
     end
 
     /*

@@ -3,12 +3,33 @@ package Libraries.Interface.Behaviors.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.TreeTable
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+use Libraries.Interface.Selections.TreeTableSelection
 
 class TreeTableLeftBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is TreeTable
             TreeTable sheet = cast(TreeTable, event:GetItem())
-            sheet:MoveSelectionLeft()
+            TreeTableSelection selection = sheet:GetSelection()
+            
+            // If we're in the left-most column, try to close an expanded row,
+            // or jump to a parent row.
+            if selection not= undefined and selection:GetX() = 0
+                TreeTableCell cell = selection:Get()
+                TreeTableRow row = cell:GetRow()
+                if row not= undefined
+                    if row:IsExpanded()
+                        sheet:CloseRow(row)
+                    elseif row:GetParent() not= undefined
+                        sheet:Select(0, sheet:GetRowIndex(row:GetParent()))
+                    end
+                end
+
+            // If we're not in the left-most column, move the selection left.
+            else
+                sheet:MoveSelectionLeft()
+            end
         end
     end
 end

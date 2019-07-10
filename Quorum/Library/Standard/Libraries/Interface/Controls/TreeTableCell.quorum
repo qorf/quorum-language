@@ -146,6 +146,28 @@ class TreeTableCell is Control
                     expandButton:SetToggleState(row:IsExpanded())
                     expandButton:SetBehavior(expandBehavior)
                 end
+
+                View2D buttonView = properties:GetView2D()
+                if buttonView = undefined
+                    buttonView = expandButton:GetView2D()
+                    if buttonView = undefined
+                        integer height = 10
+                        Font font = properties:GetFont()
+                        if font not= undefined
+                            height = font:GetLineHeight()
+                        end
+
+                        DefaultTreeMenuView content
+                        content:Initialize(height, height * 2)
+                        buttonView = content
+                    end
+                end
+
+                if expandButton:GetView2D() not= buttonView
+                    expandButton:SetView2D(buttonView)
+                    expandButton:GetDefaultLayoutProperties():SetView2D(buttonView)
+                end
+
                 Add(0, expandButton)
             end
 
@@ -328,4 +350,13 @@ class TreeTableCell is Control
         return row
     end
 
+    /*
+    This action is used internally by the system to update the toggle button for
+    a tree. Most users will never need to call this action directly.
+    */
+    action UpdateButtonState
+        if GetChildren():Has(expandButton) and row not= undefined
+            expandButton:SetToggleState(row:IsExpanded())
+        end
+    end
 end

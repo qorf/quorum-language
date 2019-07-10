@@ -3,11 +3,26 @@ package Libraries.Interface.Behaviors.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.TreeTable
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+use Libraries.Interface.Selections.TreeTableSelection
 
 class TreeTableRightBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is TreeTable
             TreeTable sheet = cast(TreeTable, event:GetItem())
+            TreeTableSelection selection = sheet:GetSelection()
+            
+            // If we're in the left-most column, try to expand a closed row.
+            if selection not= undefined and selection:GetX() = 0
+                TreeTableCell cell = selection:Get()
+                TreeTableRow row = cell:GetRow()
+                if row not= undefined and row:IsExpanded() = false
+                    sheet:ExpandRow(row)
+                    return now
+                end
+            end
+
             sheet:MoveSelectionRight()
         end
     end

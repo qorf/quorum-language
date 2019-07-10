@@ -117,6 +117,11 @@ class Layer2D is Layer
     boolean shouldLayout = false
     boolean shouldSortDepthBuffer = true
 
+    // A pair of reusable Vector2 objects used for one-off calculations, such
+    // as GetClipCoordinates.
+    Vector2 workVector2A
+    Vector2 workVector2B
+
     on create
         OrthographicCamera cam
         camera = cam
@@ -1141,12 +1146,21 @@ class Layer2D is Layer
         repeat while counter < sortedItems:GetSize() and processing
             Item2D item = sortedItems:Get(counter)
             if item:IsShowing() and item:Contains(pointVector:GetX(), pointVector:GetY())
-                temp = item
-                event:SetSource(temp)
-                temp:ProcessMouseEvent(event)
-                processing = not event:WasEventHandled()
-                if event:WasEventHandled()
-                    result = temp
+                boolean isClipped = item:GetClipCoordinates(workVector2A, workVector2B)
+
+                // If the Item is subject to clipping, only forward mouse events
+                // to it if the event occurred over an unclipped portion of it.
+                if isClipped = false or
+                        ((pointVector:GetX() >= workVector2A:GetX() and pointVector:GetX() <= workVector2A:GetY()) and
+                         (pointVector:GetY() >= workVector2B:GetX() and pointVector:GetY() <= workVector2B:GetY()))
+
+                    temp = item
+                    event:SetSource(temp)
+                    temp:ProcessMouseEvent(event)
+                    processing = not event:WasEventHandled()
+                    if event:WasEventHandled()
+                        result = temp
+                    end
                 end
             end
 

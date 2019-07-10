@@ -470,6 +470,19 @@ class TreeTable is Control
     end
 
     /*
+    This action returns the y index of the given row within the columns of the
+    TreeTable, corresponding to the y value of the TreeTableSelection. If the
+    row isn't found in this TreeTable, this action returns -1 instead.
+    */
+    action GetRowIndex(TreeTableRow row) returns integer
+        if columns:IsEmpty()
+            return -1
+        end
+
+        return columns:Get(0):GetCellIndex(row)
+    end
+
+    /*
     This action gets the cell located at the given coordinates, where the x
     coordinate represents the column and the y coordinate represents the row.
     */
@@ -508,6 +521,10 @@ class TreeTable is Control
         integer columnSize = columns:GetSize()
 
         parentRow:SetExpandFlag(true)
+        if columns:IsEmpty() = false
+            columns:Get(0):GetCell(index):UpdateButtonState()
+        end
+
         Array<TreeTableRow> rows = parentRow:GetChildren()
 
         repeat while i < rows:GetSize()
@@ -534,6 +551,7 @@ class TreeTable is Control
 
         // We'll remove cells from the index after the parent cell.
         integer index = GetFlattenedIndex(row)
+        integer originalIndex = index
 
         if index < 0
             return now
@@ -566,6 +584,9 @@ class TreeTable is Control
         end
 
         row:SetExpandFlag(false)
+        if columns:IsEmpty() = false
+            columns:Get(0):GetCell(originalIndex):UpdateButtonState()
+        end
     end
 
     /*
