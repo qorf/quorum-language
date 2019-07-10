@@ -249,8 +249,12 @@ class TabPane is Control
 
     */
     action GainedFocus(FocusEvent event)
-        if selection:IsEmpty() = true and bar:IsEmpty() = false
-            Get(0):Activate()
+        if selection:IsEmpty() = true
+            if bar:IsEmpty() = false
+                Get(0):Activate()
+            end
+        else
+            selection:GetTab():Activate()
         end
     end
 end

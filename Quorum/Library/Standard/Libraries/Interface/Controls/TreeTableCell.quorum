@@ -356,7 +356,11 @@ class TreeTableCell is Control
     */
     action UpdateButtonState
         if GetChildren():Has(expandButton) and row not= undefined
+            // Temporarily remove the behavior from the button so that changing
+            // its toggle state doesn't trigger the behavior.
+            expandButton:SetBehavior(undefined)
             expandButton:SetToggleState(row:IsExpanded())
+            expandButton:SetBehavior(expandBehavior)
         end
     end
 end

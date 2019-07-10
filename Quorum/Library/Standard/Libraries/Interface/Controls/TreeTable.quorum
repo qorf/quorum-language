@@ -511,6 +511,10 @@ class TreeTable is Control
     end
 
     action ExpandRow(TreeTableRow parentRow)
+        if parentRow:IsExpanded()
+            return now
+        end
+
         integer index = GetFlattenedIndex(parentRow)
 
         if index < 0
