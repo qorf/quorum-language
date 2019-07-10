@@ -37,8 +37,10 @@ class Vibration
         This method vibrates according to a preset pattern, which has quick 
         vibrations in rapid succession, repeating for the specified number
         of seconds.
+        
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -69,7 +71,7 @@ class Vibration
         vibrations with short pauses in between, repeating until the Stop()
         action is called.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -100,7 +102,9 @@ class Vibration
         vibrations with relatively long pauses in between, repeating for the
         specified number of seconds.
 
-       Attribute: Example
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -131,7 +135,7 @@ class Vibration
         vibrations with relatively long pauses in between, repeating until
         the Stop() action is called.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -162,7 +166,9 @@ class Vibration
         low-intensity vibration with very short pauses, repeating for
         the specified number of seconds.
 
-       Attribute: Example
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -193,7 +199,7 @@ class Vibration
         low-intensity vibration with very short pauses, repeating until the
         Stop() action is called.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -223,7 +229,7 @@ class Vibration
         This method vibrates according to a preset pattern, which has two quick 
         vibrations followed by a long pause and a final vibration.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -254,7 +260,9 @@ class Vibration
         vibrations followed by a long pause and a final vibration. Repeats the
         pattern for the amount of times specified.
 
-       Attribute: Example
+        Attribute: Parameter repetitions The amount of times for the pattern to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -285,7 +293,7 @@ class Vibration
         vibrations followed by a long pause and a final vibration. Repeats
         the pattern until the Stop() action is called.
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -315,7 +323,9 @@ class Vibration
         This method turns on the motor, vibrating constantly at maximum intensity
         for the number of seconds specified.
 
-       Attribute: Example
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -345,7 +355,7 @@ class Vibration
         This method turns on the motor, vibrating constantly at maximum intensity,
         repeating until the Stop() action is called. 
 
-       Attribute: Example
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -377,7 +387,13 @@ class Vibration
         be a number between 0.0 and 1.0, representing a percentage of the maximum
         intensity allowed by the device.
 
-       Attribute: Example
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Parameter intensity The intensity of the vibration, given by
+                   a number between 0.0 and 1.0, which represents the percentage
+                   of maximum intensity at which to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -409,7 +425,11 @@ class Vibration
         be a number between 0.0 and 1.0, representing a percentage of the maximum
         intensity allowed by the device.
 
-       Attribute: Example
+        Attribute: Parameter intensity The intensity of the vibration, given by
+                   a number between 0.0 and 1.0, which represents the percentage
+                   of maximum intensity at which to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Game.Game
@@ -436,9 +456,12 @@ class Vibration
     system action VibrateForever(number intensity)
 
     /* 
-       This method plays a vibration pattern created with a VibrationArray. 
+        This method plays a vibration pattern created with a VibrationArray. 
 
-       Attribute: Example
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Vibration.VibrationArray
@@ -475,7 +498,12 @@ class Vibration
         This method plays a vibration pattern created with a VibrationArray. 
         Repeats the pattern for the amount of times specified.
 
-       Attribute: Example
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
+
+        Attribute: Parameter repetitions The amount of times for the pattern to play.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Vibration.VibrationArray
@@ -512,7 +540,10 @@ class Vibration
         This method plays a vibration pattern created with a VibrationArray, repeating
         until the Stop() action is called.
 
-       Attribute: Example
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
+
+        Attribute: Example
 
         use Libraries.Vibration.Vibration
         use Libraries.Vibration.VibrationArray
@@ -549,6 +580,11 @@ class Vibration
         Plays a vibration at the given frequency for the given number of seconds.
         The frequency is measured in Hertz (Hz).
 
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Parameter frequency The frequency, measured in Hertz (Hz), for the
+                   vibration to play at.
+
         Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -578,6 +614,9 @@ class Vibration
     /* 
         Plays a vibration at the given frequency, repeating until the Stop() action
         is called. The frequency is measured in Hertz (Hz).
+
+        Attribute: Parameter frequency The frequency, measured in Hertz (Hz), for the
+                   vibration to play at.
 
         Attribute: Example
 
