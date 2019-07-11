@@ -47,6 +47,10 @@ class FlowLayout is Layout
                 if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_FONT
                     Font font = containerProperties:GetFont()
                     if font not= undefined
+                        if font:GetSize() not= cast(integer, containerProperties:GetFontSize() * containerProperties:GetInterfaceScale())
+                            font:SetSize(cast(integer, containerProperties:GetFontSize() * containerProperties:GetInterfaceScale()))
+                        end
+
                         number topPadding = 0
                         number bottomPadding = 0
 
@@ -67,6 +71,13 @@ class FlowLayout is Layout
                         end
 
                         containerHeight = font:GetLineHeight() + containerBorder + topPadding + bottomPadding
+
+                        if container:GetName():Contains("DEBUG")
+                            output "Container values for " + container:GetName()
+                            output "containerHeight = " + containerHeight
+                            output "font size = " + font:GetSize() + ", properties size = " + containerProperties:GetFontSize() + ", scale = " + containerProperties:GetInterfaceScale()
+                            output "Line height = " + font:GetLineHeight()
+                        end
 
                         if container:GetHeight() not= containerHeight
                             container:SetHeight(containerHeight)
@@ -214,6 +225,10 @@ class FlowLayout is Layout
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             Font font = properties:GetFont()
                             if font not= undefined
+                                if font:GetSize() not= cast(integer, properties:GetFontSize() * properties:GetInterfaceScale())
+                                    font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+                                end
+
                                 height = font:GetLineHeight()
                             end
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
