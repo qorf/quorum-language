@@ -254,7 +254,12 @@ class TabPane is Control
                 Get(0):Activate()
             end
         else
-            selection:GetTab():Activate()
+            Tab tab = selection:GetTab()
+            if tab:GetFocusTarget() not= undefined
+                tab:GetFocusTarget():Focus()
+            elseif tab:GetRelatedItem():IsFocusable()
+                tab:GetRelatedItem():Focus()
+            end
         end
     end
 end
