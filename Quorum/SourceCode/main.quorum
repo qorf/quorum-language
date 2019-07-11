@@ -208,8 +208,8 @@ class Main is WebResponder
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetWorkingDirectory("/Users/andreasstefik/Repositories/demogames/Bug Buster/SourceCode")
-        main:SetPath("main.quorum")
+        main:SetWorkingDirectory("C:\Users\stefika\Documents\Repositories\quorum-language\Quorum\Library\Tests\Actions\Pass")
+        main:SetPath("ReturnNowInOnCreate.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
         Array<File> files
 //        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
@@ -232,7 +232,7 @@ class Main is WebResponder
 //            end
 //            i = i + 1
 //        end
-        //files:Add(main)
+        files:Add(main)
         //compiler:SetMain(main)
 
         //files = main:GetParentDirectory():GetDirectoryListing()

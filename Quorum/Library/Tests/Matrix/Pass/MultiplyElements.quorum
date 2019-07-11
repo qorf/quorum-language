@@ -16,8 +16,11 @@ class Main
 |8.0, 10.0, 12.0|"
         text lf = answer:GetLineFeed()
         text cr = answer:GetCarriageReturn()
-        answer = answer:Replace(cr, lf)
-        result = result:Replace(cr, lf)
+        answer = answer:Replace(cr, "")
+        result = result:Replace(cr, "")
+
+        answer = answer:Replace(lf, "")
+        result = result:Replace(lf, "")
         if answer = result
             output "pass"
         else

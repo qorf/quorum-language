@@ -41,6 +41,10 @@ class VibrationArray
     contains a duration measured in seconds and an intensity, a number between
     0.0 and 1.0.
 
+    Attribute: Parameter item One segment of a pattern, with a duration in seconds
+               and an intensity between 0.0 and 1.0, stored within a VibrationCommand
+               object.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -82,6 +86,8 @@ class VibrationArray
     Adds a new item with the given duration to the VibrationArray. Duration is 
     measured in seconds, and intensity defaults to 1.0, or maximum intensity.
 
+    Attribute: Parameter seconds The number of seconds for the new item to vibrate for.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -118,6 +124,12 @@ class VibrationArray
     Adds a new item with the given duration and intensity to the VibrationArray.
     Duration is measured in seconds, and intensity is a number between 0.0 and 1.0.
 
+    Attribute: Parameter seconds The number of seconds for the new item to vibrate for.
+
+    Attribute: Parameter intensity The intensity of the new item, given by
+               a number between 0.0 and 1.0, which represents the percentage
+               of maximum intensity at which to play.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -153,6 +165,10 @@ class VibrationArray
     /*
     Retrieves the duration of the item stored at the given index. This returned 
     duration is measured in seconds.
+
+    Attribute: Parameter index The index or location the item is located at. 
+
+    Attribute: Returns The duration, measured in seconds, of the item at the given index.
 
     Attribute: Example
 
@@ -193,6 +209,10 @@ class VibrationArray
     Retrieves the intensity of the item stored at the given index. This returned 
     intensity is a number between 0.0 and 1.0.
 
+    Attribute: Parameter index The index or location the item is located at. 
+
+    Attribute: Returns The intensity, a number between 0.0 and 1.0, of the item at the given index.
+
     Attribute: Example
 
         use Libraries.Vibration.Vibration
@@ -232,6 +252,11 @@ class VibrationArray
     /*
     Retrieves the VibrationCommand stored at the given index, which contains
     the duration in seconds and the intensity.
+
+    Attribute: Parameter index The index or location the item is located at. 
+
+    Attribute: Returns The item, a VibrationCommand containing both a duration in seconds
+               and an intensity between 0.0 and 1.0, at the given index.
 
     Attribute: Example
 
@@ -277,6 +302,8 @@ class VibrationArray
 
     /*
     Removes the item stored at the given index of the VibrationArray.
+
+    Attribute: Parameter index The index or location the item is located at. 
 
     Attribute: Example
 
@@ -357,6 +384,8 @@ class VibrationArray
 
     /*
     Returns the number of items held within the VibrationArray.
+
+    Attribute: Returns The amount of items stored within the VibrationArray.
 
     Attribute: Example
 
