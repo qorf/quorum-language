@@ -327,6 +327,8 @@ begin(createAttributes(attributes), primitiveType);
 
         Integer32BitArray newIndices
         newIndices:SetSize(indices:GetSize())
+        i = 0
+
         repeat while i < indices:GetSize()
             newIndices:Set(i, indices:Get(i))
             i = i + 1
