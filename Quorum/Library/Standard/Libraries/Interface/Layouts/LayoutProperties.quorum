@@ -137,6 +137,8 @@ class LayoutProperties
     ColorGroup selectionBorderColor = undefined
     Color selectionFontColor = undefined
 
+    ColorGroup unfocusedSelectionColor = undefined
+
     TextureRegion icon = undefined
     ColorGroup iconColor = undefined
 
@@ -521,6 +523,14 @@ class LayoutProperties
 
     action GetFontColor returns Color
         return fontColor
+    end
+
+    action SetUnfocusedSelectionColor(ColorGroup color)
+        unfocusedSelectionColor = color
+    end
+
+    action GetUnfocusedSelectionColor returns ColorGroup
+        return unfocusedSelectionColor
     end
 
     action SetLabelText(text value)

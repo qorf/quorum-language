@@ -50,6 +50,12 @@ class Tree is Control
     end
 
     action Remove(TreeItem item)
+        // If the removed TreeItem was part of the selected path, empty the
+        // selection (rather than maintaining it on a removed item).
+        if selection:GetPath():Get(0) = item
+            Deselect()
+        end
+
         panel:Remove(item)
         treeItems:Remove(item)
         item:SetTree(undefined)
@@ -253,6 +259,9 @@ class Tree is Control
         else
             // Force a selection event.
             selection:SetDisplayName(selection:GetDisplayName())
+            if not treeItems:IsEmpty()
+                selection:GetTreeItem():GainedSelection()
+            end
         end
     end
 
@@ -260,7 +269,9 @@ class Tree is Control
 
     */
     action LostFocus(FocusEvent event)
-
+        if not selection:IsEmpty()
+            selection:GetTreeItem():UnfocusedSelection()
+        end
     end
 
     action AddTreeChangeListener(TreeChangeListener listener)

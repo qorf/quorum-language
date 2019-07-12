@@ -396,7 +396,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
         FitCharacterOnScreen(caretCharacter)
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveLeft()
@@ -426,7 +426,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
         FitCharacterOnScreen(caretCharacter)
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         if selecting
             SelectionMoveRight()
@@ -458,10 +458,21 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+    The ShowCaret action forces the caret to display. The caret will begin to
+    blink at a rate determined by the caret's idle time (see the 
+    SetCaretIdleTime action).
+    */
     action ShowCaret
-        caret:Show()
         caretActive = true
-        caretTimer = caretIdleTime
+        ResetCaretBlinkTimer()
+    end
+
+    private action ResetCaretBlinkTimer()
+        if caretActive
+            caret:Show()
+            caretTimer = caretIdleTime
+        end
     end
 
     action HideCaret
@@ -501,7 +512,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
 
@@ -542,7 +553,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText)
@@ -572,7 +583,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
     end
@@ -598,7 +609,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
     end
@@ -632,7 +643,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
 
@@ -689,7 +700,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         else
             EmptySelectionEvent(false)
         end
-        ShowCaret()
+        ResetCaretBlinkTimer()
     end
 
     private action PositionCaretFromCoordinates(number x, number y)
@@ -803,7 +814,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)
@@ -819,7 +830,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
-        ShowCaret()
+        ResetCaretBlinkTimer()
 
         EmptySelectionEvent(true)
         NotifyTextChangeListeners(changeEvent)

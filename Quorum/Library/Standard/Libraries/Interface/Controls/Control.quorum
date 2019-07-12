@@ -687,6 +687,20 @@ class Control is Item2D
     /*
 
     */
+    action SetUnfocusedSelectionColor(ColorGroup color)
+        defaultProperties:SetUnfocusedSelectionColor(color)
+    end
+
+    /*
+
+    */
+    action GetUnfocusedSelectionColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionColor()
+    end
+
+    /*
+
+    */
     action SetBorderColor(ColorGroup color)
         defaultProperties:SetBorderColor(color)
     end

@@ -9,15 +9,40 @@ use Libraries.Interface.Views.SelectionHighlightView
 
 class ControlLabel is Label
     
-    Color color
+    SelectionHighlightView view = undefined
+
+    on create
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        Color color
+        Color selectionColor = color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1)
+        Color unfocusedColor = color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1)
+
+        properties:SetSelectionFontColor(color:White())
+        properties:SetFontColor(color:Black())
+        properties:SetSelectionColor(selectionColor)
+        properties:SetUnfocusedSelectionColor(unfocusedColor)
+    end
 
     action GainedSelection
-        SetColor(color:White())
+        SetColor(GetSelectionFontColor())
+        if view not= undefined
+            view:SetSelectionColor(GetSelectionColor())
+        end
+
+        parent:Control:GainedSelection()
+    end
+
+    action UnfocusedSelection
+        SetColor(GetFontColor())
+        if view not= undefined
+            view:SetSelectionColor(GetUnfocusedSelectionColor())
+        end
+
         parent:Control:GainedSelection()
     end
 
     action LostSelection
-        SetColor(color:Black())
+        SetColor(GetFontColor())
         parent:Control:LostSelection()
     end
 
@@ -26,9 +51,13 @@ class ControlLabel is Label
 
         if properties:GetView2D() not= undefined
             SetView2D(properties:GetView2D())
+            if properties:GetView2D() is SelectionHighlightView
+                view = cast(SelectionHighlightView, properties:GetView2D())
+            end
         elseif GetView2D() = undefined
             SelectionHighlightView content
-            content:Initialize(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+            view = content
+            content:Initialize(properties:GetSelectionColor())
             SetView2D(content)
         end
     end

@@ -698,6 +698,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         Array<Drawable> lineDrawables = background:GetLine(lineIndex)
 
+        // If the lineDrawables are undefined, this line isn't currently on-screen.
+        // There's nothing to change, so return now.
+        if lineDrawables = undefined
+            return now
+        end
+
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
         Color fontColor = currentProperties:GetFontColor()
 
@@ -980,7 +986,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             text lineText = textValue:GetLine(firstLine):GetText()
             
             Glyph leftGlyph = font:GetGlyph(lineText:GetCharacter(firstLineIndex))
-            Glyph rightGlyph = font:GetGlyph(lineText:GetCharacter(lastLineIndex))
+            Glyph rightGlyph = font:GetGlyph(lineText:GetCharacter(lastLineIndex - 1))
             Drawable leftDrawable = lineDrawables:Get(firstLineIndex)
             number left = leftDrawable:GetX() - leftGlyph:lengthToGlyph
             number right = lineDrawables:Get(lastLineIndex - 1):GetX() - rightGlyph:lengthToGlyph + rightGlyph:horizontalAdvance

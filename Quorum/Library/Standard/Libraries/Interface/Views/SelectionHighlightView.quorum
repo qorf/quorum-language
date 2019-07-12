@@ -18,8 +18,16 @@ class SelectionHighlightView is ControlView, Drawable
     end
 
     action Initialize(ColorGroup selectionColor)
-        color = selectionColor
+        SetSelectionColor(selectionColor)
         LoadFilledRectangle(1, 1, unselected)
+    end
+
+    action SetSelectionColor(ColorGroup selectionColor)
+        color = selectionColor
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return color
     end
 
     action QueueForDrawing(Painter2D painter)

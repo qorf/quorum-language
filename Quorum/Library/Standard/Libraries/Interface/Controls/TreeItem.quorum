@@ -328,6 +328,10 @@ class TreeItem is Control
         label:LostSelection()
     end
 
+    action UnfocusedSelection
+        label:UnfocusedSelection()
+    end
+
     action Select
         // Don't actually select here! Go to Tree and ask it to select us.
         // We do this to allow the Tree to fully update its information,
