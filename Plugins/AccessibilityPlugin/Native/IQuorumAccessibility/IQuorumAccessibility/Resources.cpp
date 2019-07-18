@@ -12,8 +12,6 @@ static jint JNI_VERSION = JNI_VERSION_1_8;
 // This is the handle to the main game window. It is set during initialization and must never be changed.
 HWND GLFWParentWindow = NULL;
 
-IUIAutomation* iuiAutomation = NULL;
-
 JavaVM* jvm;
 JNIEnv* thisEnv = NULL;
 
@@ -368,10 +366,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
 	
-	// Used to initialize the iuiAutomation variable in Resources.h, which is used to access IUIAutomation methods.
-	HRESULT result = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**)&iuiAutomation);
-	//std::cout << "Initialized iuiAutomation variable? " << SUCCEEDED(result) << std::endl;
-	//std::cout.flush();
 	env->GetJavaVM(&jvm);
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility End");
@@ -400,14 +394,6 @@ HWND GetMainWindowHandle()
 		log("Resources.cpp GetMainWindowHandle");
 	#endif
 	return GLFWParentWindow;
-}
-
-IUIAutomation* GetIUIAutomation()
-{
-	#if LOG
-		log("Resources.cpp GetIUIAutomation");
-	#endif
-	return iuiAutomation;
 }
 
 JNIEnv* GetJNIEnv()

@@ -16,9 +16,6 @@
 // Its defined in IQuorumAccessibility.cpp
 HWND GetMainWindowHandle();
 
-// This returns the central IUIAutomation object used to gather information about the environment.
-IUIAutomation* GetIUIAutomation();
-
 JNIEnv* GetJNIEnv();
 
 WCHAR* CreateWideStringFromUTF8Win32(const char* source);
