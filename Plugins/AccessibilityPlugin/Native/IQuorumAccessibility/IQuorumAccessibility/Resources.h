@@ -1,5 +1,4 @@
 #include "../IQuorumAccessibility/Header/jni.h"
-#include <UIAnimation.h>
 #include <UIAutomation.h>
 #include <iostream>
 #include <string>
