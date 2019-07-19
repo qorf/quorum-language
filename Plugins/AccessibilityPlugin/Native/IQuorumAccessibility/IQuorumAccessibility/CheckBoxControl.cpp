@@ -34,19 +34,6 @@ CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
 	return m_buttonProvider;
 }
 
-// InvokeButton: Handle button click or invoke.
-void CheckBoxControl::InvokeButton(_In_ HWND hwnd)
-{
-	GetButtonProvider(hwnd)->Toggle();
-
-	if (UiaClientsAreListening())
-	{
-		// Raise an event.
-		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
-	}
-
-}
-
 // RegisterButtonControl: Registers the CheckBoxControl with Windows API so that it can used and later be registered with UI Automation
 bool CheckBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {

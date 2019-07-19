@@ -16,8 +16,6 @@ public:
 
 	CheckBoxProvider* GetButtonProvider(_In_ HWND hwnd);
 	
-	void InvokeButton(_In_ HWND hwnd);
-
 	void SetState(_In_ ToggleState controlState);
 	ToggleState GetState();
 	virtual void Focus(bool isFocused) override;

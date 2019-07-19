@@ -34,18 +34,6 @@ RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	return m_buttonProvider;
 }
 
-// InvokeButton: Handle button click or invoke.
-void RadioButtonControl::InvokeButton(_In_ HWND hwnd)
-{
-
-	if (UiaClientsAreListening())
-	{
-		// Raise an event.
-		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
-	}
-
-}
-
 // RegisterButtonControl: Registers the RadioButtonControl with Windows API so that it can used and later be registered with UI Automation
 bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 {
