@@ -346,7 +346,7 @@ IFACEMETHODIMP ToolBarProvider::get_HostRawElementProvider(_Outptr_result_mayben
 //		return S_OK;
 //	}
 //
-//	TabControl* theControl = static_cast<TabControl*>(LongToPtr((long)selectionPointer));
+//	TabControl* theControl = reinterpret_cast<TabControl*>(selectionPointer);
 //	control->SetSelectedTab(theControl);
 //	TabProvider* theProvider = theControl->GetProvider();
 //

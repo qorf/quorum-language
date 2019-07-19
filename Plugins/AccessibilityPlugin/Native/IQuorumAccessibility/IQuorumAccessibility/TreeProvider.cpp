@@ -318,7 +318,7 @@ IFACEMETHODIMP TreeProvider::GetSelection(SAFEARRAY** pRetVal)
 		return S_OK;
 	}
 
-	TreeItemControl* treeItemControl = static_cast<TreeItemControl*>(LongToPtr((long)selectionPointer));
+	TreeItemControl* treeItemControl = reinterpret_cast<TreeItemControl*>(selectionPointer);
 	TreeItemProvider* treeItemProvider = treeItemControl->GetTreeItemProvider();
 
 	HRESULT hr = S_OK;

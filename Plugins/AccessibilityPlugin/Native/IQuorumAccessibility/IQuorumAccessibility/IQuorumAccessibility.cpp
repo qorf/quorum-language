@@ -42,7 +42,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 HWND CalculateParentWindowHandle(jlong parent) {
 	HWND handle = GetMainWindowHandle();
 	if (parent != -1) {
-		Item* theParent = static_cast<Item*>(LongToPtr((long)parent));
+		Item* theParent = reinterpret_cast<Item*>(parent);
 		handle = theParent->GetHWND();
 	}
 	return handle;
@@ -50,7 +50,7 @@ HWND CalculateParentWindowHandle(jlong parent) {
 
 Item* GetItemPointer(jlong item) {
 	if (item > 0) {
-		Item* theParent = static_cast<Item*>(LongToPtr((long)item));
+		Item* theParent = reinterpret_cast<Item*>(item);
 		return theParent;
 	}
 	return 0;
@@ -68,7 +68,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 #pragma region Create Accessible Object
 
 // CreateItem: This is the most generic accessible object that can be created. It only contains a name and a description.
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateItemNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateItemNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
@@ -82,13 +82,13 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pItemControl);
+	return reinterpret_cast<jlong>(pItemControl);
 
 }
 
 // CreateButton: Creates a window that contains the accessible information for a PushButton that was passed into this function.
 //		Returns: jlong which is the HWND for the window. This is used to further interact with the button after creation. i.e., to rename the button later should the name be changed. Also, used to keep track of it in java.
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring buttonName, jstring description, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring buttonName, jstring description, jobject jItem)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeButtonName = env->GetStringUTFChars(buttonName, 0);
@@ -104,12 +104,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pButtonControl);
+	return reinterpret_cast<jlong>(pButtonControl);
 
 }
 
 // CreateCheckBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCheckBoxNative(JNIEnv *env, jobject obj, jlong parent, jstring togglebuttonName, jstring description, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCheckBoxNative(JNIEnv *env, jobject obj, jlong parent, jstring togglebuttonName, jstring description, jobject jItem)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeTogglebuttonName = env->GetStringUTFChars(togglebuttonName, 0);
@@ -124,12 +124,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pCheckBoxControl);
+	return reinterpret_cast<jlong>(pCheckBoxControl);
 
 }
 
 // CreateRadioButton: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateRadioButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateRadioButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
@@ -144,12 +144,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pRadiobuttonControl);
+	return reinterpret_cast<jlong>(pRadiobuttonControl);
 
 }
 
 // CreateTextBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTextBoxNative(JNIEnv *env, jobject obj, jlong parent, jstring textboxName, jstring description, jobject self)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTextBoxNative(JNIEnv *env, jobject obj, jlong parent, jstring textboxName, jstring description, jobject self)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char* nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
@@ -166,11 +166,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pTextboxControl);
+	return reinterpret_cast<jlong>(pTextboxControl);
 
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTextFieldNative(JNIEnv* env, jobject obj, jlong parent, jstring textFieldName, jstring description, jobject self)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTextFieldNative(JNIEnv* env, jobject obj, jlong parent, jstring textFieldName, jstring description, jobject self)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char* nativeTextFieldName = env->GetStringUTFChars(textFieldName, 0);
@@ -187,11 +187,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(textFieldName, nativeTextFieldName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(textFieldControl);
+	return reinterpret_cast<jlong>(textFieldControl);
 
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuBarNative(JNIEnv * env, jobject obj, jlong parent, jstring menuBarName, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuBarNative(JNIEnv * env, jobject obj, jlong parent, jstring menuBarName, jobject jItem)
 {
 	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
 	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
@@ -201,10 +201,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
 
-	return PtrToLong(pMenuBarControl);
+	return reinterpret_cast<jlong>(pMenuBarControl);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv * env, jobject obj, jlong parent, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv * env, jobject obj, jlong parent, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar, jobject jItem)
 {
 	const char* nativeMenuItemName = env->GetStringUTFChars(menuItemName, 0);
 	const char* nativeMenuShortcut = env->GetStringUTFChars(menuShortcut, 0);
@@ -212,12 +212,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wMenuItemName = CreateWideStringFromUTF8Win32(nativeMenuItemName);
 	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
 
-	MenuBarControl* pMenuBar = static_cast<MenuBarControl*>(LongToPtr((long)parentMenuBar));
+	MenuBarControl* pMenuBar = reinterpret_cast<MenuBarControl*>(parentMenuBar);
 	
 	MenuItemControl* parentMenuItem = NULL;
 	
-	if ((long)parentMenu != NULL)
-		parentMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)parentMenu));
+	if (parentMenu)
+		parentMenuItem = reinterpret_cast<MenuItemControl*>(parentMenu);
 	
 	MenuItemControl* menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar, jItem);
 
@@ -226,10 +226,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
 
-	return PtrToLong(menuItemControl);
+	return reinterpret_cast<jlong>(menuItemControl);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabPaneNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabPaneNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -238,10 +238,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -250,10 +250,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TabPaneControl* tabPaneControl = static_cast<TabPaneControl*>(GetItemPointer(parent));
 	TabControl* pane = TabControl::Create(env, GetModuleHandle(NULL), handle, tabPaneControl, wName, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -263,10 +263,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListItemNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListItemNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -275,10 +275,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	ListControl* listControl = static_cast<ListControl*>(GetItemPointer(parent));
 	ListItemControl* pane = ListItemControl::Create(env, GetModuleHandle(NULL), handle, listControl, wName, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateToolBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateToolBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -288,10 +288,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSpreadsheetNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSpreadsheetNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -301,10 +301,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeTableNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeTableNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -314,10 +314,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -328,10 +328,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateDialogNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateDialogNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
@@ -341,10 +341,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return PtrToLong(pane);
+	return reinterpret_cast<jlong>(pane);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeNative(JNIEnv* env, jobject obj, jlong parent, jstring treeName, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeNative(JNIEnv* env, jobject obj, jlong parent, jstring treeName, jobject jItem)
 {
 	const char* nativeTreeName = env->GetStringUTFChars(treeName, 0);
 	WCHAR* wTreeName = CreateWideStringFromUTF8Win32(nativeTreeName);
@@ -354,10 +354,10 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	env->ReleaseStringUTFChars(treeName, nativeTreeName);
 
-	return PtrToLong(pTreeControl);
+	return reinterpret_cast<jlong>(pTreeControl);
 }
 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeItemNative(JNIEnv* env, jobject obj, 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeItemNative(JNIEnv* env, jobject obj, 
 	jlong parent, jstring treeItemName, jstring treeItemDescription, jboolean isSubtree, jboolean isExpanded, 
 	jlong parentSubtree, jlong parentTree, jobject jItem)
 {
@@ -367,12 +367,12 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wTreeItemName = CreateWideStringFromUTF8Win32(nativeTreeItemName);
 	WCHAR* wTreeItemDescription = CreateWideStringFromUTF8Win32(nativeTreeItemDescription);
 
-	TreeControl* pTree = static_cast<TreeControl*>(LongToPtr((long)parentTree));
+	TreeControl* pTree = reinterpret_cast<TreeControl*>(parentTree);
 
 	TreeItemControl* parentTreeItem = NULL;
 
-	if ((long)parentSubtree != NULL) {
-		parentTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)parentSubtree));
+	if (parentSubtree) {
+		parentTreeItem = reinterpret_cast<TreeItemControl*>(parentSubtree);
 	}
 
 	if (env != NULL)
@@ -395,7 +395,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(treeItemName, nativeTreeItemName);
 	env->ReleaseStringUTFChars(treeItemDescription, nativeTreeItemDescription);
 
-	return PtrToLong(treeItemControl);
+	return reinterpret_cast<jlong>(treeItemControl);
 }
 
 #pragma endregion
@@ -404,7 +404,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveNative(JNIEnv * env, jobject obj, jlong item)
 {
-	Item* itemToRemove = static_cast<Item*>(LongToPtr((long)item));
+	Item* itemToRemove = reinterpret_cast<Item*>(item);
 		
 	DestroyWindow(itemToRemove->GetHWND());
 
@@ -418,7 +418,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveMenuItemNative(JNIEnv * env, jobject obj, jlong menuItem)
 {
 	
-	MenuItemControl* menuItemToRemove = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+	MenuItemControl* menuItemToRemove = reinterpret_cast<MenuItemControl*>(menuItem);
 
 	HWND hwnd = menuItemToRemove->GetParentMenuBar()->GetHWND();
 
@@ -431,7 +431,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveTreeItemNative(JNIEnv * env, jobject obj, jlong treeItem)
 {
 
-	TreeItemControl* treeItemToRemove = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+	TreeItemControl* treeItemToRemove = reinterpret_cast<TreeItemControl*>(treeItem);
 
 	HWND hwnd = treeItemToRemove->GetParentTree()->GetHWND();
 
@@ -447,7 +447,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // SetFocus: This function will send a message to the window procedure for the control to change focus to that control. This function can only be called
 //						on controls that have an HWND. MenuItems, for example, don't have an HWND and receive focus through selection.
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SetFocusNative(JNIEnv *env, jobject obj, jlong control)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SetFocusNative(JNIEnv *env, jobject obj, jlong control)
 {
 	#if LOG
 		log("SetFocus Start\n");
@@ -456,7 +456,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
+	Item* pControl = reinterpret_cast<Item*>(control);
 	
 	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
@@ -466,14 +466,14 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 				log("SetFocus Finish 1\n");
 		#endif
 
-		return PtrToLong(prevFocus);
+		return reinterpret_cast<jlong>(prevFocus);
 	}
 
 	#if LOG
 		log("SetFocus End\n");
 	#endif
 
-	return NULL;
+	return 0;
 }
 
 // TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
@@ -483,7 +483,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	TextBoxControl* pTextBox = reinterpret_cast<TextBoxControl*>(textbox);
 	Range indices((int)startIndex, (int)endIndex);
 
 	//SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
@@ -500,7 +500,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* custom = "Custom Announcement";
 	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
 
-	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	TextBoxControl* pTextBox = reinterpret_cast<TextBoxControl*>(textbox);
 	IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
 
 	enum NotificationKind kind = NotificationKind_ActionAborted;
@@ -518,7 +518,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	//const char* nativeCurrentLineText = env->GetStringUTFChars(change, 0);
 	//BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
 
-	//TextBoxControl* pTextBox = static_cast<TextBoxControl*>(LongToPtr((long)textbox));
+	//TextBoxControl* pTextBox = reinterpret_cast<TextBoxControl*>(textbox);
 	//IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
 
 	//size_t length = strlen(nativeCurrentLineText);
@@ -553,7 +553,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
-	TextFieldControl* textFieldControl = static_cast<TextFieldControl*>(LongToPtr((long)textField));
+	TextFieldControl* textFieldControl = reinterpret_cast<TextFieldControl*>(textField);
 	Range indices((int)startIndex, (int)endIndex);
 
 	//SendMessage(textFieldControl->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
@@ -588,7 +588,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	
-	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
+	Item* pControl = reinterpret_cast<Item*>(control);
 
 	if (pControl != NULL && pControl->GetHWND() != NULL)
 	{
@@ -605,7 +605,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	Item* pControl = static_cast<Item*>(LongToPtr((long)control));
+	Item* pControl = reinterpret_cast<Item*>(control);
 
 	bool nativeSelected = (bool)selected;
 
@@ -626,7 +626,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 	
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)selectedMenuItem));
+	MenuItemControl* pMenuItem = reinterpret_cast<MenuItemControl*>(selectedMenuItem);
 	MenuBarControl* pMenuBar = pMenuItem->GetParentMenuBar();
 
 	if (!pMenuBar->HasFocus())
@@ -642,7 +642,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)deselectedMenuItem));
+	MenuItemControl* pMenuItem = reinterpret_cast<MenuItemControl*>(deselectedMenuItem);
 
 	pMenuItem->GetParentMenuBar()->SetSelectedMenuItem(nullptr);
 	return true;
@@ -653,7 +653,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)selectedTreeItem));
+	TreeItemControl* pTreeItem = reinterpret_cast<TreeItemControl*>(selectedTreeItem);
 	TreeControl* pTree = pTreeItem->GetParentTree();
 
 	if (!pTree->HasFocus())
@@ -669,7 +669,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	CellControl* cellControl = static_cast<CellControl*>(LongToPtr((long)selectedCell));
+	CellControl* cellControl = reinterpret_cast<CellControl*>(selectedCell);
 	SpreadsheetControl* spreadsheetControl = cellControl->GetParent();
 
 	if (!spreadsheetControl->HasFocus())
@@ -685,7 +685,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
 
-	ListItemControl* listItemControl = static_cast<ListItemControl*>(LongToPtr((long)selectedCell));
+	ListItemControl* listItemControl = reinterpret_cast<ListItemControl*>(selectedCell);
 	ListControl* listControl = listItemControl->GetParent();
 
 	if (!listControl->HasFocus()) {
@@ -698,7 +698,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_MenuExpandedNative(JNIEnv *env, jobject obj, jlong menuItem)
 {
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+	MenuItemControl* pMenuItem = reinterpret_cast<MenuItemControl*>(menuItem);
 
 	if (pMenuItem != NULL)
 		pMenuItem->Expand();
@@ -710,7 +710,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_MenuCollapsedNative(JNIEnv *env, jobject obj, jlong menuItem)
 {
-	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(LongToPtr((long)menuItem));
+	MenuItemControl* pMenuItem = reinterpret_cast<MenuItemControl*>(menuItem);
 
 	if (pMenuItem != NULL)
 		pMenuItem->Collapse();
@@ -722,7 +722,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SubtreeExpandedNative(JNIEnv *env, jobject obj, jlong treeItem)
 {
-	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+	TreeItemControl* pTreeItem = reinterpret_cast<TreeItemControl*>(treeItem);
 
 	if (pTreeItem != NULL)
 		pTreeItem->Expand();
@@ -734,7 +734,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SubtreeCollapsedNative(JNIEnv *env, jobject obj, jlong treeItem)
 {
-	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(LongToPtr((long)treeItem));
+	TreeItemControl* pTreeItem = reinterpret_cast<TreeItemControl*>(treeItem);
 
 	if (pTreeItem != NULL)
 		pTreeItem->Collapse();

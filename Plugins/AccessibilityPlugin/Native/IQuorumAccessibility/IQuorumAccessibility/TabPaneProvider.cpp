@@ -349,7 +349,7 @@ IFACEMETHODIMP TabPaneProvider::GetSelection(SAFEARRAY** pRetVal) {
 		return S_OK;
 	}
 
-	TabControl* theControl = static_cast<TabControl*>(LongToPtr((long)selectionPointer));
+	TabControl* theControl = reinterpret_cast<TabControl*>(selectionPointer);
 	control->SetSelectedTab(theControl);
 	TabProvider* theProvider = theControl->GetProvider();
 

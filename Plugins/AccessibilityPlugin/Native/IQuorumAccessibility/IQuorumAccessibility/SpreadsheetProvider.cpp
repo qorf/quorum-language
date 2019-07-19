@@ -218,7 +218,7 @@ IFACEMETHODIMP SpreadsheetProvider::GetSelection(SAFEARRAY** pRetVal)
 		return S_OK;
 	}
 
-	CellControl* cellControl = static_cast<CellControl*>(LongToPtr((long)selectionPointer));
+	CellControl* cellControl = reinterpret_cast<CellControl*>(selectionPointer);
 	CellProvider* cellProvider = cellControl->GetProvider();
 
 	HRESULT hr = S_OK;

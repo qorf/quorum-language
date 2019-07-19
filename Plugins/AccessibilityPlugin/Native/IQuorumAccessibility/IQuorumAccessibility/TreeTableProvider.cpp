@@ -36,7 +36,7 @@ IFACEMETHODIMP TreeTableProvider::GetSelection(SAFEARRAY** pRetVal) {
 	//	return S_OK;
 	//}
 
-	//ListItemControl* theControl = static_cast<ListItemControl*>(LongToPtr((long)selectionPointer));
+	//ListItemControl* theControl = reinterpret_cast<ListItemControl*>(selectionPointer);
 	//control->SetSelected(theControl);
 	//ListItemProvider* theProvider = theControl->GetProvider();
 
