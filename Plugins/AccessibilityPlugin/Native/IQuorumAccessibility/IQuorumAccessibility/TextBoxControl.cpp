@@ -515,16 +515,6 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		Focus(false);
 		break;
 	}
-	case QUORUM_UPDATESELECTION:
-	{
-		UpdateCaret();
-		break;
-	}
-	case QUORUM_SETTEXT:
-	{
-		//m_fullText = (WCHAR*)lParam;
-		break;
-	}
 	default:
 
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
@@ -533,4 +523,10 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 
 	return lResult;
+}
+
+void TextBoxControl::UpdateSelection(const Range& /* indices */)
+{
+	// TODO: Actually use the provided indices.
+	UpdateCaret();
 }

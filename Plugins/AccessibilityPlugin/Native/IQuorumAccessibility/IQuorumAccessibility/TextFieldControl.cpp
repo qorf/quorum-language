@@ -340,16 +340,6 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 		Focus(false);
 		break;
 	}
-	case QUORUM_UPDATESELECTION:
-	{
-		UpdateCaret();
-		break;
-	}
-	case QUORUM_SETTEXT:
-	{
-		//m_fullText = (WCHAR*)lParam;
-		break;
-	}
 	default:
 
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
@@ -621,4 +611,10 @@ Range TextFieldControl::GetSelectionRange()
 	}
 
 	return selectionRange;
+}
+
+void TextFieldControl::UpdateSelection(const Range& /* indices */)
+{
+	// TODO: Actually use the provided indices.
+	UpdateCaret();
 }

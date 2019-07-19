@@ -486,8 +486,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TextBoxControl* pTextBox = reinterpret_cast<TextBoxControl*>(textbox);
 	Range indices((int)startIndex, (int)endIndex);
 
-	//SendMessage(pTextBox->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
-	SendMessage(pTextBox->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)&indices);
+	pTextBox->UpdateSelection(indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
@@ -556,8 +555,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TextFieldControl* textFieldControl = reinterpret_cast<TextFieldControl*>(textField);
 	Range indices((int)startIndex, (int)endIndex);
 
-	//SendMessage(textFieldControl->GetHWND(), QUORUM_SETTEXT, 0, (LPARAM)wText);
-	SendMessage(textFieldControl->GetHWND(), QUORUM_UPDATESELECTION, 0, (LPARAM)& indices);
+	textFieldControl->UpdateSelection(indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
@@ -570,16 +568,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(textboxHWND);
 	UNREFERENCED_PARAMETER(fullText);
 	UNREFERENCED_PARAMETER(caretIndex);
-
-	int a = 5;
-	/*HWND control = (HWND)textboxHWND;
-
-	const char *nativeFullText = env->GetStringUTFChars(fullText, 0);
-
-	SendMessage(control, QUORUM_UPDATECARET, (int)caretIndex, (LPARAM)nativeFullText);
-
-	env->ReleaseStringUTFChars(fullText, nativeFullText);*/
-	//std::cout << "Textbox must be reworked. This function does nothing for now." << std::endl;
 }
 
 // InvokeButton: 
