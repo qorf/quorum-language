@@ -18,11 +18,6 @@
 // Button messages
 #define QUORUM_INVOKEBUTTON WM_USER + 2
 
-// Tree messages
-#define QUORUM_ADDTREEITEM WM_USER + 8
-#define QUORUM_REMOVETREEITEM WM_USER + 9
-#define QUORUM_SELECTTREEITEM WM_USER + 10
-
 // ForwardMessage: Sends unhandled messages to either the main GLFW window or the Default Window Procedure
 inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {

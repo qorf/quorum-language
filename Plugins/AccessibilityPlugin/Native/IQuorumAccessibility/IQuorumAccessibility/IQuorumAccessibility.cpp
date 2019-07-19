@@ -390,7 +390,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree->CreateUniqueId(), parentTreeItem, pTree, jItem);
 
-	SendMessage(pTree->GetHWND(), QUORUM_ADDTREEITEM, 0, (LPARAM)treeItemControl);
+	treeItemControl->GetSubtree()->AddTreeItem(treeItemControl);
 
 	env->ReleaseStringUTFChars(treeItemName, nativeTreeItemName);
 	env->ReleaseStringUTFChars(treeItemDescription, nativeTreeItemDescription);
@@ -435,7 +435,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND hwnd = treeItemToRemove->GetParentTree()->GetHWND();
 
-	SendMessage(hwnd, QUORUM_REMOVETREEITEM, 0, (LPARAM)treeItemToRemove);
+	treeItemToRemove->GetSubtree()->RemoveTreeItem(treeItemToRemove);
 
 	return true;
 
@@ -647,7 +647,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	if (!pTree->HasFocus())
 		SetFocus(pTree->GetHWND());
 
-	SendMessage(pTree->GetHWND(), QUORUM_SELECTTREEITEM, 0, (LPARAM)pTreeItem);
+	pTree->SetSelectedTreeItem(pTreeItem);
 
 	return true;
 }
@@ -663,7 +663,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	if (!spreadsheetControl->HasFocus())
 		SetFocus(spreadsheetControl->GetHWND());
 
-	SendMessage(spreadsheetControl->GetHWND(), QUORUM_SELECTTREEITEM, 0, (LPARAM)cellControl);
+	spreadsheetControl->SetSelected(cellControl);
 
 	return true;
 }

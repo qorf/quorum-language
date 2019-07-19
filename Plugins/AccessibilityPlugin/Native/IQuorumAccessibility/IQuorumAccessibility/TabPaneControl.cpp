@@ -147,14 +147,6 @@ LRESULT TabPaneControl::TabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SELECTTREEITEM:
-	{
-		TabControl* tab = (TabControl*)lParam;
-
-		SetSelectedTab(tab);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

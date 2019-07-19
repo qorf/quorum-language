@@ -160,33 +160,6 @@ LRESULT TreeControl::TreeControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		this->SetControlFocus(false);
 		break;
 	}
-	case QUORUM_ADDTREEITEM:
-	{
-		TreeItemControl* newTreeItem = (TreeItemControl*)lParam;
-		
-		Subtree* subtree = newTreeItem->GetSubtree();
-		
-		subtree->AddTreeItem(newTreeItem);
-		
-		break;
-	}
-	case QUORUM_REMOVETREEITEM:
-	{
-		TreeItemControl* treeItemToRemove = (TreeItemControl*)lParam;
-
-		Subtree* subtree = treeItemToRemove->GetSubtree();
-
-		subtree->RemoveTreeItem(treeItemToRemove);
-		break;
-	}
-	case QUORUM_SELECTTREEITEM:
-	{
-		TreeItemControl* treeItem = (TreeItemControl*)lParam;
-
-		SetSelectedTreeItem(treeItem);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

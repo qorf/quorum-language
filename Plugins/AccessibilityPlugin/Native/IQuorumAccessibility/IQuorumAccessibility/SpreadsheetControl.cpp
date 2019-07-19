@@ -148,14 +148,6 @@ LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT 
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SELECTTREEITEM:
-	{
-		CellControl* tab = (CellControl*)lParam;
-
-		SetSelected(tab);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;
