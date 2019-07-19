@@ -242,13 +242,6 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_INVOKEBUTTON:
-	{
-		
-		this->InvokeButton(hwnd);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

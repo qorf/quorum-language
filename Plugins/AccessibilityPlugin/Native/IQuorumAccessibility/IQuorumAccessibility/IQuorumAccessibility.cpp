@@ -575,15 +575,10 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
-	
-	Item* pControl = reinterpret_cast<Item*>(control);
+	UNREFERENCED_PARAMETER(control);
 
-	if (pControl != NULL && pControl->GetHWND() != NULL)
-	{
-		SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, 0, 0);
-		return true;
-	}
-	
+	// This is apparently never called and should probably be removed from the Java class.
+
 	return false;
 }
 
@@ -592,20 +587,11 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
+	UNREFERENCED_PARAMETER(control);
+	UNREFERENCED_PARAMETER(selected);
 
-	Item* pControl = reinterpret_cast<Item*>(control);
+	// This is apparently never called and should probably be removed from the Java class.
 
-	bool nativeSelected = (bool)selected;
-
-	if (pControl != NULL && pControl->GetHWND() != NULL)
-	{
-		if (nativeSelected)
-			SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, true, 0);
-		else
-			SendMessage(pControl->GetHWND(), QUORUM_INVOKEBUTTON, false, 0);
-		return true;
-	}
-	
 	return false;
 }
 

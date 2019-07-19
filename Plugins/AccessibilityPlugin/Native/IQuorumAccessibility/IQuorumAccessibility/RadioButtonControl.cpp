@@ -244,18 +244,6 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_INVOKEBUTTON:
-	{
-		bool state = static_cast<bool>(wParam);
-
-		// Update the state of the radio button
-		this->SetState(state);
-
-		// Raise UIA Event
-		this->InvokeButton(hwnd);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;
