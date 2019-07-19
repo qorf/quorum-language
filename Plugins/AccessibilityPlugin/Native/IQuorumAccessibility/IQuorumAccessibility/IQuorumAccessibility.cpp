@@ -375,19 +375,6 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 		parentTreeItem = reinterpret_cast<TreeItemControl*>(parentSubtree);
 	}
 
-	if (env != NULL)
-	{
-		jclass itemReference = env->GetObjectClass(jItem);
-		jmethodID method = env->GetMethodID(itemReference, "GetName", "()Ljava/lang/String;");
-
-		jstring fullName = reinterpret_cast<jstring>(env->CallObjectMethod(jItem, method));
-		const char* nativeName = env->GetStringUTFChars(fullName, 0);
-		WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeName);
-
-		env->ReleaseStringUTFChars(fullName, nativeName);
-
-	}
-
 	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree->CreateUniqueId(), parentTreeItem, pTree, jItem);
 
 	treeItemControl->GetSubtree()->AddTreeItem(treeItemControl);
