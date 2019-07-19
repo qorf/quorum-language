@@ -148,25 +148,6 @@ LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT 
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_ADD_TAB:
-	{
-		CellControl* tab = (CellControl*)lParam;
-
-		//Subtree* subtree = newTreeItem->GetSubtree();
-
-		//subtree->AddTreeItem(newTreeItem);
-
-		break;
-	}
-	case QUORUM_REMOVE_TAB:
-	{
-		CellControl* tab = (CellControl*)lParam;
-
-		//Subtree* subtree = treeItemToRemove->GetSubtree();
-
-		//subtree->RemoveTreeItem(treeItemToRemove);
-		break;
-	}
 	case QUORUM_SELECTTREEITEM:
 	{
 		CellControl* tab = (CellControl*)lParam;

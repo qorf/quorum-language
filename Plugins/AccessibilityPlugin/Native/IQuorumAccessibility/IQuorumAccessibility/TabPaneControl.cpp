@@ -147,25 +147,6 @@ LRESULT TabPaneControl::TabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_ADD_TAB:
-	{
-		TabControl* tab = (TabControl*)lParam;
-
-		//Subtree* subtree = newTreeItem->GetSubtree();
-
-		//subtree->AddTreeItem(newTreeItem);
-
-		break;
-	}
-	case QUORUM_REMOVE_TAB:
-	{
-		TabControl* tab = (TabControl*)lParam;
-
-		//Subtree* subtree = treeItemToRemove->GetSubtree();
-
-		//subtree->RemoveTreeItem(treeItemToRemove);
-		break;
-	}
 	case QUORUM_SELECTTREEITEM:
 	{
 		TabControl* tab = (TabControl*)lParam;
