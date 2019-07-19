@@ -420,8 +420,6 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	MenuItemControl* menuItemToRemove = reinterpret_cast<MenuItemControl*>(menuItem);
 
-	HWND hwnd = menuItemToRemove->GetParentMenuBar()->GetHWND();
-
 	menuItemToRemove->GetMenu()->RemoveMenuItem(menuItemToRemove);
 
 	return true;
@@ -432,8 +430,6 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 
 	TreeItemControl* treeItemToRemove = reinterpret_cast<TreeItemControl*>(treeItem);
-
-	HWND hwnd = treeItemToRemove->GetParentTree()->GetHWND();
 
 	treeItemToRemove->GetSubtree()->RemoveTreeItem(treeItemToRemove);
 
