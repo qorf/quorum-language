@@ -18,11 +18,6 @@
 // Button messages
 #define QUORUM_INVOKEBUTTON WM_USER + 2
 
-// MenuBar messages
-#define QUORUM_ADDMENUITEM WM_USER + 5
-#define QUORUM_REMOVEMENUITEM WM_USER + 6
-#define QUORUM_SELECTMENUITEM WM_USER + 7
-
 // Tree messages
 #define QUORUM_ADDTREEITEM WM_USER + 8
 #define QUORUM_REMOVETREEITEM WM_USER + 9

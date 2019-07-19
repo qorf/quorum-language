@@ -157,33 +157,6 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_ADDMENUITEM:
-	{
-		MenuItemControl* newMenuItem = (MenuItemControl*)lParam;
-		
-		// Add the new MenuItem to the proper collection.
-		Menu* menuControl = newMenuItem->GetMenu();
-		
-		menuControl->AddMenuItem(newMenuItem);
-		break;
-	}
-	case QUORUM_REMOVEMENUITEM:
-	{
-		MenuItemControl* menuItemToRemove = (MenuItemControl*)lParam;
-
-		Menu* menuControl = menuItemToRemove->GetMenu();
-
-		menuControl->RemoveMenuItem(menuItemToRemove);
-		break;
-	}
-	case QUORUM_SELECTMENUITEM:
-	{
-		MenuItemControl* menuItem = (MenuItemControl*)lParam;
-
-		SetSelectedMenuItem(menuItem);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

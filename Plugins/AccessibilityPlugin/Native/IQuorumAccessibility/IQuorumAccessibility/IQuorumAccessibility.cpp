@@ -221,7 +221,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	
 	MenuItemControl* menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar, jItem);
 
-	SendMessage(pMenuBar->GetHWND(), QUORUM_ADDMENUITEM, 0, (LPARAM)menuItemControl);
+	menuItemControl->GetMenu()->AddMenuItem(menuItemControl);
 
 	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
@@ -422,7 +422,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND hwnd = menuItemToRemove->GetParentMenuBar()->GetHWND();
 
-	SendMessage(hwnd, QUORUM_REMOVEMENUITEM, 0, (LPARAM)menuItemToRemove);
+	menuItemToRemove->GetMenu()->RemoveMenuItem(menuItemToRemove);
 
 	return true;
 
@@ -620,7 +620,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	if (!pMenuBar->HasFocus())
 		SetFocus(pMenuBar->GetHWND());
 
-	SendMessage(pMenuBar->GetHWND(), QUORUM_SELECTMENUITEM, 0, (LPARAM)pMenuItem);
+	pMenuBar->SetSelectedMenuItem(pMenuItem);
 
 	return true;
 }
