@@ -91,15 +91,15 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;IQUORUMACCESSIBILITY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>Header;..\..\..\..\..\Dependencies\wil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>uiautomationcore.lib;comsuppwd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.15063.0\um\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(ProjectDir)$(Configuration)\*.dll" "$(InterfaceFolder)"</Command>
@@ -109,9 +109,11 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;IQUORUMACCESSIBILITY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>Header;..\..\..\..\..\Dependencies\wil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +126,7 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
@@ -134,7 +136,6 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IQUORUMACCESSIBILITY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>Header;..\..\..\..\..\Dependencies\wil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,7 +146,7 @@ copy /Y  "$(SolutionDir)IQuorumAccessibility\Debug\AccessibilityManagerWindows64
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
