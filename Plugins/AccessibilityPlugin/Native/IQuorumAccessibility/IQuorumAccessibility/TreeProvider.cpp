@@ -310,7 +310,7 @@ IFACEMETHODIMP TreeProvider::GetSelection(SAFEARRAY** pRetVal)
 	}
 
 	JNIEnv* env = GetJNIEnv();
-	long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeSelectionPointer, m_pTreeControl->GetMe());
+	jlong selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeSelectionPointer, m_pTreeControl->GetMe());
 
 	if (selectionPointer == 0)
 	{

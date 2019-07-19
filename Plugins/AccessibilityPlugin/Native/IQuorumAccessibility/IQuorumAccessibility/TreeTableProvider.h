@@ -3,8 +3,7 @@
 
 class TreeTableControl;
 
-class TreeTableProvider : public SpreadsheetProvider,
-						  public ISelectionProvider
+class TreeTableProvider : public SpreadsheetProvider
 {
 public:
 	TreeTableProvider(_In_ TreeTableControl* control);

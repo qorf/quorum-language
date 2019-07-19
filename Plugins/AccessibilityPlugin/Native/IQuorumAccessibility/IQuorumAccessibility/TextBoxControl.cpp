@@ -154,7 +154,7 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
-		endOfText.character = strlen(nativeFullText);
+		endOfText.character = static_cast<int>(strlen(nativeFullText));
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 	}
@@ -218,7 +218,7 @@ int TextBoxControl::GetLineLength()
 
 		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 
-		length = strlen(nativeCurrentLineText);
+		length = static_cast<int>(strlen(nativeCurrentLineText));
 
 		env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 	}

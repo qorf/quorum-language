@@ -590,7 +590,7 @@ EndPoint TextFieldControl::GetTextFieldEndpoint()
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
-		endOfText.character = strlen(nativeFullText);
+		endOfText.character = static_cast<int>(strlen(nativeFullText));
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 	}

@@ -291,7 +291,7 @@ IFACEMETHODIMP CellProvider::SetValue(LPCWSTR value)
 IFACEMETHODIMP CellProvider::get_Value(BSTR* returnValue)
 {
 	std::wstring text = control->GetText();
-	*returnValue = SysAllocStringLen(text.data(), text.size());
+	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
 
 	return S_OK;
 }

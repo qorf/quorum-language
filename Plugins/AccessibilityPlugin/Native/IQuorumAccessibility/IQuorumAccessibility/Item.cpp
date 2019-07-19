@@ -8,7 +8,7 @@ Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescriptio
 	jclass itemReference = env->GetObjectClass(javaItem);
 	jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
 
-	jint hash = reinterpret_cast<jint>(env->CallObjectMethod(javaItem, method));
+	jint hash = env->CallIntMethod(javaItem, method);
 	SetHashCode(hash);
 }
 

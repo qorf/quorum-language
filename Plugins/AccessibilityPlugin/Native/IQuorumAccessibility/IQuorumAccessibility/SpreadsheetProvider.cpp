@@ -210,7 +210,7 @@ IFACEMETHODIMP SpreadsheetProvider::GetSelection(SAFEARRAY** pRetVal)
 	}
 
 	JNIEnv* env = GetJNIEnv();
-	long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer, control->GetMe());
+	jlong selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer, control->GetMe());
 
 	if (selectionPointer == 0)
 	{
