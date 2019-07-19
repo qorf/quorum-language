@@ -213,11 +213,6 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		this->InvokeButton();
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

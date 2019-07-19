@@ -147,11 +147,6 @@ LRESULT TabPaneControl::TabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	case QUORUM_ADD_TAB:
 	{
 		TabControl* tab = (TabControl*)lParam;

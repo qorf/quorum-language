@@ -249,10 +249,6 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

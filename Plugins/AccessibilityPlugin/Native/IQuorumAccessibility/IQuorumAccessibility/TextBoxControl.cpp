@@ -520,11 +520,6 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		UpdateCaret();
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	case QUORUM_SETTEXT:
 	{
 		//m_fullText = (WCHAR*)lParam;

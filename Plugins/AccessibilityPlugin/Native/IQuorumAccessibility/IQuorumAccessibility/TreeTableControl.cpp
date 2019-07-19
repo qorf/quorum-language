@@ -152,11 +152,6 @@ LRESULT TreeTableControl::TreeTableControlWndProc(_In_ HWND hwnd, _In_ UINT mess
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	case QUORUM_ADD_TAB:
 	{
 		CellControl* tab = (CellControl*)lParam;

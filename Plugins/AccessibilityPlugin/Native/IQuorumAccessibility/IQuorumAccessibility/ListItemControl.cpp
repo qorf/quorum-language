@@ -152,11 +152,6 @@ LRESULT ListItemControl::ListItemControlWndProc(_In_ HWND hwnd, _In_ UINT messag
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;

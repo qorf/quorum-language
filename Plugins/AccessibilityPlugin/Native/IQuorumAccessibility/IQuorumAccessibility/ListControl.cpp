@@ -151,11 +151,6 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	case QUORUM_ADD_LIST_ITEM:
 	{
 		ListItemControl* tab = (ListItemControl*)lParam;

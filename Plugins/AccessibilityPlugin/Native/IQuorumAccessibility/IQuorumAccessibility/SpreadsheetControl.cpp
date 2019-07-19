@@ -148,11 +148,6 @@ LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT 
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_SETNAME:
-	{
-		this->SetName((WCHAR*)lParam);
-		break;
-	}
 	case QUORUM_ADD_TAB:
 	{
 		CellControl* tab = (CellControl*)lParam;

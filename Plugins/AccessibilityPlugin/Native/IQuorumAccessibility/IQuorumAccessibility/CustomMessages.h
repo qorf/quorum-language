@@ -15,9 +15,6 @@
 	ForwardMessage function below.
 */
 
-// General messages
-#define QUORUM_SETNAME WM_USER + 1
-
 // Button messages
 #define QUORUM_INVOKEBUTTON WM_USER + 2
 
