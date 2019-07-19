@@ -33,11 +33,6 @@
 #define QUORUM_REMOVE_TAB WM_USER + 12
 #define QUORUM_SELECT_TAB WM_USER + 13
 
-// Generic messages
-#define QUORUM_SELECT_LIST_ITEM WM_USER + 14
-#define QUORUM_ADD_LIST_ITEM WM_USER + 15
-#define QUORUM_REMOVE_LIST_ITEM WM_USER + 16
-
 // ForwardMessage: Sends unhandled messages to either the main GLFW window or the Default Window Procedure
 inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {

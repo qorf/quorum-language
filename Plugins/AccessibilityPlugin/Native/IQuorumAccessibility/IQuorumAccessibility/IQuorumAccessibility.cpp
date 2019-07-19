@@ -679,7 +679,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	if (!listControl->HasFocus()) {
 		SetFocus(listControl->GetHWND());
 	}
-	SendMessage(listControl->GetHWND(), QUORUM_SELECT_LIST_ITEM, 0, (LPARAM)listItemControl);
+	listControl->SetSelected(listItemControl);
 
 	return true;
 }

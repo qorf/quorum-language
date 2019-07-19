@@ -151,33 +151,6 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		this->Focus(false);
 		break;
 	}
-	case QUORUM_ADD_LIST_ITEM:
-	{
-		ListItemControl* tab = (ListItemControl*)lParam;
-
-		//Subtree* subtree = newTreeItem->GetSubtree();
-
-		//subtree->AddTreeItem(newTreeItem);
-
-		break;
-	}
-	case QUORUM_REMOVE_LIST_ITEM:
-	{
-		ListItemControl* tab = (ListItemControl*)lParam;
-
-		//Subtree* subtree = treeItemToRemove->GetSubtree();
-
-		//subtree->RemoveTreeItem(treeItemToRemove);
-		break;
-	}
-	case QUORUM_SELECT_LIST_ITEM:
-	{
-		ListItemControl* item = (ListItemControl*)lParam;
-
-		SetSelected(item);
-
-		break;
-	}
 	default:
 		lResult = ForwardMessage(hwnd, message, wParam, lParam);
 		break;
