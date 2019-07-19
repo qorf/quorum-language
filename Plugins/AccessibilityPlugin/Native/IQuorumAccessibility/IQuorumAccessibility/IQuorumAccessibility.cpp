@@ -1,5 +1,5 @@
-#include "../IQuorumAccessibility/Header/plugins_quorum_Libraries_Interface_AccessibilityManager.h"
-#include "../IQuorumAccessibility/Header/jni.h"
+#include "jni.h"
+#include "plugins_quorum_Libraries_Interface_AccessibilityManager.h"
 
 #include <Windows.h>
 #include<comutil.h>

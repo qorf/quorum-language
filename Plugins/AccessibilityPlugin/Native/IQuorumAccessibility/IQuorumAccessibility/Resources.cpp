@@ -1,5 +1,5 @@
 #include "Resources.h"
-#include "../IQuorumAccessibility/Header/plugins_quorum_Libraries_Interface_AccessibilityManager.h"
+#include "plugins_quorum_Libraries_Interface_AccessibilityManager.h"
 #include <iostream>
 #include <fstream>
 /**************************************************************

@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <UIAutomation.h>
 
-#include "../IQuorumAccessibility/Header/jni.h"
+#include "jni.h"
 
 #include "CustomMessages.h"
 #include "Item.h"

@@ -2,8 +2,8 @@
 #include <UIAutomation.h>
 #include <string>
 
+#include "jni.h"
 #include "Resources.h"
-#include "../IQuorumAccessibility/Header/jni.h"
 
 #ifndef Item_HEADER
 #define Item_HEADER 

@@ -1,4 +1,4 @@
-#include "../Header/jni.h"
+#include "jni.h"
 /* Header for class plugins_quorum_Libraries_Interface_AccessibilityManager */
 
 #ifndef _Included_plugins_quorum_Libraries_Interface_AccessibilityManager

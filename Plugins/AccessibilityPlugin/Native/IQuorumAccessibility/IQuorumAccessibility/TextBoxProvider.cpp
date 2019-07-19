@@ -1,5 +1,5 @@
 #include <UIAutomation.h>
-#include "../IQuorumAccessibility/Header/jni.h"
+#include "jni.h"
 
 #include "TextBoxProvider.h"
 #include "TextBoxControl.h"

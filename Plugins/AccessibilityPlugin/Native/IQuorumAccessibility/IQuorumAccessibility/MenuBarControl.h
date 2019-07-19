@@ -2,7 +2,7 @@
 #include <UIAutomation.h>
 #include <deque>
 
-#include "../IQuorumAccessibility/Header/jni.h"
+#include "jni.h"
 
 #include "CustomMessages.h"
 #include "Menu.h"
