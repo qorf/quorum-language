@@ -249,16 +249,14 @@ TreeProvider::~TreeProvider()
 
 IFACEMETHODIMP TreeProvider::GetSelection(SAFEARRAY** pRetVal)
 {
-	JNIEnv* env = GetJNIEnv();
-	jlong selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeSelectionPointer, m_pTreeControl->GetMe());
+	TreeItemControl* treeItemControl = m_pTreeControl->GetSelectedTreeItem();
 
-	if (selectionPointer == 0)
+	if (!treeItemControl)
 	{
 		*pRetVal = NULL;
 		return S_OK;
 	}
 
-	TreeItemControl* treeItemControl = reinterpret_cast<TreeItemControl*>(selectionPointer);
 	TreeItemProvider* treeItemProvider = treeItemControl->GetTreeItemProvider();
 
 	HRESULT hr = S_OK;

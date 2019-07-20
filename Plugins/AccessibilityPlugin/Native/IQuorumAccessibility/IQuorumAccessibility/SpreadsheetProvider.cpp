@@ -189,16 +189,14 @@ IFACEMETHODIMP SpreadsheetProvider::GetRowHeaders(SAFEARRAY** pRetVal) {
 
 IFACEMETHODIMP SpreadsheetProvider::GetSelection(SAFEARRAY** pRetVal)
 {
-	JNIEnv* env = GetJNIEnv();
-	jlong selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer, control->GetMe());
+	CellControl* cellControl = control->GetSelected();
 
-	if (selectionPointer == 0)
+	if (!cellControl)
 	{
 		*pRetVal = NULL;
 		return S_OK;
 	}
 
-	CellControl* cellControl = reinterpret_cast<CellControl*>(selectionPointer);
 	CellProvider* cellProvider = cellControl->GetProvider();
 
 	HRESULT hr = S_OK;

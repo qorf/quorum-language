@@ -9,9 +9,8 @@ public:
 	TreeTableProvider(_In_ TreeTableControl* control);
 	virtual ~TreeTableProvider();
 
-	//ISelectionProvider
+	//ISelectionProvider overrides
 	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal);
 	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal);
-	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal);
 private:
 };

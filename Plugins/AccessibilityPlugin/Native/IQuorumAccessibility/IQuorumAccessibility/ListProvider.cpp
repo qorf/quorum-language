@@ -280,42 +280,38 @@ IFACEMETHODIMP ListProvider::get_IsSelectionRequired(BOOL* pRetVal) {
 }
 
 IFACEMETHODIMP ListProvider::GetSelection(SAFEARRAY** pRetVal) {
-	//JNIEnv* env = GetJNIEnv();
-	//long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTabPaneSelectionPointer, control->GetMe());
+	ListItemControl* listItemControl = control->GetSelected();
 
-	//if (selectionPointer == 0)
-	//{
-	//	*pRetVal = NULL;
-	//	return S_OK;
-	//}
+	if (!listItemControl)
+	{
+		*pRetVal = NULL;
+		return S_OK;
+	}
 
-	//ListItemControl* theControl = reinterpret_cast<ListItemControl*>(selectionPointer);
-	//control->SetSelected(theControl);
-	//ListItemProvider* theProvider = theControl->GetProvider();
+	ListItemProvider* listItemProvider = listItemControl->GetProvider();
 
-	//HRESULT hr = S_OK;
+	HRESULT hr = S_OK;
 
-	//*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
-	//if (*pRetVal == NULL)
-	//{
-	//	hr = E_OUTOFMEMORY;
-	//}
-	//else
-	//{
-	//	long index = 0;
-	//	hr = SafeArrayPutElement(*pRetVal, &index, theProvider);
-	//	if (FAILED(hr))
-	//	{
-	//		SafeArrayDestroy(*pRetVal);
-	//		*pRetVal = NULL;
-	//	}
-	//	else
-	//	{
-	//		// Since the provider is being passed out of our domain, we need to increment its reference counter.
-	//		theProvider->AddRef();
-	//	}
-	//}
+	*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
+	if (*pRetVal == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+	}
+	else
+	{
+		long index = 0;
+		hr = SafeArrayPutElement(*pRetVal, &index, listItemProvider);
+		if (FAILED(hr))
+		{
+			SafeArrayDestroy(*pRetVal);
+			*pRetVal = NULL;
+		}
+		else
+		{
+			// Since the provider is being passed out of our domain, we need to increment its reference counter.
+			listItemProvider->AddRef();
+		}
+	}
 
-	//return hr;
-	return S_OK;
+	return hr;
 }
