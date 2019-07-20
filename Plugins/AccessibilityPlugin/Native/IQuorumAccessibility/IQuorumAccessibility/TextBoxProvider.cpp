@@ -100,22 +100,12 @@ IFACEMETHODIMP TextBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void**
 
 IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = NULL;
 
 	if (patternId == UIA_TextPatternId)
@@ -138,11 +128,6 @@ ULONG TextBoxProvider::GetReferenceCount() {
 
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -252,12 +237,6 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	return UiaHostProviderFromHwnd(m_pTextBoxControl->GetHWND(), pRetVal);
-	/*if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-	HRESULT face = UiaHostProviderFromHwnd(m_pTextBoxControl->GetHWND(), pRetVal);
-	return face;*/
 }
 
 
@@ -266,11 +245,6 @@ IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_mayben
 // get_SupportedTextSelection: Retrieves a value that specifies the type of text selection that is supported by the control.
 IFACEMETHODIMP TextBoxProvider::get_SupportedTextSelection(_Out_ SupportedTextSelection* pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = SupportedTextSelection_Single;
 	return S_OK;
 }
@@ -280,11 +254,6 @@ IFACEMETHODIMP TextBoxProvider::get_SupportedTextSelection(_Out_ SupportedTextSe
 //				 Note: A degenerate text range is an empty text range. Which means its EndPoint begin and end are equal.
 IFACEMETHODIMP TextBoxProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	Range caretRange = m_pTextBoxControl->GetSelectionRange();
 
 
@@ -320,11 +289,6 @@ IFACEMETHODIMP TextBoxProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY
 // GetVisibleRanges: Retrieves an array of disjoint text ranges from a text-based control where each text range represents a contiguous span of visible text.
 IFACEMETHODIMP TextBoxProvider::GetVisibleRanges(_Outptr_result_maybenull_ SAFEARRAY** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Not Implemented yet.
 	*pRetVal = NULL;
 	return S_OK;
@@ -334,11 +298,6 @@ IFACEMETHODIMP TextBoxProvider::GetVisibleRanges(_Outptr_result_maybenull_ SAFEA
 IFACEMETHODIMP TextBoxProvider::RangeFromChild(_In_opt_ IRawElementProviderSimple* childElement, _Outptr_result_maybenull_ ITextRangeProvider** pRetVal)
 {
 	UNREFERENCED_PARAMETER(childElement);
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// There are no children of this text control
 	*pRetVal = NULL;
 	return S_OK;
@@ -347,11 +306,6 @@ IFACEMETHODIMP TextBoxProvider::RangeFromChild(_In_opt_ IRawElementProviderSimpl
 // RangeFromPoint: Returns the degenerate (empty) text range nearest to the specified screen coordinates.
 IFACEMETHODIMP TextBoxProvider::RangeFromPoint(UiaPoint point, _Outptr_result_maybenull_ ITextRangeProvider** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	/*
 	*	Since the textbox control is a 1x1 pixel box the given UiaPoint isn't going to be correct. So if UIA calls this
 	*	function then we'll report the caret position as the closest RangeFromPoint since Quorum handles mouse events.
@@ -371,11 +325,6 @@ IFACEMETHODIMP TextBoxProvider::RangeFromPoint(UiaPoint point, _Outptr_result_ma
 //			  read all text contained within the textbox. 
 IFACEMETHODIMP TextBoxProvider::get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0 }, m_pTextBoxControl->GetTextboxEndpoint() };

@@ -62,11 +62,6 @@ IFACEMETHODIMP SpreadsheetProvider::QueryInterface(_In_ REFIID riid, _Outptr_ vo
 // Gets UI Automation provider options.
 IFACEMETHODIMP SpreadsheetProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
@@ -74,11 +69,6 @@ IFACEMETHODIMP SpreadsheetProvider::get_ProviderOptions(_Out_ ProviderOptions* p
 // The Tree doesn't support any patterns so NULL is correct.
 IFACEMETHODIMP SpreadsheetProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	switch (patternId)
 	{
 	case UIA_GridPatternId:
@@ -103,11 +93,6 @@ IFACEMETHODIMP SpreadsheetProvider::GetPatternProvider(PATTERNID patternId, _Out
 // Gets the custom properties for this control.
 IFACEMETHODIMP SpreadsheetProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -204,11 +189,6 @@ IFACEMETHODIMP SpreadsheetProvider::GetRowHeaders(SAFEARRAY** pRetVal) {
 
 IFACEMETHODIMP SpreadsheetProvider::GetSelection(SAFEARRAY** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	JNIEnv* env = GetJNIEnv();
 	jlong selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer, control->GetMe());
 

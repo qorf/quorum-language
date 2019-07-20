@@ -49,11 +49,6 @@ IFACEMETHODIMP DialogProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** 
 // Gets UI Automation provider options.
 IFACEMETHODIMP DialogProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
@@ -61,11 +56,6 @@ IFACEMETHODIMP DialogProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVa
 // The Tree doesn't support any patterns so NULL is correct.
 IFACEMETHODIMP DialogProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	* pRetVal = NULL;
 	if (*pRetVal != NULL) {
 		(static_cast<IUnknown*>(*pRetVal))->AddRef();
@@ -76,11 +66,6 @@ IFACEMETHODIMP DialogProvider::GetPatternProvider(PATTERNID patternId, _Outptr_r
 // Gets the custom properties for this control.
 IFACEMETHODIMP DialogProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;

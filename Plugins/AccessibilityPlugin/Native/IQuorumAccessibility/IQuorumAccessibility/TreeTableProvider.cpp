@@ -22,11 +22,6 @@ IFACEMETHODIMP TreeTableProvider::get_IsSelectionRequired(BOOL* pRetVal) {
 }
 
 IFACEMETHODIMP TreeTableProvider::GetSelection(SAFEARRAY** pRetVal) {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	//JNIEnv* env = GetJNIEnv();
 	//long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTabPaneSelectionPointer, control->GetMe());
 

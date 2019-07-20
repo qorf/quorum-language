@@ -240,11 +240,6 @@ IFACEMETHODIMP TextBoxTextRange::FindText(_In_ BSTR text, BOOL searchBackward, B
 // GetAttributeValue: Retrieves the value of the specified text attribute across the text range.
 IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttributeId, _Out_ VARIANT *pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	HRESULT hr = S_OK;
 	VariantInit(pRetVal);
 
@@ -278,11 +273,6 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
@@ -291,11 +281,6 @@ IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ I
 IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVal)
 {
 	UNREFERENCED_PARAMETER(maxLength);
-
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	HRESULT hr = S_OK;
 
@@ -317,11 +302,6 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 
 IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = 0;
 
 	bool isDegenerate = (CompareEndpointPair(m_range.begin, m_range.end) == 0);
@@ -345,11 +325,6 @@ IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ 
 
 IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = 0;
 
 	if (endpoint == TextPatternRangeEndpoint_Start)
@@ -378,11 +353,6 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoin
 
 IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	if (targetRange == NULL)
 	{
 		return E_INVALIDARG;
@@ -455,11 +425,6 @@ IFACEMETHODIMP TextBoxTextRange::RemoveFromSelection()
 
 IFACEMETHODIMP TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// The ScrollInView operation is not implemented.
 	UNREFERENCED_PARAMETER(alignToTop);
 	return E_NOTIMPL;
@@ -468,11 +433,6 @@ IFACEMETHODIMP TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
 
 IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// No children
 	*pRetVal = NULL;
 	return S_OK;

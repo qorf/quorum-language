@@ -271,11 +271,6 @@ IFACEMETHODIMP TabProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawEleme
 // point (in client coordinates).
 IFACEMETHODIMP TabProvider::ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Since the accessible objects are 1x1 pixel boxes hidden in the corner of the application we'd need quorum to
 	// give us the client coordinates.
 	// Not implemented yet
@@ -286,11 +281,6 @@ IFACEMETHODIMP TabProvider::ElementProviderFromPoint(double x, double y, _Outptr
 // Retrieves the provider for the item that is selected when the control gets focus.
 IFACEMETHODIMP TabProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = child;
 
 
@@ -334,11 +324,6 @@ IFACEMETHODIMP TabProvider::RemoveFromSelection() {
 
 //Deselects any selected itemsand then selects the current element.
 IFACEMETHODIMP TabProvider::Select() {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	JNIEnv* env = GetJNIEnv();
 	env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.SetTabSelection, parent->GetMe(), control->GetMe());
 	return S_OK;

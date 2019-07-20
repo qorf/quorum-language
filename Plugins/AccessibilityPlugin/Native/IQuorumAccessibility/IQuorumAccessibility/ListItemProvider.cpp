@@ -318,11 +318,6 @@ IFACEMETHODIMP ListItemProvider::RemoveFromSelection() {
 
 //Deselects any selected itemsand then selects the current element.
 IFACEMETHODIMP ListItemProvider::Select() {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	JNIEnv* env = GetJNIEnv();
 	env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.SetTabSelection, parent->GetMe(), control->GetMe());
 	return S_OK;

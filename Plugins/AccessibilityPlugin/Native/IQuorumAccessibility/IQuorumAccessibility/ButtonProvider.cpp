@@ -91,10 +91,6 @@ IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVa
 	#if LOG
 		log("ButtonProvider::get_ProviderOptions start");
 	#endif
-	if (!IsWindow(m_pButtonControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 	*pRetVal = ProviderOptions_ServerSideProvider;// | ProviderOptions_UseComThreading;
 	#if LOG
 		log("ButtonProvider::get_ProviderOptions end");
@@ -108,10 +104,6 @@ IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_r
 	#if LOG
 		log("ButtonProvider::GetPatternProvider start");
 	#endif
-	if (!IsWindow(m_pButtonControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	if (patternId == UIA_InvokePatternId)
 	{
@@ -134,10 +126,6 @@ IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VAR
 	#if LOG
 		log("ButtonProvider::GetPropertyValue start");
 	#endif
-	if (!IsWindow(m_pButtonControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
@@ -228,10 +216,6 @@ IFACEMETHODIMP ButtonProvider::Invoke()
 	#if LOG
 		log("ButtonProvider::Invoke start");
 	#endif
-	if (!IsWindow(m_pButtonControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 	PostMessage(m_pButtonControl->GetHWND(), QUORUM_INVOKEBUTTON, NULL, NULL);
 	#if LOG
 		log("ButtonProvider::Invoke end");

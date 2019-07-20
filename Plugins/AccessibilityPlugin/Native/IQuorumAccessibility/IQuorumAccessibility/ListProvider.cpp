@@ -61,11 +61,6 @@ IFACEMETHODIMP ListProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** pp
 // Gets UI Automation provider options.
 IFACEMETHODIMP ListProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
@@ -73,11 +68,6 @@ IFACEMETHODIMP ListProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 // The Tree doesn't support any patterns so NULL is correct.
 IFACEMETHODIMP ListProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	switch (patternId)
 	{
 	case UIA_SelectionPatternId:
@@ -96,11 +86,6 @@ IFACEMETHODIMP ListProvider::GetPatternProvider(PATTERNID patternId, _Outptr_res
 // Gets the custom properties for this control.
 IFACEMETHODIMP ListProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -177,11 +162,6 @@ IFACEMETHODIMP ListProvider::get_HostRawElementProvider(_Outptr_result_maybenull
 // Navigation to the parent is handled by the host window provider.
 IFACEMETHODIMP ListProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	ListControl* listControl = this->control;
 	ListItemControl* listItemControl = NULL;
 	IRawElementProviderFragment* pFragment = NULL;
@@ -222,22 +202,12 @@ IFACEMETHODIMP ListProvider::Navigate(NavigateDirection direction, _Outptr_resul
 // UI Automation gets this value from the host window provider, so NULL is correct here.
 IFACEMETHODIMP ListProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = NULL;
 	return S_OK;
 }
 
 IFACEMETHODIMP ListProvider::get_BoundingRectangle(_Out_ UiaRect* pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// For now we aren't painting a rectangle for the provider
 	// that'd require more info from Quorum.
 	pRetVal->left = 0;
@@ -250,11 +220,6 @@ IFACEMETHODIMP ListProvider::get_BoundingRectangle(_Out_ UiaRect* pRetVal)
 // Retreives other fragment roots that may be hosted in this one.
 IFACEMETHODIMP ListProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = NULL;
 	return S_OK;
 }
@@ -263,22 +228,12 @@ IFACEMETHODIMP ListProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ 
 // For HWND-based controls, this is handled by the host window provider.
 IFACEMETHODIMP ListProvider::SetFocus()
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	return S_OK;
 }
 
 // Retrieves the root element of this fragment.
 IFACEMETHODIMP ListProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// A provider for a fragment root should return a pointer to its own implementation.
 	*pRetVal = static_cast<IRawElementProviderFragmentRoot*>(this);
 	AddRef();
@@ -289,11 +244,6 @@ IFACEMETHODIMP ListProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElem
 // point (in client coordinates).
 IFACEMETHODIMP ListProvider::ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Since the accessible objects are 1x1 pixel boxes hidden in the corner of the application we'd need quorum to
 	// give us the client coordinates.
 	// Not implemented yet
@@ -304,11 +254,6 @@ IFACEMETHODIMP ListProvider::ElementProviderFromPoint(double x, double y, _Outpt
 // Retrieves the provider for the tree item that is selected when the control gets focus.
 IFACEMETHODIMP ListProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal)
 {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	*pRetVal = NULL;
 
 	ListItemControl* tab = control->GetSelected();
@@ -335,11 +280,6 @@ IFACEMETHODIMP ListProvider::get_IsSelectionRequired(BOOL* pRetVal) {
 }
 
 IFACEMETHODIMP ListProvider::GetSelection(SAFEARRAY** pRetVal) {
-	if (!IsWindow(control->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	//JNIEnv* env = GetJNIEnv();
 	//long selectionPointer = env->CallStaticLongMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTabPaneSelectionPointer, control->GetMe());
 

@@ -16,10 +16,6 @@ HRESULT __stdcall TextFieldProvider::get_ProviderOptions(ProviderOptions* pRetVa
 	#if LOG
 	log("TextFieldProvider::get_ProviderOptions Start");
 	#endif
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	*pRetVal = ProviderOptions_ServerSideProvider;
 
@@ -65,11 +61,6 @@ HRESULT __stdcall TextFieldProvider::GetPropertyValue(PROPERTYID propertyId, VAR
 	log("TextFieldProvider::GetPropertyValue Start" + propertyId);
 	#endif
 
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-	
 	if (propertyId == UIA_AutomationIdPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -287,11 +278,6 @@ IFACEMETHODIMP TextFieldProvider::GetSelection(_Outptr_result_maybenull_ SAFEARR
 	log("TextFieldProvider::GetSelection Start");
 	#endif
 
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	Range caretRange = textFieldControl->GetSelectionRange();
 
 
@@ -334,11 +320,6 @@ IFACEMETHODIMP TextFieldProvider::GetVisibleRanges(_Outptr_result_maybenull_ SAF
 	log("TextFieldProvider::GetVisibleRanges Start");
 	#endif
 
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Not Implemented yet.
 	*retVal = NULL;
 
@@ -356,10 +337,6 @@ IFACEMETHODIMP TextFieldProvider::RangeFromChild(_In_opt_ IRawElementProviderSim
 	#endif
 
 	UNREFERENCED_PARAMETER(childElement);
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	// There are no children of this text control
 	*retVal = NULL;
@@ -376,11 +353,6 @@ IFACEMETHODIMP TextFieldProvider::RangeFromPoint(UiaPoint screenLocation, _Outpt
 	#if LOG
 	log("TextFieldProvider::RangeFromPoint Start");
 	#endif
-
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	/*
 	*	Since the textfield control is a 1x1 pixel box the given UiaPoint isn't going to be correct. So if UIA calls this
@@ -407,11 +379,6 @@ IFACEMETHODIMP TextFieldProvider::get_DocumentRange(_Outptr_result_maybenull_ IT
 	log("TextFieldProvider::get_DocumentRange Start");
 	#endif
 
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0 }, textFieldControl->GetTextFieldEndpoint() };
@@ -430,11 +397,6 @@ IFACEMETHODIMP TextFieldProvider::get_SupportedTextSelection(_Out_ SupportedText
 	#if LOG
 	log("TextFieldProvider::get_SupportedTextSelection Start");
 	#endif
-
-	if (!IsWindow(textFieldControl->GetHWND()))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
 
 	#if LOG
 	log("TextFieldProvider::get_SupportedTextSelection Finish");
