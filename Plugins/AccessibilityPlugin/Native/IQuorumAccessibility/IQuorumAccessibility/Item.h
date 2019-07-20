@@ -23,6 +23,9 @@ public:
 	jobject GetMe();
 	int GetHashCode();
 	void SetHashCode(int hash);
+
+	// TODO: Change the return type to Item* once we're rid of the HWNDs.
+	jlong SetFocus();
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;

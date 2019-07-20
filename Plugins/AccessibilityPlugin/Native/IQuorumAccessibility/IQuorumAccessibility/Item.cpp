@@ -87,3 +87,15 @@ jobject Item::GetMe()
 {
 	return javaItem;
 }
+
+jlong Item::SetFocus()
+{
+	const auto hwnd = GetHWND();
+
+	if (!hwnd)
+	{
+		return 0;
+	}
+
+	return reinterpret_cast<jlong>(::SetFocus(hwnd));
+}

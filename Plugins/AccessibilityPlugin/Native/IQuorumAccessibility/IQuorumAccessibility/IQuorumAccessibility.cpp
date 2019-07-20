@@ -441,15 +441,9 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	Item* pControl = reinterpret_cast<Item*>(control);
 	
-	if (pControl != NULL && pControl->GetHWND() != NULL)
+	if (pControl)
 	{
-		// Sends the appropriate messages to all windows.
-		HWND prevFocus = SetFocus(pControl->GetHWND());
-		#if LOG
-				log("SetFocus Finish 1\n");
-		#endif
-
-		return reinterpret_cast<jlong>(prevFocus);
+		return pControl->SetFocus();
 	}
 
 	#if LOG
@@ -587,7 +581,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuBarControl* pMenuBar = pMenuItem->GetParentMenuBar();
 
 	if (!pMenuBar->HasFocus())
-		SetFocus(pMenuBar->GetHWND());
+		pMenuBar->SetFocus();
 
 	pMenuBar->SetSelectedMenuItem(pMenuItem);
 
@@ -614,7 +608,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TreeControl* pTree = pTreeItem->GetParentTree();
 
 	if (!pTree->HasFocus())
-		SetFocus(pTree->GetHWND());
+		pTree->SetFocus();
 
 	pTree->SetSelectedTreeItem(pTreeItem);
 
@@ -630,7 +624,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	SpreadsheetControl* spreadsheetControl = cellControl->GetParent();
 
 	if (!spreadsheetControl->HasFocus())
-		SetFocus(spreadsheetControl->GetHWND());
+		spreadsheetControl->SetFocus();
 
 	spreadsheetControl->SetSelected(cellControl);
 
@@ -646,7 +640,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	ListControl* listControl = listItemControl->GetParent();
 
 	if (!listControl->HasFocus()) {
-		SetFocus(listControl->GetHWND());
+		listControl->SetFocus();
 	}
 	listControl->SetSelected(listItemControl);
 
