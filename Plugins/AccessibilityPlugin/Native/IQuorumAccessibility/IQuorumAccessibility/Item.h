@@ -12,6 +12,8 @@ class Item
 {
 public:
 	Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem);
+	virtual ~Item();
+
 	virtual void Focus(bool isFocused);
 	virtual bool HasFocus();
 

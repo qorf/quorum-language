@@ -12,6 +12,15 @@ Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescriptio
 	SetHashCode(hash);
 }
 
+Item::~Item()
+{
+	if (m_ControlHWND)
+	{
+		DestroyWindow(m_ControlHWND);
+		m_ControlHWND = nullptr;
+	}
+}
+
 int Item::GetHashCode() {
 	return objectHash;
 }

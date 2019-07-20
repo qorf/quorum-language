@@ -392,11 +392,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveNative(JNIEnv * env, jobject obj, jlong item)
 {
 	Item* itemToRemove = reinterpret_cast<Item*>(item);
-		
-	DestroyWindow(itemToRemove->GetHWND());
 
-	// The pointer is still in use until DestroyWindow has returned.
-	// So delete the pointer here.
 	delete itemToRemove;
 
 	return true;
