@@ -20,6 +20,7 @@ class ToolBar is Control
         toolbarProperties:SetPercentageWidth(1)
         toolbarProperties:SetPixelHeight(30)
         SetAccessibilityCode(parent:Item:TOOLBAR)
+        SetInputGroup("ToolBar")
     end
 
     action IsAccessibleParent returns boolean

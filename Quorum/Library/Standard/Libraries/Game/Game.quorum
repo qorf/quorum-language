@@ -107,6 +107,8 @@ use Libraries.Interface.Behaviors.Controls.ListUpBehavior
 use Libraries.Interface.Behaviors.Controls.ListActivationBehavior
 use Libraries.Interface.Behaviors.Controls.DialogEnterBehavior
 use Libraries.Interface.Behaviors.Controls.DialogEscapeBehavior
+use Libraries.Interface.Behaviors.Controls.NavigateFocusUpToolBar
+use Libraries.Interface.Behaviors.Controls.NavigateFocusDownToolBar
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -492,6 +494,31 @@ class Game
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
 
+        //Input table for toolbars
+        InputTable toolbarTable
+        toolbarTable:SetIdentifier("ToolBar")
+
+        InputSet upSet
+        upSet:SetKeyboardInput(keys:UP)
+        NavigateFocusUpToolBar upFocus
+        toolbarTable:Add(upSet, upFocus)
+
+        InputSet downSet
+        downSet:SetKeyboardInput(keys:DOWN)
+        NavigateFocusDownToolBar downFocus
+        toolbarTable:Add(downSet, downFocus)
+
+        InputSet rightSet
+        rightSet:SetKeyboardInput(keys:LEFT)
+        toolbarTable:Add(rightSet, upFocus)
+
+        InputSet leftSet
+        leftSet:SetKeyboardInput(keys:RIGHT)
+        toolbarTable:Add(leftSet, downFocus)
+
+        gameInput:AddInputTable(toolbarTable)
+
+        //input table for dialogs
         InputTable dialogTable
         dialogTable:SetIdentifier("Dialog")
 
