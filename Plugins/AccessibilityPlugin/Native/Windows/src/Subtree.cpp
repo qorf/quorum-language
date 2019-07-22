@@ -16,11 +16,6 @@ bool Subtree::HasChildren()
 	return !m_treeItemCollection.empty();
 }
 
-int Subtree::CreateUniqueId()
-{
-	return std::rand();
-}
-
 TREEITEM_ITERATOR Subtree::GetTreeItemAt(_In_ int index)
 {
 	return m_treeItemCollection.begin() + index;
@@ -29,14 +24,8 @@ TREEITEM_ITERATOR Subtree::GetTreeItemAt(_In_ int index)
 
 bool Subtree::AddTreeItem(_In_ TreeItemControl* pNewTreetem)
 {
-
-	// Create a unique id for the new item.
-	int id = CreateUniqueId();
-
 	if (pNewTreetem != NULL)
 	{
-		// TODO: Unique Id must be changed when becoming a child of another control
-
 		// Add to collection
 		m_treeItemCollection.push_back(pNewTreetem);
 

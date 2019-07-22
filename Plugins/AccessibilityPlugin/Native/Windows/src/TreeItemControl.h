@@ -11,7 +11,7 @@ class TreeControl;
 class TreeItemControl : public Subtree, public Item
 {
 public:
-	TreeItemControl(JNIEnv* env, _In_ std::wstring menuItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_ int uniqueId, _In_opt_ TreeItemControl* parentMenuItem, _In_ TreeControl* parentMenuBar, jobject jItem);
+	TreeItemControl(JNIEnv* env, _In_ std::wstring menuItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_opt_ TreeItemControl* parentMenuItem, _In_ TreeControl* parentMenuBar, jobject jItem);
 	virtual ~TreeItemControl();
 
 	TreeControl* GetParentTree();
@@ -23,8 +23,6 @@ public:
 	bool IsSubtree();
 	Subtree* GetSubtree();
 
-	int GetId();
-
 	int GetTreeItemIndex();
 	void SetTreeItemIndex(_In_ int index);
 
@@ -34,9 +32,6 @@ public:
 	void Collapse();
 
 private:
-
-	// The id that uniquely identifies this item within an instance of a MenuBar or MenuItem collection.
-	int m_uniqueId;
 
 	// Where this MenuItem is located in the collection.
 	int m_myIndex;

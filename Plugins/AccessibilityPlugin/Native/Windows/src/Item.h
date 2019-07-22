@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <UIAutomation.h>
 #include <string>
+#include <atomic>
 
 #include "jni.h"
 #include "Resources.h"
@@ -25,6 +26,7 @@ public:
 	jobject GetMe();
 	int GetHashCode();
 	void SetHashCode(int hash);
+	int GetUniqueId() const noexcept;
 
 	// TODO: Change the return type to Item* once we're rid of the HWNDs.
 	jlong SetFocus();
@@ -33,10 +35,15 @@ public:
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
-	HWND   m_ControlHWND;
-	bool focused;
+	HWND m_ControlHWND = nullptr;
+	bool focused = false;
 	int objectHash;
 	jobject javaItem;
+
+private:
+	static std::atomic<int> s_nextUniqueId;
+
+	int m_uniqueId;
 
 	Item* m_parent = nullptr;
 	Item* m_firstChild = nullptr;

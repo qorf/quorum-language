@@ -11,7 +11,7 @@ class MenuBarControl;
 class MenuItemControl : public Menu, public Item
 {
 public:
-	MenuItemControl(JNIEnv* env, _In_ std::wstring menuItemName, _In_ std::wstring menuItemShortcut, _In_ bool isMenu, _In_ int uniqueId, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar, jobject jItem);
+	MenuItemControl(JNIEnv* env, _In_ std::wstring menuItemName, _In_ std::wstring menuItemShortcut, _In_ bool isMenu, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar, jobject jItem);
 	virtual ~MenuItemControl();
 
 	MenuBarControl* GetParentMenuBar();

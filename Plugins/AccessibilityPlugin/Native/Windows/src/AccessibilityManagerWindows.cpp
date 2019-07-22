@@ -219,7 +219,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	if (parentMenu)
 		parentMenuItem = reinterpret_cast<MenuItemControl*>(parentMenu);
 	
-	MenuItemControl* menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar->CreateUniqueId(), parentMenuItem, pMenuBar, jItem);
+	MenuItemControl* menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, parentMenuItem, pMenuBar, jItem);
 
 	menuItemControl->GetMenu()->AddMenuItem(menuItemControl);
 
@@ -375,7 +375,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 		parentTreeItem = reinterpret_cast<TreeItemControl*>(parentSubtree);
 	}
 
-	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree->CreateUniqueId(), parentTreeItem, pTree, jItem);
+	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, parentTreeItem, pTree, jItem);
 
 	treeItemControl->GetSubtree()->AddTreeItem(treeItemControl);
 

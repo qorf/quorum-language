@@ -20,9 +20,6 @@ public:
 
 	bool HasChildren();
 
-	// Generates a unique id for this instance of this control for RuntimeIds of children.
-	int CreateUniqueId();
-
 private:
 	std::deque<TreeItemControl*> m_treeItemCollection;
 

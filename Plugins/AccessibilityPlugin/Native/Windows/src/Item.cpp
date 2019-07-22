@@ -2,8 +2,12 @@
 #include <iostream>
 #include <wil/result.h>
 
+/* static */ std::atomic<int> Item::s_nextUniqueId = 1;
+
 Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem) 
-	: m_ControlName(controlName), m_ControlDescription(controlDescription), m_ControlHWND(NULL)
+	: m_ControlName(controlName)
+	, m_ControlDescription(controlDescription)
+	, m_uniqueId(s_nextUniqueId.fetch_add(1))
 {
 	javaItem = env->NewGlobalRef(jItem);
 	jclass itemReference = env->GetObjectClass(javaItem);
@@ -124,6 +128,11 @@ const WCHAR* Item::GetDescription()
 jobject Item::GetMe()
 {
 	return javaItem;
+}
+
+int Item::GetUniqueId() const noexcept
+{
+	return m_uniqueId;
 }
 
 jlong Item::SetFocus()

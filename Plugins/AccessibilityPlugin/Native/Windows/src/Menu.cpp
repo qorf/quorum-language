@@ -16,11 +16,6 @@ bool Menu::HasChildren()
 	return !m_menuItemCollection.empty();
 }
 
-int Menu::CreateUniqueId()
-{
-	return std::rand();
-}
-
 MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
 {
 	return m_menuItemCollection.begin() + index;
@@ -29,13 +24,8 @@ MENUITEM_ITERATOR Menu::GetMenuItemAt(_In_ int index)
 bool Menu::AddMenuItem(_In_ MenuItemControl* pNewMenuItem)
 {
 
-	// Create a unique id for the new item.
-	int id = CreateUniqueId();
-
 	if (pNewMenuItem != NULL)
 	{
-		// TODO: Unique Id must be changed when becoming a child of another control
-
 		// Add to MenuBar's collection
 		m_menuItemCollection.push_back(pNewMenuItem);
 

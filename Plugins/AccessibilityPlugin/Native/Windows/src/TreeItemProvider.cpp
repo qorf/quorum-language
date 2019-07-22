@@ -284,7 +284,7 @@ IFACEMETHODIMP TreeItemProvider::Navigate(NavigateDirection direction, _Outptr_r
 // which makes the ID unique among instances of the control, and the Automation Id.
 IFACEMETHODIMP TreeItemProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
-	int id = m_pTreeItemControl->GetId();
+	int id = m_pTreeItemControl->GetUniqueId();
 	int rId[] = { UiaAppendRuntimeId, id };
 	
 	HRESULT hr = S_OK;
@@ -390,7 +390,7 @@ void TreeItemProvider::NotifyTreeItemRemoved()
 		parentProvider->AddRef();
 
 		// Construct the runtime ID for the removed child
-		int id = m_pTreeItemControl->GetId();
+		int id = m_pTreeItemControl->GetUniqueId();
 		int rId[] = { UiaAppendRuntimeId, id };
 
 		UiaRaiseStructureChangedEvent(parentProvider, StructureChangeType_ChildRemoved, rId, 2);
