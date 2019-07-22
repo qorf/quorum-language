@@ -165,7 +165,6 @@ DialogProvider* DialogControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new DialogProvider(this);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return provider;
 }

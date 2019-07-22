@@ -64,7 +64,6 @@ SpreadsheetProvider* SpreadsheetControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new SpreadsheetProvider(this);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return new SpreadsheetProvider(this);
 }

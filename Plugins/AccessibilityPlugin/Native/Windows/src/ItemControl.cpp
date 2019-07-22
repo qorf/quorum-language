@@ -28,7 +28,6 @@ ItemProvider* ItemControl::GetItemProvider()
 	if (m_pItemProvider == NULL)
 	{
 		m_pItemProvider = new ItemProvider(this);
-		UiaRaiseAutomationEvent(m_pItemProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pItemProvider;
 }

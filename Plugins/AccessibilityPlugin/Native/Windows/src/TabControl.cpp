@@ -170,7 +170,6 @@ TabProvider* TabControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new TabProvider(this, parent);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return provider;
 }

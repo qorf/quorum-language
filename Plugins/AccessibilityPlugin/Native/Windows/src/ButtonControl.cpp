@@ -30,7 +30,6 @@ ButtonProvider* ButtonControl::GetButtonProvider()
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new ButtonProvider(this);
-		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -124,10 +123,6 @@ ButtonControl* ButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ 
 		}
 		else
 		{
-
-			if (UiaClientsAreListening())
-				control->GetButtonProvider();
-
 			return control;
 		}
 	}

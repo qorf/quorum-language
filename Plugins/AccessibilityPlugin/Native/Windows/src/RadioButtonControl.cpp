@@ -29,7 +29,6 @@ RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new (std::nothrow) RadioButtonProvider(hwnd, this);
-		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }

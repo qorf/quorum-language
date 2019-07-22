@@ -63,7 +63,6 @@ ListProvider* ListControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new ListProvider(this);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return new ListProvider(this);
 }

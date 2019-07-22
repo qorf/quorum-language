@@ -170,7 +170,6 @@ CellProvider* CellControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new CellProvider(this, parent);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return new CellProvider(this, parent);
 }

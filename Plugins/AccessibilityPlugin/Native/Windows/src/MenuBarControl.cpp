@@ -71,7 +71,6 @@ MenuBarProvider* MenuBarControl::GetMenuBarProvider()
 	if (m_menuBarProvider == NULL)
 	{
 		m_menuBarProvider = new MenuBarProvider(this);
-		UiaRaiseAutomationEvent(m_menuBarProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return new MenuBarProvider(this);;
 }

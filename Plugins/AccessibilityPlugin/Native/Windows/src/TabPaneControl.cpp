@@ -63,7 +63,6 @@ TabPaneProvider* TabPaneControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new TabPaneProvider(this);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return provider;
 }

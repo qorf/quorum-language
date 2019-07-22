@@ -140,7 +140,6 @@ TextFieldProvider* TextFieldControl::GetTextFieldProvider()
 	if (textFieldProvider == NULL)
 	{
 		textFieldProvider = new TextFieldProvider(this);
-		//UiaRaiseAutomationEvent(textFieldProvider, UIA_Window_WindowOpenedEventId);
 	}
 	
 

@@ -165,7 +165,6 @@ ToolBarProvider* ToolBarControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new ToolBarProvider(this);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return provider;
 }

@@ -170,7 +170,6 @@ ListItemProvider* ListItemControl::GetProvider()
 	if (provider == NULL)
 	{
 		provider = new ListItemProvider(this, parent);
-		UiaRaiseAutomationEvent(provider, UIA_Window_WindowOpenedEventId);
 	}
 	return new ListItemProvider(this, parent);
 }

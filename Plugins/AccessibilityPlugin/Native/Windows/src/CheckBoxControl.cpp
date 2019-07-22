@@ -29,7 +29,6 @@ CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new CheckBoxProvider(hwnd, this);
-		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }

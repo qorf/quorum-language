@@ -35,7 +35,6 @@ TreeItemProvider* TreeItemControl::GetTreeItemProvider()
 	if (m_pTreeItemProvider == NULL)
 	{
 		m_pTreeItemProvider = new TreeItemProvider(this);
-		UiaRaiseAutomationEvent(m_pTreeItemProvider, UIA_Window_WindowOpenedEventId);
 	}
 	else {
 	}

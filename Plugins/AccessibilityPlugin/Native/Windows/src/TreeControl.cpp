@@ -71,7 +71,6 @@ TreeProvider* TreeControl::GetTreeProvider()
 	if (m_treeProvider == NULL)
 	{
 		m_treeProvider = new TreeProvider(this);
-		UiaRaiseAutomationEvent(m_treeProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return new TreeProvider(this);
 }
