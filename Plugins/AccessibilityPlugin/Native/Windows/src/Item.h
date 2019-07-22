@@ -28,6 +28,8 @@ public:
 
 	// TODO: Change the return type to Item* once we're rid of the HWNDs.
 	jlong SetFocus();
+
+	void AppendChild(Item* child) noexcept;
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
@@ -35,6 +37,12 @@ protected:
 	bool focused;
 	int objectHash;
 	jobject javaItem;
+
+	Item* m_parent = nullptr;
+	Item* m_firstChild = nullptr;
+	Item* m_lastChild = nullptr;
+	Item* m_previousSibling = nullptr;
+	Item* m_nextSibling = nullptr;
 };
 
 #endif

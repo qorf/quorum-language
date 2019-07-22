@@ -1,5 +1,6 @@
 #include "Item.h"
 #include <iostream>
+#include <wil/result.h>
 
 Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem) 
 	: m_ControlName(controlName), m_ControlDescription(controlDescription), m_ControlHWND(NULL)
@@ -18,6 +19,34 @@ Item::~Item()
 	{
 		DestroyWindow(m_ControlHWND);
 		m_ControlHWND = nullptr;
+	}
+
+	// Unlink this item from the tree wherever needed.
+	if (m_parent)
+	{
+		if (this == m_parent->m_firstChild)
+		{
+			m_parent->m_firstChild = m_nextSibling;
+		}
+		if (this == m_parent->m_lastChild)
+		{
+			m_parent->m_lastChild = m_previousSibling;
+		}
+	}
+	if (m_previousSibling)
+	{
+		FAIL_FAST_IF_NULL(m_parent);
+		m_previousSibling->m_nextSibling = m_nextSibling;
+	}
+	if (m_nextSibling)
+	{
+		FAIL_FAST_IF_NULL(m_parent);
+		m_nextSibling->m_previousSibling = m_previousSibling;
+	}
+	for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
+	{
+		FAIL_FAST_IF(child->m_parent != this);
+		child->m_parent = m_parent;
 	}
 }
 
@@ -107,4 +136,21 @@ jlong Item::SetFocus()
 	}
 
 	return reinterpret_cast<jlong>(::SetFocus(hwnd));
+}
+
+void Item::AppendChild(Item* child) noexcept
+{
+	FAIL_FAST_IF(child->m_parent != nullptr);
+	child->m_parent = this;
+	if (m_lastChild)
+	{
+		m_lastChild->m_nextSibling = child;
+		child->m_previousSibling = m_lastChild;
+		m_lastChild = child;
+	}
+	else
+	{
+		m_firstChild = child;
+		m_lastChild = child;
+	}
 }

@@ -59,7 +59,7 @@ target_compile_definitions(AccessibilityManagerWindows PRIVATE
 )
 
 target_include_directories(AccessibilityManagerWindows PRIVATE
-    ../../../../../Dependencies/wil
+    ../../../../../Dependencies/wil/include
     Header
 )
 
