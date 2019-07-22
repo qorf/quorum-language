@@ -12,7 +12,6 @@
 
 // This returns the main game engine window handle for Quorum which messages must be forwarded to.
 // If new windows can be created by Quorum then messages will need to be forwarded to those instead.
-// Its defined in IQuorumAccessibility.cpp
 HWND GetMainWindowHandle();
 
 JNIEnv* GetJNIEnv();

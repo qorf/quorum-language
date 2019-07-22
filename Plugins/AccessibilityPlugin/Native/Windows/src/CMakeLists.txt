@@ -6,6 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_library(AccessibilityManagerWindows MODULE
+    AccessibilityManagerWindows.cpp
     ButtonControl.cpp
     ButtonProvider.cpp
     CellControl.cpp
@@ -14,7 +15,6 @@ add_library(AccessibilityManagerWindows MODULE
     CheckBoxProvider.cpp
     DialogControl.cpp
     DialogProvider.cpp
-    IQuorumAccessibility.cpp
     Item.cpp
     ItemControl.cpp
     ItemProvider.cpp
