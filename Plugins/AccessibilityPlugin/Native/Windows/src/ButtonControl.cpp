@@ -1,6 +1,8 @@
 #include <string>
 #include <windows.h>
 #include <iostream>
+#include <wil/result.h>
+#include <wil/wrl.h>
 
 #include "ButtonControl.h"
 #include "ButtonProvider.h"
@@ -10,28 +12,17 @@ bool ButtonControl::Initialized = false;
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
+ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem)
 {
 }
 
-// ~ButtonControl: Release the reference to the ButtonProvider if there is one.
-ButtonControl::~ButtonControl()
+const wil::com_ptr<ButtonProvider>& ButtonControl::GetProvider()
 {
-	if (m_buttonProvider != NULL)
+	if (!m_provider)
 	{
-		m_buttonProvider->Release();
-		m_buttonProvider = NULL;
+		m_provider = wil::MakeOrThrow<ButtonProvider>(this);
 	}
-}
-
-// GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-ButtonProvider* ButtonControl::GetButtonProvider()
-{
-	if (m_buttonProvider == NULL)
-	{
-		m_buttonProvider = new ButtonProvider(this);
-	}
-	return m_buttonProvider;
+	return m_provider;
 }
 
 // InvokeButton: Handle button click or invoke.
@@ -41,7 +32,7 @@ void ButtonControl::InvokeButton()
 	if (UiaClientsAreListening())
 	{
 		// Raise an event.
-		UiaRaiseAutomationEvent(GetButtonProvider(), UIA_Invoke_InvokedEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Invoke_InvokedEventId);
 	}
 
 }
@@ -134,7 +125,7 @@ ButtonControl* ButtonControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ 
 void ButtonControl::Focus(bool focused)
 {
 	this->focused = focused;
-	m_buttonProvider->NotifyFocusGained();
+	GetProvider()->NotifyFocusGained();
 }
 
 LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -174,7 +165,7 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
@@ -182,15 +173,10 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	case WM_DESTROY:
 	{
 		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetButtonProvider();
-		if (provider != NULL)
+		if (m_provider)
 		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
+			LOG_IF_FAILED(UiaDisconnectProvider(m_provider.get()));
+			m_provider.reset();
 		}
 	}
 	case WM_SETFOCUS:
