@@ -30,7 +30,14 @@ public:
 	// TODO: Change the return type to Item* once we're rid of the HWNDs.
 	jlong SetFocus();
 
+	Item* GetParent() const noexcept;
+	Item* GetFirstChild() const noexcept;
+	Item* GetLastChild() const noexcept;
+	Item* GetPreviousSibling() const noexcept;
+	Item* GetNextSibling() const noexcept;
+	Item* GetRoot() const noexcept;
 	void AppendChild(Item* child) noexcept;
+
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
@@ -49,4 +56,5 @@ private:
 	Item* m_lastChild = nullptr;
 	Item* m_previousSibling = nullptr;
 	Item* m_nextSibling = nullptr;
+	Item* m_root;
 };
