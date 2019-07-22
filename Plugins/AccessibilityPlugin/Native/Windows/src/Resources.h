@@ -1,10 +1,9 @@
+#pragma once
+
 #include "jni.h"
 #include <UIAutomation.h>
 #include <iostream>
 #include <string>
-
-#ifndef Resources_HEADER
-#define Resources_HEADER
 
 #ifndef LOG
 #define LOG 0
@@ -135,4 +134,3 @@ extern JClass_Dialog JavaClass_Spreadsheet;
 extern JClass_Dialog JavaClass_TreeTable;
 extern JClass_Dialog JavaClass_Cell;
 extern JClass_Dialog JavaClass_ListItem;
-#endif

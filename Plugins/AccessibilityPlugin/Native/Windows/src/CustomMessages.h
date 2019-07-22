@@ -1,7 +1,6 @@
-#include "Resources.h"
+#pragma once
 
-#ifndef CustomMessages_HEADER
-#define CustomMessages_HEADER
+#include "Resources.h"
 
 /*
 	Custom Messages for the library. These are used in the different window procedures for various purposes.
@@ -64,5 +63,3 @@ inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wPa
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
 }
-
-#endif

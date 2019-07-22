@@ -1,3 +1,5 @@
+#pragma once
+
 class TreeControl;
 
 class TreeProvider :	public ISelectionProvider,

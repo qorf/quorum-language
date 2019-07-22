@@ -1,3 +1,5 @@
+#pragma once
+
 #include <UIAutomation.h>
 #include <string>
 
@@ -6,9 +8,6 @@
 #include "Resources.h"
 #include "CustomMessages.h"
 #include "Item.h"
-
-#ifndef TextBoxControl_HEADER
-#define TextBoxControl_HEADER
 
 /* The EndPoint structure where the caret is in terms of line and character.
 *  For now, the line will not be included since we are storing the full
@@ -109,5 +108,3 @@ class TextBoxControl : public Item
 		jobject m_JO_me;
 
 };
-
-#endif

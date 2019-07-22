@@ -1,8 +1,8 @@
+#pragma once
+
 #include "jni.h"
 /* Header for class plugins_quorum_Libraries_Interface_AccessibilityManager */
 
-#ifndef _Included_plugins_quorum_Libraries_Interface_AccessibilityManager
-#define _Included_plugins_quorum_Libraries_Interface_AccessibilityManager
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -76,5 +76,4 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 #ifdef __cplusplus
 }
-#endif
 #endif

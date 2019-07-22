@@ -1,8 +1,6 @@
+#pragma once
+
 #include <deque>
-
-
-#ifndef Menu_HEADER
-#define Menu_HEADER
 
 class MenuItemControl;
 #define MENUITEM_ITERATOR std::deque<MenuItemControl*>::iterator
@@ -25,5 +23,3 @@ private:
 	std::deque<MenuItemControl*> m_menuItemCollection;
 
 };
-
-#endif

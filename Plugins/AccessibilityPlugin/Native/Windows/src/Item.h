@@ -1,3 +1,5 @@
+#pragma once
+
 #include <windows.h>
 #include <UIAutomation.h>
 #include <string>
@@ -5,9 +7,6 @@
 
 #include "jni.h"
 #include "Resources.h"
-
-#ifndef Item_HEADER
-#define Item_HEADER 
 
 class Item
 {
@@ -51,7 +50,3 @@ private:
 	Item* m_previousSibling = nullptr;
 	Item* m_nextSibling = nullptr;
 };
-
-#endif
-
-

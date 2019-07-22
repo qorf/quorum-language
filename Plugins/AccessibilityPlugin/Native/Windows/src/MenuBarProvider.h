@@ -1,3 +1,5 @@
+#pragma once
+
 class MenuBarControl;
 
 class MenuBarProvider : public IRawElementProviderSimple,

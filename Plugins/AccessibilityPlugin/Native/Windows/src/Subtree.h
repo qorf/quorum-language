@@ -1,7 +1,6 @@
-#include <deque>
+#pragma once
 
-#ifndef Subtree_HEADER
-#define Subtree_HEADER
+#include <deque>
 
 class TreeItemControl;
 #define TREEITEM_ITERATOR std::deque<TreeItemControl*>::iterator
@@ -24,5 +23,3 @@ private:
 	std::deque<TreeItemControl*> m_treeItemCollection;
 
 };
-
-#endif

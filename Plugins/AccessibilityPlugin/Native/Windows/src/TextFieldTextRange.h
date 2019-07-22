@@ -1,3 +1,5 @@
+#pragma once
+
 #include <UIAutomation.h>
 
 #include "TextFieldControl.h"
