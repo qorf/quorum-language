@@ -1,5 +1,6 @@
 #include "ItemControl.h"
 #include "ItemProvider.h"
+#include "ControlTImpl.h"
 
 // Used to push native error up to Quorum
 #include <iostream> 
@@ -9,29 +10,9 @@ bool ItemControl::Initialized = false;
 
 /**** ItemControl methods ***/
 
-ItemControl::ItemControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) 
-	: Item(env, name, description, jItem), m_pItemProvider(NULL), m_focused(false)
+ItemControl::ItemControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem) : ControlT(env, std::move(controlName), std::move(controlDescription), jItem)
 {
 }
-
-ItemControl::~ItemControl()
-{
-	if (m_pItemProvider != NULL)
-	{
-		m_pItemProvider->Release();
-		m_pItemProvider = NULL;
-	}
-}
-
-ItemProvider* ItemControl::GetItemProvider()
-{
-	if (m_pItemProvider == NULL)
-	{
-		m_pItemProvider = new ItemProvider(this);
-	}
-	return m_pItemProvider;
-}
-
 
 // Register the control class.
 bool ItemControl::Initialize(_In_ HINSTANCE hInstance)
@@ -107,8 +88,6 @@ ItemControl* ItemControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 		}
 		else
 		{
-			if (UiaClientsAreListening())
-				control->GetItemProvider();
 			return control;
 		}
 	}
@@ -119,14 +98,10 @@ ItemControl* ItemControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 
 void ItemControl::Focus(bool focused)
 {
-	if (focused) {
-		this->m_pItemProvider->NotifyFocusGained();
+	if (focused) 
+	{
+		this->GetProvider()->NotifyFocusGained();
 	}
-}
-
-bool ItemControl::HasFocus()
-{
-	return m_focused;
 }
 
 LRESULT ItemControl::StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -167,14 +142,14 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetItemProvider());
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 		break;
 	}
 	case WM_DESTROY:
 	{
 		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetItemProvider();
+		IRawElementProviderSimple* provider = this->GetProvider().get();
 		if (provider != NULL)
 		{
 			HRESULT hr = UiaDisconnectProvider(provider);

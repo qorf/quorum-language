@@ -3,34 +3,16 @@
 
 #include "CheckBoxControl.h"
 #include "CheckBoxProvider.h"
+#include "ControlTImpl.h"
 
 bool CheckBoxControl::Initialized = false;
 
 /**** Button methods ***/
 
 // CheckBoxControl: Constructor. Sets the default values for the button.
-CheckBoxControl::CheckBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
+CheckBoxControl::CheckBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem)
+	: ControlT(env, std::move(name), std::move(description), jItem)
 {
-}
-
-// ~CheckBoxControl: Release the reference to the CheckBoxProvider if there is one.
-CheckBoxControl::~CheckBoxControl()
-{
-	if (m_buttonProvider != NULL)
-	{
-		m_buttonProvider->Release();
-		m_buttonProvider = NULL;
-	}
-}
-
-// GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-CheckBoxProvider* CheckBoxControl::GetButtonProvider(_In_ HWND hwnd)
-{
-	if (m_buttonProvider == NULL)
-	{
-		m_buttonProvider = new CheckBoxProvider(hwnd, this);
-	}
-	return m_buttonProvider;
 }
 
 // RegisterButtonControl: Registers the CheckBoxControl with Windows API so that it can used and later be registered with UI Automation
@@ -119,7 +101,7 @@ CheckBoxControl* CheckBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _
 void CheckBoxControl::Focus(bool focused)
 {
 	this->focused = focused;
-	m_buttonProvider->NotifyFocusGained();
+	GetProvider()->NotifyFocusGained();
 }
 
 void CheckBoxControl::SetState(_In_ ToggleState controlState)
@@ -135,7 +117,6 @@ void CheckBoxControl::SetState(_In_ ToggleState controlState)
 		toggle = JNI_FALSE;
 	}
 
-	//jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
 	JNIEnv* env = GetJNIEnv();
 	env->CallVoidMethod(GetMe(), JavaClass_ToggleButton.SetToggleState, toggle);
 }
@@ -199,7 +180,7 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
@@ -207,7 +188,7 @@ LRESULT CALLBACK CheckBoxControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In
 	case WM_DESTROY:
 	{
 		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetButtonProvider(hwnd);
+		IRawElementProviderSimple* provider = this->GetProvider().get();
 		if (provider != NULL)
 		{
 			HRESULT hr = UiaDisconnectProvider(provider);
