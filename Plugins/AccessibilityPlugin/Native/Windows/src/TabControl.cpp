@@ -2,8 +2,8 @@
 
 bool TabControl::Initialized = false;
 
-TabControl::TabControl(JNIEnv* env, _In_ std::wstring name, _In_ TabPaneControl* parentControl, jobject jItem)
-	: Item(env, name, L"", jItem), parent(parentControl), provider(NULL)
+TabControl::TabControl(JNIEnv* env, std::wstring&& name, _In_ TabPaneControl* parentControl, jobject jItem)
+	: Item(env, std::move(name), L"", jItem), parent(parentControl), provider(NULL)
 {
 }
 

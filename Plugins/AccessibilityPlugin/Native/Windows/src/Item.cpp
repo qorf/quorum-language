@@ -4,9 +4,9 @@
 
 /* static */ std::atomic<int> Item::s_nextUniqueId = 1;
 
-Item::Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem) 
-	: m_ControlName(controlName)
-	, m_ControlDescription(controlDescription)
+Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem) 
+	: m_ControlName(std::move(controlName))
+	, m_ControlDescription(std::move(controlDescription))
 	, m_uniqueId(s_nextUniqueId.fetch_add(1))
 	, m_root(this)
 {
@@ -199,4 +199,9 @@ void Item::AppendChild(Item* child) noexcept
 		m_firstChild = child;
 		m_lastChild = child;
 	}
+}
+
+wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()
+{
+	FAIL_FAST();
 }

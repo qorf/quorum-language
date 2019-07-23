@@ -4,6 +4,7 @@
 #include <UIAutomation.h>
 #include <string>
 #include <atomic>
+#include <wil/com.h>
 
 #include "jni.h"
 #include "Resources.h"
@@ -11,7 +12,7 @@
 class Item
 {
 public:
-	Item(JNIEnv* env, std::wstring controlName, std::wstring controlDescription, jobject jItem);
+	Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 	virtual ~Item();
 
 	virtual void Focus(bool isFocused);
@@ -37,6 +38,9 @@ public:
 	Item* GetNextSibling() const noexcept;
 	Item* GetRoot() const noexcept;
 	void AppendChild(Item* child) noexcept;
+
+	// TODO: Make this a pure virtual function after the big refactoring.
+	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
 
 protected:
 	std::wstring m_ControlName;

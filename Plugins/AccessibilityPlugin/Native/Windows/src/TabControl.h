@@ -13,7 +13,7 @@ class TabPaneControl;
 class TabControl : public Item
 {
 public:
-	TabControl(JNIEnv* env, _In_ std::wstring name, _In_ TabPaneControl* parent, jobject jItem);
+	TabControl(JNIEnv* env, std::wstring&& name, _In_ TabPaneControl* parent, jobject jItem);
 	virtual ~TabControl();
 	static TabControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, TabPaneControl* parent, _In_ WCHAR* name, jobject jItem);
 

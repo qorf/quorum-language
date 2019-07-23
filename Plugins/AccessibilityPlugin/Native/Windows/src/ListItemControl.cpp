@@ -2,8 +2,8 @@
 
 bool ListItemControl::Initialized = false;
 
-ListItemControl::ListItemControl(JNIEnv* env, _In_ std::wstring name, _In_ ListControl* parentControl, jobject jItem)
-	: Item(env, name, L"", jItem), parent(parentControl), provider(NULL)
+ListItemControl::ListItemControl(JNIEnv* env, std::wstring&& name, _In_ ListControl* parentControl, jobject jItem)
+	: Item(env, std::move(name), L"", jItem), parent(parentControl), provider(NULL)
 {
 }
 

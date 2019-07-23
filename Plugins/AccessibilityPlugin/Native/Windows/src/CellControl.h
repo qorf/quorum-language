@@ -13,7 +13,7 @@ class SpreadsheetControl;
 class CellControl : public Item
 {
 public:
-	CellControl(JNIEnv* env, _In_ std::wstring name, _In_ SpreadsheetControl* parent, jobject jItem);
+	CellControl(JNIEnv* env, std::wstring&& name, _In_ SpreadsheetControl* parent, jobject jItem);
 	virtual ~CellControl();
 	static CellControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, SpreadsheetControl* parent, _In_ WCHAR* name, jobject jItem);
 
