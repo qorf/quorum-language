@@ -1,50 +1,23 @@
 #pragma once
+
 #include "TabPaneControl.h"
-#include "TabControl.h"
+#include "ProviderT.h"
 
-class TabPaneControl;
-
-class TabPaneProvider : 
-	public IRawElementProviderSimple,
-	public IRawElementProviderFragment,
-	public IRawElementProviderFragmentRoot,
-	public ISelectionProvider
+class TabPaneProvider : public ProviderT<TabPaneProvider, TabPaneControl, ISelectionProvider>
 {
 public:
 	TabPaneProvider(_In_ TabPaneControl* control);
-	virtual ~TabPaneProvider();
 
-	// IUnknown methods
-	IFACEMETHODIMP_(ULONG) AddRef();
-	IFACEMETHODIMP_(ULONG) Release();
-	IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
+	void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
 
-	// IRawElementProviderSimple methods
-	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions* pRetVal);
-	IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal);
-	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal);
-	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal);
-
-	// IRawElementProviderFragment methods
-	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect* pRetVal);
-	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	IFACEMETHODIMP SetFocus();
-	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal);
-
-	// IRawElementProviderFragmentRoot methods
-	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
+	// Temporary IRawElementProviderFragmentRoot override
+	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override;
 
 	//ISelectionProvider
-	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal);
-	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal);
-	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal);
-
-private:
-	
-	ULONG m_refCount;
-
-	TabPaneControl* control;
+	IFACEMETHODIMP GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal) noexcept override;
+	IFACEMETHODIMP get_CanSelectMultiple(_Out_ BOOL* retVal) noexcept override;
+	IFACEMETHODIMP get_IsSelectionRequired(_Out_ BOOL* retVal) noexcept override;
 };

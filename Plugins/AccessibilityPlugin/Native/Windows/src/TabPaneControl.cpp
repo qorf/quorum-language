@@ -1,5 +1,8 @@
-
 #include "TabPaneControl.h"
+#include "TabPaneProvider.h"
+#include "TabControl.h"
+#include "TabProvider.h"
+#include "ControlTImpl.h"
 
 // For error reporting
 #include <string>
@@ -7,12 +10,8 @@
 
 bool TabPaneControl::Initialized = false;
 
-TabPaneControl::TabPaneControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem)
-	: Item(env, treeName, L"", jItem), provider(NULL), selectedTab(NULL)
-{
-}
-
-TabPaneControl::~TabPaneControl()
+TabPaneControl::TabPaneControl(JNIEnv* env, std::wstring&& name, jobject jItem)
+	: ControlT(env, std::move(name), L"", jItem)
 {
 }
 
@@ -58,23 +57,18 @@ TabPaneControl* TabPaneControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In
 	return NULL; // Indicates failure to create window.
 }
 
-TabPaneProvider* TabPaneControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new TabPaneProvider(this);
-	}
-	return provider;
-}
-
 TabControl* TabPaneControl::GetSelectedTab()
 {
-	return selectedTab;
+	return m_selectedTab;
 }
 
 void TabPaneControl::SetSelectedTab(_In_opt_ TabControl* tab)
 {
-	selectedTab = tab;
+	m_selectedTab = tab;
+	if (tab != nullptr && UiaClientsAreListening())
+	{
+		tab->GetProvider()->NotifyElementSelected();
+	}
 }
 
 LRESULT TabPaneControl::StaticTabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -113,31 +107,17 @@ LRESULT TabPaneControl::TabPaneControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
 		if (UiaClientsAreListening())
 		{
-			UiaRaiseAutomationEvent(GetProvider(), UIA_AutomationFocusChangedEventId);
+			UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationFocusChangedEventId);
 		}
 		break;
 	}
