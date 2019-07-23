@@ -21,7 +21,6 @@ add_library(AccessibilityManagerWindows MODULE
     ListItemControl.cpp
     ListItemProvider.cpp
     ListProvider.cpp
-    Menu.cpp
     MenuBarControl.cpp
     MenuBarProvider.cpp
     MenuItemControl.cpp

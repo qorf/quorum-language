@@ -1,42 +1,20 @@
-#include <windows.h>
-#include <UIAutomation.h>
-
 #include "MenuItemControl.h"
 #include "MenuItemProvider.h"
 #include "MenuBarControl.h"
+#include "MenuBarProvider.h"
+#include "ControlTImpl.h"
 
-MenuItemControl::MenuItemControl(JNIEnv* env, std::wstring&& menuItemName, std::wstring&& menuItemShortcut, _In_ bool isMenu, _In_opt_ MenuItemControl* parentMenuItem, _In_ MenuBarControl* parentMenuBar, jobject jItem)
-	: Item(env, std::move(menuItemName), L"", jItem), m_shortcut(std::move(menuItemShortcut)), m_pParentMenuBar(parentMenuBar),
-	  m_pParentMenuItem(parentMenuItem), m_pMenuItemProvider(NULL), m_myIndex(-1), m_isMenu(isMenu)
-{
-}
-
-MenuItemControl::~MenuItemControl()
+MenuItemControl::MenuItemControl(JNIEnv* env, std::wstring&& menuItemName, std::wstring&& menuItemShortcut, _In_ bool isMenu, _In_ MenuBarControl* parentMenuBar, jobject jItem)
+	: ControlT(env, std::move(menuItemName), L"", jItem)
+	, m_shortcut(std::move(menuItemShortcut))
+	, m_parentMenuBar(parentMenuBar)
+	, m_isMenu(isMenu)
 {
 }
 
 MenuBarControl * MenuItemControl::GetParentMenuBar()
 {
-	return m_pParentMenuBar;
-}
-
-void MenuItemControl::SetParentMenuBar(_In_ MenuBarControl * menuBar)
-{
-	m_pParentMenuBar = menuBar;
-}
-
-MenuItemControl * MenuItemControl::GetParentMenuItem()
-{
-	return m_pParentMenuItem;
-}
-
-MenuItemProvider * MenuItemControl::GetMenuItemProvider()
-{
-	if (m_pMenuItemProvider == NULL)
-	{
-		m_pMenuItemProvider = new MenuItemProvider(this);
-	}
-	return new MenuItemProvider(this);
+	return m_parentMenuBar;
 }
 
 bool MenuItemControl::IsMenu()
@@ -44,49 +22,14 @@ bool MenuItemControl::IsMenu()
 	return m_isMenu;
 }
 
-Menu * MenuItemControl::GetMenu()
+void MenuItemControl::SetShortcut(std::wstring&& shortcut)
 {
-	Menu* menuControl = GetParentMenuItem();
-	if (menuControl == NULL)
-		menuControl = GetParentMenuBar();
-
-	return menuControl;
+	m_shortcut = std::move(shortcut);
 }
 
-void MenuItemControl::SetShortcut(std::wstring shortcut)
+const std::wstring& MenuItemControl::GetShortcut()
 {
-	m_shortcut = shortcut;
-}
-
-const WCHAR * MenuItemControl::GetShortcut()
-{
-	return m_shortcut.c_str();
-}
-
-// GetMenuItemIndex: Retreives the MenuItem index by iterating through the collection.
-int MenuItemControl::GetMenuItemIndex()
-{
-	Menu* pMenuControl = GetMenu();
-
-	for (int i = 0; i < pMenuControl->GetCount(); i++)
-	{
-		MENUITEM_ITERATOR menuItem = pMenuControl->GetMenuItemAt(i);
-		MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(*menuItem);
-		if (pMenuItem == this)
-		{
-			m_myIndex = i;
-			break;
-		}
-	}
-	
-	return m_myIndex;
-	
-}
-
-// SetMenuItemIndex: Sets the MenuItem index to the given index.
-void MenuItemControl::SetMenuItemIndex(_In_ int index)
-{
-	m_myIndex = index;
+	return m_shortcut;
 }
 
 bool MenuItemControl::HasFocus()
@@ -96,17 +39,14 @@ bool MenuItemControl::HasFocus()
 
 void MenuItemControl::Expand()
 {
-	GetMenuItemProvider()->Expand();
+	GetProvider()->Expand();
 }
 
 void MenuItemControl::Collapse()
 {
-	GetMenuItemProvider()->Collapse();
+	GetProvider()->Collapse();
 }
 
 void MenuItemControl::Focus(bool isFocused)
 {
 }
-
-
-

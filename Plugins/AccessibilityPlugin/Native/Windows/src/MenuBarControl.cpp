@@ -1,9 +1,8 @@
-#include <windows.h>
-
 #include "MenuBarControl.h"
+#include "MenuBarProvider.h"
 #include "MenuItemControl.h"
 #include "MenuItemProvider.h"
-#include "MenuBarProvider.h"
+#include "ControlTImpl.h"
 
 // For error reporting
 #include <string>
@@ -11,12 +10,8 @@
 
 bool MenuBarControl::Initialized = false;
 
-MenuBarControl::MenuBarControl(JNIEnv* env, _In_ WCHAR* menuBarName, jobject jItem) 
-	: Item(env, menuBarName, L"", jItem), m_menuBarProvider(NULL), m_focused(false), m_pSelectedMenuItem(NULL)
-{
-}
-
-MenuBarControl::~MenuBarControl()
+MenuBarControl::MenuBarControl(JNIEnv* env, std::wstring&& menuBarName, jobject jItem) 
+	: ControlT(env, std::move(menuBarName), L"", jItem)
 {
 }
 
@@ -66,15 +61,6 @@ MenuBarControl* MenuBarControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In
 	return NULL; // Indicates failure to create window.
 }
 
-MenuBarProvider* MenuBarControl::GetMenuBarProvider()
-{
-	if (m_menuBarProvider == NULL)
-	{
-		m_menuBarProvider = new MenuBarProvider(this);
-	}
-	return new MenuBarProvider(this);;
-}
-
 MenuItemControl* MenuBarControl::GetSelectedMenuItem()
 {
 	return m_pSelectedMenuItem;
@@ -85,7 +71,7 @@ void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenu
 	m_pSelectedMenuItem = selectedMenuItem;
 	if (m_pSelectedMenuItem != nullptr && UiaClientsAreListening())
 	{
-		m_pSelectedMenuItem->GetMenuItemProvider()->NotifyElementSelected();
+		m_pSelectedMenuItem->GetProvider()->NotifyElementSelected();
 	}
 }
 
@@ -127,24 +113,10 @@ LRESULT MenuBarControl::MenuBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetMenuBarProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetMenuBarProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
@@ -200,13 +172,13 @@ bool MenuBarControl::Initialize(_In_ HINSTANCE hInstance)
 
 void MenuBarControl::Focus(bool isFocused)
 {
-	this->focused = focused;
+	Item::Focus(isFocused);
 	if (isFocused && UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(GetMenuBarProvider(), UIA_MenuModeStartEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeStartEventId);
 	}
 	else
 	{
-		UiaRaiseAutomationEvent(GetMenuBarProvider(), UIA_MenuModeEndEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeEndEventId);
 	}
 }

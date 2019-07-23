@@ -213,15 +213,21 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
 
 	MenuBarControl* pMenuBar = reinterpret_cast<MenuBarControl*>(parentMenuBar);
-	
-	MenuItemControl* parentMenuItem = NULL;
+
+	Item* parentItem = nullptr;
 	
 	if (parentMenu)
-		parentMenuItem = reinterpret_cast<MenuItemControl*>(parentMenu);
+	{
+		parentItem = reinterpret_cast<MenuItemControl*>(parentMenu);
+	}
+	else
+	{
+		parentItem = pMenuBar;
+	}
 	
-	MenuItemControl* menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, parentMenuItem, pMenuBar, jItem);
+	const auto menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar, jItem);
 
-	menuItemControl->GetMenu()->AddMenuItem(menuItemControl);
+	parentItem->AppendChild(menuItemControl);
 
 	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
 	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
@@ -372,7 +378,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	Item* parentItem = nullptr;
 
 	if (parentSubtree) {
-		parentItem = reinterpret_cast<Item*>(parentSubtree);
+		parentItem = reinterpret_cast<TreeItemControl*>(parentSubtree);
 	} else {
 		parentItem = pTree;
 	}
@@ -404,7 +410,13 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	
 	MenuItemControl* menuItemToRemove = reinterpret_cast<MenuItemControl*>(menuItem);
 
-	menuItemToRemove->GetMenu()->RemoveMenuItem(menuItemToRemove);
+	const auto parentMenuBar = menuItemToRemove->GetParentMenuBar();
+	if (parentMenuBar->GetSelectedMenuItem() == menuItemToRemove)
+	{
+		parentMenuBar->SetSelectedMenuItem(nullptr);
+	}
+
+	menuItemToRemove->RemoveFromParent();
 
 	return true;
 
