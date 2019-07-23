@@ -1,7 +1,9 @@
 package Libraries.Interface.Controls
 
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Gradient
@@ -24,6 +26,7 @@ class Button is Control
     Label label = undefined
     Icon icon = undefined
     LayoutProperties labelProperties
+    GameStateManager manager
 
     // Whether this button has been depressed, e.g. by a mouse click.
     boolean depressed = false
@@ -62,6 +65,15 @@ class Button is Control
 
     action GetActivationBehavior returns Behavior
         return activationBehavior
+    end
+
+    action Activate(BehaviorEvent event)
+        parent:Control:Activate(event)
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:ButtonActivated(me)
+        end
     end
 
     action SetName(text name)
