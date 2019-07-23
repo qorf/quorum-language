@@ -151,7 +151,7 @@ protected:
 		return static_cast<const DerivedT*>(this)->IsControlElement();
 	}
 
-	void GetControlSpecificPropertyValue(PROPERTYID /* propertyId */, _Out_ VARIANT* /* retVal */)
+	void GetControlSpecificPropertyValue(PROPERTYID /* propertyId */, _Out_ VARIANT* /* retVal */) const
 	{
 	}
 

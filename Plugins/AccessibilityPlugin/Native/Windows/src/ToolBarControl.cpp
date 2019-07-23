@@ -1,13 +1,11 @@
 #include "ToolBarControl.h"
+#include "ToolBarProvider.h"
+#include "ControlTImpl.h"
 
 bool ToolBarControl::Initialized = false;
 
-ToolBarControl::ToolBarControl(JNIEnv* env, WCHAR* name, jobject jItem)
-	: Item(env, name, L"", jItem), provider(NULL)
-{
-}
-
-ToolBarControl::~ToolBarControl()
+ToolBarControl::ToolBarControl(JNIEnv* env, std::wstring&& name, jobject jItem)
+	: ControlT(env, std::move(name), L"", jItem)
 {
 }
 
@@ -123,24 +121,10 @@ LRESULT ToolBarControl::ToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
@@ -158,13 +142,4 @@ LRESULT ToolBarControl::ToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message,
 	}  // switch (message)
 
 	return lResult;
-}
-
-ToolBarProvider* ToolBarControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new ToolBarProvider(this);
-	}
-	return provider;
 }
