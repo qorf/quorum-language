@@ -1,60 +1,35 @@
 #pragma once
 
-class MenuItemControl;
-class MenuBarControl;
+#include "MenuItemControl.h"
+#include "ProviderT.h"
 
-class MenuItemProvider : public IRawElementProviderSimple,
-						 public IRawElementProviderFragment,
-						 public IExpandCollapseProvider,
-						 public IInvokeProvider
+class MenuItemProvider : public ProviderT<
+	MenuItemProvider,
+	MenuItemControl,
+	IInvokeProvider,
+	IExpandCollapseProvider>
 {
 public:
-	MenuItemProvider(MenuItemControl* pControl);
+	MenuItemProvider(_In_ MenuItemControl* control);
 
-	// IUnknown methods
-	IFACEMETHODIMP_(ULONG) AddRef();
-	IFACEMETHODIMP_(ULONG) Release();
-	IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
+	void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
 
-	// IRawElementProviderSimple methods
-	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions * pRetVal);
-	IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal);
-	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal);
-	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal);
-
-	// IRawElementProviderFragment methods
-	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
-	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect * pRetVal);
-	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	IFACEMETHODIMP SetFocus();
-	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
+	// IRawElementProviderFragment override
+	IFACEMETHODIMP SetFocus() noexcept override;
 
 	// IExpandCollapseProvider methods
-	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState *pRetVal);
-	IFACEMETHODIMP Expand();
-	IFACEMETHODIMP Collapse();
+	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState* retVal) noexcept override;
+	IFACEMETHODIMP Expand() noexcept override;
+	IFACEMETHODIMP Collapse() noexcept override;
 
 	// IInvokeProvider methods
-	IFACEMETHODIMP Invoke();
+	IFACEMETHODIMP Invoke() noexcept override;
 
 	// Various methods
-	void NotifyMenuItemAdded();
-	void NotifyMenuItemRemoved();
 	void NotifyElementSelected();
 	void NotifyElementInvoked();
 	void NotifyElementExpandCollapse();
-	IUnknown* GetParentProvider();
-
-
-private:
-	virtual ~MenuItemProvider();
-
-	// Ref Counter for this COM object
-	ULONG m_refCount;
-
-	// The MenuItem
-	MenuItemControl* m_pMenuItemControl;
-
-	ExpandCollapseState m_expandCollapseState;
 };

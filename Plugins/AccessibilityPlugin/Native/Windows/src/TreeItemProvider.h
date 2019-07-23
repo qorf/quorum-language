@@ -35,7 +35,5 @@ public:
 
 	// Various methods
 	void NotifyElementSelected();
-
-private:
 	void NotifyElementExpandCollapse();
 };
