@@ -1,5 +1,8 @@
-
 #include "ListControl.h"
+#include "ListProvider.h"
+#include "ListItemControl.h"
+#include "ListItemProvider.h"
+#include "ControlTImpl.h"
 
 // For error reporting
 #include <string>
@@ -7,12 +10,8 @@
 
 bool ListControl::Initialized = false;
 
-ListControl::ListControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem)
-	: Item(env, treeName, L"", jItem), provider(NULL), selected(NULL)
-{
-}
-
-ListControl::~ListControl()
+ListControl::ListControl(JNIEnv* env, std::wstring&& name, jobject jItem)
+	: ControlT(env, std::move(name), L"", jItem)
 {
 }
 
@@ -58,26 +57,17 @@ ListControl* ListControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 	return NULL; // Indicates failure to create window.
 }
 
-ListProvider* ListControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new ListProvider(this);
-	}
-	return new ListProvider(this);
-}
-
 ListItemControl* ListControl::GetSelected()
 {
-	return selected;
+	return m_selectedItem;
 }
 
 void ListControl::SetSelected(_In_opt_ ListItemControl* item)
 {
-	selected = item;
-	if (selected != nullptr && UiaClientsAreListening())
+	m_selectedItem = item;
+	if (item != nullptr && UiaClientsAreListening())
 	{
-		selected->GetProvider()->NotifyElementSelected();
+		item->GetProvider()->NotifyElementSelected();
 	}
 }
 
@@ -117,31 +107,17 @@ LRESULT ListControl::ListControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
 		if (UiaClientsAreListening())
 		{
-			UiaRaiseAutomationEvent(GetProvider(), UIA_AutomationFocusChangedEventId);
+			UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationFocusChangedEventId);
 		}
 		break;
 	}

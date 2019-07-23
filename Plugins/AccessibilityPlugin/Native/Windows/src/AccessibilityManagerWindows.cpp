@@ -277,11 +277,11 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	ListControl* listControl = static_cast<ListControl*>(GetItemPointer(parent));
-	ListItemControl* pane = ListItemControl::Create(env, GetModuleHandle(NULL), handle, listControl, wName, jItem);
+	const auto listControl = static_cast<ListControl*>(GetItemPointer(parent));
+	const auto listItem = new ListItemControl(env, wName, listControl, jItem);
+	listControl->AppendChild(listItem);
 	env->ReleaseStringUTFChars(name, nativeName);
-	return reinterpret_cast<jlong>(pane);
+	return reinterpret_cast<jlong>(listItem);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateToolBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -652,7 +652,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 
 	ListItemControl* listItemControl = reinterpret_cast<ListItemControl*>(selectedCell);
-	ListControl* listControl = listItemControl->GetParent();
+	ListControl* listControl = listItemControl->GetParentList();
 
 	if (!listControl->HasFocus()) {
 		listControl->SetFocus();
