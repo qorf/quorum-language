@@ -492,7 +492,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
 
 	TextBoxControl* pTextBox = reinterpret_cast<TextBoxControl*>(textbox);
-	IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
+	IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetProvider().get());
 
 	enum NotificationKind kind = NotificationKind_ActionAborted;
 	enum NotificationProcessing processing = NotificationProcessing_MostRecent;

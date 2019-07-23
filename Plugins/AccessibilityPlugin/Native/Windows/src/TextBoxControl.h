@@ -8,6 +8,7 @@
 #include "Resources.h"
 #include "CustomMessages.h"
 #include "Item.h"
+#include "ControlT.h"
 
 /* The EndPoint structure where the caret is in terms of line and character.
 *  For now, the line will not be included since we are storing the full
@@ -65,15 +66,11 @@ inline int CompareEndpointPair(_In_ EndPoint endpoint1, _In_ EndPoint endpoint2)
 
 class TextBoxProvider;
 
-class TextBoxControl : public Item
+class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 {
 	public:
-		TextBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me);
-		virtual ~TextBoxControl();
+		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 		static TextBoxControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me);
-
-
-		TextBoxProvider* GetTextBoxProvider();
 
 		// WARNING: Because of the current busy waiting solution these function calls will
 		//			end up making the native code fall behind Quorum at times. It also causes
@@ -86,8 +83,6 @@ class TextBoxControl : public Item
 		std::wstring GetText();
 		EndPoint GetTextboxEndpoint();
 		Range GetSelectionRange();
-
-		jobject GetMe();
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
@@ -103,8 +98,4 @@ class TextBoxControl : public Item
 		static bool Initialized;
 
 		void UpdateCaret();
-
-		TextBoxProvider* m_pTextBoxProvider;
-		jobject m_JO_me;
-
 };

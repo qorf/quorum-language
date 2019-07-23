@@ -4,19 +4,12 @@
 
 #include "TextBoxControl.h"
 #include "TextBoxProvider.h"
+#include "ControlTImpl.h"
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, _In_ jobject me)
-	: Item(env, name, description, me),  m_pTextBoxProvider(NULL), m_JO_me(me)
+TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
-}
-
-TextBoxControl::~TextBoxControl()
-{
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-		env->DeleteGlobalRef(m_JO_me);
 }
 
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
@@ -102,15 +95,6 @@ TextBoxControl* TextBoxControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In
 	return NULL; // Indicates failure to create window.
 }
 
-TextBoxProvider* TextBoxControl::GetTextBoxProvider()
-{
-	if (m_pTextBoxProvider == NULL)
-	{
-		m_pTextBoxProvider = new TextBoxProvider(GetHWND(), this);
-	}
-	return m_pTextBoxProvider;
-}
-
 void TextBoxControl::Focus(bool isFocused)
 {
 	this->focused = isFocused;
@@ -123,14 +107,14 @@ std::wstring TextBoxControl::GetText()
 	{
 		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
+		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 
-		TextBoxProvider* eventControl = GetTextBoxProvider();
+		TextBoxProvider* eventControl = GetProvider().get();
 		if (eventControl != NULL && UiaClientsAreListening())
 		{
 			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
@@ -150,7 +134,7 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 	{
 		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetText));
+		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
@@ -170,7 +154,7 @@ int TextBoxControl::GetCaretLine()
 	{
 		// Wait for one frame of animation to complete
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretLine);
+		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretLine);
 	}
 
 	return (int)index;
@@ -186,7 +170,7 @@ int TextBoxControl::GetCaretPosition()
 		// Wait for Quorum to write
 		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetCaretPosition);
+		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretPosition);
 	}
 	return (int)index + 1;
 }
@@ -201,7 +185,7 @@ int TextBoxControl::GetIndexOfLine(int line)
 		// Wait for Quorum to write
 		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		index = env->CallIntMethod(m_JO_me, JavaClass_TextBox.GetIndexOfLine, (jint)line);
+		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetIndexOfLine, (jint)line);
 	}
 	return (int)index;
 }
@@ -214,7 +198,7 @@ int TextBoxControl::GetLineLength()
 	{
 		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
-		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
+		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetCurrentLineText));
 
 		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 
@@ -237,7 +221,7 @@ Range TextBoxControl::GetSelectionRange()
 		// Wait for Quorum to write
 		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		
-		JO_selection = env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetSelection);
+		JO_selection = env->CallObjectMethod(javaItem, JavaClass_TextBox.GetSelection);
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
 		selectionRange.begin.character = (int)index;
@@ -252,16 +236,11 @@ Range TextBoxControl::GetSelectionRange()
 void TextBoxControl::UpdateCaret()
 {
 	//NotifyCaretPositionChanged(GetHWND(), this);
-	TextBoxProvider* eventControl = GetTextBoxProvider();
+	TextBoxProvider* eventControl = GetProvider().get();
 	if (eventControl != NULL && UiaClientsAreListening())
 	{
 		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 	}
-}
-
-jobject TextBoxControl::GetMe()
-{
-	return m_JO_me;
 }
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
@@ -480,30 +459,13 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			IRawElementProviderSimple* provider = this->GetTextBoxProvider();//new TextBoxProvider(hwnd, this);
+			IRawElementProviderSimple* provider = this->GetProvider().get();
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 			}
 		}
 		break;
-	}
-	case WM_DESTROY:
-	{
-		TextBoxProvider* provider = this->GetTextBoxProvider();
-		if (provider != NULL)
-		{
-			//while (provider->GetReferenceCount() > 0) {
-			//	provider->Release();
-			//}
-			
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed TextBoxControl.cpp: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{

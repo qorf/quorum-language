@@ -1,38 +1,20 @@
 #pragma once
 #include "TextBoxControl.h"
+#include "ProviderT.h"
 
 // Used to create Int SafeArray for RuntimeId
 SAFEARRAY* BuildIntSafeArray(_In_reads_(length) const int * data, _In_ int length);
 
 class TextBoxControl;
 
-class TextBoxProvider : public ITextProvider,
-						public IValueProvider,
-						public IRawElementProviderSimple//,
-						//public IRawElementProviderFragment
+class TextBoxProvider : public ProviderT<TextBoxProvider, TextBoxControl, ITextProvider, IValueProvider>
 {
 public:
-	TextBoxProvider(_In_ HWND hwnd, _In_ TextBoxControl *control);
-	virtual ~TextBoxProvider();
+	TextBoxProvider(_In_ TextBoxControl* control);
 
-	// IUnknown methods
-	IFACEMETHODIMP_(ULONG) AddRef();
-	IFACEMETHODIMP_(ULONG) Release();
-	IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
-
-	// IRawElementProviderSimple methods
-	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions* pRetVal);
-	IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal);
-	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal);
-	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal);
-
-	// IRawElementProviderFragment methods
-	//IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-	//IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	//IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect* pRetVal);
-	//IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	//IFACEMETHODIMP SetFocus();
-	//IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal);
+	// Overridden ProviderT functions.
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
 
 	// ITextProvider methods
 	IFACEMETHODIMP GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal);
@@ -46,12 +28,6 @@ public:
 	IFACEMETHODIMP get_IsReadOnly(BOOL* returnValue);
 	IFACEMETHODIMP SetValue(LPCWSTR value);
 	IFACEMETHODIMP get_Value(BSTR* returnValue);
-	ULONG GetReferenceCount();
-private:
-	
-	ULONG m_refCount;
-	HWND m_TextBoxControlHWND;
-	TextBoxControl* m_pTextBoxControl;
 };
 
 void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl* control);

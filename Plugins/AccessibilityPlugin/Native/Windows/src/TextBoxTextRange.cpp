@@ -273,7 +273,7 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
+	*pRetVal = wil::MakeOrThrow<TextBoxProvider>(m_pTextBoxControl).Get();
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
