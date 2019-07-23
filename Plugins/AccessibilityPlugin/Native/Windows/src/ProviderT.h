@@ -13,6 +13,8 @@ template <class DerivedT, class ControlT, typename ...MoreInterfaces>
 class ProviderT : public wrl::RuntimeClass<
 	wrl::RuntimeClassFlags<wrl::RuntimeClassType::ClassicCom>,
 	IRawElementProviderSimple,
+	IRawElementProviderFragment,
+	IRawElementProviderFragmentRoot,
 	MoreInterfaces...>
 {
 public:
@@ -116,6 +118,108 @@ public:
 			return UiaHostProviderFromHwnd(hwnd, retVal);
 		}
 
+		return S_OK;
+	}
+
+	// IRawElementProviderFragment
+
+	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override try
+	{
+		*retVal = nullptr;
+		Item* destination = nullptr;
+
+		switch (direction)
+		{
+			case NavigateDirection_Parent:
+				destination = m_control->GetParent();
+				break;
+
+			case NavigateDirection_FirstChild:
+				destination = m_control->GetFirstChild();
+				break;
+
+			case NavigateDirection_LastChild:
+				destination = m_control->GetLastChild();
+				break;
+
+			case NavigateDirection_PreviousSibling:
+				destination = m_control->GetPreviousSibling();
+				break;
+
+			case NavigateDirection_NextSibling:
+				destination = m_control->GetNextSibling();
+				break;
+		}
+
+		if (destination)
+		{
+			*retVal = destination->GetProviderFragment().detach();
+		}
+
+		return S_OK;
+	}
+	CATCH_RETURN();
+
+	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY** retVal) noexcept override try
+	{
+		int id = m_control->GetUniqueId();
+		int rid[] = { UiaAppendRuntimeId, id };
+
+		SAFEARRAY* sa = SafeArrayCreateVector(VT_I4, 0, ARRAYSIZE(rid));
+		THROW_IF_NULL_ALLOC(sa);
+
+		for (LONG i = 0; i < ARRAYSIZE(rid); i++)
+		{
+			THROW_IF_FAILED(SafeArrayPutElement(sa, &i, &(rid[i])));
+		}
+
+		*retVal = sa;
+		return S_OK;
+	}
+	CATCH_RETURN();
+
+	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect* retVal) noexcept override
+	{
+		// TODO: Get a bounding rectangle from Quorum and return it here.
+		*retVal = {};
+		return S_OK;
+	}
+
+	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** retVal) noexcept override
+	{
+		*retVal = nullptr;
+		return S_OK;
+	}
+
+	IFACEMETHODIMP SetFocus() noexcept override
+	{
+		// TODO: Call Item.SetFocus
+		return S_OK;
+	}
+
+	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** retVal) noexcept override try
+	{
+		*retVal = nullptr;
+		m_control->GetRoot()->GetProviderFragment().query_to(retVal);
+		return S_OK;
+	}
+	CATCH_RETURN();
+
+	// IRawElementProviderFragmentRoot
+	// TODO: Replace these dummy implementations with real ones once we've gone windowless
+	// and have a single root.
+
+	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
+	{
+		// TODO: Do a hit test, probably by calling into Quorum.
+		*retVal = nullptr;
+		return S_OK;
+	}
+
+	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
+	{
+		// TODO: Once we have a single root that tracks the focus, return it.
+		*retVal = nullptr;
 		return S_OK;
 	}
 
