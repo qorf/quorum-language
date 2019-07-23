@@ -26,37 +26,8 @@ Item::~Item()
 		m_ControlHWND = nullptr;
 	}
 
-	// Unlink this item from the tree wherever needed.
-	if (m_parent)
-	{
-		if (this == m_parent->m_firstChild)
-		{
-			m_parent->m_firstChild = m_nextSibling;
-		}
-		if (this == m_parent->m_lastChild)
-		{
-			m_parent->m_lastChild = m_previousSibling;
-		}
-	}
-	if (m_previousSibling)
-	{
-		FAIL_FAST_IF_NULL(m_parent);
-		m_previousSibling->m_nextSibling = m_nextSibling;
-	}
-	if (m_nextSibling)
-	{
-		FAIL_FAST_IF_NULL(m_parent);
-		m_nextSibling->m_previousSibling = m_previousSibling;
-	}
-	if (m_firstChild)
-	{
-		FAIL_FAST_IF(this == m_root);
-		for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
-		{
-			FAIL_FAST_IF(child->m_parent != this);
-			child->m_parent = m_parent;
-		}
-	}
+	RemoveFromParentInternal();
+	RemoveAllChildren();
 }
 
 int Item::GetHashCode() {
@@ -177,17 +148,47 @@ Item* Item::GetNextSibling() const noexcept
 	return m_nextSibling;
 }
 
+int Item::GetChildCount() const noexcept
+{
+	return m_childCount;
+}
+
 Item* Item::GetRoot() const noexcept
 {
 	return m_root;
 }
 
-void Item::AppendChild(Item* child) noexcept
+void Item::SetRootRecursive(_In_ Item* root) noexcept
+{
+	FAIL_FAST_IF(root->m_root != root);
+	m_root = root;
+	for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
+	{
+		child->SetRootRecursive(root);
+	}
+}
+
+void Item::NotifyChildAdded()
+{
+	if (UiaClientsAreListening())
+	{
+		const auto provider = GetProviderFragment().query<IRawElementProviderSimple>();
+		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(
+			provider.get(),
+			StructureChangeType_ChildAdded,
+			nullptr /* pRuntimeId */,
+			0 /* cRuntimeIdLen */));
+	}
+}
+
+void Item::AppendChild(_In_ Item* child)
 {
 	FAIL_FAST_IF(child->m_parent != nullptr);
 	FAIL_FAST_IF(child->m_firstChild != nullptr);
 	child->m_parent = this;
-	child->m_root = m_root;
+	child->SetRootRecursive(m_root);
+	m_childCount++;
+
 	if (m_lastChild)
 	{
 		m_lastChild->m_nextSibling = child;
@@ -198,6 +199,87 @@ void Item::AppendChild(Item* child) noexcept
 	{
 		m_firstChild = child;
 		m_lastChild = child;
+	}
+}
+
+void Item::RemoveFromParent()
+{
+	if (!m_parent)
+	{
+		return;
+	}
+
+	wil::com_ptr<IRawElementProviderSimple> parentProvider;
+	if (UiaClientsAreListening())
+	{
+		parentProvider = m_parent->GetProviderFragment().query<IRawElementProviderSimple>();
+	}
+
+	RemoveFromParentInternal();
+
+	if (UiaClientsAreListening())
+	{
+		int rid[] = { UiaAppendRuntimeId, m_uniqueId };
+		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(
+			parentProvider.get(),
+			StructureChangeType_ChildRemoved,
+			rid,
+			ARRAYSIZE(rid)));
+	}
+}
+
+void Item::RemoveFromParentInternal() noexcept
+{
+	if (m_previousSibling)
+	{
+		FAIL_FAST_IF_NULL(m_parent);
+		m_previousSibling->m_nextSibling = m_nextSibling;
+		m_previousSibling = nullptr;
+	}
+
+	if (m_nextSibling)
+	{
+		FAIL_FAST_IF_NULL(m_parent);
+		m_nextSibling->m_previousSibling = m_previousSibling;
+		m_nextSibling = nullptr;
+	}
+
+	if (m_parent)
+	{
+		if (this == m_parent->m_firstChild)
+		{
+			m_parent->m_firstChild = m_nextSibling;
+		}
+		if (this == m_parent->m_lastChild)
+		{
+			m_parent->m_lastChild = m_previousSibling;
+		}
+		m_parent->m_childCount--;
+		m_parent = nullptr;
+	}
+
+	if (m_root != this)
+	{
+		SetRootRecursive(this);
+	}
+}
+
+void Item::RemoveAllChildren() noexcept
+{
+	if (m_firstChild)
+	{
+		for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
+		{
+			FAIL_FAST_IF(child->m_parent != this);
+			child->m_parent = nullptr;
+			if (this == child->m_root)
+			{
+				child->SetRootRecursive(child);
+			}
+		}
+		m_firstChild = nullptr;
+		m_lastChild = nullptr;
+		m_childCount = 0;
 	}
 }
 

@@ -36,8 +36,10 @@ public:
 	Item* GetLastChild() const noexcept;
 	Item* GetPreviousSibling() const noexcept;
 	Item* GetNextSibling() const noexcept;
+	int GetChildCount() const noexcept;
 	Item* GetRoot() const noexcept;
-	void AppendChild(Item* child) noexcept;
+	void AppendChild(_In_ Item* child);
+	void RemoveFromParent();
 
 	// TODO: Make this a pure virtual function after the big refactoring.
 	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
@@ -51,6 +53,11 @@ protected:
 	jobject javaItem;
 
 private:
+	void SetRootRecursive(_In_ Item* root) noexcept;
+	void NotifyChildAdded();
+	void RemoveFromParentInternal() noexcept;
+	void RemoveAllChildren() noexcept;
+
 	static std::atomic<int> s_nextUniqueId;
 
 	int m_uniqueId;
@@ -60,5 +67,6 @@ private:
 	Item* m_lastChild = nullptr;
 	Item* m_previousSibling = nullptr;
 	Item* m_nextSibling = nullptr;
+	int m_childCount = 0;
 	Item* m_root;
 };
