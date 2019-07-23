@@ -1,25 +1,17 @@
 #pragma once
 
-#include <windows.h>
-#include <UIAutomation.h>
-#include <deque>
-
 #include "CustomMessages.h"
-#include "Subtree.h"
-#include "Item.h"
+#include "ControlT.h"
 
 class TreeProvider;
 class TreeItemControl;
 
-class TreeControl : public Subtree, public Item
+class TreeControl : public ControlT<TreeControl, TreeProvider>
 {
 public:
-	TreeControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem);
-	virtual ~TreeControl();
+	TreeControl(JNIEnv* env, std::wstring&& treeName, jobject jItem);
 
 	static TreeControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, jobject jItem);
-
-	TreeProvider* GetTreeProvider();
 
 	TreeItemControl* GetSelectedTreeItem();
 	void SetSelectedTreeItem(_In_opt_ TreeItemControl* selectedTreeItem);
@@ -35,9 +27,7 @@ private:
 
 	void SetControlFocus(_In_ bool isFocused);
 
-	bool m_focused;
+	bool m_focused = false;
 
-	TreeProvider* m_treeProvider;
-	TreeItemControl* m_pSelectedTreeItem;
-
+	TreeItemControl* m_pSelectedTreeItem = nullptr;
 };

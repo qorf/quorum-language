@@ -8,6 +8,8 @@
 
 namespace wrl = Microsoft::WRL;
 
+using unique_safearray = wil::unique_any<SAFEARRAY*, decltype(&::SafeArrayDestroy), ::SafeArrayDestroy>;
+
 // A class template used by all provider implementations.
 template <class DerivedT, class ControlT, typename ...MoreInterfaces>
 class ProviderT : public wrl::RuntimeClass<
@@ -165,15 +167,15 @@ public:
 		int id = m_control->GetUniqueId();
 		int rid[] = { UiaAppendRuntimeId, id };
 
-		SAFEARRAY* sa = SafeArrayCreateVector(VT_I4, 0, ARRAYSIZE(rid));
+		unique_safearray sa{ SafeArrayCreateVector(VT_I4, 0, ARRAYSIZE(rid)) };
 		THROW_IF_NULL_ALLOC(sa);
 
 		for (LONG i = 0; i < ARRAYSIZE(rid); i++)
 		{
-			THROW_IF_FAILED(SafeArrayPutElement(sa, &i, &(rid[i])));
+			THROW_IF_FAILED(SafeArrayPutElement(sa.get(), &i, &(rid[i])));
 		}
 
-		*retVal = sa;
+		*retVal = sa.release();
 		return S_OK;
 	}
 	CATCH_RETURN();

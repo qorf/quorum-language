@@ -1,9 +1,8 @@
-#include <windows.h>
-
 #include "TreeControl.h"
 #include "TreeProvider.h"
 #include "TreeItemControl.h"
 #include "TreeItemProvider.h"
+#include "ControlTImpl.h"
 
 // For error reporting
 #include <string>
@@ -11,12 +10,8 @@
 
 bool TreeControl::Initialized = false;
 
-TreeControl::TreeControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem) 
-	: Item(env, treeName, L"", jItem), m_treeProvider(NULL), m_focused(false), m_pSelectedTreeItem(NULL)
-{
-}
-
-TreeControl::~TreeControl()
+TreeControl::TreeControl(JNIEnv* env, std::wstring&& treeName, jobject jItem) 
+	: ControlT(env, std::move(treeName), L"", jItem)
 {
 }
 
@@ -66,15 +61,6 @@ TreeControl* TreeControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 	return NULL; // Indicates failure to create window.
 }
 
-TreeProvider* TreeControl::GetTreeProvider()
-{
-	if (m_treeProvider == NULL)
-	{
-		m_treeProvider = new TreeProvider(this);
-	}
-	return new TreeProvider(this);
-}
-
 bool TreeControl::HasFocus()
 {
 	return m_focused;
@@ -90,7 +76,7 @@ void TreeControl::SetSelectedTreeItem(_In_opt_ TreeItemControl* selectedTreeItem
 	m_pSelectedTreeItem = selectedTreeItem;
 	if (m_pSelectedTreeItem != nullptr && UiaClientsAreListening())
 	{
-		m_pSelectedTreeItem->GetTreeItemProvider()->NotifyElementSelected();
+		m_pSelectedTreeItem->GetProvider()->NotifyElementSelected();
 	}
 }
 
@@ -130,24 +116,10 @@ LRESULT TreeControl::TreeControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTreeProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetTreeProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{

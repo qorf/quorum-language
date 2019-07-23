@@ -1,64 +1,41 @@
 #pragma once
 
-class TreeItemControl;
+#include "TreeItemControl.h"
+#include "ProviderT.h"
+
 class TreeControl;
 
-class TreeItemProvider : public ISelectionItemProvider,
-						 public IRawElementProviderSimple,
-						 public IRawElementProviderFragment,
-						 public IExpandCollapseProvider
+class TreeItemProvider : public ProviderT<
+	TreeItemProvider,
+	TreeItemControl,
+	ISelectionItemProvider,
+	IExpandCollapseProvider>
 {
 public:
-	TreeItemProvider(TreeItemControl* pControl);
+	TreeItemProvider(_In_ TreeItemControl* control);
 
-	// IUnknown methods
-	IFACEMETHODIMP_(ULONG) AddRef();
-	IFACEMETHODIMP_(ULONG) Release();
-	IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
 
-	// IRawElementProviderSimple methods
-	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions * pRetVal);
-	IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal);
-	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal);
-	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal);
-
-	// IRawElementProviderFragment methods
-	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
-	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect * pRetVal);
-	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal);
-	IFACEMETHODIMP SetFocus();
-	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
+	// IRawElementProviderFragment override
+	IFACEMETHODIMP SetFocus() noexcept override;
 
 	// IExpandCollapseProvider methods
-	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState *pRetVal);
-	IFACEMETHODIMP Expand();
-	IFACEMETHODIMP Collapse();
+	IFACEMETHODIMP get_ExpandCollapseState(_Out_ ExpandCollapseState* retVal) noexcept override;
+	IFACEMETHODIMP Expand() noexcept override;
+	IFACEMETHODIMP Collapse() noexcept override;
+
+	// ISelectionItemProvider methods
+	IFACEMETHODIMP Select() noexcept override;
+	IFACEMETHODIMP AddToSelection() noexcept override;
+	IFACEMETHODIMP RemoveFromSelection() noexcept override;
+	IFACEMETHODIMP get_IsSelected(_Out_ BOOL* retVal) noexcept override;
+	IFACEMETHODIMP get_SelectionContainer(_Outptr_ IRawElementProviderSimple** retVal) noexcept override;
 
 	// Various methods
-	void NotifyTreeItemAdded();
-	void NotifyTreeItemRemoved();
 	void NotifyElementSelected();
-	IUnknown* GetParentProvider();
-
-	// Inherited via ISelectionItemProvider
-	IFACEMETHODIMP Select(void) override;
-	IFACEMETHODIMP AddToSelection(void) override;
-	IFACEMETHODIMP RemoveFromSelection(void) override;
-	IFACEMETHODIMP get_IsSelected(BOOL* pRetVal) override;
-	IFACEMETHODIMP get_SelectionContainer(IRawElementProviderSimple** pRetVal) override;
 
 private:
-	virtual ~TreeItemProvider();
-
 	void NotifyElementExpandCollapse();
-
-	// Ref Counter for this COM object
-	ULONG m_refCount;
-
-	// The MenuItem
-	TreeItemControl* m_pTreeItemControl;
-
-	ExpandCollapseState m_expandCollapseState;
-
 };

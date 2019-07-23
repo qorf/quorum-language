@@ -31,7 +31,6 @@ add_library(AccessibilityManagerWindows MODULE
     Resources.cpp
     SpreadsheetControl.cpp
     SpreadsheetProvider.cpp
-    Subtree.cpp
     TabControl.cpp
     TabPaneControl.cpp
     TabPaneProvider.cpp

@@ -369,15 +369,16 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	TreeControl* pTree = reinterpret_cast<TreeControl*>(parentTree);
 
-	TreeItemControl* parentTreeItem = NULL;
+	Item* parentItem = nullptr;
 
 	if (parentSubtree) {
-		parentTreeItem = reinterpret_cast<TreeItemControl*>(parentSubtree);
+		parentItem = reinterpret_cast<Item*>(parentSubtree);
+	} else {
+		parentItem = pTree;
 	}
 
-	TreeItemControl* treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, parentTreeItem, pTree, jItem);
-
-	treeItemControl->GetSubtree()->AddTreeItem(treeItemControl);
+	const auto treeItemControl = new TreeItemControl(env, wTreeItemName, wTreeItemDescription, (bool)isSubtree, (bool)isExpanded, pTree, jItem);
+	parentItem->AppendChild(treeItemControl);
 
 	env->ReleaseStringUTFChars(treeItemName, nativeTreeItemName);
 	env->ReleaseStringUTFChars(treeItemDescription, nativeTreeItemDescription);
@@ -414,7 +415,13 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	TreeItemControl* treeItemToRemove = reinterpret_cast<TreeItemControl*>(treeItem);
 
-	treeItemToRemove->GetSubtree()->RemoveTreeItem(treeItemToRemove);
+	const auto parentTree = treeItemToRemove->GetParentTree();
+	if (parentTree->GetSelectedTreeItem() == treeItemToRemove)
+	{
+		parentTree->SetSelectedTreeItem(nullptr);
+	}
+
+	treeItemToRemove->RemoveFromParent();
 
 	return true;
 

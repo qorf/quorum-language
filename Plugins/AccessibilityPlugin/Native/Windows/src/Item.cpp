@@ -160,7 +160,6 @@ Item* Item::GetRoot() const noexcept
 
 void Item::SetRootRecursive(_In_ Item* root) noexcept
 {
-	FAIL_FAST_IF(root->m_root != root);
 	m_root = root;
 	for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
 	{
