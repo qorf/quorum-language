@@ -1,14 +1,17 @@
 package Libraries.Interface.Controls
 
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Views.ToggleView
+use Libraries.Game.GameStateManager
 
 class ToggleButton is Button
     
     boolean toggled = false
     boolean canToggleOff = true
     ButtonGroup group = undefined
+    GameStateManager manager
 
     on create
         SetAccessibilityCode(parent:Item:TOGGLE_BUTTON)
@@ -42,6 +45,11 @@ class ToggleButton is Button
             if behavior not= undefined
                 behavior:Dispose()
             end
+        end
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:ToggleButtonToggled(me)
         end
     end
 

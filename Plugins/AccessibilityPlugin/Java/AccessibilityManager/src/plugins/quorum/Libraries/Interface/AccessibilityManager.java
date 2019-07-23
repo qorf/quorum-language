@@ -182,7 +182,9 @@ public class AccessibilityManager
     Accessible Object Event Response Functions
     */
     private native boolean ButtonInvoked(long nativePointer);
-    private native boolean UpdateToggleStatusNative(long nativePointer, boolean selected);
+    private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
+    private native boolean NameChangedNative(long nativePointer, String name);
+    private native boolean DescriptionChangedNative(long nativePointer, String description);
     private native boolean TextBoxTextSelectionChangedNative(long nativePointer, String TextValue, int startIndex, int endIndex);
     private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
     private native boolean TextBoxTextChangedNative(long nativePointer, int index, String added, int removed);
@@ -554,22 +556,6 @@ public class AccessibilityManager
         return wasChanged;
     }
     
-    /** UpdateToggleState: Update the selected status of a toggle button down at the native
-                        level. This can be used for any button that can be toggled.
-          Returns: boolean of success or failure
-    * */
-    public boolean UpdateToggleState(Item_ button, boolean selected)
-    {
-        Long nativePointer = ITEM_MAP.get(button);
-        
-        if (nativePointer != null)
-        {
-            return UpdateToggleStatusNative(nativePointer, selected);
-        }
-        else            
-            return false;
-    }
-    
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
         TextBox_ textbox = selection.GetTextBox();
@@ -635,6 +621,26 @@ public class AccessibilityManager
         }
     }
     
+    public void NameChanged(Item_ item)
+    {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        
+        NameChangedNative(nativePointer, item.GetName());
+    }
+    
+    public void DescriptionChanged(Item_ item)
+    {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        
+        DescriptionChangedNative(nativePointer, item.GetDescription());
+    }
+    
     public void Update()
     {
         frameCount++;
@@ -692,6 +698,39 @@ public class AccessibilityManager
     {
         // Some additional logic may be needed here for other types.
         button.Activate();
+    }
+    
+    public boolean OnToggleButtonToggle(ToggleButton_ button)
+    {
+        if (ITEM_MAP.containsKey(button) == false)
+            return false;
+        
+        // Retrieve native pointer for given object
+        long nativePointer = ITEM_MAP.get(button);
+        
+        if (nativePointer == 0)
+            return false;
+        
+        if (button instanceof Tab_)
+        {
+            // Tabs don't typically implement the toggle provider in UIA.
+            return false;
+        }
+        else if (button instanceof RadioButton_)
+        {
+            // RadioButtons in UIA explicitly shouldn't support the toggle provider.
+            return false;
+        }
+        else
+        {
+            return ToggleButtonToggled(nativePointer, button.GetToggleState());
+        }
+    }
+    
+    public static void ToggleToggleButton(ToggleButton_ button)
+    {
+        // Some additional logic may be needed here for different types.
+        button.SetToggleState(!button.GetToggleState());
     }
     
     /*
