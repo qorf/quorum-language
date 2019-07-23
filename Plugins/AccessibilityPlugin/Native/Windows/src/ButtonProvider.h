@@ -1,8 +1,7 @@
 #pragma once
 
+#include "ButtonControl.h"
 #include "ProviderT.h"
-
-class ButtonControl;
 
 class ButtonProvider : public ProviderT<ButtonProvider, ButtonControl, IInvokeProvider>
 {

@@ -2,29 +2,23 @@
 
 #include <windows.h>
 #include <UIAutomation.h>
-#include <deque>
 
 #include "CustomMessages.h"
-#include "Item.h"
-#include "ToolBarProvider.h"
+#include "ControlT.h"
 
 class ToolBarProvider;
 
-class ToolBarControl : public Item
+class ToolBarControl : public ControlT<ToolBarControl, ToolBarProvider>
 {
 public:
-	ToolBarControl(JNIEnv* env, _In_ WCHAR* name, jobject jItem);
-	virtual ~ToolBarControl();
+	ToolBarControl(JNIEnv* env, std::wstring&& name, jobject jItem);
 
 	static ToolBarControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* name, jobject jItem);
 
-	ToolBarProvider* GetProvider();
 private:
 
 	static LRESULT CALLBACK StaticToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	LRESULT CALLBACK ToolBarControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
-
-	ToolBarProvider* provider;
 };

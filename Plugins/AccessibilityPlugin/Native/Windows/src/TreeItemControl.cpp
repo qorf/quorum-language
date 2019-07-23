@@ -5,8 +5,8 @@
 #include "TreeItemProvider.h"
 #include "TreeControl.h"
 
-TreeItemControl::TreeItemControl(JNIEnv* env, _In_ std::wstring treeItemName, _In_ std::wstring treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_opt_ TreeItemControl* parentTreeItem, _In_ TreeControl* parentTree, jobject jItem)
-	: Item(env, treeItemName, treeItemDescription, jItem), m_pParentTree(parentTree),
+TreeItemControl::TreeItemControl(JNIEnv* env, std::wstring&& treeItemName, std::wstring&& treeItemDescription, _In_ bool isSubtree, _In_ bool isExpanded, _In_opt_ TreeItemControl* parentTreeItem, _In_ TreeControl* parentTree, jobject jItem)
+	: Item(env, std::move(treeItemName), std::move(treeItemDescription), jItem), m_pParentTree(parentTree),
 	  m_pParentTreeItem(parentTreeItem), m_pTreeItemProvider(NULL), m_myIndex(-1), m_isSubtree(isSubtree), m_isExpanded(isExpanded)
 {
 }

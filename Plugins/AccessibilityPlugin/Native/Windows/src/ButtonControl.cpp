@@ -1,28 +1,19 @@
 #include <string>
 #include <windows.h>
 #include <iostream>
-#include <wil/result.h>
-#include <wil/wrl.h>
 
 #include "ButtonControl.h"
 #include "ButtonProvider.h"
+#include "ControlTImpl.h"
 
 bool ButtonControl::Initialized = false;
 
 /**** Button methods ***/
 
 // ButtonControl: Constructor. Sets the default values for the button.
-ButtonControl::ButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem)
+ButtonControl::ButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem)
+	: ControlT(env, std::move(name), std::move(description), jItem)
 {
-}
-
-const wil::com_ptr<ButtonProvider>& ButtonControl::GetProvider()
-{
-	if (!m_provider)
-	{
-		m_provider = wil::MakeOrThrow<ButtonProvider>(this);
-	}
-	return m_provider;
 }
 
 // InvokeButton: Handle button click or invoke.
@@ -169,15 +160,6 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		if (m_provider)
-		{
-			LOG_IF_FAILED(UiaDisconnectProvider(m_provider.get()));
-			m_provider.reset();
-		}
 	}
 	case WM_SETFOCUS:
 	{

@@ -14,7 +14,7 @@ class ListControl;
 class ListItemControl : public Item
 {
 public:
-	ListItemControl(JNIEnv* env, _In_ std::wstring name, _In_ ListControl* parent, jobject jItem);
+	ListItemControl(JNIEnv* env, std::wstring&& name, _In_ ListControl* parent, jobject jItem);
 	virtual ~ListItemControl();
 	static ListItemControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, ListControl* parent, _In_ WCHAR* name, jobject jItem);
 
