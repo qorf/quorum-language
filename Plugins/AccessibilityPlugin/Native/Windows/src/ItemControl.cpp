@@ -146,20 +146,6 @@ LRESULT CALLBACK ItemControl::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT messa
 		}
 		break;
 	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider().get();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
-	}
 	case WM_SETFOCUS:
 	{
 		this->Focus(true);
