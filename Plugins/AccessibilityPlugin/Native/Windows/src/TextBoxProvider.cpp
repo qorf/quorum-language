@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl* control)
+void NotifyCaretPositionChanged(_In_ TextBoxControl* control)
 {
 	TextBoxProvider* eventControl = control->GetProvider().get();
 	if (eventControl != NULL)
@@ -23,7 +23,7 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl* control)
 	}
 }
 
-void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl* control)
+void NotifyFocusGained(_In_ TextBoxControl* control)
 {
 	//TextBoxProvider* eventControl = new TextBoxProvider(hwnd, control);
 	//if (eventControl != NULL)
@@ -71,7 +71,7 @@ IFACEMETHODIMP TextBoxProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY
 	Range caretRange = m_control->GetSelectionRange();
 
 
-	ITextRangeProvider* selectionRangeProvider = new TextBoxTextRange(m_control->GetHWND(), m_control, caretRange);
+	ITextRangeProvider* selectionRangeProvider = new TextBoxTextRange(m_control, caretRange);
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
 	{
@@ -130,7 +130,7 @@ IFACEMETHODIMP TextBoxProvider::RangeFromPoint(UiaPoint point, _Outptr_result_ma
 	int caretPosition = m_control->GetCaretPosition();
 	Range closestRange(caretPosition, caretPosition);
 
-	*pRetVal = new TextBoxTextRange(m_control->GetHWND(), m_control, closestRange);
+	*pRetVal = new TextBoxTextRange(m_control, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
@@ -143,7 +143,7 @@ IFACEMETHODIMP TextBoxProvider::get_DocumentRange(_Outptr_result_maybenull_ ITex
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0 }, m_control->GetTextboxEndpoint() };
 
-	*pRetVal = new TextBoxTextRange(m_control->GetHWND(), m_control, fullDocumentRange);
+	*pRetVal = new TextBoxTextRange(m_control, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }

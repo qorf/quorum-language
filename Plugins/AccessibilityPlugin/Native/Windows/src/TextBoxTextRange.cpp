@@ -6,7 +6,7 @@
 //For debugging
 #include <iostream>
 
-TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)
+TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_pTextBoxControl(control), m_range(range)
 {
 
 }
@@ -63,7 +63,7 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range);
+	*pRetVal = new TextBoxTextRange(m_pTextBoxControl, m_range);
 
 	if (*pRetVal == NULL)
 	{
@@ -82,7 +82,7 @@ IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _O
 		TextBoxTextRange *rangeInternal;
 		if (SUCCEEDED(range->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
-			if (m_TextBoxControlHWND == rangeInternal->m_TextBoxControlHWND &&
+			if (m_pTextBoxControl == rangeInternal->m_pTextBoxControl &&
 				CompareEndpointPair(rangeInternal->m_range.begin, m_range.begin) == 0 &&
 				CompareEndpointPair(rangeInternal->m_range.end, m_range.end) == 0)
 			{
@@ -110,7 +110,7 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 	}
 
 	HRESULT hr = S_OK;
-	if (m_TextBoxControlHWND != rangeInternal->m_TextBoxControlHWND)
+	if (m_pTextBoxControl != rangeInternal->m_pTextBoxControl)
 	{
 		hr = E_INVALIDARG;
 	}
@@ -210,7 +210,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 				found.end = searchBackward ? current : next;
 			}
 
-			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found);
+			*pRetVal = new TextBoxTextRange(m_pTextBoxControl, found);
 
 			if (*pRetVal == NULL)
 			{
@@ -365,7 +365,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 	}
 
 	HRESULT hr = S_OK;
-	if (m_TextBoxControlHWND != rangeInternal->m_TextBoxControlHWND)
+	if (m_pTextBoxControl != rangeInternal->m_pTextBoxControl)
 	{
 		hr = E_INVALIDARG;
 	}

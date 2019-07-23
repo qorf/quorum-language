@@ -30,5 +30,5 @@ public:
 	IFACEMETHODIMP get_Value(BSTR* returnValue);
 };
 
-void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl* control);
-void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl* control);
+void NotifyFocusGained(_In_ TextBoxControl* control);
+void NotifyCaretPositionChanged(_In_ TextBoxControl* control);
