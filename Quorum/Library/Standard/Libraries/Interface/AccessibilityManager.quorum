@@ -61,7 +61,7 @@ class AccessibilityManager
     private system action OnButtonActivation(Button button) returns boolean
 
     // == Togglebuttons
-    private system action UpdateToggleState(Item button, boolean selected) returns boolean
+    private system action OnToggleButtonToggle(ToggleButton button) returns boolean
 
     // ===== actions for Textbox
 
@@ -85,6 +85,10 @@ class AccessibilityManager
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
     system action Update
+
+    system action NameChanged(Item item)
+
+    system action DescriptionChanged(Item item)
 
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
@@ -172,6 +176,10 @@ class AccessibilityManager
         else
             OnButtonActivation(button)
         end
+    end
+
+    action ToggleButtonToggled(ToggleButton button)
+        OnToggleButtonToggle(button)
     end
 
     action FocusChanged(FocusEvent event)
