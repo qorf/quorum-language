@@ -18,6 +18,7 @@
 #include "TreeItemControl.h"
 #include "TextfieldControl.h"
 #include "TabPaneControl.h"
+#include "TabControl.h"
 #include "ToolBarControl.h"
 #include "DialogControl.h"
 #include "ListControl.h"

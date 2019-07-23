@@ -1,13 +1,13 @@
 #include "TabControl.h"
+#include "TabProvider.h"
+#include "TabPaneProvider.h"
+#include "ControlTImpl.h"
 
 bool TabControl::Initialized = false;
 
-TabControl::TabControl(JNIEnv* env, std::wstring&& name, _In_ TabPaneControl* parentControl, jobject jItem)
-	: Item(env, std::move(name), L"", jItem), parent(parentControl), provider(NULL)
-{
-}
-
-TabControl::~TabControl()
+TabControl::TabControl(JNIEnv* env, std::wstring&& name, _In_ TabPaneControl* parentTabPane, jobject jItem)
+	: ControlT(env, std::move(name), L"", jItem)
+	, m_parentTabPane(parentTabPane)
 {
 }
 
@@ -123,24 +123,10 @@ LRESULT TabControl::TabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WP
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
@@ -160,19 +146,7 @@ LRESULT TabControl::TabControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WP
 	return lResult;
 }
 
-TabPaneControl* TabControl::GetParent()
+TabPaneControl* TabControl::GetParentTabPane()
 {
-	return parent;
+	return m_parentTabPane;
 }
-
-TabProvider* TabControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new TabProvider(this, parent);
-	}
-	return provider;
-}
-
-
-

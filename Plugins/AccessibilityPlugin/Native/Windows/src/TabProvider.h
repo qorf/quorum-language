@@ -1,57 +1,27 @@
 #pragma once
-#include "TabControl.h"
-class TabControl;
-class TabPaneControl;
 
-class TabProvider : public IRawElementProviderSimple,
-					public IRawElementProviderFragment,
-					public IRawElementProviderFragmentRoot,
-					public ISelectionItemProvider
+#include "TabControl.h"
+#include "ProviderT.h"
+
+class TabProvider : public ProviderT<TabProvider, TabControl, ISelectionItemProvider>
 {
 public:
-	TabProvider(TabControl* pControl, TabPaneControl* parent);
+	TabProvider(_In_ TabControl* control);
 
-	// IUnknown methods
-	IFACEMETHODIMP_(ULONG) AddRef();
-	IFACEMETHODIMP_(ULONG) Release();
-	IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
+	bool IsKeyboardFocusable() const noexcept;
 
-	// IRawElementProviderSimple methods
-	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions* pRetVal);
-	IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal);
-	IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal);
-	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal);
+	// IRawElementProviderFragment override
+	IFACEMETHODIMP SetFocus() noexcept override;
 
-	// IRawElementProviderFragment methods
-	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-	IFACEMETHODIMP GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect* pRetVal);
-	IFACEMETHODIMP GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY** pRetVal);
-	IFACEMETHODIMP SetFocus();
-	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** pRetVal);
+	// ISelectionItemProvider
+	IFACEMETHODIMP Select() noexcept override;
+	IFACEMETHODIMP AddToSelection() noexcept override;
+	IFACEMETHODIMP RemoveFromSelection() noexcept override;
+	IFACEMETHODIMP get_IsSelected(_Out_ BOOL* retVal) noexcept override;
+	IFACEMETHODIMP get_SelectionContainer(_Outptr_ IRawElementProviderSimple** retVal) noexcept override;
 
-	/* We also need the IRawElementProviderFragmentRoot because tabs can have multiple items inside them, including the close button and the 
-	   an item, like a panel, textbox, or something else.
-	*/
-	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** pRetVal);
-
-	//ISelectionItemProvider
-	//Adds the current element to the collection of selected items.
-	IFACEMETHODIMP AddToSelection();
-	IFACEMETHODIMP get_IsSelected(BOOL* pRetVal);
-	IFACEMETHODIMP get_SelectionContainer(IRawElementProviderSimple** pRetVal);
-	IFACEMETHODIMP RemoveFromSelection();
-	IFACEMETHODIMP Select();
-private:
-	virtual ~TabProvider();
-
-	// Ref Counter for this COM object
-	ULONG referenceCount;
-	TabPaneControl* parent;
-
-	//the control
-	TabControl* control;
-
-	IRawElementProviderFragment* child; //the provider for the child
+	void NotifyElementSelected();
 };
