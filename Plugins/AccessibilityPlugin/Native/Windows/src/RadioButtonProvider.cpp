@@ -1,9 +1,4 @@
-#define INITGUID
-#include <windows.h>
-#include <UIAutomation.h>
-
 #include "RadioButtonProvider.h"
-#include "RadioButtonControl.h"
 
 #include <iostream>
 #include <string>

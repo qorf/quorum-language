@@ -16,16 +16,18 @@ ButtonControl::ButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& de
 {
 }
 
-// InvokeButton: Handle button click or invoke.
-void ButtonControl::InvokeButton()
+void ButtonControl::Invoke()
 {
+	// TODO: Call up to Quorum to invoke the button.
+}
 
+void ButtonControl::NotifyInvoked()
+{
 	if (UiaClientsAreListening())
 	{
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Invoke_InvokedEventId);
 	}
-
 }
 
 // RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
@@ -169,11 +171,6 @@ LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT m
 	case WM_KILLFOCUS:
 	{
 		this->Focus(false);
-		break;
-	}
-	case QUORUM_INVOKEBUTTON:
-	{
-		this->InvokeButton();
 		break;
 	}
 	default:

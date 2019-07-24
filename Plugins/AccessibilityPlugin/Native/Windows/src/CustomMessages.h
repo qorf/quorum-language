@@ -14,9 +14,6 @@
 	ForwardMessage function below.
 */
 
-// Button messages
-#define QUORUM_INVOKEBUTTON WM_USER + 2
-
 // ForwardMessage: Sends unhandled messages to either the main GLFW window or the Default Window Procedure
 inline LRESULT ForwardMessage(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {

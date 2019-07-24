@@ -1,9 +1,4 @@
-#define INITGUID
-#include <windows.h>
-#include <UIAutomation.h>
-
 #include "ButtonProvider.h"
-#include "ButtonControl.h"
 
 ButtonProvider::ButtonProvider(ButtonControl* control) : ProviderT(control)
 {
@@ -22,7 +17,7 @@ CONTROLTYPEID ButtonProvider::GetControlType() const noexcept
 // Invoke
 IFACEMETHODIMP ButtonProvider::Invoke() noexcept
 {
-	PostMessage(m_control->GetHWND(), QUORUM_INVOKEBUTTON, 0, 0);
+	m_control->Invoke();
 	return S_OK;
 }
 
