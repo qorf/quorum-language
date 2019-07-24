@@ -48,7 +48,7 @@ void Item::Focus(bool isFocused)
 	focused = isFocused;
 }
 
-bool Item::HasFocus()
+bool Item::HasFocus() const noexcept
 {
 	return focused;
 }

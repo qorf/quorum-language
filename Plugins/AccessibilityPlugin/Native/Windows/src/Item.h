@@ -16,7 +16,7 @@ public:
 	virtual ~Item();
 
 	virtual void Focus(bool isFocused);
-	virtual bool HasFocus();
+	bool HasFocus() const noexcept;
 
 	HWND GetHWND();
 	void SetName(_In_ std::wstring name);

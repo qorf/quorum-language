@@ -15,8 +15,6 @@ public:
 	bool IsExpanded();
 	bool IsSubtree();
 
-	bool HasFocus();
-
 	void Expand();
 	void Collapse();
 
@@ -27,6 +25,4 @@ private:
 	// The Tree that this TreeItem belongs to. This won't always be
 	// this TreeItem's direct parent but it is always an ancestor.
 	TreeControl* m_parentTree;
-
-	void SetControlFocus(_In_ bool focused);
 };
