@@ -12,4 +12,10 @@ public:
 	// Toggle functions.
 	void SetState(_In_ ToggleState controlState);
 	ToggleState GetState();
+
+	// Used to update the state when it changes in Quorum.
+	void UpdateToggleState(_In_ ToggleState state);
+
+private:
+	ToggleState m_toggleState;
 };

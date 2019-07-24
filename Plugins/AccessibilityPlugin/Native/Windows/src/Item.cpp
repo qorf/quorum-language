@@ -66,49 +66,39 @@ HWND Item::GetHWND()
 
 void Item::SetName(_In_ std::wstring name)
 {
+	VARIANT oldName, newName;
+	oldName.vt = VT_BSTR;
+	newName.vt = VT_BSTR;
+	oldName.bstrVal = wil::make_bstr(m_ControlName.c_str()).release();
+	newName.bstrVal = wil::make_bstr(name.c_str()).release();
+
 	m_ControlName = name;
+
+	const auto provider = GetProviderSimple();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldName, newName);
 }
 
 const WCHAR* Item::GetName()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL && javaItem)
-	{
-		jclass itemReference = env->GetObjectClass(javaItem);
-		jmethodID method = env->GetMethodID(itemReference, "GetName", "()Ljava/lang/String;");
-
-		jstring fullName = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, method));
-		const char* nativeName = env->GetStringUTFChars(fullName, 0);
-		WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeName);
-
-		env->ReleaseStringUTFChars(fullName, nativeName);
-
-		return wItemName;
-	}
-
 	return m_ControlName.c_str();
 }
 
 void Item::SetDescription(_In_ std::wstring description)
 {
+	VARIANT oldDescription, newDescription;
+	oldDescription.vt = VT_BSTR;
+	newDescription.vt = VT_BSTR;
+	oldDescription.bstrVal = wil::make_bstr(m_ControlDescription.c_str()).release();
+	newDescription.bstrVal = wil::make_bstr(description.c_str()).release();
+
 	m_ControlDescription = description;
+
+	const auto provider = GetProviderSimple();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_HelpTextPropertyId, oldDescription, newDescription);
 }
 
 const WCHAR* Item::GetDescription()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL && javaItem)
-	{
-		jstring fullDescription = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_Item.GetDescription));
-
-		const char* nativeDescription = env->GetStringUTFChars(fullDescription, 0);
-		WCHAR* wItemDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-
-		env->ReleaseStringUTFChars(fullDescription, nativeDescription);
-
-		return wItemDescription;
-	}
-
 	return m_ControlDescription.c_str();
 }
 

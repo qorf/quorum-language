@@ -26,20 +26,19 @@ void CheckBoxControl::SetState(_In_ ToggleState controlState)
 
 ToggleState CheckBoxControl::GetState()
 {
-	JNIEnv* env = GetJNIEnv();
-	jboolean toggleState = env->CallBooleanMethod(GetMe(), JavaClass_ToggleButton.GetToggleState);
-	ToggleState result;
+	return m_toggleState;
+}
 
-	boolean value = toggleState;
-	
-	if (!value)
-	{
-		result = ToggleState_Off;
-	}
-	else
-	{
-		result = ToggleState_On;
-	}
+void CheckBoxControl::UpdateToggleState(_In_ ToggleState state)
+{
+	VARIANT oldState, newState;
+	oldState.vt = VT_I4;
+	newState.vt = VT_I4;
+	oldState.lVal = m_toggleState;
+	newState.lVal = state;
 
-	return result;
+	m_toggleState = state;
+
+	const auto provider = GetProvider();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_HelpTextPropertyId, oldState, newState);
 }

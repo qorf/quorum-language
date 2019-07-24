@@ -24,6 +24,7 @@ JClass_TextBox JavaClass_TextBox;
 JClass_TextBoxSelection JavaClass_TextBoxSelection;
 JClass_TextField JavaClass_TextField;
 JClass_TextFieldSelection JavaClass_TextFieldSelection;
+JClass_Button JavaClass_Button;
 JClass_ToggleButton JavaClass_ToggleButton;
 JClass_TabPane JavaClass_TabPane;
 JClass_Tab JavaClass_Tab;
@@ -162,6 +163,23 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextFieldSelection.IsEmpty = env->GetMethodID(JavaClass_TextFieldSelection.me, "IsEmpty", "()Z");
 	JavaClass_TextFieldSelection.GetStartIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetStartIndex", "()I");
 	JavaClass_TextFieldSelection.GetEndIndex = env->GetMethodID(JavaClass_TextFieldSelection.me, "GetEndIndex", "()I");
+
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+	#pragma endregion
+
+	/********
+	* Button
+	********/
+	#pragma region Button
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Button_");
+
+	// Assign the ClassId as a Global Reference
+	JavaClass_Button.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	JavaClass_Button.Activate = env->GetMethodID(JavaClass_Button.me, "Activate", "()V");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);

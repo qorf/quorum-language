@@ -10,7 +10,8 @@ ButtonControl::ButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& de
 
 void ButtonControl::Invoke()
 {
-	// TODO: Call up to Quorum to invoke the button.
+	JNIEnv* env = GetJNIEnv();
+	env->CallVoidMethod(GetMe(), JavaClass_Button.Activate);
 }
 
 void ButtonControl::NotifyInvoked()

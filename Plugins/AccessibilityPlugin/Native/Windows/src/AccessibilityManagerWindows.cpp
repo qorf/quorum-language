@@ -503,6 +503,46 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	return 0;
 }
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NameChangedNative(JNIEnv* env, jobject obj, jlong itemPointer, jstring name)
+{
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+
+	Item* item = GetItemFromLong(itemPointer);
+	WCHAR* newName = CreateWideStringFromUTF8Win32(nativeName);
+
+	item->SetName(newName);
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_DescriptionChangedNative(JNIEnv* env, jobject obj, jlong itemPointer, jstring description)
+{
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	Item* item = GetItemFromLong(itemPointer);
+	item->SetDescription(wText);
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ButtonInvoked(JNIEnv*, jobject, jlong buttonPointer)
+{
+	ButtonControl* button = static_cast<ButtonControl*>(GetItemFromLong(buttonPointer));
+	button->NotifyInvoked();
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ToggleButtonToggled(JNIEnv*, jobject, jlong buttonPointer, jboolean toggleState)
+{
+	// Currently, standard toggle buttons use the same providers as check boxes.
+	CheckBoxControl* checkBox = static_cast<CheckBoxControl*>(GetItemFromLong(buttonPointer));
+	checkBox->UpdateToggleState(toggleState == JNI_TRUE ? ToggleState_On : ToggleState_Off);
+
+	return true;
+}
+
 // TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextSelectionChangedNative(JNIEnv *env, jobject obj, jlong textbox, jstring currentLineText, jint startIndex, jint endIndex)
