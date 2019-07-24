@@ -56,12 +56,18 @@ jlong GetItemAsLong(_In_ Item* item)
 
 HWND CalculateParentWindowHandle(_In_opt_ Item* parent)
 {
-	HWND handle = GetMainWindowHandle();
-	if (parent)
+	while (parent)
 	{
-		handle = parent->GetHWND();
+		const auto hwnd = parent->GetHWND();
+		if (hwnd)
+		{
+			return hwnd;
+		}
+
+		parent = parent->GetParent();
 	}
-	return handle;
+
+	return GetMainWindowHandle();
 }
 
 HWND CalculateParentWindowHandle(jlong parentAsLong)
