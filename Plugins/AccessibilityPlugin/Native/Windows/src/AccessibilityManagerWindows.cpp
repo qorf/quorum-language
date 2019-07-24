@@ -155,8 +155,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wTogglebuttonName = CreateWideStringFromUTF8Win32(nativeTogglebuttonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	CheckBoxControl* pCheckBoxControl = CheckBoxControl::Create(env, GetModuleHandle(NULL), handle, wTogglebuttonName, wDescription, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pCheckBoxControl = Create<CheckBoxControl>(env, parentItem, wTogglebuttonName, wDescription, jItem);
 
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -197,8 +197,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	jobject nativeSelf = env->NewGlobalRef(self);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	TextBoxControl* pTextboxControl = TextBoxControl::Create(env, GetModuleHandle(NULL), handle, wTextboxName, wDescription, nativeSelf);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pTextboxControl = Create<TextBoxControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -233,8 +233,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
 	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	MenuBarControl* pMenuBarControl = MenuBarControl::Create(env, GetModuleHandle(NULL), handle, wMenuBarName, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pMenuBarControl = Create<MenuBarControl>(env, parentItem, wMenuBarName, jItem);
 
 	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
 
@@ -301,12 +301,12 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	ListControl* pane = ListControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto list = Create<ListControl>(env, parentItem, wName, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(list);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListItemNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -326,12 +326,12 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	ToolBarControl* pane = ToolBarControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto toolBar = Create<ToolBarControl>(env, parentItem, wName, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(toolBar);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSpreadsheetNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -392,8 +392,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeTreeName = env->GetStringUTFChars(treeName, 0);
 	WCHAR* wTreeName = CreateWideStringFromUTF8Win32(nativeTreeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	TreeControl* pTreeControl = TreeControl::Create(env, GetModuleHandle(NULL), handle, wTreeName, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pTreeControl = Create<TreeControl>(env, parentItem, wTreeName, jItem);
 
 	env->ReleaseStringUTFChars(treeName, nativeTreeName);
 
