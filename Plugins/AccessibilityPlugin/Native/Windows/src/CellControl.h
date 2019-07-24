@@ -24,5 +24,5 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
-	TableControl* parent;
+	TableControl* m_parentTable;
 };

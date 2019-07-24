@@ -6,7 +6,9 @@
 
 bool CellControl::Initialized = false;
 
-CellControl::CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
+CellControl::CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem)
+	: ControlT(env, std::move(name), std::move(description), jItem)
+	, m_parentTable(parent)
 {
 }
 
@@ -147,7 +149,7 @@ LRESULT CellControl::CellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 
 TableControl* CellControl::GetParentTable()
 {
-	return parent;
+	return m_parentTable;
 }
 
 std::wstring CellControl::GetText()
