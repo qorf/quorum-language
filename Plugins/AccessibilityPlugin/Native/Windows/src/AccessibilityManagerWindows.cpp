@@ -86,6 +86,25 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 #pragma region Create Accessible Object
 
+template <typename ControlT, typename... TArgs>
+ControlT* Create(JNIEnv* env, _In_opt_ Item* parent, TArgs&&... args)
+{
+	ControlT* control;
+
+	if (parent && parent->CanContainWindowlessControls())
+	{
+		control = new ControlT(env, std::forward<TArgs>(args)...);
+		parent->AppendChild(control);
+	}
+	else
+	{
+		const auto handle = CalculateParentWindowHandle(parent);
+		control = ControlT::Create(env, GetModuleHandle(nullptr), handle, std::forward<TArgs>(args)...);
+	}
+
+	return control;
+}
+
 // CreateItem: This is the most generic accessible object that can be created. It only contains a name and a description.
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateItemNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
 {
@@ -95,8 +114,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-	HWND handle = CalculateParentWindowHandle(parent);
-	ItemControl* pItemControl = ItemControl::Create(env, GetModuleHandle(NULL), handle, wItemName, wDescription, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pItemControl = Create<ItemControl>(env, parentItem, wItemName, wDescription, jItem);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -115,10 +134,9 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-	ButtonControl* pButtonControl;
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	pButtonControl = ButtonControl::Create(env, GetModuleHandle(NULL), handle, wButtonName, wDescription, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pButtonControl = Create<ButtonControl>(env, parentItem, wButtonName, wDescription, jItem);
 
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
