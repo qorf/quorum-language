@@ -1,23 +1,20 @@
-
-#include "SpreadsheetControl.h"
+#include "TableControl.h"
+#include "TableProvider.h"
 #include "CellControl.h"
+#include "CellProvider.h"
+#include "ControlTImpl.h"
 
 // For error reporting
 #include <string>
 #include <iostream>
 
-bool SpreadsheetControl::Initialized = false;
+bool TableControl::Initialized = false;
 
-SpreadsheetControl::SpreadsheetControl(JNIEnv* env, _In_ WCHAR* treeName, jobject jItem)
-	: Item(env, treeName, L"", jItem), provider(NULL), selected(NULL)
+TableControl::TableControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
 }
 
-SpreadsheetControl::~SpreadsheetControl()
-{
-}
-
-SpreadsheetControl* SpreadsheetControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, jobject jItem)
+TableControl* TableControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, _In_ WCHAR* description, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -26,10 +23,10 @@ SpreadsheetControl* SpreadsheetControl::Create(JNIEnv* env, _In_ HINSTANCE insta
 
 	if (Initialized)
 	{
-		SpreadsheetControl* control = new SpreadsheetControl(env, treeName, jItem);
+		TableControl* control = new TableControl(env, treeName, description, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_SPREADSHEET",
+			L"QUORUM_TABLE",
 			treeName,
 			WS_VISIBLE | WS_CHILD,
 			-1,
@@ -59,21 +56,12 @@ SpreadsheetControl* SpreadsheetControl::Create(JNIEnv* env, _In_ HINSTANCE insta
 	return NULL; // Indicates failure to create window.
 }
 
-SpreadsheetProvider* SpreadsheetControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new SpreadsheetProvider(this);
-	}
-	return new SpreadsheetProvider(this);
-}
-
-CellControl* SpreadsheetControl::GetSelected()
+CellControl* TableControl::GetSelected()
 {
 	return selected;
 }
 
-void SpreadsheetControl::SetSelected(_In_opt_ CellControl* cell)
+void TableControl::SetSelected(_In_opt_ CellControl* cell)
 {
 	selected = cell;
 	if (cell != nullptr && UiaClientsAreListening())
@@ -82,13 +70,13 @@ void SpreadsheetControl::SetSelected(_In_opt_ CellControl* cell)
 	}
 }
 
-LRESULT SpreadsheetControl::StaticSpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT TableControl::StaticSpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	SpreadsheetControl* pThis = reinterpret_cast<SpreadsheetControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	TableControl* pThis = reinterpret_cast<TableControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
 		CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<SpreadsheetControl*>(createStruct->lpCreateParams);
+		pThis = reinterpret_cast<TableControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
 		pThis->m_ControlHWND = hwnd;
 	}
@@ -107,7 +95,7 @@ LRESULT SpreadsheetControl::StaticSpreadsheetControlWndProc(_In_ HWND hwnd, _In_
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT TableControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
 
@@ -118,24 +106,10 @@ LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT 
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
@@ -155,7 +129,7 @@ LRESULT SpreadsheetControl::SpreadsheetControlWndProc(_In_ HWND hwnd, _In_ UINT 
 	return lResult;
 }
 
-bool SpreadsheetControl::Initialize(_In_ HINSTANCE hInstance)
+bool TableControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
@@ -165,7 +139,7 @@ bool SpreadsheetControl::Initialize(_In_ HINSTANCE hInstance)
 	wc.lpfnWndProc = StaticSpreadsheetControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_SPREADSHEET";
+	wc.lpszClassName = L"QUORUM_TABLE";
 
 	if (RegisterClassExW(&wc) == 0)
 	{

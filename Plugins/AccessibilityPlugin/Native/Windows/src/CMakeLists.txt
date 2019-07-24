@@ -28,8 +28,8 @@ add_library(AccessibilityManagerWindows MODULE
     RadioButtonControl.cpp
     RadioButtonProvider.cpp
     Resources.cpp
-    SpreadsheetControl.cpp
-    SpreadsheetProvider.cpp
+    TableControl.cpp
+    TableProvider.cpp
     TabControl.cpp
     TabPaneControl.cpp
     TabPaneProvider.cpp
@@ -46,8 +46,6 @@ add_library(AccessibilityManagerWindows MODULE
     TreeItemControl.cpp
     TreeItemProvider.cpp
     TreeProvider.cpp
-    TreeTableControl.cpp
-    TreeTableProvider.cpp
 )
 
 target_compile_definitions(AccessibilityManagerWindows PRIVATE

@@ -28,7 +28,6 @@ JClass_Dialog JavaClass_Dialog;
 JClass_Dialog JavaClass_List;
 JClass_Dialog JavaClass_ListItem;
 JClass_Dialog JavaClass_Spreadsheet;
-JClass_Dialog JavaClass_TreeTable;
 JClass_Dialog JavaClass_Cell;
 JClass_Item JavaClass_Item;
 
@@ -244,19 +243,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	// Assign the ClassId as a Global Reference
 	JavaClass_Spreadsheet.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
-	// Delete local reference
-	env->DeleteLocalRef(tempLocalClassRef);
-#pragma endregion
-
-	/*************
-	* TreeTable
-	*************/
-#pragma region TreeTable
-// Load the class id
-	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/TreeTable_");
-
-	// Assign the ClassId as a Global Reference
-	JavaClass_TreeTable.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion

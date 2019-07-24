@@ -1,17 +1,16 @@
 #include "CellControl.h"
+#include "CellProvider.h"
+#include "TableControl.h"
+#include "TableProvider.h"
+#include "ControlTImpl.h"
 
 bool CellControl::Initialized = false;
 
-CellControl::CellControl(JNIEnv* env, std::wstring&& name, _In_ SpreadsheetControl* parentControl, jobject jItem)
-	: Item(env, std::move(name), L"", jItem), parent(parentControl), provider(NULL)
+CellControl::CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
 }
 
-CellControl::~CellControl()
-{
-}
-
-CellControl* CellControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, SpreadsheetControl* parent, _In_ WCHAR* name, jobject jItem)
+CellControl* CellControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, TableControl* parent, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem)
 {
 	if (!Initialized)
 	{
@@ -20,7 +19,7 @@ CellControl* CellControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND
 
 	if (Initialized)
 	{
-		CellControl* control = new CellControl(env, name, parent, jItem);
+		CellControl* control = new CellControl(env, name, description, parent, jItem);
 
 		CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_CELL",
@@ -123,24 +122,10 @@ LRESULT CellControl::CellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetProvider());
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				//std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{
@@ -160,18 +145,9 @@ LRESULT CellControl::CellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 	return lResult;
 }
 
-SpreadsheetControl* CellControl::GetParent()
+TableControl* CellControl::GetParent()
 {
 	return parent;
-}
-
-CellProvider* CellControl::GetProvider()
-{
-	if (provider == NULL)
-	{
-		provider = new CellProvider(this, parent);
-	}
-	return new CellProvider(this, parent);
 }
 
 std::wstring CellControl::GetText()

@@ -1,32 +1,24 @@
 #pragma once
 
-#include <windows.h>
-#include <UIAutomation.h>
-#include <deque>
-
 #include "CustomMessages.h"
-#include "Item.h"
-#include "SpreadsheetProvider.h"
+#include "ControlT.h"
 
-class SpreadsheetProvider;
+class TableProvider;
 class CellControl;
 
-class SpreadsheetControl : public Item
+class TableControl : public ControlT<TableControl, TableProvider>
 {
 public:
-	SpreadsheetControl(JNIEnv* env, _In_ WCHAR* name, jobject jItem);
-	virtual ~SpreadsheetControl();
+	TableControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem);
 
-	static SpreadsheetControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, jobject jItem);
-
-	SpreadsheetProvider* GetProvider();
+	static TableControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* treeName, _In_ WCHAR* description, jobject jItem);
 
 	CellControl* GetSelected();
 	void SetSelected(CellControl* selected);
 
 protected:
 
-	SpreadsheetProvider* provider;
+	TableProvider* provider;
 	CellControl* selected;
 
 private:

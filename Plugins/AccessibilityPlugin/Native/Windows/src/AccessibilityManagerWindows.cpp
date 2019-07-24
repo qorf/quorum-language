@@ -23,8 +23,7 @@
 #include "DialogControl.h"
 #include "ListControl.h"
 #include "ListItemControl.h"
-#include "SpreadsheetControl.h"
-#include "TreeTableControl.h"
+#include "TableControl.h"
 #include "CellControl.h"
 
 // For Debug Output
@@ -340,7 +339,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	HWND handle = CalculateParentWindowHandle(parent);
-	SpreadsheetControl* pane = SpreadsheetControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
+	TableControl* pane = TableControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
@@ -353,7 +353,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	HWND handle = CalculateParentWindowHandle(parent);
-	TreeTableControl* pane = TreeTableControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
+	TableControl* pane = TableControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
@@ -366,8 +367,9 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	HWND handle = CalculateParentWindowHandle(parent);
-	SpreadsheetControl* parentControl = static_cast<SpreadsheetControl*>(GetItemFromLong(parent));
-	CellControl* pane = CellControl::Create(env, GetModuleHandle(NULL), handle, parentControl, wName, jItem);
+	TableControl* parentControl = static_cast<TableControl*>(GetItemFromLong(parent));
+	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
+	CellControl* pane = CellControl::Create(env, GetModuleHandle(NULL), handle, parentControl, wName, CreateWideStringFromUTF8Win32(""), jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
@@ -674,7 +676,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 
 	CellControl* cellControl = static_cast<CellControl*>(GetItemFromLong(selectedCell));
-	SpreadsheetControl* spreadsheetControl = cellControl->GetParent();
+	TableControl* spreadsheetControl = cellControl->GetParent();
 
 	if (!spreadsheetControl->HasFocus())
 		spreadsheetControl->SetFocus();
