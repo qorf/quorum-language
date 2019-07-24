@@ -9,10 +9,6 @@
 #define LOG 0
 #endif
 
-// This returns the main game engine window handle for Quorum which messages must be forwarded to.
-// If new windows can be created by Quorum then messages will need to be forwarded to those instead.
-HWND GetMainWindowHandle();
-
 class WindowRoot;
 WindowRoot* GetMainWindowRoot();
 

@@ -110,14 +110,6 @@ public:
 	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** retVal) noexcept override
 	{
 		*retVal = nullptr;
-
-		// Temporary: Remove this from the base ProviderT once the controls are windowless.
-		const auto hwnd = m_control->GetHWND();
-		if (hwnd)
-		{
-			return UiaHostProviderFromHwnd(hwnd, retVal);
-		}
-
 		return S_OK;
 	}
 

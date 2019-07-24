@@ -18,7 +18,6 @@ public:
 	virtual void Focus(bool isFocused);
 	bool HasFocus() const noexcept;
 
-	HWND GetHWND();
 	void SetName(_In_ std::wstring name);
 	const WCHAR* GetName();
 	void SetDescription(_In_ std::wstring description);
@@ -44,7 +43,6 @@ public:
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
-	HWND m_ControlHWND = nullptr;
 	bool focused = false;
 	jobject javaItem = nullptr;
 

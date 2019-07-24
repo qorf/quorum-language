@@ -10,4 +10,7 @@ public:
 
 	// ProviderT
 	CONTROLTYPEID GetControlType() const noexcept;
+
+	// IRawElementProviderSimple override
+	IFACEMETHODIMP get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** retVal) noexcept override;
 };

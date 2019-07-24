@@ -378,14 +378,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	#endif
 }
 
-HWND GetMainWindowHandle()
-{
-	#if LOG
-		log("Resources.cpp GetMainWindowHandle");
-	#endif
-	return GLFWParentWindow;
-}
-
 WindowRoot* GetMainWindowRoot()
 {
 	return g_mainWindowRoot;

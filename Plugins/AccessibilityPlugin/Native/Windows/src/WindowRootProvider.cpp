@@ -9,3 +9,8 @@ CONTROLTYPEID WindowRootProvider::GetControlType() const noexcept
 {
 	return UIA_WindowControlTypeId;
 }
+
+IFACEMETHODIMP WindowRootProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** retVal) noexcept
+{
+	return UiaHostProviderFromHwnd(m_control->GetHwnd(), retVal);
+}

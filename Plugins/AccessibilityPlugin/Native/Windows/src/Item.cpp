@@ -40,11 +40,6 @@ bool Item::HasFocus() const noexcept
 	return focused;
 }
 
-HWND Item::GetHWND()
-{
-	return m_ControlHWND;
-}
-
 void Item::SetName(_In_ std::wstring name)
 {
 	m_ControlName = name;
