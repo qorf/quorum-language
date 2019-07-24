@@ -470,7 +470,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	
 	if (pControl)
 	{
-		pControl->SetFocus();
+		pControl->SetQuorumFocus();
 		return 1; // success
 	}
 
@@ -608,8 +608,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(GetItemFromLong(selectedMenuItem));
 	MenuBarControl* pMenuBar = pMenuItem->GetParentMenuBar();
 
-	if (!pMenuBar->HasFocus())
-		pMenuBar->SetFocus();
+	if (!pMenuBar->HasQuorumFocus())
+		pMenuBar->SetQuorumFocus();
 
 	pMenuBar->SetSelectedMenuItem(pMenuItem);
 
@@ -635,8 +635,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(selectedTreeItem));
 	TreeControl* pTree = pTreeItem->GetParentTree();
 
-	if (!pTree->HasFocus())
-		pTree->SetFocus();
+	if (!pTree->HasQuorumFocus())
+		pTree->SetQuorumFocus();
 
 	pTree->SetSelectedTreeItem(pTreeItem);
 
@@ -651,8 +651,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	CellControl* cellControl = static_cast<CellControl*>(GetItemFromLong(selectedCell));
 	TableControl* spreadsheetControl = cellControl->GetParentTable();
 
-	if (!spreadsheetControl->HasFocus())
-		spreadsheetControl->SetFocus();
+	if (!spreadsheetControl->HasQuorumFocus())
+		spreadsheetControl->SetQuorumFocus();
 
 	spreadsheetControl->SetSelected(cellControl);
 
@@ -667,8 +667,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	ListItemControl* listItemControl = static_cast<ListItemControl*>(GetItemFromLong(selectedCell));
 	ListControl* listControl = listItemControl->GetParentList();
 
-	if (!listControl->HasFocus()) {
-		listControl->SetFocus();
+	if (!listControl->HasQuorumFocus()) {
+		listControl->SetQuorumFocus();
 	}
 	listControl->SetSelected(listItemControl);
 

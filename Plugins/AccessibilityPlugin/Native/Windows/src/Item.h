@@ -17,8 +17,19 @@ public:
 	Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 	virtual ~Item();
 
-	virtual void Focus(bool isFocused);
-	bool HasFocus() const noexcept;
+	bool HasQuorumFocus() const noexcept;
+	bool HasUiaFocus() const noexcept;
+	void SetQuorumFocus();
+
+	// These methods are only called on items that can receive the Quorum focus, e.g. a menu bar
+	// but not the menu items. However, they may be called in cases other than Quorum focus changes,
+	// e.g. when the host window gains or loses focus.
+	virtual void NotifyFocusGained();
+	virtual void NotifyFocusLost();
+
+	// If the focus that we expose to UIA is a descendant of the Quorum focus, e.g. an item
+	// in a list or tree, return that descendant here. Otherwise, return null.
+	virtual Item* GetUiaFocusDescendant() const noexcept;
 
 	void SetName(_In_ std::wstring name);
 	const WCHAR* GetName();
@@ -26,8 +37,6 @@ public:
 	const WCHAR* GetDescription();
 	jobject GetMe();
 	int GetUniqueId() const noexcept;
-
-	void SetFocus();
 
 	Item* GetParent() const noexcept;
 	Item* GetFirstChild() const noexcept;
@@ -45,7 +54,6 @@ public:
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
-	bool focused = false;
 	jobject javaItem = nullptr;
 	RootItemBase* m_root = nullptr;
 

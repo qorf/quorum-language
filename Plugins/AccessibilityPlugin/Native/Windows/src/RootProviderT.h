@@ -13,8 +13,6 @@ public:
 	}
 
 	// IRawElementProviderFragmentRoot
-	// TODO: Replace these dummy implementations with real ones once we've gone windowless
-	// and have a single root.
 
 	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
 	{
@@ -25,8 +23,14 @@ public:
 
 	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
 	{
-		// TODO: Once we have a single root that tracks the focus, return it.
 		*retVal = nullptr;
+
+		const auto item = m_control->GetUiaFocus();
+		if (item && (item != m_control))
+		{
+			item->GetProviderFragment().query_to(retVal);
+		}
+
 		return S_OK;
 	}
 };

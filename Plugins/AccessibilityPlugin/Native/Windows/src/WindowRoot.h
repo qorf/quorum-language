@@ -11,6 +11,7 @@ public:
 	~WindowRoot();
 
 	HWND GetHwnd() const noexcept;
+	bool IsHostFocused() const noexcept override;
 
 private:
 	static LRESULT CALLBACK StaticOverrideWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
@@ -18,4 +19,5 @@ private:
 
 	HWND m_hwnd;
 	WNDPROC m_originalWndProc;
+	bool m_isWindowFocused;
 };

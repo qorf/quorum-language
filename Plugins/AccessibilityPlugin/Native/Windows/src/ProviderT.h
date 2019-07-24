@@ -75,7 +75,7 @@ public:
 				break;
 
 			case UIA_HasKeyboardFocusPropertyId:
-				retVal->boolVal = m_control->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+				retVal->boolVal = m_control->HasUiaFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 				retVal->vt = VT_BOOL;
 				break;
 

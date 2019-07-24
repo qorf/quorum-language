@@ -8,9 +8,14 @@ TableControl::TableControl(JNIEnv* env, std::wstring&& name, std::wstring&& desc
 {
 }
 
-CellControl* TableControl::GetSelected()
+CellControl* TableControl::GetSelected() const noexcept
 {
 	return m_selected;
+}
+
+Item* TableControl::GetUiaFocusDescendant() const noexcept
+{
+	return GetSelected();
 }
 
 void TableControl::SetSelected(_In_opt_ CellControl* cell)

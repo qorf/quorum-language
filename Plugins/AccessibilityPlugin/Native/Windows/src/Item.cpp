@@ -25,20 +25,50 @@ Item::~Item()
 	RemoveAllChildren();
 }
 
-void Item::Focus(bool isFocused)
+bool Item::HasQuorumFocus() const noexcept
 {
-	focused = isFocused;
+	return (m_root->GetQuorumFocus() == this);
+}
 
-	if (isFocused && UiaClientsAreListening())
+bool Item::HasUiaFocus() const noexcept
+{
+	return (m_root->GetUiaFocus() == this);
+}
+
+void Item::SetQuorumFocus()
+{
+	const auto oldFocus = m_root->GetQuorumFocus();
+	if (oldFocus == this)
 	{
-		const auto provider = GetProviderSimple();
+		return;
+	}
+
+	m_root->SetQuorumFocus(this);
+	NotifyFocusGained();
+
+	if (oldFocus)
+	{
+		oldFocus->NotifyFocusLost();
+	}
+}
+
+void Item::NotifyFocusGained()
+{
+	const auto uiaFocusItem = m_root->GetUiaFocus();
+	if (uiaFocusItem && UiaClientsAreListening())
+	{
+		const auto provider = uiaFocusItem->GetProviderSimple();
 		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
 	}
 }
 
-bool Item::HasFocus() const noexcept
+Item* Item::GetUiaFocusDescendant() const noexcept
 {
-	return focused;
+	return nullptr;
+}
+
+void Item::NotifyFocusLost()
+{
 }
 
 void Item::SetName(_In_ std::wstring name)
@@ -97,11 +127,6 @@ jobject Item::GetMe()
 int Item::GetUniqueId() const noexcept
 {
 	return m_uniqueId;
-}
-
-void Item::SetFocus()
-{
-	Focus(true);
 }
 
 Item* Item::GetParent() const noexcept

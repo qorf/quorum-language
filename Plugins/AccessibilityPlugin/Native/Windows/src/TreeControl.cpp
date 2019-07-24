@@ -9,9 +9,14 @@ TreeControl::TreeControl(JNIEnv* env, std::wstring&& treeName, jobject jItem)
 {
 }
 
-TreeItemControl* TreeControl::GetSelectedTreeItem()
+TreeItemControl* TreeControl::GetSelectedTreeItem() const noexcept
 {
 	return m_pSelectedTreeItem;
+}
+
+Item* TreeControl::GetUiaFocusDescendant() const noexcept
+{
+	return GetSelectedTreeItem();
 }
 
 void TreeControl::SetSelectedTreeItem(_In_opt_ TreeItemControl* selectedTreeItem)
