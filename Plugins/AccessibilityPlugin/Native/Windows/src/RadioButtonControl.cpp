@@ -3,35 +3,17 @@
 
 #include "RadioButtonControl.h"
 #include "RadioButtonProvider.h"
+#include "ControlTImpl.h"
 
 bool RadioButtonControl::Initialized = false;
 
 /**** Button methods ***/
 
 // RadioButtonControl: Constructor. Sets the default values for the button.
-RadioButtonControl::RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), m_buttonProvider(NULL)
+RadioButtonControl::RadioButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
 }
 
-// ~RadioButtonControl: Release the reference to the RadioButtonProvider if there is one.
-RadioButtonControl::~RadioButtonControl()
-{
-	if (m_buttonProvider != NULL)
-	{
-		m_buttonProvider->Release();
-		m_buttonProvider = NULL;
-	}
-}
-
-// GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
-{
-	if (m_buttonProvider == NULL)
-	{
-		m_buttonProvider = new (std::nothrow) RadioButtonProvider(hwnd, this);
-	}
-	return m_buttonProvider;
-}
 
 // RegisterButtonControl: Registers the RadioButtonControl with Windows API so that it can used and later be registered with UI Automation
 bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
@@ -133,11 +115,11 @@ void RadioButtonControl::SetState(_In_ bool controlState)
 	env->CallVoidMethod(GetMe(), JavaClass_ToggleButton.SetToggleState, toggle);
 
 	if (controlState)
-		m_buttonProvider->Select();
+		GetProvider()->Select();
 
 	if (UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(m_buttonProvider, UIA_AutomationPropertyChangedEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationPropertyChangedEventId);
 	}
 }
 
@@ -162,7 +144,7 @@ bool RadioButtonControl::GetState()
 void RadioButtonControl::Focus(bool isFocused)
 {
 	this->focused = focused;
-	m_buttonProvider->NotifyFocusGained();
+	GetProvider()->NotifyFocusGained();
 }
 
 LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -202,24 +184,10 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetButtonProvider(GetHWND()));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, GetProvider().get());
 		}
 
 		break;
-	}
-	case WM_DESTROY:
-	{
-		// Disconnect the provider
-		IRawElementProviderSimple* provider = this->GetButtonProvider(hwnd);
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{

@@ -4,24 +4,16 @@
 
 #include "TextFieldControl.h"
 #include "TextFieldProvider.h"
+#include "TextBoxProvider.h"
+#include "ControlTImpl.h"
 
 bool TextFieldControl::initialized = false;
 
 /**** Button methods ***/
 
-// ButtonControl: Constructor. Sets the default values for the button.
-TextFieldControl::TextFieldControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem) : Item(env, name, description, jItem), textFieldProvider(NULL)
+// TextFieldControl: Constructor. Sets the default values for the text field.
+TextFieldControl::TextFieldControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
-}
-
-// ~ButtonControl: Release the reference to the ButtonProvider if there is one.
-TextFieldControl::~TextFieldControl()
-{
-	if (textFieldProvider != NULL)
-	{
-		textFieldProvider->Release();
-		textFieldProvider = NULL;
-	}
 }
 
 // RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
@@ -114,7 +106,7 @@ TextFieldControl* TextFieldControl::Create(JNIEnv* env, _In_ HINSTANCE instance,
 		else
 		{
 			if (UiaClientsAreListening())
-				control->GetTextFieldProvider();
+				control->GetProvider();
 
 			#if LOG
 			log("TextFieldControl::Initialize Finished Successfully");
@@ -129,25 +121,6 @@ TextFieldControl* TextFieldControl::Create(JNIEnv* env, _In_ HINSTANCE instance,
 	#endif
 
 	return NULL; // Indicates failure to create window.
-}
-
-TextFieldProvider* TextFieldControl::GetTextFieldProvider()
-{
-	#if LOG
-	log("TextFieldControl::GetTextFieldProvider Start");
-	#endif
-
-	if (textFieldProvider == NULL)
-	{
-		textFieldProvider = new TextFieldProvider(this);
-	}
-	
-
-	#if LOG
-	log("TextFieldControl::GetTextFieldProvider Finished");
-	#endif
-
-	return textFieldProvider;
 }
 
 int TextFieldControl::GetCaretPosition()
@@ -211,7 +184,7 @@ std::wstring TextFieldControl::GetText()
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 
-		TextFieldProvider* eventControl = new TextFieldProvider(this);
+		TextFieldProvider* eventControl = GetProvider().get();
 		if (eventControl != NULL && UiaClientsAreListening())
 		{
 			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
@@ -282,7 +255,7 @@ LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd,
 
 void TextFieldControl::UpdateCaret()
 {
-	TextFieldProvider* eventControl = GetTextFieldProvider();
+	TextFieldProvider* eventControl = GetProvider().get();
 	if (eventControl != NULL && UiaClientsAreListening())
 	{
 		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
@@ -306,7 +279,7 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			IRawElementProviderSimple* provider = new TextFieldProvider(this);
+			IRawElementProviderSimple* provider = GetProvider().get();
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
@@ -315,19 +288,6 @@ LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ 
 			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
 		}
 		break;
-	}
-	case WM_DESTROY:
-	{
-		IRawElementProviderSimple* provider = this->GetTextFieldProvider();
-		if (provider != NULL)
-		{
-			HRESULT hr = UiaDisconnectProvider(provider);
-			if (FAILED(hr))
-			{
-				// An error occurred while trying to disconnect the provider. For now, print the error message.
-				std::cout << "UiaDisconnectProvider failed: UiaDisconnectProvider returned HRESULT 0x" << hr << std::endl;
-			}
-		}
 	}
 	case WM_SETFOCUS:
 	{

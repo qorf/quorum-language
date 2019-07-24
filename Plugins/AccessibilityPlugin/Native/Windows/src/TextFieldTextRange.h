@@ -11,7 +11,7 @@ TextFieldTextRange : public ITextRangeProvider
 {
 public:
 
-	TextFieldTextRange(_In_ HWND hwnd, _In_ TextFieldControl* control, _In_ Range range);
+	TextFieldTextRange(_In_ TextFieldControl* control, _In_ Range range);
 	virtual ~TextFieldTextRange();
 
 	// IUnknown methods
@@ -49,7 +49,6 @@ private:
 	// Ref Counter for this COM object
 	ULONG referenceCount;
 
-	HWND myHWND;							// The HWND for this object
 	TextFieldControl* textFieldControl;		// The control object that this UIA object is referring to
 	Range range;							// The range for this instance of TextAreaTextRange
 };

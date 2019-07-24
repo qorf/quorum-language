@@ -9,25 +9,22 @@
 
 class TextFieldProvider;
 
-class TextFieldControl : public Item
+class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider>
 {
 	public:
-		TextFieldControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem);
-		virtual ~TextFieldControl();
+		TextFieldControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
 		static TextFieldControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem);
-
-		TextFieldProvider* GetTextFieldProvider();
 
 		int GetCaretPosition();
 		int GetSize();
 		std::wstring GetText();
 		EndPoint GetTextFieldEndpoint();
 		Range GetSelectionRange();
-		virtual void Focus(bool isFocused) override;
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint* end);
+		virtual void Focus(bool isFocused) override;
 
 		void UpdateSelection(const Range& indices);
 
@@ -36,7 +33,7 @@ class TextFieldControl : public Item
 		LRESULT CALLBACK TextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 		static bool Initialize(_In_ HINSTANCE hInstance);
-		void UpdateCaret();
-		TextFieldProvider* textFieldProvider;
 		static bool initialized;
+
+		void UpdateCaret();
 };

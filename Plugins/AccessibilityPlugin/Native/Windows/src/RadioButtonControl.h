@@ -4,19 +4,16 @@
 #include <UIAutomation.h>
 
 #include "CustomMessages.h"
-#include "Item.h"
+#include "ControlT.h"
 
 class RadioButtonProvider;
 
-class RadioButtonControl : public Item
+class RadioButtonControl : public ControlT<RadioButtonControl, RadioButtonProvider>
 {
 public:
-	RadioButtonControl(JNIEnv* env, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem);
-	virtual ~RadioButtonControl();
+	RadioButtonControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
 	static RadioButtonControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription, jobject jItem);
-
-	RadioButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 
 	void SetState(_In_ bool controlState);
 	bool GetState();
@@ -27,7 +24,4 @@ private:
 
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
-
-	RadioButtonProvider* m_buttonProvider;
-
 };

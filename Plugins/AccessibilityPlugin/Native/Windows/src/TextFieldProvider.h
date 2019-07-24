@@ -3,18 +3,18 @@
 #include <windows.h>
 #include <UIAutomation.h>
 
-class TextFieldControl;
+#include "ProviderT.h"
+#include "TextFieldControl.h"
 
-class TextFieldProvider : public IRawElementProviderSimple, public ITextProvider, public IValueProvider
+class TextFieldProvider : public ProviderT<TextFieldProvider, TextFieldControl, ITextProvider, IValueProvider>
 {
 	public:
 		TextFieldProvider(TextFieldControl* parentControl);
 		void NotifyFocusGained();
 
-		// Methods from IUnknown.
-		IFACEMETHODIMP_(ULONG) AddRef();
-		IFACEMETHODIMP_(ULONG) Release();
-		IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface);
+		// Overridden ProviderT functions.
+		bool IsPatternSupported(PATTERNID patternId) const noexcept;
+		CONTROLTYPEID GetControlType() const noexcept;
 
 		// Methods from ITextProvider.
 		IFACEMETHODIMP GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal);
@@ -28,16 +28,4 @@ class TextFieldProvider : public IRawElementProviderSimple, public ITextProvider
 		IFACEMETHODIMP get_IsReadOnly(BOOL *returnValue);
 		IFACEMETHODIMP SetValue(LPCWSTR value);
 		IFACEMETHODIMP get_Value(BSTR* returnValue);
-
-		// Inherited via IRawElementProviderSimple
-		IFACEMETHODIMP get_ProviderOptions(ProviderOptions* pRetVal) override;
-		IFACEMETHODIMP GetPatternProvider(PATTERNID patternId, IUnknown** pRetVal) override;
-		IFACEMETHODIMP GetPropertyValue(PROPERTYID propertyId, VARIANT* pRetVal) override;
-		IFACEMETHODIMP get_HostRawElementProvider(IRawElementProviderSimple** pRetVal) override;
-	private:
-		virtual ~TextFieldProvider();
-		// Reference Counter for this COM object
-		ULONG referenceCount;
-
-		TextFieldControl* textFieldControl;
 };

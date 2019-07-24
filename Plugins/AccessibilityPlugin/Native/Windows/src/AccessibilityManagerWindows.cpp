@@ -16,7 +16,7 @@
 #include "MenuItemControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
-#include "TextfieldControl.h"
+#include "TextFieldControl.h"
 #include "TabPaneControl.h"
 #include "TabControl.h"
 #include "ToolBarControl.h"
@@ -344,7 +344,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	HWND handle = CalculateParentWindowHandle(parent);
-	DialogControl* pane = DialogControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
+	DialogControl* pane = DialogControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 

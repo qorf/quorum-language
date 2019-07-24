@@ -6,7 +6,7 @@
 //For debugging
 #include <iostream>
 
-TextFieldTextRange::TextFieldTextRange(_In_ HWND hwnd, _In_ TextFieldControl* control, _In_ Range range) : referenceCount(1), myHWND(hwnd), textFieldControl(control), range(range)
+TextFieldTextRange::TextFieldTextRange(_In_ TextFieldControl* control, _In_ Range range) : referenceCount(1), textFieldControl(control), range(range)
 {
 
 }
@@ -63,7 +63,7 @@ IFACEMETHODIMP TextFieldTextRange::Clone(_Outptr_result_maybenull_ ITextRangePro
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextFieldTextRange(textFieldControl->GetHWND(), textFieldControl, range);
+	*pRetVal = new TextFieldTextRange(textFieldControl, range);
 
 	if (*pRetVal == NULL)
 	{
@@ -206,7 +206,7 @@ IFACEMETHODIMP TextFieldTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttrib
 				found.end = searchBackward ? current : next;
 			}
 
-			*pRetVal = new TextFieldTextRange(textFieldControl->GetHWND(), textFieldControl, found);
+			*pRetVal = new TextFieldTextRange(textFieldControl, found);
 
 			if (*pRetVal == NULL)
 			{
@@ -269,7 +269,7 @@ IFACEMETHODIMP TextFieldTextRange::GetBoundingRectangles(_Outptr_result_maybenul
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextFieldTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
-	*pRetVal = new TextFieldProvider(textFieldControl);
+	textFieldControl->GetProvider().query_to(pRetVal);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
