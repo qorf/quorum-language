@@ -25,6 +25,7 @@
 #include "ListItemControl.h"
 #include "TableControl.h"
 #include "CellControl.h"
+#include "WindowRoot.h"
 
 // For Debug Output
 #include <iostream>
@@ -88,19 +89,13 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 template <typename ControlT, typename... TArgs>
 ControlT* Create(JNIEnv* env, _In_opt_ Item* parent, TArgs&&... args)
 {
-	ControlT* control;
-
-	if (parent && parent->CanContainWindowlessControls())
+	if (!parent)
 	{
-		control = new ControlT(env, std::forward<TArgs>(args)...);
-		parent->AppendChild(control);
-	}
-	else
-	{
-		const auto handle = CalculateParentWindowHandle(parent);
-		control = ControlT::Create(env, GetModuleHandle(nullptr), handle, std::forward<TArgs>(args)...);
+		parent = GetMainWindowRoot();
 	}
 
+	const auto control = new ControlT(env, std::forward<TArgs>(args)...);
+	parent->AppendChild(control);
 	return control;
 }
 
@@ -174,8 +169,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wRadiobuttonName = CreateWideStringFromUTF8Win32(nativeItemName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	RadioButtonControl* pRadiobuttonControl = RadioButtonControl::Create(env, GetModuleHandle(NULL), handle, wRadiobuttonName, wDescription, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pRadiobuttonControl = Create<RadioButtonControl>(env, parentItem, wRadiobuttonName, wDescription, jItem);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -217,8 +212,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	jobject nativeSelf = env->NewGlobalRef(self);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	TextFieldControl* textFieldControl = TextFieldControl::Create(env, GetModuleHandle(NULL), handle, wTextboxName, wDescription, nativeSelf);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto textFieldControl = Create<TextFieldControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
 
 	env->ReleaseStringUTFChars(textFieldName, nativeTextFieldName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -276,8 +271,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	TabPaneControl* pane = TabPaneControl::Create(env, GetModuleHandle(NULL), handle, wName, jItem);
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pane = Create<TabPaneControl>(env, parentItem, wName, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
 
 	return GetItemAsLong(pane);
@@ -288,11 +283,10 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
-	TabPaneControl* tabPaneControl = static_cast<TabPaneControl*>(GetItemFromLong(parent));
-	TabControl* pane = TabControl::Create(env, GetModuleHandle(NULL), handle, wName, tabPaneControl, jItem);
+	const auto tabPaneControl = static_cast<TabPaneControl*>(GetItemFromLong(parent));
+	const auto tab = Create<TabControl>(env, tabPaneControl, wName, tabPaneControl, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
-	return GetItemAsLong(pane);
+	return GetItemAsLong(tab);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateListNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -381,13 +375,14 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
+	const auto parentItem = GetItemFromLong(parent);
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	DialogControl* pane = DialogControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
+	WCHAR emptyDescription[] = L"";
+	const auto dialog = Create<DialogControl>(env, parentItem, wName, emptyDescription, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(dialog);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeNative(JNIEnv* env, jobject obj, jlong parent, jstring treeName, jobject jItem)

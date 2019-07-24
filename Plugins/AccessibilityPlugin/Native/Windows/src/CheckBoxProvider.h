@@ -15,7 +15,4 @@ public:
 	// IToggleProvider methods
 	IFACEMETHODIMP Toggle();
 	IFACEMETHODIMP get_ToggleState(_Out_ ToggleState *pRetVal);
-
-	// Other methods
-	void CheckBoxProvider::NotifyFocusGained(); // Fires a UI Automation event when this is called.
 };

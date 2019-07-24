@@ -32,11 +32,6 @@ const std::wstring& MenuItemControl::GetShortcut()
 	return m_shortcut;
 }
 
-bool MenuItemControl::HasFocus()
-{
-	return (GetParentMenuBar()->GetSelectedMenuItem() == this) && (GetParentMenuBar()->HasFocus());
-}
-
 void MenuItemControl::Expand()
 {
 	GetProvider()->Expand();
@@ -45,8 +40,4 @@ void MenuItemControl::Expand()
 void MenuItemControl::Collapse()
 {
 	GetProvider()->Collapse();
-}
-
-void MenuItemControl::Focus(bool isFocused)
-{
 }

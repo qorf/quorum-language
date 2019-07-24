@@ -14,7 +14,4 @@ public:
 
 	// IInvokeProvider methods
 	IFACEMETHODIMP Invoke() noexcept;
-
-	// Other methods
-	void ButtonProvider::NotifyFocusGained(); // Fires a UI Automation Event when called.
 };

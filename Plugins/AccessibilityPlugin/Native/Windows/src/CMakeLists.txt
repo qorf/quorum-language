@@ -46,6 +46,8 @@ add_library(AccessibilityManagerWindows MODULE
     TreeItemControl.cpp
     TreeItemProvider.cpp
     TreeProvider.cpp
+    WindowRoot.cpp
+    WindowRootProvider.cpp
 )
 
 target_compile_definitions(AccessibilityManagerWindows PRIVATE

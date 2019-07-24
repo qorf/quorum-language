@@ -21,6 +21,7 @@ public:
 
 	~ControlT();
 	const wil::com_ptr<ProviderT>& GetProvider();
+	wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() override;
 	wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() override;
 
 	// TODO: Drop this temporary function once we've gone fully windowless.

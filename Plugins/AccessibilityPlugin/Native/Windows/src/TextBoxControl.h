@@ -6,8 +6,6 @@
 #include "jni.h"
 
 #include "Resources.h"
-#include "CustomMessages.h"
-#include "Item.h"
 #include "ControlT.h"
 
 /* The EndPoint structure where the caret is in terms of line and character.
@@ -70,7 +68,6 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 {
 	public:
 		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
-		static TextBoxControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ jobject me);
 
 		// WARNING: Because of the current busy waiting solution these function calls will
 		//			end up making the native code fall behind Quorum at times. It also causes
@@ -86,16 +83,9 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-		virtual void Focus(bool isFocused) override;
 
 		void UpdateSelection(const Range& indices);
 
 	private:
-		static LRESULT CALLBACK StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
-		LRESULT CALLBACK TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
-		
-		static bool Initialize(_In_ HINSTANCE hInstance);
-		static bool Initialized;
-
 		void UpdateCaret();
 };

@@ -32,8 +32,3 @@ std::wstring ListItemControl::GetText()
 
 	return L"";
 }
-
-bool ListItemControl::HasFocus()
-{
-	return (GetParentList()->GetSelected() == this) && (GetParentList()->HasFocus());
-}

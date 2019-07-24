@@ -17,9 +17,6 @@ public:
 	void SetShortcut(std::wstring&& shortcut);
 	const std::wstring& GetShortcut();
 
-	bool HasFocus() override;
-	void Focus(bool focused) override;
-
 	void Expand();
 	void Collapse();
 

@@ -16,7 +16,7 @@ public:
 	virtual ~Item();
 
 	virtual void Focus(bool isFocused);
-	virtual bool HasFocus();
+	bool HasFocus() const noexcept;
 
 	HWND GetHWND();
 	void SetName(_In_ std::wstring name);
@@ -41,7 +41,8 @@ public:
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
-	// TODO: Make this a pure virtual function after the big refactoring.
+	// TODO: Make these pure virtual functions after the big refactoring.
+	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple();
 	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
 
 	// TODO: Drop this temporary function once we've gone fully windowless.
@@ -52,8 +53,8 @@ protected:
 	std::wstring m_ControlDescription;
 	HWND m_ControlHWND = nullptr;
 	bool focused = false;
-	int objectHash;
-	jobject javaItem;
+	int objectHash = 0;
+	jobject javaItem = nullptr;
 
 private:
 	void SetRootRecursive(_In_ Item* root) noexcept;

@@ -1,9 +1,4 @@
-#define INITGUID
-#include <windows.h>
-#include <UIAutomation.h>
-
 #include "RadioButtonProvider.h"
-#include "RadioButtonControl.h"
 
 #include <iostream>
 #include <string>
@@ -76,14 +71,4 @@ IFACEMETHODIMP RadioButtonProvider::get_SelectionContainer(_Outptr_result_mayben
 {
 	*pRetVal = NULL;
 	return S_OK;
-}
-
-// =========== Other Methods
-
-void RadioButtonProvider::NotifyFocusGained()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
-	}
 }

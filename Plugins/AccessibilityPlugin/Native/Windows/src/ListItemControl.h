@@ -12,8 +12,6 @@ public:
 
 	ListControl* GetParentList();
 
-	bool HasFocus() override;
-
 	std::wstring GetText();
 
 private:

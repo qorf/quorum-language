@@ -10,12 +10,17 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 	, m_uniqueId(s_nextUniqueId.fetch_add(1))
 	, m_root(this)
 {
-	javaItem = env->NewGlobalRef(jItem);
-	jclass itemReference = env->GetObjectClass(javaItem);
-	jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
+	// Some native items, like the window root, have no corresponding Quorum item. In those cases,
+	// the subclass will pass null for env and jItem.
+	if (env && jItem)
+	{
+		javaItem = env->NewGlobalRef(jItem);
+		jclass itemReference = env->GetObjectClass(javaItem);
+		jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
 
-	jint hash = env->CallIntMethod(javaItem, method);
-	SetHashCode(hash);
+		jint hash = env->CallIntMethod(javaItem, method);
+		SetHashCode(hash);
+	}
 }
 
 Item::~Item()
@@ -41,9 +46,15 @@ void Item::SetHashCode(int hash) {
 void Item::Focus(bool isFocused)
 {
 	focused = isFocused;
+
+	if (isFocused && UiaClientsAreListening())
+	{
+		const auto provider = GetProviderSimple();
+		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
+	}
 }
 
-bool Item::HasFocus()
+bool Item::HasFocus() const noexcept
 {
 	return focused;
 }
@@ -61,7 +72,7 @@ void Item::SetName(_In_ std::wstring name)
 const WCHAR* Item::GetName()
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem)
 	{
 		jclass itemReference = env->GetObjectClass(javaItem);
 		jmethodID method = env->GetMethodID(itemReference, "GetName", "()Ljava/lang/String;");
@@ -86,7 +97,7 @@ void Item::SetDescription(_In_ std::wstring description)
 const WCHAR* Item::GetDescription()
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem)
 	{
 		jstring fullDescription = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_Item.GetDescription));
 
@@ -194,7 +205,7 @@ void Item::NotifyChildAdded()
 {
 	if (UiaClientsAreListening())
 	{
-		const auto provider = GetProviderFragment().query<IRawElementProviderSimple>();
+		const auto provider = GetProviderSimple();
 		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(
 			provider.get(),
 			StructureChangeType_ChildAdded,
@@ -234,7 +245,7 @@ void Item::RemoveFromParent()
 	wil::com_ptr<IRawElementProviderSimple> parentProvider;
 	if (UiaClientsAreListening())
 	{
-		parentProvider = m_parent->GetProviderFragment().query<IRawElementProviderSimple>();
+		parentProvider = m_parent->GetProviderSimple();
 	}
 
 	RemoveFromParentInternal();
@@ -303,6 +314,11 @@ void Item::RemoveAllChildren() noexcept
 		m_lastChild = nullptr;
 		m_childCount = 0;
 	}
+}
+
+wil::com_ptr<IRawElementProviderSimple> Item::GetProviderSimple()
+{
+	FAIL_FAST();
 }
 
 wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()

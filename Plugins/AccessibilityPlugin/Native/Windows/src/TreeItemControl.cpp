@@ -27,11 +27,6 @@ bool TreeItemControl::IsSubtree()
 	return m_isSubtree;
 }
 
-bool TreeItemControl::HasFocus()
-{
-	return (GetParentTree()->GetSelectedTreeItem() == this) && (GetParentTree()->HasFocus());
-}
-
 void TreeItemControl::Expand()
 {
 	m_isExpanded = true;
@@ -42,8 +37,4 @@ void TreeItemControl::Collapse()
 {
 	m_isExpanded = false;
 	GetProvider()->Collapse();
-}
-
-void TreeItemControl::SetControlFocus(_In_ bool focused)
-{
 }
