@@ -61,13 +61,11 @@ public:
 				break;
 
 			case UIA_NamePropertyId:
-				retVal->bstrVal = wil::make_bstr(m_control->GetName()).release();
-				retVal->vt = VT_BSTR;
+				SetBstrPropertyValueIfNotEmpty(retVal, m_control->GetName());
 				break;
 
 			case UIA_HelpTextPropertyId:
-				retVal->bstrVal = wil::make_bstr(m_control->GetDescription()).release();
-				retVal->vt = VT_BSTR;
+				SetBstrPropertyValueIfNotEmpty(retVal, m_control->GetDescription());
 				break;
 
 			case UIA_ControlTypePropertyId:
@@ -229,6 +227,15 @@ protected:
 	bool IsPatternSupported(PATTERNID /* patternId */) const noexcept
 	{
 		return false;
+	}
+
+	void SetBstrPropertyValueIfNotEmpty(_Out_ VARIANT* retVal, const wchar_t* string)
+	{
+		if (string && *string)
+		{
+			retVal->bstrVal = wil::make_bstr(string).release();
+			retVal->vt = VT_BSTR;
+		}
 	}
 
 	CONTROLTYPEID GetControlType() const noexcept
