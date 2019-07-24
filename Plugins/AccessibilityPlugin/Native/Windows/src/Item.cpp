@@ -15,11 +15,6 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 	if (env && jItem)
 	{
 		javaItem = env->NewGlobalRef(jItem);
-		jclass itemReference = env->GetObjectClass(javaItem);
-		jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
-
-		jint hash = env->CallIntMethod(javaItem, method);
-		SetHashCode(hash);
 	}
 }
 
@@ -33,14 +28,6 @@ Item::~Item()
 
 	RemoveFromParentInternal();
 	RemoveAllChildren();
-}
-
-int Item::GetHashCode() {
-	return objectHash;
-}
-
-void Item::SetHashCode(int hash) {
-	this->objectHash = hash;
 }
 
 void Item::Focus(bool isFocused)

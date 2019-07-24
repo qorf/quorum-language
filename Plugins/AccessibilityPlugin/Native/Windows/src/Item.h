@@ -24,8 +24,6 @@ public:
 	void SetDescription(_In_ std::wstring description);
 	const WCHAR* GetDescription();
 	jobject GetMe();
-	int GetHashCode();
-	void SetHashCode(int hash);
 	int GetUniqueId() const noexcept;
 
 	// TODO: Change the return type to Item* once we're rid of the HWNDs.
@@ -53,7 +51,6 @@ protected:
 	std::wstring m_ControlDescription;
 	HWND m_ControlHWND = nullptr;
 	bool focused = false;
-	int objectHash = 0;
 	jobject javaItem = nullptr;
 
 private:
