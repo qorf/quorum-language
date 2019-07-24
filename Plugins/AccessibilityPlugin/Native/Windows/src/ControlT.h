@@ -23,6 +23,12 @@ public:
 	const wil::com_ptr<ProviderT>& GetProvider();
 	wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() override;
 
+	// TODO: Drop this temporary function once we've gone fully windowless.
+	bool CanContainWindowlessControls() const noexcept override
+	{
+		return true;
+	}
+
 protected:
 	wil::com_ptr<ProviderT> m_provider;
 };

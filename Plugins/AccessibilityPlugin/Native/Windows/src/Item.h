@@ -44,6 +44,9 @@ public:
 	// TODO: Make this a pure virtual function after the big refactoring.
 	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
 
+	// TODO: Drop this temporary function once we've gone fully windowless.
+	virtual bool CanContainWindowlessControls() const noexcept;
+
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;

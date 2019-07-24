@@ -286,3 +286,8 @@ wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()
 {
 	FAIL_FAST();
 }
+
+bool Item::CanContainWindowlessControls() const noexcept
+{
+	return false;
+}
