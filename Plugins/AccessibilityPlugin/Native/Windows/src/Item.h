@@ -9,27 +9,34 @@
 #include "jni.h"
 #include "Resources.h"
 
+class RootItemBase;
+
 class Item
 {
 public:
 	Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 	virtual ~Item();
 
-	virtual void Focus(bool isFocused);
-	bool HasFocus() const noexcept;
+	bool HasQuorumFocus() const noexcept;
+	bool HasUiaFocus() const noexcept;
+	void SetQuorumFocus();
 
-	HWND GetHWND();
+	// These methods are only called on items that can receive the Quorum focus, e.g. a menu bar
+	// but not the menu items. However, they may be called in cases other than Quorum focus changes,
+	// e.g. when the host window gains or loses focus.
+	virtual void NotifyFocusGained();
+	virtual void NotifyFocusLost();
+
+	// If the focus that we expose to UIA is a descendant of the Quorum focus, e.g. an item
+	// in a list or tree, return that descendant here. Otherwise, return null.
+	virtual Item* GetUiaFocusDescendant() const noexcept;
+
 	void SetName(_In_ std::wstring name);
 	const WCHAR* GetName();
 	void SetDescription(_In_ std::wstring description);
 	const WCHAR* GetDescription();
 	jobject GetMe();
-	int GetHashCode();
-	void SetHashCode(int hash);
 	int GetUniqueId() const noexcept;
-
-	// TODO: Change the return type to Item* once we're rid of the HWNDs.
-	jlong SetFocus();
 
 	Item* GetParent() const noexcept;
 	Item* GetFirstChild() const noexcept;
@@ -37,27 +44,21 @@ public:
 	Item* GetPreviousSibling() const noexcept;
 	Item* GetNextSibling() const noexcept;
 	int GetChildCount() const noexcept;
-	Item* GetRoot() const noexcept;
+	RootItemBase* GetRoot() const noexcept;
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
-	// TODO: Make these pure virtual functions after the big refactoring.
-	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple();
-	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
-
-	// TODO: Drop this temporary function once we've gone fully windowless.
-	virtual bool CanContainWindowlessControls() const noexcept;
+	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() = 0;
+	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() = 0;
 
 protected:
 	std::wstring m_ControlName;
 	std::wstring m_ControlDescription;
-	HWND m_ControlHWND = nullptr;
-	bool focused = false;
-	int objectHash = 0;
 	jobject javaItem = nullptr;
+	RootItemBase* m_root = nullptr;
 
 private:
-	void SetRootRecursive(_In_ Item* root) noexcept;
+	void SetRootRecursive(_In_ RootItemBase* root) noexcept;
 	void NotifyChildAdded();
 	void RemoveFromParentInternal() noexcept;
 	void RemoveAllChildren() noexcept;
@@ -72,5 +73,4 @@ private:
 	Item* m_previousSibling = nullptr;
 	Item* m_nextSibling = nullptr;
 	int m_childCount = 0;
-	Item* m_root;
 };

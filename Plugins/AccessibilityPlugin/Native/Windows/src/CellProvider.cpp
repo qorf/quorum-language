@@ -28,7 +28,7 @@ IFACEMETHODIMP CellProvider::get_ColumnSpan(int* pRetVal)
 }
 IFACEMETHODIMP CellProvider::get_ContainingGrid(IRawElementProviderSimple** pRetVal) 
 {
-	parent->GetProvider().query_to(pRetVal);
+	m_control->GetParentTable()->GetProvider().query_to(pRetVal);
 
 	return S_OK;
 }
@@ -153,7 +153,7 @@ IFACEMETHODIMP CellProvider::get_IsSelected(BOOL* pRetVal)
 
 IFACEMETHODIMP CellProvider::get_SelectionContainer(IRawElementProviderSimple** pRetVal)
 {
-	parent->GetProvider().query_to(pRetVal);
+	m_control->GetParentTable()->GetProvider().query_to(pRetVal);
 
 	return S_OK;
 }

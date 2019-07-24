@@ -40,8 +40,6 @@ public:
 
 private:
 	ExpandCollapseState expanded;
-	// Ref Counter for this COM object
-	TableControl* parent;
 
 	void NotifyElementExpandCollapse();
 };

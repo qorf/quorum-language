@@ -22,17 +22,3 @@ void MenuBarProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Ou
 			break;
 	}
 }
-
-// Retrieves the provider for the menu item that is selected when the control gets focus.
-IFACEMETHODIMP MenuBarProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept
-{
-	*retVal = nullptr;
-
-	const auto menuItem = m_control->GetSelectedMenuItem();
-	if (menuItem)
-	{
-		menuItem->GetProvider().query_to(retVal);
-	}
-
-	return S_OK;
-}

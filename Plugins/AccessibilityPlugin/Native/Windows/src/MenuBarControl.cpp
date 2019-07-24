@@ -9,9 +9,14 @@ MenuBarControl::MenuBarControl(JNIEnv* env, std::wstring&& menuBarName, jobject 
 {
 }
 
-MenuItemControl* MenuBarControl::GetSelectedMenuItem()
+MenuItemControl* MenuBarControl::GetSelectedMenuItem() const noexcept
 {
 	return m_pSelectedMenuItem;
+}
+
+Item* MenuBarControl::GetUiaFocusDescendant() const noexcept
+{
+	return GetSelectedMenuItem();
 }
 
 void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenuItem)
@@ -23,14 +28,19 @@ void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenu
 	}
 }
 
-void MenuBarControl::Focus(bool isFocused)
+void MenuBarControl::NotifyFocusGained()
 {
-	Item::Focus(isFocused);
-	if (isFocused && UiaClientsAreListening())
+	Item::NotifyFocusGained();
+	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeStartEventId);
 	}
-	else
+}
+
+void MenuBarControl::NotifyFocusLost()
+{
+	Item::NotifyFocusLost();
+	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeEndEventId);
 	}

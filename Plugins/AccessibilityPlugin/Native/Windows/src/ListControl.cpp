@@ -9,9 +9,14 @@ ListControl::ListControl(JNIEnv* env, std::wstring&& name, jobject jItem)
 {
 }
 
-ListItemControl* ListControl::GetSelected()
+ListItemControl* ListControl::GetSelected() const noexcept
 {
 	return m_selectedItem;
+}
+
+Item* ListControl::GetUiaFocusDescendant() const noexcept
+{
+	return GetSelected();
 }
 
 void ListControl::SetSelected(_In_opt_ ListItemControl* item)

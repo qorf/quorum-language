@@ -10,7 +10,8 @@ class TreeControl : public ControlT<TreeControl, TreeProvider>
 public:
 	TreeControl(JNIEnv* env, std::wstring&& treeName, jobject jItem);
 
-	TreeItemControl* GetSelectedTreeItem();
+	TreeItemControl* GetSelectedTreeItem() const noexcept;
+	Item* GetUiaFocusDescendant() const noexcept override;
 	void SetSelectedTreeItem(_In_opt_ TreeItemControl* selectedTreeItem);
 
 private:

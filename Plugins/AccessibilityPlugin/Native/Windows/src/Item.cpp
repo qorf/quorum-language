@@ -1,6 +1,8 @@
-#include "Item.h"
 #include <iostream>
 #include <wil/result.h>
+
+#include "Item.h"
+#include "RootItemBase.h"
 
 /* static */ std::atomic<int> Item::s_nextUniqueId = 1;
 
@@ -8,60 +10,65 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 	: m_ControlName(std::move(controlName))
 	, m_ControlDescription(std::move(controlDescription))
 	, m_uniqueId(s_nextUniqueId.fetch_add(1))
-	, m_root(this)
 {
 	// Some native items, like the window root, have no corresponding Quorum item. In those cases,
 	// the subclass will pass null for env and jItem.
 	if (env && jItem)
 	{
 		javaItem = env->NewGlobalRef(jItem);
-		jclass itemReference = env->GetObjectClass(javaItem);
-		jmethodID method = env->GetMethodID(itemReference, "GetHashCode", "()I");
-
-		jint hash = env->CallIntMethod(javaItem, method);
-		SetHashCode(hash);
 	}
 }
 
 Item::~Item()
 {
-	if (m_ControlHWND)
-	{
-		DestroyWindow(m_ControlHWND);
-		m_ControlHWND = nullptr;
-	}
-
 	RemoveFromParentInternal();
 	RemoveAllChildren();
 }
 
-int Item::GetHashCode() {
-	return objectHash;
-}
-
-void Item::SetHashCode(int hash) {
-	this->objectHash = hash;
-}
-
-void Item::Focus(bool isFocused)
+bool Item::HasQuorumFocus() const noexcept
 {
-	focused = isFocused;
+	return (m_root->GetQuorumFocus() == this);
+}
 
-	if (isFocused && UiaClientsAreListening())
+bool Item::HasUiaFocus() const noexcept
+{
+	return (m_root->GetUiaFocus() == this);
+}
+
+void Item::SetQuorumFocus()
+{
+	const auto oldFocus = m_root->GetQuorumFocus();
+	if (oldFocus == this)
 	{
-		const auto provider = GetProviderSimple();
+		return;
+	}
+
+	m_root->SetQuorumFocus(this);
+	NotifyFocusGained();
+
+	if (oldFocus)
+	{
+		oldFocus->NotifyFocusLost();
+	}
+}
+
+void Item::NotifyFocusGained()
+{
+	const auto uiaFocusItem = m_root->GetUiaFocus();
+	if (uiaFocusItem && UiaClientsAreListening())
+	{
+		const auto provider = uiaFocusItem->GetProviderSimple();
 		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
 	}
 }
 
-bool Item::HasFocus() const noexcept
+Item* Item::GetUiaFocusDescendant() const noexcept
 {
-	return focused;
+	return nullptr;
 }
 
-HWND Item::GetHWND()
+void Item::NotifyFocusLost()
 {
-	return m_ControlHWND;
 }
 
 void Item::SetName(_In_ std::wstring name)
@@ -112,41 +119,6 @@ int Item::GetUniqueId() const noexcept
 	return m_uniqueId;
 }
 
-jlong Item::SetFocus()
-{
-	auto hwnd = GetHWND();
-
-	if (!hwnd)
-	{
-		auto parent = GetParent();
-		while (parent)
-		{
-			hwnd = parent->GetHWND();
-
-			if (hwnd)
-			{
-				break;
-			}
-
-			parent = parent->GetParent();
-		}
-
-		if (!hwnd)
-		{
-			hwnd = GetMainWindowHandle();
-		}
-	}
-
-	const auto hwndPrev = ::SetFocus(hwnd);
-
-	if (!GetHWND())
-	{
-		Focus(true);
-	}
-
-	return reinterpret_cast<jlong>(hwndPrev);
-}
-
 Item* Item::GetParent() const noexcept
 {
 	return m_parent;
@@ -177,12 +149,12 @@ int Item::GetChildCount() const noexcept
 	return m_childCount;
 }
 
-Item* Item::GetRoot() const noexcept
+RootItemBase* Item::GetRoot() const noexcept
 {
 	return m_root;
 }
 
-void Item::SetRootRecursive(_In_ Item* root) noexcept
+void Item::SetRootRecursive(_In_ RootItemBase* root) noexcept
 {
 	m_root = root;
 	for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
@@ -281,9 +253,9 @@ void Item::RemoveFromParentInternal() noexcept
 		m_parent = nullptr;
 	}
 
-	if (m_root != this)
+	if (m_root)
 	{
-		SetRootRecursive(this);
+		SetRootRecursive(nullptr);
 	}
 }
 
@@ -297,26 +269,11 @@ void Item::RemoveAllChildren() noexcept
 			child->m_parent = nullptr;
 			if (this == child->m_root)
 			{
-				child->SetRootRecursive(child);
+				child->SetRootRecursive(nullptr);
 			}
 		}
 		m_firstChild = nullptr;
 		m_lastChild = nullptr;
 		m_childCount = 0;
 	}
-}
-
-wil::com_ptr<IRawElementProviderSimple> Item::GetProviderSimple()
-{
-	FAIL_FAST();
-}
-
-wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()
-{
-	FAIL_FAST();
-}
-
-bool Item::CanContainWindowlessControls() const noexcept
-{
-	return false;
 }

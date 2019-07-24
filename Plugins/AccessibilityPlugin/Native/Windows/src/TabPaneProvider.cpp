@@ -28,20 +28,6 @@ void TabPaneProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Ou
 	}
 }
 
-// Retrieves the provider for the tree item that is selected when the control gets focus.
-IFACEMETHODIMP TabPaneProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept
-{
-	*retVal = nullptr;
-
-	const auto tab = m_control->GetSelectedTab();
-	if (tab)
-	{
-		tab->GetProvider().query_to(retVal);
-	}
-
-	return S_OK;
-}
-
 IFACEMETHODIMP TabPaneProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal) noexcept try
 {
 	*retVal = nullptr;

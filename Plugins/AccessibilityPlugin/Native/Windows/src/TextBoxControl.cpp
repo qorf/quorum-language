@@ -276,7 +276,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_IsActiveAttributeId)
 	{
 		retval.vt = VT_BOOL;
-		retval.boolVal = HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+		retval.boolVal = HasQuorumFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (attribute == UIA_SelectionActiveEndAttributeId)
 	{

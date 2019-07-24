@@ -17,20 +17,6 @@ CONTROLTYPEID ListProvider::GetControlType() const noexcept
 	return UIA_ListControlTypeId;
 }
 
-// Retrieves the provider for the tree item that is selected when the control gets focus.
-IFACEMETHODIMP ListProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept
-{
-	*retVal = nullptr;
-
-	const auto listItem = m_control->GetSelected();
-	if (listItem)
-	{
-		listItem->GetProvider().query_to(retVal);
-	}
-
-	return S_OK;
-}
-
 IFACEMETHODIMP ListProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal) noexcept try
 {
 	*retVal = nullptr;

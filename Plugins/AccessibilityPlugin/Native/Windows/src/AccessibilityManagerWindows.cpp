@@ -54,27 +54,6 @@ jlong GetItemAsLong(_In_ Item* item)
 	return reinterpret_cast<jlong>(item);
 }
 
-HWND CalculateParentWindowHandle(_In_opt_ Item* parent)
-{
-	while (parent)
-	{
-		const auto hwnd = parent->GetHWND();
-		if (hwnd)
-		{
-			return hwnd;
-		}
-
-		parent = parent->GetParent();
-	}
-
-	return GetMainWindowHandle();
-}
-
-HWND CalculateParentWindowHandle(jlong parentAsLong)
-{
-	return CalculateParentWindowHandle(GetItemFromLong(parentAsLong));
-}
-
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_IsScreenReaderListeningNative(JNIEnv* env, jobject obj) {
 	if (UiaClientsAreListening()) {
 		return true;
@@ -332,13 +311,13 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
+	const auto parentItem = GetItemFromLong(parent);
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	TableControl* pane = TableControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
+	const auto table = Create<TableControl>(env, parentItem, wName, L"", jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(table);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeTableNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -346,13 +325,13 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
+	const auto parentItem = GetItemFromLong(parent);
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	TableControl* pane = TableControl::Create(env, GetModuleHandle(NULL), handle, wName, CreateWideStringFromUTF8Win32(""), jItem);
+	const auto table = Create<TableControl>(env, parentItem, wName, L"", jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(table);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -360,14 +339,13 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
-	HWND handle = CalculateParentWindowHandle(parent);
 	TableControl* parentControl = static_cast<TableControl*>(GetItemFromLong(parent));
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	CellControl* pane = CellControl::Create(env, GetModuleHandle(NULL), handle, parentControl, wName, CreateWideStringFromUTF8Win32(""), jItem);
+	const auto cell = Create<CellControl>(env, parentControl, wName, L"", parentControl, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(pane);
+	return GetItemAsLong(cell);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateDialogNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -377,8 +355,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	const auto parentItem = GetItemFromLong(parent);
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	WCHAR emptyDescription[] = L"";
-	const auto dialog = Create<DialogControl>(env, parentItem, wName, emptyDescription, jItem);
+	const auto dialog = Create<DialogControl>(env, parentItem, wName, L"", jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
@@ -493,14 +470,15 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	
 	if (pControl)
 	{
-		return pControl->SetFocus();
+		pControl->SetQuorumFocus();
+		return 1; // success
 	}
 
 	#if LOG
 		log("SetFocus End\n");
 	#endif
 
-	return 0;
+	return 0; // failure
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NameChangedNative(JNIEnv* env, jobject obj, jlong itemPointer, jstring name)
@@ -670,8 +648,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(GetItemFromLong(selectedMenuItem));
 	MenuBarControl* pMenuBar = pMenuItem->GetParentMenuBar();
 
-	if (!pMenuBar->HasFocus())
-		pMenuBar->SetFocus();
+	if (!pMenuBar->HasQuorumFocus())
+		pMenuBar->SetQuorumFocus();
 
 	pMenuBar->SetSelectedMenuItem(pMenuItem);
 
@@ -697,8 +675,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(selectedTreeItem));
 	TreeControl* pTree = pTreeItem->GetParentTree();
 
-	if (!pTree->HasFocus())
-		pTree->SetFocus();
+	if (!pTree->HasQuorumFocus())
+		pTree->SetQuorumFocus();
 
 	pTree->SetSelectedTreeItem(pTreeItem);
 
@@ -713,8 +691,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	CellControl* cellControl = static_cast<CellControl*>(GetItemFromLong(selectedCell));
 	TableControl* spreadsheetControl = cellControl->GetParentTable();
 
-	if (!spreadsheetControl->HasFocus())
-		spreadsheetControl->SetFocus();
+	if (!spreadsheetControl->HasQuorumFocus())
+		spreadsheetControl->SetQuorumFocus();
 
 	spreadsheetControl->SetSelected(cellControl);
 
@@ -729,8 +707,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	ListItemControl* listItemControl = static_cast<ListItemControl*>(GetItemFromLong(selectedCell));
 	ListControl* listControl = listItemControl->GetParentList();
 
-	if (!listControl->HasFocus()) {
-		listControl->SetFocus();
+	if (!listControl->HasQuorumFocus()) {
+		listControl->SetQuorumFocus();
 	}
 	listControl->SetSelected(listItemControl);
 

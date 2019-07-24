@@ -332,7 +332,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	//env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_Item.GetName = env->GetMethodID(JavaClass_Item.me, "GetName", "()Ljava/lang/String;");
 	JavaClass_Item.GetDescription = env->GetMethodID(JavaClass_Item.me, "GetDescription", "()Ljava/lang/String;");
-	JavaClass_Item.GetHashCode = env->GetMethodID(JavaClass_Item.me, "GetHashCode", "()I");
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
@@ -395,14 +394,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ShutdownAccessibility End");
 	#endif
-}
-
-HWND GetMainWindowHandle()
-{
-	#if LOG
-		log("Resources.cpp GetMainWindowHandle");
-	#endif
-	return GLFWParentWindow;
 }
 
 WindowRoot* GetMainWindowRoot()
