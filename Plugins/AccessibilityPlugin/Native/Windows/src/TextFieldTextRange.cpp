@@ -82,7 +82,7 @@ IFACEMETHODIMP TextFieldTextRange::Compare(_In_opt_ ITextRangeProvider* rangePro
 		TextFieldTextRange* rangeInternal;
 		if (SUCCEEDED(rangeProvider->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
-			if (textFieldControl->GetHWND() == rangeInternal->textFieldControl->GetHWND() &&
+			if (textFieldControl == rangeInternal->textFieldControl &&
 				CompareEndpointPair(rangeInternal->range.begin, range.begin) == 0 &&
 				CompareEndpointPair(rangeInternal->range.end, range.end) == 0)
 			{
@@ -110,7 +110,7 @@ IFACEMETHODIMP TextFieldTextRange::CompareEndpoints(TextPatternRangeEndpoint end
 	}
 
 	HRESULT hr = S_OK;
-	if (textFieldControl->GetHWND() != rangeInternal->textFieldControl->GetHWND())
+	if (textFieldControl != rangeInternal->textFieldControl)
 	{
 		hr = E_INVALIDARG;
 	}
@@ -361,7 +361,7 @@ IFACEMETHODIMP TextFieldTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndp
 	}
 
 	HRESULT hr = S_OK;
-	if (textFieldControl->GetHWND() != rangeInternal->textFieldControl->GetHWND())
+	if (textFieldControl != rangeInternal->textFieldControl)
 	{
 		hr = E_INVALIDARG;
 	}
