@@ -12,7 +12,7 @@ public:
 	CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem);
 	static CellControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, TableControl* parent, _In_ WCHAR* name, _In_ WCHAR* description, jobject jItem);
 
-	TableControl* GetParent();
+	TableControl* GetParentTable();
 
 	// Gets the text contained within the cell from Quorum.
 	std::wstring GetText();

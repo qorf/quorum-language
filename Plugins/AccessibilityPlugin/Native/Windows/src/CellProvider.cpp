@@ -1,7 +1,7 @@
 #include "CellProvider.h"
 #include "TableProvider.h"
 
-CellProvider::CellProvider(CellControl* pControl, TableControl* parent) : ProviderT(pControl)
+CellProvider::CellProvider(CellControl* pControl) : ProviderT(pControl)
 {
 }
 
@@ -144,7 +144,7 @@ IFACEMETHODIMP CellProvider::RemoveFromSelection(void)
 
 IFACEMETHODIMP CellProvider::get_IsSelected(BOOL* pRetVal)
 {
-	TableControl* sheet = m_control->GetParent();
+	TableControl* sheet = m_control->GetParentTable();
 	BOOL selected = (sheet->GetSelected() == m_control);
 
 	*pRetVal = selected;

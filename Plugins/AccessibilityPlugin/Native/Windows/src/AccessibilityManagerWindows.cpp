@@ -671,7 +671,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 
 	CellControl* cellControl = static_cast<CellControl*>(GetItemFromLong(selectedCell));
-	TableControl* spreadsheetControl = cellControl->GetParent();
+	TableControl* spreadsheetControl = cellControl->GetParentTable();
 
 	if (!spreadsheetControl->HasFocus())
 		spreadsheetControl->SetFocus();

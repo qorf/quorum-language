@@ -5,7 +5,7 @@
 class CellProvider : public ProviderT<CellProvider, CellControl, ITableItemProvider, IGridItemProvider, IExpandCollapseProvider, IValueProvider, ISelectionItemProvider>
 {
 public:
-	CellProvider(CellControl* pControl, TableControl* parent);
+	CellProvider(CellControl* pControl);
 
 	// IGridItemProvider methods
 	IFACEMETHODIMP get_Column(int* pRetVal);

@@ -145,7 +145,7 @@ LRESULT CellControl::CellControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ 
 	return lResult;
 }
 
-TableControl* CellControl::GetParent()
+TableControl* CellControl::GetParentTable()
 {
 	return parent;
 }
