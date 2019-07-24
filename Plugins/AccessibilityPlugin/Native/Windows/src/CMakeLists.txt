@@ -28,6 +28,7 @@ add_library(AccessibilityManagerWindows MODULE
     RadioButtonControl.cpp
     RadioButtonProvider.cpp
     Resources.cpp
+    RootItemBase.cpp
     TableControl.cpp
     TableProvider.cpp
     TabControl.cpp

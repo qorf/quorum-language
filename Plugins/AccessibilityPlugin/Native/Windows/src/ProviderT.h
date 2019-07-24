@@ -6,6 +6,8 @@
 #include <wil/result.h>
 #include <wrl.h>
 
+#include "RootItemBase.h"
+
 namespace wrl = Microsoft::WRL;
 
 using unique_safearray = wil::unique_any<SAFEARRAY*, decltype(&::SafeArrayDestroy), ::SafeArrayDestroy>;
@@ -16,7 +18,6 @@ class ProviderT : public wrl::RuntimeClass<
 	wrl::RuntimeClassFlags<wrl::RuntimeClassType::ClassicCom>,
 	IRawElementProviderSimple,
 	IRawElementProviderFragment,
-	IRawElementProviderFragmentRoot,
 	MoreInterfaces...>
 {
 public:
@@ -192,28 +193,10 @@ public:
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** retVal) noexcept override try
 	{
 		*retVal = nullptr;
-		m_control->GetRoot()->GetProviderFragment().query_to(retVal);
+		m_control->GetRoot()->GetProviderFragmentRoot().query_to(retVal);
 		return S_OK;
 	}
 	CATCH_RETURN();
-
-	// IRawElementProviderFragmentRoot
-	// TODO: Replace these dummy implementations with real ones once we've gone windowless
-	// and have a single root.
-
-	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
-	{
-		// TODO: Do a hit test, probably by calling into Quorum.
-		*retVal = nullptr;
-		return S_OK;
-	}
-
-	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override
-	{
-		// TODO: Once we have a single root that tracks the focus, return it.
-		*retVal = nullptr;
-		return S_OK;
-	}
 
 protected:
 	bool IsPatternSupported(PATTERNID /* patternId */) const noexcept

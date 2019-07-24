@@ -9,6 +9,8 @@
 #include "jni.h"
 #include "Resources.h"
 
+class RootItemBase;
+
 class Item
 {
 public:
@@ -33,7 +35,7 @@ public:
 	Item* GetPreviousSibling() const noexcept;
 	Item* GetNextSibling() const noexcept;
 	int GetChildCount() const noexcept;
-	Item* GetRoot() const noexcept;
+	RootItemBase* GetRoot() const noexcept;
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
@@ -45,9 +47,10 @@ protected:
 	std::wstring m_ControlDescription;
 	bool focused = false;
 	jobject javaItem = nullptr;
+	RootItemBase* m_root = nullptr;
 
 private:
-	void SetRootRecursive(_In_ Item* root) noexcept;
+	void SetRootRecursive(_In_ RootItemBase* root) noexcept;
 	void NotifyChildAdded();
 	void RemoveFromParentInternal() noexcept;
 	void RemoveAllChildren() noexcept;
@@ -62,5 +65,4 @@ private:
 	Item* m_previousSibling = nullptr;
 	Item* m_nextSibling = nullptr;
 	int m_childCount = 0;
-	Item* m_root;
 };

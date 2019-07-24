@@ -11,7 +11,4 @@ public:
 	// ProviderT
 	CONTROLTYPEID GetControlType() const noexcept;
 	void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
-
-	// Temporary IRawElementProviderFragmentRoot override
-	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override;
 };

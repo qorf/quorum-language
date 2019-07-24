@@ -8,14 +8,14 @@
 
 #include "Item.h"
 
-template <typename DerivedT, typename ProviderT>
-class ControlT: public Item
+template <typename DerivedT, typename ProviderT, typename BaseT = Item>
+class ControlT: public BaseT
 {
 public:
 	using ProviderType = ProviderT;
 
 	ControlT(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem)
-		: Item(env, std::move(controlName), std::move(controlDescription), jItem)
+		: BaseT(env, std::move(controlName), std::move(controlDescription), jItem)
 	{
 	}
 

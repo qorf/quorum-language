@@ -1,6 +1,8 @@
-#include "Item.h"
 #include <iostream>
 #include <wil/result.h>
+
+#include "Item.h"
+#include "RootItemBase.h"
 
 /* static */ std::atomic<int> Item::s_nextUniqueId = 1;
 
@@ -8,7 +10,6 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 	: m_ControlName(std::move(controlName))
 	, m_ControlDescription(std::move(controlDescription))
 	, m_uniqueId(s_nextUniqueId.fetch_add(1))
-	, m_root(this)
 {
 	// Some native items, like the window root, have no corresponding Quorum item. In those cases,
 	// the subclass will pass null for env and jItem.
@@ -133,12 +134,12 @@ int Item::GetChildCount() const noexcept
 	return m_childCount;
 }
 
-Item* Item::GetRoot() const noexcept
+RootItemBase* Item::GetRoot() const noexcept
 {
 	return m_root;
 }
 
-void Item::SetRootRecursive(_In_ Item* root) noexcept
+void Item::SetRootRecursive(_In_ RootItemBase* root) noexcept
 {
 	m_root = root;
 	for (auto child = m_firstChild; child != nullptr; child = child->m_nextSibling)
@@ -237,9 +238,9 @@ void Item::RemoveFromParentInternal() noexcept
 		m_parent = nullptr;
 	}
 
-	if (m_root != this)
+	if (m_root)
 	{
-		SetRootRecursive(this);
+		SetRootRecursive(nullptr);
 	}
 }
 
@@ -253,7 +254,7 @@ void Item::RemoveAllChildren() noexcept
 			child->m_parent = nullptr;
 			if (this == child->m_root)
 			{
-				child->SetRootRecursive(child);
+				child->SetRootRecursive(nullptr);
 			}
 		}
 		m_firstChild = nullptr;

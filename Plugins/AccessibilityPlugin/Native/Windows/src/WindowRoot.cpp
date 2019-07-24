@@ -1,11 +1,11 @@
 #include "WindowRoot.h"
 #include "WindowRootProvider.h"
-#include "ControlTImpl.h"
+#include "RootItemTImpl.h"
 
 constexpr auto c_propName = L"Quorum.WindowRootObject";
 
 WindowRoot::WindowRoot(HWND hwnd)
-	: ControlT(nullptr /* env */, L"" /* name */, L"" /* description */, nullptr /* jItem */)
+	: RootItemT(nullptr /* env */, L"" /* name */, L"" /* description */, nullptr /* jItem */)
 	, m_hwnd(hwnd)
 {
 	SetProp(hwnd, c_propName, reinterpret_cast<HANDLE>(this));

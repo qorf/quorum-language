@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ControlT.h"
+#include "RootItemT.h"
 
 class WindowRootProvider;
 
-class WindowRoot : public ControlT<WindowRoot, WindowRootProvider>
+class WindowRoot : public RootItemT<WindowRoot, WindowRootProvider>
 {
 public:
 	WindowRoot(HWND hwnd);

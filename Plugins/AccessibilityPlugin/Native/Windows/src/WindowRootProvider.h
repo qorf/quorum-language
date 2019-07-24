@@ -1,9 +1,9 @@
 #pragma once
 
 #include "WindowRoot.h"
-#include "ProviderT.h"
+#include "RootProviderT.h"
 
-class WindowRootProvider : public ProviderT<WindowRootProvider, WindowRoot>
+class WindowRootProvider : public RootProviderT<WindowRootProvider, WindowRoot>
 {
 public:
 	WindowRootProvider(_In_ WindowRoot* control);
