@@ -18,7 +18,7 @@ public:
 
 protected:
 
-	CellControl* selected;
+	CellControl* selected = nullptr;
 
 private:
 
