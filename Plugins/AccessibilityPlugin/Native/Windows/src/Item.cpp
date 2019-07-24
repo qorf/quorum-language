@@ -266,18 +266,3 @@ void Item::RemoveAllChildren() noexcept
 		m_childCount = 0;
 	}
 }
-
-wil::com_ptr<IRawElementProviderSimple> Item::GetProviderSimple()
-{
-	FAIL_FAST();
-}
-
-wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()
-{
-	FAIL_FAST();
-}
-
-bool Item::CanContainWindowlessControls() const noexcept
-{
-	return false;
-}

@@ -38,12 +38,8 @@ public:
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
-	// TODO: Make these pure virtual functions after the big refactoring.
-	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple();
-	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment();
-
-	// TODO: Drop this temporary function once we've gone fully windowless.
-	virtual bool CanContainWindowlessControls() const noexcept;
+	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() = 0;
+	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() = 0;
 
 protected:
 	std::wstring m_ControlName;
