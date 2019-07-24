@@ -52,8 +52,8 @@ protected:
 	std::wstring m_ControlDescription;
 	HWND m_ControlHWND = nullptr;
 	bool focused = false;
-	int objectHash;
-	jobject javaItem;
+	int objectHash = 0;
+	jobject javaItem = nullptr;
 
 private:
 	void SetRootRecursive(_In_ Item* root) noexcept;

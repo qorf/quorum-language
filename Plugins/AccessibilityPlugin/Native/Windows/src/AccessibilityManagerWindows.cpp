@@ -26,6 +26,7 @@
 #include "SpreadsheetControl.h"
 #include "TreeTableControl.h"
 #include "CellControl.h"
+#include "WindowRoot.h"
 
 // For Debug Output
 #include <iostream>
@@ -89,6 +90,11 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 template <typename ControlT, typename... TArgs>
 ControlT* Create(JNIEnv* env, _In_opt_ Item* parent, TArgs&&... args)
 {
+	if (!parent)
+	{
+		parent = GetMainWindowRoot();
+	}
+
 	ControlT* control;
 
 	if (parent && parent->CanContainWindowlessControls())

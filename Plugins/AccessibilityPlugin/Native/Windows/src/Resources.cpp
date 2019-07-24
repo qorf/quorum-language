@@ -2,6 +2,9 @@
 #include "plugins_quorum_Libraries_Interface_AccessibilityManager.h"
 #include <iostream>
 #include <fstream>
+
+#include "WindowRoot.h"
+
 /**************************************************************
 * Declare JNI_VERSION for use in JNI_Onload/JNI_OnUnLoad
 * Change value if a Java upgrade requires it
@@ -14,6 +17,7 @@ HWND GLFWParentWindow = NULL;
 
 JavaVM* jvm;
 JNIEnv* thisEnv = NULL;
+WindowRoot* g_mainWindowRoot = nullptr;
 
 JClass_AccessibilityManager JavaClass_AccessibilityManager;
 JClass_TextBox JavaClass_TextBox;
@@ -365,6 +369,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
+	g_mainWindowRoot = new WindowRoot(GLFWParentWindow);
 	
 	env->GetJavaVM(&jvm);
 	#if LOG
@@ -394,6 +399,11 @@ HWND GetMainWindowHandle()
 		log("Resources.cpp GetMainWindowHandle");
 	#endif
 	return GLFWParentWindow;
+}
+
+WindowRoot* GetMainWindowRoot()
+{
+	return g_mainWindowRoot;
 }
 
 JNIEnv* GetJNIEnv()

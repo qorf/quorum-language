@@ -13,6 +13,9 @@
 // If new windows can be created by Quorum then messages will need to be forwarded to those instead.
 HWND GetMainWindowHandle();
 
+class WindowRoot;
+WindowRoot* GetMainWindowRoot();
+
 JNIEnv* GetJNIEnv();
 
 WCHAR* CreateWideStringFromUTF8Win32(const char* source);
