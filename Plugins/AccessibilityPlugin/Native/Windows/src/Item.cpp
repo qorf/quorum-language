@@ -113,14 +113,37 @@ int Item::GetUniqueId() const noexcept
 
 jlong Item::SetFocus()
 {
-	const auto hwnd = GetHWND();
+	auto hwnd = GetHWND();
 
 	if (!hwnd)
 	{
-		return 0;
+		auto parent = GetParent();
+		while (parent)
+		{
+			hwnd = parent->GetHWND();
+
+			if (hwnd)
+			{
+				break;
+			}
+
+			parent = parent->GetParent();
+		}
+
+		if (!hwnd)
+		{
+			hwnd = GetMainWindowHandle();
+		}
 	}
 
-	return reinterpret_cast<jlong>(::SetFocus(hwnd));
+	const auto hwndPrev = ::SetFocus(hwnd);
+
+	if (!GetHWND())
+	{
+		Focus(true);
+	}
+
+	return reinterpret_cast<jlong>(hwndPrev);
 }
 
 Item* Item::GetParent() const noexcept
@@ -285,4 +308,9 @@ void Item::RemoveAllChildren() noexcept
 wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()
 {
 	FAIL_FAST();
+}
+
+bool Item::CanContainWindowlessControls() const noexcept
+{
+	return false;
 }
