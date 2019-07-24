@@ -18,7 +18,6 @@ public:
 
 protected:
 
-	TableProvider* provider;
 	CellControl* selected;
 
 private:
