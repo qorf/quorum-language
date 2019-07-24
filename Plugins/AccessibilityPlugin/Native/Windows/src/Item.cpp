@@ -20,12 +20,6 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 
 Item::~Item()
 {
-	if (m_ControlHWND)
-	{
-		DestroyWindow(m_ControlHWND);
-		m_ControlHWND = nullptr;
-	}
-
 	RemoveFromParentInternal();
 	RemoveAllChildren();
 }
