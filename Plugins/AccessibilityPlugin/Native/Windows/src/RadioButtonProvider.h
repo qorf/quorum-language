@@ -18,7 +18,4 @@ public:
 	IFACEMETHODIMP RemoveFromSelection();
 	IFACEMETHODIMP get_IsSelected(_Out_ BOOL * pRetVal);
 	IFACEMETHODIMP get_SelectionContainer(_Outptr_result_maybenull_ IRawElementProviderSimple **pRetVal);
-
-	// Other methods
-	void RadioButtonProvider::NotifyFocusGained(); // Fires a UI Automation Event when called.
 };

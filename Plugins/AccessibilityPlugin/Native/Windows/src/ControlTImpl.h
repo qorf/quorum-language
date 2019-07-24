@@ -7,7 +7,7 @@ ControlT<DerivedT, ProviderT>::~ControlT()
 {
 	if (m_provider)
 	{
-		LOG_IF_FAILED(UiaDisconnectProvider(m_provider.query<IRawElementProviderSimple>().get()));
+		LOG_IF_FAILED(UiaDisconnectProvider(m_provider.get()));
 	}
 }
 
@@ -23,7 +23,13 @@ const wil::com_ptr<ProviderT>& ControlT<DerivedT, ProviderT>::GetProvider()
 }
 
 template <typename DerivedT, typename ProviderT>
+wil::com_ptr<IRawElementProviderSimple> ControlT<DerivedT, ProviderT>::GetProviderSimple()
+{
+	return GetProvider();
+}
+
+template <typename DerivedT, typename ProviderT>
 wil::com_ptr<IRawElementProviderFragment> ControlT<DerivedT, ProviderT>::GetProviderFragment()
 {
-	return GetProvider().query<IRawElementProviderFragment>();
+	return GetProvider();
 }

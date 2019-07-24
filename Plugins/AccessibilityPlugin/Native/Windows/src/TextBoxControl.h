@@ -83,7 +83,6 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-		virtual void Focus(bool isFocused) override;
 
 		void UpdateSelection(const Range& indices);
 

@@ -21,9 +21,3 @@ void ButtonControl::NotifyInvoked()
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Invoke_InvokedEventId);
 	}
 }
-
-void ButtonControl::Focus(bool focused)
-{
-	this->focused = focused;
-	GetProvider()->NotifyFocusGained();
-}

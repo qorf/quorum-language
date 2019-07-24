@@ -20,11 +20,3 @@ IFACEMETHODIMP ButtonProvider::Invoke() noexcept
 	m_control->Invoke();
 	return S_OK;
 }
-
-void ButtonProvider::NotifyFocusGained()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
-	}
-}

@@ -7,12 +7,6 @@ CheckBoxControl::CheckBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&
 {
 }
 
-void CheckBoxControl::Focus(bool focused)
-{
-	this->focused = focused;
-	GetProvider()->NotifyFocusGained();
-}
-
 void CheckBoxControl::SetState(_In_ ToggleState controlState)
 {
 	jboolean toggle;

@@ -7,22 +7,6 @@ TextFieldProvider::TextFieldProvider(TextFieldControl* control) : ProviderT(cont
 	// No further work necessary -- we've already set the fields we care about in the constructor header above.
 }
 
-void TextFieldProvider::NotifyFocusGained()
-{
-	#if LOG
-	log("TextFieldProvider::NotifyFocusGained Start");
-	#endif
-
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
-	}
-
-	#if LOG
-	log("TextFieldProvider::NotifyFocusGained Finish");
-	#endif
-}
-
 // =========== Overridden ProviderT functions
 
 bool TextFieldProvider::IsPatternSupported(PATTERNID patternId) const noexcept

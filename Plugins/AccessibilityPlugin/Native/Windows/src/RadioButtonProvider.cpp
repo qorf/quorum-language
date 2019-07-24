@@ -72,13 +72,3 @@ IFACEMETHODIMP RadioButtonProvider::get_SelectionContainer(_Outptr_result_mayben
 	*pRetVal = NULL;
 	return S_OK;
 }
-
-// =========== Other Methods
-
-void RadioButtonProvider::NotifyFocusGained()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
-	}
-}

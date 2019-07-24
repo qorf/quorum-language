@@ -49,9 +49,3 @@ bool RadioButtonControl::GetState()
 
 	return result;
 }
-
-void RadioButtonControl::Focus(bool isFocused)
-{
-	this->focused = focused;
-	GetProvider()->NotifyFocusGained();
-}

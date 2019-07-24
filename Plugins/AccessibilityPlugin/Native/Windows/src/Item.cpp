@@ -46,6 +46,12 @@ void Item::SetHashCode(int hash) {
 void Item::Focus(bool isFocused)
 {
 	focused = isFocused;
+
+	if (isFocused && UiaClientsAreListening())
+	{
+		const auto provider = GetProviderSimple();
+		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
+	}
 }
 
 bool Item::HasFocus() const noexcept
@@ -199,7 +205,7 @@ void Item::NotifyChildAdded()
 {
 	if (UiaClientsAreListening())
 	{
-		const auto provider = GetProviderFragment().query<IRawElementProviderSimple>();
+		const auto provider = GetProviderSimple();
 		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(
 			provider.get(),
 			StructureChangeType_ChildAdded,
@@ -239,7 +245,7 @@ void Item::RemoveFromParent()
 	wil::com_ptr<IRawElementProviderSimple> parentProvider;
 	if (UiaClientsAreListening())
 	{
-		parentProvider = m_parent->GetProviderFragment().query<IRawElementProviderSimple>();
+		parentProvider = m_parent->GetProviderSimple();
 	}
 
 	RemoveFromParentInternal();
@@ -308,6 +314,11 @@ void Item::RemoveAllChildren() noexcept
 		m_lastChild = nullptr;
 		m_childCount = 0;
 	}
+}
+
+wil::com_ptr<IRawElementProviderSimple> Item::GetProviderSimple()
+{
+	FAIL_FAST();
 }
 
 wil::com_ptr<IRawElementProviderFragment> Item::GetProviderFragment()

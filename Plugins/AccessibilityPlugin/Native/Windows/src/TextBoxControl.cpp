@@ -10,11 +10,6 @@ TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& 
 {
 }
 
-void TextBoxControl::Focus(bool isFocused)
-{
-	this->focused = isFocused;
-}
-
 std::wstring TextBoxControl::GetText()
 {
 	JNIEnv* env = GetJNIEnv();
@@ -281,7 +276,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_IsActiveAttributeId)
 	{
 		retval.vt = VT_BOOL;
-		retval.boolVal = focused ? VARIANT_TRUE : VARIANT_FALSE;
+		retval.boolVal = HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (attribute == UIA_SelectionActiveEndAttributeId)
 	{

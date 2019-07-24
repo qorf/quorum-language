@@ -10,31 +10,7 @@
 void NotifyCaretPositionChanged(_In_ TextBoxControl* control)
 {
 	TextBoxProvider* eventControl = control->GetProvider().get();
-	if (eventControl != NULL)
-	{
-		//UiaRaiseAutomationPropertyChangedEvent(eventControl, UIA_ValueValuePropertyId);
-		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
-		//HRESULT result2 = UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
-		//eventControl->Release();
-	}
-	else
-	{
-		// This is an error. Should probably be dealt with somehow.
-	}
-}
-
-void NotifyFocusGained(_In_ TextBoxControl* control)
-{
-	//TextBoxProvider* eventControl = new TextBoxProvider(hwnd, control);
-	//if (eventControl != NULL)
-	//{
-	//	UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
-	//	eventControl->Release();
-	//}
-	//else
-	//{
-	//	// This is an error. Should probably be dealt with somehow.
-	//}
+	THROW_IF_FAILED(UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId));
 }
 
 TextBoxProvider::TextBoxProvider(_In_ TextBoxControl* control) : ProviderT(control)

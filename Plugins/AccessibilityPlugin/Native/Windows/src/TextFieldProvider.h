@@ -10,7 +10,6 @@ class TextFieldProvider : public ProviderT<TextFieldProvider, TextFieldControl, 
 {
 	public:
 		TextFieldProvider(TextFieldControl* parentControl);
-		void NotifyFocusGained();
 
 		// Overridden ProviderT functions.
 		bool IsPatternSupported(PATTERNID patternId) const noexcept;

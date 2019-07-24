@@ -61,13 +61,3 @@ IFACEMETHODIMP CheckBoxProvider::get_ToggleState(_Out_ ToggleState * pRetVal)
 	*pRetVal = m_control->GetState();
 	return S_OK;
 }
-
-// =========== Other Methods
-
-void CheckBoxProvider::NotifyFocusGained()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
-	}
-}

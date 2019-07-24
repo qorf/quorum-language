@@ -93,18 +93,6 @@ std::wstring TextFieldControl::GetText()
 	return L"";
 }
 
-void TextFieldControl::Focus(bool focus)
-{
-	#if LOG
-	log("TextFieldControl::SetControlFocus Start");
-	#endif
-
-	this->focused = focus;
-	#if LOG
-	log("TextFieldControl::SetControlFocus Finished");
-	#endif
-}
-
 void TextFieldControl::UpdateCaret()
 {
 	TextFieldProvider* eventControl = GetProvider().get();

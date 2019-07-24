@@ -11,5 +11,4 @@ public:
 
 	void SetState(_In_ bool controlState);
 	bool GetState();
-	virtual void Focus(bool isFocused) override;
 };
