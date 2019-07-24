@@ -255,7 +255,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	HWND handle = CalculateParentWindowHandle(parent);
 	TabPaneControl* tabPaneControl = static_cast<TabPaneControl*>(GetItemPointer(parent));
-	TabControl* pane = TabControl::Create(env, GetModuleHandle(NULL), handle, tabPaneControl, wName, jItem);
+	TabControl* pane = TabControl::Create(env, GetModuleHandle(NULL), handle, wName, tabPaneControl, jItem);
 	env->ReleaseStringUTFChars(name, nativeName);
 	return reinterpret_cast<jlong>(pane);
 }

@@ -10,7 +10,7 @@ class TabControl : public ControlT<TabControl, TabProvider>
 {
 public:
 	TabControl(JNIEnv* env, std::wstring&& name, _In_ TabPaneControl* parentTabPane, jobject jItem);
-	static TabControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, TabPaneControl* parent, _In_ WCHAR* name, jobject jItem);
+	static TabControl* Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* name, _In_ TabPaneControl* parent, jobject jItem);
 
 	TabPaneControl* GetParentTabPane();
 
