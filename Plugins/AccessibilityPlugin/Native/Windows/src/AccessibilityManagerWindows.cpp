@@ -470,14 +470,15 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	
 	if (pControl)
 	{
-		return pControl->SetFocus();
+		pControl->SetFocus();
+		return 1; // success
 	}
 
 	#if LOG
 		log("SetFocus End\n");
 	#endif
 
-	return 0;
+	return 0; // failure
 }
 
 // TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.

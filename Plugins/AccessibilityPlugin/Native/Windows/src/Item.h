@@ -26,8 +26,7 @@ public:
 	jobject GetMe();
 	int GetUniqueId() const noexcept;
 
-	// TODO: Change the return type to Item* once we're rid of the HWNDs.
-	jlong SetFocus();
+	void SetFocus();
 
 	Item* GetParent() const noexcept;
 	Item* GetFirstChild() const noexcept;

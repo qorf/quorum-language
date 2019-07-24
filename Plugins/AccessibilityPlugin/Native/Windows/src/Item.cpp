@@ -109,39 +109,9 @@ int Item::GetUniqueId() const noexcept
 	return m_uniqueId;
 }
 
-jlong Item::SetFocus()
+void Item::SetFocus()
 {
-	auto hwnd = GetHWND();
-
-	if (!hwnd)
-	{
-		auto parent = GetParent();
-		while (parent)
-		{
-			hwnd = parent->GetHWND();
-
-			if (hwnd)
-			{
-				break;
-			}
-
-			parent = parent->GetParent();
-		}
-
-		if (!hwnd)
-		{
-			hwnd = GetMainWindowHandle();
-		}
-	}
-
-	const auto hwndPrev = ::SetFocus(hwnd);
-
-	if (!GetHWND())
-	{
-		Focus(true);
-	}
-
-	return reinterpret_cast<jlong>(hwndPrev);
+	Focus(true);
 }
 
 Item* Item::GetParent() const noexcept
