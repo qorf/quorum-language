@@ -1,8 +1,7 @@
 #pragma once
 
+#include "RadioButtonControl.h"
 #include "ProviderT.h"
-
-class RadioButtonControl;
 
 class RadioButtonProvider : public ProviderT<RadioButtonProvider, RadioButtonControl, ISelectionItemProvider>
 {

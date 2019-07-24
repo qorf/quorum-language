@@ -7,120 +7,8 @@
 #include "TextBoxProvider.h"
 #include "ControlTImpl.h"
 
-bool TextFieldControl::initialized = false;
-
-/**** Button methods ***/
-
-// TextFieldControl: Constructor. Sets the default values for the text field.
 TextFieldControl::TextFieldControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
-}
-
-// RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used
-bool TextFieldControl::Initialize(_In_ HINSTANCE hInstance)
-{
-	#if LOG
-		log("TextFieldControl::Initialize Start");
-	#endif
-
-	WNDCLASSEXW wc;
-
-	ZeroMemory(&wc, sizeof(wc));
-	wc.cbSize = sizeof(wc);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = StaticTextFieldControlWndProc;
-	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_TEXTFIELD";
-
-
-	if (RegisterClassExW(&wc) == 0)
-	{
-		// An error occured. Output this error so it can be seen from Quorum.
-		DWORD errorMessageID = ::GetLastError();
-
-		LPSTR messageBuffer = nullptr;
-		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)& messageBuffer, 0, NULL);
-
-		std::string message(messageBuffer, size);
-		//std::cout << "RegisterTextFieldControl Error " << errorMessageID << ": " << message << std::endl;
-		fflush(stdout);
-
-		//Free the buffer.
-		LocalFree(messageBuffer);
-
-		return false;
-	}
-
-	#if LOG
-	log("TextFieldControl::Initialize Finished");
-	#endif
-
-	return true;
-}
-
-TextFieldControl* TextFieldControl::Create(JNIEnv* env, _In_ HINSTANCE instance, _In_ HWND parentWindow, _In_ WCHAR* controlName, _In_ WCHAR* controlDescription, jobject jItem)
-{
-	#if LOG
-	log("TextFieldControl::Create Start");
-	#endif
-
-	if (!initialized)
-	{
-		initialized = Initialize(instance);
-	}
-
-	if (initialized)
-	{
-		TextFieldControl* control = new TextFieldControl(env, controlName, controlDescription, jItem);
-
-		CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_TEXTFIELD",
-			controlName,
-			WS_VISIBLE | WS_CHILD,
-			-1,
-			-1,
-			1,
-			1,
-			parentWindow,
-			NULL,
-			instance,
-			static_cast<PVOID>(control));
-
-		if (control->m_ControlHWND == NULL)
-		{
-			DWORD errorMessageID = ::GetLastError();
-
-			LPSTR messageBuffer = nullptr;
-			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)& messageBuffer, 0, NULL);
-
-			std::string message(messageBuffer, size);
-			//std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
-			fflush(stdout);
-
-			//Free the buffer.
-			LocalFree(messageBuffer);
-		}
-		else
-		{
-			if (UiaClientsAreListening())
-				control->GetProvider();
-
-			#if LOG
-			log("TextFieldControl::Initialize Finished Successfully");
-			#endif
-
-			return control;
-		}
-	}
-
-	#if LOG
-	log("TextFieldControl::Initialize Finished (RETURNED NULL)");
-	#endif
-
-	return NULL; // Indicates failure to create window.
 }
 
 int TextFieldControl::GetCaretPosition()
@@ -217,42 +105,6 @@ void TextFieldControl::Focus(bool focus)
 	#endif
 }
 
-LRESULT CALLBACK TextFieldControl::StaticTextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-	#if LOG
-	log("TextFieldControl::StaticTextFieldControlWndProc Start");
-	#endif
-
-	TextFieldControl* pThis = reinterpret_cast<TextFieldControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-	if (message == WM_NCCREATE)
-	{
-		CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<TextFieldControl*>(createStruct->lpCreateParams);
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		pThis->m_ControlHWND = hwnd;
-	}
-
-	if (message == WM_NCDESTROY)
-	{
-		pThis = NULL;
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, NULL);
-	}
-
-	if (pThis != NULL)
-	{
-		#if LOG
-		log("TextFieldControl::StaticTextFieldControlWndProc Finished (via Non-Static Proc)");
-		#endif
-		return pThis->TextFieldControlWndProc(hwnd, message, wParam, lParam);
-	}
-
-	#if LOG
-	log("TextFieldControl::StaticTextFieldControlWndProc Finished");
-	#endif
-
-	return DefWindowProc(hwnd, message, wParam, lParam);
-}
-
 void TextFieldControl::UpdateCaret()
 {
 	TextFieldProvider* eventControl = GetProvider().get();
@@ -260,57 +112,6 @@ void TextFieldControl::UpdateCaret()
 	{
 		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 	}
-}
-
-// Control window procedure.
-LRESULT CALLBACK TextFieldControl::TextFieldControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-	#if LOG
-	log("TextFieldControl::TextFieldControlWndProc Start");
-	#endif
-
-	LRESULT lResult = 0;
-
-	switch (message)
-	{
-	case WM_GETOBJECT:
-	{
-		// If the lParam matches the RootObjectId, send back the RawElementProvider
-		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
-		{
-			// Register with UI Automation.
-			IRawElementProviderSimple* provider = GetProvider().get();
-			if (provider != NULL)
-			{
-				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-			}
-
-			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
-		}
-		break;
-	}
-	case WM_SETFOCUS:
-	{
-		Focus(true);
-		break;
-	}
-	case WM_KILLFOCUS:
-	{
-		Focus(false);
-		break;
-	}
-	default:
-
-		lResult = ForwardMessage(hwnd, message, wParam, lParam);
-		break;
-
-	}
-
-	#if LOG
-	log("TextFieldControl::TextFieldControlWndProc Finished");
-	#endif
-
-	return lResult;
 }
 
 VARIANT TextFieldControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
