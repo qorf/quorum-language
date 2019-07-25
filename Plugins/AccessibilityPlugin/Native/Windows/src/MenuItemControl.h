@@ -17,8 +17,7 @@ public:
 	void SetShortcut(std::wstring&& shortcut);
 	const std::wstring& GetShortcut();
 
-	void Expand();
-	void Collapse();
+	void NotifyExpandCollapse();
 
 private:
 	std::wstring m_shortcut;

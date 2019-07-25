@@ -32,12 +32,7 @@ const std::wstring& MenuItemControl::GetShortcut()
 	return m_shortcut;
 }
 
-void MenuItemControl::Expand()
+void MenuItemControl::NotifyExpandCollapse()
 {
-	GetProvider()->Expand();
-}
-
-void MenuItemControl::Collapse()
-{
-	GetProvider()->Collapse();
+	GetProvider()->NotifyElementExpandCollapse();
 }
