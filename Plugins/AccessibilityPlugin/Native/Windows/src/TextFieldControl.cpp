@@ -9,6 +9,7 @@
 
 TextFieldControl::TextFieldControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
+	m_text = L"";
 }
 
 int TextFieldControl::GetCaretPosition()
@@ -56,41 +57,7 @@ int TextFieldControl::GetSize()
 
 std::wstring TextFieldControl::GetText()
 {
-	#if LOG
-	log("TextFieldControl::GetText Start");
-	#endif
-
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
-		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(GetMe(), JavaClass_TextField.GetText));
-
-		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
-		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
-
-		env->ReleaseStringUTFChars(fullText, nativeFullText);
-
-		TextFieldProvider* eventControl = GetProvider().get();
-		if (eventControl != NULL && UiaClientsAreListening())
-		{
-			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
-		}
-
-
-		#if LOG
-		log("TextFieldControl::GetText Finished Successfully");
-		#endif
-
-		return wFullText;
-	}
-
-	#if LOG
-	log("TextFieldControl::GetText Finished (EMPTY STRING)");
-	#endif
-
-	return L"";
+	return m_text;
 }
 
 void TextFieldControl::UpdateCaret()
@@ -365,4 +332,32 @@ void TextFieldControl::UpdateSelection(const Range& /* indices */)
 {
 	// TODO: Actually use the provided indices.
 	UpdateCaret();
+}
+
+void TextFieldControl::UpdateText(int index, std::wstring added, int removed)
+{
+	VARIANT oldText, newText;
+	oldText.vt = VT_BSTR;
+	newText.vt = VT_BSTR;
+	oldText.bstrVal = wil::make_bstr(m_text.c_str()).release();
+
+	std::wstring preText;
+
+	if (index == 0)
+		preText = L"";
+	else
+		preText = m_text.substr(0, index);
+
+	std::wstring postText;
+	if (index + removed >= m_text.length())
+		postText = L"";
+	else
+		postText = m_text.substr(index + removed, std::wstring::npos);
+
+	m_text = preText + added + postText;
+
+	newText.bstrVal = wil::make_bstr(m_text.c_str()).release();
+
+	const auto provider = GetProvider();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ValueValuePropertyId, oldText, newText);
 }

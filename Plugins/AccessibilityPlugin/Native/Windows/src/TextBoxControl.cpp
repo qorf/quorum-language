@@ -340,5 +340,5 @@ void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
 	newText.bstrVal = wil::make_bstr(m_text.c_str()).release();
 
 	const auto provider = GetProvider();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldText, newText);
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ValueValuePropertyId, oldText, newText);
 }
