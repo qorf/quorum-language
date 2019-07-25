@@ -86,6 +86,11 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 
 		void UpdateSelection(const Range& indices);
 
+		// Used to update the TextBox's contents to match with Quorum.
+		void UpdateText(int index, std::wstring added, int removed);
+
 	private:
 		void UpdateCaret();
+
+		std::wstring m_text;
 };

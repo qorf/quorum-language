@@ -557,40 +557,18 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jstring change)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jint index, jstring added, jint removed)
 {
-	//const char* nativeCurrentLineText = env->GetStringUTFChars(change, 0);
-	//BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
+	TextBoxControl* control = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
 
-	//TextBoxControl* pTextBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
-	//IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetTextBoxProvider());
-
-	//size_t length = strlen(nativeCurrentLineText);
-
-	//SAFEARRAYBOUND saBound;
-	//saBound.lLbound = 0;
-	//saBound.cElements = length;
-	//SAFEARRAY* psa = SafeArrayCreateVector(VT_VARIANT, 0, 1);//&saBound);
-	//VARIANT* param;
-	//HRESULT hr = SafeArrayAccessData(psa, (LPVOID*)& param);
-	//if (SUCCEEDED(hr)) {
-	//	long index = 0;
-
-	//	param->vt = VT_BSTR;
-	//	param->bstrVal = resultString;
-	//	//SafeArrayPutElement(psa, &index, param);
-
-	//	enum TextEditChangeType type = TextEditChangeType_CompositionFinalized;
-	//	HRESULT result = UiaRaiseTextEditTextChangedEvent(provider, type, psa);
-
-	//	SafeArrayUnlock(psa);
-	//}
-	//SafeArrayDestroy(psa);
-
-	//SysFreeString(resultString);
-	//env->ReleaseStringUTFChars(change, nativeCurrentLineText);
+	std::wstring addedText = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(added, 0));
+	control->UpdateText(index, addedText, removed);
 }
 
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextChangedNative(JNIEnv* env, jobject obj, jlong field, jint index, jstring added, jint removed)
+{
+
+}
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextSelectionChangedNative(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)
 {

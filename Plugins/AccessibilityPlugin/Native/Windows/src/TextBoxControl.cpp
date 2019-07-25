@@ -8,32 +8,12 @@
 
 TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
+	m_text = L"";
 }
 
 std::wstring TextBoxControl::GetText()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
-		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
-
-		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
-		std::wstring wFullText = CreateWideStringFromUTF8Win32(nativeFullText);
-
-		env->ReleaseStringUTFChars(fullText, nativeFullText);
-
-		TextBoxProvider* eventControl = GetProvider().get();
-		if (eventControl != NULL && UiaClientsAreListening())
-		{
-			UiaRaiseAutomationEvent(eventControl, UIA_Text_TextChangedEventId);
-		}
-
-		return wFullText;
-	}
-
-	return L"";
+	return m_text;
 }
 
 EndPoint TextBoxControl::GetTextboxEndpoint()
@@ -333,4 +313,32 @@ void TextBoxControl::UpdateSelection(const Range& /* indices */)
 {
 	// TODO: Actually use the provided indices.
 	UpdateCaret();
+}
+
+void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
+{
+	VARIANT oldText, newText;
+	oldText.vt = VT_BSTR;
+	newText.vt = VT_BSTR;
+	oldText.bstrVal = wil::make_bstr(m_text.c_str()).release();
+
+	std::wstring preText;
+
+	if (index == 0)
+		preText = L"";
+	else
+		preText = m_text.substr(0, index);
+
+	std::wstring postText;
+	if (index + removed >= m_text.length())
+		postText = L"";
+	else
+		postText = m_text.substr(index + removed, std::wstring::npos);
+
+	m_text = preText + added + postText;
+
+	newText.bstrVal = wil::make_bstr(m_text.c_str()).release();
+
+	const auto provider = GetProvider();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldText, newText);
 }
