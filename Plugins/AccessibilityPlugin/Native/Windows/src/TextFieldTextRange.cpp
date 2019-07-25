@@ -274,27 +274,31 @@ IFACEMETHODIMP TextFieldTextRange::GetEnclosingElement(_Outptr_result_maybenull_
 }
 
 // GetText: Retrieves the plain text of the range. That text is then given to the screen reader to be read aloud.
-IFACEMETHODIMP TextFieldTextRange::GetText(_In_ int maxLength, _Out_ BSTR* pRetVal)
+IFACEMETHODIMP TextFieldTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noexcept try
 {
-	UNREFERENCED_PARAMETER(maxLength);
+	*retVal = nullptr;
 
-	HRESULT hr = S_OK;
-
-	std::wstring text = textFieldControl->GetText();
+	const auto text = textFieldControl->GetText();
 	int startPosition = range.begin.character;
-	int length = range.end.character - range.begin.character;
+	int length = range.end.character - startPosition;
+
+	if ((maxLength >= 0) && (length > maxLength))
+	{
+		length = maxLength;
+	}
 
 	if (length <= 0)
-		length = 1;
-
-	*pRetVal = SysAllocString(text.substr(startPosition, length).c_str());
-
-	if (*pRetVal == NULL)
 	{
-		hr = E_OUTOFMEMORY;
+		*retVal = wil::make_bstr(L"").release();
 	}
-	return hr;
+	else
+	{
+		*retVal = wil::make_bstr(text.substr(startPosition, length).c_str()).release();
+	}
+
+	return S_OK;
 }
+CATCH_RETURN();
 
 IFACEMETHODIMP TextFieldTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ int* pRetVal)
 {
