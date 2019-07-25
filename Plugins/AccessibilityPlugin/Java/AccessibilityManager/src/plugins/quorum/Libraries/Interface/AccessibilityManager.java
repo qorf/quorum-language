@@ -234,6 +234,9 @@ public class AccessibilityManager
                 // Not implemented yet. Create as Item for now.
                 nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
+                
+            // For now, consider TOGGLE_BUTTON and CHECKBOX to be identical cases.
+            case TOGGLE_BUTTON:
             case CHECKBOX:
                 nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
@@ -401,6 +404,8 @@ public class AccessibilityManager
             case RADIO_BUTTON:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
+                
+            case TOGGLE_BUTTON:
             case CHECKBOX:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
