@@ -29,7 +29,7 @@ public:
 	IFACEMETHODIMP GetAttributeValue(_In_ TEXTATTRIBUTEID textAttributeId, _Out_ VARIANT* retVal);
 	IFACEMETHODIMP GetBoundingRectangles(_Outptr_result_maybenull_ SAFEARRAY** retVal);
 	IFACEMETHODIMP GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple** retVal);
-	IFACEMETHODIMP GetText(_In_ int maxLength, _Out_ BSTR* retVal);
+	IFACEMETHODIMP GetText(int maxLength, _Out_ BSTR* retVal) noexcept;
 	IFACEMETHODIMP Move(_In_ TextUnit unit, _In_ int count, _Out_ int* retVal);
 	IFACEMETHODIMP MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int* retVal);
 	IFACEMETHODIMP MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider* targetRange, _In_ TextPatternRangeEndpoint targetEndpoint);

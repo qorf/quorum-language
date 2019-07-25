@@ -13,10 +13,8 @@ public:
 	TreeControl* GetParentTree();
 
 	bool IsExpanded();
+	void SetExpanded(bool expanded);
 	bool IsSubtree();
-
-	void Expand();
-	void Collapse();
 
 private:
 	bool m_isSubtree;

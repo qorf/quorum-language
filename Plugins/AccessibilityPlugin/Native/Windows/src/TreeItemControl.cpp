@@ -22,19 +22,13 @@ bool TreeItemControl::IsExpanded()
 	return m_isExpanded;
 }
 
+void TreeItemControl::SetExpanded(bool expanded)
+{
+	m_isExpanded = expanded;
+	GetProvider()->NotifyElementExpandCollapse();
+}
+
 bool TreeItemControl::IsSubtree()
 {
 	return m_isSubtree;
-}
-
-void TreeItemControl::Expand()
-{
-	m_isExpanded = true;
-	GetProvider()->Expand();
-}
-
-void TreeItemControl::Collapse()
-{
-	m_isExpanded = false;
-	GetProvider()->Collapse();
 }

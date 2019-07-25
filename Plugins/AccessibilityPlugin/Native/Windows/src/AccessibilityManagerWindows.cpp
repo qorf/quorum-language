@@ -698,7 +698,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(GetItemFromLong(menuItem));
 
 	if (pMenuItem != NULL)
-		pMenuItem->Expand();
+		pMenuItem->NotifyExpandCollapse();
 	else
 		return false;
 
@@ -710,7 +710,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	MenuItemControl* pMenuItem = static_cast<MenuItemControl*>(GetItemFromLong(menuItem));
 
 	if (pMenuItem != NULL)
-		pMenuItem->Collapse();
+		pMenuItem->NotifyExpandCollapse();
 	else
 		return false;
 
@@ -722,7 +722,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
 
 	if (pTreeItem != NULL)
-		pTreeItem->Expand();
+		pTreeItem->SetExpanded(true);
 	else
 		return false;
 
@@ -734,7 +734,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
 
 	if (pTreeItem != NULL)
-		pTreeItem->Collapse();
+		pTreeItem->SetExpanded(false);
 	else
 		return false;
 
