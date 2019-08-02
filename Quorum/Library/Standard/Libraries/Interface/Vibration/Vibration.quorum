@@ -1,7 +1,6 @@
 package Libraries.Interface.Vibration
 
 use Libraries.Containers.Array
-use Libraries.Interface.Vibration.PatternArray
 use Libraries.Interface.Vibration.VibrationArray
 
 /*
@@ -11,14 +10,13 @@ use Libraries.Interface.Vibration.VibrationArray
     Attribute: Example
 
         use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
         class Main is Game, TouchListener
 
-            Vibration vibration
+            Vibration vibrator
 
             action Main
                 StartGame()
@@ -26,68 +24,32 @@ use Libraries.Interface.Vibration.VibrationArray
 
             action CreateGame
                 AddTouchListener(me)
-                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(1000)
+                vibrator:VibrateForever()
             end
-
         end
 */
-class Vibration 
-    
+class Vibration
+
     /*
-        This method should be called before the Vibration class is used, so that the
-        vibration control can be acquired. If this method is called before the 
-        system is initialized, it will fail.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(1000) 
-            end
-
-        end
-    */
-    system action Initialize()
-   
-    /*
-        This method changes how long the timeslices in the calculated patterns are in milliseconds
-        when they are called without explicit timeslice length. The timeslices influence
-        how many different values are computed for a pattern of a certain length. 
-        The default timeslice length is 20 ms and should be kept between 5ms and 50ms.
+        This method vibrates according to a preset pattern, which has quick 
+        vibrations in rapid succession, repeating for the specified number
+        of seconds.
         
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
         Attribute: Example
 
         use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
         class Main is Game, TouchListener
 
-            Vibration vibration
+            Vibration vibrator
 
             action Main
                 StartGame()
@@ -95,64 +57,421 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                vibration:Initialize()
-                vibration:SetTimeSlice(5) // sets timeslices to 5ms
             end
 
             action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(1000) 
+                vibrator:QuickPulse(2.5)
             end
-
         end
     */
-    system action SetTimeslice(integer timesliceLength)
+    system action QuickPulse(number seconds)
 
     /*
-        This method returns the current timeslice length that is used by the Vibration class.
+        This method vibrates according to a preset pattern, which has quick 
+        vibrations with short pauses in between, repeating until the Stop()
+        action is called.
 
         Attribute: Example
 
         use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
         use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
 
-        class Main is Game
+        class Main is Game, TouchListener
 
-            Vibration vibration
+            Vibration vibrator
 
             action Main
                 StartGame()
             end
 
             action CreateGame
-                vibration:Initialize()
-                output hm:GetTimeslice()
+                AddTouchListener(me)
             end
 
+            action BeganTouch(TouchEvent event)
+                vibrator:QuickPulseForever()
+            end
         end
     */
-    system action GetTimeslice() returns integer
+    system action QuickPulseForever()
+
+    /*
+        This method vibrates according to a preset pattern, which has slow
+        vibrations with relatively long pauses in between, repeating for the
+        specified number of seconds.
+
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:SlowPulse(2.5)
+            end
+        end
+    */
+    system action SlowPulse(number seconds)
+
+    /*
+        This method vibrates according to a preset pattern, which has slow
+        vibrations with relatively long pauses in between, repeating until
+        the Stop() action is called.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:SlowPulseForever()
+            end
+        end
+    */
+    system action SlowPulseForever()
+
+    /*
+        This method vibrates according to a preset pattern, creating a
+        low-intensity vibration with very short pauses, repeating for
+        the specified number of seconds.
+
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:Rumble(2.5)
+            end
+        end
+    */
+    system action Rumble(number seconds)
+
+    /*
+        This method vibrates according to a preset pattern, creating a
+        low-intensity vibration with very short pauses, repeating until the
+        Stop() action is called.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:RumbleForever()
+            end
+        end
+    */
+    system action RumbleForever()
+
+    /*
+        This method vibrates according to a preset pattern, which has two quick 
+        vibrations followed by a long pause and a final vibration.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:KnockOnce()
+            end
+        end
+    */
+    system action KnockOnce()
+
+    /*
+        This method vibrates according to a preset pattern, which has two quick 
+        vibrations followed by a long pause and a final vibration. Repeats the
+        pattern for the amount of times specified.
+
+        Attribute: Parameter repetitions The amount of times for the pattern to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:Knock(3)
+            end
+        end
+    */
+    system action Knock(integer repetitions)
+
+    /*
+        This method vibrates according to a preset pattern, which has two quick 
+        vibrations followed by a long pause and a final vibration. Repeats
+        the pattern until the Stop() action is called.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:KnockForever()
+            end
+        end
+    */
+    system action KnockForever()
+ 
+    /*
+        This method turns on the motor, vibrating constantly at maximum intensity
+        for the number of seconds specified.
+
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:Vibrate(2.5)
+            end
+        end
+    */
+    system action Vibrate(number seconds)
+
+    /*
+        This method turns on the motor, vibrating constantly at maximum intensity,
+        repeating until the Stop() action is called. 
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:VibrateForever()
+            end
+        end
+    */
+    system action VibrateForever()
+
+   /*
+        This method turns on the motor, vibrating constantly for the number of 
+        seconds specified at the given intensity. The intensity is expected to
+        be a number between 0.0 and 1.0, representing a percentage of the maximum
+        intensity allowed by the device.
+
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Parameter intensity The intensity of the vibration, given by
+                   a number between 0.0 and 1.0, which represents the percentage
+                   of maximum intensity at which to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:Vibrate(2.5, 0.5)
+            end
+        end
+    */
+    system action Vibrate(number seconds, number intensity)
+
+    /*
+        This method turns on the motor, vibrating constantly at the given intensity, 
+        repeating until the Stop() action is called. The intensity is expected to
+        be a number between 0.0 and 1.0, representing a percentage of the maximum
+        intensity allowed by the device.
+
+        Attribute: Parameter intensity The intensity of the vibration, given by
+                   a number between 0.0 and 1.0, which represents the percentage
+                   of maximum intensity at which to play.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:VibrateForever(0.5)
+            end
+        end
+    */
+    system action VibrateForever(number intensity)
 
     /* 
-       This method plays a vibration pattern given in Android's pattern definition.
-       The pattern is an Array of integers. The integers represent instructions to
-       the vibration motor in milliseconds. The first integer represents how long
-       the motor should pause, the second represents how long the motor should run,
-       the third is a pause again, and the fourth is a run instruction again and so forth.
-       This alternating pattern of off and on times can then be used to create 
-       complex patterns.
+        This method plays a vibration pattern created with a VibrationArray. 
 
-       Attribute: Example
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
+
+        Attribute: Example
 
         use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.VibrationArray
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
         class Main is Game, TouchListener
 
-            Vibration vibration
+            Vibration vibrator
 
             action Main
                 StartGame()
@@ -160,167 +479,41 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                PatternArray pattern
-                pattern:Add(5)
-                pattern:Add(100)
-                pattern:Add(50) 
-                pattern:Add(200) 
-                pattern:Add(1000)
-                pattern:Add(500) 
-
-                vibration:VibratePattern(pattern) 
-            end
-
-        end
-    */
-    system action VibratePattern(PatternArray pattern)
-
-   /* 
-       This method plays a vibration pattern given in Android's pattern definition.
-       The pattern is an Array of integers. The integers represent instructions to
-       the vibration motor in milliseconds. The first integer represents how long
-       the motor should pause, the second represents how long the motor should run,
-       the third is a pause again, and the fourth is a run instruction again and so forth.
-       This alternating pattern of off and on times can then be used to create 
-       complex patterns.
-
-       The repetition argument allows to repeat the pattern at the index given in 
-       the argument. Set to -1 for no repetition.
-
-       Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                PatternArray pattern
-                pattern:Add(5)
-                pattern:Add(100)
-                pattern:Add(50) 
-                pattern:Add(200) 
-                pattern:Add(1000)
-                pattern:Add(500) 
-
-                vibration:VibratePattern(pattern, 4) // plays through once and then repeats the last two commands
-            end
-
-        end
-    */
-    system action VibratePattern(PatternArray pattern, integer repetitions)
-
-
-     /* 
-       This method plays a vibration pattern created with a HapticCommandArray. 
-
-       The repetition argument allows to repeat the pattern at the index given in 
-       the argument. Set to -1 for no repetition.
-
-       Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
                 VibrationArray pattern
-                pattern:LongStrong()
-                vibration:VibratePattern(pattern)
-            end
 
+                patter:Add(1.5, 0.5)
+                pattern:Add(0.5, 0.0)
+                pattern:Add(1)
+
+                vibrator:VibrateOnce(pattern)
+            end
         end
     */
-    system action VibratePattern(VibrationArray vibrationArray)
+    system action VibrateOnce(VibrationArray vibrationArray)
 
     /* 
-        Plays a pattern based on an intensity and a duration. This method will
-        take the intensity number to emulate a weaker signal in the same time frame
-        by interspersing the pattern with pauses.
+        This method plays a vibration pattern created with a VibrationArray. 
+        Repeats the pattern for the amount of times specified.
 
-        The intensity argument is expected to be between 0.0 and 1.0.
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
 
-        The duration is measured in milliseconds.
+        Attribute: Parameter repetitions The amount of times for the pattern to play.
 
         Attribute: Example
 
         use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateGeneratedPattern(0.5, 500)
-            end
-
-        end
-
-    */ 
-    system action VibrateGeneratedPattern(number intensity, integer duration)
-
-    /* 
-        Plays a pattern for the length of duration that increases linearly in intensity from 0.0 to 1.0.
-
-        The duration is measured in milliseconds.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Interface.Vibration.VibrationArray
         use Libraries.Game.Game
         use Libraries.Interface.Events.TouchListener
         use Libraries.Interface.Events.TouchEvent
 
         class Main is Game, TouchListener
 
-            Vibration vibration
+            Vibration vibrator
 
             action Main
                 StartGame()
@@ -328,237 +521,162 @@ class Vibration
 
             action CreateGame
                 AddTouchListener(me)
-                vibration:Initialize()
             end
 
             action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(600)
-            end
+                VibrationArray pattern
 
+                patter:Add(1.5, 0.5)
+                pattern:Add(0.5, 0.0)
+                pattern:Add(1)
+
+                vibrator:Vibrate(pattern, 5)
+            end
         end
-
-    */ 
-    system action VibrateLinearPattern(integer duration)
-
-    /* 
-        Plays a pattern for the length of duration that increases linearly in intensity from 0.0 to 1.0.
-
-        The duration is measured in milliseconds.
-
-        Timeslice is measured in milliseconds and determines in what intervals the
-        change in intensity is calculated.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(600)
-            end
-
-        end
-
-    */ 
-    system action VibrateLinearPattern(integer duration, integer timeslice)
-
-    /* 
-        Plays a pattern for the length of duration that changes intensity between 0.0 and 1.0 in a sin wave form
-
-        The duration is measured in milliseconds.
-
-        Timeslice is measured in milliseconds and determines in what intervals the
-        change in intensity is calculated.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateWavePattern(1000)
-            end
-
-        end
-
-    */ 
-    system action VibrateWavePattern(integer duration)
-
-    /* 
-        Plays a pattern for the length of duration that changes intensity between 0.0 and 1.0 in a sin wave form
-
-        The duration is measured in milliseconds.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibraton:VibrateWavePattern(1000)
-            end
-
-        end
-
-    */ 
-    system action VibrateWavePattern(integer duration, integer timeslice)
-
-    /* 
-        Plays a pattern for the length of duration that increases exponentially in intensity from 0.0 to 1.0.
-
-        The duration is measured in milliseconds.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(600)
-            end
-
-        end
-
-    */ 
-    system action VibrateExponentialPattern (integer duration, integer timeslice)
-
-    /* 
-        Plays a pattern for the length of duration that increases exponentially in intensity from 0.0 to 1.0.
-
-        The duration is measured in milliseconds.
-
-        Timeslice is measured in milliseconds and determines in what intervals the
-        change in intensity is calculated.
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(600)
-            end
-
-        end
-
-    */ 
-    system action VibrateExponentialPattern (integer duration)
-
-    /* 
-        Stops any ongoing vibration
-
-        Attribute: Example
-
-        use Libraries.Interface.Vibration.Vibration
-        use Libraries.Interface.Vibration.VibrationCommand
-        use Libraries.Game.Game
-        use Libraries.Interface.Events.TouchListener
-        use Libraries.Interface.Events.TouchEvent
-
-        class Main is Game, TouchListener4
-
-            Vibration vibration
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                AddTouchListener(me)
-                vibration:Initialize()
-            end
-
-            action BeganTouch(TouchEvent event)
-                vibration:VibrateLinearPattern(600)
-            end
-
-            action EndedTouch(TouchEvent event)
-                vibration:Stop()
-            end
-
-        end
-
     */
+    system action Vibrate(VibrationArray vibrationArray, integer repetitions)
+
+     /* 
+        This method plays a vibration pattern created with a VibrationArray, repeating
+        until the Stop() action is called.
+
+        Attribute: Parameter vibrationArray The pattern to vibrate according to,
+                   stored in a VibrationArray object.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationArray
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray pattern
+
+                patter:Add(1.5, 0.5)
+                pattern:Add(0.5, 0.0)
+                pattern:Add(1)
+
+                vibrator:VibrateForever(pattern)
+            end
+        end
+    */
+    system action VibrateForever(VibrationArray vibrationArray)
+
+    /* 
+        Plays a vibration at the given frequency for the given number of seconds.
+        The frequency is measured in Hertz (Hz).
+
+        Attribute: Parameter seconds The number of seconds for the vibration to play.
+
+        Attribute: Parameter frequency The frequency, measured in Hertz (Hz), for the
+                   vibration to play at.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:VibrateAtFrequency(2, 2.5)
+            end
+        end
+    */ 
+    system action VibrateAtFrequency(number seconds, number frequency)
+
+    /* 
+        Plays a vibration at the given frequency, repeating until the Stop() action
+        is called. The frequency is measured in Hertz (Hz).
+
+        Attribute: Parameter frequency The frequency, measured in Hertz (Hz), for the
+                   vibration to play at.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                vibrator:VibrateAtFrequencyForever(2.5)
+            end
+        end
+    */ 
+    system action VibrateAtFrequencyForever(number frequency)
+
+    /* 
+        Cancels the current vibration.
+
+        Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action ContinuedTouch(TouchEvent event)
+                if (event:GetX() >= 200 and event:GetX() <= 300) and (event:GetY() >= 900 and event:GetY() <= 1600)
+                    vibrator:VibrateAtFrequency(10)
+                elseif (event:GetX() >= 200 and event:GetX() <= 300) and (event:GetY() >= 200 and event:GetY() <= 900)
+                    vibrator:VibrateAtFrequency(2.5)
+                else
+                    vibrator:Stop()
+                end
+            end
+        end
+    */ 
     system action Stop()
 
 end

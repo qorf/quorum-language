@@ -1,18 +1,221 @@
 package Libraries.Interface.Vibration
 
+/*
+    The VibrationCommand class is another method by which programmers can create
+    custom vibrations to add to a VibrationArray object. A VibrationCommand
+    object holds a duration, measured in seconds, and an intensity, measured as
+    a percentage of maximum vibration between 0.0 and 1.0.
+    
+    Attribute: Example
+
+    use Libraries.Interface.Vibration.Vibration
+    use Libraries.Interface.Vibration.VibrationArray
+    use Libraries.Interface.Vibration.VibrationCommand
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.TouchListener
+    use Libraries.Interface.Events.TouchEvent
+
+    class Main is Game, TouchListener
+
+        Vibration vibrator
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddTouchListener(me)
+        end
+
+        action BeganTouch(TouchEvent event)
+            VibrationArray array
+            VibrationCommand command
+
+            command:SetDuration(1)
+            command:SetIntensity(0.5)
+
+            array:Add(command)
+
+            vibrator:Vibrate(array)
+        end
+
+    end
+*/
+
 class VibrationCommand 
 
-    action Initialize(integer duration, number intensity)
-        SetDuration(duration)
-        SetIntensity(intensity)
-    end
+    /*
+    Sets the duration of the VibrationCommand, measured in seconds.
 
-    system action SetDuration(integer duration)
+    Attribute: Parameter seconds The number of seconds for the VibrationCommand to vibrate for.
 
-    system action GetDuration() returns integer
+    Attribute: Example
 
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationArray
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+                VibrationCommand command
+
+                command:SetDuration(1)
+
+                array:Add(command)
+
+                vibrator:VibratePattern(array)
+            end
+
+        end
+    */
+    system action SetDuration(number seconds)
+
+    /*
+    Returns the duration of the VibrationCommand, measured in seconds.
+
+    Attribute: Returns The duration, measured in seconds, of the VibrationCommand.
+
+    Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationArray
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+                VibrationCommand command
+
+                command:SetDuration(1)
+                
+                output command:GetDuration()
+
+                array:Add(command)
+
+                vibrator:VibratePattern(array)
+            end
+
+        end
+    */
+    system action GetDuration() returns number
+
+    /*
+    Sets the intensity of the VibrationCommand, a number between 0.0 and 1.0.
+
+    Attribute: Parameter intensity The intensity for the VibrationCommand, given by
+               a number between 0.0 and 1.0, which represents the percentage
+               of maximum intensity at which to play.
+
+    Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationArray
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                VibrationCommand command
+
+                command:SetDuration(1)
+                command:SetIntensity(0.5)
+
+                array:Add(command)
+
+                vibrator:VibratePattern(array)
+            end
+
+        end
+    */
     system action SetIntensity(number intensity)
 
+    /*
+    Returns the intensity of the VibrationCommand, a number between 0.0 and 1.0.
+
+    Attribute: Returns The intensity, a number between 0.0 and 1.0, of the VibrationCommand.
+
+    Attribute: Example
+
+        use Libraries.Interface.Vibration.Vibration
+        use Libraries.Interface.Vibration.VibrationArray
+        use Libraries.Interface.Vibration.VibrationCommand
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+        use Libraries.Interface.Events.TouchEvent
+
+        class Main is Game, TouchListener
+
+            Vibration vibrator
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(me)
+            end
+
+            action BeganTouch(TouchEvent event)
+                VibrationArray array
+
+                VibrationCommand command
+
+                command:SetDuration(1)
+                command:SetIntensity(0.5)
+
+                output command:GetIntensity()
+
+                array:Add(command)
+
+                vibrator:VibratePattern(array)
+            end
+
+        end
+    */
     system action GetIntensity() returns number
 
 end
