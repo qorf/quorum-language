@@ -4,25 +4,25 @@ package plugins.quorum.Libraries.Interface.Vibration;
 
 public class VibrationStep {
     public Object me_;
-    long duration;
+    double duration;
     double intensity;
     
     public VibrationStep() {
-        duration = 100;
-        intensity = 1.0f;
+        duration = 1;
+        intensity = 1.0d;
     }
     
-    public VibrationStep(long duration, double intensity) {
+    public VibrationStep(double duration, double intensity) {
         this.duration = duration;
         this.intensity = intensity;
     }
     
-    public void setDuration(int duration) {
+    public void setDuration(double duration) {
         this.duration = duration;
     }
     
-    public int getDuration() {
-        return (int)duration;
+    public double getDuration() {
+        return duration;
     }
             
     public void setIntensity(double intensity) {

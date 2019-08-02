@@ -9,7 +9,6 @@ public class VibrationManager {
     
     private long endTimeLastRun;
     private Vibrator vibrationUnit;
-    private int timeslice;
     private Activity activity;
 
     private static final String TAG = "VibrationManager";
@@ -17,431 +16,374 @@ public class VibrationManager {
     public Activity getActivity() {
         return activity;
     }
-    
+
     public void setActivity(Activity activity) {
         this.activity = activity;
     }
     
     private Vibrator getVibrationUnit() {
-        Log.v(TAG, "Got vibration unit");
         return (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
     }
-    
-    public int getTimeSlice() {
-        return this.timeslice;
-    }
-    
-    public void setTimeSlice(int timeslice) {
-        this.timeslice = timeslice;
-    }
-    
+        
     public void initialize() {
         this.vibrationUnit = getVibrationUnit();
     }
-    
-    public VibrationManager() {
-        timeslice = 20;
-    }
-
-    public VibrationManager(int timeslice) {
-        this.timeslice = timeslice;
+        
+    public void quickPulse(double seconds) {
+        quickPulse(seconds, -1);
     }
     
-    public void setTimeslice(int timeslice) {
-        this.timeslice = timeslice;
+    public void quickPulseForever() {
+        quickPulse(5, 0);
     }
     
-    public int getTimeslice() {
-        return this.timeslice;
-    }
-    
-    private long[] arrayConversion(PatternArray array) {
-        long[] result = new long[array.GetSize()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = array.Get(i);
-        }
-        return result;
-    }
-
-    public void vibratePattern(PatternArray pattern) {
-        long[] patternarray = arrayConversion(pattern);
-        vibratePattern(patternarray);
-    }
-    
-    public void vibratePattern(long[] patternarray) {
+    private void quickPulse(double seconds, int repeatAtIndex) {
         initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-                vibrationUnit.vibrate(patternarray, -1);
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(patternarray);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
+
+        if (vibrationUnit.hasVibrator()) {
+            // converts seconds to milliseconds
+            seconds = seconds * 1000;
+
+            // preset time (from 25 ms wait, 75 ms run)
+            double patternTime = 100;
+
+            // determine the number of timeSlots required for full pattern
+            int timeSlots = (int) Math.round(seconds/patternTime) * 2;
+
+            if (timeSlots > 2500)
+                Log.w(TAG, "Long duration patterns may cause delay before vibration. Consider reducing duration.");
+
+            if (timeSlots == 0)
+                timeSlots++;    // plays at least once (timeSlots = 0 due to rounding in the case of extremely short vibrations)
+
+            if (timeSlots % 2 == 1)
+                timeSlots++;    // ensures even number of timeSlots (1 to pause, 1 to vibrate)
+
+            long [] fullPattern = new long[timeSlots+2];
+            fullPattern[0] = 0;                 // removes initial pause
+            fullPattern[timeSlots+1] = 0;       // removes ending run (required for repeating)
+
+            // sets pattern for (approximately) the given duration
+            for (int i = 1; i < timeSlots; i = i + 2) {
+                fullPattern[i] = 75;
+                fullPattern[i+1] = 25;
             }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
+        }
+    }
+
+    public void slowPulse(double seconds) {
+        slowPulse(seconds, -1);
+    }
+
+    public void slowPulseForever() {
+        slowPulse(5, 0);
+    }
+    
+    private void slowPulse(double seconds, int repeatAtIndex) {
+        initializeIfNecessary();
+        
+        if (vibrationUnit.hasVibrator()) {
+            // converts seconds to milliseconds
+            seconds = seconds * 1000;
+
+            // preset time (from 100 ms wait, 50 ms run)
+            double patternTime = 150;
+
+            // determine the number of timeSlots required for full pattern
+            int timeSlots = (int) Math.round(seconds/patternTime) * 2;
+
+            if (timeSlots > 2500)
+                Log.w(TAG, "Long duration patterns may cause delay before vibration. Consider reducing duration.");
+
+            if (timeSlots == 0)
+                timeSlots++;    // plays at least once (timeSlots = 0 due to rounding in the case of extremely short vibrations)
+
+            if (timeSlots % 2 == 1)
+                timeSlots++;    // ensures even number of timeSlots (1 to pause, 1 to vibrate)
+
+            long [] fullPattern = new long[timeSlots+2];
+            fullPattern[0] = 0;                 // removes initial pause
+            fullPattern[timeSlots+1] = 0;       // removes ending run (required for repeating)
+
+            // sets pattern for (approximately) the given duration
+            for (int i = 1; i < timeSlots; i = i + 2) {
+                fullPattern[i] = 50;
+                fullPattern[i+1] = 100;
+            }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
+        }
+    }
+
+    public void rumble(double seconds) {
+        rumble(seconds, -1);
+    }
+
+    public void rumbleForever() {
+        rumble(5, 0);
+    }    
+
+    private void rumble(double seconds, int repeatAtIndex) {
+        initializeIfNecessary();
+
+        if (vibrationUnit.hasVibrator()) {
+            // converts seconds to milliseconds
+            seconds = seconds * 1000;
+
+            // preset time (from 9 ms wait, 7 ms run)
+            double patternTime = 16;
+
+            // determine the number of timeSlots required for full pattern
+            int timeSlots = (int) Math.round(seconds/patternTime) * 2;
+
+            if (timeSlots > 2500)
+                Log.w(TAG, "Long duration patterns may cause delay before vibration. Consider reducing duration.");
+
+            if (timeSlots == 0)
+                timeSlots++;    // plays at least once (timeSlots = 0 due to rounding in the case of extremely short vibrations)
+
+            if (timeSlots % 2 == 1)
+                timeSlots++;    // ensures even number of timeSlots (1 to pause, 1 to vibrate)
+
+            long [] fullPattern = new long[timeSlots+2];
+            fullPattern[0] = 0;                 // removes initial pause
+            fullPattern[timeSlots+1] = 0;       // removes ending run (required for repeating)
+
+            // sets pattern for (approximately) the given duration
+            for (int i = 1; i < timeSlots; i = i + 2) {
+                fullPattern[i] = 7;
+                fullPattern[i+1] = 9;
+            }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
         }
     }
     
+    public void knock(int repetitions) {
+        knock(repetitions, -1);
+    }
+
+    public void knockOnce() {
+        knock(1, -1);
+    }
+
+    public void knockForever() {
+        knock(5, 0);
+    }    
+    
+    private void knock(int repetitions, int repeatAtIndex) {
+        long[] fullPattern = {};
+        int size = 8;   // preset (from {25, 75, 25, 75, 400, 50, 600, 0})
+
+        if (vibrationUnit.hasVibrator()) {
+            for (int i = 0; i < repetitions; i++) {
+                long[] pattern = new long[]{25, 75, 25, 75, 400, 50, 600, 0};
+                logVibrationPattern(pattern);
+                if (pattern.length % 2 != 0) {
+                    Log.e("CycleCount", "Half a cycle found!");
+                }
+
+                fullPattern = concat(fullPattern, pattern);
+            }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
+        }
+    }
+
+    public void vibrate(double seconds) {
+        vibrate(seconds, -1);
+    }
+    
+    public void vibrateForever() {
+        vibrate(5, 0);
+    }
+    
+    private void vibrate(double seconds, int repeatAtIndex) {
+        initializeIfNecessary();
+        
+        if (vibrationUnit.hasVibrator()) {
+            // converts seconds to milliseconds
+            seconds = seconds * 1000;
+            
+            long[] fullPattern = new long[]{0, (long)seconds};
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
+        }
+    }
+
+    public void vibrate(VibrationPattern commandArray, int repetitions) {
+        initializeIfNecessary();
+        long [] fullPattern = {};
+        int size = commandArray.getSize();
+
+        int repeatAtIndex = -1;
+
+        if (repetitions < 0) {
+            repeatAtIndex = 0;
+            repetitions = 1;
+        }
+
+        if (vibrationUnit.hasVibrator()) {
+            for (int i = 0; i < repetitions; i++) {
+                for (int j = 0; j < size; j++) {
+                    double intensity = commandArray.getIntensity(j);
+                    double duration = commandArray.getDuration(j) * 1000;   // converts from seconds to ms
+                    long[] pattern = generateVibrationPattern(intensity, duration);
+                    logVibrationPattern(pattern);
+                    if (pattern.length % 2 != 0) {
+                        Log.e("CycleCount", "Half a cycle found!");
+                    }
+
+                    fullPattern = concat(fullPattern, pattern);
+                }
+            }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
+        }
+    }
+
+    public void vibrateOnce(VibrationPattern commandArray) {
+        vibrate(commandArray, 1);
+    }
+
+    public void vibrateForever(VibrationPattern commandArray) {
+        vibrate(commandArray, -1);
+    }
+
     public void stop() {
         endTimeLastRun = 0;
         if (vibrationUnit != null) {
             vibrationUnit.cancel();
         }
     }
-    
-    
-    public void vibratePattern(long[] longpattern, int repeat){
-        initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        logVibrationPattern(longpattern);
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-                vibrationUnit.vibrate(longpattern, repeat);
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(longpattern);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
 
-    public void vibratePattern(PatternArray pattern, int repeat){
-        long[] longpattern = arrayConversion(pattern);
-        vibratePattern(longpattern, repeat);
-    }
-    
-    
     public void initializeIfNecessary() {
         if (vibrationUnit == null) {
             Log.v(TAG, "Initializing");
             initialize();
         }
     }
-    
-    public void vibrateGeneratedPattern(double intensity, int duration) {
-        this.vibrateGeneratedPattern(intensity, duration, -1);
+
+    public void vibrateForever(double intensity) {
+        vibrate(5, intensity, 0);
     }
 
-    public void vibrateGeneratedPattern(double intensity, int duration, int repeat) {
+    public void vibrate(double seconds, double intensity) {
+        vibrate(seconds, intensity, -1);
+    }
+
+    private void vibrate(double seconds, double intensity, int repeatAtIndex) {
         initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        long[] pattern = this.generateVibrationPattern(intensity, duration);
-        logVibrationPattern(pattern);
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-                vibrationUnit.vibrate(pattern, repeat);
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(pattern);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
+
+        // converts seconds to milliseconds
+        seconds = seconds * 1000;
+
+        long[] pattern = generateVibrationPattern(intensity, seconds);
+
+        if (vibrationUnit.hasVibrator()) {
+            logVibrationPattern(pattern);
+            vibrationUnit.vibrate(pattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
         }
     }
     
-    public void vibratePattern(VibrationPattern commandArray) {
+    public void vibrateAtFrequencyForever(double frequency) {
+        vibrateAtFrequency(5, frequency, 0);
+    }
+    
+    public void vibrateAtFrequency(double seconds, double frequency) {
+        vibrateAtFrequency(seconds, frequency, -1);
+    }
         
+    private void vibrateAtFrequency(double seconds, double frequency, int repeatAtIndex) {
         initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        long [] fullPattern = {};
-        int size = commandArray.getSize();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-                for (int i = 0; i < size; i++) {
-                    //VibrationCommand command = commandArray.Get(i);
-                    VibrationStep command = commandArray.get(i);
-                    int duration = command.getDuration();
-                    double intensity = command.getIntensity();
-                    long[] pattern = generateVibrationPattern(intensity, duration);
 
-                    logVibrationPattern(pattern);
-                    if (pattern.length % 2 != 0) {
-                        Log.e("CycleCount", "Half a cycle found!");
-                    }
+        if (vibrationUnit.hasVibrator()) {
+            // converts seconds to milliseconds
+            seconds = seconds * 1000;
 
-                    fullPattern = concat(fullPattern, pattern);
-                    fullPattern = addPause(fullPattern);
+            if (frequency > 50)
+                Log.w(TAG, "Frequencies above 50 may have inconsistent vibration timing. Consider reducing frequency.");
 
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(fullPattern);
-                logVibrationPattern(fullPattern);
-                vibrationUnit.vibrate(fullPattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
+            // derived from f = 1/T, this is T = 1/f
+            // times 1000 because we are dealing in milliseconds
+            double waveTime = (1/frequency) * 1000;
+
+            // divide the wave time by 2 and round to the nearest number
+            long timeSlot = Math.round(waveTime/2.0);
+
+            // calculates the number of timeSlots needed to fit into the duration
+            int numberRepeats = Math.round((long)seconds/timeSlot);
+
+            if (numberRepeats > 2500)
+                Log.w(TAG, "Large vibration patterns may cause delay before vibration. Consider reducing frequency or duration.");
+
+            if (numberRepeats == 0)
+                numberRepeats++;    // plays at least once (numberRepeats = 0 due to rounding in the case of extremely short vibrations)
+
+            if (numberRepeats % 2 == 1)
+                numberRepeats++;    // ensures even number of time slots (1 to pause, 1 to vibrate)
+
+            long [] fullPattern = new long[numberRepeats+2];
+            fullPattern[0] = 0;                     // removes initial pause
+            fullPattern[numberRepeats] = timeSlot;  // adds an ending pause (required for repeating)
+            fullPattern[numberRepeats+1] = 0;       // removes ending run (required for repeating)
+
+            // sets pattern for (approximately) the given duration
+            for (int i = 1; i < numberRepeats; i++) {
+                fullPattern[i] = timeSlot;
             }
+
+            logVibrationPattern(fullPattern);
+            vibrationUnit.vibrate(fullPattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
         }
     }
 
-    /**************************************************************************************
-     * Linear Pattern
-     **************************************************************************************/
-
-    public void vibrateLinearPattern(int duration) {
-        vibrateLinearPattern(duration, timeslice);
-    }
-
-    public void vibrateLinearPattern(int duration, int timeslice) {
-        initializeIfNecessary();
-        long [] fullPattern = {};
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-
-                for (long i = 0; i <= duration / timeslice; i++) {
-
-                    double intensity = line(i * timeslice, duration);
-                    long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                    logVibrationPattern(pattern);
-                    if (pattern.length % 2 != 0) {
-                        Log.e("CycleCount", "Half a cycle found!");
-                    }
-
-                    fullPattern = concat(fullPattern, pattern);
-                    fullPattern = addPause(fullPattern);
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(fullPattern);
-                logVibrationPattern(fullPattern);
-                vibrationUnit.vibrate(fullPattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
-
-    public void vibrateLinearPattern(int duration, int timeslice, int ratiocalc) {
+    private void vibrate(long[] pattern) {
         initializeIfNecessary();
         
-        long[] fullPattern = {};
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun){
-            if (vibrationUnit.hasVibrator()) {
-
-                for (long i = 0; i <= duration / timeslice; i++) {
-
-                    double intensity = line(i * timeslice, duration);
-                    long[] pattern = generateVibrationPattern(intensity, timeslice, ratiocalc);
-
-                    logVibrationPattern(pattern);
-                    if (pattern.length % 2 != 0) {
-                        Log.e("CycleCount", "Half a cycle found!");
-                    }
-
-                    fullPattern = concat(fullPattern, pattern);
-                    fullPattern = addPause(fullPattern);
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(fullPattern);
-                logVibrationPattern(fullPattern);
-                vibrationUnit.vibrate(fullPattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
+        if (vibrationUnit.hasVibrator()) {
+            logVibrationPattern(pattern);
+            vibrationUnit.vibrate(pattern, -1);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
         }
     }
 
-
-    public void vibrateLinearPatternStep(int i, int duration) {
-        vibrateLinearPatternStep(i, duration, timeslice);
-    }
-
-    public void vibrateLinearPatternStep(int i, int duration, int timeslice) {
+    private void vibrate(long[] pattern, int repeatAtIndex) {
         initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
 
-                double intensity = line(i*timeslice, duration);
-                long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                logVibrationPattern(pattern);
-                if (pattern.length % 2 != 0) {
-                    Log.e("CycleCount", "Half a cycle found!");
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(pattern);
-                vibrationUnit.vibrate(pattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
+        if (vibrationUnit.hasVibrator()) {
+            logVibrationPattern(pattern);
+            vibrationUnit.vibrate(pattern, repeatAtIndex);
+        } else {
+            Log.v(TAG, "No Vibration Device! Did you initialize?");
         }
     }
-
-
-
-
-    /**************************************************************************************
-     * Wave Pattern
-     **************************************************************************************/
-
-    public void vibrateWavePattern(int duration) {
-        vibrateWavePattern(duration, timeslice);
-    }
-
-
-    public void vibrateWavePattern(int duration, int timeslice) {
-        initializeIfNecessary();
-        long [] fullPattern = {};
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-                for (long i = 0; i <= duration/timeslice; i++) {
-
-                    double intensity = pulse( i * timeslice, duration/1000);
-                    long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                    logVibrationPattern(pattern);
-                    if (pattern.length % 2 != 0) {
-                        Log.e("CycleCount", "Half a cycle found!");
-                    }
-
-                    fullPattern = concat(fullPattern, pattern);
-                    fullPattern = concat(fullPattern, new long[] {15l, 0l});
-                }
-                logVibrationPattern(fullPattern);
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(fullPattern);
-                vibrationUnit.vibrate(fullPattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
-
-    public void vibrateWavePatternStep(int i, int duration) {
-        vibrateWavePatternStep(i, duration, timeslice);
-    }
-
-    public void vibrateWavePatternStep(int i, int duration, int timeslice) {
-        initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator()) {
-
-                double intensity = pulse(i*timeslice, duration/1000);
-                long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                logVibrationPattern(pattern);
-                if (pattern.length % 2 != 0) {
-                    Log.e("CycleCount", "Half a cycle found!");
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(pattern);
-                vibrationUnit.vibrate(pattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
-
-    /**************************************************************************************
-     * Exponential Pattern
-     **************************************************************************************/
-    public void vibrateExponentialPattern(int duration) {
-        vibrateExponentialPattern(duration, timeslice);
-    }
-
-
-    public void vibrateExponentialPattern(int duration, int timeslice) {
-        initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        long [] fullPattern = {};
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator())  {
-                for (long i = 0; i <= duration/timeslice; i++) {
-
-                    double intensity = exponential( i * timeslice, duration);
-                    long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                    logVibrationPattern(pattern);
-                    if (pattern.length % 2 != 0) {
-                        Log.e("CycleCount", "Half a cycle found!");
-                    }
-
-                    fullPattern = concat(fullPattern, pattern);
-                    fullPattern = concat(fullPattern, new long[] {15l, 0l});
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(fullPattern);
-                logVibrationPattern(fullPattern);
-                vibrationUnit.vibrate(fullPattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
-
-    public void vibrateExponentialPatternStep(int i, int duration) {
-        VibrationManager.this.vibrateExponentialPatternStep(i, duration, timeslice);
-    }
-
-    public void vibrateExponentialPatternStep(int i, int duration, int timeslice) {
-        initializeIfNecessary();
-        long now = System.currentTimeMillis();
-        if (now >= endTimeLastRun) {
-            if (vibrationUnit.hasVibrator() ) {
-
-                double intensity = exponential(i*timeslice, duration);
-                long[] pattern = generateVibrationPattern(intensity, timeslice);
-
-                logVibrationPattern(pattern);
-                if (pattern.length % 2 != 0) {
-                    Log.e("CycleCount", "Half a cycle found!");
-                }
-                now = System.currentTimeMillis();
-                endTimeLastRun = now + calculateTime(pattern);
-                vibrationUnit.vibrate(pattern, -1);
-            } else {
-                Log.v(TAG, "No Vibration Device! Did you initialize?");
-            }
-        }
-    }
-
-
-    public long[] generateVibrationPattern(double intensity, int duration) {
-        return generateVibrationPattern(intensity, duration, 0);
-    }
-
-
-    public long[] generateVibrationPattern(double intensity, int duration, int ratiocalc) {
-
-        // edge cases and wrong intensities
-        if (intensity >= 1.0f){
-            long [] pattern = new long[2];
-            pattern[0] = 0;
-            pattern[1] = duration-1;
-            return pattern;
-        } else if (intensity <= 0.0f) {
-            long [] pattern = new long[2];
-            pattern[0] = duration;
-            pattern[1] = 0;
-            return pattern;
-        }
-
-        double ratio = 0;
-        int numberOfCycles = numberOfCycles(intensity, duration);
-        if (ratiocalc == 0) {
-            ratio = linearRatio(intensity);
-        } else if (ratiocalc == 1) {
-            ratio = initialRatio(intensity);
-        } else if (ratiocalc == 2) {
-            ratio = upCurveRatio(intensity);
-        }
-
-        double first = firstElement(duration, numberOfCycles, ratio);
-        double second = secondElement(ratio, first);
-        //Log.v("Vibration Function" , "" + first + ", " + second + "; ");
-        long[] pattern = new long[ numberOfCycles*2 ];
-        for (int i = 0; i < numberOfCycles*2; i = i +2) {
-
-            pattern[i] = BiasedRound(first);
-            pattern[i+1] = BiasedRound(second);
-        }
-
-        return pattern;
-    }
-
+    
     private double secondElement(double ratio, double first) {
         return ratio*first;
     }
@@ -449,7 +391,7 @@ public class VibrationManager {
     private double firstElement(long duration, int numberOfCycles, double ratio) {
         return duration/(numberOfCycles*(1+ratio));
     }
-    
+
     private double linearRatio(double intensity) {
         return intensity;
     }
@@ -465,7 +407,6 @@ public class VibrationManager {
     private int numberOfCycles(double intensity, long duration) {
         return (int) (duration/2 - (duration-2)* Math.abs(intensity - 0.5));
     }
-
 
     /**************************************************************************************
      * Function Calculation
@@ -483,7 +424,6 @@ public class VibrationManager {
 
     double exponential(double time, long duration) {
         double result = (Math.pow(Math.E, 3*(time/duration))-1)/20;
-        // Log.v("Moep", "Res: " + result + " time/duration: " + time/duration);
         return result;
     }
 
@@ -491,11 +431,11 @@ public class VibrationManager {
      * Helpers
      **************************************************************************************/
 
-    private long BiasedRound(double number) {
+    private long biasedRound(double number) {
         return Math.round(number);
     }
 
-    public long[] concat(long[] a, long[] b) {
+    private long[] concat(long[] a, long[] b) {
         int aLen = a.length;
         int bLen = b.length;
         long[] c= new long[aLen+bLen];
@@ -520,9 +460,9 @@ public class VibrationManager {
         Log.v(TAG, "timeslice: " + timeslice + ", intensity: " + intensity + ", duration: " + duration + ", i: " + i);
     }
 
-        /*
+    /*
     This seems to make the changes in intensity easier to distinguish
-     */
+    */
     private long[] addPause(long[] pattern) {
         return concat(pattern, new long[]{10l, 0l});
     }
@@ -536,4 +476,44 @@ public class VibrationManager {
         return total;
     }
 
+    private long[] generateVibrationPattern(double intensity, double duration) {
+        return generateVibrationPattern(intensity, duration, 0);
+    }
+
+    private long[] generateVibrationPattern(double intensity, double duration, int ratiocalc) {
+
+        // edge cases and wrong intensities
+        if (intensity >= 1.0d){
+            long [] pattern = new long[2];
+            pattern[0] = 0;
+            pattern[1] = (long)duration;    //had "duration-1" before... unsure if necessary
+            return pattern;
+        } else if (intensity <= 0.0d) {
+            long [] pattern = new long[2];
+            pattern[0] = (long)duration;
+            pattern[1] = 0;
+            return pattern;
+        }
+
+        double ratio = 0;
+        int numberOfCycles = numberOfCycles(intensity, (long)duration);
+        if (ratiocalc == 0) {
+            ratio = linearRatio(intensity);
+        } else if (ratiocalc == 1) {
+            ratio = initialRatio(intensity);
+        } else if (ratiocalc == 2) {
+            ratio = upCurveRatio(intensity);
+        }
+
+        double first = firstElement((long)duration, numberOfCycles, ratio);
+        double second = secondElement(ratio, first);
+        long[] pattern = new long[ numberOfCycles*2 ];
+        for (int i = 0; i < numberOfCycles*2; i = i +2) {
+
+            pattern[i] = biasedRound(first);
+            pattern[i+1] = biasedRound(second);
+        }
+
+        return pattern;
+    }
 }

@@ -1,94 +1,60 @@
 
 package plugins.quorum.Libraries.Interface.Vibration;
 
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import quorum.Libraries.Interface.Vibration.VibrationArray_;
 import quorum.Libraries.Interface.Vibration.VibrationCommand_;
 
-
-
 public class VibrationPattern {
     List<VibrationStep> content;
-    
+
     public VibrationPattern () {
         this.content = new ArrayList<VibrationStep>();
     }
-    
+
     public VibrationPattern(List<VibrationStep> content) {
         this.content = content;
     }
-    
+
     public VibrationPattern (VibrationArray_ vibrations) {
         this.content = new ArrayList<VibrationStep>();
         for (int i = 0; i < vibrations.GetSize(); i++) {
-            VibrationCommand_ command = vibrations.Get(i);
-            VibrationStep newCommand = new VibrationStep(command.GetDuration(), command.GetIntensity());
+            VibrationStep newCommand = new VibrationStep(vibrations.GetDuration(i), vibrations.GetIntensity(i));
             this.content.add(newCommand);
         }
     }
-    
-    public VibrationPattern LongWeak() {
-        this.add(1000, 0.01);
-        return this;
-    }
-    
-    public VibrationPattern LongMedium() {
-        this.add(1000, 0.5);
-        return this;
-    }
-    
-    public VibrationPattern LongStrong() {
-        this.add(1000, 1.0);
-        return this;
-    }
-    
-    public VibrationPattern ShortMedium() {
-        this.add(100, 0.5);
-        return this;
-    }
-    
-    public VibrationPattern ShortWeak() {
-        this.add(100, 0.01);
-        return this;
-    }
-    
-    public VibrationPattern ShortStrong() {
-        this.add(100, 0.8);
-        return this;
-    }
-    
-    public VibrationPattern ShortSharp() {
-        this.add(50, 1.0);
-        return this;
-    }
-    
-    public VibrationPattern DoublePulse() {
-        this.add(25, 0.8);
-        this.add(50, 0.0);
-        this.add(25, 0.8);
-        return this;
-    }
-      
-    public VibrationPattern DoubleClick() {
-        this.add(25,  1.0);
-        this.add(100, 0.0);
-        this.add(25,  1.0);
-        return this;
-    }  
-    
+
     public void add(VibrationStep item) {
         content.add(item);
     }
     
+    public void add(double seconds) {
+        VibrationStep item = new VibrationStep();
+        item.setDuration(seconds);
+        content.add(item);
+    }
+
+    public void add(double seconds, double intensity) {
+        VibrationStep item = new VibrationStep();
+        item.setDuration(seconds);
+        item.setIntensity(intensity);
+        content.add(item);
+    }
+
     public void remove(int index) {
         content.remove(index);
     }
-    
-    public VibrationStep get(int index) {
-        return content.get(index);
+
+    public double getDuration(int index) {
+        return content.get(index).getDuration();
     }
-    
+
+    public double getIntensity(int index) {
+        return content.get(index).getIntensity();
+    }
+
     public void removeAll() {
         content.clear();
     }
@@ -97,10 +63,30 @@ public class VibrationPattern {
         return content.size();
     }
     
-    public VibrationPattern simplePattern(int duration, double intensity, int cycleLength) {
+    public VibrationPattern frequencyPattern(double frequency) {
+        removeAll();
+        // derived from f = 1/T, this is T = 1/f
+        // times 1000 because we are dealing in ms
+        double overallTime = (1/frequency) * 1000;
+        
+        // divide the time by 2 and round to the nearest number
+        long timeSlot = Math.round(overallTime/2.0);
+        
+        // create the simple pattern
+        // first pause is 0
+        // runs for half the time
+        // stops for half the time
+        VibrationStep step = new VibrationStep(timeSlot, 1.0);
+        VibrationStep step2 = new VibrationStep(timeSlot, 0.0);
+        content.add(step);
+        content.add(step2);
+        return this;
+    }
+
+    public VibrationPattern simplePattern(double duration, double intensity, int cycleLength) {
         VibrationStep command = new VibrationStep();
         
-        int numberCycles = duration/cycleLength;
+        double numberCycles = duration/cycleLength;
         
         for (int i = 0; i < numberCycles; i++) {
             command.setDuration(cycleLength/2);
@@ -115,12 +101,11 @@ public class VibrationPattern {
         
         return this;
     }
-    
+
     public void add(int duration, double intensity) {
         VibrationStep command = new VibrationStep();
         command.setDuration(duration);
         command.setIntensity(intensity);
         content.add(command);
     }
-    
 }
