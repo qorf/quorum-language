@@ -35,7 +35,12 @@ struct JClass_AccessibilityManager
 	jmethodID GetCellColumnIndex;
 	jmethodID GetCellRowIndex;
 	jmethodID GetCellText;
+
+	// Used for Lists.
 	jmethodID GetListItemText;
+
+	// Used to calculate bounding rectangles.
+	jmethodID GetBoundingRectangle;
 };
 struct JClass_TextBox
 {

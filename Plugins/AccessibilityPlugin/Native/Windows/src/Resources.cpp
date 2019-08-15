@@ -83,6 +83,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetCellRowIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellRowIndex", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
 	JavaClass_AccessibilityManager.GetListItemText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetListItemText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
+	JavaClass_AccessibilityManager.GetBoundingRectangle = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetBoundingRectangle", "(Lquorum/Libraries/Language/Object_;)[D");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
@@ -411,7 +412,7 @@ JNIEnv* GetJNIEnv()
 	if (getEnvStat == JNI_EDETACHED)
 	{
 		if (jvm->AttachCurrentThread((void **)&thisEnv, NULL) != 0)
-			std::cout << "Failed to attach (GetJNIEnv)\n";//	OutputToFile("Failed to attach");
+			log("Failed to attach (GetJNIEnv)\n");//	OutputToFile("Failed to attach");
 
 	}
 	else if (getEnvStat == JNI_OK)

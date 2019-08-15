@@ -7,6 +7,7 @@
 #include <wrl.h>
 
 #include "RootItemBase.h"
+#include "Resources.h"
 
 namespace wrl = Microsoft::WRL;
 
@@ -99,6 +100,31 @@ public:
 				retVal->vt = VT_BOOL;
 				break;
 
+				/*
+			case UIA_BoundingRectanglePropertyId:
+			{
+				unique_safearray bounds{ SafeArrayCreateVector(VT_R8, 0, 4) };
+				THROW_IF_NULL_ALLOC(bounds);
+
+				JNIEnv* env = GetJNIEnv();
+
+				if (env == NULL)
+					break;
+
+				jdoubleArray valuesArray = (jdoubleArray)env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetBoundingRectangle);
+
+				jdouble* values = env->GetDoubleArrayElements(valuesArray, 0);
+
+				for (long i = 0; i < 4; i++)
+					THROW_IF_FAILED(SafeArrayPutElement(bounds.get(), &i, &values[i]));
+
+				retVal->parray = bounds.release();
+				retVal->vt = VT_R8 | VT_ARRAY;
+			}
+
+				break;
+				*/
+
 			default:
 				static_cast<DerivedT*>(this)->GetControlSpecificPropertyValue(propertyId, retVal);
 				break;
@@ -173,8 +199,32 @@ public:
 
 	IFACEMETHODIMP get_BoundingRectangle(_Out_ UiaRect* retVal) noexcept override
 	{
-		// TODO: Get a bounding rectangle from Quorum and return it here.
-		*retVal = {};
+		JNIEnv* env = GetJNIEnv();
+
+		if (env == NULL)
+		{
+			// If the JNI environment isn't available, we can't call up to it.
+			*retVal = {};
+		}
+		else if (m_control == NULL || m_control->GetMe() == NULL)
+		{
+			// If there's no control to find, we don't try to reference its Quorum values.
+			*retVal = {};
+		}
+		else
+		{
+			jdoubleArray valuesArray = (jdoubleArray)(env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetBoundingRectangle, m_control->GetMe()));
+
+			jdouble* values = env->GetDoubleArrayElements(valuesArray, 0);
+
+			*retVal = { values[0], values[1], values[2], values[3] };
+
+			/*
+			env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
+			*retVal = {};
+			*/
+		}
+
 		return S_OK;
 	}
 
