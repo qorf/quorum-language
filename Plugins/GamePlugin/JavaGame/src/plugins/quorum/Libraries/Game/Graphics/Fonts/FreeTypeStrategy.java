@@ -333,6 +333,10 @@ public class FreeTypeStrategy
                         currentRegion = regionData[currentImage];
                         subX = 0;
                     }
+                    else
+                    {
+                        continue;
+                    }
                 }
                 
                 if (subY >= currentRegion.height)
