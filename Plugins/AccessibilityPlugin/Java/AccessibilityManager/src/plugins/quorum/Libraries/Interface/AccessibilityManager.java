@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Cell_;
 import quorum.Libraries.Interface.Controls.Column_;
 import quorum.Libraries.Interface.Controls.ListItem_;
@@ -14,16 +15,19 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
 import quorum.Libraries.Interface.Controls.Tab_;
 import quorum.Libraries.Interface.Controls.TextField_;
+import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Controls.TreeTableCell_;
 import quorum.Libraries.Interface.Controls.TreeTableColumn_;
 import quorum.Libraries.Interface.Controls.TreeTable_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
+import quorum.Libraries.Interface.Events.TextChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Selections.SpreadsheetSelection_;
 import quorum.Libraries.Interface.Selections.TabPaneSelection_;
@@ -177,10 +181,14 @@ public class AccessibilityManager
     /**
     Accessible Object Event Response Functions
     */
-    private native boolean InvokeButtonNative(long nativePointer);
-    private native boolean UpdateToggleStatusNative(long nativePointer, boolean selected);
+    private native boolean ButtonInvoked(long nativePointer);
+    private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
+    private native boolean NameChangedNative(long nativePointer, String name);
+    private native boolean DescriptionChangedNative(long nativePointer, String description);
     private native boolean TextBoxTextSelectionChangedNative(long nativePointer, String TextValue, int startIndex, int endIndex);
     private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
+    private native boolean TextBoxTextChangedNative(long nativePointer, int index, String added, int removed);
+    private native boolean TextFieldTextChangedNative(long nativePointer, int index, String added, int removed);
     private native boolean UpdateCaretPositionNative(long nativePointer, String fullText, int caretIndex);
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
@@ -226,6 +234,9 @@ public class AccessibilityManager
                 // Not implemented yet. Create as Item for now.
                 nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
+                
+            // For now, consider TOGGLE_BUTTON and CHECKBOX to be identical cases.
+            case TOGGLE_BUTTON:
             case CHECKBOX:
                 nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
@@ -393,6 +404,8 @@ public class AccessibilityManager
             case RADIO_BUTTON:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
+                
+            case TOGGLE_BUTTON:
             case CHECKBOX:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
@@ -548,38 +561,6 @@ public class AccessibilityManager
         return wasChanged;
     }
     
-    /** InvokeButton: Invoke a button through UI Automation
-          Returns: boolean of success or failure.
-    * */
-    public boolean InvokeButton(Item_ button)
-    {
-        // Retreive native pointer for given object
-        long nativePointer = ITEM_MAP.get(button);
-        
-        if (nativePointer != 0)
-        {
-            return InvokeButtonNative(nativePointer);
-        }
-        else
-            return false;
-    }
-    
-    /** UpdateToggleState: Update the selected status of a toggle button down at the native
-                        level. This can be used for any button that can be toggled.
-          Returns: boolean of success or failure
-    * */
-    public boolean UpdateToggleState(Item_ button, boolean selected)
-    {
-        Long nativePointer = ITEM_MAP.get(button);
-        
-        if (nativePointer != null)
-        {
-            return UpdateToggleStatusNative(nativePointer, selected);
-        }
-        else            
-            return false;
-    }
-    
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
         TextBox_ textbox = selection.GetTextBox();
@@ -610,6 +591,30 @@ public class AccessibilityManager
             selection.GetStartIndex(), selection.GetEndIndex());
     }
     
+    public void NativeTextChanged(TextBox_ textBox, TextChangeEvent_ event)
+    {
+        if (ITEM_MAP.containsKey(textBox) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get((Item_)textBox);
+        
+        int length = event.GetDeletedText().length();
+        
+        TextBoxTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
+    }
+    
+    public void NativeTextChanged(TextField_ textField, TextChangeEvent_ event)
+    {
+        if (ITEM_MAP.containsKey(textField) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get((Item_)textField);
+        
+        int length = event.GetDeletedText().length();
+        
+        TextFieldTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
+    }
+    
     public void CaretPositionChanged(Item_ item, Text_ fullText)
     {
         Long nativePointer = ITEM_MAP.get(item);
@@ -619,6 +624,26 @@ public class AccessibilityManager
         
             UpdateCaretPositionNative(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
+    }
+    
+    public void NameChanged(Item_ item)
+    {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        
+        NameChangedNative(nativePointer, item.GetName());
+    }
+    
+    public void DescriptionChanged(Item_ item)
+    {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        
+        DescriptionChangedNative(nativePointer, item.GetDescription());
     }
     
     public void Update()
@@ -634,6 +659,83 @@ public class AccessibilityManager
             // Do nothing.
             Thread.sleep(1);
         }
+    }
+    
+    public boolean OnButtonActivation(Button_ button)
+    {
+        if (ITEM_MAP.containsKey(button) == false)
+            return false;
+        
+        // Retrieve native pointer for given object
+        long nativePointer = ITEM_MAP.get(button);
+        
+        if (nativePointer == 0)
+        {
+            return false;
+        }
+        
+        if (button instanceof Tab_)
+        {
+            // Inform the native layer that the Tab is being selected, unless it's
+            // otherwise handled by the system.
+            return false;
+        }
+        else if (button instanceof RadioButton_)
+        {
+            // Inform the native layer that the RadioButton is being selected,
+            // unless it's otherwise handled by the system.
+            return false;
+        }
+        else if (button instanceof ToggleButton_)
+        {
+            // Inform the native layer that the ToggleButton is being toggled,
+            // unless it's otherwise handled by the system.
+            return false;
+        }
+        else
+        {
+            // Assume it's a normal button.
+            return ButtonInvoked(nativePointer);
+        }
+    }
+    
+    public static void ActivateButton(Button_ button)
+    {
+        // Some additional logic may be needed here for other types.
+        button.Activate();
+    }
+    
+    public boolean OnToggleButtonToggle(ToggleButton_ button)
+    {
+        if (ITEM_MAP.containsKey(button) == false)
+            return false;
+        
+        // Retrieve native pointer for given object
+        long nativePointer = ITEM_MAP.get(button);
+        
+        if (nativePointer == 0)
+            return false;
+        
+        if (button instanceof Tab_)
+        {
+            // Tabs don't typically implement the toggle provider in UIA.
+            return false;
+        }
+        else if (button instanceof RadioButton_)
+        {
+            // RadioButtons in UIA explicitly shouldn't support the toggle provider.
+            return false;
+        }
+        else
+        {
+            return ToggleButtonToggled(nativePointer, button.GetToggleState());
+        }
+    }
+    
+    public static void ToggleToggleButton(ToggleButton_ button)
+    {
+        // Some additional logic may be needed here for different types.
+        button.SetToggleState(!button.GetToggleState());
     }
     
     /*

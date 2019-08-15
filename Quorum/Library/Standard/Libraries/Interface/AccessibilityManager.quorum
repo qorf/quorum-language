@@ -20,6 +20,11 @@ use Libraries.Interface.Selections.ListSelection
 use Libraries.Interface.Selections.TreeTableSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.TextBox
@@ -53,10 +58,10 @@ class AccessibilityManager
     // ===== actions for Buttons
     
     // == Pushbuttons
-    private system action InvokeButton(Item button) returns boolean
+    private system action OnButtonActivation(Button button) returns boolean
 
     // == Togglebuttons
-    private system action UpdateToggleState(Item button, boolean selected) returns boolean
+    private system action OnToggleButtonToggle(ToggleButton button) returns boolean
 
     // ===== actions for Textbox
 
@@ -65,6 +70,10 @@ class AccessibilityManager
     private system action TextSelectionChanged(TextBoxSelection selection)
 
     private system action TextSelectionChanged(TextFieldSelection selection)
+
+    private system action NativeTextChanged(TextBox textBox, TextChangeEvent event)
+
+    private system action NativeTextChanged(TextField textField, TextChangeEvent event)
 
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
@@ -76,6 +85,10 @@ class AccessibilityManager
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
     system action Update
+
+    system action NameChanged(Item item)
+
+    system action DescriptionChanged(Item item)
 
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
@@ -148,6 +161,25 @@ class AccessibilityManager
         else
             // Do generic things
         end
+    end
+
+    action ButtonActivated(Button button)
+        if button is Tab
+            // Inform the native layer that the Tab is being selected, unless it's
+            // otherwise handled by the system.
+        elseif button is RadioButton
+            // Inform the native layer that the RadioButton is being selected,
+            // unless it's otherwise handled by the system.
+        elseif button is ToggleButton
+            // Inform the native layer that the ToggleButton is being toggled,
+            // unless it's otherwise handled by the system.
+        else
+            OnButtonActivation(button)
+        end
+    end
+
+    action ToggleButtonToggled(ToggleButton button)
+        OnToggleButtonToggle(button)
     end
 
     action FocusChanged(FocusEvent event)
@@ -242,8 +274,11 @@ class AccessibilityManager
     end
 
     action TextChanged(TextChangeEvent event)
-        if (debugOutput)
-            output "Text added: " + event:GetAddedText() + ", text deleted: " + event:GetDeletedText()
+        Control control = event:GetControl()
+        if control is TextBox
+            NativeTextChanged(cast(TextBox, control), event)
+        elseif control is TextField
+            NativeTextChanged(cast(TextField, control), event)
         end
     end
 

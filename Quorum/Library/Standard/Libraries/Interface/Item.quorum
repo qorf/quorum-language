@@ -2,6 +2,7 @@ package Libraries.Interface
 
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -73,6 +74,8 @@ class Item
 
     Item nextFocus = undefined
     Item previousFocus = undefined
+
+    GameStateManager manager
 
     /*
     This action is used internally to allow the Item class to pass actions to
@@ -674,6 +677,11 @@ class Item
     */
     action SetName(text newName)
         name = newName
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:NameChanged(me)
+        end
     end
 
     /*  This action returns the current internal name of the Item.
@@ -701,6 +709,11 @@ class Item
     */
     action SetDescription(text newDescription)
         description = newDescription
+
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:DescriptionChanged(me)
+        end
     end
 
     /*  
@@ -760,7 +773,6 @@ class Item
 
     */
     action GetInputTable returns InputTable
-        GameStateManager manager
         return manager:GetGame():GetInputTable(GetInputGroup())
     end
 
@@ -871,7 +883,6 @@ class Item
     */
     action SetFocusable(boolean focus)
         if not focus and IsFocused()
-            GameStateManager manager
             manager:GetGame():SetFocus(undefined)
         end
         focusable = focus
@@ -882,7 +893,6 @@ class Item
     true if it is, or false if it is not.
     */
     action IsFocused returns boolean
-        GameStateManager manager
         // Although we can get the focus directly from the manager, we request
         // it from the Game instead. This allows the Game to do any necessary
         // additional book-keeping.
@@ -896,7 +906,6 @@ class Item
     no effect.
     */
     action Focus
-        GameStateManager manager
         manager:GetGame():SetFocus(me)
     end
 

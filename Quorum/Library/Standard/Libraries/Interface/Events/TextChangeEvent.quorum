@@ -12,9 +12,10 @@ class TextChangeEvent
     Control textControl = undefined
     text addedText = ""
     text deletedText = ""
+    integer startIndex = 0
     integer eventType = 0
 
-    action Initialize(Control control, text added, text deleted)
+    action Initialize(Control control, text added, text deleted, integer index)
         if added = ""
             eventType = DELETED
         elseif deleted = ""
@@ -26,6 +27,7 @@ class TextChangeEvent
         textControl = control
         addedText = added
         deletedText = deleted
+        startIndex = index
     end
 
     action GetControl returns Control
@@ -42,5 +44,15 @@ class TextChangeEvent
 
     action GetDeletedText returns text
         return deletedText
+    end
+
+    /*
+    This action returns the starting index of text changes. In other words, if
+    characters were added, removed, or modified, they did so immediately
+    following this index. This is NOT necessarily the same as the caret's index
+    inside a TextBox or TextField.
+    */
+    action GetIndex returns integer
+        return startIndex
     end
 end
