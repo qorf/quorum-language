@@ -31,6 +31,7 @@ use Libraries.Compute.Matrix3
 use Libraries.Game.Physics.PhysicsProperties3D
 use Libraries.Game.Physics.all
 use Libraries.Game.Physics.Joints.JointEdge3D
+use Libraries.Game.Shapes.Rectangle
 
 /*
     The Item3D class represents any object that has a position in 3D space.
@@ -98,6 +99,8 @@ class Item3D is Item
     boolean updateTransform = true
 
     number timeOfImpact = 1
+
+    GameStateManager manager
 
     private action GetChildAsItem(integer index) returns Item
         return children:Get(index)
@@ -991,7 +994,6 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Add(newItem)
@@ -1025,7 +1027,6 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Add(newItem)
@@ -1072,7 +1073,6 @@ class Item3D is Item
         if layer not= undefined
             layer:DisableItemLighting(removed)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(removed)
@@ -1122,7 +1122,6 @@ class Item3D is Item
         if layer not= undefined
             layer:DisableItemLighting(temp)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(temp)
@@ -1221,7 +1220,6 @@ class Item3D is Item
             if layer not= undefined
                 layer:DisableItemLighting(oldItem)
                 
-                GameStateManager manager
                 AccessibilityManager accessibility = manager:GetAccessibilityManager()
                 if accessibility not= undefined
                     accessibility:Remove(oldItem)
@@ -1238,7 +1236,6 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            GameStateManager manager
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Add(newItem)
@@ -3247,7 +3244,7 @@ class Item3D is Item
                 // The WorldToScreenCoordinates action modifies the values
                 // of the passed Vector3 parameter.
                 camera:WorldToScreenCoordinates(vector)
-                return vector:GetX()
+                return camera:GetWidth() - vector:GetX()
             end
         end
 
@@ -3276,5 +3273,161 @@ class Item3D is Item
         // Return NaN if the Item isn't on a layer with a camera (and thus can't
         // actually be on the screen).
         return z:GetNotANumberValue()
+    end
+
+    /*
+    This action returns a 2D rectangle describing the approximate bounds of this
+    Item3D on the screen. The rectangle isn't rotated (i.e. the rectangle's
+    edges are aligned with the screen's edges), so the rectangle may be
+    significantly larger than the space taken by the Item3D on the screen in
+    some cases.
+    */
+    action GetScreenBounds returns Rectangle
+        if layer = undefined or layer:GetCamera() = undefined
+            return undefined
+        end
+
+        Camera camera = layer:GetCamera()
+
+        number minX = 0
+        number minY = 0
+        number maxX = 0
+        number maxY = 0
+        number width = camera:GetWidth()
+        Vector3 calcVector
+        Vector3 minimum = undefined
+        Vector3 maximum = undefined
+
+        Rectangle rectangle
+
+        if not nodes:IsEmpty()
+            BoundingBox box = GetBoundingBox(0)
+            minimum = box:GetMinimum()
+            maximum = box:GetMaximum()
+        else
+            Vector3 minVector
+            minVector:Set(GetGlobalX() - GetWidth() / 2.0, GetGlobalY() - GetHeight() / 2.0, GetGlobalZ() - GetDepth() / 2.0)
+            minimum = minVector
+            
+            Vector3 maxVector
+            maxVector:Set(GetGlobalX() + GetWidth() / 2.0, GetGlobalY() + GetHeight() / 2.0, GetGlobalZ() + GetDepth() / 2.0)
+            maximum = maxVector
+        end
+
+        calcVector:Set(minimum:GetX(), minimum:GetY(), minimum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        minX = width - calcVector:GetX()
+        minY = calcVector:GetY()
+        maxX = minX
+        maxY = minY
+
+        calcVector:Set(minimum:GetX(), minimum:GetY(), maximum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(minimum:GetX(), maximum:GetY(), minimum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(minimum:GetX(), maximum:GetY(), maximum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(maximum:GetX(), minimum:GetY(), minimum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(maximum:GetX(), minimum:GetY(), maximum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(maximum:GetX(), maximum:GetY(), minimum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        calcVector:Set(maximum:GetX(), maximum:GetY(), maximum:GetZ())
+        camera:WorldToScreenCoordinates(calcVector)
+        if (width - calcVector:GetX()) < minX
+            minX = width - calcVector:GetX()
+        end
+        if (width - calcVector:GetX()) > maxX
+            maxX = width - calcVector:GetX()
+        end
+        if calcVector:GetY() < minY
+            minY = calcVector:GetY()
+        end
+        if calcVector:GetY() > maxY
+            maxY = calcVector:GetY()
+        end
+
+        rectangle:SetRectangle(minX, minY, maxX - minX, maxY - minY)
+
+        return rectangle
     end
 end
