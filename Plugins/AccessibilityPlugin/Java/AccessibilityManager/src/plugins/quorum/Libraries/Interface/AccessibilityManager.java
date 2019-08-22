@@ -272,6 +272,12 @@ public class AccessibilityManager
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
                 nativePointer = CreateTextBoxNative(parentLong, textbox.GetName(), textbox.GetDescription(), textbox);
+                if (nativePointer != 0 && textbox.IsEmpty() == false)
+                {
+                    // Push down the textbox's starting text.
+                    TextBoxTextChangedNative(nativePointer, 0, textbox.GetText(), 0);
+                }
+                
                 break;
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
