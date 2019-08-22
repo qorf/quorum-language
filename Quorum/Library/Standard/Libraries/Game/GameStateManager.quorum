@@ -100,7 +100,12 @@ class GameStateManager
     This action returns the AccessibilityManager that is being used across the Game.
     */
     action GetAccessibilityManager returns AccessibilityManager
-        return GetGame():GetAccessibilityManager()
+        Game game = GetGame()
+        if game not= undefined
+            return game:GetAccessibilityManager()
+        else
+            return undefined
+        end
     end
 
     /*
