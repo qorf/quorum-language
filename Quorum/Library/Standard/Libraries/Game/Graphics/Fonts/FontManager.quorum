@@ -204,6 +204,10 @@ class FontManager
             fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
+        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
+            fontDirectory:SetWorkingDirectory("/system/fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
         else
             // Find fonts for a linux system.
         end
@@ -252,8 +256,9 @@ class FontManager
         mac = os:Contains("Mac OS X")
         sim = os:Contains("iOS Simulator")
         device = os:Contains("iOS Device")
+        android = os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime")
 
-        useFreeType = useFreeType or mac or sim or device
+        useFreeType = useFreeType or mac or sim or device or android
 
         FontStrategy strategy = undefined
 
