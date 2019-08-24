@@ -160,6 +160,11 @@ class LayoutProperties
     boolean setWidth = false
     boolean setHeight = false
 
+    // A value that indicates the Item2D should be exactly aligned with pixel
+    // coordinates (e.g., its position and size should be integers with no
+    // fractional component). True by default.
+    boolean snapToPixels = false
+
     /*
     Boolean indicating whether the Control which uses this should re-render its
     graphical content. This can happen when a graphical component changes, like
@@ -588,6 +593,30 @@ class LayoutProperties
 
     action GetInterfaceScale returns number
         return interfaceScale
+    end
+
+    /*
+    This action sets whether or not the Item2D using these properties should
+    snap to exact pixel coordinates -- that is, the result of laying out an Item
+    using these properties will set its position and size to integer values,
+    with no fractional component. This value is true by default.
+    */
+    action SetSnapToPixels(boolean snap)
+        if snap not= snapToPixels
+            needsRendering = true
+        end
+
+        snapToPixels = snap
+    end
+
+    /*
+    This action returns whether or not the Item2D using these properties should
+    snap to exact pixel coordinates -- that is, the result of laying out an Item
+    using these properties will set its position and size to integer values,
+    with no fractional component. This value is true by default.
+    */
+    action IsSnappingToPixels returns boolean
+        return snapToPixels
     end
 
     action NeedsRendering returns boolean
