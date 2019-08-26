@@ -1,5 +1,6 @@
 package Libraries.Interface.Layouts
 
+use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
@@ -10,6 +11,7 @@ use Libraries.Game.Graphics.Label
 
 class FlowLayout is Layout
 
+    Math math
     boolean ignoreHidden = false
     boolean singleLine = false
 
@@ -72,14 +74,10 @@ class FlowLayout is Layout
 
                         containerHeight = font:GetLineHeight() + containerBorder + topPadding + bottomPadding
 
-                        if container:GetName():Contains("DEBUG")
-                            output "Container values for " + container:GetName()
-                            output "containerHeight = " + containerHeight
-                            output "font size = " + font:GetSize() + ", properties size = " + containerProperties:GetFontSize() + ", scale = " + containerProperties:GetInterfaceScale()
-                            output "Line height = " + font:GetLineHeight()
-                        end
-
                         if container:GetHeight() not= containerHeight
+                            if containerProperties:IsSnappingToPixels()
+                                containerHeight = cast(integer, containerHeight)
+                            end
                             container:SetHeight(containerHeight)
                         end
                     end
@@ -143,6 +141,10 @@ class FlowLayout is Layout
 
                     totalWidthPercentage = 1.0 - totalWidthPercentage
                     containerWidth = totalWidthOffset / totalWidthPercentage
+                    if containerProperties:IsSnappingToPixels()
+                        containerWidth = cast(integer, containerWidth)
+                    end
+
                     container:SetWidth(containerWidth)
                 end
             end
@@ -190,7 +192,11 @@ class FlowLayout is Layout
                             control:SetHeight(currentY - properties:GetTopPadding() - properties:GetBottomPadding())
                         elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                             // Setting the height will trigger a resize.
-                            control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale())
+                            number setHeight = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
+                            if properties:IsSnappingToPixels()
+                                setHeight = cast(integer, setHeight)
+                            end
+                            control:SetHeight(setHeight)
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             if properties:GetFont() not= undefined
                                 control:SetHeight(properties:GetFont():GetLineHeight())
@@ -221,6 +227,9 @@ class FlowLayout is Layout
                             // Set the control's width and allow it to set its own height via its contents.
                             // Setting the width triggers its layout to resize.
                             shouldSetSize = false
+                            if properties:IsSnappingToPixels()
+                                width = cast(integer, width)
+                            end
                             control:SetWidth(width)
                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                             Font font = properties:GetFont()
@@ -242,6 +251,11 @@ class FlowLayout is Layout
                         end
 
                         if shouldSetSize
+                            if properties:IsSnappingToPixels()
+                                width = cast(integer, width)
+                                height = cast(integer, height)
+                            end
+
                             control:SetSize(width, height)
                         end
                     end
@@ -252,7 +266,14 @@ class FlowLayout is Layout
                         nextY = verticalSpace
                     end
 
-                    control:SetPosition(x, currentY - control:GetHeight() - topPadding)
+                    number targetY = currentY - control:GetHeight() - topPadding
+
+                    if properties:IsSnappingToPixels()
+                        x = cast(integer, x)
+                        targetY = cast(integer, targetY)
+                    end
+
+                    control:SetPosition(x, targetY)
                     x = x + control:GetWidth() + rightPadding
                 end
             end
@@ -261,6 +282,9 @@ class FlowLayout is Layout
         end
 
         if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
+            if containerProperties:IsSnappingToPixels()
+                nextY = cast(integer, nextY)
+            end
             container:SetHeight(-nextY)
 
             /*
