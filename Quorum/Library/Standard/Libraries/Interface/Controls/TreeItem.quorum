@@ -320,16 +320,22 @@ class TreeItem is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
-        label:GainedSelection()
+        if label not= undefined
+            label:GainedSelection()
+        end
     end
 
     action LostSelection
         parent:Control:LostSelection()
-        label:LostSelection()
+        if label not= undefined
+            label:LostSelection()
+        end
     end
 
     action UnfocusedSelection
-        label:UnfocusedSelection()
+        if label not= undefined
+            label:UnfocusedSelection()
+        end
     end
 
     action Select
