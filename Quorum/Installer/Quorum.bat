@@ -1,0 +1,1 @@
+java -jar "%~dp0Quorum.jar" -library "%~dp0Library" %*
