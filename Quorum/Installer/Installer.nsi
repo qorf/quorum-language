@@ -14,9 +14,9 @@
   !define REGISTRY_KEY "Software\Quorum"
 
   Name "Quorum Studio ${VERSION}"
-  Caption "Quorum Studio"
+  Caption "Quorum"
   Icon "quorum.ico"
-  OutFile "Quorum Studio ${VERSION}.exe"
+  OutFile "Quorum ${VERSION}.exe"
 
   ;Default installation folder
   InstallDir "$PROGRAMFILES64\Quorum"
@@ -82,13 +82,10 @@ Section "Core" SecDummy
   SetOutPath "$INSTDIR"
   
   ;ADD YOUR OWN FILES HERE...
-  File QuorumStudio.exe
+  File Quorum.bat
   File quorum.ico
   File /nonfatal /r "..\Run\*.*"
-  File /nonfatal /r "..\External"
   File /nonfatal /r "..\Library"
-  File /nonfatal /r "..\Resources"
-  File /nonfatal /r "..\Templates"
 
   ;Store installation folder
   WriteRegStr HKCU ${REGISTRY_KEY} "" $INSTDIR
@@ -113,7 +110,7 @@ SectionEnd
 ;--------------------------------
 ;Descriptions
 
-    ;!define MUI_FINISHPAGE_RUN "$INSTDIR\QuorumStudio.exe"
+    ;!define MUI_FINISHPAGE_RUN "$INSTDIR\Quorum.exe"
     ;!insertmacro MUI_PAGE_FINISH
 
   ;Language strings
@@ -134,7 +131,6 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
 
   RMDir /r "$INSTDIR"
-  RMDir /r "$APPDATA\Quorum"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
