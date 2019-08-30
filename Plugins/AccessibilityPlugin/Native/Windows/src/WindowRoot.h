@@ -7,7 +7,7 @@ class WindowRootProvider;
 class WindowRoot : public RootItemT<WindowRoot, WindowRootProvider>
 {
 public:
-	WindowRoot(HWND hwnd);
+	WindowRoot(HWND hwnd, WCHAR* name);
 	~WindowRoot();
 
 	HWND GetHwnd() const noexcept;

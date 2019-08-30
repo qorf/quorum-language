@@ -11,7 +11,6 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
-use Libraries.Game.JavaCanvasApplication
 use Libraries.Game.AndroidDisplay
 use Libraries.Game.AndroidConfiguration
 use Libraries.Game.Graphics.AndroidGraphics
@@ -1265,33 +1264,6 @@ class Game
         gutterTable:Add(clickDown, gutterClickBehavior)
 
         gameInput:AddInputTable(gutterTable)
-    end
-
-    /*
-    Used only to launch the Game engine for use as a canvas in a Java application.
-    */
-    private action StartJavaCanvas
-    
-        JavaCanvasApplication application
-
-        gl20 = manager:GetGameGraphics()
-
-        if desktopConfig:title = ""
-            desktopConfig:title = "Game"
-        end
-
-        application:Setup(me, desktopConfig)
-
-        /*
-        We pass a reference to the layers array to the GameInput. This will 
-        allow it to properly test input on items in the game. Because it is an
-        object reference, future changes to the array of layers will also be
-        reflected in the GameInput.
-        */
-        gameInput = manager:GetInput()
-        gameInput:SetLayers(layers)
-
-        //InitializeLayers()
     end
 
     /*

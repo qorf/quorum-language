@@ -365,7 +365,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 	#endif
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibilityNative(JNIEnv *env, jobject obj, jlong parentWindowHWND)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibilityNative(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring name)
 {
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility Start");
@@ -373,7 +373,10 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	UNREFERENCED_PARAMETER(obj);
 	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
-	g_mainWindowRoot = new WindowRoot(GLFWParentWindow);
+
+	WCHAR* wName = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(name, 0));
+
+	g_mainWindowRoot = new WindowRoot(GLFWParentWindow, wName);
 	
 	env->GetJavaVM(&jvm);
 	#if LOG

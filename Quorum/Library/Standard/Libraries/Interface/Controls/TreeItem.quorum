@@ -70,6 +70,13 @@ class TreeItem is Control
         panel:AddLayoutProperties(panelProperties)
 
         SetAccessibilityCode(parent:Item:TREE_ITEM)
+
+        /*
+        We don't want the expand button to appear in accessibility hierarchies.
+        The button is purely for visual use -- non-visual access can manipulate
+        the tree item directly to close/expand it.
+        */
+        expandButton:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
     end
 
     action GetDefaultFontName returns text

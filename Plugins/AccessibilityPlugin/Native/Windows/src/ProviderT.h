@@ -100,31 +100,6 @@ public:
 				retVal->vt = VT_BOOL;
 				break;
 
-				/*
-			case UIA_BoundingRectanglePropertyId:
-			{
-				unique_safearray bounds{ SafeArrayCreateVector(VT_R8, 0, 4) };
-				THROW_IF_NULL_ALLOC(bounds);
-
-				JNIEnv* env = GetJNIEnv();
-
-				if (env == NULL)
-					break;
-
-				jdoubleArray valuesArray = (jdoubleArray)env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetBoundingRectangle);
-
-				jdouble* values = env->GetDoubleArrayElements(valuesArray, 0);
-
-				for (long i = 0; i < 4; i++)
-					THROW_IF_FAILED(SafeArrayPutElement(bounds.get(), &i, &values[i]));
-
-				retVal->parray = bounds.release();
-				retVal->vt = VT_R8 | VT_ARRAY;
-			}
-
-				break;
-				*/
-
 			default:
 				static_cast<DerivedT*>(this)->GetControlSpecificPropertyValue(propertyId, retVal);
 				break;
@@ -218,11 +193,6 @@ public:
 			jdouble* values = env->GetDoubleArrayElements(valuesArray, 0);
 
 			*retVal = { values[0], values[1], values[2], values[3] };
-
-			/*
-			env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-			*retVal = {};
-			*/
 		}
 
 		return S_OK;
@@ -243,6 +213,9 @@ public:
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** retVal) noexcept override try
 	{
 		*retVal = nullptr;
+		if (m_control == nullptr || m_control->GetRoot() == nullptr)
+			return S_OK;
+
 		m_control->GetRoot()->GetProviderFragmentRoot().query_to(retVal);
 		return S_OK;
 	}

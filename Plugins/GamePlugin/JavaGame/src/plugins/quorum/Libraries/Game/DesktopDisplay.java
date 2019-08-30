@@ -200,7 +200,13 @@ public class DesktopDisplay {
         // This may change to a more modern release in the future.
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_ANY_PROFILE); 
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_ANY_PROFILE);
+        
+        if (GameStateManager.operatingSystem.contains("Windows 10"))
+        {
+            GLFW.glfwWindowHint(GLFW.GLFW_FOCUSED, GLFW.GLFW_FALSE);
+            GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+        }
         
         /*
         Handle for a GLFW monitor. If it's 0, GLFW treats it as null. If it's
@@ -246,7 +252,6 @@ public class DesktopDisplay {
         GLFW.glfwMakeContextCurrent(window);
         
         glCapabilities = GL.createCapabilities();
-        GLFW.glfwShowWindow(window);
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
@@ -260,6 +265,16 @@ public class DesktopDisplay {
 
         if (!resolution.IsFullscreen() && GetPixelScaleFactor() != 1.0)
             SetScreenResolution(resolution);
+    }
+    
+    /*
+    This action forces the window to be visible and focused. This is used by the
+    Windows accessibility system to "finish" displaying the window once the UIA
+    hooks have been set up.
+    */
+    public static void ForceWindowVisible()
+    {
+        GLFW.glfwShowWindow(window);
     }
 
     public void SetVSync(boolean vsync) 

@@ -4,8 +4,8 @@
 
 constexpr auto c_propName = L"Quorum.WindowRootObject";
 
-WindowRoot::WindowRoot(HWND hwnd)
-	: RootItemT(nullptr /* env */, L"" /* name */, L"" /* description */, nullptr /* jItem */)
+WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
+	: RootItemT(nullptr /* env */, name /* name */, L"" /* description */, nullptr /* jItem */)
 	, m_hwnd(hwnd)
 	, m_isWindowFocused(::GetFocus() == hwnd)
 {
