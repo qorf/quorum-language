@@ -1,10 +1,13 @@
 ;NSIS Modern User Interface
 ;Quorum Studio Installer Script
 
+
+
 ;--------------------------------
-;Include Modern UI
+;Include Modern UI and the path adjusting code.
 
   !include "MUI2.nsh"
+  !include "EnvVarUpdate.NSH"
 
 ;--------------------------------
 ;General
@@ -96,9 +99,11 @@ Section "Core" SecDummy
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
     ;Create shortcuts
+     
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-  
+    ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$PROGRAMFILES64\Quorum"   
+
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum" \
                  "DisplayName" "Quorum 7.0.4"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum" \
@@ -131,7 +136,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
 
   RMDir /r "$INSTDIR"
-
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$SMPROGRAMS\Quorum" 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
