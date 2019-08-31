@@ -13,7 +13,7 @@
 ;General
 
   ;Name and file
-  !define VERSION "7.0.4"
+  !define VERSION "7.0.5"
   !define REGISTRY_KEY "Software\Quorum"
 
   Name "Quorum Studio ${VERSION}"
@@ -87,8 +87,8 @@ Section "Core" SecDummy
   ;ADD YOUR OWN FILES HERE...
   File Quorum.bat
   File quorum.ico
-  File /nonfatal /r "..\Run\*.*"
-  File /nonfatal /r "..\Library"
+  File /nonfatal /r "..\Quorum\*.*"
+  ;File /nonfatal /r "..\Library"
 
   ;Store installation folder
   WriteRegStr HKCU ${REGISTRY_KEY} "" $INSTDIR
