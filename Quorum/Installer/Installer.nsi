@@ -105,7 +105,7 @@ Section "Core" SecDummy
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$PROGRAMFILES64\Quorum"   
 
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum" \
-                 "DisplayName" "Quorum 7.0.4"
+                 "DisplayName" "Quorum ${VERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum" \
                  "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
   !insertmacro MUI_STARTMENU_WRITE_END
