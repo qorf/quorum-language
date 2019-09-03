@@ -146,6 +146,8 @@ use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
 use Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
+use Libraries.Interface.Behaviors.Controls.TreeSelectFirstBehavior
+use Libraries.Interface.Behaviors.Controls.TreeSelectLastBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1167,6 +1169,12 @@ class Game
 
         TreeUpBehavior treeUpBehavior
         treeTable:Add(upArrow, treeUpBehavior)
+
+        TreeSelectFirstBehavior treeSelectFirstBehavior
+        treeTable:Add(homeSet, treeSelectFirstBehavior)
+
+        TreeSelectLastBehavior treeSelectLastBehavior
+        treeTable:Add(endSet, treeSelectLastBehavior)
 
         InputSet enterSet
         enterSet:SetKeyboardInput(keys:ENTER)

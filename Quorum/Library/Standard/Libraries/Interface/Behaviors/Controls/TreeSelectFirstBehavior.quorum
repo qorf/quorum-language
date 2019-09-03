@@ -1,0 +1,22 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Containers.Iterator
+
+class TreeSelectFirstBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is Tree
+            Tree tree = cast(Tree, event:GetItem())
+            Iterator<TreeItem> iter = tree:GetTreeItems()
+            if iter:HasNext()
+                Array<TreeItem> path
+                path:Add(iter:Next())
+                tree:Select(path)
+            end
+        end
+    end
+end
