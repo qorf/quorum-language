@@ -138,8 +138,15 @@ class Tree is Control
             end
         else
             TreeItem item = selection:GetPath():GetFromEnd()
-            if item not= undefined and item:IsSubtree() and not item:IsOpen()
-                item:Open()
+            if item not= undefined and item:IsSubtree()
+                if item:IsOpen()
+                    Iterator<TreeItem> iter = item:GetTreeItems()
+                    if iter:HasNext()
+                        Select(iter:Next():GetTreePath())
+                    end
+                else
+                    item:Open()
+                end
             end
         end
     end
