@@ -141,9 +141,10 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 		m_range.end = m_range.begin;
 		m_range.end.character++;
 
-		if (m_range.end.character > m_pTextBoxControl->GetLineLength())
+		// If the end of the range exceeds the end of the line we started on, reign the end value back in.
+		if (m_range.end.character - m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) > m_pTextBoxControl->GetLineLength())
 		{
-			m_range.end.character = m_pTextBoxControl->GetLineLength();
+			m_range.end.character = m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) + m_pTextBoxControl->GetLineLength();
 		}
 	}
 	else if (unit == TextUnit_Format || unit == TextUnit_Word)
@@ -161,7 +162,6 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	{
 		m_range.begin.character =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
 		m_range.end.character = m_range.begin.character + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
-		//std::cout << "Range (" << m_range.begin.character << ", " << m_range.end.character << ")" << std::endl;
 	}
 	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
@@ -350,7 +350,6 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoin
 		}
 	}
 
-
 	return S_OK;
 }
 
@@ -402,6 +401,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 			}
 		}
 	}
+
 	rangeInternal->Release();
 	return hr;
 }

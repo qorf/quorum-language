@@ -136,7 +136,9 @@ public class AccessibilityManager
                 nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
             }
             System.load(nativeFile);
-            InitializeAccessibilityNative(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window));
+            String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
+            InitializeAccessibilityNative(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window), windowTitle);
+            DesktopDisplay.ForceWindowVisible();
         }
         catch (URISyntaxException ex) 
         {
@@ -153,7 +155,7 @@ public class AccessibilityManager
     private static final HashMap<Item_, Long> ITEM_MAP = new HashMap<>();
 
     /* Native Windows API (Win32) Function Declarations */
-    private static native void InitializeAccessibilityNative(long GLFW_WindowHandle);
+    private static native void InitializeAccessibilityNative(long GLFW_WindowHandle, String windowName);
     private native void ShutdownAccessibilityNative();
     
     /**
