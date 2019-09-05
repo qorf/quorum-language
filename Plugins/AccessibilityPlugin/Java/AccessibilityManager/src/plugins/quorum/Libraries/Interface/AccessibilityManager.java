@@ -661,17 +661,10 @@ public class AccessibilityManager
     
     public void Update()
     {
-        frameCount++;
-    }
-    
-    public static void WaitForUpdate() throws InterruptedException
-    {
-        long currentCount = frameCount;
-        while (currentCount == frameCount)
-        { 
-            // Do nothing.
-            Thread.sleep(1);
-        }
+        /*
+        Do nothing. Currently, there is no work that needs to be handled on a
+        per-frame basis for Windows accessibility.
+        */
     }
     
     public boolean OnButtonActivation(Button_ button)
