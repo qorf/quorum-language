@@ -34,7 +34,7 @@ public:
 	IFACEMETHODIMP get_ProviderOptions(_Out_ ProviderOptions* retVal) noexcept override
 	{
 		// TODO: Reconsider UseComThreading when we no longer need to wait on animation frames.
-		*retVal = ProviderOptions_ServerSideProvider;
+		*retVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 		return S_OK;
 	}
 

@@ -25,7 +25,6 @@ void log(std::string s);
 struct JClass_AccessibilityManager
 {
 	jclass me;
-	jmethodID WaitForUpdate;
 	jmethodID GetTreeSelectionPointer;
 	jmethodID GetTabPaneSelectionPointer;
 	jmethodID GetSpreadsheetSelectionPointer;

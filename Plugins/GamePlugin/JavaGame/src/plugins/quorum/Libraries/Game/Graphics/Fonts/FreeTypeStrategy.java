@@ -200,13 +200,16 @@ public class FreeTypeStrategy
         TextureRegionData[] regionData = new TextureRegionData[256];
         Queue<ImageSheetRow> rows = new LinkedList<>();
         
+        // How much padding there should be between symbols on the ImageSheet.
+        int padding = 1;
+        
         IntBuffer buffer = BufferUtils.newIntBuffer(1);
         GameStateManager.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_SIZE, buffer);
         int maxSize = buffer.get(0);
-        int rowHeight = 0;
-        int rowWidth = 0;
-        int totalHeight = 0;
-        int totalWidth = 0;
+        int rowHeight = padding;
+        int rowWidth = padding;
+        int totalHeight = rowHeight;
+        int totalWidth = rowWidth;
         
         // Load the ASCII characters.
         for (char current = 0; current < 256; current++)
@@ -253,7 +256,7 @@ public class FreeTypeStrategy
             table.Add(glyph);
             
             int x = rowWidth;
-            rowWidth += currentWidth;
+            rowWidth += currentWidth + padding;
             
             if (rowWidth > totalWidth)
                 totalWidth = rowWidth;
@@ -265,13 +268,13 @@ public class FreeTypeStrategy
                 
                 totalHeight += rowHeight;
                 rowWidth = currentWidth;
-                x = 0;
-                rowHeight = 0;
+                x = padding;
+                rowHeight = padding;
             }
             
-            if (currentHeight > rowHeight)
+            if (currentHeight + padding > rowHeight)
             {
-                rowHeight = currentHeight;
+                rowHeight = currentHeight + padding;
                 if (totalHeight + rowHeight > maxSize)
                 {
                     // We've exceeded the maximum size we can place in a Texture.
@@ -283,7 +286,7 @@ public class FreeTypeStrategy
             regionData[current] = new TextureRegionData(x, totalHeight, currentWidth, currentHeight);
         }
         
-        totalHeight += rowHeight;
+        totalHeight += rowHeight + padding;
         
         // Add the current and final row to the queue.
         rows.add(new ImageSheetRow(rowHeight, 255));
@@ -291,13 +294,13 @@ public class FreeTypeStrategy
         // Assemble the ByteBuffers into a single ByteBuffer for use by PixelMap.
         ByteBuffer destination = BufferUtils.newByteBuffer(totalWidth * totalHeight);
         ImageSheetRow currentRow = rows.remove();
-        ByteBuffer currentSource;
-        TextureRegionData currentRegion;
+        ByteBuffer currentSource = null;
+        TextureRegionData currentRegion = null;
         int startOfRow = 0;
-        int currentImage;
+        int currentImage = 0;
         int destinationIndex = 0;
         
-        for (int y = 0, subY = 0; y < totalHeight; y++, subY++)
+        for (int y = 0, subY = -padding; y < totalHeight; y++, subY++)
         {
             // The subY is the current row of pixels being rendered for the
             // current row of images. When it matches the height of the current
@@ -305,17 +308,25 @@ public class FreeTypeStrategy
             if (subY == currentRow.height)
             {
                 startOfRow = currentRow.endOfRow + 1;
-                currentRow = rows.remove();
-                subY = 0;
+                
+                if (rows.isEmpty() == false)
+                    currentRow = rows.remove();
+                else
+                    currentRow = null;
+                
+                subY = -padding;
             }
             
-            currentImage = startOfRow;
-            currentSource = pixels[startOfRow];
-            currentRegion = regionData[startOfRow];
-            
-            for (int x = 0, subX = 0; x < totalWidth; x++, subX++, destinationIndex++)
+            if (currentRow != null)
             {
-                if (currentImage > currentRow.endOfRow)
+                currentImage = startOfRow;
+                currentSource = pixels[startOfRow];
+                currentRegion = regionData[startOfRow];
+            }
+            
+            for (int x = 0, subX = -padding; x < totalWidth; x++, subX++, destinationIndex++)
+            {
+                if (currentRow == null || currentImage > currentRow.endOfRow || subX < 0)
                 {
                     destination.put(destinationIndex, (byte)0);
                     continue;
@@ -331,7 +342,7 @@ public class FreeTypeStrategy
                     {
                         currentSource = pixels[currentImage];
                         currentRegion = regionData[currentImage];
-                        subX = 0;
+                        subX = -padding;
                     }
                     else
                     {
@@ -339,7 +350,7 @@ public class FreeTypeStrategy
                     }
                 }
                 
-                if (subY >= currentRegion.height)
+                if (subY >= currentRegion.height || subY < 0 || subX < 0)
                 {
                     destination.put(destinationIndex, (byte)0);
                 }

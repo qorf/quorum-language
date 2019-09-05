@@ -22,8 +22,6 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
@@ -42,8 +40,6 @@ int TextBoxControl::GetCaretLine()
 	jint index = 0;
 	if (env != NULL)
 	{
-		// Wait for one frame of animation to complete
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretLine);
 	}
 
@@ -57,9 +53,6 @@ int TextBoxControl::GetCaretPosition()
 	jint index = 0;
 	if (env != NULL)
 	{
-		// Wait for Quorum to write
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretPosition);
 	}
 	return (int)index + 1;
@@ -72,9 +65,6 @@ int TextBoxControl::GetIndexOfLine(int line)
 	jint index = 0;
 	if (env != NULL)
 	{
-		// Wait for Quorum to write
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetIndexOfLine, (jint)line);
 	}
 	return (int)index;
@@ -86,8 +76,6 @@ int TextBoxControl::GetLineLength()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		//env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetCurrentLineText));
 
 		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
@@ -107,9 +95,6 @@ Range TextBoxControl::GetSelectionRange()
 	{
 		jint index = 0;
 		jobject JO_selection;
-
-		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 		
 		JO_selection = env->CallObjectMethod(javaItem, JavaClass_TextBox.GetSelection);
 

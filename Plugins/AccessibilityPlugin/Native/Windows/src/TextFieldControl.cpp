@@ -23,9 +23,6 @@ int TextFieldControl::GetCaretPosition()
 	jint index = 0;
 	if (env != NULL)
 	{
-		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		index = env->CallIntMethod(GetMe(), JavaClass_TextField.GetCaretPosition);
 	}
 
@@ -47,9 +44,6 @@ int TextFieldControl::GetSize()
 	jint length = 0;
 	if (env != NULL)
 	{
-		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		length = env->CallIntMethod(GetMe(), JavaClass_TextField.GetSize);
 	}
 	return (int)length;
@@ -284,8 +278,6 @@ EndPoint TextFieldControl::GetTextFieldEndpoint()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
-
 		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(GetMe(), JavaClass_TextField.GetText));
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
@@ -311,9 +303,6 @@ Range TextFieldControl::GetSelectionRange()
 	{
 		jint index = 0;
 		jobject JO_selection;
-
-		// Wait for Quorum to write
-		env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.WaitForUpdate);
 
 		JO_selection = env->CallObjectMethod(GetMe(), JavaClass_TextField.GetSelection);
 
