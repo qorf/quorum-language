@@ -61,6 +61,14 @@ class CompilerErrorManager
         end
     end
 
+    action GetErrorsAtKey(text key) returns Iterator<CompilerError>
+        if hintsPerFile:HasKey(key)
+            List<CompilerError> list = errorsPerFile:GetValue(key)
+            return list:GetIterator()
+        end
+        return undefined
+    end
+
     action HasErrorsAtKey(text key) returns boolean
         if errorsPerFile:HasKey(key)
             return true
@@ -74,6 +82,14 @@ class CompilerErrorManager
             List<Hint> list = hintsPerFile:RemoveKey(key)
             numberOfHints = numberOfHints - list:GetSize()
         end
+    end
+
+    action GetHintsAtKey(text key) returns Iterator<Hint>
+        if hintsPerFile:HasKey(key)
+            List<Hint> list = hintsPerFile:GetValue(key)
+            return list:GetIterator()
+        end
+        return undefined
     end
 
     action HintsAtKey(text key) returns boolean
