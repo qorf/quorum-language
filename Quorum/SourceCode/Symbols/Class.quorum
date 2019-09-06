@@ -15,6 +15,7 @@ use Libraries.Language.Compile.Hints.UseHint
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ActionCallOpcode
+use Libraries.Language.Compile.Library
 
 class Class is Symbol
     QualifiedName packageName
@@ -1107,54 +1108,69 @@ class Class is Symbol
     end
 
     private action FindPossibleUsage(SymbolTable table, CompilerError error, text key, CompilerErrorManager errors)
-        //check the symbol table cache to see if it exists
-        //if it does, see if a suggestion exists.
-        SymbolTable cache = undefined
-        if table:HasStandardLibraryCache()
-            cache = table:GetStandardLibraryCache()
-        else
-            cache = table
+        HashTable<text, Class> possibleUses
+
+        Library library = table:GetLibrary()
+        //first check the cache and see if the name exists
+        
+        Iterator<Class> iterator = table:GetClassByName(key)
+        repeat while iterator not= undefined and iterator:HasNext()
+            Class value = iterator:Next()
+            if not possibleUses:HasKey(value:GetStaticKey())
+                possibleUses:Add(value:GetStaticKey(), value)
+            end
         end
-         
-        Iterator<Class> classes = cache:GetClasses()
+
+        if library not= undefined
+            SymbolTable stlTable = library:GetSymbolTable()
+            iterator = stlTable:GetClassByName(key)
+            repeat while iterator not= undefined and iterator:HasNext()
+                Class value = iterator:Next()
+                if not possibleUses:HasKey(value:GetStaticKey())
+                    possibleUses:Add(value:GetStaticKey(), value)
+                end
+            end
+        end
+
+        //we now have the complete set of possible options that could be uses
+        //now make hints for them.
+        Iterator<Class> classes = possibleUses:GetValueIterator()
         repeat while classes:HasNext()
             Class possible = classes:Next()
-            if possible:GetName() = key
-                //add an editor hint telling the user
-                UseHint hint
-                Location locationCopy = error:CreateLocationCopy()
-                hint:SetLocation(locationCopy)
-                text code = "use " + possible:GetStaticKey()
-                code = code + code:GetCarriageReturn() + code:GetLineFeed()
-                hint:SetCode(code)
-                hint:SetLibraryName(possible:GetStaticKey())
+            //add an editor hint telling the user
+            UseHint hint
+            Location locationCopy = error:CreateLocationCopy()
+            hint:SetLocation(locationCopy)
+            text code = "use " + possible:GetStaticKey()
+            code = code + code:GetCarriageReturn() + code:GetLineFeed()
+            hint:SetCode(code)
+            hint:SetLibraryName(possible:GetStaticKey())
 
-                integer packageOffset = packageName:GetIndexEnd()
-                //this needs to compute an offset range in whatever way 
-                //NetBeans or other IDEs need them in.
-                Iterator<QualifiedName> uses = unresolvedUseStatements:GetValueIterator()
-                integer index = 0
-                repeat while uses:HasNext()
-                    QualifiedName n = uses:Next()
-                    if n:GetIndexEnd() > index
-                        index = n:GetIndexEnd()
-                    end
+            integer packageOffset = packageName:GetIndexEnd()
+            //this needs to compute an offset range in whatever way 
+            //NetBeans or other IDEs need them in.
+            Iterator<QualifiedName> uses = unresolvedUseStatements:GetValueIterator()
+            integer index = 0
+            repeat while uses:HasNext()
+                QualifiedName n = uses:Next()
+                if n:GetIndexEnd() > index
+                    index = n:GetIndexEnd()
                 end
-
-                if packageOffset > index
-                    index = packageOffset
-                end
-
-                //if the index is not at the start of the file, add
-                //a carriage return and line feed
-                if index not= 0
-                    index = index + 2
-                end
-                hint:SetStartOffset(index)
-                hint:SetEndOffset(index)
-
-                errors:Add(hint)
             end
+
+            if packageOffset > index
+                index = packageOffset
+            end
+
+            //if the index is not at the start of the file, add
+            //a carriage return and line feed
+            if index not= 0
+                index = index + 2
+            end
+            hint:SetStartOffset(index)
+            hint:SetEndOffset(index)
+
+            errors:Add(hint)
         end
     end
 

@@ -198,6 +198,10 @@ class Compiler
             table:SetTo(previousCompile)
         end
 
+        if table:GetLibrary() = undefined
+            table:SetLibrary(library)
+        end
+
         CompilerErrorManager errors
         SymbolTable standardLibraryTable = undefined
         profiler:Empty()

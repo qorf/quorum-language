@@ -21,9 +21,9 @@ use Libraries.Language.Compile.CompilerErrorType
 class SymbolTable 
     HashTable<text, Source> files
     HashTable<text, Class> classes
+    HashTable<text, HashTable<text, Class>> classNames
     HashTable<text, HashTable<text, Class>> packages
     Library library = undefined
-    SymbolTable standardLibraryCache = undefined
     
     /*
         This action gathers all of the classes from the table variable and puts
@@ -37,6 +37,8 @@ class SymbolTable
             Class clazz = iterator:Next()
             Add(clazz)
         end
+
+        library = table:GetLibrary()
     end
 
     action Empty
@@ -44,7 +46,6 @@ class SymbolTable
         classes:Empty()
         packages:Empty()
         library = undefined
-        standardLibraryCache = undefined
     end
 
     /*
@@ -52,8 +53,8 @@ class SymbolTable
         available to the system, regardless of whether they available in the 
         current compile.
     */
-    action GetStandardLibraryCache returns SymbolTable
-        return standardLibraryCache
+    action GetLibrary returns Library
+        return library
     end
 
     /*
@@ -62,15 +63,15 @@ class SymbolTable
         table is a cache, it won't have another one. Further, if scanning 
         is turned off, then no cache will exist.
     */
-    action HasStandardLibraryCache returns boolean
-        return standardLibraryCache not= undefined
+    action HasLibrary returns boolean
+        return library not= undefined
     end
 
     /*
         This action sets the standard library cache.
     */
-    action SetStandardLibraryCache(SymbolTable table)
-        standardLibraryCache = table
+    action SetLibrary(Library library)
+        me:library = library
     end
 
 
@@ -136,6 +137,17 @@ class SymbolTable
         
         HashTable<text, Class> thePackage = packages:GetValue(pack)
         thePackage:Add(clazz:GetName(), clazz)
+
+
+        //finally, since it is unique, add it to the list of class names
+        HashTable<text, Class> names = classNames:GetValue(clazz:GetName())
+        if names = undefined
+            HashTable<text, Class> names2
+            names = names2
+            classNames:Add(clazz:GetName(), names)
+        end
+        names:Add(clazz:GetStaticKey(), clazz)
+
         return undefined
     end
 
@@ -150,6 +162,7 @@ class SymbolTable
             Class clazz = iterator:Next()
             table:Add(clazz)
         end
+        table:SetLibrary(GetLibrary())
         return table
     end
 
@@ -254,6 +267,18 @@ class SymbolTable
         return classes:GetValue(key)
     end
 
+    /* This action returns an array of all classes that have a particular name
+        regardless of their static key.
+    */
+    action GetClassByName(text name) returns Iterator<Class>
+        HashTable<text, Class> names = classNames:GetValue(name)
+        if names = undefined
+            return undefined
+        end
+
+        return names:GetValueIterator()
+    end
+
     /*
         Returns whether or not a class exists in the symbol table. The key
         passed must be the full static key (i.e., Libraries.Language.Object, not Object).
@@ -301,6 +326,16 @@ class SymbolTable
                 end
             end
 
+            HashTable<text, Class> names = classNames:GetValue(current:GetName())
+            if names not= undefined
+                if names:HasKey(key)
+                    names:RemoveKey(key)
+                end
+
+                if names:IsEmpty()
+                    classNames:RemoveKey(current:GetName())
+                end
+            end
         end
     end
 
