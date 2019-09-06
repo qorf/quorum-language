@@ -144,6 +144,7 @@ use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 use Libraries.Interface.Behaviors.Controls.TabPaneCloseTabBehavior
 use Libraries.Interface.Behaviors.Controls.GutterClickBehavior
 use Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxOpenPopupMenuBehavior
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 use Libraries.Interface.Behaviors.Controls.TreeSelectFirstBehavior
@@ -791,6 +792,17 @@ class Game
         TextBoxSelectToLineEndBehavior selectLineEndBehavior
         textBoxTable:Add(shiftEndSet, selectLineEndBehavior)
 
+        InputSet shiftF10SetTextBox
+        shiftF10SetTextBox:SetKeyboardInput(keys:F10)
+        shiftF10SetTextBox:AddModifier(shiftF10SetTextBox:SHIFT)
+        TextBoxOpenPopupMenuBehavior textBoxOpenPopupMenuBehavior
+        textBoxTable:Add(shiftF10SetTextBox, textBoxOpenPopupMenuBehavior)
+
+        InputSet rightClickSetTextBox
+        rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
+        textBoxTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
+
+        
         
         if manager:GetOperatingSystem():Contains("OS X")
             //first do copy paste
