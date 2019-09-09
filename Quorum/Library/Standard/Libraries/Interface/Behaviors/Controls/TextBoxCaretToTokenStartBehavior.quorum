@@ -1,0 +1,115 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+
+class TextBoxCaretToTokenStartBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+        TextBox textBox = cast(TextBox, item)
+        
+        text newLineCharacter = "
+"
+        boolean tokenIsDone = false
+
+        text currentToken = ""
+        text textValue = textBox:GetText()
+        integer currentIndex = textBox:GetCaretPosition()
+        integer beginIndex = currentIndex
+        text previousCharacter = ""
+        text currentCharacter = ""
+
+        repeat while not(tokenIsDone)
+            if 0 < (currentIndex - 1)
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                //"Special" single character tokens signify the beginning of the "special" token and end of the previous token
+                if(IsSpecialCharacter(previousCharacter))
+                    //The "Special" single character token is the current token
+                    if (beginIndex = currentIndex)
+                        currentToken = previousCharacter
+                        if previousCharacter = ")"
+                            if textValue:GetCharacter(currentIndex - 2) = "("
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                        if previousCharacter = "/"
+                            if textValue:GetCharacter(currentIndex - 2) = "/"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                    end    
+                    tokenIsDone = true
+                /* skip past white space */           
+                elseif (IsWhiteSpace(previousCharacter))
+                    if currentIndex = beginIndex
+                        currentToken = currentToken + previousCharacter
+                        currentIndex = currentIndex - 1
+                        previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                        if(IsWhiteSpace(previousCharacter))
+                            repeat while previousCharacter = " "
+                                currentToken = currentToken + previousCharacter
+                                currentIndex = currentIndex - 1
+                                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                            end 
+                            previousCharacter = textValue:GetCharacter(currentIndex)
+                        elseif (IsSpecialCharacter(previousCharacter))
+                            currentToken = currentToken + previousCharacter
+                            if previousCharacter = ")"
+                                if textValue:GetCharacter(currentIndex - 2) = "("
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            if previousCharacter = "/"
+                                if textValue:GetCharacter(currentIndex - 2) = "/"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            tokenIsDone = true 
+                        else
+                            previousCharacter = textValue:GetCharacter(currentIndex)
+                        end
+                    else
+                        tokenIsDone = true
+                    end
+                else
+                    currentToken = currentToken + previousCharacter
+                    currentIndex = currentIndex - 1
+                end
+            else
+                beginIndex = 0
+                currentToken = ""
+                tokenIsDone = true
+            end
+        end
+        textBox:SetCaretPosition(beginIndex - currentToken:GetSize())
+
+    end
+
+    private action IsWhiteSpace(text value) returns boolean
+        boolean isWhiteSpace = false
+        if value = " " or value = value:GetCarriageReturn() or value = value:GetLineFeed() or 
+        value = value:GetTab()
+            isWhiteSpace = true
+        end
+        return isWhiteSpace
+    end
+
+    private action IsSpecialCharacter(text value) returns boolean
+        boolean isSpecialCharacter = false
+        if value = "." or value = "/" or value = "*" or value = "-" or value = "+"
+        or value = "(" or value = ")" or value = ":" or value = "<" or value = ">"
+        or value = ";" or value = "," or value = value:GetDoubleQuote()
+            isSpecialCharacter = true
+        end
+        return isSpecialCharacter
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

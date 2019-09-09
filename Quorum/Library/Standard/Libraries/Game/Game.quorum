@@ -53,6 +53,10 @@ use Libraries.Interface.Behaviors.Controls.TextBoxInsertBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxAddIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxOpenKeyboardBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToDocumentStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToDocumentEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
@@ -577,6 +581,30 @@ class Game
             textBoxControlA:AddModifier(textBoxControlA:META)
             TextBoxSelectAllBehavior textBoxSelectAllBehavior
             textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+
+            InputSet textBoxControlHome
+            textBoxControlHome:SetKeyboardInput(keys:UP)
+            textBoxControlHome:AddModifier(textBoxControlHome:META)
+            TextBoxCaretToDocumentStartBehavior textBoxCaretToDocumentStartBehavior
+            textBoxTable:Add(textBoxControlHome, textBoxCaretToDocumentStartBehavior)
+
+            InputSet textBoxControlEnd
+            textBoxControlEnd:SetKeyboardInput(keys:DOWN)
+            textBoxControlEnd:AddModifier(textBoxControlEnd:META)
+            TextBoxCaretToDocumentEndBehavior textBoxCaretToDocumentEndBehavior
+            textBoxTable:Add(textBoxControlEnd, textBoxCaretToDocumentEndBehavior)
+
+            InputSet textBoxAltRight
+            textBoxAltRight:SetKeyboardInput(keys:E)
+            textBoxAltRight:AddModifier(textBoxAltRight:META)
+            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
+            textBoxTable:Add(textBoxAltRight, textBoxCaretToTokenEndBehavior)
+
+            InputSet textBoxAltLeft
+            textBoxAltLeft:SetKeyboardInput(keys:S)
+            textBoxAltLeft:AddModifier(textBoxAltLeft:META)
+            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
+            textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -615,6 +643,30 @@ class Game
             textBoxControlA:AddModifier(textBoxControlA:CONTROL)
             TextBoxSelectAllBehavior textBoxSelectAllBehavior
             textBoxTable:Add(textBoxControlA, textBoxSelectAllBehavior)
+
+            InputSet textBoxControlHome
+            textBoxControlHome:SetKeyboardInput(keys:HOME)
+            textBoxControlHome:AddModifier(textBoxControlHome:CONTROL)
+            TextBoxCaretToDocumentStartBehavior textBoxCaretToDocumentStartBehavior
+            textBoxTable:Add(textBoxControlHome, textBoxCaretToDocumentStartBehavior)
+
+            InputSet textBoxControlEnd
+            textBoxControlEnd:SetKeyboardInput(keys:END)
+            textBoxControlEnd:AddModifier(textBoxControlEnd:CONTROL)
+            TextBoxCaretToDocumentEndBehavior textBoxCaretToDocumentEndBehavior
+            textBoxTable:Add(textBoxControlEnd, textBoxCaretToDocumentEndBehavior)
+
+            InputSet textBoxControlRight
+            textBoxControlRight:SetKeyboardInput(keys:RIGHT)
+            textBoxControlRight:AddModifier(textBoxControlRight:CONTROL)
+            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
+            textBoxTable:Add(textBoxControlRight, textBoxCaretToTokenEndBehavior)
+
+            InputSet textBoxAltLeft
+            textBoxAltLeft:SetKeyboardInput(keys:RIGHT)
+            textBoxAltLeft:AddModifier(textBoxAltLeft:CONTROL)
+            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
+            textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
         end
         
 
