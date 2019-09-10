@@ -766,6 +766,26 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
     end
 
+    action GetCaretX returns number
+        Drawable caret = background:GetCaret()
+        return caret:GetX()
+    end
+
+    action GetCaretY returns number
+        Drawable caret = background:GetCaret()
+        return caret:GetY()
+    end
+
+    action GetCaretGlobalX returns number
+        Drawable caret = background:GetCaret()
+        return caret:GetGlobalX()
+    end
+
+    action GetCaretGlobalY returns number
+        Drawable caret = background:GetCaret()
+        return caret:GetGlobalY()
+    end
+
     /*
     This action repositions the Drawables on the given line, beginning with the
     Drawable at the start index and then repositioning all of the following
