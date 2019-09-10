@@ -16,6 +16,8 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ActionCallOpcode
 use Libraries.Language.Compile.Library
+use Libraries.Language.Compile.Hints.GetterGenerationHint
+use Libraries.Language.Compile.Hints.SetterGenerationHint
 
 class Class is Symbol
     QualifiedName packageName
@@ -1757,6 +1759,79 @@ class Class is Symbol
         variable:SetIsField(true)
         fields:Add(variable:GetStaticKey(), variable)
         return undefined
+    end
+
+    action CalculateFieldHints(CompilerErrorManager errors)
+        Iterator<text> iterator = fields:GetKeyIterator()
+        repeat while iterator:HasNext()
+            text key = iterator:Next()
+            Variable var = fields:GetValue(key)
+
+            text getter = var:GetDefaultGetterName()
+
+            //first check if there's a getter
+            boolean hasGetter = false
+            Action getterAction = actions:GetValue(getter)
+            if getterAction not= undefined
+                Type theReturn = getterAction:GetReturnType()
+                if theReturn:GetStaticKey() = var:GetType():GetStaticKey() 
+                    hasGetter = true
+                end
+            end
+
+            if not hasGetter //generate a hint for the getter
+                GetterGenerationHint hint
+                Location locationCopy = var:CreateLocationCopy()
+                hint:SetLocation(locationCopy)
+                text code = 
+"
+    action " + getter + " returns " + var:GetType():GetName() +
+"
+        return " + var:GetName() + "
+    end"
+                code = code + code:GetCarriageReturn() + code:GetLineFeed()
+                hint:SetCode(code)
+                hint:SetLibraryName(var:GetName())
+
+                integer finish = GetIndexEnd() - 3 //the end keyword
+                hint:SetStartOffset(finish)
+                hint:SetEndOffset(finish)
+                errors:Add(hint)
+            end
+
+            //now check if there's a setter
+            boolean hasSetter = false
+            text setter = var:GetDefaultSetterName()
+            text setterSignature = setter + ":" + var:GetType():GetStaticKey()
+            Action setterAction = actions:GetValue(setterSignature)
+            if setterAction not= undefined
+                Type theReturn = setterAction:GetReturnType()
+                if theReturn:IsVoid()
+                    hasSetter = true
+                end
+            end
+
+            if not hasSetter //generate a hint for the getter
+                SetterGenerationHint hint
+                Location locationCopy = var:CreateLocationCopy()
+                hint:SetLocation(locationCopy)
+                text code = 
+"
+    action " + setter + "(" + var:GetType():GetName() + " " + var:GetName() + ")" +
+"
+        me:" + var:GetName() + " = " + var:GetName() + 
+"
+    end"
+                code = code + code:GetCarriageReturn() + code:GetLineFeed()
+                hint:SetCode(code)
+                hint:SetLibraryName(var:GetName())
+
+                integer finish = GetIndexEnd() - 3 //the end keyword
+                hint:SetStartOffset(finish)
+                hint:SetEndOffset(finish)
+                errors:Add(hint)
+            end
+        end
     end
 
     action GetVariable(text key) returns Variable

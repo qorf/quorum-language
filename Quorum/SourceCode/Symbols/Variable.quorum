@@ -48,6 +48,30 @@ class Variable is Symbol
         return false
     end
 
+    /*
+        This action determines what the default name for a getter would be
+        for the variable.
+    */
+    action GetDefaultGetterName returns text
+        text actionName = GetName()
+        text value = actionName:GetCharacter(0)
+        text value1 = value:ToUpperCase()
+        actionName = "Get" + value1 + actionName:GetSubtext(1)
+        return actionName
+    end
+
+    /*
+        This action determines what the default name for a setter would be
+        for the variable.
+    */
+    action GetDefaultSetterName returns text
+        text actionName = GetName()
+        text value = actionName:GetCharacter(0)
+        text value1 = value:ToUpperCase()
+        actionName = "Set" + value1 + actionName:GetSubtext(1)
+        return actionName
+    end
+
     action IsDefinedInAlwaysBlock returns boolean
         return definedInAlwaysBlock
     end
