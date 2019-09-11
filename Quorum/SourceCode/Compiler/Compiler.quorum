@@ -416,6 +416,7 @@ class Compiler
                     //already be written. If so, then toss it in 
                     //the jar
                     Class clazz = code:GetClass()
+                    clazz:CalculateFieldHints(errors)
                     File filePath = clazz:GetFile()
                     text needsPath = filePath:GetAbsolutePath()
                     if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
