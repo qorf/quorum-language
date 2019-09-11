@@ -1295,12 +1295,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             x1 = x1 + gutters:Get(counter):GetWidth()
             counter = counter + 1
         end
-
+        
+        if position = x1
+            return 0
+        end
+      
         number x2 = x1
         counter = 0
         number distance1 = position
         repeat while counter < size
-            Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
+            Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter)) 
             x2 = x1 + glyph:horizontalAdvance
             number distance2 = math:AbsoluteValue(position - x2)
             if distance1 < distance2
@@ -1450,7 +1454,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             size = size - separator:GetSize()
         end
         if caretCharacter >= size
-            toDelete = 2
+            toDelete = 1
         end
 
         DecrementStyleIndices(GetCaretPosition(), toDelete)
