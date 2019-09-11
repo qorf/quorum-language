@@ -498,18 +498,15 @@ class DesktopInput is GameInput
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
-            InputSet set = keyboardModifiers:Copy()
-            set:SetKeyboardInput(currentEvent:keyCode)
-
-            InputSet anySet = keyboardModifiers:Copy()
-            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
-
-            if currentEvent:eventType = currentEvent:RELEASED_KEY
-                set:SetInputTrigger(set:FINISH)
-                anySet:SetInputTrigger(anySet:FINISH)
-            end
+            InputSet set = undefined
+            InputSet anySet = undefined
 
             if currentEvent:eventType = currentEvent:PRESSED_KEY
+                // For new key presses, we want to copy the modifiers as they
+                // were before the key press.
+                set = keyboardModifiers:Copy()
+                anySet = keyboardModifiers:Copy()
+
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
                     keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
                 elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
@@ -539,7 +536,18 @@ class DesktopInput is GameInput
                 pressedSet:SetKeyboardInput(currentEvent:keyCode)
                 pressedSet:SetInputTrigger(pressedSet:CONTINUE)
                 pressedKeys:Remove(pressedSet)
+
+                // For released keys, we want to copy the modifiers as they are
+                // after the key release is resolved.
+                set = keyboardModifiers:Copy()
+                anySet = keyboardModifiers:Copy()
+
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(anySet:FINISH)
             end
+
+            set:SetKeyboardInput(currentEvent:keyCode)
+            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
 
             text inputGroup = ""
             Item focusedItem = manager:GetFocus()
