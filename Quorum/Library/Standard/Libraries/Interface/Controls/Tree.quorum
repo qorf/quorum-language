@@ -6,6 +6,8 @@ use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -37,6 +39,17 @@ class Tree is Control
 
         selection:Initialize(me)
         SetAccessibilityCode(parent:Item:TREE)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+        FlowLayout layout
+        SetLayout(layout)
+
+        LayoutProperties panelProperties = panel:GetDefaultLayoutProperties()
+        panelProperties:SetHorizontalLayoutMode(panelProperties:FIT_CONTENTS)
+        panelProperties:SetVerticalLayoutMode(panelProperties:FIT_CONTENTS)
     end
 
     action IsAccessibleParent returns boolean

@@ -56,10 +56,6 @@ class TreeLayout is Layout
                 treeHeight = treeItem:GetTreeHeight() - height
             end
 
-            if kid:GetWidth() > longestWidth
-                longestWidth = kid:GetWidth()
-            end
-
             if isTopAligned = true
                 y = y - height
             end
@@ -70,6 +66,15 @@ class TreeLayout is Layout
                 y = y - height - treeHeight - padding
             else
                 y = y - treeHeight - padding
+            end
+
+            if kid is TreeItem
+                TreeItem treeItem = cast(TreeItem, kid)
+                if treeItem:GetTreeWidth() > longestWidth
+                    longestWidth = treeItem:GetTreeWidth()
+                end
+            elseif kid:GetWidth() > longestWidth
+                longestWidth = kid:GetWidth()
             end
 
             i = i + 1
@@ -86,8 +91,19 @@ class TreeLayout is Layout
                     number oldTop = container:GetY() + container:GetHeight()
                     container:SetHeight(-y)
                     container:SetY(oldTop - container:GetHeight())
+
+                    if isTopAligned
+                        // Correct the positions of the elements, which will otherwise appear below the newly heightened tree panel.
+                        i = 0
+                        repeat while i < items:GetSize()
+                            items:Get(i):MoveY(-y)
+                            i = i + 1
+                        end
+                    end
                 end
             end
+
+            container:RequestLayout()
         end
     end
 

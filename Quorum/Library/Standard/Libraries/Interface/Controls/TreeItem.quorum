@@ -150,7 +150,7 @@ class TreeItem is Control
 
             Tree tree = GetTree()
             if tree not= undefined
-                tree:Resize()
+                tree:RequestLayout()
                 TreeChangeEvent event
                 event:Set(tree, me, event:OPENED)
                 tree:NotifyTreeChangeListeners(event)
@@ -167,7 +167,7 @@ class TreeItem is Control
 
             Tree tree = GetTree()
             if tree not= undefined
-                tree:Resize()
+                tree:RequestLayout()
                 TreeChangeEvent event
                 event:Set(tree, me, event:CLOSED)
                 tree:NotifyTreeChangeListeners(event)
@@ -297,6 +297,35 @@ class TreeItem is Control
             return height
         else
             return GetHeight()
+        end
+    end
+
+    action GetTreeWidth returns number
+        if open
+            number width = GetWidth()
+            number rootX = 0
+            if parentTree not= undefined
+                rootX = parentTree:GetGlobalX()
+            end
+            
+            integer counter = 0
+            
+            repeat while counter < treeItems:GetSize()
+                TreeItem item = treeItems:Get(counter)
+
+                number childWidth = item:GetTreeWidth()
+                number x = item:GetGlobalX() - rootX
+
+                if x + childWidth > width
+                    width = x + childWidth
+                end
+
+                counter = counter + 1
+            end
+
+            return width
+        else
+            return GetWidth()
         end
     end
 
