@@ -1606,6 +1606,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
         end
 
+        if shouldDeleteSelection
+            DeleteSelection()
+        else
+            EmptySelectionEvent(true)
+        end
+
         IncrementStyleIndices(GetCaretPosition(), value:GetSize())
 
         textValue = textValue:Insert(GetCaretPosition(), value)
@@ -1675,12 +1681,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
         NotifyTextChangeListeners(changeEvent)
-
-        if shouldDeleteSelection
-            DeleteSelection()
-        else
-            EmptySelectionEvent(true)
-        end
     end
 
     action GetEditManager returns EditManager
