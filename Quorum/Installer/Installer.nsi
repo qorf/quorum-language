@@ -1,5 +1,5 @@
 ;NSIS Modern User Interface
-;Quorum Studio Installer Script
+;Quorum Installer Script
 
 
 
@@ -16,7 +16,7 @@
   !define VERSION "7.0.5"
   !define REGISTRY_KEY "Software\Quorum"
 
-  Name "Quorum Studio ${VERSION}"
+  Name "Quorum ${VERSION}"
   Caption "Quorum"
   Icon "quorum.ico"
   OutFile "Quorum ${VERSION}.exe"
