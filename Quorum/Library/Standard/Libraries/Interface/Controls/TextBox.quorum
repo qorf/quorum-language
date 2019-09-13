@@ -1605,6 +1605,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         IncrementStyleIndices(index, value:GetSize())
 
+        integer caretTarget = -1
+
+        if index <= GetCaretPosition()
+            caretTarget = GetCaretPosition() + value:GetSize()
+        end
+
         textValue = textValue:Insert(index, value)
         
         text separator = textValue:GetLineSeparator()
@@ -1626,16 +1632,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             end
         end
 
-        if newLines not= 0
-            Resize()
-        end
-
         number lineWidth = GetLineWidth(indexLine)
         if lineWidth > GetScrollRegionWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
             Resize()
+        end
+
+        if caretTarget >= 0
+            SetCaretPosition(caretTarget)
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -1646,11 +1652,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         else
             GetLineDrawables()
         end
-
-        if index < GetCaretPosition()
-            SetCaretPosition(GetCaretPosition() + value:GetSize())
-        end
-        ResetCaretBlinkTimer()
 
         TextBoxEditState newState = GetCurrentEditState()
         edit:SetRedoState(newState)
