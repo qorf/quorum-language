@@ -67,6 +67,7 @@ use Libraries.Interface.Behaviors.Controls.TextFieldCutToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
+//use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
@@ -597,16 +598,23 @@ class Game
             textBoxTable:Add(textBoxControlEnd, textBoxCaretToDocumentEndBehavior)
 
             InputSet textBoxAltRight
-            textBoxAltRight:SetKeyboardInput(keys:E)
-            textBoxAltRight:AddModifier(textBoxAltRight:META)
+            textBoxAltRight:SetKeyboardInput(keys:RIGHT)
+            textBoxAltRight:AddModifier(textBoxAltRight:ALT)
             TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
             textBoxTable:Add(textBoxAltRight, textBoxCaretToTokenEndBehavior)
 
             InputSet textBoxAltLeft
-            textBoxAltLeft:SetKeyboardInput(keys:S)
-            textBoxAltLeft:AddModifier(textBoxAltLeft:META)
+            textBoxAltLeft:SetKeyboardInput(keys:LEFT)
+            textBoxAltLeft:AddModifier(textBoxAltLeft:ALT)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
+
+//            InputSet textBoxDoubleClick
+//            textBoxDoubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+//            textBoxDoubleClick:SetEventCount(2)
+//            TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
+//            textBoxTable:Add(textBoxDoubleClick, textBoxDoubleClickSelectWordBehavior)
+
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
