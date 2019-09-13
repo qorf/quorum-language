@@ -1,7 +1,6 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
-use Libraries.Containers.Queue
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 
@@ -14,7 +13,7 @@ class TextBoxRenderer is Control
     Array<Gutter> gutters
     Drawable caret
 
-    Queue<Drawable> drawablePool
+    Array<Drawable> drawablePool
 
     // The line number of the first line of text we're displaying.
     integer startLine = 0
@@ -29,7 +28,7 @@ class TextBoxRenderer is Control
 
     action GetDrawable returns Drawable
         if drawablePool:IsEmpty() = false
-            Drawable drawable = drawablePool:RemoveFromFront()
+            Drawable drawable = drawablePool:RemoveFromEnd()
             return drawable
         else
             Drawable drawable

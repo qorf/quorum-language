@@ -1,10 +1,10 @@
 package Libraries.Game
 
-use Libraries.Containers.Queue
+use Libraries.Containers.Array
 
 class DialogLayerPool 
 
-    Queue<DialogLayer> availableLayers
+    Array<DialogLayer> availableLayers
 
     /*
     This action returns a DialogLayer that is ready for use. It will return an
@@ -16,7 +16,7 @@ class DialogLayerPool
             DialogLayer newLayer
             return newLayer
         else
-            DialogLayer layer = availableLayers:RemoveFromFront()
+            DialogLayer layer = availableLayers:RemoveFromEnd()
             layer:Reset()
             return layer
         end

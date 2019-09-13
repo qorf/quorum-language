@@ -1,7 +1,6 @@
 package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
-use Libraries.Containers.Queue
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Interface.Controls.Control
@@ -79,7 +78,7 @@ class Label is Control
     GameStateManager manager
 
     // Used to store Drawables for re-use, limiting the number of total object instantiations made.
-    Queue<Drawable> drawablePool
+    Array<Drawable> drawablePool
 
     /*
     Sets the horizontal margins for this label. When the label's text is drawn,
@@ -729,7 +728,7 @@ class Label is Control
 
     private action GetDrawable returns Drawable
         if drawablePool:IsEmpty() = false
-            Drawable drawable = drawablePool:RemoveFromFront()
+            Drawable drawable = drawablePool:RemoveFromEnd()
             return drawable
         else
             drawableCounter = drawableCounter + 1
