@@ -1,7 +1,6 @@
 package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
-use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Interface.Controls.Control
@@ -77,6 +76,9 @@ class Label is Control
 
     // Used to determine if an OpenGL context is available before loading drawables.
     GameStateManager manager
+
+    // Used to store Drawables for re-use, limiting the number of total object instantiations made.
+    Array<Drawable> drawablePool
 
     /*
     Sets the horizontal margins for this label. When the label's text is drawn,
@@ -593,7 +595,7 @@ class Label is Control
             font:SetAngle(font:GetAngle())
 
             // Dispose of the old sprites.
-            Empty()
+            RecycleDrawables()
 
 
             integer index = 0
@@ -671,7 +673,7 @@ class Label is Control
                         glyph = glyphs:Get(glyphIndex)
                         drawable = undefined
                         if glyph:texture not= undefined
-                            Drawable newDrawable
+                            Drawable newDrawable = GetDrawable()
                             newDrawable:Load(glyph:texture)
                             newDrawable:SetColor(glyph:color)
                             drawable = newDrawable
@@ -681,7 +683,8 @@ class Label is Control
                             drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight() + maxDescent)
                             Add(drawable)
                         else
-                            Item2D space
+                            Drawable space = GetDrawable()
+                            space:SetTexture(undefined)
                             space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine + maxDescent)
                             space:SetSize(glyph:horizontalAdvance, glyph:verticalAdvance)
                             Add(space)
@@ -716,14 +719,33 @@ class Label is Control
                 originY = y
             end
 
-            
-//            textWidth = maxLineWidth
-//            textHeight = startingOriginY - originY
             parent:Item2D:SetSize(maxLineWidth, startingOriginY - originY)
-            
-//            textChanged = false
         end
 
+    end
+
+    integer drawableCounter = 0
+
+    private action GetDrawable returns Drawable
+        if drawablePool:IsEmpty() = false
+            Drawable drawable = drawablePool:RemoveFromEnd()
+            return drawable
+        else
+            drawableCounter = drawableCounter + 1
+            Drawable drawable
+            return drawable
+        end
+    end
+
+    private action RecycleDrawables
+        Array<Item2D> children = GetChildren()
+
+        repeat while children:IsEmpty() = false
+            Item2D item = children:RemoveFromFront()
+            if item is Drawable
+                drawablePool:Add(cast(Drawable, item))
+            end
+        end
     end
 
     /* A custom implementation of the text Split action that does not truncate
@@ -731,16 +753,16 @@ class Label is Control
     private action Split(text splitter, text delimiter) returns Array<text>
         // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
 
-	Array<text> results
-	integer pos = 0
-	integer length = splitter:GetSize()
-	Text delim
+        Array<text> results
+        integer pos = 0
+        integer length = splitter:GetSize()
+        Text delim
         delim:SetValue(delimiter)
-	integer delimLength = delim:GetSize()
-	text newString = ""
+        integer delimLength = delim:GetSize()
+        text newString = ""
         boolean afterDelim = false
 
-	repeat while pos < length
+        repeat while pos < length
             // If this doesn't start the delimiter, add it to the new string.
             if splitter:GetCharacter(pos) not= delim:GetCharacter(0)
                 newString = newString + splitter:GetCharacter(pos)
@@ -779,7 +801,7 @@ class Label is Control
                     afterDelim = true
                 end
             end
-	end
+        end
 
         //if not afterDelim
             results:Add(newString)

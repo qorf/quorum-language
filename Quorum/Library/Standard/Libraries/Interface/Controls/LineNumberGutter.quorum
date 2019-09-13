@@ -42,7 +42,7 @@ class LineNumberGutter is Gutter
 
         integer counter = 0
         number y = textBox:GetHeight()
-        repeat while counter < totalLines
+        repeat while counter < totalLines and y > -lineHeight
             Label label = GetLabel(counter)
             label:SetSize(fontSize)
             label:SetText("" + (startLine + counter + 1))

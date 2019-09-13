@@ -1583,6 +1583,87 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     /*
+    This action inserts the provided text at the requested global text index.
+    This action does not move the caret and has no otherwise visual impact.
+
+    Attribute: Parameter index The index to insert the new text at.
+    Attribute: Parameter value The new text to be inserted.
+    Attribute: Parameter moveCaret whether to move the caret
+    */
+    action Insert(integer index, text value, boolean moveCaret)
+        if moveCaret
+            Insert(index, value)
+            return now
+        end
+        value = SanitizeNewLines(value)
+        integer indexLine = GetLineIndexOfCharacter(index)
+        TextBoxEdit edit
+        edit:SetTextBox(me)
+
+        TextBoxEditState oldState = GetCurrentEditState()
+        edit:SetUndoState(oldState)
+
+        IncrementStyleIndices(index, value:GetSize())
+
+        integer caretTarget = -1
+
+        if index <= GetCaretPosition()
+            caretTarget = GetCaretPosition() + value:GetSize()
+        end
+
+        textValue = textValue:Insert(index, value)
+        
+        text separator = textValue:GetLineSeparator()
+
+        // Determine how many new lines are produced from the insert so that we
+        // know where to position the caret.
+        integer counter = 0
+        integer characters = 0
+        integer newLines = 0
+
+        //this checks all of the linefeeds and calculates how many there are.
+        integer indexToInsert = 0
+        integer searchIndex = 0
+        repeat while indexToInsert not= -1 and searchIndex < value:GetSize()
+            indexToInsert = value:IndexOf(separator, searchIndex)
+            if indexToInsert not= -1
+                newLines = newLines + 1
+                searchIndex = indexToInsert + separator:GetSize()
+            end
+        end
+
+        number lineWidth = GetLineWidth(indexLine)
+        if lineWidth > GetScrollRegionWidth()
+            // Increase scroll region width and resize bars.
+            // Setting the scroll region width to -1 forces recalculation.
+            scrollRegionWidth = -1
+            Resize()
+        end
+
+        if caretTarget >= 0
+            SetCaretPosition(caretTarget)
+        end
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
+        
+        if newLines = 0
+            integer indexOfLinePlacingTextOn = index - textValue:CharacterIndexFromLineIndex(indexLine)
+            InsertInLine(indexLine, indexOfLinePlacingTextOn, value)
+        else
+            GetLineDrawables()
+        end
+
+        TextBoxEditState newState = GetCurrentEditState()
+        edit:SetRedoState(newState)
+        editManager:Add(edit)
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, "", index)
+
+        NotifyTextChangeListeners(changeEvent)
+    end
+
+    /*
     This action inserts the provided text after the current caret's position.
     After the insertion, the caret will be placed immediately following the
     inserted text.
@@ -1604,6 +1685,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if shouldDeleteSelection
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
+        end
+
+        if shouldDeleteSelection
+            DeleteSelection()
+        else
+            EmptySelectionEvent(true)
         end
 
         IncrementStyleIndices(GetCaretPosition(), value:GetSize())
@@ -1675,12 +1762,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
         NotifyTextChangeListeners(changeEvent)
-
-        if shouldDeleteSelection
-            DeleteSelection()
-        else
-            EmptySelectionEvent(true)
-        end
     end
 
     action GetEditManager returns EditManager
