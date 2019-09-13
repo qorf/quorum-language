@@ -19,6 +19,7 @@ use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
 use Libraries.Game.GameStateManager
+use Libraries.Containers.Iterator
 
 class MenuBar is MenuRoot
     Layout defaultLayout = undefined
@@ -78,42 +79,42 @@ class MenuBar is MenuRoot
     end
 
     action MoveSelectionLeft
-        Array<MenuItem> path = GetSelection():GetPath()
-        if path:IsEmpty()
-            if menus:IsEmpty() = false
-            Array<MenuItem> array
-                array:Add(menus:GetFromEnd())
-                Select(array)
-            end
-
-            return now
-        end
-
-        if path:GetSize() <= 2
+        // Do a copy so modifying it here doesn't have side effects on the
+        // original selection (we need to preserve it for Select to use).
+        Array<MenuItem> path = GetSelection():GetPath():CopyToArray()
+        Array<MenuItem> newPath
+        if path:IsEmpty() and not menus:IsEmpty()
+            newPath:Add(menus:GetFromEnd())
+            Select(newPath)
+        elseif path:GetSize() <=2
             MenuItem name = path:Get(0)
             boolean shouldOpen = name:IsOpen()
             integer counter = 0
             repeat while counter < menus:GetSize()
                 MenuItem menu = menus:Get(counter)
                 if menu:Equals(name)
-                    integer index = counter - 1
+                    integer index = (counter - 1)
                     if index < 0
                         index = menus:GetSize() - 1
                     end
-                    path:Set(0, menus:Get(index))
+                    newPath:Add(menus:Get(index))
                     if shouldOpen
                         menus:Get(index):Open()
-                    else
-                        menus:Get(index):Close()
+                        Iterator<MenuItem> iter = menus:Get(index):GetMenuItems()
+                        if(iter:HasNext())
+                            newPath:Add(iter:Next())
+                        end
                     end
-                    Select(path)
+                    Select(newPath)
                     return now
                 end
                 counter = counter + 1
             end
-        else
-            path:RemoveFromEnd()
-            Select(path)
+        elseif path:GetSize() > 2
+            newPath = path
+            newPath:RemoveFromEnd()
+            newPath:GetFromEnd():Close()
+            Select(newPath)
         end
     end
 
@@ -159,6 +160,10 @@ class MenuBar is MenuRoot
                         path:Add(menus:Get(index))
                         if shouldOpen
                             menus:Get(index):Open()
+                            Iterator<MenuItem> iter = menus:Get(index):GetMenuItems()
+                            if(iter:HasNext())
+                                path:Add(iter:Next())
+                            end
                         else
                             menus:Get(index):Close()
                         end
