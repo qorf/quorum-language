@@ -401,8 +401,9 @@ class Compiler
                 JarGenerator generator
                 text manifest = GetManifest(request, generator, table)
                 //text compiledName = request:GetName(name)
-                File jar = GetExecutable(request)
+                File jar = undefined
                 if not request:isFastCompileRequest
+                    jar = GetExecutable(request)
                     generator:SetManifest(manifest)
                     generator:Open(jar)
                 end
@@ -419,10 +420,12 @@ class Compiler
                     clazz:CalculateFieldHints(errors)
                     File filePath = clazz:GetFile()
                     text needsPath = filePath:GetAbsolutePath()
-                    if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
-                        code:Write()
-                    else 
-                        code:SetBuildPaths()
+                    if not request:isFastCompileRequest
+                        if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                            code:Write()
+                        else 
+                            code:SetBuildPaths()
+                        end
                     end
                     
                     File build = code:GetBuildFile()
