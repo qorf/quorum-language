@@ -10,6 +10,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.TabFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
@@ -64,7 +65,16 @@ class TabBar is Control, ButtonGroup
             return now
         end
 
-        boolean reselect = (pane:GetCurrentItem() = tab:GetRelatedItem())
+        TabPaneSelection selection = pane:GetSelection()
+        boolean reselect = false
+
+        
+        integer index = selection:GetIndex()
+        Tab currentTab = selection:GetTab()
+        if currentTab = tab
+            reselect = true
+        end
+        pane:Deselect()
 
         tabs:Remove(tab)
         parent:Item2D:Remove(tab)
@@ -72,10 +82,16 @@ class TabBar is Control, ButtonGroup
 
         if reselect
             if tabs:GetSize() > 0
-                tabs:Get(0):SetToggleState(true)
+                index = index - 1
+                if index < 0
+                    index = 0
+                end
+                pane:Select(index)
             else
                 pane:UpdateSelection(undefined)
             end
+        else
+            pane:Select(currentTab)
         end
 
         Resize()
