@@ -67,7 +67,7 @@ use Libraries.Interface.Behaviors.Controls.TextFieldCutToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
-//use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
@@ -609,11 +609,11 @@ class Game
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
 
-//            InputSet textBoxDoubleClick
-//            textBoxDoubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
-//            textBoxDoubleClick:SetEventCount(2)
-//            TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
-//            textBoxTable:Add(textBoxDoubleClick, textBoxDoubleClickSelectWordBehavior)
+            InputSet textBoxDoubleClick
+            textBoxDoubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+            textBoxDoubleClick:SetEventCount(2)
+            TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
+            textBoxTable:Add(textBoxDoubleClick, textBoxDoubleClickSelectWordBehavior)
 
         else
             InputSet textBoxControlC
