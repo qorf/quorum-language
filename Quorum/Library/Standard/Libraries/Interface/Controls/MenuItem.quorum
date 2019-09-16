@@ -601,10 +601,9 @@ class MenuItem is Control
             Item2D item = menuItems:Get(counter)
             if item:Equals(previous)
 
-                // Select next item in the list, if there is one.
-                if counter + 1 < menuItems:GetSize()
-                    menuItems:Get(counter + 1):Select()
-                end
+                // Select next item in the list, wrap if needed
+                integer index = (counter + 1) mod menuItems:GetSize()
+                menuItems:Get(index):Select()
 
                 return now
             end
@@ -619,7 +618,7 @@ class MenuItem is Control
             if not open
                 Open()
             end
-            menuItems:Get(menuItems:GetSize() - 1):Select()
+            menuItems:Get(0):Select()
         end
     end
 
@@ -629,10 +628,12 @@ class MenuItem is Control
             Item2D item = menuItems:Get(counter)
             if item:Equals(previous)
 
-                // Select the previous element in the menu, if there is one.
-                if counter - 1 >= 0
-                    menuItems:Get(counter - 1):Select()
+                // Select the previous element in the menu, wrap if needed
+                integer index = counter - 1
+                if index < 0
+                    index = menuItems:GetSize() - 1
                 end
+                menuItems:Get(index):Select()
 
                 return now
             end

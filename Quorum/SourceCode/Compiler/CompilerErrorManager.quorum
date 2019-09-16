@@ -54,7 +54,39 @@ class CompilerErrorManager
         end
     end
 
-     action RemoveErrorsAtKey(text key) 
+    action ChangeErrorKey(text key, text newKey)
+        List<CompilerError> list = errorsPerFile:RemoveKey(key)
+        if list = undefined
+            return now
+        end
+        Iterator<CompilerError> iterator = list:GetIterator()
+        File file
+        file:SetAbsolutePath(newKey)
+        repeat while iterator:HasNext()
+            CompilerError error = iterator:Next()
+            error:SetFile(file)
+        end
+
+        errorsPerFile:Add(newKey, list)
+    end
+
+    action ChangeHintKey(text key, text newKey)
+        List<Hint> list = hintsPerFile:RemoveKey(key)
+        if list = undefined
+            return now
+        end
+        Iterator<Hint> iterator = list:GetIterator()
+        File file
+        file:SetAbsolutePath(newKey)
+        repeat while iterator:HasNext()
+            Hint hint = iterator:Next()
+            hint:SetFile(file)
+        end
+
+        hintsPerFile:Add(newKey, list)
+    end
+
+    action RemoveErrorsAtKey(text key) 
         if errorsPerFile:HasKey(key)
             List<CompilerError> list = errorsPerFile:RemoveKey(key)
             numberOfErrors = numberOfErrors - list:GetSize()
