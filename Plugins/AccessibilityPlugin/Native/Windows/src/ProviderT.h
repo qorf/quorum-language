@@ -119,37 +119,51 @@ public:
 
 	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override try
 	{
+		//log("Navigate 0");
 		*retVal = nullptr;
 		Item* destination = nullptr;
+
+		//const auto value = m_control->GetName();
+		//std::wcout << "Navigating in " << value << std::endl;
+		//std::wcout.flush();
 
 		switch (direction)
 		{
 			case NavigateDirection_Parent:
+				//log("Navigate 1");
 				destination = m_control->GetParent();
 				break;
 
 			case NavigateDirection_FirstChild:
+				//log("Navigate 2");
 				destination = m_control->GetFirstChild();
 				break;
 
 			case NavigateDirection_LastChild:
+				//log("Navigate 3");
 				destination = m_control->GetLastChild();
 				break;
 
 			case NavigateDirection_PreviousSibling:
+				//log("Navigate 4");
 				destination = m_control->GetPreviousSibling();
 				break;
 
 			case NavigateDirection_NextSibling:
+				//log("Navigate 5");
 				destination = m_control->GetNextSibling();
 				break;
 		}
 
+		//log("Navigate 6");
+
 		if (destination)
 		{
+			//log("Navigate 7");
 			*retVal = destination->GetProviderFragment().detach();
 		}
 
+		//log("Navigate 8");
 		return S_OK;
 	}
 	CATCH_RETURN();

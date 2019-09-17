@@ -409,7 +409,7 @@ class Compiler
                 end
 
                 //iterate over all the class opcodes and write them to disk
-                Iterator<ClassOpcode> codes = theOpcodes:GetValueIterator()//classOpcodes:GetIterator()
+                Iterator<ClassOpcode> codes = theOpcodes:GetValueIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
 
@@ -420,7 +420,7 @@ class Compiler
                     clazz:CalculateFieldHints(errors)
                     File filePath = clazz:GetFile()
                     text needsPath = filePath:GetAbsolutePath()
-                    if not request:isFastCompileRequest
+                    if not request:noWritingFiles = true
                         if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
                             code:Write()
                         else 

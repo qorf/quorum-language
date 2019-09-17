@@ -76,6 +76,9 @@ class Library
     end
     
     action GetLexer(text file) returns Lexer
+        if lexers = undefined
+            return undefined
+        end
         Lexer luthor = lexers:GetValue(file)
         return luthor
     end
@@ -178,6 +181,10 @@ class Library
             end
         end
 
+        //kill the lexers too
+        if not cacheOpcodes
+            lexers = undefined
+        end
         hasScannedStandardLibrary = true
         return sandboxCompilerErrorManager
     end

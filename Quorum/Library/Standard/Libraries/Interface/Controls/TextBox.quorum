@@ -188,6 +188,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     HashTable<text, TextStyle> styleTable
 
     Math math
+    constant number liner = math:SquareRoot(math:Logarithm(1.1))
 
     on create
         SetName("Text Box")
@@ -1787,7 +1788,28 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action ScrolledMouse(MouseEvent event)
-        number y = GetVerticalTrackPercentage(verticalControl:GetY() + event:scrollAmount * scrollDistance * 10)
+        number y = event:scrollAmount
+        boolean positive = true
+        if y < 0
+            positive = false
+            y = y * -1
+        end
+
+        y = y + 1
+        y = math:SquareRoot(math:Logarithm(y))
+        number lines = cast(integer, y / liner)
+        if lines <= 1
+            lines = 1
+        end
+        number count = GetLineCount()
+        number linePercentage = lines / count
+
+        number heightChange = linePercentage * lines
+
+        if not positive
+            heightChange = heightChange * -1
+        end
+        y = vertical + heightChange
         UpdatePaneView(horizontal, y)
     end
 

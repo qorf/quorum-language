@@ -181,13 +181,6 @@ class Math
     */
     system action InverseCosine(number value) returns number
 
-
-
-
-
-
-    constant text inverseTangent2Error = "Math InverseTangent2 error: x and y can't both be zero."
-
     //return result in radians
     action InverseTangent2(number x, number y) returns number
         if x > 0
@@ -201,7 +194,7 @@ class Math
         elseif (x = 0) and (y < 0)
             return pi
         else
-            alert(inverseTangent2Error)
+            alert("Math InverseTangent2 error: x and y can't both be zero.")
         end
     end
 
