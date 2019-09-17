@@ -412,6 +412,15 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	Item* itemToRemove = GetItemFromLong(item);
 
+	const auto windowRoot = GetMainWindowRoot();
+
+	// If we're removing the focus from the system, make sure the Quorum focus reflects that.
+	if (windowRoot->GetQuorumFocus() == itemToRemove)
+		windowRoot->SetQuorumFocus(nullptr);
+
+	// Attempt to remove any parent relations this might have. If it has none, this returns safely.
+	itemToRemove->RemoveFromParent();
+
 	delete itemToRemove;
 
 	return true;
@@ -430,6 +439,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	menuItemToRemove->RemoveFromParent();
 
+	delete menuItemToRemove;
+
 	return true;
 
 }
@@ -446,6 +457,8 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	}
 
 	treeItemToRemove->RemoveFromParent();
+
+	delete treeItemToRemove;
 
 	return true;
 

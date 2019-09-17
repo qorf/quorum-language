@@ -38,10 +38,12 @@ bool Item::HasUiaFocus() const noexcept
 void Item::SetQuorumFocus()
 {
 	const auto oldFocus = m_root->GetQuorumFocus();
+
 	if (oldFocus == this)
 	{
 		return;
 	}
+
 
 	m_root->SetQuorumFocus(this);
 	NotifyFocusGained();
