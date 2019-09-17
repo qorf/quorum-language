@@ -1,0 +1,28 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
+
+class TextBoxSavePreviousCaretPositionBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        /* When the SHIFT key is pressed, it will save the current caretPosition,
+        to be used by the TextBoxSelectToMouseClickBehvaior in determining the
+        selection start and end indices. 
+        */
+        TextBox textBox = cast(TextBox, item) 
+        integer caretPosition = textBox:GetCaretPosition()
+        textBox:SetPreviousCaretPosition(caretPosition)
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

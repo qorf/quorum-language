@@ -68,6 +68,8 @@ use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSavePreviousCaretPositionBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectToMouseClickBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
@@ -614,6 +616,21 @@ class Game
             textBoxDoubleClick:SetEventCount(2)
             TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
             textBoxTable:Add(textBoxDoubleClick, textBoxDoubleClickSelectWordBehavior)
+
+            InputSet textBoxSavePreviousCaretPosition
+            textBoxSavePreviousCaretPosition:SetKeyboardInput(keys:SHIFT_LEFT)
+            TextBoxSavePreviousCaretPositionBehavior textBoxSavePreviousCaretPositionBehavior
+            textBoxTable:Add(textBoxSavePreviousCaretPosition, textBoxSavePreviousCaretPositionBehavior)
+
+            InputSet textBoxSavePreviousCaretPosition2
+            textBoxSavePreviousCaretPosition2:SetKeyboardInput(keys:SHIFT_RIGHT)
+            textBoxTable:Add(textBoxSavePreviousCaretPosition2, textBoxSavePreviousCaretPositionBehavior)
+
+            InputSet textBoxSelectToMouseClick
+            textBoxSelectToMouseClick:SetMouseInput(mouse:CLICKED_MOUSE)
+            textBoxSelectToMouseClick:AddModifier(textBoxSelectToMouseClick:SHIFT)
+            TextBoxSelectToMouseClickBehavior textBoxSelectToMouseClickBehavior
+            textBoxTable:Add(textBoxSelectToMouseClick, textBoxSelectToMouseClickBehavior)
 
         else
             InputSet textBoxControlC

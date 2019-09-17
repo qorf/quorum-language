@@ -1,0 +1,36 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
+
+class TextBoxSelectToMouseClickBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        
+        /* When the mouse is clicked (with the SHIFT key being pressed) we will use
+        the previousCaretPosition (set by the SHIFT key press) and the current mouse-click
+        caret position to set the textbox selection. 
+        */
+        TextBox textBox = cast(TextBox, item) 
+        integer previousCaretPosition = textBox:GetPreviousCaretPosition()
+        integer caretPosition = textBox:GetCaretPosition()
+
+        if previousCaretPosition < caretPosition
+            textBox:Select(previousCaretPosition, caretPosition)
+        else
+            textBox:Select(caretPosition, previousCaretPosition)
+        end
+        
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end
