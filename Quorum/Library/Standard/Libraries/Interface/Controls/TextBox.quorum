@@ -106,6 +106,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     integer caretCharacter = 0
     number caretX = 0
 
+    /* 
+    The caret's previous position, which is set when the SHIFT key is pressed
+    and used in creating a selection following a mouse click
+    */
+    integer previousCaretPosition = 0
+
     TextBoxSelection selection
 
     /*
@@ -2756,5 +2762,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         return outputText
+    end
+
+    /*
+    This is set by the TextBoxSavePreviousCaretPositionBehavior for use by the 
+    TextBoxSelectToMouseClickBehavior in determining the selection indices based on 
+    the caret position prior to the mouse click
+    */
+    action SetPreviousCaretPosition(integer previous)
+        previousCaretPosition = previous
+    end
+
+    action GetPreviousCaretPosition returns integer
+        return previousCaretPosition
     end
 end
