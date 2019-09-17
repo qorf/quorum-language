@@ -21,4 +21,16 @@ class CompilerResult
     public Array<File> projectFiles = undefined
     public HashTable<text, Lexer> lexers
     public Array<Token> sourceTokens = undefined
+
+    /*
+        This action attempts to save memory by removing information that may 
+        not be necessary for many applications. Specifically, this removes any
+        opcodes used for writing files, and destroys the type checker, so it 
+        should not be used if this information is required in an application.
+        The symbol tabls and the lexers are left intact. 
+    */
+    action Dispose
+        typeChecker = undefined
+        opcodes = undefined
+    end
 end
