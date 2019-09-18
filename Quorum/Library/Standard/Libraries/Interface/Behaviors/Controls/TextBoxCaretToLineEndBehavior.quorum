@@ -15,9 +15,13 @@ class TextBoxCaretToLineEndBehavior is Behavior
         TextBox textBox = cast(TextBox, item)
 
         integer currentLine = textBox:GetCaretLine()
+        text textValue = textBox:GetCurrentLineText()
+        integer size = textValue:GetSize()
+        text separator = textBox:GetLineSeparator()
+        
 
         if textBox:GetLineCount() > currentLine + 1
-            textBox:SetCaretPosition(textBox:GetIndexOfLine(currentLine + 1) - 1)
+            textBox:SetCaretPosition((textBox:GetIndexOfLine(currentLine)) + (size - separator:GetSize()))
         else
             textBox:SetCaretPosition(textBox:GetSize())
         end

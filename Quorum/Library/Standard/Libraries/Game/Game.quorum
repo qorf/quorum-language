@@ -611,27 +611,6 @@ class Game
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
 
-            InputSet textBoxDoubleClick
-            textBoxDoubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
-            textBoxDoubleClick:SetEventCount(2)
-            TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
-            textBoxTable:Add(textBoxDoubleClick, textBoxDoubleClickSelectWordBehavior)
-
-            InputSet textBoxSavePreviousCaretPosition
-            textBoxSavePreviousCaretPosition:SetKeyboardInput(keys:SHIFT_LEFT)
-            TextBoxSavePreviousCaretPositionBehavior textBoxSavePreviousCaretPositionBehavior
-            textBoxTable:Add(textBoxSavePreviousCaretPosition, textBoxSavePreviousCaretPositionBehavior)
-
-            InputSet textBoxSavePreviousCaretPosition2
-            textBoxSavePreviousCaretPosition2:SetKeyboardInput(keys:SHIFT_RIGHT)
-            textBoxTable:Add(textBoxSavePreviousCaretPosition2, textBoxSavePreviousCaretPositionBehavior)
-
-            InputSet textBoxSelectToMouseClick
-            textBoxSelectToMouseClick:SetMouseInput(mouse:CLICKED_MOUSE)
-            textBoxSelectToMouseClick:AddModifier(textBoxSelectToMouseClick:SHIFT)
-            TextBoxSelectToMouseClickBehavior textBoxSelectToMouseClickBehavior
-            textBoxTable:Add(textBoxSelectToMouseClick, textBoxSelectToMouseClickBehavior)
-
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -878,6 +857,27 @@ class Game
         InputSet rightClickSetTextBox
         rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
         textBoxTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
+
+        InputSet doubleClick
+        doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        doubleClick:SetEventCount(2)
+        TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
+        textBoxTable:Add(doubleClick, textBoxDoubleClickSelectWordBehavior)
+
+        InputSet shiftLeft
+        shiftLeft:SetKeyboardInput(keys:SHIFT_LEFT)
+        TextBoxSavePreviousCaretPositionBehavior textBoxSavePreviousCaretPositionBehavior
+        textBoxTable:Add(shiftLeft, textBoxSavePreviousCaretPositionBehavior)
+
+        InputSet shiftRight
+        shiftRight:SetKeyboardInput(keys:SHIFT_RIGHT)
+        textBoxTable:Add(shiftRight, textBoxSavePreviousCaretPositionBehavior)
+
+        InputSet shiftMouseClick
+        shiftMouseClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        shiftMouseClick:AddModifier(shiftMouseClick:SHIFT)
+        TextBoxSelectToMouseClickBehavior textBoxSelectToMouseClickBehavior
+        textBoxTable:Add(shiftMouseClick, textBoxSelectToMouseClickBehavior)
 
         
         
