@@ -13,7 +13,8 @@ class TextBoxCaretToDocumentEndBehavior is Behavior
         end
 
         TextBox textBox = cast(TextBox, item)
-        textBox:SetCaretPosition(textBox:GetSize())        
+        textBox:SetCaretPosition(textBox:GetSize()) 
+        textBox:GoToLine(textBox:GetLineCount() - 1)
     end
 
     action IsFinished returns boolean
