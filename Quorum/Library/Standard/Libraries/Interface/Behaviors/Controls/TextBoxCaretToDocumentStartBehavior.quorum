@@ -13,7 +13,8 @@ class TextBoxCaretToDocumentStartBehavior is Behavior
         end
 
         TextBox textBox = cast(TextBox, item)
-        textBox:SetCaretPosition(0)        
+        textBox:SetCaretPosition(0)
+        textBox:GoToLine(0)
     end
 
     action IsFinished returns boolean
