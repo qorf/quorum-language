@@ -16,6 +16,7 @@
 #include "MenuControl.h"
 #include "MenuItemControl.h"
 #include "PopupMenuItemControl.h"
+#include "ProgressBarControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -224,6 +225,18 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	const auto pMenuBarControl = Create<MenuControl>(env, parentItem, wMenuBarName, jItem);
 
 	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
+
+	return GetItemAsLong(pMenuBarControl);
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateProgressBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem) {
+	const char* nativeMenuBarName = env->GetStringUTFChars(name, 0);
+	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pMenuBarControl = Create<MenuControl>(env, parentItem, wMenuBarName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeMenuBarName);
 
 	return GetItemAsLong(pMenuBarControl);
 }
@@ -577,6 +590,14 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	ButtonControl* button = static_cast<ButtonControl*>(GetItemFromLong(buttonPointer));
 	button->NotifyInvoked();
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ProgressBarValueChanged(JNIEnv*, jobject, jlong pointer, jdouble value)
+{
+	ProgressBarControl* progress = static_cast<ProgressBarControl*>(GetItemFromLong(pointer));
+	progress->SetValue(value);
 
 	return true;
 }

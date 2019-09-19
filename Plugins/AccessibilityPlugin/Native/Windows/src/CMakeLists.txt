@@ -29,6 +29,8 @@ add_library(AccessibilityManagerWindows MODULE
     MenuItemProvider.cpp
 	PopupMenuItemControl.cpp
     PopupMenuItemProvider.cpp
+	ProgressBarControl.cpp
+	ProgressBarProvider.cpp
     RadioButtonControl.cpp
     RadioButtonProvider.cpp
     Resources.cpp
