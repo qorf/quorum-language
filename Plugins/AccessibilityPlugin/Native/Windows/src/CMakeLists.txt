@@ -23,8 +23,12 @@ add_library(AccessibilityManagerWindows MODULE
     ListProvider.cpp
     MenuBarControl.cpp
     MenuBarProvider.cpp
+	MenuControl.cpp
+    MenuProvider.cpp
     MenuItemControl.cpp
     MenuItemProvider.cpp
+	PopupMenuItemControl.cpp
+    PopupMenuItemProvider.cpp
     RadioButtonControl.cpp
     RadioButtonProvider.cpp
     Resources.cpp
