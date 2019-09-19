@@ -18,6 +18,7 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
+import quorum.Libraries.Interface.Controls.MenuRoot_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
@@ -186,6 +187,7 @@ public class AccessibilityManager
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item, boolean isPopupMenu);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
+    private native boolean RemovePopupMenuItemNative(long itemToRemove);
     private native boolean RemoveMenuItemNative(long itemToRemove);
     private native boolean RemoveTreeItemNative(long itemToRemove);
 
@@ -418,7 +420,14 @@ public class AccessibilityManager
         switch(code)
         {
             case MENU_ITEM:
-                wasRemoved = RemoveMenuItemNative(itemToRemove);
+                MenuItem_ mi = (MenuItem_) item;
+                MenuRoot_ root = mi.GetMenuRoot();
+                int parentCode = root.GetAccessibilityCode();
+                if(parentCode == root.Get_Libraries_Interface_Item__POPUP_MENU_()) {
+                    wasRemoved = RemovePopupMenuItemNative(itemToRemove);
+                } else {
+                    wasRemoved = RemoveMenuItemNative(itemToRemove);
+                }
                 break;
             case TREE_ITEM:
                 wasRemoved = RemoveTreeItemNative(itemToRemove);
