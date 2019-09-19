@@ -394,7 +394,7 @@ public class AccessibilityManager
     }
     
     public boolean NativeRemove(Item_ item)
-    {
+    {   
         Long itemToRemove = ITEM_MAP.get(item);
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean wasRemoved;
@@ -405,40 +405,15 @@ public class AccessibilityManager
         
         switch(code)
         {
-            case ITEM:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-            case CUSTOM:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-            case BUTTON:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-            case RADIO_BUTTON:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-                
-            case TOGGLE_BUTTON:
-            case CHECKBOX:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-            case MENU_BAR:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
-            case TREE:
-                wasRemoved = RemoveNative(itemToRemove);
-                break;
             case MENU_ITEM:
                 wasRemoved = RemoveMenuItemNative(itemToRemove);
                 break;
             case TREE_ITEM:
                 wasRemoved = RemoveTreeItemNative(itemToRemove);
                 break;
-            case DIALOG:
+            default:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;
-            default:
-                return false;
         }
         
         if (wasRemoved) {
