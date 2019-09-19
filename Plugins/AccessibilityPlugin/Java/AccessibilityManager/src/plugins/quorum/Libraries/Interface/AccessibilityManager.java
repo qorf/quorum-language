@@ -19,6 +19,7 @@ import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.MenuRoot_;
+import quorum.Libraries.Interface.Controls.ProgressBar_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
@@ -174,6 +175,7 @@ public class AccessibilityManager
     private native long CreateTextFieldNative(long parent, String name, String description, TextField_ quorumField);
     private native long CreateMenuBarNative(long parent, String name, Item_ item);
     private native long CreateMenuNative(long parent, String name, Item_ item); //popup menus are called Menus in UIA
+    private native long CreateProgressBarNative(long parent, String name, Item_ item);
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -196,6 +198,7 @@ public class AccessibilityManager
     Accessible Object Event Response Functions
     */
     private native boolean ButtonInvoked(long nativePointer);
+    private native boolean ProgressBarValueChanged(long nativePointer, double value);
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
@@ -297,6 +300,9 @@ public class AccessibilityManager
                 break;
             case POPUP_MENU:
                 nativePointer = CreateMenuNative(parentLong, item.GetName(), item);
+                break;
+            case PROGRESS_BAR:
+                nativePointer = CreateProgressBarNative(parentLong, item.GetName(), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -633,6 +639,15 @@ public class AccessibilityManager
         
             UpdateCaretPositionNative(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
+    }
+    
+    public void ProgressBatValueChanged(ProgressBar_ item) {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        
+        ProgressBarValueChanged(nativePointer, item.GetValue());
     }
     
     public void NameChanged(Item_ item)
