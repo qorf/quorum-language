@@ -18,9 +18,12 @@ class TextBoxSelectToLineEndBehavior is Behavior
 
         integer currentLine = textBox:GetCaretLine()
         integer endIndex = 0
+        text textValue = textBox:GetCurrentLineText()
+        integer size = textValue:GetSize()
+        text separator = textBox:GetLineSeparator()
 
         if textBox:GetLineCount() > currentLine + 1
-            endIndex = textBox:GetIndexOfLine(currentLine + 1) - 1
+            endIndex = (textBox:GetIndexOfLine(currentLine) + (size - separator:GetSize()))
         else
             endIndex = textBox:GetSize()
         end
