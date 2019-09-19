@@ -72,7 +72,9 @@ public class AccessibilityManager
         LIST,
         LIST_ITEM,
         TREE_TABLE,
-        DIALOG
+        DIALOG,
+        POPUP_MENU,
+        PROGRESS_BAR
     }
             
     enum MenuChanges {
@@ -117,6 +119,8 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_TABLE_(), AccessibilityCodes.TREE_TABLE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__DIALOG_(), AccessibilityCodes.DIALOG);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__POPUP_MENU_(), AccessibilityCodes.POPUP_MENU);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PROGRESS_BAR_(), AccessibilityCodes.PROGRESS_BAR);
         
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -168,6 +172,7 @@ public class AccessibilityManager
     private native long CreateTextBoxNative(long parent, String name, String description, TextBox_ quorumSelf);
     private native long CreateTextFieldNative(long parent, String name, String description, TextField_ quorumField);
     private native long CreateMenuBarNative(long parent, String name, Item_ item);
+    private native long CreateMenuNative(long parent, String name, Item_ item); //popup menus are called Menus in UIA
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -178,7 +183,7 @@ public class AccessibilityManager
     private native long CreateSpreadsheetNative(long parent, String name, Item_ item);
     private native long CreateCellNative(long parent, String name, Item_ item);
     private native long CreateTreeTableNative(long parent, String name, Item_ item);
-    private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item);
+    private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item, boolean isPopupMenu);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
     private native boolean RemoveMenuItemNative(long itemToRemove);
@@ -288,6 +293,9 @@ public class AccessibilityManager
             case MENU_BAR:
                 nativePointer = CreateMenuBarNative(parentLong, item.GetName(), item);
                 break;
+            case POPUP_MENU:
+                nativePointer = CreateMenuNative(parentLong, item.GetName(), item);
+                break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
                 
@@ -306,7 +314,11 @@ public class AccessibilityManager
                 if (menuBar == null)
                     return false;
                 
-                nativePointer = CreateMenuItemNative(parentLong, menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item);
+                if(menuItem.GetAccessibilityCode() == menuItem.Get_Libraries_Interface_Item__POPUP_MENU_()) {
+                    nativePointer = CreateMenuItemNative(parentLong, menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item, true);
+                } else {
+                    nativePointer = CreateMenuItemNative(parentLong, menuItem.GetName(), menuItem.GetShortcut(), menuItem.IsMenu(), parentMenu, menuBar, item, false);
+                }
                 break;
             case TREE:
                 nativePointer = CreateTreeNative(parentLong, item.GetName(), item);
