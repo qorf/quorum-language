@@ -481,7 +481,24 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	delete menuItemToRemove;
 
 	return true;
+}
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemovePopupMenuItemNative(JNIEnv* env, jobject obj, jlong menuItem)
+{
+
+	PopupMenuItemControl* menuItemToRemove = static_cast<PopupMenuItemControl*>(GetItemFromLong(menuItem));
+
+	const auto parentMenuBar = menuItemToRemove->GetParentMenuBar();
+	if (parentMenuBar->GetSelectedMenuItem() == menuItemToRemove)
+	{
+		parentMenuBar->SetSelectedMenuItem(nullptr);
+	}
+
+	menuItemToRemove->RemoveFromParent();
+
+	delete menuItemToRemove;
+
+	return true;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveTreeItemNative(JNIEnv * env, jobject obj, jlong treeItem)
