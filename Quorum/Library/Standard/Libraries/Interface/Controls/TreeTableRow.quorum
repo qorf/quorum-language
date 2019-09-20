@@ -50,6 +50,15 @@ class TreeTableRow
     end
 
     /*
+    This action is called automatically by the TreeTable when removing a row from
+    the tree. This action alone does not fully remove a row from a TreeTable
+    */
+    action RemoveRow(TreeTableRow row)
+        children:Remove(row)
+        row:SetParent(undefined)
+    end
+
+    /*
     This action sets a reference to the parent TreeTableRow. It is called 
     automatically when a TreeTableRow is added as a child to another item. 
     Most users will not need to use this action directly.

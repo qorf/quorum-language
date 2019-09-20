@@ -68,6 +68,8 @@ use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxPageDownBehavior  
+//use Libraries.Interface.Behaviors.Controls.TextBoxPageUpBehavior  
 use Libraries.Interface.Behaviors.Controls.TextBoxSavePreviousCaretPositionBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToMouseClickBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
@@ -879,8 +881,16 @@ class Game
         TextBoxSelectToMouseClickBehavior textBoxSelectToMouseClickBehavior
         textBoxTable:Add(shiftMouseClick, textBoxSelectToMouseClickBehavior)
 
-        
-        
+        InputSet pageDown
+        pageDown:SetKeyboardInput(keys:PAGE_DOWN)
+        TextBoxPageDownBehavior textBoxPageDownBehavior
+        textBoxTable:Add(pageDown, textBoxPageDownBehavior)
+
+//        InputSet pageUp
+//        pageUp:SetKeyboardInput(keys:PAGE_UP)
+//        TextBoxPageUpBehavior textBoxPageUpBehavior
+//        textBoxTable:Add(pageUp, textBoxPageUpBehavior)
+               
         if manager:GetOperatingSystem():Contains("OS X")
             //first do copy paste
             InputSet textBoxSelectLeft

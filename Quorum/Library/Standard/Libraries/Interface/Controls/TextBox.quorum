@@ -189,6 +189,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     integer previousCaretPosition = 0
 
+    integer visibleStartLine = 0
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -901,6 +903,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number windowLines = (lines:GetSize() - viableLines) / 2.0
         number newVertical = 1.0 - ((line - windowLines) / viableLines)
         UpdatePaneView(horizontal, newVertical)
+    end
+
+    /* returns the number of lines that are currently visible in the textbox, 
+    used for pagedown and pageup behaviors */
+    action GetVisibleLines returns integer
+        return background:GetLineCount()
+    end
+    
+    action SetStartLine (integer startLine)
+        background:SetStartLine(startLine)
+    end
+
+    action GetStartLine returns integer
+        return background:GetStartLine()
     end
 
     private action EmptySelectionEvent(boolean textChanged)
