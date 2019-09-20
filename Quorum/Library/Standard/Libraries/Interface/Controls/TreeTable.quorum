@@ -211,31 +211,50 @@ class TreeTable is Control
     end
 
     action Remove(TreeTableRow row) returns boolean
-        integer topIndex = rows:GetFirstLocation(row)
-        if topIndex < 0
-            return false
+        if row = undefined
+            return now
         end
-
         integer index = GetFlattenedIndex(row)
+        TreeTableRow parentRow = row:GetParent()
+        if parentRow not= undefined and parentRow:GetChildren():GetSize() = 1
+            parentRow:SetExpandFlag(false)
+        end
         CloseRow(row)
 
         // If we're about to remove the selected cell, deselect it first.
         TreeTableCell selectedCell = selection:Get()
+        integer x = selection:GetX()
+        integer y = selection:GetY()
+        boolean reselect = false
         if selectedCell not= undefined and selectedCell:GetRow() = row
+            reselect = true
             Deselect()
         end
         
-        integer counter = 0
-        repeat while counter < columns:GetSize()
-            TreeTableColumn column = columns:Get(counter)
-            column:RemoveCellAt(index)
-            counter = counter + 1
+        if index >= 0
+            integer counter = 0
+            repeat while counter < columns:GetSize()
+                TreeTableColumn column = columns:Get(counter)
+                column:RemoveCellAt(index)
+                counter = counter + 1
+            end
         end
-
-        rows:RemoveAt(topIndex)
+        if row:GetTreeDepth() = 0
+            integer topIndex = rows:GetFirstLocation(row)
+            if topIndex < 0
+                return false
+            end
+            rows:RemoveAt(topIndex)
+        elseif parentRow not= undefined
+            parentRow:RemoveRow(row)
+        end
+        
         row:SetParentTreeTable(undefined)
         SetParentTreeTableReferences(row:GetChildren(), undefined)
 
+        if reselect
+            Select(x, y - 1)
+        end
         return true
     end
 

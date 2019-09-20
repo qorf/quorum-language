@@ -119,51 +119,62 @@ public:
 
 	IFACEMETHODIMP Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment** retVal) noexcept override try
 	{
-		//log("Navigate 0");
+		//std::wcout << L"Navigate 0" << std::endl;
+		//std::wcout.flush();
 		*retVal = nullptr;
 		Item* destination = nullptr;
 
-		//const auto value = m_control->GetName();
-		//std::wcout << "Navigating in " << value << std::endl;
+		const auto value = m_control->GetName();
+		//std::wcout << L"Navigating in " << value << std::endl;
+		//std::wcout << L"Navigating via pointer " << static_cast<void*>(m_control) << std::endl;
 		//std::wcout.flush();
 
 		switch (direction)
 		{
 			case NavigateDirection_Parent:
-				//log("Navigate 1");
+				//std::wcout << ("Navigate 1") << std::endl;
+				//std::wcout.flush();
 				destination = m_control->GetParent();
 				break;
 
 			case NavigateDirection_FirstChild:
-				//log("Navigate 2");
+				//std::wcout << ("Navigate 2") << std::endl;
+				//std::wcout.flush();
 				destination = m_control->GetFirstChild();
 				break;
 
 			case NavigateDirection_LastChild:
-				//log("Navigate 3");
+				//std::wcout << ("Navigate 3") << std::endl;
+				//std::wcout.flush();
 				destination = m_control->GetLastChild();
 				break;
 
 			case NavigateDirection_PreviousSibling:
-				//log("Navigate 4");
+				//std::wcout << ("Navigate 4") << std::endl;
+				//std::wcout.flush();
 				destination = m_control->GetPreviousSibling();
 				break;
 
 			case NavigateDirection_NextSibling:
-				//log("Navigate 5");
+				//std::wcout << ("Navigate 5") << std::endl;
+				//std::wcout.flush();
 				destination = m_control->GetNextSibling();
 				break;
 		}
 
-		//log("Navigate 6");
+		//std::wcout << ("Navigate 6") << std::endl;
 
 		if (destination)
 		{
-			//log("Navigate 7");
+			//std::wcout << L"Navigate 7" << std::endl;
+			//std::wcout << L"Destination pointer = " << static_cast<void*>(destination) << std::endl;
+			//std::wcout << L"Destination was " << destination->GetName() << std::endl;
+			//std::wcout.flush();
 			*retVal = destination->GetProviderFragment().detach();
 		}
 
-		//log("Navigate 8");
+		//std::wcout << L"Navigate 8" << std::endl;
+		//std::wcout.flush();
 		return S_OK;
 	}
 	CATCH_RETURN();

@@ -1,0 +1,88 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.System.File
+use Libraries.Interface.Views.ImageControlView
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+
+class ProgressBar is Control
+    Label label = undefined
+    Icon icon = undefined
+    LayoutProperties labelProperties
+    GameStateManager manager
+    number minimum = 0
+    number maximum = 100
+    number value = 0
+
+    on create
+        FlowLayout flowLayout
+        SetLayout(flowLayout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+        Font font
+        font:LoadFont("Arial")
+        properties:SetFont(font)
+        properties:SetFontSize(16)
+
+        Color color
+        Gradient gradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+
+        properties:SetBackgroundColor(gradient)
+        properties:SetBorderColor(color:Black())
+        properties:SetBorderThickness(2)
+        SetName("Progress Bar")
+
+        SetInputGroup("ProgressBar")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:PROGRESS_BAR)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        parent:Control:LoadGraphics(properties)
+    end
+
+
+    action GetMinimum returns number
+        return minimum
+    end
+
+    action SetMinimum(number minimum)
+        me:minimum = minimum
+    end
+
+    action GetMaximum returns number
+        return maximum
+    end
+
+    action SetMaximum(number maximum)
+        me:maximum = maximum
+    end
+
+    action GetValue returns number
+        return value
+    end
+
+    action SetValue(number value)
+        me:value = value
+    end
+end

@@ -30,17 +30,18 @@ JClass_TabPane JavaClass_TabPane;
 JClass_Tab JavaClass_Tab;
 JClass_ToolBar JavaClass_ToolBar;
 JClass_Dialog JavaClass_Dialog;
-JClass_Dialog JavaClass_List;
-JClass_Dialog JavaClass_ListItem;
-JClass_Dialog JavaClass_Spreadsheet;
-JClass_Dialog JavaClass_Cell;
+JClass_List JavaClass_List;
+JClass_ListItem JavaClass_ListItem;
+JClass_Spreadsheet JavaClass_Spreadsheet;
+JClass_Cell JavaClass_Cell;
+JClass_ProgressBar JavaClass_ProgressBar;
 JClass_Item JavaClass_Item;
 
 int outputCounter = 0;
 
 void log(std::string str) {
-	std::cout << str << std::endl;
-	std::cout.flush();
+	//std::cout << str << std::endl;
+	//std::cout.flush();
 }
 
 /**************************************************************
@@ -282,7 +283,23 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion
 
+	/********
+	* ProgressBar
+	********/
+#pragma region ProgressBar
+	// Load the class id
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/ProgressBar_");
 
+	// Assign the ClassId as a Global Reference
+	JavaClass_ProgressBar.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+
+	// Load the method ids
+	JavaClass_ProgressBar.GetValue = env->GetMethodID(JavaClass_ProgressBar.me, "GetValue", "()D");
+	JavaClass_ProgressBar.GetMinimum = env->GetMethodID(JavaClass_ProgressBar.me, "GetMinimum", "()D");
+	JavaClass_ProgressBar.GetMaximum = env->GetMethodID(JavaClass_ProgressBar.me, "GetMaximum", "()D");
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
 
 
 

@@ -126,6 +126,13 @@ struct JClass_Item
 	jmethodID GetName;
 	jmethodID GetDescription;
 };
+struct JClass_ProgressBar
+{
+	jclass me;
+	jmethodID GetValue;
+	jmethodID GetMinimum;
+	jmethodID GetMaximum;
+};
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
@@ -137,8 +144,9 @@ extern JClass_ToggleButton JavaClass_ToggleButton;
 extern JClass_Item JavaClass_Item;
 extern JClass_ToolBar JavaClass_ToolBar;
 extern JClass_Dialog JavaClass_Dialog;
-extern JClass_Dialog JavaClass_List;
-extern JClass_Dialog JavaClass_Spreadsheet;
-extern JClass_Dialog JavaClass_TreeTable;
-extern JClass_Dialog JavaClass_Cell;
-extern JClass_Dialog JavaClass_ListItem;
+extern JClass_List JavaClass_List;
+extern JClass_Spreadsheet JavaClass_Spreadsheet;
+extern JClass_TreeTable JavaClass_TreeTable;
+extern JClass_Cell JavaClass_Cell;
+extern JClass_ListItem JavaClass_ListItem;
+extern JClass_ProgressBar JavaClass_ProgressBar;

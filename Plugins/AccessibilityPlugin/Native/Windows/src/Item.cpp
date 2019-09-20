@@ -227,20 +227,6 @@ void Item::RemoveFromParent()
 
 void Item::RemoveFromParentInternal() noexcept
 {
-	if (m_previousSibling)
-	{
-		FAIL_FAST_IF_NULL(m_parent);
-		m_previousSibling->m_nextSibling = m_nextSibling;
-		m_previousSibling = nullptr;
-	}
-
-	if (m_nextSibling)
-	{
-		FAIL_FAST_IF_NULL(m_parent);
-		m_nextSibling->m_previousSibling = m_previousSibling;
-		m_nextSibling = nullptr;
-	}
-
 	if (m_parent)
 	{
 		if (this == m_parent->m_firstChild)
@@ -255,9 +241,19 @@ void Item::RemoveFromParentInternal() noexcept
 		m_parent = nullptr;
 	}
 
+	if (m_previousSibling)
+		m_previousSibling->m_nextSibling = m_nextSibling;
+
+	if (m_nextSibling)
+		m_nextSibling->m_previousSibling = m_previousSibling;
+
+	m_previousSibling = nullptr;
+	m_nextSibling = nullptr;
+
 	if (m_root)
 	{
-		SetRootRecursive(nullptr);
+		// If this is enabled, this can cause crashing when closing Menus/Trees. Theoretically, this shouldn't be necessary, as the accessibility manager in Quorum always removes all children before the parent item.
+		//SetRootRecursive(nullptr);
 	}
 }
 
