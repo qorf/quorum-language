@@ -19,6 +19,7 @@ use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Events.ProgressBarValueChangedEvent
 
 class ProgressBar is Control
     Label label = undefined
@@ -83,6 +84,16 @@ class ProgressBar is Control
     end
 
     action SetValue(number value)
+        
+
+        AccessibilityManager access = manager:GetAccessibilityManager()
+        if access not= undefined
+            ProgressBarValueChangedEvent event
+            event:SetOldValue(me:value)
+            event:SetNewValue(value)
+            event:SetProgressBar(me)
+            access:ProgressBarValueChanged(event)
+        end
         me:value = value
     end
 end
