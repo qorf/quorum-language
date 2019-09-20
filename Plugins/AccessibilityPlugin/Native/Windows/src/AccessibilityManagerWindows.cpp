@@ -75,6 +75,8 @@ ControlT* Create(JNIEnv* env, _In_opt_ Item* parent, TArgs&&... args)
 
 	const auto control = new ControlT(env, std::forward<TArgs>(args)...);
 	parent->AppendChild(control);
+	//std::wcout << L"Created/appended item " << control->GetName() << std::endl;
+	//std::wcout.flush();
 	return control;
 }
 
@@ -417,9 +419,6 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	// If we're removing the focus from the system, make sure the Quorum focus reflects that.
 	if (windowRoot->GetQuorumFocus() == itemToRemove)
 		windowRoot->SetQuorumFocus(nullptr);
-
-	// Attempt to remove any parent relations this might have. If it has none, this returns safely.
-	itemToRemove->RemoveFromParent();
 
 	delete itemToRemove;
 

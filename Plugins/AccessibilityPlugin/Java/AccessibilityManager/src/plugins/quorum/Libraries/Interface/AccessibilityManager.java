@@ -230,7 +230,7 @@ public class AccessibilityManager
 
         if (code == AccessibilityCodes.NOT_ACCESSIBLE)
             return false;
-        
+
         long parentLong = GetAccessibleParentHelper(item);
         switch(code)
         {
@@ -394,7 +394,7 @@ public class AccessibilityManager
     }
     
     public boolean NativeRemove(Item_ item)
-    {   
+    {
         Long itemToRemove = ITEM_MAP.get(item);
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
         boolean wasRemoved;
@@ -402,7 +402,7 @@ public class AccessibilityManager
         // Retreive native pointer for given object
         if (itemToRemove == null)
             return true;
-        
+
         switch(code)
         {
             case MENU_ITEM:
