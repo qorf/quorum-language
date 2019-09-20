@@ -13,7 +13,10 @@
 #include "CheckBoxControl.h"
 #include "TextBoxControl.h"
 #include "MenuBarControl.h"
+#include "MenuControl.h"
 #include "MenuItemControl.h"
+#include "PopupMenuItemControl.h"
+#include "ProgressBarControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -216,7 +219,31 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	return GetItemAsLong(pMenuBarControl);
 }
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv * env, jobject obj, jlong parent, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuNative(JNIEnv* env, jobject obj, jlong parent, jstring menuBarName, jobject jItem) {
+	const char* nativeMenuBarName = env->GetStringUTFChars(menuBarName, 0);
+	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pMenuBarControl = Create<MenuControl>(env, parentItem, wMenuBarName, jItem);
+
+	env->ReleaseStringUTFChars(menuBarName, nativeMenuBarName);
+
+	return GetItemAsLong(pMenuBarControl);
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateProgressBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem) {
+	const char* nativeMenuBarName = env->GetStringUTFChars(name, 0);
+	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pMenuBarControl = Create<MenuControl>(env, parentItem, wMenuBarName, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeMenuBarName);
+
+	return GetItemAsLong(pMenuBarControl);
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv * env, jobject obj, jlong parent, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar, jobject jItem, jboolean isPopupMenu)
 {
 	const char* nativeMenuItemName = env->GetStringUTFChars(menuItemName, 0);
 	const char* nativeMenuShortcut = env->GetStringUTFChars(menuShortcut, 0);
@@ -224,27 +251,52 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wMenuItemName = CreateWideStringFromUTF8Win32(nativeMenuItemName);
 	WCHAR* wMenuShortcut = CreateWideStringFromUTF8Win32(nativeMenuShortcut);
 
-	MenuBarControl* pMenuBar = static_cast<MenuBarControl*>(GetItemFromLong(parentMenuBar));
+	if (isPopupMenu) {
+		MenuControl* pMenuBar = static_cast<MenuControl*>(GetItemFromLong(parentMenuBar));
 
-	Item* parentItem = nullptr;
-	
-	if (parentMenu)
-	{
-		parentItem = static_cast<MenuItemControl*>(GetItemFromLong(parentMenu));
+		Item* parentItem = nullptr;
+
+		if (parentMenu)
+		{
+			parentItem = static_cast<MenuItemControl*>(GetItemFromLong(parentMenu));
+		}
+		else
+		{
+			parentItem = pMenuBar;
+		}
+
+		const auto menuItemControl = new PopupMenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar, jItem);
+
+		parentItem->AppendChild(menuItemControl);
+
+		env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
+		env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
+
+		return GetItemAsLong(menuItemControl);
 	}
-	else
-	{
-		parentItem = pMenuBar;
+	else {
+		MenuBarControl* pMenuBar = static_cast<MenuBarControl*>(GetItemFromLong(parentMenuBar));
+
+		Item* parentItem = nullptr;
+
+		if (parentMenu)
+		{
+			parentItem = static_cast<MenuItemControl*>(GetItemFromLong(parentMenu));
+		}
+		else
+		{
+			parentItem = pMenuBar;
+		}
+
+		const auto menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar, jItem);
+
+		parentItem->AppendChild(menuItemControl);
+
+		env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
+		env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
+
+		return GetItemAsLong(menuItemControl);
 	}
-	
-	const auto menuItemControl = new MenuItemControl(env, wMenuItemName, wMenuShortcut, (bool)isMenu, pMenuBar, jItem);
-
-	parentItem->AppendChild(menuItemControl);
-
-	env->ReleaseStringUTFChars(menuItemName, nativeMenuItemName);
-	env->ReleaseStringUTFChars(menuShortcut, nativeMenuShortcut);
-
-	return GetItemAsLong(menuItemControl);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabPaneNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -441,7 +493,24 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	delete menuItemToRemove;
 
 	return true;
+}
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemovePopupMenuItemNative(JNIEnv* env, jobject obj, jlong menuItem)
+{
+
+	PopupMenuItemControl* menuItemToRemove = static_cast<PopupMenuItemControl*>(GetItemFromLong(menuItem));
+
+	const auto parentMenuBar = menuItemToRemove->GetParentMenuBar();
+	if (parentMenuBar->GetSelectedMenuItem() == menuItemToRemove)
+	{
+		parentMenuBar->SetSelectedMenuItem(nullptr);
+	}
+
+	menuItemToRemove->RemoveFromParent();
+
+	delete menuItemToRemove;
+
+	return true;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveTreeItemNative(JNIEnv * env, jobject obj, jlong treeItem)
@@ -520,6 +589,14 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	ButtonControl* button = static_cast<ButtonControl*>(GetItemFromLong(buttonPointer));
 	button->NotifyInvoked();
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ProgressBarValueChanged(JNIEnv*, jobject, jlong pointer, jdouble value)
+{
+	ProgressBarControl* progress = static_cast<ProgressBarControl*>(GetItemFromLong(pointer));
+	progress->SetValue(value);
 
 	return true;
 }
