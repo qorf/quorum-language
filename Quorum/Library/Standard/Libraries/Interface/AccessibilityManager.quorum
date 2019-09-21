@@ -37,6 +37,11 @@ use Libraries.Game.GameStateManager
 class AccessibilityManager 
 
     private boolean debugOutput = false
+    GameStateManager manager
+
+    // The last item that Accessibility sent a focus event to UIA for.
+    // Used to determine if a new focus was selected during the last frame of animation.
+    Item lastFocused = undefined
 
     // SetFocus: Tells the accessibility manager that focus has changed to the 
     //           given Item. As far as the native code is concerned, focus changes
@@ -84,7 +89,16 @@ class AccessibilityManager
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
-    system action Update
+    action Update
+        Item focus = manager:GetFocus()
+        if focus not= lastFocused
+            FocusEvent event
+            event:Initialize(lastFocused, focus)
+            FocusChanged(event)
+            
+            lastFocused = focus
+        end
+    end
 
     system action NameChanged(Item item)
 
@@ -284,7 +298,6 @@ class AccessibilityManager
 
     action WindowFocusChanged(WindowFocusEvent event)
         if event:IsFocused()
-            GameStateManager manager
             Item item = manager:GetFocus()
             if item not= undefined
                 if item:GetAccessibilityCode() not= item:ITEM
