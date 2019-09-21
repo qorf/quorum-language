@@ -46,5 +46,6 @@ IFACEMETHODIMP ProgressBarProvider::get_Value(double* pRetVal) noexcept
 }
 IFACEMETHODIMP ProgressBarProvider::SetValue(double val) noexcept
 {
+	m_control->SetValue(val);
 	return S_OK;
 }

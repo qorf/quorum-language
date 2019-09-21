@@ -9,16 +9,41 @@ ProgressBarControl::ProgressBarControl(JNIEnv* env, std::wstring&& name, std::ws
 }
 
 double ProgressBarControl::GetValue() {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetValue);
+		return value;
+	}
 	return 0;
 }
 void ProgressBarControl::SetValue(double value) {
 	if (UiaClientsAreListening()) {
-		UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationPropertyChangedEventId);
+
+		VARIANT oldState, newState;
+		oldState.vt = VT_R8;
+		newState.vt = VT_R8;
+		oldState.lVal = GetValue();
+		newState.lVal = value;
+		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_HelpTextPropertyId, oldState, newState);
+		//UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationPropertyChangedEventId);
 	}
 }
 double ProgressBarControl::GetMinimum() {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetMinimum);
+		return value;
+	}
 	return 0;
 }
 double ProgressBarControl::GetMaximum() {
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetMaximum);
+		return value;
+	}
 	return 100;
 }

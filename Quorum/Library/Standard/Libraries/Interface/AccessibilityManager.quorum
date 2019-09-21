@@ -32,6 +32,8 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Cell
 use Libraries.Interface.Controls.ListItem
 use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.ProgressBar
+use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
@@ -83,6 +85,13 @@ class AccessibilityManager
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
     private system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
+
+    private system action ProgressBarValueChanged(ProgressBar progress)
+
+    action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+        ProgressBar bar = progress:GetProgressBar()
+        ProgressBarValueChanged(bar)
+    end
 
     // =====
 
