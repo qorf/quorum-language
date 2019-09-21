@@ -670,14 +670,6 @@ public class AccessibilityManager
         DescriptionChangedNative(nativePointer, item.GetDescription());
     }
     
-    public void Update()
-    {
-        /*
-        Do nothing. Currently, there is no work that needs to be handled on a
-        per-frame basis for Windows accessibility.
-        */
-    }
-    
     public boolean OnButtonActivation(Button_ button)
     {
         if (ITEM_MAP.containsKey(button) == false)
