@@ -641,7 +641,7 @@ public class AccessibilityManager
         }
     }
     
-    public void ProgressBatValueChanged(ProgressBar_ item) {
+    public void ProgressBarValueChanged(ProgressBar_ item) {
         if (ITEM_MAP.containsKey(item) == false)
             return;
         
