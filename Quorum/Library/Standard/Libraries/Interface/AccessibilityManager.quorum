@@ -32,11 +32,18 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Cell
 use Libraries.Interface.Controls.ListItem
 use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.ProgressBar
+use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Game.GameStateManager
 
 class AccessibilityManager 
 
     private boolean debugOutput = false
+    GameStateManager manager
+
+    // The last item that Accessibility sent a focus event to UIA for.
+    // Used to determine if a new focus was selected during the last frame of animation.
+    Item lastFocused = undefined
 
     // SetFocus: Tells the accessibility manager that focus has changed to the 
     //           given Item. As far as the native code is concerned, focus changes
@@ -79,12 +86,28 @@ class AccessibilityManager
     //                       been added or removed.
     private system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
 
+    private system action ProgressBarValueChanged(ProgressBar progress)
+
+    action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+        ProgressBar bar = progress:GetProgressBar()
+        ProgressBarValueChanged(bar)
+    end
+
     // =====
 
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
 
-    system action Update
+    action Update
+        Item focus = manager:GetFocus()
+        if focus not= lastFocused
+            FocusEvent event
+            event:Initialize(lastFocused, focus)
+            FocusChanged(event)
+            
+            lastFocused = focus
+        end
+    end
 
     system action NameChanged(Item item)
 
@@ -284,7 +307,6 @@ class AccessibilityManager
 
     action WindowFocusChanged(WindowFocusEvent event)
         if event:IsFocused()
-            GameStateManager manager
             Item item = manager:GetFocus()
             if item not= undefined
                 if item:GetAccessibilityCode() not= item:ITEM

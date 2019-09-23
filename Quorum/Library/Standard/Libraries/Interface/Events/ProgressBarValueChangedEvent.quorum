@@ -1,0 +1,33 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.ProgressBar
+
+class ProgressBarValueChangedEvent 
+    number oldValue = 0
+    number newValue = 0
+    ProgressBar bar = undefined
+    
+    action GetNewValue returns number
+        return newValue
+    end 
+
+    action GetOldValue returns number
+        return oldValue
+    end
+
+    action SetNewValue(number value)
+        newValue = value
+    end
+
+    action SetOldValue(number value)
+        oldValue = value
+    end
+
+    action GetProgressBar returns ProgressBar
+        return bar
+    end
+
+    action SetProgressBar(ProgressBar bar)
+        me:bar = bar
+    end
+end

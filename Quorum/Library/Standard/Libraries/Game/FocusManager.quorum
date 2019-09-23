@@ -54,11 +54,6 @@ class FocusManager is KeyboardListener
         event:Initialize(oldFocus, item)
         
         focused = item
-        
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
-        if accessibility not= undefined
-            accessibility:FocusChanged(event)
-        end
 
         if oldFocus not= undefined
             oldFocus:LostFocus(event)

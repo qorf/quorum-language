@@ -641,7 +641,7 @@ public class AccessibilityManager
         }
     }
     
-    public void ProgressBatValueChanged(ProgressBar_ item) {
+    public void ProgressBarValueChanged(ProgressBar_ item) {
         if (ITEM_MAP.containsKey(item) == false)
             return;
         
@@ -668,14 +668,6 @@ public class AccessibilityManager
         long nativePointer = ITEM_MAP.get(item);
         
         DescriptionChangedNative(nativePointer, item.GetDescription());
-    }
-    
-    public void Update()
-    {
-        /*
-        Do nothing. Currently, there is no work that needs to be handled on a
-        per-frame basis for Windows accessibility.
-        */
     }
     
     public boolean OnButtonActivation(Button_ button)
