@@ -231,16 +231,19 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	return GetItemAsLong(pMenuBarControl);
 }
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateProgressBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem) {
-	const char* nativeMenuBarName = env->GetStringUTFChars(name, 0);
-	WCHAR* wMenuBarName = CreateWideStringFromUTF8Win32(nativeMenuBarName);
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateProgressBarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
 	const auto parentItem = GetItemFromLong(parent);
-	const auto pMenuBarControl = Create<MenuControl>(env, parentItem, wMenuBarName, jItem);
+	const auto pControl = Create<ProgressBarControl>(env, parentItem, wName, wDescription, jItem);
 
-	env->ReleaseStringUTFChars(name, nativeMenuBarName);
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return GetItemAsLong(pMenuBarControl);
+	return GetItemAsLong(pControl);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv * env, jobject obj, jlong parent, jstring menuItemName, jstring menuShortcut, jboolean isMenu, jlong parentMenu, jlong parentMenuBar, jobject jItem, jboolean isPopupMenu)

@@ -19,14 +19,12 @@ double ProgressBarControl::GetValue() {
 }
 void ProgressBarControl::SetValue(double value) {
 	if (UiaClientsAreListening()) {
-
 		VARIANT oldState, newState;
 		oldState.vt = VT_R8;
 		newState.vt = VT_R8;
 		oldState.lVal = GetValue();
 		newState.lVal = value;
-		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_HelpTextPropertyId, oldState, newState);
-		//UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationPropertyChangedEventId);
+		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_RangeValueValuePropertyId, oldState, newState);
 	}
 }
 double ProgressBarControl::GetMinimum() {
