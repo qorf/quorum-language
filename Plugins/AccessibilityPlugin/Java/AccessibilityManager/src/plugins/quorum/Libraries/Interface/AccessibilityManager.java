@@ -175,7 +175,7 @@ public class AccessibilityManager
     private native long CreateTextFieldNative(long parent, String name, String description, TextField_ quorumField);
     private native long CreateMenuBarNative(long parent, String name, Item_ item);
     private native long CreateMenuNative(long parent, String name, Item_ item); //popup menus are called Menus in UIA
-    private native long CreateProgressBarNative(long parent, String name, Item_ item);
+    private native long CreateProgressBarNative(long parent, String name, String description, Item_ item);
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -302,7 +302,7 @@ public class AccessibilityManager
                 nativePointer = CreateMenuNative(parentLong, item.GetName(), item);
                 break;
             case PROGRESS_BAR:
-                nativePointer = CreateProgressBarNative(parentLong, item.GetName(), item);
+                nativePointer = CreateProgressBarNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
