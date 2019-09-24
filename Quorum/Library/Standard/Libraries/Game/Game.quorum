@@ -1541,15 +1541,19 @@ class Game
     */
     action ContinueGame
         gameInput:ProcessInputEvents()
-        if accessibility not= undefined
-            accessibility:Update()
-        end
         UpdateAll()
+        
         number seconds = GetSecondsBetweenFrames()
         Update(seconds)
+        
         if collide
             TestForCollisions(seconds)
         end
+
+        if accessibility not= undefined
+            accessibility:Update()
+        end
+
         ClearScreen()
         DrawAll()
     end
