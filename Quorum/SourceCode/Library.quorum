@@ -34,6 +34,33 @@ class Library
     HashTable<text, ClassOpcode> opcodes
     HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
+    Array<CompilerListener> listeners
+
+    action AddListener(CompilerListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveListener(CompilerListener listener)
+        listeners:Remove(listener)
+    end
+
+    private action UpdateListenerLabels(text label)
+        i = 0
+        repeat while i < listeners:GetSize()
+            CompilerListener listener = listeners:Get(i)
+            listener:UpdateLabel(label)
+            i = i + 1
+        end
+    end
+
+    private action UpdateListenerPercentage(number percentage)
+        i = 0
+        repeat while i < listeners:GetSize()
+            CompilerListener listener = listeners:Get(i)
+            listener:UpdatePercentageComplete(percentage)
+            i = i + 1
+        end
+    end
 
     action GetOpcodes returns Iterator<ClassOpcode>
         return opcodes:GetValueIterator()
@@ -127,6 +154,7 @@ class Library
 
     action Scan returns CompilerErrorManager
         hasScannedStandardLibrary = false
+        UpdateListenerLabels("Started Scanning")
         if outputFolder not= undefined
             buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             runJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
@@ -146,8 +174,12 @@ class Library
         CompilerErrorManager sandboxCompilerErrorManager
         TypeChecker sandboxTypeChecker
 
+        UpdateListenerLabels("Scanning Standard Library Folder")
         Compiler compiler
         Array<File> lib = CollectQuorumFiles()
+        UpdateListenerLabels("Parsing")
+        number max = lib:GetSize() * 2.0
+        number percentage = 0
         integer i = 0
         repeat lib:GetSize() times
             File file = lib:Get(i)
@@ -158,11 +190,14 @@ class Library
                 text value = file:GetAbsolutePath()
                 lexers:Add(value, luthor)
             end
+            UpdateListenerPercentage(100.0 * cast(number, i + 50) / max)
             i = i + 1
         end
 
+        UpdateListenerLabels("Type Checking")
         compiler:TypeResolution(librarySymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
 
+        UpdateListenerLabels("Semantic Analysis")
         Array<ClassOpcode> classOpcodes
         if sandboxCompilerErrorManager:IsCompilationErrorFree()
             i = 0
@@ -177,6 +212,7 @@ class Library
                     Class clazz = op:GetClass()
                     opcodes:Add(clazz:GetStaticKey(), op)
                 end
+                UpdateListenerPercentage(100.0 * cast(number, i) / max)
                 i = i + 1
             end
         end
@@ -186,6 +222,8 @@ class Library
             lexers = undefined
         end
         hasScannedStandardLibrary = true
+        UpdateListenerLabels("All done!")
+        UpdateListenerPercentage(100)
         return sandboxCompilerErrorManager
     end
 
