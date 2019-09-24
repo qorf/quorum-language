@@ -1,0 +1,34 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+
+class TextBoxPageUpBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox textBox = cast(TextBox, item)
+        integer totalLines = textBox:GetLineCount()
+        //returns the number of lines that are visible in the textbox
+        integer visibleLines = textBox:GetVisibleLines() - 1
+        integer startLine = textBox:GetStartLine()
+        integer newStart = startLine - visibleLines
+        if newStart >= 0
+            textBox:SetCaretPositionToLine(newStart)
+            textBox:SetStartLine(newStart)
+            textBox:GoToLine(newStart + (visibleLines / 2) + 1)     //focuses to the center of the textbox so need to find middle line
+        else
+            textBox:SetCaretPositionToLine(0)
+            textBox:GoToLine(0)
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end
