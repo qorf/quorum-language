@@ -190,7 +190,8 @@ class Library
                 text value = file:GetAbsolutePath()
                 lexers:Add(value, luthor)
             end
-            UpdateListenerPercentage(100.0 * cast(number, i + 50) / max)
+            number val = 100.0 * cast(number, i) / max
+            UpdateListenerPercentage(val)
             i = i + 1
         end
 
@@ -212,7 +213,8 @@ class Library
                     Class clazz = op:GetClass()
                     opcodes:Add(clazz:GetStaticKey(), op)
                 end
-                UpdateListenerPercentage(100.0 * cast(number, i) / max)
+                number val = 100.0 * (cast(number, i) / max) + 50.0
+                UpdateListenerPercentage(val)
                 i = i + 1
             end
         end

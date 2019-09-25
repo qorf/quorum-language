@@ -166,8 +166,10 @@ public class JavaToQuorumListener implements QuorumListener {
         QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
         
         context.name = name;
-        name.Add(ctx.ID().getText());
-        
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            name.Add(ID.getText());
+        }
         
         if(generic != null) {
             List<Token> tokenList = generic.ids;
