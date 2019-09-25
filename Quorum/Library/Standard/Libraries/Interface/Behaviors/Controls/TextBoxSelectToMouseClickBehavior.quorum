@@ -23,14 +23,41 @@ class TextBoxSelectToMouseClickBehavior is Behavior
         integer caretPosition = textBox:GetCaretPosition()
 
         if previousCaretPosition < caretPosition
-            textBox:Select(previousCaretPosition, caretPosition)
+            if caretPosition = textBox:GetSize()
+                textBox:Select(previousCaretPosition, caretPosition)
+            //the caret was placed at the end of the word
+            elseif IsWhiteSpace(textBox:GetText(caretPosition, caretPosition + 1)) 
+                textBox:Select(previousCaretPosition, caretPosition, true)
+            //the caret is at the beginning or in the middle of a word 
+            else
+                textBox:Select(previousCaretPosition, caretPosition, false)
+            end
         else
-            textBox:Select(caretPosition, previousCaretPosition)
+            if previousCaretPosition = textBox:GetSize()
+                textBox:Select(caretPosition, previousCaretPosition)
+            elseif IsWhiteSpace(textBox:GetText(previousCaretPosition, previousCaretPosition + 1))
+                textBox:Select(caretPosition, previousCaretPosition, true)
+            else
+                textBox:Select(caretPosition, previousCaretPosition, false)
+            end    
         end
         
     end
 
     action IsFinished returns boolean
         return true
+    end
+
+    private action IsWhiteSpace(text value) returns boolean
+        text tab = value:GetTab()
+        text cr = value:GetCarriageReturn()
+        text lf = value:GetLineFeed()
+        text space = " "
+
+        if value = tab or value = cr or value = lf or value = space
+            return true
+        end
+
+        return false
     end
 end

@@ -3,52 +3,55 @@ package Libraries.Interface.Behaviors.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Item
-use Libraries.Interface.Controls.TextBox
-use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Selections.TextFieldSelection
 
-class TextBoxDoubleClickSelectWordBehavior is Behavior
+class TextFieldDoubleClickSelectWordBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
-        if not (item is TextBox)
+        if not (item is TextField)
             return now
         end
 
-        TextBox textBox = cast(TextBox, item)  
-        integer endOfLineIndex = 0
-        integer caretPosition = textBox:GetCaretPosition()
-        integer lineCount = textBox:GetLineCount()
-        integer lineNumber = textBox:GetCaretLine()
-        integer beginOfLineIndex = textBox:GetIndexOfLine(lineNumber)
+        TextField textField = cast(TextField, item) 
+        text textValue = textField:GetText()
+ 
+        //integer endOfLineIndex = 0
+        integer caretPosition = textField:GetCaretPosition()
+        integer endOfLineIndex = textField:GetSize()
+        //integer lineCount = textBox:GetLineCount()
+        //integer lineNumber = textBox:GetCaretLine()
+        //integer beginOfLineIndex = textBox:GetIndexOfLine(lineNumber)
 
         /* if the double-click is occurring on the last line of the textbox, then the 
         endOfLineIndex should just be the textBox size */
-        if lineNumber = (lineCount - 1)
-            endOfLineIndex = textBox:GetSize()
-        else
-            integer nextLineIndex = textBox:GetIndexOfLine(lineNumber + 1)      
-            endOfLineIndex = nextLineIndex - 1
-        end
+//        if lineNumber = (lineCount - 1)
+//            endOfLineIndex = textBox:GetSize()
+//        else
+//            integer nextLineIndex = textBox:GetIndexOfLine(lineNumber + 1)      
+//            endOfLineIndex = nextLineIndex - 1
+//        end
 
         
         boolean beginWordIsFinished = false
         integer beginIndex = caretPosition
         boolean selectionIsSpecialCharacter = false
 
-        /* find the index of the beginning of the selection determined by whitespace or a special character, 
+        /* find the index of the beginning of the selection determined by whitespace, begininning of the textField, or a special character, 
         if the selection is a special character, then set the flag to determine the number of special characters to 
         include in the selection */
-        repeat while beginIndex >= beginOfLineIndex and not(beginWordIsFinished)  
-            if beginIndex = beginOfLineIndex
+        repeat while beginIndex >= 0 and not(beginWordIsFinished)  
+            if beginIndex = 0
                 beginWordIsFinished = true
             else
-                text previousCharacter = textBox:GetText(beginIndex - 1, beginIndex)
+                text previousCharacter = textField:GetText(beginIndex - 1, beginIndex)
                 if IsSpecialCharacter(previousCharacter)
                     if beginIndex = caretPosition
                         selectionIsSpecialCharacter = true
                     end
                     beginWordIsFinished = true
                 elseif IsWhiteSpace(previousCharacter)
-                    if beginIndex = caretPosition and IsSpecialCharacter(textBox:GetText(beginIndex, beginIndex + 1))
+                    if beginIndex = caretPosition and IsSpecialCharacter(textField:GetText(beginIndex, beginIndex + 1))
                         selectionIsSpecialCharacter = true
                     end
                     beginWordIsFinished = true
@@ -58,14 +61,14 @@ class TextBoxDoubleClickSelectWordBehavior is Behavior
             end
         end
         
-        /* find the index of the end of the word determined by whitespace or a special character */
+        /* find the index of the end of the word determined by whitespace, end of textField or a special character */
         boolean endWordIsFinished = false
         integer endIndex = caretPosition
         repeat while endIndex <= endOfLineIndex and not(endWordIsFinished) and not(selectionIsSpecialCharacter)
             if endIndex = endOfLineIndex
                 endWordIsFinished = true
             else
-                text nextCharacter = textBox:GetText(endIndex, endIndex + 1)
+                text nextCharacter = textField:GetText(endIndex, endIndex + 1)
                 if(IsSpecialCharacter(nextCharacter) or IsWhiteSpace(nextCharacter))
                     endWordIsFinished = true
                 else
@@ -80,20 +83,20 @@ class TextBoxDoubleClickSelectWordBehavior is Behavior
         if selectionIsSpecialCharacter
             endIndex = caretPosition
             beginIndex = caretPosition - 1
-            repeat while (beginIndex > beginOfLineIndex) and (IsSpecialCharacter(textBox:GetText(beginIndex - 1, beginIndex)))
+            repeat while beginIndex > 0 and IsSpecialCharacter(textField:GetText(beginIndex - 1, beginIndex))
                 beginIndex = beginIndex - 1
             end 
             //In the case that the Special character is the first character on the line, remove the leading white space from the selection
-            if IsWhiteSpace(textBox:GetText(beginIndex, beginIndex + 1))
+            if IsWhiteSpace(textField:GetText(beginIndex, beginIndex + 1))
                 beginIndex = beginIndex + 1
             end
-            repeat while (endIndex < endOfLineIndex) and (IsSpecialCharacter(textBox:GetText(endIndex, endIndex + 1)))
+            repeat while (endIndex < endOfLineIndex) and (IsSpecialCharacter(textField:GetText(endIndex, endIndex + 1)))
                 endIndex = endIndex + 1
             end
         end
 
-        textBox:SetCaretPosition(endIndex)
-        textBox:Select(beginIndex, endIndex, true)
+        textField:SetCaretPosition(endIndex)
+        textField:Select(beginIndex, endIndex, true)
     end
 
     private action IsWhiteSpace(text value) returns boolean

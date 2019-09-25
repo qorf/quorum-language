@@ -67,7 +67,12 @@ use Libraries.Interface.Behaviors.Controls.TextFieldCutToClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCaretToStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCaretToEndBehavior  
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectToStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectToEndBehavior   
 use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldDoubleClickSelectWordBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxPageDownBehavior  
 use Libraries.Interface.Behaviors.Controls.TextBoxPageUpBehavior  
 use Libraries.Interface.Behaviors.Controls.TextBoxSavePreviousCaretPositionBehavior
@@ -1017,6 +1022,21 @@ class Game
 
         TextFieldInsertBehavior fieldInsertBehavior
         textFieldTable:Add(textInputSet, fieldInsertBehavior)
+
+        TextFieldDoubleClickSelectWordBehavior textFieldDoubleClickSelectWordBehavior
+        textFieldTable:Add(doubleClick, textFieldDoubleClickSelectWordBehavior) 
+
+        TextFieldCaretToStartBehavior textFieldCaretToStartBehavior
+        textFieldTable:Add(homeSet, textFieldCaretToStartBehavior)
+
+        TextFieldCaretToEndBehavior textFieldCaretToEndBehavior
+        textFieldTable:Add(endSet, textFieldCaretToEndBehavior)
+
+        TextFieldSelectToStartBehavior textFieldSelectToStartBehavior
+        textFieldTable:Add(shiftHomeSet, textFieldSelectToStartBehavior)
+
+        TextFieldSelectToEndBehavior textFieldSelectToEndBehavior
+        textFieldTable:Add(shiftEndSet, textFieldSelectToEndBehavior)
 
         //copy past for fields
         if manager:GetOperatingSystem():Contains("OS X")
