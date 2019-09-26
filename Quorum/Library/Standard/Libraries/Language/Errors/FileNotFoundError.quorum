@@ -23,7 +23,17 @@ class Main
 end
 */
 class FileNotFoundError is Error
+    text path = ""
     on create
         SetErrorMessage("FileNotFoundError: The requested file was not found on disk.")
+    end
+
+    action GetPath returns text
+        return path
+    end
+
+    action SetPath(text path)
+        me:path = path
+        SetErrorMessage("FileNotFoundError: The requested file was not found on disk: " + path)
     end
 end

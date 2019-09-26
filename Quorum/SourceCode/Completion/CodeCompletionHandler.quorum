@@ -144,6 +144,11 @@ class CodeCompletionHandler
             finalTable = sandboxSymbolTable
         end
 
+        //if the symbol table is still undefined, then set it to the last good compile table.
+        if finalTable = undefined
+            finalTable = lastGoodCompileTable
+        end
+
         boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
         
         //now we have checked the cache. If this is still undefined, bail
