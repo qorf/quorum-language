@@ -30,7 +30,7 @@ class TextBoxStartDeleteBehavior is Behavior
         TextBox box = cast(TextBox, item)
 
         TextBoxDeleteBehavior behavior
-        behavior:SetTimer(box:GetCaretIdleTime())
+        behavior:SetTimer(box:GetCaretMoveDelay())
 
         /*
         Begin deleting in the given direction. Deletion will continue until the

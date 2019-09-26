@@ -30,7 +30,7 @@ class TextFieldStartDeleteBehavior is Behavior
         TextField field = cast(TextField, item)
 
         TextFieldDeleteBehavior behavior
-        behavior:SetTimer(field:GetCaretIdleTime())
+        behavior:SetTimer(field:GetCaretMoveDelay())
 
         /*
         Begin deleting in the given direction. Deletion will continue until the

@@ -578,7 +578,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             postText = textValue:GetSubtext(endIndex, textValue:GetSize())
         end
 
-        textValue = preText + postText
+        textValue = preText + postText  
 
         FitCharacterOnScreen(caretCharacter)
         GetLineDrawables()
@@ -630,15 +630,20 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         text preText = ""
         text postText = ""
+
+        if not selection:IsCaretAtEnd()
+            caretCharacter = caretCharacter + (selection:GetEndIndex() - selection:GetStartIndex())
+        end
+
         if caretCharacter > 0
             preText = textValue:GetSubtext(0, caretCharacter)
-        end
+        end     
         if caretCharacter < textValue:GetSize()
             postText = textValue:GetSubtext(caretCharacter, textValue:GetSize())
         end
 
         textValue = preText + value + postText
-        
+
         caretCharacter = caretCharacter + value:GetSize()
 
         FitCharacterOnScreen(caretCharacter)
@@ -653,6 +658,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         if shouldDeleteSelection
             DeleteSelection()
+            SetCaretPosition(caretCharacter + value:GetSize())
         else
             EmptySelectionEvent(true)
         end
