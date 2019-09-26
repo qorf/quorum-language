@@ -5,6 +5,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeTableChangeEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TextChangeEvent
@@ -88,15 +89,20 @@ class AccessibilityManager
 
     private system action ProgressBarValueChanged(ProgressBar progress)
 
-    action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
-        ProgressBar bar = progress:GetProgressBar()
-        ProgressBarValueChanged(bar)
-    end
-
     // =====
 
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
+
     private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
+
+    private system action NativeTreeTableChanged(TreeTableChangeEvent event) returns boolean
+
+    private system action NativeReselect(TreeItem item)
+
+    system action NameChanged(Item item)
+
+    system action DescriptionChanged(Item item)
+
 
     action Update
         Item focus = manager:GetFocus()
@@ -109,9 +115,10 @@ class AccessibilityManager
         end
     end
 
-    system action NameChanged(Item item)
-
-    system action DescriptionChanged(Item item)
+    action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+        ProgressBar bar = progress:GetProgressBar()
+        ProgressBarValueChanged(bar)
+    end
 
     action SelectionChanged(SelectionEvent event)
         Selection selection = event:GetSelection()
@@ -287,6 +294,10 @@ class AccessibilityManager
         end
 
         NativeTreeChanged(event)
+    end
+
+    action TreeTableChanged(TreeTableChangeEvent event)
+        NativeTreeTableChanged(event)
     end
 
     action ControlActivated(ControlActivationEvent event)

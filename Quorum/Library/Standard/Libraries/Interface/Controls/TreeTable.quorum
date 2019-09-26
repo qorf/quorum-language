@@ -3,10 +3,14 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TreeTableChangeEvent
+use Libraries.Interface.Events.TreeTableChangeListener
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.TreeTableSelection
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
 
 class TreeTable is Control
     Array<TreeTableColumn> columns
@@ -16,6 +20,10 @@ class TreeTable is Control
     // The cellBehavior is called when a Cell would be activated if it doesn't
     // have an activation behavior of its own defined.
     Behavior cellBehavior = undefined
+
+    Array<TreeTableChangeListener> listeners
+
+    GameStateManager manager
     
     on create
         FlowLayout layout
@@ -543,9 +551,17 @@ class TreeTable is Control
         integer i = 0
         integer columnSize = columns:GetSize()
 
+        Array<TreeTableCell> cells
+
         parentRow:SetExpandFlag(true)
         if columns:IsEmpty() = false
             columns:Get(0):GetCell(index):UpdateButtonState()
+
+            integer counter = 0
+            repeat while counter < columns:GetSize()
+                cells:Add(columns:Get(counter):GetCell(index))
+                counter = counter + 1
+            end
         end
 
         Array<TreeTableRow> rows = parentRow:GetChildren()
@@ -563,6 +579,10 @@ class TreeTable is Control
 
             i = i + 1
         end
+
+        TreeTableChangeEvent event
+        event:Set(me, parentRow, cells, event:OPENED)
+        NotifyTreeTableChangeListeners(event)
     end
 
     action CloseRow(TreeTableRow row)
@@ -578,6 +598,13 @@ class TreeTable is Control
 
         if index < 0
             return now
+        end
+
+        Array<TreeTableCell> cells
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            cells:Add(columns:Get(counter):GetCell(index))
+            counter = counter + 1
         end
 
         // We'll remove cells from the index after the parent cell.
@@ -610,6 +637,10 @@ class TreeTable is Control
         if columns:IsEmpty() = false
             columns:Get(0):GetCell(originalIndex):UpdateButtonState()
         end
+
+        TreeTableChangeEvent event
+        event:Set(me, row, cells, event:CLOSED)
+        NotifyTreeTableChangeListeners(event)
     end
 
     /*
@@ -714,5 +745,22 @@ class TreeTable is Control
                 Select(0, 0)
             end
         end
+    end
+
+    private action NotifyTreeTableChangeListeners(TreeTableChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):OpenedRow(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ClosedRow(event)
+                counter = counter + 1
+            end
+        end
+
+        manager:GetInput():NotifyTreeTableChangeListeners(event)
     end
 end

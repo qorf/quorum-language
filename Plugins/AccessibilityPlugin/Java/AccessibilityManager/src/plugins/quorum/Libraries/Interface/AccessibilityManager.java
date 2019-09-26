@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
+import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
@@ -34,6 +35,8 @@ import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
 import quorum.Libraries.Interface.Events.TextChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
+import quorum.Libraries.Interface.Events.TreeTableChangeEvent;
+import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Selections.SpreadsheetSelection_;
@@ -88,12 +91,20 @@ public class AccessibilityManager
         EXPANDED,
         COLLAPSED;
     }
+    
+    enum TreeTableChanges {
+        EXPANDED,
+        COLLAPSED;
+    }
+    
     private static final HashMap<Integer, AccessibilityCodes> ACCESSIBILITYCODES_MAP = new HashMap<>();
     private static final HashMap<Integer, MenuChanges> MENUCHANGES_MAP = new HashMap<>();
     private static final HashMap<Integer, TreeChanges> TREECHANGES_MAP = new HashMap<>();
+    private static final HashMap<Integer, TreeTableChanges> TREE_TABLE_CHANGES_MAP = new HashMap<>();
     private static final quorum.Libraries.Interface.Item ACCESSIBILITYCODES = new quorum.Libraries.Interface.Item();
     private static final quorum.Libraries.Interface.Events.MenuChangeEvent MENUCHANGECODES = new quorum.Libraries.Interface.Events.MenuChangeEvent();
     private static final quorum.Libraries.Interface.Events.TreeChangeEvent TREECHANGECODES = new quorum.Libraries.Interface.Events.TreeChangeEvent();
+    private static final TreeTableChangeEvent TREE_TABLE_CHANGE_CODES = new quorum.Libraries.Interface.Events.TreeTableChangeEvent();
     
     static
     {
@@ -128,6 +139,8 @@ public class AccessibilityManager
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
         TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__OPENED_(), TreeChanges.EXPANDED);
         TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__CLOSED_(), TreeChanges.COLLAPSED);
+        TREE_TABLE_CHANGES_MAP.put(TREE_TABLE_CHANGE_CODES.Get_Libraries_Interface_Events_TreeTableChangeEvent__OPENED_(), TreeTableChanges.EXPANDED);
+        TREE_TABLE_CHANGES_MAP.put(TREE_TABLE_CHANGE_CODES.Get_Libraries_Interface_Events_TreeTableChangeEvent__CLOSED_(), TreeTableChanges.COLLAPSED);
         
         try
         {
@@ -217,7 +230,10 @@ public class AccessibilityManager
     private native boolean SelectTreeItemNative(long selectedMenuItem);
     private native boolean SubtreeExpandedNative(long nativePointer);
     private native boolean SubtreeCollapsedNative(long nativePointer);
+    private native boolean TreeTableRowExpandedNative(long nativePointer);
+    private native boolean TreeTableRowCollapsedNative(long nativePointer);
     private native void NotifyTextBoxNative(long nativePointer, String say);
+    private native void ReselectTreeItemNative(long nativePointer);
     
     private native boolean IsScreenReaderListeningNative();
     
@@ -478,6 +494,15 @@ public class AccessibilityManager
         return selected;
     }
     
+    public void NativeReselect(TreeItem_ item)
+    {
+        Long selectingItem = ITEM_MAP.get(item);
+        if (selectingItem == null)
+            return;
+        
+        ReselectTreeItemNative(selectingItem);
+    }
+    
     public boolean Deselect(Item_ item)
     {
         Long deselectedItem;
@@ -569,6 +594,38 @@ public class AccessibilityManager
             case COLLAPSED:
             {
                 wasChanged = SubtreeCollapsedNative(itemToChange);
+                break;
+            }
+            default:
+        }
+        return wasChanged;
+    }
+    
+    public boolean NativeTreeTableChanged(TreeTableChangeEvent_ event)
+    {
+        Array_ cells = event.GetTreeTableCells();
+        if (cells.IsEmpty())
+            return false;
+        
+        Item_ item = (Item_)cells.Get(0);
+        Long itemToChange = ITEM_MAP.get(item);
+        TreeTableChanges code = TREE_TABLE_CHANGES_MAP.get(event.GetEventType());
+        boolean wasChanged = false;
+        
+        // Retreive native pointer for given object
+        if (itemToChange == null) {
+            return true;
+        }
+        switch(code)
+        {
+            case EXPANDED:
+            {
+                wasChanged = TreeTableRowExpandedNative(itemToChange);
+                break;
+            }
+            case COLLAPSED:
+            {
+                wasChanged = TreeTableRowCollapsedNative(itemToChange);
                 break;
             }
             default:

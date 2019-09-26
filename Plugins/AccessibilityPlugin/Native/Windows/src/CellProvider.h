@@ -7,6 +7,10 @@ class CellProvider : public ProviderT<CellProvider, CellControl, ITableItemProvi
 public:
 	CellProvider(CellControl* pControl);
 
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
+
 	// IGridItemProvider methods
 	IFACEMETHODIMP get_Column(int* pRetVal);
 	IFACEMETHODIMP get_ColumnSpan(int* pRetVal);

@@ -836,4 +836,30 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	return true;
 }
 
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TreeTableRowExpandedNative(JNIEnv* env, jobject obj, jlong cell)
+{
+	/*
+	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
+
+	if (pTreeItem != NULL)
+		pTreeItem->SetExpanded(true);
+	else
+		return false;
+	*/
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TreeTableRowCollapsedNative(JNIEnv* env, jobject obj, jlong cell)
+{
+	/*
+	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
+
+	if (pTreeItem != NULL)
+		pTreeItem->SetExpanded(false);
+	else
+		return false;
+	*/
+	return true;
+}
+
 #pragma endregion

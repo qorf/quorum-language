@@ -5,6 +5,18 @@ CellProvider::CellProvider(CellControl* pControl) : ProviderT(pControl)
 {
 }
 
+bool CellProvider::IsPatternSupported(PATTERNID patternId) const noexcept
+{
+	return ((patternId == UIA_TableItemPatternId) || (patternId == UIA_GridItemPatternId) || (patternId == UIA_ExpandCollapsePatternId) || (patternId == UIA_ValuePatternId) || (patternId == UIA_SelectionItemPatternId));
+}
+
+CONTROLTYPEID CellProvider::GetControlType() const noexcept
+{
+	//return UIA_ListItemControlTypeId;
+	//return UIA_DataItemControlTypeId;
+	return UIA_TreeItemControlTypeId;
+}
+
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
 {
 	JNIEnv* env = GetJNIEnv();
@@ -86,7 +98,9 @@ void CellProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
-	{ //no idea if this is correct for trees, but it seems to be implied by the often incorrect documentation
+	{ 
+		// This needs to be UiaRaiseAutomationPropertyChangedEvent instead, but doing that will require some additional plumbing to be routed first.
+		log("CellProvider::NotifyElementExpandCollapse");
 		UiaRaiseAutomationEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId);
 	}
 }

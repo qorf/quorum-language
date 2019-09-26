@@ -8,6 +8,10 @@ class TableProvider : public ProviderT<TableProvider, TableControl, IGridProvide
 public:
 	TableProvider(_In_ TableControl* control);
 
+	// ProviderT
+	bool IsPatternSupported(PATTERNID patternId) const noexcept;
+	CONTROLTYPEID GetControlType() const noexcept;
+
 	//IGridProvider Methods
 	IFACEMETHODIMP get_ColumnCount(int* pRetVal);
 	IFACEMETHODIMP get_RowCount(int* pRetVal);

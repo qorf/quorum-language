@@ -5,6 +5,16 @@ TableProvider::TableProvider(_In_ TableControl* control) : ProviderT(control)
 {
 }
 
+bool TableProvider::IsPatternSupported(PATTERNID patternId) const noexcept
+{
+	return ((patternId == UIA_GridPatternId) || (patternId == UIA_TablePatternId) || (patternId == UIA_SelectionPatternId));
+}
+
+CONTROLTYPEID TableProvider::GetControlType() const noexcept
+{
+	return UIA_TableControlTypeId;
+}
+
 //IGridProvider Methods
 IFACEMETHODIMP TableProvider::get_ColumnCount(int* pRetVal) {
 	return S_OK;

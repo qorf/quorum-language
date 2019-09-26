@@ -95,6 +95,12 @@ class TextBoxRenderer is Control
 
     action RemoveCharacter(integer line, integer index)
         Array<Drawable> array = GetLine(line)
+        if array = undefined
+            // If the array is undefined, the line couldn't be fetched, most
+            // likely because the line is off the screen.
+            return now
+        end
+
         Drawable character = array:RemoveAt(index)
         Remove(character)
         RecycleDrawable(character)

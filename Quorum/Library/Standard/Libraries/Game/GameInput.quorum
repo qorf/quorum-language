@@ -20,6 +20,8 @@ use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.TreeChangeListener
 use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeTableChangeListener
+use Libraries.Interface.Events.TreeTableChangeEvent
 use Libraries.Interface.Events.ControlActivationListener
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.WindowFocusListener
@@ -42,6 +44,7 @@ class GameInput
     Array<TabChangeListener> tabChangeListeners
     Array<MenuChangeListener> menuChangeListeners
     Array<TreeChangeListener> treeChangeListeners
+    Array<TreeTableChangeListener> treeTableChangeListeners
     Array<ControlActivationListener> controlActivationListeners
     Array<WindowFocusListener> windowFocusListeners
 
@@ -399,6 +402,43 @@ class GameInput
         elseif event:GetEventType() = event:CLOSED
             repeat while counter < treeChangeListeners:GetSize()
                 treeChangeListeners:Get(counter):ClosedTree(event)
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+
+    */
+    action AddTreeTableChangeListener(TreeTableChangeListener listener)
+        treeTableChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTreeTableChangeListener(TreeTableChangeListener listener)
+        treeTableChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyTreeTableChangeListeners(TreeTableChangeEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:TreeTableChanged(event)
+        end
+
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < treeTableChangeListeners:GetSize()
+                treeTableChangeListeners:Get(counter):OpenedRow(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < treeTableChangeListeners:GetSize()
+                treeTableChangeListeners:Get(counter):ClosedRow(event)
                 counter = counter + 1
             end
         end

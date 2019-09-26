@@ -9,6 +9,7 @@ use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.TreeSelection
+use Libraries.Interface.AccessibilityManager
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
@@ -21,6 +22,7 @@ class Tree is Control
     TreeSelection selection
     Array<TreeItem> treeItems
     Array<TreeChangeListener> listeners
+    GameStateManager manager
 
     on create
         SetFocusable(true)
@@ -316,7 +318,6 @@ class Tree is Control
             end
         end
 
-        GameStateManager manager
         manager:GetInput():NotifyTreeChangeListeners(event)
     end
 
