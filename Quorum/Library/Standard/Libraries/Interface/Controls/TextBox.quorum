@@ -2488,13 +2488,17 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action AddTextStyle(text name, TextStyle style)
+        if style = undefined
+            return now
+        end
         integer i = 0
         boolean inserted = false
         
         integer index = style:GetIndex()
 
         repeat while i < textStyles:GetSize()
-            if index < textStyles:Get(i):GetIndex()
+            TextStyle temp = textStyles:Get(i)
+            if temp not= undefined and index < temp:GetIndex()
                 textStyles:Add(i, style)
                 inserted = true
                 i = textStyles:GetSize()
