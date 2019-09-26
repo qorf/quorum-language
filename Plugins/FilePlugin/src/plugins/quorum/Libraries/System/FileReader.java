@@ -21,7 +21,9 @@ public class FileReader {
         try {
             inst.OpenForReadNative(path);
         } catch (FileNotFoundException ex) {
-            throw new FileNotFoundError();
+            FileNotFoundError error = new FileNotFoundError();
+            error.SetPath(path);
+            throw error;
         }
     }
     
