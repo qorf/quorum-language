@@ -574,6 +574,9 @@ class TreeTable is Control
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
                 column:AddCell(index, row)
+                if j = selection:GetX() and selection:GetY() >= index
+                    MoveSelectionDown()
+                end
                 j = j + 1
             end
 
@@ -593,7 +596,7 @@ class TreeTable is Control
         Array<TreeTableRow> childRows = row:GetChildren()
 
         // We'll remove cells from the index after the parent cell.
-        integer index = GetFlattenedIndex(row)
+        integer index = columns:Get(0):GetCellIndex(row)
         integer originalIndex = index
 
         if index < 0
@@ -621,9 +624,9 @@ class TreeTable is Control
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
 
-                // If we're about to delete the selected cell, deselect it first.
-                if selection:Get() = column:GetCell(index)
-                    Deselect()
+                // If the remove affects the selction then move the selection up
+                if j = selection:GetX() and selection:GetY() >= index
+                    MoveSelectionUp()
                 end
 
                 column:RemoveCellAt(index)
