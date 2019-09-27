@@ -1386,18 +1386,18 @@ class Item2D is Item
         end
         temp:collisionList = undefined
 
-        temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
-        temp:SetCollidable(false)
-
-        temp:SetParent(undefined)
-        temp:SetLayer(undefined)
-
         if layer not= undefined
+            temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
             AccessibilityManager accessibility = manager:GetAccessibilityManager()
             if accessibility not= undefined
                 accessibility:Remove(temp)
             end
         end
+        temp:SetCollidable(false)
+
+        temp:SetParent(undefined)
+        temp:SetLayer(undefined)
 
         return temp
     end
