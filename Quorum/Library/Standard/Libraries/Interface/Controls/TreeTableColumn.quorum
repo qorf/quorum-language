@@ -100,9 +100,10 @@ class TreeTableColumn is Control
         return treeTable not= undefined and treeTable:IsFirstColumn(me)
     end
 
-    action AddCell(integer index, TreeTableRow row)
+    action AddCell(integer index, TreeTableRow row, TreeTableCell parentCell)
         TreeTableCell cell = CreateCell()
         cell:SetRow(row)
+        cell:SetAccessibleParent(parentCell)
         Add(index, cell)
         SetCell(index, row)
     end

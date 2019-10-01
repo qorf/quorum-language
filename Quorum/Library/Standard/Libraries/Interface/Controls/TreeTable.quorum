@@ -179,6 +179,8 @@ class TreeTable is Control
             if targetIndex < 0
                 return now
             end
+
+            TreeTableCell parentCell = firstColumn:GetCell(targetIndex)
             targetIndex = targetIndex + position
 
             newRow:SetParentTreeTable(me)
@@ -187,7 +189,7 @@ class TreeTable is Control
             integer counter = 0
             repeat while counter < columns:GetSize()
                 TreeTableColumn column = columns:Get(counter)
-                column:AddCell(targetIndex, newRow)
+                column:AddCell(targetIndex, newRow, parentCell)
                 counter = counter + 1
             end
         end
@@ -552,10 +554,12 @@ class TreeTable is Control
         integer columnSize = columns:GetSize()
 
         Array<TreeTableCell> cells
+        TreeTableCell hostCell = undefined
 
         parentRow:SetExpandFlag(true)
         if columns:IsEmpty() = false
-            columns:Get(0):GetCell(index):UpdateButtonState()
+            hostCell = columns:Get(0):GetCell(index)
+            hostCell:UpdateButtonState()
 
             integer counter = 0
             repeat while counter < columns:GetSize()
@@ -573,7 +577,7 @@ class TreeTable is Control
             integer j = 0
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
-                column:AddCell(index, row)
+                column:AddCell(index, row, hostCell)
                 if j = selection:GetX() and selection:GetY() >= index
                     MoveSelectionDown()
                 end

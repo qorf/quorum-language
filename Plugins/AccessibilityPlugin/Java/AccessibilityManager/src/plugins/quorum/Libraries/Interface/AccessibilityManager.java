@@ -73,6 +73,7 @@ public class AccessibilityManager
         TAB_PANE,
         TABLE,
         CELL,
+        TREE_TABLE_CELL,
         TEXT_FIELD,
         LIST,
         LIST_ITEM,
@@ -126,6 +127,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TAB_PANE_(), AccessibilityCodes.TAB_PANE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TABLE_(), AccessibilityCodes.TABLE);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CELL_(), AccessibilityCodes.CELL);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TREE_TABLE_CELL_(), AccessibilityCodes.TREE_TABLE_CELL);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TEXT_FIELD_(), AccessibilityCodes.TEXT_FIELD);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_(), AccessibilityCodes.LIST);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LIST_ITEM_(), AccessibilityCodes.LIST_ITEM);
@@ -197,7 +199,7 @@ public class AccessibilityManager
     private native long CreateListNative(long parent, String name, Item_ item);
     private native long CreateListItemNative(long parent, String name, Item_ item);
     private native long CreateSpreadsheetNative(long parent, String name, Item_ item);
-    private native long CreateCellNative(long parent, String name, Item_ item);
+    private native long CreateCellNative(long parent, String name, Item_ item, boolean isTreeCell);
     private native long CreateTreeTableNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item, boolean isPopupMenu);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
@@ -283,7 +285,10 @@ public class AccessibilityManager
                 nativePointer = CreateTreeTableNative(parentLong, item.GetName(), item);
                 break;
             case CELL:
-                nativePointer = CreateCellNative(parentLong, item.GetName(), item);
+                nativePointer = CreateCellNative(parentLong, item.GetName(), item, false);
+                break;
+            case TREE_TABLE_CELL:
+                nativePointer = CreateCellNative(parentLong, item.GetName(), item, true);
                 break;
             case LIST:
                 nativePointer = CreateListNative(parentLong, item.GetName(), item);
@@ -486,6 +491,7 @@ public class AccessibilityManager
             case LIST_ITEM:
                 selected = SelectListItemNative(selectedItem);
             case CELL:
+            case TREE_TABLE_CELL:
                 selected = SelectCellNative(selectedItem);
                 break;
             default:
@@ -982,8 +988,6 @@ public class AccessibilityManager
             
             return bounds;
         }
-        
-        System.out.flush();
         
         double windowX = display.GetDisplayX();
         double windowY = display.GetDisplayY();

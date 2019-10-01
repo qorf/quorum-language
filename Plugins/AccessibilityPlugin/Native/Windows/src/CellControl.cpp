@@ -4,15 +4,33 @@
 #include "TableProvider.h"
 #include "ControlTImpl.h"
 
-CellControl::CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem)
+CellControl::CellControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ TableControl* parent, jobject jItem, bool isTreeCell, bool isExpanded)
 	: ControlT(env, std::move(name), std::move(description), jItem)
 	, m_parentTable(parent)
+	, m_isTreeCell(isTreeCell)
+	, m_isExpanded(isExpanded)
 {
 }
 
 TableControl* CellControl::GetParentTable()
 {
 	return m_parentTable;
+}
+
+bool CellControl::IsTreeTableCell()
+{
+	return m_isTreeCell;
+}
+
+bool CellControl::IsExpanded()
+{
+	return m_isExpanded;
+}
+
+void CellControl::SetExpanded(bool expanded)
+{
+	m_isExpanded = expanded;
+	GetProvider()->NotifyElementExpandCollapse();
 }
 
 std::wstring CellControl::GetText()
@@ -32,4 +50,6 @@ std::wstring CellControl::GetText()
 
 	return L"";
 }
+
+
 

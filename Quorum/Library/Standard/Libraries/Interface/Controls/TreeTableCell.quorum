@@ -22,6 +22,9 @@ class TreeTableCell is Control
     ToggleButton expandButton
     TreeTableCellExpandBehavior expandBehavior
 
+    // The cell which opens/closes the parent row of this cell's row.
+    TreeTableCell accessibleParent = undefined
+
     text value = ""
     constant integer DEFAULT_PADDING = 6
 
@@ -57,7 +60,7 @@ class TreeTableCell is Control
         SetInputGroup("TreeTableCell")
         SetClipping(true)
         Add(label)
-        SetAccessibilityCode(parent:Item:CELL)
+        SetAccessibilityCode(parent:Item:TREE_TABLE_CELL)
         SetName("Cell")
 
         // The button isn't added here, it's only added to the structure in
@@ -73,6 +76,7 @@ class TreeTableCell is Control
 
         expandBehavior:SetCell(me)
         expandButton:SetBehavior(expandBehavior)
+        expandButton:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
     end
 
     action GetDefaultFontName returns text
@@ -362,5 +366,41 @@ class TreeTableCell is Control
             expandButton:SetToggleState(row:IsExpanded())
             expandButton:SetBehavior(expandBehavior)
         end
+    end
+
+    /*
+        This action returns the nearest parent object that is accessible. This 
+        can be anything that the programmer wants to be accessible, from user interface
+        components in a 2D interface to 3D components relative in 3-space on screen. 
+        By default, items have no accessible parent and are self-contained, but 
+        user interface components normally override the behavior so that controls
+        can be logically nested within each other.
+
+        attribute: returns Item
+    */
+    action GetAccessibleParent returns Item
+        return parent:Item2D:GetAccessibleParent()
+
+        // Code used to allow TreeTableCells to host other cells.
+//        if accessibleParent not= undefined
+//            return accessibleParent
+//        else
+//            return parent:Item2D:GetAccessibleParent()
+//        end
+    end
+
+    /*
+    This action sets the accessible parent of this cell, which is always either
+    the first cell of the parent row or undefined. This action is called
+    internally by the system and should never be called explicitly.
+    */
+    action SetAccessibleParent(TreeTableCell parentCell)
+        accessibleParent = parentCell
+    end
+
+    action IsAccessibleParent returns boolean
+        // This should return true if/when TreeTableCells can host other cells.
+        //return true
+        return false
     end
 end

@@ -78,8 +78,6 @@ ControlT* Create(JNIEnv* env, _In_opt_ Item* parent, TArgs&&... args)
 
 	const auto control = new ControlT(env, std::forward<TArgs>(args)...);
 	parent->AppendChild(control);
-	//std::wcout << L"Created/appended item " << control->GetName() << std::endl;
-	//std::wcout.flush();
 	return control;
 }
 
@@ -391,14 +389,15 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	return GetItemAsLong(table);
 }
 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem, jboolean isTreeCell)
 {
 	const char* nativeName = env->GetStringUTFChars(name, 0);
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	bool treeTableCell = isTreeCell;
 
 	TableControl* parentControl = static_cast<TableControl*>(GetItemFromLong(parent));
 	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	const auto cell = Create<CellControl>(env, parentControl, wName, L"", parentControl, jItem);
+	const auto cell = Create<CellControl>(env, parentControl, wName, L"", parentControl, jItem, treeTableCell, false);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
@@ -838,27 +837,29 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TreeTableRowExpandedNative(JNIEnv* env, jobject obj, jlong cell)
 {
-	/*
-	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
+	CellControl* pTreeCell = static_cast<CellControl*>(GetItemFromLong(cell));
 
-	if (pTreeItem != NULL)
-		pTreeItem->SetExpanded(true);
+	if (pTreeCell != NULL)
+	{
+		pTreeCell->SetExpanded(true);
+	}
 	else
+	{
 		return false;
-	*/
+	}
+
 	return true;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TreeTableRowCollapsedNative(JNIEnv* env, jobject obj, jlong cell)
 {
-	/*
-	TreeItemControl* pTreeItem = static_cast<TreeItemControl*>(GetItemFromLong(treeItem));
+	CellControl* pTreeCell = static_cast<CellControl*>(GetItemFromLong(cell));
 
-	if (pTreeItem != NULL)
-		pTreeItem->SetExpanded(false);
+	if (pTreeCell != NULL)
+		pTreeCell->SetExpanded(false);
 	else
 		return false;
-	*/
+
 	return true;
 }
 

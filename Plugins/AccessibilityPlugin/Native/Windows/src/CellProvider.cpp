@@ -12,9 +12,10 @@ bool CellProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 
 CONTROLTYPEID CellProvider::GetControlType() const noexcept
 {
-	//return UIA_ListItemControlTypeId;
-	//return UIA_DataItemControlTypeId;
-	return UIA_TreeItemControlTypeId;
+	//if (m_control->IsTreeTableCell())
+	//	return UIA_TreeItemControlTypeId;
+	//else
+		return UIA_ListItemControlTypeId;
 }
 
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
@@ -98,10 +99,23 @@ void CellProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
-	{ 
-		// This needs to be UiaRaiseAutomationPropertyChangedEvent instead, but doing that will require some additional plumbing to be routed first.
-		log("CellProvider::NotifyElementExpandCollapse");
-		UiaRaiseAutomationEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId);
+	{
+		VARIANT oldValue, newValue;
+		oldValue.vt = VT_I4;
+		newValue.vt = VT_I4;
+
+		if (m_control->IsExpanded())
+		{
+			oldValue.lVal = ExpandCollapseState_Collapsed;
+			newValue.lVal = ExpandCollapseState_Expanded;
+		}
+		else
+		{
+			oldValue.lVal = ExpandCollapseState_Expanded;
+			newValue.lVal = ExpandCollapseState_Collapsed;
+		}
+
+		THROW_IF_FAILED(UiaRaiseAutomationPropertyChangedEvent(this, UIA_ExpandCollapseExpandCollapseStatePropertyId, oldValue, newValue));
 	}
 }
 

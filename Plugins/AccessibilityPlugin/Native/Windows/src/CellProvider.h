@@ -41,9 +41,8 @@ public:
 
 	// Additional methods.
 	void NotifyElementSelected();
+	void NotifyElementExpandCollapse();
 
 private:
 	ExpandCollapseState expanded;
-
-	void NotifyElementExpandCollapse();
 };

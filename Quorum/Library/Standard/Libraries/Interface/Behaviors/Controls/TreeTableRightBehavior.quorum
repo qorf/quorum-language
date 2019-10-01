@@ -17,7 +17,7 @@ class TreeTableRightBehavior is Behavior
             if selection not= undefined and selection:GetX() = 0
                 TreeTableCell cell = selection:Get()
                 TreeTableRow row = cell:GetRow()
-                if row not= undefined and row:IsExpanded() = false
+                if row not= undefined and row:IsExpanded() = false and row:IsEmpty() = false
                     sheet:ExpandRow(row)
                     return now
                 end
