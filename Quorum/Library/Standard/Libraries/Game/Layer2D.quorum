@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
@@ -86,6 +87,7 @@ class Layer2D is Layer
     Painter2D painter
 
     GameStateManager manager
+    GraphicsManager graphics = undefined
     Item2DDepthComparison depthSorter
 
     CollisionManager2D collisionManager
@@ -125,7 +127,10 @@ class Layer2D is Layer
     on create
         OrthographicCamera cam
         camera = cam
+        SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
         collisionManager:SetLayer(me)
+
+        graphics = manager:GetGameGraphics()
     end
 
     /*
@@ -1039,6 +1044,12 @@ class Layer2D is Layer
         camera:Update()
         painter:ApplyCamera(camera)
         
+        if (GetViewportX() not= graphics:GetViewportX() or GetViewportY() not= graphics:GetViewportY()
+            or GetViewportWidth() not= graphics:GetViewportWidth() or GetViewportHeight() not= graphics:GetViewportHeight())
+
+            graphics:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+        end
+
         painter:Begin()
 
         painter:SetClipping(false)
@@ -2552,10 +2563,14 @@ class Layer2D is Layer
     end
 
     action Resize(ResizeEvent event)
-        number width = event:GetWidth()
-        number height = event:GetHeight()
-        number xAdjust = (width - camera:GetWidth()) / 2
-        number yAdjust = (height - camera:GetHeight()) / 2
+        integer width = event:GetWidth()
+        integer height = event:GetHeight()
+        number xAdjust = (width - camera:GetWidth()) / 2.0
+        number yAdjust = (height - camera:GetHeight()) / 2.0
+
+        if GetViewportX() = 0 and GetViewportY() = 0 and GetViewportWidth() = camera:GetWidth() and GetViewportHeight() = camera:GetHeight()
+            SetViewport(0, 0, width, height)
+        end
 
         camera:Move(xAdjust, yAdjust, 0)
         camera:SetWidth(width)
@@ -2601,5 +2616,16 @@ class Layer2D is Layer
     */
     action GetLayout returns Layout
         return layerLayout
+    end
+
+    /*
+    This actions sets the viewport that will be used by this Layer, and adjusts
+    the Layer's camera to match the dimensions of the viewport.
+    */
+    action SetViewportAndCamera(integer x, integer y, integer width, integer height)
+        Camera camera = GetCamera()
+        camera:SetSize(width, height)
+        camera:Move((width - GetViewportWidth()) / 2.0, (height - GetViewportHeight()) / 2.0, 0)
+        SetViewport(x, y, width, height)
     end
 end

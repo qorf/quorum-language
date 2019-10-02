@@ -30,6 +30,39 @@ class GraphicsManager
     public constant integer GL_TEXTURE_WRAP_T = 10243
   
     /*
+    The last coordinates that were used to set the drawing region via the
+    SetViewport action.
+    */
+    integer viewportX = 0
+    integer viewportY = 0
+    integer viewportWidth = 0
+    integer viewportHeight = 0
+
+    action SetViewport(integer x, integer y, integer width, integer height)
+        viewportX = x
+        viewportY = y
+        viewportWidth = width
+        viewportHeight = height
+        SetDrawingRegion(x, y, width, height)
+    end
+
+    action GetViewportX returns integer
+        return viewportX
+    end
+
+    action GetViewportY returns integer
+        return viewportY
+    end
+
+    action GetViewportWidth returns integer
+        return viewportWidth
+    end
+
+    action GetViewportHeight returns integer
+        return viewportHeight
+    end
+
+    /*
     This action sets the color to clear the screen with in OpenGL.
     */
     blueprint action ClearScreenColor(number red, number green, number blue, number alpha)
@@ -44,7 +77,7 @@ class GraphicsManager
     coordinates, by setting the screen as though it were at the given virtual
     coordinates with the given width and height.
     */
-    blueprint action SetDrawingRegion(integer x, integer y, integer width, integer height)
+    private blueprint action SetDrawingRegion(integer x, integer y, integer width, integer height)
   
     /*
     Sets how OpenGL stores and loads pixels as a number of bytes.

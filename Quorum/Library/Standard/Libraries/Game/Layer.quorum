@@ -13,6 +13,10 @@ use Libraries.Interface.Events.TouchListener
 class Layer 
     
     boolean visible = true
+    integer viewportX = 0
+    integer viewportY = 0
+    integer viewportWidth = 0
+    integer viewportHeight = 0
 
     boolean automaticResizing = true
 
@@ -569,4 +573,38 @@ class Layer
     */
     blueprint action Resize(ResizeEvent event)
 
+    /*
+    This action sets the viewport that will be used by this Layer. Anything
+    drawn on this Layer will appear in a rectangle that begins x pixels from the
+    left side of the screen, y pixels from the bottom, and has the given width
+    and height in pixels.
+    */
+    action SetViewport(integer x, integer y, integer width, integer height)
+        viewportX = x
+        viewportY = y
+        viewportWidth = width
+        viewportHeight = height
+    end
+
+    /*
+    This actions sets the viewport that will be used by this Layer, and adjusts
+    the Layer's camera to match the dimensions of the viewport.
+    */
+    blueprint action SetViewportAndCamera(integer x, integer y, integer width, integer height)
+
+    action GetViewportX returns integer
+        return viewportX
+    end
+
+    action GetViewportY returns integer
+        return viewportY
+    end
+
+    action GetViewportWidth returns integer
+        return viewportWidth
+    end
+
+    action GetViewportHeight returns integer
+        return viewportHeight
+    end
 end

@@ -16,6 +16,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.Graphics.Light
@@ -93,6 +94,7 @@ class Layer3D is Layer
     Environment environment
     Skybox skybox = undefined
     GameStateManager manager
+    GraphicsManager graphics = undefined
 
     boolean newItemAdded = false
 
@@ -140,8 +142,11 @@ class Layer3D is Layer
         camera:SetPosition(0, 3, -5)
         camera:LookAt(0, 0, 0)
         camera:Update()
+        SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
         painter:SetEnvironment(environment)
         painter:SetCamera(camera)
+
+        graphics = manager:GetGameGraphics()
     end
 
     /* This allows us to know if collisions are on or off for the layer. */
@@ -1005,6 +1010,12 @@ class Layer3D is Layer
         end
         
         camera:Update()
+
+        if (GetViewportX() not= graphics:GetViewportX() or GetViewportY() not= graphics:GetViewportY()
+            or GetViewportWidth() not= graphics:GetViewportWidth() or GetViewportHeight() not= graphics:GetViewportHeight())
+
+            graphics:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+        end
 
         painter:Begin()
 
@@ -2952,8 +2963,12 @@ class Layer3D is Layer
     end
 
     action Resize(ResizeEvent event)
-        number width = event:GetWidth()
-        number height = event:GetHeight()
+        integer width = event:GetWidth()
+        integer height = event:GetHeight()
+
+        if GetViewportX() = 0 and GetViewportY() = 0 and GetViewportWidth() = camera:GetWidth() and GetViewportHeight() = camera:GetHeight()
+            SetViewport(0, 0, width, height)
+        end
 
         camera:SetWidth(width)
         camera:SetHeight(height)
@@ -2961,5 +2976,15 @@ class Layer3D is Layer
         camera:Update()
 
         // Resize items, if reasonable to do so, here.
+    end
+
+    /*
+    This actions sets the viewport that will be used by this Layer, and adjusts
+    the Layer's camera to match the dimensions of the viewport.
+    */
+    action SetViewportAndCamera(integer x, integer y, integer width, integer height)
+        SetViewport(x, y, width, height)
+        Camera camera = GetCamera()
+        camera:SetSize(width, height)
     end
 end
