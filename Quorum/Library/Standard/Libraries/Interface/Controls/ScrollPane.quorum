@@ -261,6 +261,18 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         number barHeight = height
         number barWidth = width
 
+        if regionSizingMode = FIT_CONTENTS_VERTICALLY
+            Number minWidth
+            minWidth:SetValue(0)
+            Number minHeight
+            minWidth:SetValue(0)
+            FindDimensions(scrollAnchor:GetChildren(), minWidth, minHeight)
+            if minHeight:Compare(cast(Number, height)) = -1
+                verticalVisible = false
+                vertical = 1.0
+            end
+        end
+
         if verticalVisible and horizontalVisible
             verticalBarLayout:SetPixelHeight(-barThickness)
             horizontalBarLayout:SetPixelWidth(-barThickness)
@@ -284,8 +296,10 @@ class ScrollPane is Control, MouseListener, MouseMovementListener, MouseWheelLis
         if verticalVisible
             verticalControlLayout:SetPercentageHeight(verticalRatio)
             verticalBar:Show()
+            verticalControl:Show()
         else
             verticalBar:Hide()
+            verticalControl:Hide()
         end
 
         if horizontalVisible
