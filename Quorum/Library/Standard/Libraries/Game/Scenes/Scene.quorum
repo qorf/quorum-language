@@ -1,0 +1,91 @@
+package Libraries.Game.Scenes
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer3D
+use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Layer
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+
+class Scene 
+    constant text MODELS = "Models"
+    constant text PHYSICS_3D = "Physics3D"
+    constant text CAMERA = "Camera"
+
+    ModelSceneProperty modelProperty = undefined
+    PhysicsSceneProperty physicsProperty = undefined
+    action GetPhysicsSceneProperty returns PhysicsSceneProperty
+        return physicsProperty
+    end
+
+    action GetModelSceneProperty returns ModelSceneProperty
+        return modelProperty
+    end
+
+    action Load(File file)
+        JavaScriptObjectNotation notation
+        notation:Read(file)
+        Array<text> keys = notation:GetKeys()
+        i = 0
+        repeat while i < keys:GetSize()
+            text key = keys:Get(i)
+            ProcessKey(key, notation)
+            i = i + 1
+        end
+    end
+
+    private action ProcessKey(text key, JavaScriptObjectNotation notation)
+        if key = CAMERA
+
+        elseif key = MODELS
+           JavaScriptObjectNotation models = notation:GetObject(MODELS)
+           if modelProperty = undefined
+                ModelSceneProperty prop
+                modelProperty = prop
+            end
+            modelProperty:LoadModels(models)
+        elseif key = PHYSICS_3D
+            JavaScriptObjectNotation physics = notation:GetObject(PHYSICS_3D)
+            if physicsProperty = undefined
+                PhysicsSceneProperty prop
+                physicsProperty = prop
+            end
+            physicsProperty:LoadPhysics3D(physics)
+        end
+    end
+
+    action Save(text path, Game game)
+        Iterator<Layer> layers = game:GetLayerIterator()
+        repeat while layers:HasNext()
+            Layer layer = layers:Next()
+            if layer is Layer3D
+                SaveLayer3D(cast(Layer3D, layer))
+            end
+        end
+    end
+
+    action SaveLayer3D(Layer3D layer) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation notation
+        notation:SetKey(MODELS)
+
+        Iterator<Item3D> items = layer:GetIterator()
+        i = 1
+        repeat while items:HasNext()
+            Item3D item = items:Next()
+            JavaScriptObjectNotation value = modelProperty:ConvertItem3D(item)
+            value:SetKey("" + i)
+            notation:Add(value)
+            i = i + 1
+        end
+
+        return notation
+    end
+end

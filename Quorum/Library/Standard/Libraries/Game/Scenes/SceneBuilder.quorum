@@ -1,0 +1,214 @@
+package Libraries.Game.Scenes
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer3D
+use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Layer
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+
+class SceneBuilder 
+    constant text OBJECTS = "Objects"
+    constant text PHYSICS_3D = "Physics3D"
+    constant text CAMERA = "Camera"
+
+    constant text ENABLED = "Enabled"
+    constant text GRAVITY = "Gravity"
+
+    constant text TYPE = "Type"
+    constant text LOCATION = "Location"
+    constant text COLOR = "Color"
+    constant text SIZE = "Size"
+    constant text NAME = "Name"
+    constant text DESCRIPTION = "Description"
+
+
+    constant text CUBE = "Cube"
+    constant text SPHERE = "Sphere"
+    Array<Model> models
+
+    action Load(text path)
+        File file
+        file:SetPath(path)
+        JavaScriptObjectNotation notation
+        notation:Read(file)
+        Array<text> keys = notation:GetKeys()
+        i = 0
+        repeat while i < keys:GetSize()
+            text key = keys:Get(i)
+            ProcessKey(key, notation)
+            i = i + 1
+        end
+        //LoadPhysics(notation)
+        
+        //first get all the objects and place them on the screen
+        JavaScriptObjectNotation objects = notation:GetObject(OBJECTS)
+        Iterator<JavaScriptObjectNotation> iterator = objects:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation object = iterator:Next()
+            Model model = LoadObject(object)
+            models:Add(model)
+        end
+    end
+
+    private action ProcessKey(text key, JavaScriptObjectNotation notation)
+        if key = CAMERA
+
+        elseif key = OBJECTS
+
+        elseif key = PHYSICS_3D
+            JavaScriptObjectNotation physics = notation:GetObject(PHYSICS_3D)
+            LoadPhysics3D(physics)
+        end
+    end
+
+    boolean physics3DEnabled = false
+    Vector3 gravity3D = undefined
+    private action ProcessPhysics3DKey(text key, JavaScriptObjectNotation notation)
+        if key = ENABLED
+            boolean enabled = notation:GetBoolean(ENABLED)
+            physics3DEnabled = enabled
+        elseif key = GRAVITY
+            JavaScriptObjectNotation physics = notation:GetObject(GRAVITY)
+            Number32BitArray gravity = GetArray(physics)
+            Vector3 gravity3D
+            me:gravity3D = gravity3D
+            gravity3D:Set(gravity:Get(0),gravity:Get(1),gravity:Get(2))
+        end
+    end
+
+    private action LoadPhysics3D(JavaScriptObjectNotation notation)
+        Array<text> keys = notation:GetKeys()
+        i = 0
+        repeat while i < keys:GetSize()
+            text key = keys:Get(i)
+            ProcessPhysics3DKey(key, notation)
+            i = i + 1
+        end
+    end
+
+    action GetModels returns Array<Model>
+        return models
+    end
+
+    private action LoadObject(JavaScriptObjectNotation object) returns Model
+        text type = object:GetValue(TYPE)
+        text name = object:GetValue(NAME)
+        text description = object:GetValue(DESCRIPTION)
+
+        JavaScriptObjectNotation size = object:GetObject(SIZE)
+        JavaScriptObjectNotation location = object:GetObject(LOCATION)
+        JavaScriptObjectNotation color = object:GetObject(COLOR)
+
+        Number32BitArray sizeArray = GetArray(size)
+        Number32BitArray locationArray = GetArray(location)
+        Number32BitArray colorArray = GetArray(color)
+
+        Color loadedColor
+        loadedColor:SetColor(colorArray:Get(0), colorArray:Get(1), colorArray:Get(2), colorArray:Get(3))
+
+        Model model
+        model:SetName(name)
+        model:SetDescription(description)
+        JavaScriptObjectNotation jsonType
+        jsonType:SetKey(TYPE)
+        jsonType:SetText(type)
+        model:SetProperty(TYPE, jsonType)
+        model:SetProperty(COLOR, color)
+        
+        if type = CUBE
+            model:LoadBox(sizeArray:Get(0), sizeArray:Get(1), sizeArray:Get(2), loadedColor)
+        elseif type = SPHERE
+            model:LoadSphere(sizeArray:Get(0), sizeArray:Get(1), sizeArray:Get(2), loadedColor)
+        end
+        model:SetPosition(locationArray:Get(0), locationArray:Get(1), locationArray:Get(2))
+        return model
+    end
+
+    private action GetArray(JavaScriptObjectNotation json) returns Number32BitArray
+        Number32BitArray array
+        array:SetSize(json:GetSize())
+
+        i = 0
+        repeat while i < json:GetSize()
+            JavaScriptObjectNotation value = json:Get(i)
+            number num = 0
+            if value:IsInteger()
+                num = value:GetInteger()
+            elseif value:IsNumber()
+                num = value:GetNumber()
+            end
+
+            array:Set(i, num)
+            i = i + 1
+        end
+        
+        return array
+    end
+
+    action Save(text path, Game game)
+        Iterator<Layer> layers = game:GetLayerIterator()
+        repeat while layers:HasNext()
+            Layer layer = layers:Next()
+            if layer is Layer3D
+                SaveLayer3D(cast(Layer3D, layer))
+            end
+        end
+    end
+
+    action SaveLayer3D(Layer3D layer) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation notation
+
+        Iterator<Item3D> items = layer:GetIterator()
+        i = 1
+        repeat while items:HasNext()
+            Item3D item = items:Next()
+            JavaScriptObjectNotation value = PrepareItem3D(item)
+            value:SetKey("" + i)
+            notation:Add(value)
+            i = i + 1
+        end
+
+        return notation
+    end
+
+    private action PrepareItem3D(Item3D item) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation notation
+        
+        notation:Add(NAME, item:GetName())
+        notation:Add(DESCRIPTION, item:GetDescription())
+
+        JavaScriptObjectNotation location
+        Vector3 position = item:GetPosition()
+        location:SetArray()
+        location:Add(position:GetX())
+        location:Add(position:GetY())
+        location:Add(position:GetZ())
+        notation:Add(LOCATION, location)
+
+        JavaScriptObjectNotation size
+        size:SetArray()
+        size:Add(item:GetWidth())
+        size:Add(item:GetHeight())
+        size:Add(item:GetDepth())
+        notation:Add(SIZE, size)
+
+        if item:HasProperties()
+            Iterator<text> iterator = item:GetPopertyKeyIterator()
+            repeat while iterator:HasNext()
+                text key = iterator:Next()
+                JavaScriptObjectNotation value = item:GetProperty(key)
+                notation:Add(value)
+            end
+        end
+        return notation
+    end
+end

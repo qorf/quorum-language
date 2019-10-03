@@ -1,0 +1,160 @@
+package Libraries.Game.Scenes
+
+use Libraries.Compute.Vector3
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Model
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Item3D
+
+class ModelSceneProperty is SceneProperty
+    constant text TYPE = "Type"
+    constant text LOCATION = "Location"
+    constant text COLOR = "Color"
+    constant text SIZE = "Size"
+    constant text NAME = "Name"
+    constant text DESCRIPTION = "Description"
+    constant text PHYSICS_ENABLED = "Physics"
+    constant text RESPONSIVENESS = "Responsiveness"
+
+    constant text RESPONSIVE = "Responsive"
+    constant text NONRESPONSIVE = "Nonresponsive"
+    constant text UNMOVABLE = "Unmovable"
+
+    constant text CUBE = "Cube"
+    constant text SPHERE = "Sphere"
+
+    Array<Model> models
+    Model currentModel = undefined
+    text currentType = undefined
+    Number32BitArray currentSizeArray = undefined
+    Number32BitArray currentLocationArray = undefined
+    Number32BitArray currentColorArray = undefined
+
+    boolean currentEnablePhysics = false
+    text currentResponsiveness = RESPONSIVE
+    action GetModels returns Array<Model>
+        return models
+    end
+
+    private action ProcessModelKey(text key, JavaScriptObjectNotation notation)
+        if key = TYPE
+            currentType = notation:GetValue(TYPE)
+            JavaScriptObjectNotation jsonType
+            jsonType:SetKey(TYPE)
+            jsonType:SetText(currentType)
+            currentModel:SetProperty(TYPE, jsonType)
+        elseif key = NAME
+            text name = notation:GetValue(NAME)
+            currentModel:SetName(name)
+        elseif key = DESCRIPTION
+            text description = notation:GetValue(DESCRIPTION)
+            currentModel:SetDescription(description)
+        elseif key = SIZE
+            JavaScriptObjectNotation size = notation:GetObject(SIZE)
+            currentSizeArray = ConvertToNumber32BitArray(size)
+        elseif key = LOCATION
+            JavaScriptObjectNotation location = notation:GetObject(LOCATION)
+            currentLocationArray = ConvertToNumber32BitArray(location)
+        elseif key = COLOR
+            JavaScriptObjectNotation color = notation:GetObject(COLOR)
+            currentColorArray = ConvertToNumber32BitArray(color)
+            currentModel:SetProperty(COLOR, color)
+        elseif key = PHYSICS_ENABLED
+            currentEnablePhysics = notation:GetBoolean(PHYSICS_ENABLED)
+        elseif key = RESPONSIVENESS
+            currentResponsiveness = notation:GetValue(RESPONSIVENESS)
+        end
+    end
+
+    action LoadModel(JavaScriptObjectNotation notation)
+        Array<text> keys = notation:GetKeys()
+        Model model
+        me:currentModel = model
+        i = 0
+        repeat while i < keys:GetSize()
+            text key = keys:Get(i)
+            ProcessModelKey(key, notation)
+            i = i + 1
+        end
+        models:Add(me:currentModel)
+        LoadCurrentModelIntoMemory()
+        me:currentModel = undefined
+
+        me:currentModel = undefined
+        currentType = undefined
+        currentSizeArray = undefined
+        currentLocationArray = undefined
+        currentColorArray = undefined
+        currentEnablePhysics = false
+        currentResponsiveness = RESPONSIVE
+    end
+
+    private action LoadCurrentModelIntoMemory
+        Color loadedColor
+        loadedColor:SetColor(currentColorArray:Get(0), currentColorArray:Get(1), currentColorArray:Get(2), currentColorArray:Get(3))
+        
+        if currentType = CUBE
+            currentModel:LoadBox(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+        elseif currentType = SPHERE
+            currentModel:LoadSphere(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+        end
+
+        currentModel:SetPosition(currentLocationArray:Get(0), currentLocationArray:Get(1), currentLocationArray:Get(2))
+
+        if currentEnablePhysics
+            currentModel:EnablePhysics(currentEnablePhysics)
+            if currentResponsiveness = RESPONSIVE
+                currentModel:SetResponsive()
+            elseif currentResponsiveness = NONRESPONSIVE
+                currentModel:SetNonResponsive()
+            else
+                currentModel:SetUnmovable()
+            end
+        end
+    end
+
+    action LoadModels(JavaScriptObjectNotation notation)
+        Iterator<JavaScriptObjectNotation> iterator = notation:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation model = iterator:Next()
+            LoadModel(model)
+        end
+    end
+
+    action ConvertItem3D(Item3D item) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation notation
+        
+        notation:Add(NAME, item:GetName())
+        notation:Add(DESCRIPTION, item:GetDescription())
+
+        JavaScriptObjectNotation location
+        Vector3 position = item:GetPosition()
+        location:SetArray()
+        location:Add(position:GetX())
+        location:Add(position:GetY())
+        location:Add(position:GetZ())
+        notation:Add(LOCATION, location)
+
+        JavaScriptObjectNotation size
+        size:SetArray()
+        size:Add(item:GetWidth())
+        size:Add(item:GetHeight())
+        size:Add(item:GetDepth())
+        notation:Add(SIZE, size)
+
+        //temporary hack
+        if item:HasProperties()
+            Iterator<text> iterator = item:GetPopertyKeyIterator()
+            repeat while iterator:HasNext()
+                text key = iterator:Next()
+                JavaScriptObjectNotation value = item:GetProperty(key)
+                notation:Add(value)
+            end
+        end
+
+        return notation
+    end
+end

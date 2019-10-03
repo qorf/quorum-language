@@ -18,7 +18,8 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Compute.Math
-
+use Libraries.Containers.HashTable
+use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
     The Item class represents any object that has a position (such as x and y
@@ -79,6 +80,49 @@ class Item
     Item previousFocus = undefined
 
     GameStateManager manager
+
+    HashTable<text, JavaScriptObjectNotation> properties = undefined
+
+    action GetProperty(text key) returns JavaScriptObjectNotation
+        if properties = undefined
+            return undefined
+        end
+
+        JavaScriptObjectNotation value = properties:GetValue(key)
+        return value
+    end
+
+    action SetProperty(text key, JavaScriptObjectNotation value)
+        if properties = undefined
+            HashTable<text, JavaScriptObjectNotation> properties
+            me:properties = properties
+        end
+
+        properties:Add(key, value)
+    end
+
+    action GetPopertyKeyIterator returns Iterator<text>
+        if properties = undefined
+            return undefined
+        end
+        return properties:GetKeyIterator()
+    end
+
+    action GetPropertiesSize returns integer
+        if properties = undefined
+            return 0
+        end
+
+        return properties:GetSize()
+    end
+
+    action HasProperties returns boolean
+        if properties = undefined
+            return false
+        end
+
+        return true
+    end
 
     /*
     This action is used internally to allow the Item class to pass actions to
