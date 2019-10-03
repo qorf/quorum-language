@@ -4,16 +4,23 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
 
-class TextBoxCaretToTokenEndBehavior is Behavior
+class TextBoxSelectToTokenEndBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
         TextBox textBox = cast(TextBox, item)
+        TextBoxSelection selection = textBox:GetSelection()
+
+        integer startSelection = selection:GetStartIndex()
+        integer endSelection = selection:GetEndIndex()
 
         boolean tokenIsDone = false
+        boolean isReducingCurrentSelection = false
+
         text currentToken = ""
         text textValue = textBox:GetText()
         integer currentIndex = textBox:GetCaretPosition()
@@ -21,10 +28,17 @@ class TextBoxCaretToTokenEndBehavior is Behavior
         text currentCharacter = ""
         text nextCharacter = ""
 
+        //determine if we are adding to a selection or reversing a current selection
+        if ((currentIndex = startSelection) and (startSelection not= endSelection))
+            isReducingCurrentSelection = true
+        end
+
        repeat while not(tokenIsDone)
             if (currentIndex + 1) < textBox:GetSize()
                 nextCharacter = textValue:GetCharacter(currentIndex)
-                //signals the end of the token  
+                /*If the next character IsSpecialCharacter, then this could either signal the 
+                end of the token or it could signal a single character special token (e.g. '*' or '+')
+                or it could signal a multiple character special token (e.g. '()' or '//')*/
                 if (IsSpecialCharacter(nextCharacter))
                     if (beginIndex = currentIndex)
                         currentToken = nextCharacter
@@ -50,12 +64,14 @@ class TextBoxCaretToTokenEndBehavior is Behavior
                         end
                     end
                         tokenIsDone = true
-                            
+                /* If the next character is white space then this will signal the end of the current token
+                or any initial whitespace that must be skipped. */
                 elseif (IsWhiteSpace(nextCharacter))
                     if currentIndex = beginIndex
                         currentToken = currentToken + nextCharacter
                         currentIndex = currentIndex + 1
                         nextCharacter = textValue:GetCharacter(currentIndex)
+                        //skip long sequences of whitespace by collecting them into one token
                         if (IsWhiteSpace(nextCharacter))
                             repeat while nextCharacter = " "
                                 currentToken = currentToken + nextCharacter
@@ -104,7 +120,22 @@ class TextBoxCaretToTokenEndBehavior is Behavior
                 tokenIsDone = true
             end
         end
-        textBox:SetCaretPosition(beginIndex + currentToken:GetSize())
+        
+        
+        if not isReducingCurrentSelection   //add the current token's length the the selection
+            textBox:SetCaretPosition(beginIndex + currentToken:GetSize())
+            textBox:Select(startSelection, beginIndex + currentToken:GetSize(), true)
+        elseif isReducingCurrentSelection   //subtract the current token's length from the selection
+            textBox:SetCaretPosition(beginIndex + currentToken:GetSize())
+            /* Special case when reversing a selection from SelectToTokenStart which uses the token's
+            start index (the SelectToTokenEnd uses the token's end index, in this case a white space that falls between
+            the reverse selection will cause the program to crash */
+            if endSelection < (beginIndex + currentToken:GetSize())
+                textBox:Select(endSelection, beginIndex + currentToken:GetSize(), false)
+            else
+                textBox:Select(beginIndex + currentToken:GetSize(), endSelection, false)
+            end
+        end
     end
 
     private action IsWhiteSpace(text value) returns boolean

@@ -16,22 +16,8 @@ class TextFieldDoubleClickSelectWordBehavior is Behavior
         TextField textField = cast(TextField, item) 
         text textValue = textField:GetText()
  
-        //integer endOfLineIndex = 0
         integer caretPosition = textField:GetCaretPosition()
         integer endOfLineIndex = textField:GetSize()
-        //integer lineCount = textBox:GetLineCount()
-        //integer lineNumber = textBox:GetCaretLine()
-        //integer beginOfLineIndex = textBox:GetIndexOfLine(lineNumber)
-
-        /* if the double-click is occurring on the last line of the textbox, then the 
-        endOfLineIndex should just be the textBox size */
-//        if lineNumber = (lineCount - 1)
-//            endOfLineIndex = textBox:GetSize()
-//        else
-//            integer nextLineIndex = textBox:GetIndexOfLine(lineNumber + 1)      
-//            endOfLineIndex = nextLineIndex - 1
-//        end
-
         
         boolean beginWordIsFinished = false
         integer beginIndex = caretPosition

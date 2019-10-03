@@ -4,15 +4,23 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Selections.TextBoxSelection
 
-class TextBoxCaretToTokenStartBehavior is Behavior
+class TextBoxSelectToTokenStartBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
         TextBox textBox = cast(TextBox, item)
+        TextBoxSelection selection = textBox:GetSelection()
+
+        integer startSelection = selection:GetStartIndex()
+        integer endSelection = selection:GetEndIndex()
+
+
         boolean tokenIsDone = false
+        boolean isReducingCurrentSelection = false
 
         text currentToken = ""
         text textValue = textBox:GetText()
@@ -20,6 +28,12 @@ class TextBoxCaretToTokenStartBehavior is Behavior
         integer beginIndex = currentIndex
         text previousCharacter = ""
         text currentCharacter = ""
+
+
+        //need to check if we are reducing the selection or adding to the current selection
+        if ((endSelection = currentIndex) and (startSelection not= endSelection)) //then we are reducing the current selection set flag
+            isReducingCurrentSelection = true
+        end
 
         repeat while not(tokenIsDone)
             if 0 < (currentIndex - 1)
@@ -62,7 +76,8 @@ class TextBoxCaretToTokenStartBehavior is Behavior
                                 currentToken = currentToken + previousCharacter
                                 currentIndex = currentIndex - 1
                                 previousCharacter = textValue:GetCharacter(currentIndex - 1)
-                            end 
+                            end
+                            //tokenIsDone = true
                             previousCharacter = textValue:GetCharacter(currentIndex)
                         elseif (IsSpecialCharacter(previousCharacter))
                             currentToken = currentToken + previousCharacter
@@ -103,8 +118,22 @@ class TextBoxCaretToTokenStartBehavior is Behavior
                 tokenIsDone = true
             end
         end
-        textBox:SetCaretPosition(beginIndex - currentToken:GetSize())
-
+        
+        if not isReducingCurrentSelection   //add the length of the current token to the selection
+            textBox:SetCaretPosition(beginIndex - currentToken:GetSize())
+            textBox:Select(beginIndex - currentToken:GetSize(), endSelection, false)
+        else    //subtract the length of the current token from the selection
+            textBox:SetCaretPosition(beginIndex - currentToken:GetSize())
+            /* Special case when reversing a selection from SelectToTokenEnd which uses the token's
+            end index (the SelectToTokenStart uses the token's start index, in this case a white space 
+            that falls between the reverse selection will cause the program to crash */
+            if startSelection > (beginIndex - currentToken:GetSize())
+                textBox:Select(beginIndex - currentToken:GetSize(), startSelection, true)
+            else
+                textBox:Select(startSelection, beginIndex - currentToken:GetSize(), true)
+            end
+        end
+        
     end
 
     private action IsWhiteSpace(text value) returns boolean
