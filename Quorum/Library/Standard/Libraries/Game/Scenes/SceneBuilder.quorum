@@ -202,7 +202,7 @@ class SceneBuilder
         notation:Add(SIZE, size)
 
         if item:HasProperties()
-            Iterator<text> iterator = item:GetPopertyKeyIterator()
+            Iterator<text> iterator = item:GetPropertyKeyIterator()
             repeat while iterator:HasNext()
                 text key = iterator:Next()
                 JavaScriptObjectNotation value = item:GetProperty(key)

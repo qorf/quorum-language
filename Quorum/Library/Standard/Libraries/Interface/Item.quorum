@@ -101,7 +101,7 @@ class Item
         properties:Add(key, value)
     end
 
-    action GetPopertyKeyIterator returns Iterator<text>
+    action GetPropertyKeyIterator returns Iterator<text>
         if properties = undefined
             return undefined
         end
@@ -122,6 +122,10 @@ class Item
         end
 
         return true
+    end
+
+    action HasProperty(text key) returns boolean
+        return HasProperties() and properties:HasKey(key)
     end
 
     /*
