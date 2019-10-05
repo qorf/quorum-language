@@ -54,6 +54,12 @@ class PopupMenu is MenuRoot, MouseListener
         panel:Add(item)
     end
 
+    action Remove(MenuItem item)
+        // Remove from the MenuPanel
+        item:SetMenuRoot(undefined)
+        panel:Remove(item)
+    end
+
     action OpenAtCursor
         OpenAt(monitor:GetMouseX(), manager:GetGameDisplay():GetHeight() - monitor:GetMouseY())
     end
