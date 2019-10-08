@@ -24,6 +24,9 @@ class Properties
     */
     public constant text operatingSystem = "os.name"
 
+    /* This asks the system for the operating system version. */
+    public constant text version = "os.version"
+
     /*
     This is a public constant for the web address environment variable, if 
     one is set.
@@ -113,6 +116,21 @@ class Properties
     */
     action GetOperatingSystemName returns text
         return GetProperty(operatingSystem)
+    end
+
+    /*
+    This property returns the name of the operating system version currently running
+    the program.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    text value = properties:GetOperatingSystemVersion()
+    output value
+    */
+    action GetOperatingSystemVersion returns text
+        return GetProperty(version)
     end
 
     /*

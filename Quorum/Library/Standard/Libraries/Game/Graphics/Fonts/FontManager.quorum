@@ -122,7 +122,11 @@ class FontManager
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontFile:SetWorkingDirectory("/Library/Fonts")
+            if properties:GetOperatingSystemVersion() = "10.15" //catalina changed the default
+                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
+            else
+                fontFile:SetWorkingDirectory("/Library/Fonts")
+            end
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
         else
@@ -197,7 +201,11 @@ class FontManager
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontDirectory:SetWorkingDirectory("/Library/Fonts")
+            if properties:GetOperatingSystemVersion() = "10.15" //catalina changed the default
+                fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
+            else
+                fontDirectory:SetWorkingDirectory("/Library/Fonts")
+            end
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
         elseif os:Contains("iOS Device")
