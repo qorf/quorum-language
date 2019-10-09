@@ -19,15 +19,21 @@ class Scene
     constant text MODELS = "Models"
     constant text PHYSICS_3D = "Physics3D"
     constant text CAMERA = "Camera"
+    constant text LIGHTS = "Lights"
 
     ModelSceneProperty modelProperty = undefined
     PhysicsSceneProperty physicsProperty = undefined
+    LightSceneProperty lightsProperty = undefined
     action GetPhysicsSceneProperty returns PhysicsSceneProperty
         return physicsProperty
     end
 
     action GetModelSceneProperty returns ModelSceneProperty
         return modelProperty
+    end
+
+    action GetLightSceneProperty returns LightSceneProperty
+        return lightsProperty
     end
 
     action Load(File file)
@@ -52,6 +58,13 @@ class Scene
                 modelProperty = prop
             end
             modelProperty:LoadModels(models)
+        elseif key = LIGHTS
+            JavaScriptObjectNotation lights = notation:GetObject(LIGHTS)
+            if lightsProperty = undefined
+                LightSceneProperty prop
+                lightsProperty = prop
+            end
+            lightsProperty:LoadLights(lights)
         elseif key = PHYSICS_3D
             JavaScriptObjectNotation physics = notation:GetObject(PHYSICS_3D)
             if physicsProperty = undefined
