@@ -1025,6 +1025,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             highlight:SetColor(selectionColor)
 
             Array<Drawable> lineDrawables = background:GetLine(firstLine)
+            if lineDrawables = undefined
+                return now
+            end
             text lineText = textValue:GetLine(firstLine):GetText()
             
             Glyph leftGlyph = font:GetGlyph(lineText:GetCharacter(firstLineIndex))
