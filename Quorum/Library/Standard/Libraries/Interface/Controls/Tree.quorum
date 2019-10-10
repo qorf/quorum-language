@@ -64,6 +64,12 @@ class Tree is Control
         panel:Add(item)
     end
 
+    action Add(integer location, TreeItem item)
+        item:SetTree(me)
+        treeItems:Add(location, item)
+        panel:Add(location, item)
+    end
+    
     action Remove(TreeItem item)
         // If the removed TreeItem was part of the selected path, empty the
         // selection (rather than maintaining it on a removed item).

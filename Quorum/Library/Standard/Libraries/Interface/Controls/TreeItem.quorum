@@ -118,6 +118,17 @@ class TreeItem is Control
         item:SetParentTreeItem(me)
     end
 
+    action Add(integer location, TreeItem item)
+        if panel:GetChildren():IsEmpty()
+            expandButton:Show()
+        end
+
+        panel:Add(location, item)
+        treeItems:Add(location, item)
+        item:SetTree(GetTree())
+        item:SetParentTreeItem(me)
+    end
+
     action Add(Array<TreeItem> items)
         integer counter = 0
         repeat while counter < items:GetSize()
