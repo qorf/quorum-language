@@ -1,6 +1,7 @@
 package Libraries.Game.Scenes
 
 use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
@@ -18,6 +19,7 @@ class ModelSceneProperty is SceneProperty
     constant text DESCRIPTION = "Description"
     constant text PHYSICS_ENABLED = "Physics"
     constant text RESPONSIVENESS = "Responsiveness"
+    constant text TRANSFORM = "Transform"
 
     constant text RESPONSIVE = "Responsive"
     constant text NONRESPONSIVE = "Nonresponsive"
@@ -25,6 +27,7 @@ class ModelSceneProperty is SceneProperty
 
     constant text CUBE = "Cube"
     constant text SPHERE = "Sphere"
+    constant text CYLINDER = "Cylinder"
 
     Array<Model> models
     Model currentModel = undefined
@@ -32,6 +35,7 @@ class ModelSceneProperty is SceneProperty
     Number32BitArray currentSizeArray = undefined
     Number32BitArray currentLocationArray = undefined
     Number32BitArray currentColorArray = undefined
+    Number32BitArray currentTransformArray = undefined
 
     boolean currentEnablePhysics = false
     text currentResponsiveness = RESPONSIVE
@@ -66,6 +70,9 @@ class ModelSceneProperty is SceneProperty
             currentEnablePhysics = notation:GetBoolean(PHYSICS_ENABLED)
         elseif key = RESPONSIVENESS
             currentResponsiveness = notation:GetValue(RESPONSIVENESS)
+        elseif key = TRANSFORM
+            JavaScriptObjectNotation transform = notation:GetObject(TRANSFORM)
+            currentTransformArray = ConvertToNumber32BitArray(transform)
         end
     end
 
@@ -88,6 +95,7 @@ class ModelSceneProperty is SceneProperty
         currentSizeArray = undefined
         currentLocationArray = undefined
         currentColorArray = undefined
+        currentTransformArray = undefined
         currentEnablePhysics = false
         currentResponsiveness = RESPONSIVE
     end
@@ -100,9 +108,31 @@ class ModelSceneProperty is SceneProperty
             currentModel:LoadBox(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
         elseif currentType = SPHERE
             currentModel:LoadSphere(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+        elseif currentType = CYLINDER
+            currentModel:LoadCylinder(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
         end
 
         currentModel:SetPosition(currentLocationArray:Get(0), currentLocationArray:Get(1), currentLocationArray:Get(2))
+
+        if currentTransformArray not= undefined
+            Matrix4 transform = currentModel:GetTransform()
+            transform:row0column0 = currentTransformArray:Get(0)
+            transform:row0column1 = currentTransformArray:Get(1)
+            transform:row0column2 = currentTransformArray:Get(2)
+            transform:row0column3 = currentTransformArray:Get(3)
+            transform:row1column0 = currentTransformArray:Get(4)
+            transform:row1column1 = currentTransformArray:Get(5)
+            transform:row1column2 = currentTransformArray:Get(6)
+            transform:row1column3 = currentTransformArray:Get(7)
+            transform:row2column0 = currentTransformArray:Get(8)
+            transform:row2column1 = currentTransformArray:Get(9)
+            transform:row2column2 = currentTransformArray:Get(10)
+            transform:row2column3 = currentTransformArray:Get(11)
+            transform:row3column0 = currentTransformArray:Get(12)
+            transform:row3column1 = currentTransformArray:Get(13)
+            transform:row3column2 = currentTransformArray:Get(14)
+            transform:row3column3 = currentTransformArray:Get(15)
+        end
 
         if currentEnablePhysics
             currentModel:EnablePhysics(currentEnablePhysics)
@@ -144,6 +174,27 @@ class ModelSceneProperty is SceneProperty
         size:Add(item:GetHeight())
         size:Add(item:GetDepth())
         notation:Add(SIZE, size)
+
+        JavaScriptObjectNotation transform
+        Matrix4 matrix = item:GetTransform()
+        transform:SetArray()
+        transform:Add(matrix:row0column0)
+        transform:Add(matrix:row0column1)
+        transform:Add(matrix:row0column2)
+        transform:Add(matrix:row0column3)
+        transform:Add(matrix:row1column0)
+        transform:Add(matrix:row1column1)
+        transform:Add(matrix:row1column2)
+        transform:Add(matrix:row1column3)
+        transform:Add(matrix:row2column0)
+        transform:Add(matrix:row2column1)
+        transform:Add(matrix:row2column2)
+        transform:Add(matrix:row2column3)
+        transform:Add(matrix:row3column0)
+        transform:Add(matrix:row3column1)
+        transform:Add(matrix:row3column2)
+        transform:Add(matrix:row3column3)
+        notation:Add(TRANSFORM, transform)
 
         //temporary hack
         if item:HasProperties()
