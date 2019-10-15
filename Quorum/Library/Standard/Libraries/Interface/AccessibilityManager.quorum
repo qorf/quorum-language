@@ -103,6 +103,16 @@ class AccessibilityManager
 
     system action DescriptionChanged(Item item)
 
+    // A constant used with the Notify action, indicating that the program had to abort some process.
+    public constant integer ACTION_ABORTED_NOTIFICATION = 1
+    // A constant used with the Notify action, indicating that an action was completed.
+    public constant integer ACTION_COMPLETED_NOTIFICATION = 2
+    // A constant used with the Notify action, indicating that a new item was added.
+    public constant integer ITEM_ADDED_NOTIFICATION = 3
+    // A constant used with the Notify action, indicating that an item was removed.
+    public constant integer ITEM_REMOVED_NOTIFICATION = 4
+    // A constant used with the Notify action, indicating the notification relates to something that isn't described by the other notification constants.
+    public constant integer OTHER_NOTIFICATION = 5
 
     action Update
         Item focus = manager:GetFocus()
@@ -326,7 +336,11 @@ class AccessibilityManager
         end
     end
 
-    system action Notify(Item item, text value)
+    action Notify(Item item, text value)
+        Notify(item, value, OTHER_NOTIFICATION)
+    end
+
+    system action Notify(Item item, text value, integer notificationType)
 
     /*
     The Shutdown action shuts down the underlying accessibility architecture.

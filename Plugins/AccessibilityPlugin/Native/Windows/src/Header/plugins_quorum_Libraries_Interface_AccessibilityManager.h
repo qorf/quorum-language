@@ -39,9 +39,10 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemovePopupMenuItemNative(JNIEnv*, jobject, jlong);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveNative(JNIEnv * env, jobject obj, jlong item);
 
-// General properties
+// General properties & notifications
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NameChangedNative(JNIEnv*, jobject, jlong item, jstring name);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_DescriptionChangedNative(JNIEnv*, jobject, jlong item, jstring description);
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NotifyClients(JNIEnv* env, jobject obj, jlong item, jstring say, jint type);
 
 //events
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ButtonInvoked(JNIEnv*, jobject, jlong buttonPointer);

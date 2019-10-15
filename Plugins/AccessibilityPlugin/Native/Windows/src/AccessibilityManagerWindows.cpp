@@ -648,6 +648,48 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
 }
 
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NotifyClients(JNIEnv* env, jobject obj, jlong item, jstring say, jint type)
+{
+	const char* nativeCurrentLineText = env->GetStringUTFChars(say, 0);
+	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+	BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
+	const char* custom = "Custom Announcement";
+	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
+
+	Item* itemPointer = GetItemFromLong(item);
+	IRawElementProviderSimple* provider = itemPointer->GetProviderSimple().get();
+
+	enum NotificationKind kind;
+	
+	switch (type)
+	{
+	case 1:
+		kind = NotificationKind_ActionAborted;
+		break;
+	case 2:
+		kind = NotificationKind_ActionCompleted;
+		break;
+	case 3:
+		kind = NotificationKind_ItemAdded;
+		break;
+	case 4:
+		kind = NotificationKind_ItemRemoved;
+		break;
+	case 5:
+	default:
+		kind = NotificationKind_Other;
+		break;
+	}
+	
+	enum NotificationProcessing processing = NotificationProcessing_MostRecent;
+
+	UiaRaiseNotificationEvent(provider, kind, processing, resultString, customBSTR);
+
+	SysFreeString(resultString);
+	SysFreeString(customBSTR);
+	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
+}
+
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jint index, jstring added, jint removed)
 {
 	TextBoxControl* control = static_cast<TextBoxControl*>(GetItemFromLong(textbox));

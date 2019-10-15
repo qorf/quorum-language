@@ -235,6 +235,7 @@ public class AccessibilityManager
     private native boolean TreeTableRowExpandedNative(long nativePointer);
     private native boolean TreeTableRowCollapsedNative(long nativePointer);
     private native void NotifyTextBoxNative(long nativePointer, String say);
+    private native void NotifyClients(long nativePointer, String say, int type);
     private native void ReselectTreeItemNative(long nativePointer);
     
     private native boolean IsScreenReaderListeningNative();
@@ -427,11 +428,15 @@ public class AccessibilityManager
         return parentLong;
     }
     
-    public void Notify(Item_ item, String say) {
-        Long itemToRemove = ITEM_MAP.get(item);
-        if(item instanceof TextBox_) {
-            NotifyTextBoxNative(itemToRemove, say);
-        }
+    public void Notify(Item_ item, String say, int type) {
+        Long itemToNotify = ITEM_MAP.get(item);
+        if (itemToNotify == null)
+            return;
+        
+//        if(item instanceof TextBox_) {
+//            NotifyTextBoxNative(itemToRemove, say);
+//        }
+        NotifyClients(itemToNotify, say, type);
     }
     
     public boolean NativeRemove(Item_ item)
