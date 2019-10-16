@@ -36,6 +36,6 @@ class TextBoxDeleteEdit is Edit
     end
 
     action Redo
-        box:Delete(caretPosition - value:GetSize(), caretPosition)
+        box:Delete(caretPosition, caretPosition + value:GetSize())
     end
 end

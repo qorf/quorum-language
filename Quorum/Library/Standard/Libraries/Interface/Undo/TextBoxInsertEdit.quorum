@@ -3,8 +3,10 @@ package Libraries.Interface.Undo
 use Libraries.Interface.Controls.TextBox
 
 class TextBoxInsertEdit is Edit
-    integer caretPosition = 0
+    integer caretStartPosition = 0
+    integer caretEndPosition = 0
     text value = ""
+    text deleted = ""
     TextBox box = undefined
 
     action GetTextBox returns TextBox
@@ -15,12 +17,31 @@ class TextBoxInsertEdit is Edit
         me:box = box
     end
 
-    action GetCaretPosition returns integer
-        return caretPosition
+    action GetCaretStartPosition returns integer
+        return caretStartPosition
     end
 
-    action SetCaretPosition(integer position)
-        caretPosition = position
+    action SetCaretStartPosition(integer position)
+        caretStartPosition = position 
+    end
+
+    action GetCaretEndPosition returns integer
+        return caretEndPosition
+    end
+
+    action SetCaretEndPosition(integer position)
+        caretEndPosition = position 
+    end
+
+    action IsModify returns boolean
+        if deleted = ""
+            return false
+        end
+        return true
+    end
+    
+    action SetDeletedText(text deleted)
+        me:deleted = deleted
     end
 
     action GetText returns text
@@ -32,10 +53,17 @@ class TextBoxInsertEdit is Edit
     end
 
     action Undo
-        box:Delete(caretPosition - value:GetSize(), caretPosition)
+        box:Delete(caretStartPosition, caretEndPosition)
+        if IsModify()
+            box:Insert(caretStartPosition, deleted)
+            box:Select(caretStartPosition, caretStartPosition + deleted:GetSize())
+        end
     end
 
     action Redo
-        box:Insert(caretPosition, value)
+        if IsModify()
+            box:Select(caretStartPosition, caretStartPosition + deleted:GetSize())
+        end
+        box:Insert(caretStartPosition, value)
     end
 end

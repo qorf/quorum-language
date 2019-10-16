@@ -4,7 +4,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextBox
-use Libraries.Interface.Undo.EditManager
+use Libraries.Interface.Undo.TextBoxEditManager
 use Libraries.Interface.Undo.TextBoxInsertEdit
 
 class TextBoxUndoBehavior is Behavior
@@ -12,7 +12,7 @@ class TextBoxUndoBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is Control
             TextBox box = cast(TextBox, event:GetItem())
-            EditManager editor = box:GetEditManager()
+            TextBoxEditManager editor = box:GetTextBoxEditManager()
             editor:Undo()
         end
     end

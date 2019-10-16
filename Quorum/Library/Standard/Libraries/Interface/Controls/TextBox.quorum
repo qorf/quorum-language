@@ -26,6 +26,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
+use Libraries.Interface.Undo.TextBoxEditManager
 use Libraries.Interface.Undo.EditManager
 use Libraries.Interface.Undo.TextBoxEdit
 use Libraries.Interface.Undo.TextBoxEditState
@@ -170,6 +171,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     IndentationStrategy indentation
     EditManager editManager = undefined
+    TextBoxEditManager textEditManager
 
     /*
     TextStyle objects are used to indicate changes in the style of text at
@@ -200,6 +202,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         AddMouseWheelListener(me)
         AddMouseListener(me)
         AddMouseMovementListener(me)
+        AddTextChangeListener(textEditManager)
+        textEditManager:SetTextBox(me)
 
 //        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
@@ -1391,12 +1395,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
-
         boolean shouldResize = false
         number oldLength = GetLineWidth(caretLine)
         integer toDelete = 1
@@ -1432,10 +1430,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
-
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, GetCaretPosition())
 
@@ -1457,12 +1451,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             DeleteSelection()
             return now
         end
-
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
 
         text line = GetCurrentLineText()
 
@@ -1496,9 +1484,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ResetCaretBlinkTimer()
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, GetCaretPosition())
@@ -1516,12 +1501,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
-
         caretLine = selection:GetFirstLine()
         caretCharacter = selection:GetFirstLineIndex()
 
@@ -1538,9 +1517,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ResetCaretBlinkTimer()
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
 
         EmptySelectionEvent(true)
     end
@@ -1559,12 +1535,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
-
         DecrementStyleIndices(GetCaretPosition(), endIndex - startIndex)
 
         caretLine = textValue:LineIndexFromCharacterIndex(startIndex)
@@ -1582,9 +1552,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         PositionCaret()
         ResetCaretBlinkTimer()
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, startIndex)
@@ -1622,11 +1589,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
         value = SanitizeNewLines(value)
         integer indexLine = GetLineIndexOfCharacter(index)
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
 
         IncrementStyleIndices(index, value:GetSize())
 
@@ -1678,10 +1640,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             GetLineDrawables()
         end
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
-
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, "", index)
 
@@ -1697,12 +1655,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action Insert(text value)
         value = SanitizeNewLines(value)
-
-        TextBoxEdit edit
-        edit:SetTextBox(me)
-
-        TextBoxEditState oldState = GetCurrentEditState()
-        edit:SetUndoState(oldState)
 
         text deletedText = ""
         integer originalIndex = GetCaretPosition()
@@ -1779,10 +1731,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
-        TextBoxEditState newState = GetCurrentEditState()
-        edit:SetRedoState(newState)
-        editManager:Add(edit)
-
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
@@ -1795,6 +1743,21 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action SetEditManager(EditManager edits)
         me:editManager = edits
+    end
+
+    action SetTextBoxEditManager(TextBoxEditManager manager)
+        if textEditManager not= undefined
+            RemoveTextChangeListener(textEditManager)
+        end
+        me:textEditManager = manager
+        if manager not= undefined    
+            me:textEditManager:SetTextBox(me)
+            AddTextChangeListener(textEditManager)
+        end
+    end
+
+    action GetTextBoxEditManager returns TextBoxEditManager
+        return textEditManager
     end
 
     action SetScrollDistance(number distance)
@@ -2322,8 +2285,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
+        //For now we are going to assume that setting the text
+        //of a text box is not an action that needs an undo state
+        if textEditManager not= undefined
+            textEditManager:SetToIgnore(true)
+        end
+
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
+
+        if textEditManager not= undefined
+            textEditManager:SetToIgnore(false)
+        end
     end
 
     action AppendToText(text value)
