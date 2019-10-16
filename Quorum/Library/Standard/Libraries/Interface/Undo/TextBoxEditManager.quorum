@@ -178,7 +178,7 @@ class TextBoxEditManager is EditManager, TextChangeListener
         else
             //This is if the text is MODIFIED
             //which is just an insert where selected text was deleted
-            SaveCurrentEdit()//always start a new edit for it 
+            Reset()//always start a new edit for it 
             TextWasAdded(event:GetAddedText(), event:GetIndex())
             currentInsertEdit:SetDeletedText(event:GetDeletedText())
         end
