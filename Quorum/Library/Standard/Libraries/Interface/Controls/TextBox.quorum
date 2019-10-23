@@ -808,7 +808,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         Array<Drawable> lineDrawables = background:GetLine(lineIndex)
 
-        if startIndex >= lineDrawables:GetSize()
+        if startIndex >= lineDrawables:GetSize() or startIndex >= currentLine:GetSize()
             return now
         end
 
@@ -1389,7 +1389,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             DeleteSelection()
             return now
         end
-
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         if index = 0
             return now

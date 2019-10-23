@@ -100,7 +100,9 @@ class TextBoxRenderer is Control
             // likely because the line is off the screen.
             return now
         end
-
+        if index >= array:GetSize()
+            return now
+        end
         Drawable character = array:RemoveAt(index)
         Remove(character)
         RecycleDrawable(character)
