@@ -1120,7 +1120,7 @@ class Game
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
-
+        
         // Adding the input table for TabPanes.
 
         InputTable tabPaneTable
@@ -1207,6 +1207,11 @@ class Game
         ControlActivationBehavior activateBehavior
         buttonTable:Add(spaceSet, activateBehavior)
 
+        InputSet rightClickSet
+        rightClickSet:SetMouseInput(mouse:RIGHT)
+        OpenPopupMenuBehavior openContextMenuBehavior
+        buttonTable:Add(rightClickSet, openContextMenuBehavior)
+
         gameInput:AddInputTable(buttonTable)
 
         InputTable menuItemTable
@@ -1269,9 +1274,7 @@ class Game
         treeItemTable:Add(clickSet, clickDownBehavior)
         treeItemTable:Add(touchDown, clickDownBehavior)
 
-        InputSet rightClickSet
         rightClickSet:SetMouseInput(mouse:RIGHT)
-        OpenPopupMenuBehavior openContextMenuBehavior
         treeItemTable:Add(rightClickSet, openContextMenuBehavior)
 
         AddInputTable(treeItemTable)
