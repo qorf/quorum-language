@@ -84,6 +84,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
 	JavaClass_AccessibilityManager.GetListItemText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetListItemText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
 	JavaClass_AccessibilityManager.GetBoundingRectangle = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetBoundingRectangle", "(Lquorum/Libraries/Language/Object_;)[D");
+	JavaClass_AccessibilityManager.PauseEventPolling = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "PauseEventPolling", "()V");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
@@ -387,7 +388,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility Start");
 	#endif
 	UNREFERENCED_PARAMETER(obj);
-	HRESULT comResult = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
+	HRESULT comResult = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
 
 	WCHAR* wName = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(name, 0));

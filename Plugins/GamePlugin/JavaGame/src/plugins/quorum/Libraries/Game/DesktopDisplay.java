@@ -41,6 +41,9 @@ public class DesktopDisplay {
     // Whether or not the window was resized during the last cycle.
     boolean wasResized = false;
     
+    // Used to indicate that the GLFW message pump needs to pause because input was received.
+    private boolean pauseEventPolling = false;
+    
     GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
@@ -409,7 +412,29 @@ public class DesktopDisplay {
     
     public void Update()
     {
+        pauseEventPolling = false;
+        
+        // We always poll for events at least once.
         GLFW.glfwPollEvents();
+        
+        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+        quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
+        
+        double interval = (System.nanoTime() - lastTime) / 1000000000.0;
+        double frameTarget = 1.0 / config.Get_Libraries_Game_DesktopConfiguration__targetFramesPerSecond_();
+        double minimum = config.Get_Libraries_Game_DesktopConfiguration__minimumFrameDelay_();
+        
+        if (config.Get_Libraries_Game_DesktopConfiguration__limitFramesPerSecond_())
+            while (pauseEventPolling == false && (interval < minimum || interval < frameTarget))
+            {
+                if (frameTarget > minimum)
+                    GLFW.glfwWaitEventsTimeout(frameTarget - interval);
+                else
+                    GLFW.glfwWaitEventsTimeout(minimum - interval);
+                interval = (System.nanoTime() - lastTime) / 1000000000.0;
+            }
+        
+        
         GLFW.glfwSwapBuffers(window);
     }
 
@@ -583,5 +608,16 @@ public class DesktopDisplay {
     public boolean IsAvailable()
     {
         return GLFW.glfwGetCurrentContext() != 0;
+    }
+    
+    /*
+    Used to indicate that the Display should stop polling for events, if it is
+    currently doing so. Typically used by the accessibility system to ensure the
+    system will allow input to be fully resolved in Quorum before processing
+    additional messages that could rely on that input's resolution.
+    */
+    public void PauseEventPolling()
+    {
+        pauseEventPolling = true;
     }
 }

@@ -286,4 +286,12 @@ public class KeyboardProcessor {
         keyboardEvents.add(event);
     }
 
+    /*
+    Returns true if there are keyboard events which are waiting to be processed
+    by the Quorum game engine, and false otherwise.
+    */
+    public static boolean EventsArePending()
+    {
+        return keyboardEvents.isEmpty() == false;
+    }
 }

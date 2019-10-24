@@ -54,6 +54,18 @@ LRESULT WindowRoot::OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) n
 		NotifyHostFocusLost();
 		// Let the message pass on to the original window proc.
 	}
+	else if (msg == WM_KEYDOWN)
+	{
+		// We need to let Quorum know that we need to process this keyboard input before we continue pumping messages.
+		
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			env->CallStaticVoidMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.PauseEventPolling);
+		}
+
+		// We still let this message pass on to the original window procedure so GLFW can handle it.
+	}
 
 	return CallWindowProc(m_originalWndProc, m_hwnd, msg, wParam, lParam);
 }

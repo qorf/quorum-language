@@ -5,7 +5,6 @@
 #include "TextBoxTextRange.h"
 #include "TextBoxProvider.h"
 
-#include <iostream>
 
 void NotifyCaretPositionChanged(_In_ TextBoxControl* control)
 {
@@ -100,7 +99,6 @@ IFACEMETHODIMP TextBoxProvider::RangeFromPoint(UiaPoint point, _Outptr_result_ma
 	*	function then we'll report the caret position as the closest RangeFromPoint since Quorum handles mouse events.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-
 
 	int caretPosition = m_control->GetCaretPosition();
 	Range closestRange(caretPosition, caretPosition);

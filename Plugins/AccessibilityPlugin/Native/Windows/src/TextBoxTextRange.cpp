@@ -3,9 +3,6 @@
 #include "TextBoxTextRange.h"
 #include "TextBoxProvider.h"
 
-//For debugging
-#include <iostream>
-
 TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_pTextBoxControl(control), m_range(range)
 {
 

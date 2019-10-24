@@ -40,6 +40,9 @@ struct JClass_AccessibilityManager
 
 	// Used to calculate bounding rectangles.
 	jmethodID GetBoundingRectangle;
+
+	// Used to indicate that the accessibility system needs to stop pumping messages for a time, to allow the engine to process input.
+	jmethodID PauseEventPolling;
 };
 struct JClass_TextBox
 {

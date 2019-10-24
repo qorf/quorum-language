@@ -1036,4 +1036,9 @@ public class AccessibilityManager
         
         return bounds;
     }
+    
+    public static void PauseEventPolling()
+    {
+        ((quorum.Libraries.Game.DesktopDisplay)GameStateManager.display).plugin_.PauseEventPolling();
+    }
 }

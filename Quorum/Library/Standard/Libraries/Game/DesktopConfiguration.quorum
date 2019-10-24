@@ -43,11 +43,31 @@ class DesktopConfiguration is ApplicationConfiguration
     /* The starting color of the window while the Game is loading. */
     public Color initialBackgroundColor = tempColor:Black()
 
-    /* Target framerate when the window is in the foreground. Use 0 to never sleep. */
-    public integer foregroundFPS = 60
+    /*
+    Whether or not the game engine should limit the total frames rendered per
+    second. If this is false, the engine will attempt to render as many frames
+    as possible, which can potentially waste CPU time, consume more power, and
+    adversely affect how screen readers interact with the application. If this
+    value is set to true, the engine will try to limit the frames rendered to
+    the targetFramesPerSecond value. This value is true by default.
+    */
+    public boolean limitFramesPerSecond = true
 
-    /* Target framerate when the window is not in the foreground. Use 0 to never sleep, -1 to not render. */
-    public integer backgroundFPS = 60
+    /* 
+    Target framerate when "limitFramesPerSecond" is set to true. The default
+    value is 70.
+    */
+    public integer targetFramesPerSecond = 70
+
+    /*
+    If limitFramesPerSecond is true, this value represents the minimum number of
+    seconds the engine should wait between frames. Having a minimum delay between
+    frames gives screen readers and other accessibility technologies a greater
+    opportunity to collect information from the system. If this value is set to
+    0, then the engine will only delay as much as necessary to hit the target
+    frame rate. The default value is 0.01 seconds.
+    */
+    public number minimumFrameDelay = 0.01
 
     /*
     The ScreenResolution to use when the game launches. If left undefined, the

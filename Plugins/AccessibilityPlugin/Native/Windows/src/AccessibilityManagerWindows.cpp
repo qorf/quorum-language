@@ -33,6 +33,7 @@
 // For Debug Output
 #include <iostream>
 #include <string>
+#include <thread>
 
 // DllMain: Entry point for dll. Nothing to do here.
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
