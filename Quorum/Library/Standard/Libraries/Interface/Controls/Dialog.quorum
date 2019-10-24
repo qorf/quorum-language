@@ -33,6 +33,7 @@ class Dialog is Control
         properties:SetPercentageOriginX(0.5)
         properties:SetPercentageOriginY(0.5)
         SetAccessibilityCode(parent:Item:DIALOG)
+        parent:Item:visible = false
     end
 
     GameStateManager manager
@@ -64,6 +65,9 @@ class Dialog is Control
     displayed, the OnShow() action will be called.
     */
     action Show
+        if IsShowing()
+            return now
+        end
         Game game = manager:GetGame()
         DialogLayer layer = game:GetDialogLayerPool():GetDialogLayer()
 
@@ -158,6 +162,7 @@ class Dialog is Control
         layer:OnShow()
         layer:Add(me)
 
+        parent:Item:Show()
         OnShow()
     end
 
@@ -241,6 +246,7 @@ class Dialog is Control
             return now
         end
         
+        parent:Item:Hide()
         OnHide()
     end
 
