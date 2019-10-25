@@ -302,6 +302,15 @@ class Dialog is Control
         showTopBar = enable
     end
 
+    action Resize
+        Layer layer = GetLayer()
+        if layer not= undefined
+            layer:SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
+            layer:GetCamera():Update()
+        end
+        parent:Control:Resize()
+    end
+
     /*
     This action returns whether or not the top bar will be displayed as part of
     this Dialog when it opens.
