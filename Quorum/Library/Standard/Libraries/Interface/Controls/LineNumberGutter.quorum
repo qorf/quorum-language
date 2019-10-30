@@ -26,7 +26,7 @@ class LineNumberGutter is Gutter
             properties = GetDefaultLayoutProperties()
         end
 
-        text linesInText = "" + (textBox:GetLineCount() - 1)
+        text linesInText = "" + textBox:GetLineCount()
         integer glyphsRequired = linesInText:GetSize()
         /*
         We assume the space required for the "0" glyph is a good predictor of
