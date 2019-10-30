@@ -285,7 +285,7 @@ class TextBoxRenderer is Control
             startArray = (startArray + difference) mod lines:GetSize()
         else
             integer counter = 0
-            repeat while counter > difference
+            repeat while counter > difference and startArray - counter < lines:GetSize()
                 integer target = startArray - counter
                 if target < 0
                     target = lines:GetSize() - target
