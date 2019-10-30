@@ -57,7 +57,7 @@ class TextBoxCaretToTokenEndBehavior is Behavior
                         currentIndex = currentIndex + 1
                         nextCharacter = textValue:GetCharacter(currentIndex)
                         if (IsWhiteSpace(nextCharacter))
-                            repeat while nextCharacter = " "
+                            repeat while IsWhiteSpace(nextCharacter)
                                 currentToken = currentToken + nextCharacter
                                 currentIndex = currentIndex + 1
                                 nextCharacter = textValue:GetCharacter(currentIndex)

@@ -80,8 +80,6 @@ use Libraries.Interface.Behaviors.Controls.TextBoxPageUpBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSavePreviousCaretPositionBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToMouseClickBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
-use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
-use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxWordJumpStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxWordJumpEndBehavior
@@ -677,11 +675,11 @@ class Game
             TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
             textBoxTable:Add(textBoxControlRight, textBoxCaretToTokenEndBehavior)
 
-            InputSet textBoxAltLeft
-            textBoxAltLeft:SetKeyboardInput(keys:RIGHT)
-            textBoxAltLeft:AddModifier(textBoxAltLeft:CONTROL)
+            InputSet textBoxControlLeft
+            textBoxControlLeft:SetKeyboardInput(keys:LEFT)
+            textBoxControlLeft:AddModifier(textBoxControlLeft:CONTROL)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
-            textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
+            textBoxTable:Add(textBoxControlLeft, textBoxCaretToTokenStartBehavior)
         end
         
 
@@ -914,17 +912,17 @@ class Game
             TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
 
-            InputSet textBoxJumpWordLeft
-            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
-            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:ALT)
-            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
-            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
-
-            InputSet textBoxJumpWordRight
-            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
-            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:ALT)
-            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
-            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
+//            InputSet textBoxJumpWordLeft
+//            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
+//            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:ALT)
+//            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
+//            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
+//
+//            InputSet textBoxJumpWordRight
+//            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
+//            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:ALT)
+//            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
+//            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
         else
             InputSet textBoxSelectLeft
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
@@ -940,17 +938,17 @@ class Game
             TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
 
-            InputSet textBoxJumpWordLeft
-            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
-            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:CONTROL)
-            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
-            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
-
-            InputSet textBoxJumpWordRight
-            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
-            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:CONTROL)
-            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
-            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
+//            InputSet textBoxJumpWordLeft
+//            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
+//            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:CONTROL)
+//            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
+//            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
+//
+//            InputSet textBoxJumpWordRight
+//            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
+//            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:CONTROL)
+//            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
+//            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
         end
 
         InputSet endSet

@@ -20,7 +20,7 @@ class TextBoxSelectToTokenEndBehavior is Behavior
 
         boolean tokenIsDone = false
         boolean isReducingCurrentSelection = false
-
+        
         text currentToken = ""
         text textValue = textBox:GetText()
         integer currentIndex = textBox:GetCaretPosition()
@@ -73,7 +73,7 @@ class TextBoxSelectToTokenEndBehavior is Behavior
                         nextCharacter = textValue:GetCharacter(currentIndex)
                         //skip long sequences of whitespace by collecting them into one token
                         if (IsWhiteSpace(nextCharacter))
-                            repeat while nextCharacter = " "
+                            repeat while IsWhiteSpace(nextCharacter)
                                 currentToken = currentToken + nextCharacter
                                 currentIndex = currentIndex + 1
                                 nextCharacter = textValue:GetCharacter(currentIndex)
@@ -102,8 +102,7 @@ class TextBoxSelectToTokenEndBehavior is Behavior
                                     currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
                                 end
                             end
-                            tokenIsDone = true 
-                            
+                            tokenIsDone = true  
                         else
                             nextCharacter = textValue:GetCharacter(currentIndex + 1)
                         end

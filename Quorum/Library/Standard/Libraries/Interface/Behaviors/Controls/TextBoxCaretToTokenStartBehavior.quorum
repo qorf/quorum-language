@@ -58,7 +58,7 @@ class TextBoxCaretToTokenStartBehavior is Behavior
                         currentIndex = currentIndex - 1
                         previousCharacter = textValue:GetCharacter(currentIndex - 1)
                         if(IsWhiteSpace(previousCharacter))
-                            repeat while previousCharacter = " "
+                            repeat while IsWhiteSpace(previousCharacter)
                                 currentToken = currentToken + previousCharacter
                                 currentIndex = currentIndex - 1
                                 previousCharacter = textValue:GetCharacter(currentIndex - 1)
