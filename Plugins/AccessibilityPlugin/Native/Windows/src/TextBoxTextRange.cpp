@@ -79,9 +79,9 @@ IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _O
 		TextBoxTextRange *rangeInternal;
 		if (SUCCEEDED(range->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
-			if (m_pTextBoxControl == rangeInternal->m_pTextBoxControl &&
-				CompareEndpointPair(rangeInternal->m_range.begin, m_range.begin) == 0 &&
-				CompareEndpointPair(rangeInternal->m_range.end, m_range.end) == 0)
+			if (m_pTextBoxControl == rangeInternal->m_pTextBoxControl && 
+				rangeInternal->m_range.begin == m_range.begin &&
+				rangeInternal->m_range.end == m_range.end)
 			{
 				*pRetVal = TRUE;
 			}
@@ -115,8 +115,8 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 	{
 		Range target = rangeInternal->m_range;
 
-		EndPoint thisEnd = (endpoint == TextPatternRangeEndpoint_Start) ? m_range.begin : m_range.end;
-		EndPoint targetEnd = (targetEndpoint == TextPatternRangeEndpoint_Start) ? target.begin : target.end;
+		int thisEnd = (endpoint == TextPatternRangeEndpoint_Start) ? m_range.begin : m_range.end;
+		int targetEnd = (targetEndpoint == TextPatternRangeEndpoint_Start) ? target.begin : target.end;
 
 		*pRetVal = CompareEndpointPair(thisEnd, targetEnd);
 	}
@@ -136,15 +136,15 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	if (unit == TextUnit_Character)
 	{
 		m_range.end = m_range.begin;
-		m_range.end.character++;
+		m_range.end++;
 
 		// If the end of the range exceeds the end of the line we started on, reign the end value back in.
-		if (m_range.end.character - m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) > m_pTextBoxControl->GetLineLength())
+		if (m_range.end - m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) > m_pTextBoxControl->GetLineLength())
 		{
-			m_range.end.character = m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) + m_pTextBoxControl->GetLineLength();
+			m_range.end = m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) + m_pTextBoxControl->GetLineLength();
 		}
 	}
-	else if (unit == TextUnit_Format || unit == TextUnit_Word)
+	else if (unit == TextUnit_Format)
 	{
 		int walked;
 		m_range.begin = Walk(m_range.begin, false, unit, 0, 0, &walked);
@@ -155,14 +155,25 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 			m_range.begin = Walk(m_range.end, false, unit, 0, 1, &walked);
 		}
 	}
-	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
+	else if (unit == TextUnit_Word)
 	{
-		m_range.begin.character =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
-		m_range.end.character = m_range.begin.character + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			if (!env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, m_range.begin))
+				m_range.begin = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenStartIndex, m_range.begin);
+
+			m_range.end = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenEndIndex, m_range.begin);
+		}
 	}
-	else if (unit == TextUnit_Page || unit == TextUnit_Document)
+	else if (unit == TextUnit_Line)
 	{
-		m_range.begin.character = 0;
+		m_range.begin =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
+		m_range.end = m_range.begin + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
+	}
+	else if (unit == TextUnit_Paragraph || unit == TextUnit_Page || unit == TextUnit_Document)
+	{
+		m_range.begin = 0;
 		m_range.end = m_pTextBoxControl->GetTextboxEndpoint();
 	}
 	else
@@ -179,15 +190,15 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	HRESULT hr = S_OK;
 	*pRetVal = NULL;
 
-	EndPoint start = searchBackward ? m_range.end : m_range.begin;
-	EndPoint finish = searchBackward ? m_range.begin : m_range.end;
-	EndPoint current = start;
+	int start = searchBackward ? m_range.end : m_range.begin;
+	int finish = searchBackward ? m_range.begin : m_range.end;
+	int current = start;
 
 	// This will loop until 'current' passes or is equal to the end
 	while (CompareEndpointPair(searchBackward ? finish : current, searchBackward ? current : finish) < 0)
 	{
 		int walked;
-		EndPoint next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
+		int next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
 		VARIANT curValue = m_pTextBoxControl->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
 
 		hr = VarCmp(&val, &curValue, LOCALE_NEUTRAL);
@@ -241,7 +252,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 	VariantInit(pRetVal);
 
 	int walked;
-	EndPoint endOfAttribute = Walk(m_range.begin, true, TextUnit_Format, textAttributeId, 1, &walked);
+	int endOfAttribute = Walk(m_range.begin, true, TextUnit_Format, textAttributeId, 1, &walked);
 
 	if (CompareEndpointPair(endOfAttribute, m_range.end) < 0)
 	{
@@ -280,8 +291,8 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 	*retVal = nullptr;
 
 	const auto text = m_pTextBoxControl->GetText();
-	int startPosition = m_range.begin.character;
-	int length = m_range.end.character - startPosition;
+	int startPosition = m_range.begin;
+	int length = m_range.end - startPosition;
 
 	if ((maxLength >= 0) && (length > maxLength))
 	{
@@ -305,12 +316,12 @@ IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ 
 {
 	*pRetVal = 0;
 
-	bool isDegenerate = (CompareEndpointPair(m_range.begin, m_range.end) == 0);
+	bool isDegenerate = (m_range.begin == m_range.end);
 
 	int walked;
-	EndPoint back = Walk(m_range.begin, false, unit, 0, 0, &walked);
+	int back = Walk(m_range.begin, false, unit, 0, 0, &walked);
 
-	EndPoint destination = Walk(back, count > 0, unit, 0, abs(count), pRetVal);
+	int destination = Walk(back, count > 0, unit, 0, abs(count), pRetVal);
 
 	m_range.begin = destination;
 	m_range.end = destination;
@@ -371,7 +382,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 	}
 	else
 	{
-		EndPoint src;
+		int src;
 		if (targetEndpoint == TextPatternRangeEndpoint_Start)
 		{
 			src = rangeInternal->m_range.begin;
@@ -403,23 +414,33 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 	return hr;
 }
 
-// This control does not support selection yet
 IFACEMETHODIMP TextBoxTextRange::Select()
 {
-	return UIA_E_INVALIDOPERATION;
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		env->CallVoidMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.Select, (jint)m_range.begin, (jint)m_range.end);
+	}
+
+	return S_OK;
 }
 
 
-// This control does not support selection yet
 IFACEMETHODIMP TextBoxTextRange::AddToSelection()
 {
+	// According to the Microsoft documentation, this function:
+	// "Adds the text range to the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text."
+	// Since we don't support multiple, disjoint spans of selected text, we just return an error.
+
 	return UIA_E_INVALIDOPERATION;
 }
 
-
-// This control does not support selection yet
 IFACEMETHODIMP TextBoxTextRange::RemoveFromSelection()
 {
+	// According to the Microsoft documentation, this function:
+	// "Removes the text range from the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text."
+	// Since we don't support multiple, disjoint spans of selected text, we just return an error.
+
 	return UIA_E_INVALIDOPERATION;
 }
 
@@ -439,7 +460,7 @@ IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY
 	return S_OK;
 }
 
-bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
+bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
 
@@ -448,8 +469,8 @@ bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ Tex
 		return true;
 	}
 
-	EndPoint next;
-	EndPoint prev;
+	int next;
+	int prev;
 
 	if (!m_pTextBoxControl->StepCharacter(check, true, &next) ||
 		!m_pTextBoxControl->StepCharacter(check, false, &prev))
@@ -464,16 +485,25 @@ bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ Tex
 		{
 			return true;
 		}
+
 		return false;
 	}
 
-	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
+	else if (unit == TextUnit_Line)
 	{
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			int line = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetLineIndexOfCharacter, check);
+			return (env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetIndexOfLine, line)) == check;
+		}
+
 		return true;
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check
-	else if (unit == TextUnit_Page || unit == TextUnit_Document)
+	// Since we don't support TextUnit_Paragraph, requests for it go to the next largest unit, which are Pages.
+	else if (unit == TextUnit_Paragraph || unit == TextUnit_Page || unit == TextUnit_Document)
 	{
 		return false;
 	}
@@ -489,14 +519,14 @@ bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ Tex
 	return false;
 }
 
-EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked)
+int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked)
 {
 	*walked = 0;
 
 	// Use count of zero to normalize
 	if (count == 0)
 	{
-		if (CheckEndPointIsUnitEndpoint(start, unit, specificAttribute))
+		if (CheckEndpointIsUnitEndpoint(start, unit, specificAttribute))
 		{
 			return start;
 		}
@@ -525,10 +555,10 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 		walkUnit = TextUnit_Character;
 	}
 
-	EndPoint current = start;
+	int current = start;
 	for (int i = 0; i < count; i++)
 	{
-		EndPoint checkNext;
+		int checkNext;
 		if (!m_pTextBoxControl->StepCharacter(current, forward, &checkNext))
 		{
 			// We're at the beginning or end so stop now and return
@@ -539,7 +569,7 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 		{
 			if (walkUnit == TextUnit_Character)
 			{
-				EndPoint next;
+				int next;
 				if (m_pTextBoxControl->StepCharacter(current, forward, &next))
 				{
 					current = next;
@@ -557,10 +587,10 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 				}
 				else
 				{
-					current.character = 0;
+					current = 0;
 				}
 			}
-		} while (!CheckEndPointIsUnitEndpoint(current, unit, specificAttribute));
+		} while (!CheckEndpointIsUnitEndpoint(current, unit, specificAttribute));
 		(*walked)++;
 	}
 
@@ -573,16 +603,17 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 	return current;
 }
 
-bool TextBoxTextRange::IsWhiteSpace(_In_ EndPoint check)
+bool TextBoxTextRange::IsWhiteSpace(_In_ int check)
 {
-	if (check.character >= m_pTextBoxControl->GetLineLength())
+	if (check >= m_pTextBoxControl->GetTextboxEndpoint())
 	{
 		return true;
 	}
 
 	std::wstring line = m_pTextBoxControl->GetText();
 	
-	int isSpace = iswspace(line[check.character]);
+	int isSpace = iswspace(line[check]);
+
 	return isSpace != 0;
 }
 

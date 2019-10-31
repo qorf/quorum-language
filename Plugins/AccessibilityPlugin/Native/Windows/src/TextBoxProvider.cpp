@@ -116,7 +116,7 @@ IFACEMETHODIMP TextBoxProvider::get_DocumentRange(_Outptr_result_maybenull_ ITex
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0 }, m_control->GetTextboxEndpoint() };
 
-	EndPoint point = m_control->GetTextboxEndpoint();
+	int point = m_control->GetTextboxEndpoint();
 
 	*pRetVal = new TextBoxTextRange(m_control, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;

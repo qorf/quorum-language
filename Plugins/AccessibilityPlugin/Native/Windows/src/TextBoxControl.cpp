@@ -16,9 +16,9 @@ std::wstring TextBoxControl::GetText()
 	return m_text;
 }
 
-EndPoint TextBoxControl::GetTextboxEndpoint()
+int TextBoxControl::GetTextboxEndpoint()
 {
-	EndPoint endOfText(0);
+	int endOfText = 0;
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
@@ -26,7 +26,7 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
-		endOfText.character = static_cast<int>(strlen(nativeFullText));
+		endOfText = static_cast<int>(strlen(nativeFullText));
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 	}
@@ -99,10 +99,10 @@ Range TextBoxControl::GetSelectionRange()
 		JO_selection = env->CallObjectMethod(javaItem, JavaClass_TextBox.GetSelection);
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetStartIndex);
-		selectionRange.begin.character = (int)index;
+		selectionRange.begin = (int)index;
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextBoxSelection.GetEndIndex);
-		selectionRange.end.character = (int)index;
+		selectionRange.end = (int)index;
 	}
 
 	return selectionRange;
@@ -117,7 +117,7 @@ void TextBoxControl::UpdateCaret()
 	}
 }
 
-VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
+VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute)
 {
 	UNREFERENCED_PARAMETER(start);
 	VARIANT retval;
@@ -273,23 +273,22 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	return retval;
 }
 
-bool TextBoxControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint * end)
+bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int * end)
 {
 	*end = start;
 	if (forward)
 	{
-			end->character++;
+		if (*end > GetTextboxEndpoint())
+			return false;
+		else
+			(*end)++;
 	}
 	else
 	{
-		if (end->character <= 0)
-		{
+		if (*end <= 0)
 			return false;
-		}
 		else
-		{
-			end->character--;
-		}
+			(*end)--;
 	}
 	return true;
 }

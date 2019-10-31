@@ -118,8 +118,8 @@ IFACEMETHODIMP TextFieldTextRange::CompareEndpoints(TextPatternRangeEndpoint end
 	{
 		Range target = rangeInternal->range;
 
-		EndPoint thisEnd = (endpoint == TextPatternRangeEndpoint_Start) ? range.begin : range.end;
-		EndPoint targetEnd = (targetEndpoint == TextPatternRangeEndpoint_Start) ? target.begin : target.end;
+		int thisEnd = (endpoint == TextPatternRangeEndpoint_Start) ? range.begin : range.end;
+		int targetEnd = (targetEndpoint == TextPatternRangeEndpoint_Start) ? target.begin : target.end;
 
 		*pRetVal = CompareEndpointPair(thisEnd, targetEnd);
 	}
@@ -139,13 +139,13 @@ IFACEMETHODIMP TextFieldTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	if (unit == TextUnit_Character)
 	{
 		range.end = range.begin;
-		range.end.character++;
+		range.end++;
 
 		int size = textFieldControl->GetSize();
 
-		if (range.end.character > size)
+		if (range.end > size)
 		{
-			range.end.character = size;
+			range.end = size;
 		}
 	}
 	else if (unit == TextUnit_Format || unit == TextUnit_Word)
@@ -161,8 +161,8 @@ IFACEMETHODIMP TextFieldTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	}
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph || unit == TextUnit_Page || unit == TextUnit_Document)
 	{
-		range.begin.character = 0;
-		range.end.character = textFieldControl->GetSize();
+		range.begin = 0;
+		range.end = textFieldControl->GetSize();
 	}
 	else
 	{
@@ -178,15 +178,15 @@ IFACEMETHODIMP TextFieldTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttrib
 	HRESULT hr = S_OK;
 	*pRetVal = NULL;
 
-	EndPoint start = searchBackward ? range.end : range.begin;
-	EndPoint finish = searchBackward ? range.begin : range.end;
-	EndPoint current = start;
+	int start = searchBackward ? range.end : range.begin;
+	int finish = searchBackward ? range.begin : range.end;
+	int current = start;
 
 	// This will loop until 'current' passes or is equal to the end
 	while (CompareEndpointPair(searchBackward ? finish : current, searchBackward ? current : finish) < 0)
 	{
 		int walked;
-		EndPoint next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
+		int next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
 		VARIANT curValue = textFieldControl->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
 
 		hr = VarCmp(&val, &curValue, LOCALE_NEUTRAL);
@@ -240,7 +240,7 @@ IFACEMETHODIMP TextFieldTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAt
 	VariantInit(pRetVal);
 
 	int walked;
-	EndPoint endOfAttribute = Walk(range.begin, true, TextUnit_Format, textAttributeId, 1, &walked);
+	int endOfAttribute = Walk(range.begin, true, TextUnit_Format, textAttributeId, 1, &walked);
 
 	if (CompareEndpointPair(endOfAttribute, range.end) < 0)
 	{
@@ -279,8 +279,8 @@ IFACEMETHODIMP TextFieldTextRange::GetText(int maxLength, _Out_ BSTR* retVal) no
 	*retVal = nullptr;
 
 	const auto text = textFieldControl->GetText();
-	int startPosition = range.begin.character;
-	int length = range.end.character - startPosition;
+	int startPosition = range.begin;
+	int length = range.end - startPosition;
 
 	if ((maxLength >= 0) && (length > maxLength))
 	{
@@ -307,9 +307,9 @@ IFACEMETHODIMP TextFieldTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out
 	bool isDegenerate = (CompareEndpointPair(range.begin, range.end) == 0);
 
 	int walked;
-	EndPoint back = Walk(range.begin, false, unit, 0, 0, &walked);
+	int back = Walk(range.begin, false, unit, 0, 0, &walked);
 
-	EndPoint destination = Walk(back, count > 0, unit, 0, abs(count), pRetVal);
+	int destination = Walk(back, count > 0, unit, 0, abs(count), pRetVal);
 
 	range.begin = destination;
 	range.end = destination;
@@ -371,7 +371,7 @@ IFACEMETHODIMP TextFieldTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndp
 	}
 	else
 	{
-		EndPoint src;
+		int src;
 		if (targetEndpoint == TextPatternRangeEndpoint_Start)
 		{
 			src = rangeInternal->range.begin;
@@ -438,7 +438,7 @@ IFACEMETHODIMP TextFieldTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARR
 	return S_OK;
 }
 
-bool TextFieldTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
+bool TextFieldTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
 
@@ -447,8 +447,8 @@ bool TextFieldTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ T
 		return true;
 	}
 
-	EndPoint next;
-	EndPoint prev;
+	int next;
+	int prev;
 
 	if (!textFieldControl->StepCharacter(check, true, &next) ||
 		!textFieldControl->StepCharacter(check, false, &prev))
@@ -488,14 +488,14 @@ bool TextFieldTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ T
 	return false;
 }
 
-EndPoint TextFieldTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int* walked)
+int TextFieldTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int* walked)
 {
 	*walked = 0;
 
 	// Use count of zero to normalize
 	if (count == 0)
 	{
-		if (CheckEndPointIsUnitEndpoint(start, unit, specificAttribute))
+		if (CheckEndpointIsUnitEndpoint(start, unit, specificAttribute))
 		{
 			return start;
 		}
@@ -524,10 +524,10 @@ EndPoint TextFieldTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ T
 		walkUnit = TextUnit_Character;
 	}
 
-	EndPoint current = start;
+	int current = start;
 	for (int i = 0; i < count; i++)
 	{
-		EndPoint checkNext;
+		int checkNext;
 		if (!textFieldControl->StepCharacter(current, forward, &checkNext))
 		{
 			// We're at the beginning or end so stop now and return
@@ -538,7 +538,7 @@ EndPoint TextFieldTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ T
 		{
 			if (walkUnit == TextUnit_Character)
 			{
-				EndPoint next;
+				int next;
 				if (textFieldControl->StepCharacter(current, forward, &next))
 				{
 					current = next;
@@ -556,10 +556,10 @@ EndPoint TextFieldTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ T
 				}
 				else
 				{
-					current.character = 0;
+					current = 0;
 				}
 			}
-		} while (!CheckEndPointIsUnitEndpoint(current, unit, specificAttribute));
+		} while (!CheckEndpointIsUnitEndpoint(current, unit, specificAttribute));
 		(*walked)++;
 	}
 
@@ -572,16 +572,16 @@ EndPoint TextFieldTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ T
 	return current;
 }
 
-bool TextFieldTextRange::IsWhiteSpace(_In_ EndPoint check)
+bool TextFieldTextRange::IsWhiteSpace(_In_ int check)
 {
-	if (check.character >= textFieldControl->GetSize())
+	if (check >= textFieldControl->GetSize())
 	{
 		return true;
 	}
 
 	std::wstring line = textFieldControl->GetText();
 
-	int isSpace = iswspace(line[check.character]);
+	int isSpace = iswspace(line[check]);
 	return isSpace != 0;
 }
 

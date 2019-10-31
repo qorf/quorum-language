@@ -63,7 +63,7 @@ void TextFieldControl::UpdateCaret()
 	}
 }
 
-VARIANT TextFieldControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
+VARIANT TextFieldControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute)
 {
 	#if LOG
 	log("TextFieldControl::GetAttributeAtPoint Start");
@@ -227,54 +227,36 @@ VARIANT TextFieldControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTR
 	return retval;
 }
 
-bool TextFieldControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint* end)
+bool TextFieldControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int* end)
 {
-	#if LOG
-	log("TextFieldControl::StepCharacter Start");
-	#endif
-
 	*end = start;
 	if (forward)
 	{
-		if (end->character >= GetSize())
+		if (*end >= GetSize())
 		{
-			#if LOG
-			log("TextFieldControl::GetAttributeAtPoint Finished (returned FALSE, >= case");
-			#endif
 			return false;
 		}
 
-		end->character++;
+		(*end)++;
 	}
 	else
 	{
-		if (end->character <= 0)
+		if (*end <= 0)
 		{
-			#if LOG
-			log("TextFieldControl::GetAttributeAtPoint Finished (returned FALSE, <= case)");
-			#endif
 			return false;
 		}
 		else
 		{
-			end->character--;
+			(*end)--;
 		}
 	}
-
-	#if LOG
-	log("TextFieldControl::GetAttributeAtPoint Finished (returned TRUE)");
-	#endif
 
 	return true;
 }
 
-EndPoint TextFieldControl::GetTextFieldEndpoint()
+int TextFieldControl::GetTextFieldEndpoint()
 {
-	#if LOG
-	log("TextFieldControl::GetTextFieldEndpoint Start");
-	#endif
-
-	EndPoint endOfText(0);
+	int endOfText = 0;
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
@@ -282,14 +264,10 @@ EndPoint TextFieldControl::GetTextFieldEndpoint()
 
 		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
-		endOfText.character = static_cast<int>(strlen(nativeFullText));
+		endOfText = static_cast<int>(strlen(nativeFullText));
 
 		env->ReleaseStringUTFChars(fullText, nativeFullText);
 	}
-
-	#if LOG
-	log("TextFieldControl::GetTextFieldEndpoint Finished");
-	#endif
 
 	return endOfText;
 }
@@ -307,10 +285,10 @@ Range TextFieldControl::GetSelectionRange()
 		JO_selection = env->CallObjectMethod(GetMe(), JavaClass_TextField.GetSelection);
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextFieldSelection.GetStartIndex);
-		selectionRange.begin.character = (int)index;
+		selectionRange.begin = (int)index;
 
 		index = env->CallIntMethod(JO_selection, JavaClass_TextFieldSelection.GetEndIndex);
-		selectionRange.end.character = (int)index;
+		selectionRange.end = (int)index;
 
 	}
 

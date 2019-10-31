@@ -16,11 +16,11 @@ class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider>
 		int GetCaretPosition();
 		int GetSize();
 		std::wstring GetText();
-		EndPoint GetTextFieldEndpoint();
+		int GetTextFieldEndpoint();
 		Range GetSelectionRange();
 
-		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
-		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint* end);
+		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
+		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int* end);
 
 		void UpdateSelection(const Range& indices);
 

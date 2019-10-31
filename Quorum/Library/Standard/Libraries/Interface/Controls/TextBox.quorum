@@ -2783,6 +2783,317 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     /*
+    This action finds the start index of the first token before the caret within
+    the TextBox. If the caret is located in the middle of a token, the index
+    returned will be for that token. If the caret is exactly at the beginning of
+    a token, the start index of the previous token will be returned instead.
+
+    Attribute: Returns A global index pointing to the beginning of the first token before the caret.
+    */
+    action GetTokenStartIndex returns integer
+        return GetTokenStartIndex(GetCaretPosition())
+    end
+
+    /*
+    This action finds the start index of the first token before the given search
+    index. If the search index is located in the middle of a token, the index
+    returned will be for that token. If the search index is exactly at the
+    beginning of a token, the start index of the previous token will be returned
+    instead.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the beginning of the first token before the search index.
+    */
+    action GetTokenStartIndex(integer searchIndex) returns integer
+        boolean tokenIsDone = false
+
+        text currentToken = ""
+        text textValue = GetText()
+        integer currentIndex = searchIndex
+        integer beginIndex = searchIndex
+        text previousCharacter = ""
+        text currentCharacter = ""
+
+        repeat while not(tokenIsDone)
+            if 0 < (currentIndex - 1)
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                //"Special" single character tokens signify the beginning of the "special" token and end of the previous token
+                if(IsSpecialCharacter(previousCharacter))
+                    //The "Special" single character token is the current token
+                    if (beginIndex = currentIndex)
+                        currentToken = previousCharacter
+                        if previousCharacter = ")"
+                            if textValue:GetCharacter(currentIndex - 2) = "("
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                        if previousCharacter = ">"
+                            if textValue:GetCharacter(currentIndex - 2) = ">"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                        if previousCharacter= "<"
+                            if textValue:GetCharacter(currentIndex - 2) = "<"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                        if previousCharacter = "/"
+                            if textValue:GetCharacter(currentIndex - 2) = "/"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                            end
+                        end
+                    end    
+                    tokenIsDone = true
+                /* skip past white space */           
+                elseif (IsWhiteSpace(previousCharacter))
+                    if currentIndex = beginIndex
+                        currentToken = currentToken + previousCharacter
+                        currentIndex = currentIndex - 1
+                        previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                        if(IsWhiteSpace(previousCharacter))
+                            repeat while IsWhiteSpace(previousCharacter)
+                                currentToken = currentToken + previousCharacter
+                                currentIndex = currentIndex - 1
+                                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                            end 
+                            previousCharacter = textValue:GetCharacter(currentIndex)
+                        elseif (IsSpecialCharacter(previousCharacter))
+                            currentToken = currentToken + previousCharacter
+                            if previousCharacter = ")"
+                                if textValue:GetCharacter(currentIndex - 2) = "("
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            if previousCharacter = ">"
+                                if textValue:GetCharacter(currentIndex - 2) = ">"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            if previousCharacter= "<"
+                                if textValue:GetCharacter(currentIndex - 2) = "<"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            if previousCharacter = "/"
+                                if textValue:GetCharacter(currentIndex - 2) = "/"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
+                                end
+                            end
+                            tokenIsDone = true 
+                        else
+                            previousCharacter = textValue:GetCharacter(currentIndex)
+                        end
+                    else
+                        tokenIsDone = true
+                    end
+                else
+                    currentToken = currentToken + previousCharacter
+                    currentIndex = currentIndex - 1
+                end
+            else
+                beginIndex = 0
+                currentToken = ""
+                tokenIsDone = true
+            end
+        end
+
+        return beginIndex - currentToken:GetSize()
+    end
+
+    private action IsBeginningOfToken(integer index) returns boolean
+        // Used by the accessibility system, which can ignore the "private" flag.
+        // It's not clear if this will be necessary in the future.
+
+        if index = 0
+            return true
+        end
+
+        text textValue = GetText()
+
+        if index >= textValue:GetSize()
+            return false
+        end
+
+        text previous = textValue:GetCharacter(index - 1)
+        text current = textValue:GetCharacter(index)
+
+        if IsWhiteSpace(current)
+            return false
+        end
+
+        if IsWhiteSpace(previous)
+            return true
+        end
+
+        if (IsSpecialCharacter(previous) and not IsSpecialCharacter(current))
+            return true
+        end
+
+        if (IsSpecialCharacter(current))
+            if current = ")"
+                if previous = "("
+                    return false
+                end
+            end
+            if current = ">"
+                if previous = ">"
+                    return false
+                end
+            end
+            if current = "<"
+                if previous = "<"
+                    return false
+                end
+            end
+            if current = "/"
+                if previous = "/"
+                    return false
+                end
+            end
+
+            return true
+        end
+
+        return false
+    end
+
+    /*
+    This action finds the end index of the first token after the caret within
+    the TextBox. If the caret is located in the middle of a token, the index
+    returned will be for that token. If the caret is exactly at the end of
+    a token, the end index of the next token will be returned instead.
+
+    Attribute: Returns A global index pointing to the end of the first token after the caret.
+    */
+    action GetTokenEndIndex returns integer
+        return GetTokenEndIndex(GetCaretPosition())
+    end
+
+    /*
+    This action finds the end index of the first token after the given search
+    index. If the search index is located in the middle of a token, the index
+    returned will be for that token. If the search index is exactly at the
+    end of a token, the end index of the next token will be returned
+    instead.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the end of the first token after the search index.
+    */
+    action GetTokenEndIndex(integer searchIndex) returns integer
+        boolean tokenIsDone = false
+        text currentToken = ""
+        text textValue = GetText()
+        integer currentIndex = searchIndex
+        integer beginIndex = searchIndex
+        text currentCharacter = ""
+        text nextCharacter = ""
+
+       repeat while not(tokenIsDone)
+            if (currentIndex + 1) < textValue:GetSize()
+                nextCharacter = textValue:GetCharacter(currentIndex)
+                //signals the end of the token  
+                if (IsSpecialCharacter(nextCharacter))
+                    if (beginIndex = currentIndex)
+                        currentToken = nextCharacter
+                        if nextCharacter = "("
+                            if textValue:GetCharacter(currentIndex + 1) = ")"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            end
+                        end
+                        if nextCharacter = "<"
+                            if textValue:GetCharacter(currentIndex + 1) = "<"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            end
+                        end
+                        if nextCharacter = ">"
+                            if textValue:GetCharacter(currentIndex + 1) = ">"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            end
+                        end
+                        if nextCharacter = "/"
+                            if textValue:GetCharacter(currentIndex + 1) = "/"
+                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            end
+                        end
+                    end
+                        tokenIsDone = true
+                            
+                elseif (IsWhiteSpace(nextCharacter))
+                    if currentIndex = beginIndex
+                        currentToken = currentToken + nextCharacter
+                        currentIndex = currentIndex + 1
+                        nextCharacter = textValue:GetCharacter(currentIndex)
+                        if (IsWhiteSpace(nextCharacter))
+                            repeat while IsWhiteSpace(nextCharacter)
+                                currentToken = currentToken + nextCharacter
+                                currentIndex = currentIndex + 1
+                                nextCharacter = textValue:GetCharacter(currentIndex)
+                            end 
+                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            //tokenIsDone = true
+                        elseif (IsSpecialCharacter(nextCharacter))
+                            currentToken = currentToken + nextCharacter
+                            if nextCharacter = "("
+                                if textValue:GetCharacter(currentIndex + 1) = ")"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                            if nextCharacter = "<"
+                                if textValue:GetCharacter(currentIndex + 1) = "<"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                            if nextCharacter = ">"
+                                if textValue:GetCharacter(currentIndex + 1) = ">"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                            if nextCharacter = "/"
+                                if textValue:GetCharacter(currentIndex + 1) = "/"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                            tokenIsDone = true 
+                            
+                        else
+                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                        end
+                    else
+                        tokenIsDone = true
+                    end
+                else
+                    currentToken = currentToken + nextCharacter
+                    currentIndex = currentIndex + 1
+                end
+            else
+                beginIndex = textValue:GetSize()
+                currentToken = ""
+                tokenIsDone = true
+            end
+        end
+        return beginIndex + currentToken:GetSize()
+    end
+
+    private action IsWhiteSpace(text value) returns boolean
+        boolean isWhiteSpace = false
+        if value = " " or value = value:GetCarriageReturn() or value = value:GetLineFeed() or 
+        value = value:GetTab()
+            isWhiteSpace = true
+        end
+        return isWhiteSpace
+    end
+
+    private action IsSpecialCharacter(text value) returns boolean
+        boolean isSpecialCharacter = false
+        if value = "." or value = "/" or value = "*" or value = "-" or value = "+"
+        or value = "(" or value = ")" or value = ":" or value = "<" or value = ">"
+        or value = ";" or value = "," or value = value:GetDoubleQuote()
+            isSpecialCharacter = true
+        end
+        return isSpecialCharacter
+    end
+
+    /*
     This is set by the TextBoxSavePreviousCaretPositionBehavior for use by the 
     TextBoxSelectToMouseClickBehavior in determining the selection indices based on 
     the caret position prior to the mouse click

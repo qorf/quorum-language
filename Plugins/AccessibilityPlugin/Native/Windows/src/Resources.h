@@ -50,9 +50,14 @@ struct JClass_TextBox
 	jmethodID GetCaretLine;
 	jmethodID GetCaretPosition;
 	jmethodID GetIndexOfLine;
+	jmethodID GetLineIndexOfCharacter;
 	jmethodID GetText;
 	jmethodID GetCurrentLineText;
 	jmethodID GetSelection;
+	jmethodID Select;
+	jmethodID GetTokenStartIndex;
+	jmethodID GetTokenEndIndex;
+	jmethodID IsBeginningOfToken;
 };
 struct JClass_TextBoxSelection
 {
