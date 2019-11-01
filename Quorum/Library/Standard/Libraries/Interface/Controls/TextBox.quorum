@@ -1466,7 +1466,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             size = size - separator:GetSize()
         end
         if caretCharacter >= size
-            toDelete = 1
+            toDelete = separator:GetSize()
         end
 
         DecrementStyleIndices(GetCaretPosition(), toDelete)
