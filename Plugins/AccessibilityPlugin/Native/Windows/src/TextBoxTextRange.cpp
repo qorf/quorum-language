@@ -552,7 +552,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	if (unit == TextUnit_Format)
 	{
 		// TextUnit_Format is not implemented. So if it's encountered then the walkUnit is TextUnit_Character.
-		walkUnit = TextUnit_Character;
+		walkUnit = TextUnit_Document;
 	}
 
 	int current = start;
