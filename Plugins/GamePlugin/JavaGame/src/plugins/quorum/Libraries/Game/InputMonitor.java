@@ -386,7 +386,6 @@ public class InputMonitor {
     public boolean IsMouseButtonPressed(int button)
     {
         return (MouseProcessor.pressedButtons & button) != 0;
-        //return GLFW.glfwGetMouseButton(DesktopDisplay.window, button) == GLFW.GLFW_PRESS;
     }
     
     public boolean IsClicked()
