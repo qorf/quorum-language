@@ -7,6 +7,7 @@ use Libraries.Interface.Events.all
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
+use Libraries.Containers.HashTable
 use Libraries.Compute.BitwiseOperations
 use Libraries.Interface.Item
 use Libraries.Interface.Events.KeyboardEvent
@@ -52,6 +53,7 @@ class DesktopInput is GameInput
     GameStateManager manager
 
     BitwiseOperations bits
+    KeyboardEvent keys
 
     InputSet set
     InputSet multiSet = undefined
@@ -65,6 +67,13 @@ class DesktopInput is GameInput
     Item lastMouseMoveTarget = undefined
 
     Array<InputSet> pressedKeys
+
+    /*
+    A HashTable which tracks if the given key (as identified by its keycode) has
+    been used as valid input for an InputSet since the key was pressed. Used for
+    the FINISH_UNCAUGHT InputSet trigger.
+    */
+    HashTable<integer, boolean> usedKeys
 
     /*
     An array containing "recent" mouse clicks. Clicks are considered recent if
@@ -500,12 +509,16 @@ class DesktopInput is GameInput
 
             InputSet set = undefined
             InputSet anySet = undefined
+            InputSet uncaughtSet = undefined
 
             if currentEvent:eventType = currentEvent:PRESSED_KEY
                 // For new key presses, we want to copy the modifiers as they
                 // were before the key press.
                 set = keyboardModifiers:Copy()
                 anySet = keyboardModifiers:Copy()
+
+                // The uncaughtSet is valid only for RELEASED_KEY events.
+                uncaughtSet = undefined
 
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
                     keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
@@ -542,6 +555,22 @@ class DesktopInput is GameInput
                 set = keyboardModifiers:Copy()
                 anySet = keyboardModifiers:Copy()
 
+                /*
+                The uncaughtSet is valid only if the window is focused -- if it
+                isn't focused, then either we shouldn't receive the input at
+                all, or we've just lost focus on the window (e.g., due to using
+                Alt + Tab) and the key combination should be discarded.
+                */
+                if manager:GetGame():IsWindowFocused() and 
+                    not (usedKeys:HasKey(currentEvent:keyCode) and usedKeys:GetValue(currentEvent:keyCode) = true)
+
+                    uncaughtSet = keyboardModifiers:Copy()
+                    uncaughtSet:SetInputTrigger(uncaughtSet:FINISH_UNCAUGHT)
+                    uncaughtSet:SetKeyboardInput(currentEvent:keyCode)
+                else
+                    uncaughtSet = undefined
+                end
+
                 set:SetInputTrigger(set:FINISH)
                 anySet:SetInputTrigger(anySet:FINISH)
             end
@@ -568,7 +597,10 @@ class DesktopInput is GameInput
 
                 InputTable table = GetInputTable(inputGroup)
                 if table not= undefined
-                    processed = table:ProcessInput(set, behaviorEvent)
+                    if uncaughtSet not= undefined
+                        processed = table:ProcessInput(uncaughtSet, behaviorEvent)
+                    end
+                    processed = processed or table:ProcessInput(set, behaviorEvent)
                     processed = processed or table:ProcessInput(anySet, behaviorEvent)
                 end
 
@@ -586,8 +618,29 @@ class DesktopInput is GameInput
             if not processed
                 focusedItem = manager:GetFocus()
                 behaviorEvent:SetItem(focusedItem)
-                processed = GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                if uncaughtSet not= undefined
+                    processed = GetDefaultInputTable():ProcessInput(uncaughtSet, behaviorEvent)
+                end
+                processed = processed or GetDefaultInputTable():ProcessInput(set, behaviorEvent)
                 processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+            end
+
+            if processed and currentEvent:eventType = currentEvent:PRESSED_KEY
+                usedKeys:Set(currentEvent:keyCode, true)
+                
+                integer i = 0
+                repeat while i < pressedKeys:GetSize()
+                    integer value = pressedKeys:Get(i):GetInputValue()
+                    
+                    if ((value = keys:ALT_LEFT or value = keys:ALT_RIGHT) and set:HasModifier(set:ALT))
+                    or ((value = keys:SHIFT_LEFT or value = keys:SHIFT_RIGHT) and set:HasModifier(set:SHIFT))
+                    or ((value = keys:CONTROL_LEFT or value = keys:CONTROL_RIGHT) and set:HasModifier(set:CONTROL))
+                    or ((value = keys:META_LEFT or value = keys:META_RIGHT) and set:HasModifier(set:META))
+                        usedKeys:Set(value, true)
+                    end
+
+                    i = i + 1
+                end
             end
 
             repeat while listenIterator:HasNext()
@@ -600,6 +653,10 @@ class DesktopInput is GameInput
             end
 
             listenIterator:Rewind()
+
+            if currentEvent:eventType = currentEvent:RELEASED_KEY
+                usedKeys:Set(currentEvent:keyCode, false)
+            end
         end
 
         integer counter = 0
@@ -649,29 +706,6 @@ class DesktopInput is GameInput
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
 
-            /*
-            BehaviorEvent behaviorEvent
-            behaviorEvent:SetItem(focusedItem)
-            behaviorEvent:SetKeyboardEvent(event)
-
-            InputTable table = GetInputTable(inputGroup)
-
-            /*
-            If the table exists, attempt to trigger behaviors that use that
-            specific input or that trigger on any input of that type. Once both
-            are tested, if neither were successful, try to trigger behaviors
-            from the default input table instead.
-            *
-            boolean processed = (table not= undefined)
-            if processed
-                processed = table:ProcessInput(set, behaviorEvent)
-            end
-
-            if not processed
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-            end
-            */
-
             counter = counter + 1
         end
 
@@ -688,18 +722,6 @@ class DesktopInput is GameInput
 
             BehaviorEvent behaviorEvent
             behaviorEvent:SetKeyboardEvent(event)
-            /*
-            InputTable table = GetInputTable(inputGroup)
-
-            boolean processed = (table not= undefined)
-            if processed
-                processed = table:ProcessInput(set, behaviorEvent)
-            end
-
-            if not processed
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-            end
-            */
 
             /*
             Attempt to trigger an InputTable on the focused item. If that fails,
