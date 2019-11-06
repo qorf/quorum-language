@@ -13,7 +13,7 @@ class TextBoxCaretToTokenEndBehavior is Behavior
         end
 
         TextBox textBox = cast(TextBox, item)
-        textBox:SetCaretPosition(textBox:GetTokenEndIndex())
+        textBox:SetCaretPosition(textBox:GetNextTokenStartIndex())
     end
 
     action IsFinished returns boolean

@@ -2814,6 +2814,21 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         text previousCharacter = ""
         text currentCharacter = ""
 
+        if(0 < (currentIndex - 1))  //stops the caret at the end of the previous line
+            previousCharacter = textValue:GetCharacter(currentIndex - 1)
+            if previousCharacter = previousCharacter:GetLineFeed()
+                currentIndex = currentIndex - 1
+                currentToken = currentToken + currentToken:GetLineFeed()
+                tokenIsDone = true
+                return beginIndex - currentToken:GetSize()
+            elseif previousCharacter = previousCharacter:GetCarriageReturn()
+                currentIndex = currentIndex - 1
+                currentToken = currentToken + currentToken:GetCarriageReturn()
+                tokenIsDone = true
+                return beginIndex - currentToken:GetSize()
+            end
+        end
+
         repeat while not(tokenIsDone)
             if 0 < (currentIndex - 1)
                 previousCharacter = textValue:GetCharacter(currentIndex - 1)
@@ -2845,13 +2860,22 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     end    
                     tokenIsDone = true
                 /* skip past white space */           
-                elseif (IsWhiteSpace(previousCharacter))
+                elseif (IsWhiteSpace(previousCharacter))    //stops the caret at the beginning of the line
+                    if ((previousCharacter = previousCharacter:GetLineFeed() or previousCharacter = previousCharacter:GetCarriageReturn()) and (beginIndex not= currentIndex))
+                        tokenIsDone = true
+                        return beginIndex - currentToken:GetSize()
+                    end
+                    
                     if currentIndex = beginIndex
                         currentToken = currentToken + previousCharacter
                         currentIndex = currentIndex - 1
                         previousCharacter = textValue:GetCharacter(currentIndex - 1)
                         if(IsWhiteSpace(previousCharacter))
                             repeat while IsWhiteSpace(previousCharacter)
+                                if ((previousCharacter = previousCharacter:GetLineFeed() or previousCharacter = previousCharacter:GetCarriageReturn()) and (beginIndex not= currentIndex))
+                                    tokenIsDone = true
+                                    return beginIndex - currentToken:GetSize()
+                                end
                                 currentToken = currentToken + previousCharacter
                                 currentIndex = currentIndex - 1
                                 previousCharacter = textValue:GetCharacter(currentIndex - 1)
@@ -2957,6 +2981,34 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return false
     end
 
+    action GetNextTokenStartIndex returns integer
+        return GetNextTokenStartIndex(GetCaretPosition())
+    end
+
+    action GetNextTokenStartIndex(integer searchIndex) returns integer
+        text textValue = GetText()
+        integer currentIndex = GetTokenEndIndex(searchIndex)
+        
+        if currentIndex < textValue:GetSize() and currentIndex >= 0
+            text nextCharacter = textValue:GetCharacter(currentIndex)
+            if currentIndex > 0
+                text previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                if previousCharacter = previousCharacter:GetLineFeed() or previousCharacter = previousCharacter:GetCarriageReturn()
+                    return currentIndex
+                end
+            end
+            if nextCharacter = nextCharacter:GetLineFeed() or nextCharacter = nextCharacter:GetCarriageReturn()
+                return currentIndex
+            end
+            
+            repeat while (IsWhiteSpace(nextCharacter)) and ((currentIndex + 1) < textValue:GetSize())
+                currentIndex = currentIndex + 1
+                nextCharacter = textValue:GetCharacter(currentIndex)
+            end
+        end
+        return currentIndex
+    end
+
     /*
     This action finds the end index of the first token after the caret within
     the TextBox. If the caret is located in the middle of a token, the index
@@ -2988,12 +3040,44 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         text currentCharacter = ""
         text nextCharacter = ""
 
+        //if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token
+        if (currentIndex + 1) < textValue:GetSize()
+            nextCharacter = textValue:GetCharacter(currentIndex)
+            if nextCharacter = nextCharacter:GetCarriageReturn()
+                currentIndex = currentIndex + 1
+                currentToken = currentToken + currentToken:GetCarriageReturn()
+                tokenIsDone = true  
+                return beginIndex + currentToken:GetSize()
+            elseif nextCharacter = nextCharacter:GetLineFeed()
+                currentIndex = currentIndex + 1
+                currentToken = currentToken + currentToken:GetLineFeed()
+                tokenIsDone = true
+                return beginIndex + currentToken:GetSize()
+            end
+        end
+
+        //skipping the initial whitespace at the beginning of the line after a line feed
+        if(currentIndex > 0)    
+            text previousCharacter = textValue:GetCharacter(currentIndex - 1)
+            if previousCharacter = previousCharacter:GetCarriageReturn() or previousCharacter = previousCharacter:GetLineFeed()
+                nextCharacter = textValue:GetCharacter(currentIndex)
+                repeat while IsWhiteSpace(nextCharacter)
+                    currentToken = currentToken + nextCharacter
+                    currentIndex = currentIndex + 1
+                    nextCharacter = textValue:GetCharacter(currentIndex)
+                end 
+                if currentIndex not= beginIndex
+                    tokenIsDone = true
+                end
+            end 
+        end
+
        repeat while not(tokenIsDone)
             if (currentIndex + 1) < textValue:GetSize()
-                nextCharacter = textValue:GetCharacter(currentIndex)
+                nextCharacter = textValue:GetCharacter(currentIndex)               
                 //signals the end of the token  
                 if (IsSpecialCharacter(nextCharacter))
-                    if (beginIndex = currentIndex)
+                    if (beginIndex = currentIndex)  //check for groups of special characters
                         currentToken = nextCharacter
                         if nextCharacter = "("
                             if textValue:GetCharacter(currentIndex + 1) = ")"
@@ -3019,7 +3103,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                         tokenIsDone = true
                             
                 elseif (IsWhiteSpace(nextCharacter))
-                    if currentIndex = beginIndex
+                    
+                    if (nextCharacter = nextCharacter:GetLineFeed() or nextCharacter = nextCharacter:GetCarriageReturn()) and (currentIndex not= beginIndex)
+                        tokenIsDone = true
+                    
+                    elseif currentIndex = beginIndex //skip initial whitespace
                         currentToken = currentToken + nextCharacter
                         currentIndex = currentIndex + 1
                         nextCharacter = textValue:GetCharacter(currentIndex)
@@ -3054,10 +3142,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                                 end
                             end
                             tokenIsDone = true 
-                            
+
                         else
                             nextCharacter = textValue:GetCharacter(currentIndex + 1)
-                        end
+                        end                    
                     else
                         tokenIsDone = true
                     end
