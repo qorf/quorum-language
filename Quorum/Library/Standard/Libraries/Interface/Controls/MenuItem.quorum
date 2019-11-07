@@ -584,6 +584,10 @@ class MenuItem is Control
         return not menuItems:IsEmpty()
     end
 
+    action GetSize returns integer
+        return menuItems:GetSize()
+    end
+
     action MenuSelectionDown
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionDown(me)

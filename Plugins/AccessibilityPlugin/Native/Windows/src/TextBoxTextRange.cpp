@@ -523,7 +523,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 {
 	*walked = 0;
 
-	// Use count of zero to normalize
+	// Use count of zero to nonotrmalize
 	if (count == 0)
 	{
 		if (CheckEndpointIsUnitEndpoint(start, unit, specificAttribute))

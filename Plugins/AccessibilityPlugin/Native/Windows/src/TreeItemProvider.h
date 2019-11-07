@@ -36,4 +36,5 @@ public:
 	// Various methods
 	void NotifyElementSelected();
 	void NotifyElementExpandCollapse();
+	void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
 };

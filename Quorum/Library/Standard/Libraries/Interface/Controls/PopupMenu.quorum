@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputMonitor
 use Libraries.Game.Graphics.Color
@@ -16,6 +17,7 @@ class PopupMenu is MenuRoot, MouseListener
     Dialog dialog
     GameStateManager manager
     InputMonitor monitor
+    Array<MenuItem> menuItems
 
     on create
         ManualLayout layout
@@ -51,12 +53,14 @@ class PopupMenu is MenuRoot, MouseListener
     action Add(MenuItem item)
         // Add directly to the base MenuPanel.
         item:SetMenuRoot(me)
+        menuItems:Add(item)
         panel:Add(item)
     end
 
     action Remove(MenuItem item)
         // Remove from the MenuPanel
         item:SetMenuRoot(undefined)
+        menuItems:Remove(item)
         panel:Remove(item)
     end
 
@@ -85,15 +89,10 @@ class PopupMenu is MenuRoot, MouseListener
         // Close each item on the base MenuPanel.
 
         integer counter = 0
-        Array<Item2D> children = GetMenuItems()
-        repeat while counter < children:GetSize()
-            Item2D child = children:Get(counter)
-            
-            if child is MenuItem
-                MenuItem item = cast(MenuItem, child)
-                item:Close()
-            end
 
+        repeat while counter < menuItems:GetSize()
+            MenuItem item = menuItems:Get(counter)
+            item:Close()
             counter = counter + 1
         end
 
@@ -128,9 +127,9 @@ class PopupMenu is MenuRoot, MouseListener
     action MoveSelectionDown
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
-            Array<Item2D> items = GetMenuItems()
-            if items:IsEmpty() = false
-                MenuItem item = cast(MenuItem, items:Get(0))
+
+            if menuItems:IsEmpty() = false
+                MenuItem item = menuItems:Get(0)
                 Array<MenuItem> selectionPath
                 selectionPath:Add(item)
                 Select(selectionPath)
@@ -138,14 +137,14 @@ class PopupMenu is MenuRoot, MouseListener
         elseif path:GetSize() = 1
             integer counter = 0
             MenuItem previous = path:Get(0)
-            Array<Item2D> menuItems = GetMenuItems()
+
             repeat while counter < menuItems:GetSize()
-                Item2D item = menuItems:Get(counter)
+                MenuItem item = menuItems:Get(counter)
                 if item:Equals(previous)
 
                     // Select next item in the list, if there is one.
                     if counter + 1 < menuItems:GetSize()
-                        MenuItem menuItem = cast(MenuItem, menuItems:Get(counter + 1))
+                        MenuItem menuItem = menuItems:Get(counter + 1)
                         menuItem:Select()
                     end
 
@@ -162,9 +161,9 @@ class PopupMenu is MenuRoot, MouseListener
     action MoveSelectionUp
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
-            Array<Item2D> items = GetMenuItems()
+            Array<MenuItem> items = menuItems
             if items:IsEmpty() = false
-                MenuItem item = cast(MenuItem, items:GetFromEnd())
+                MenuItem item = items:GetFromEnd()
                 Array<MenuItem> selectionPath
                 selectionPath:Add(item)
                 Select(selectionPath)
@@ -172,14 +171,14 @@ class PopupMenu is MenuRoot, MouseListener
         elseif path:GetSize() = 1
             integer counter = 0
             MenuItem previous = path:Get(0)
-            Array<Item2D> menuItems = GetMenuItems()
+
             repeat while counter < menuItems:GetSize()
-                Item2D item = menuItems:Get(counter)
+                MenuItem item = menuItems:Get(counter)
                 if item:Equals(previous)
 
                     // Select the previous element in the menu, if there is one.
                     if counter - 1 >= 0
-                        MenuItem menuItem = cast(MenuItem, menuItems:Get(counter - 1))
+                        MenuItem menuItem = menuItems:Get(counter - 1)
                         menuItem:Select()
                     end
 
@@ -225,7 +224,12 @@ class PopupMenu is MenuRoot, MouseListener
         return false
     end
 
-    private action GetMenuItems returns Array<Item2D>
-        return panel:GetChildren()
+    action GetSize returns integer
+        return menuItems:GetSize()
     end
+
+    action GetIterator returns Iterator<MenuItem>
+        return menuItems:GetIterator()
+    end
+
 end

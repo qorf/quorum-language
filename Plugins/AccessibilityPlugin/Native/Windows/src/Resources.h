@@ -30,6 +30,14 @@ struct JClass_AccessibilityManager
 	jmethodID GetSpreadsheetSelectionPointer;
 	jmethodID SetTabSelection;
 
+	// Used for TreeItems.
+	jmethodID GetTreeItemSetSize;
+	jmethodID GetTreeItemSetPosition;
+
+	// Used for MenuItems.
+	jmethodID GetMenuItemSetSize;
+	jmethodID GetMenuItemSetPosition;
+
 	// Used for cells and Spreadsheets/TreeTable.
 	jmethodID GetCellColumnIndex;
 	jmethodID GetCellRowIndex;

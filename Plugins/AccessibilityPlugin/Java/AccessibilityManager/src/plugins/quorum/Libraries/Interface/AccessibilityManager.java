@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
@@ -832,6 +833,113 @@ public class AccessibilityManager
             return 0;
         else
             return itemPointer;
+    }
+    
+    /*
+    Used by the native layer. Given a TreeItem_ object, returns how many items
+    are in the set that this TreeItem is in.
+    */
+    public static int GetTreeItemSetSize(TreeItem_ item)
+    {
+        TreeItem_ parent = item.GetParentTreeItem();
+        if (parent == null)
+        {
+            Tree_ tree = item.GetTree();
+            if (tree == null)
+                return 1;
+            else
+                return tree.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+    
+    /*
+    Used by the native layer. Given a TreeItem_ object, returns the 1-indexed
+    position of that TreeItem within its set.
+    */
+    public static int GetTreeItemSetPosition(TreeItem_ item)
+    {
+        Array_ treeItems;
+        TreeItem_ parent = item.GetParentTreeItem();
+        
+        if (parent != null)
+            treeItems = parent.Get_Libraries_Interface_Controls_TreeItem__treeItems_();
+        else
+        {
+            Tree_ tree = item.GetTree();
+            if (tree != null)
+                treeItems = tree.Get_Libraries_Interface_Controls_Tree__treeItems_();
+            else
+                return 1;
+        }
+        
+        for (int i = 0; i < treeItems.GetSize(); i++)
+        {
+            if (treeItems.Get(i) == item)
+                return i + 1;
+        }
+        
+        return 1;
+    }
+    
+    /*
+    Used by the native layer. Given a MenuItem_ object, returns how many items
+    are in the set that this MenuItem is in.
+    */
+    public static int GetMenuItemSetSize(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+        if (parent == null)
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root == null)
+                return 1;
+            else
+                return root.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+    
+    /*
+    Used by the native layer. Given a MenuItem_ object, returns the 1-indexed
+    position of that MenuItem within its set.
+    */
+    public static int GetMenuItemSetPosition(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+        
+        if (parent != null)
+        {
+            Array_ menuItems = parent.Get_Libraries_Interface_Controls_MenuItem__menuItems_();
+            for (int i = 0; i < menuItems.GetSize(); i++)
+            {
+                if (menuItems.Get(i) == item)
+                    return i + 1;
+            }
+        }
+        else
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root != null)
+            {
+                Iterator_ iterator = root.GetIterator();
+                int i = 0;
+                while (iterator.HasNext())
+                {
+                    i = i + 1;
+                    if (iterator.Next() == item)
+                        return i;
+                }
+            }
+        }
+        
+        return 1;
     }
     
     /*

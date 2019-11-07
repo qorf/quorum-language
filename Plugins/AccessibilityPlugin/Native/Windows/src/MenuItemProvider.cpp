@@ -21,11 +21,30 @@ CONTROLTYPEID MenuItemProvider::GetControlType() const noexcept
 
 void MenuItemProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const
 {
+	JNIEnv* env;
+
 	switch (propertyId)
 	{
 		case UIA_AcceleratorKeyPropertyId:
 			retVal->bstrVal = wil::make_bstr(m_control->GetShortcut().c_str()).release();
 			retVal->vt = VT_BSTR;
+			break;
+		case UIA_PositionInSetPropertyId:
+			env = GetJNIEnv();
+			if (env == NULL)
+				break;
+
+			retVal->intVal = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetMenuItemSetPosition, m_control->GetMe());
+			retVal->vt = VT_I4;
+			break;
+		case UIA_SizeOfSetPropertyId:
+			env = GetJNIEnv();
+			if (env == NULL)
+				break;
+
+			retVal->intVal = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetMenuItemSetSize, m_control->GetMe());
+			retVal->vt = VT_I4;
+			break;
 	}
 }
 

@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Game.ScreenResolution
 use Libraries.Containers.Array
+use Libraries.System.File
 
 /*
     DesktopDisplay is responsible for handling information about LWJGL's Display
@@ -222,4 +223,18 @@ class DesktopDisplay is GameDisplay
     typically return true after the game has been started.
     */
     system action IsAvailable returns boolean
+
+    /*
+    This action will set the icon the application uses in the taskbar on Windows
+    platforms.
+    */
+    system action SetWindowIcon(text fileName)
+
+    /*
+    This action will set the icon the application uses in the taskbar on Windows
+    platforms.
+    */
+    action SetWindowIcon(File file)
+        SetWindowIcon(file:GetAbsolutePath())
+    end
 end
