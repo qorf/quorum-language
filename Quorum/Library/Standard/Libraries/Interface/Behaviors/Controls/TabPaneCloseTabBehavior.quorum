@@ -14,10 +14,7 @@ class TabPaneCloseTabBehavior is Behavior
             TabPane pane = cast(TabPane, item)
             Tab tab = pane:GetSelectedTab()
             if tab not= undefined
-                if tab:GetButtonGroup() is TabBar
-                    TabBar bar = cast(TabBar, tab:GetButtonGroup())
-                    bar:Remove(tab)
-                end
+                pane:Remove(tab)
             end
         end
     end
