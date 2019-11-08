@@ -4,23 +4,27 @@ use Libraries.Interface.Item
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.PopupMenu
 
 class TextBoxOpenPopupMenuBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
-        if (item is Control) = false
+        if (item is TextBox) = false
             return now
         end
 
-        Control control = cast(Control, item)
-        PopupMenu menu = control:GetPopupMenu()
+        TextBox box = cast(TextBox, item)
+        PopupMenu menu = box:GetPopupMenu()
 
         if menu = undefined
             return now
         end
 
-        menu:OpenAtCursor()
+        if event:GetMouseEvent() not= undefined
+            menu:OpenAtCursor()
+        else
+            menu:OpenAt(box:GetCaretGlobalX(), box:GetCaretGlobalY())
+        end
     end
 end

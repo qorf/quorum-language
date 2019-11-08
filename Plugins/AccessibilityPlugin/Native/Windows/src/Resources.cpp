@@ -79,6 +79,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetTabPaneSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTabPaneSelectionPointer", "(Lquorum/Libraries/Interface/Controls/TabPane_;)J");
 	JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Spreadsheet_;)J");
 	JavaClass_AccessibilityManager.SetTabSelection = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "SetTabSelection", "(Lquorum/Libraries/Interface/Controls/TabPane_;Lquorum/Libraries/Interface/Controls/Tab_;)V");
+	JavaClass_AccessibilityManager.GetTreeItemSetSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeItemSetSize", "(Lquorum/Libraries/Interface/Controls/TreeItem_;)I");
+	JavaClass_AccessibilityManager.GetTreeItemSetPosition = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeItemSetPosition", "(Lquorum/Libraries/Interface/Controls/TreeItem_;)I");
+	JavaClass_AccessibilityManager.GetMenuItemSetSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetMenuItemSetSize", "(Lquorum/Libraries/Interface/Controls/MenuItem_;)I");
+	JavaClass_AccessibilityManager.GetMenuItemSetPosition = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetMenuItemSetPosition", "(Lquorum/Libraries/Interface/Controls/MenuItem_;)I");
 	JavaClass_AccessibilityManager.GetCellColumnIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellColumnIndex", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetCellRowIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellRowIndex", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCellText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");

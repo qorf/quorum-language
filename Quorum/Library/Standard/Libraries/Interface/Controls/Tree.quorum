@@ -86,6 +86,17 @@ class Tree is Control
         return treeItems:GetIterator()
     end    
 
+    /*
+    This action returns the number of top-level TreeItems contained in the Tree,
+    or in other words, how many TreeItems have been directly added to the Tree.
+    This does not include the number of sub-items contained within TreeItems.
+
+    Attribute: Returns The number of top-level TreeItems contained in the Tree.
+    */
+    action GetSize returns integer
+        return treeItems:GetSize()
+    end
+
     action GetSelection returns TreeSelection
         return selection
     end

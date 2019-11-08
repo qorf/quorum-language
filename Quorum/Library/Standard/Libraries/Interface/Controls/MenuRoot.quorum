@@ -7,6 +7,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.MenuChangeEvent
 use Libraries.Interface.Events.MenuChangeListener
 use Libraries.Interface.Selections.MenuSelection
+use Libraries.Containers.Iterator
 
 /*
 The MenuRoot class is a blueprint that represents the top-most level of a menu.
@@ -43,6 +44,10 @@ class MenuRoot is Control
     blueprint action MoveSelectionUp
 
     blueprint action MoveSelectionDown
+
+    blueprint action GetSize returns integer
+
+    blueprint action GetIterator returns Iterator<MenuItem>
 
     /*
     The HasBar action is used to specify if this MenuRoot uses a special layout

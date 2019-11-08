@@ -187,7 +187,7 @@ class FreeTypeStrategy is FontStrategy
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             Properties properties
-            if properties:GetOperatingSystemVersion() = "10.15" //catalina changed the default
+            if IsMacCatalina() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
             else
                 fontFile:SetWorkingDirectory("/Library/Fonts")
@@ -209,6 +209,15 @@ class FreeTypeStrategy is FontStrategy
 
     private system action LoadFontNative(text fontFile)
 
+    private action IsMacCatalina returns boolean
+        Properties properties
+        if properties:GetOperatingSystemVersion():Contains("10.15")
+            return true
+        else
+            return false
+        end
+    end
+
     private action FindFontExtension(text fontName) returns text
         File fontFile
         text os = GetOS()
@@ -216,8 +225,7 @@ class FreeTypeStrategy is FontStrategy
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            Properties properties
-            if properties:GetOperatingSystemVersion() = "10.15" //catalina changed the default
+            if IsMacCatalina() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
             else
                 fontFile:SetWorkingDirectory("/Library/Fonts")

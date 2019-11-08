@@ -221,4 +221,12 @@ class MenuBar is MenuRoot
     action HasBar returns boolean
         return true
     end
+
+    action GetSize returns integer
+        return menus:GetSize()
+    end
+
+    action GetIterator returns Iterator<MenuItem>
+        return menus:GetIterator()
+    end
 end

@@ -124,3 +124,22 @@ IFACEMETHODIMP TreeItemProvider::get_SelectionContainer(_Outptr_ IRawElementProv
 
 	return S_OK;
 }
+
+void TreeItemProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env == NULL)
+		return;
+
+	switch (propertyId)
+	{
+	case UIA_PositionInSetPropertyId:
+		retVal->intVal = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeItemSetPosition, m_control->GetMe());
+		retVal->vt = VT_I4;
+		break;
+	case UIA_SizeOfSetPropertyId:
+		retVal->intVal = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTreeItemSetSize, m_control->GetMe());
+		retVal->vt = VT_I4;
+		break;
+	}
+}
