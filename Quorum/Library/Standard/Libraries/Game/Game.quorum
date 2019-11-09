@@ -163,6 +163,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 use Libraries.Interface.Behaviors.Controls.TreeSelectFirstBehavior
 use Libraries.Interface.Behaviors.Controls.TreeSelectLastBehavior
+use Libraries.System.File
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1273,7 +1274,8 @@ class Game
         treeItemTable:Add(touchDown, clickDownBehavior)
 
         rightClickSet:SetMouseInput(mouse:RIGHT)
-        treeItemTable:Add(rightClickSet, openContextMenuBehavior)
+        TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
+        treeItemTable:Add(rightClickSet, treeOpenContextMenuBehavior)
 
         AddInputTable(treeItemTable)
 
@@ -1307,7 +1309,6 @@ class Game
         InputSet shiftF10Set
         shiftF10Set:SetKeyboardInput(keys:F10)
         shiftF10Set:AddModifier(shiftF10Set:SHIFT)
-        TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
 
         AddInputTable(treeTable)
@@ -4730,5 +4731,36 @@ class Game
     */
     action GetDialogLayerPool returns DialogLayerPool
         return dialogLayerPool
+    end
+
+    /*
+    This action sets the program's icon, which appears on the taskbar and on
+    the window frame. This only works on Windows platforms -- otherwise, this
+    action does nothing.
+
+    Attribute: Parameter file The image file to use for the icon.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File file
+            file:SetPath("Icon.png")
+            SetApplicationIcon(file)
+        end
+    end
+    */
+    action SetApplicationIcon(File file)
+        if manager:GetGameDisplay() is DesktopDisplay
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            display:SetWindowIcon(file)
+        end
     end
 end

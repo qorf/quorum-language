@@ -1839,8 +1839,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     end
                 end
 
-                draggingInText = true
                 if event:mouseButton = event:LEFT
+                    draggingInText = true
                     MousePositionCaret(event, false)
                 end
             end
