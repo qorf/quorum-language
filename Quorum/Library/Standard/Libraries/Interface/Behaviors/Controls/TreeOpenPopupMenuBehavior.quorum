@@ -20,6 +20,20 @@ class TreeOpenPopupMenuBehavior is Behavior
 
                 menu:OpenAt(item:GetGlobalX(), item:GetGlobalY())
             end
+        elseif event:GetItem() is TreeItem
+            TreeItem control = cast(TreeItem, event:GetItem())
+            PopupMenu menu = control:GetPopupMenu()
+
+            if menu = undefined
+                return now
+            end
+
+            if event:GetMouseEvent() not= undefined
+                control:ClickedMouse()
+                menu:OpenAtCursor()
+            else
+                menu:OpenAt(control:GetGlobalX(), control:GetGlobalY())
+            end
         end
     end
 end

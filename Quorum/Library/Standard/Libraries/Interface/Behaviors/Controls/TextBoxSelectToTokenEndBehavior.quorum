@@ -33,106 +33,142 @@ class TextBoxSelectToTokenEndBehavior is Behavior
             isReducingCurrentSelection = true
         end
 
+        /* if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token 
+        (ensuring that the caret stops at the end of every line). */
+        if (currentIndex + 1) < textValue:GetSize()
+            nextCharacter = textValue:GetCharacter(currentIndex)
+            if nextCharacter = nextCharacter:GetCarriageReturn()
+                currentIndex = currentIndex + 1
+                currentToken = currentToken + currentToken:GetCarriageReturn()
+                tokenIsDone = true  
+            elseif nextCharacter = nextCharacter:GetLineFeed()
+                currentIndex = currentIndex + 1
+                currentToken = currentToken + currentToken:GetLineFeed()
+                tokenIsDone = true
+            end
+        end
+
        repeat while not(tokenIsDone)
-            if (currentIndex + 1) < textBox:GetSize()
+            if (currentIndex) < textBox:GetSize()
                 nextCharacter = textValue:GetCharacter(currentIndex)
                 /*If the next character IsSpecialCharacter, then this could either signal the 
-                end of the token or it could signal a single character special token (e.g. '*' or '+')
+                end of the token or it could signal the start of a special token (e.g. '*' or '+')
                 or it could signal a multiple character special token (e.g. '()' or '//')*/
                 if (IsSpecialCharacter(nextCharacter))
-                    if (beginIndex = currentIndex)
+                    if (beginIndex = currentIndex)  //the special character is a new token
                         currentToken = nextCharacter
                         if nextCharacter = "("
-                            if textValue:GetCharacter(currentIndex + 1) = ")"
-                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textBox:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = ")"
+                                    currentIndex = currentIndex + 1
+                                    nextCharacter = textValue:GetCharacter(currentIndex)
+                                    currentToken = currentToken + nextCharacter
+                                end
                             end
                         end
                         if nextCharacter = "<"
-                            if textValue:GetCharacter(currentIndex + 1) = "<"
-                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textBox:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = "<"
+                                    currentIndex = currentIndex + 1
+                                    nextCharacter = textValue:GetCharacter(currentIndex)
+                                    currentToken = currentToken + nextCharacter
+                                end
                             end
                         end
                         if nextCharacter = ">"
-                            if textValue:GetCharacter(currentIndex + 1) = ">"
-                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textBox:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = ">"
+                                    currentIndex = currentIndex + 1
+                                    nextCharacter = textValue:GetCharacter(currentIndex)
+                                    currentToken = currentToken + nextCharacter
+                                end
                             end
                         end
                         if nextCharacter = "/"
-                            if textValue:GetCharacter(currentIndex + 1) = "/"
-                                currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textBox:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = "/"
+                                    currentIndex = currentIndex + 1
+                                    nextCharacter = textValue:GetCharacter(currentIndex)
+                                    currentToken = currentToken + nextCharacter
+                                    
+                                end
+                            end
+                        end
+                        /*Skip any whitespace following the special character(s)*/
+                        if(currentIndex + 1) < textBox:GetSize()
+                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            if IsWhiteSpace(nextCharacter)
+                                if (IsEndOfLine(nextCharacter) and (currentIndex not= beginIndex))
+                                    tokenIsDone = true
+                                else
+                                    currentToken = currentToken + nextCharacter
+                                    currentIndex = currentIndex + 1
+                                    repeat while (not(tokenIsDone) and ((currentIndex + 1) < textValue:GetSize()))
+                                        nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                                        if (IsEndOfLine(nextCharacter)) and (currentIndex not= beginIndex)
+                                            tokenIsDone = true
+                                        elseif IsWhiteSpace(nextCharacter)
+                                            currentToken = currentToken + nextCharacter
+                                            currentIndex = currentIndex + 1
+                                            nextCharacter = textValue:GetCharacter(currentIndex)
+                                        else
+                                            tokenIsDone = true
+                                        end
+                                    end 
+                                    tokenIsDone = true
+                                end  
                             end
                         end
                     end
+                    tokenIsDone = true
+                    
+                /* If the next character is white space then this will signal the end of the current token,
+                if the white space is not a line feed or a carriage return then we will add it to our current 
+                token selection, if the white space is a line feed or carriage return then we will end the token.*/
+                elseif (IsWhiteSpace(nextCharacter)) and ((currentIndex + 1) < textValue:GetSize())
+                    if (IsEndOfLine(nextCharacter)) and (currentIndex not= beginIndex)
                         tokenIsDone = true
-                /* If the next character is white space then this will signal the end of the current token
-                or any initial whitespace that must be skipped. */
-                elseif (IsWhiteSpace(nextCharacter))
-                    if currentIndex = beginIndex
+                    else
                         currentToken = currentToken + nextCharacter
                         currentIndex = currentIndex + 1
                         nextCharacter = textValue:GetCharacter(currentIndex)
-                        //skip long sequences of whitespace by collecting them into one token
-                        if (IsWhiteSpace(nextCharacter))
-                            repeat while IsWhiteSpace(nextCharacter)
+                        repeat while (not(tokenIsDone) and IsWhiteSpace(nextCharacter)) and ((currentIndex + 1) < textValue:GetSize())
+                            if (IsEndOfLine(nextCharacter)) and (currentIndex not= beginIndex)
+                                tokenIsDone = true
+                            end
                                 currentToken = currentToken + nextCharacter
                                 currentIndex = currentIndex + 1
                                 nextCharacter = textValue:GetCharacter(currentIndex)
-                            end 
-                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
-                            //tokenIsDone = true
-                        elseif (IsSpecialCharacter(nextCharacter))
-                            currentToken = currentToken + nextCharacter
-                            if nextCharacter = "("
-                                if textValue:GetCharacter(currentIndex + 1) = ")"
-                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
-                                end
-                            end
-                            if nextCharacter = "<"
-                                if textValue:GetCharacter(currentIndex + 1) = "<"
-                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
-                                end
-                            end
-                            if nextCharacter = ">"
-                                if textValue:GetCharacter(currentIndex + 1) = ">"
-                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
-                                end
-                            end
-                            if nextCharacter = "/"
-                                if textValue:GetCharacter(currentIndex + 1) = "/"
-                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
-                                end
-                            end
-                            tokenIsDone = true  
-                        else
-                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
-                        end
-                    else
+                        end 
                         tokenIsDone = true
                     end
-                else
+                else //The next character is not whitespace or a special character so add it to our current token
                     currentToken = currentToken + nextCharacter
                     currentIndex = currentIndex + 1
                 end
-            else
+            else    //We are at the end of the textBox, there is no token to select
                 beginIndex = textBox:GetSize()
                 currentToken = ""
                 tokenIsDone = true
             end
         end
         
-        
+        tokenIndex = beginIndex + currentToken:GetSize()
+        if not(tokenIndex < textValue:GetSize())
+            tokenIndex = textValue:GetSize()
+        end
         if not isReducingCurrentSelection   //add the current token's length the the selection
-            textBox:SetCaretPosition(beginIndex + currentToken:GetSize())
-            textBox:Select(startSelection, beginIndex + currentToken:GetSize(), true)
+            textBox:SetCaretPosition(tokenIndex)
+            textBox:Select(startSelection, tokenIndex, true)
         elseif isReducingCurrentSelection   //subtract the current token's length from the selection
-            textBox:SetCaretPosition(beginIndex + currentToken:GetSize())
+            textBox:SetCaretPosition(tokenIndex)
             /* Special case when reversing a selection from SelectToTokenStart which uses the token's
             start index (the SelectToTokenEnd uses the token's end index, in this case a white space that falls between
             the reverse selection will cause the program to crash */
-            if endSelection < (beginIndex + currentToken:GetSize())
-                textBox:Select(endSelection, beginIndex + currentToken:GetSize(), false)
+            if endSelection < (tokenIndex)
+                textBox:Select(endSelection, tokenIndex, false)
             else
-                textBox:Select(beginIndex + currentToken:GetSize(), endSelection, false)
+                textBox:Select(tokenIndex, endSelection, false)
             end
         end
     end
@@ -146,11 +182,19 @@ class TextBoxSelectToTokenEndBehavior is Behavior
         return isWhiteSpace
     end
 
+    private action IsEndOfLine(text value) returns boolean
+        boolean isEndOfLine = false
+        if value = value:GetLineFeed() or value = value:GetCarriageReturn()
+            isEndOfLine = true
+        end
+        return isEndOfLine
+    end
+
     private action IsSpecialCharacter(text value) returns boolean
         boolean isSpecialCharacter = false
         if value = "." or value = "/" or value = "*" or value = "-" or value = "+"
         or value = "(" or value = ")" or value = ":" or value = "<" or value = ">"
-        or value = ";" or value = "," or value = value:GetDoubleQuote()
+        or value = ";" or value = "," or value = "=" or value = value:GetDoubleQuote()
             isSpecialCharacter = true
         end
         return isSpecialCharacter
