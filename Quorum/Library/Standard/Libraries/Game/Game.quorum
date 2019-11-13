@@ -75,12 +75,16 @@ use Libraries.Interface.Behaviors.Controls.TextFieldCaretToTokenEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretToEndBehavior  
 use Libraries.Interface.Behaviors.Controls.TextFieldSelectToStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldSelectToEndBehavior   
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectTokenStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectTokenEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxDoubleClickSelectWordBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldDoubleClickSelectWordBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxPageDownBehavior  
 use Libraries.Interface.Behaviors.Controls.TextBoxPageUpBehavior  
 use Libraries.Interface.Behaviors.Controls.TextBoxSavePreviousCaretPositionBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToMouseClickBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldSavePreviousCaretPositionBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldSelectToMouseClickBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxWordJumpStartBehavior
@@ -1041,6 +1045,13 @@ class Game
         TextFieldSelectToEndBehavior textFieldSelectToEndBehavior
         textFieldTable:Add(shiftEndSet, textFieldSelectToEndBehavior)
 
+        TextFieldSavePreviousCaretPositionBehavior textFieldSavePreviousCaretPositionBehavior
+        textFieldTable:Add(shiftLeft, textFieldSavePreviousCaretPositionBehavior)
+        textFieldTable:Add(shiftRight, textFieldSavePreviousCaretPositionBehavior)
+
+        TextFieldSelectToMouseClickBehavior textFieldSelectToMouseClickBehavior
+        textFieldTable:Add(shiftMouseClick, textFieldSelectToMouseClickBehavior)
+
         //copy past for fields
         if manager:GetOperatingSystem():Contains("OS X")
             //first do copy paste
@@ -1093,6 +1104,20 @@ class Game
             textFieldAltLeft:AddModifier(textFieldAltLeft:ALT)
             TextFieldCaretToTokenStartBehavior textFieldCaretToTokenStartBehavior
             textFieldTable:Add(textFieldAltLeft, textFieldCaretToTokenStartBehavior)
+
+            InputSet textFieldSelectAltRight
+            textFieldSelectAltRight:SetKeyboardInput(keys:RIGHT)
+            textFieldSelectAltRight:AddModifier(textFieldSelectAltRight:ALT)
+            textFieldSelectAltRight:AddModifier(textFieldSelectAltRight:SHIFT)
+            TextFieldSelectTokenEndBehavior textFieldSelectTokenEndBehavior
+            textFieldTable:Add(textFieldSelectAltRight, textFieldSelectTokenEndBehavior)
+
+            InputSet textFieldSelectAltLeft
+            textFieldSelectAltLeft:SetKeyboardInput(keys:LEFT)
+            textFieldSelectAltLeft:AddModifier(textFieldSelectAltLeft:ALT)
+            textFieldSelectAltLeft:AddModifier(textFieldSelectAltLeft:SHIFT)
+            TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
+            textFieldTable:Add(textFieldSelectAltLeft, textFieldSelectTokenStartBehavior)
         else
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1144,6 +1169,20 @@ class Game
             textFieldCtrlLeft:AddModifier(textFieldCtrlLeft:CONTROL)
             TextFieldCaretToTokenStartBehavior textFieldCaretToTokenStartBehavior
             textFieldTable:Add(textFieldCtrlLeft, textFieldCaretToTokenStartBehavior)
+
+            InputSet textFieldSelectCtrlRight
+            textFieldSelectCtrlRight:SetKeyboardInput(keys:RIGHT)
+            textFieldSelectCtrlRight:AddModifier(textFieldSelectCtrlRight:CONTROL)
+            textFieldSelectCtrlRight:AddModifier(textFieldSelectCtrlRight:SHIFT)
+            TextFieldSelectTokenEndBehavior textFieldSelectTokenEndBehavior
+            textFieldTable:Add(textFieldSelectCtrlRight, textFieldSelectTokenEndBehavior)
+
+            InputSet textFieldSelectCtrlLeft
+            textFieldSelectCtrlLeft:SetKeyboardInput(keys:LEFT)
+            textFieldSelectCtrlLeft:AddModifier(textFieldSelectCtrlLeft:CONTROL)
+            textFieldSelectCtrlLeft:AddModifier(textFieldSelectCtrlLeft:SHIFT)
+            TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
+            textFieldTable:Add(textFieldSelectCtrlLeft, textFieldSelectTokenStartBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
         

@@ -3003,6 +3003,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return GetNextTokenStartIndex(GetCaretPosition())
     end
 
+    /*
+    This action finds the start index of the next token after the given search
+    index. If the search index is located at the start of a token, the index
+    returned will be for the start of the next token.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the start of the next token after the search index.
+    */
     action GetNextTokenStartIndex(integer searchIndex) returns integer
         text textValue = GetText()
         integer currentIndex = searchIndex

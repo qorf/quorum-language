@@ -1,0 +1,42 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Selections.TextFieldSelection
+
+class TextFieldSelectTokenEndBehavior is Behavior 
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextField)
+            return now
+        end
+        
+        TextField textField = cast(TextField, item)
+        TextFieldSelection selection = textField:GetSelection()
+
+        integer start = selection:GetStartIndex()
+        integer finish = selection:GetEndIndex()
+        integer size = textField:GetSize()
+
+        integer caretPosition = textField:GetCaretPosition()
+        integer nextTokenStart = textField:GetNextTokenStartIndex()
+
+        if caretPosition < nextTokenStart
+            extendingSelection = true
+        end
+
+        textField:SetCaretPosition(nextTokenStart)
+        if finish < nextTokenStart or start = finish or caretPosition = nextTokenStart //the selection is before or equal to the caret position, we are going to lengthen it
+            textField:Select(start, nextTokenStart, true) 
+        else    //the selection is after the caret, we are going to shorten the existing selection 
+            textField:Select(nextTokenStart, finish, false)      
+        end
+    end
+
+
+    action IsFinished returns boolean
+        return true
+    end
+end

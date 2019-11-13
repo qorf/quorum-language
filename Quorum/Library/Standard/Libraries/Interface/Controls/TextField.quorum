@@ -113,6 +113,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     Math math
 
+    /* 
+    The caret's previous position, which is set when the SHIFT key is pressed
+    and used in creating a selection following a mouse click
+    */
+    integer previousCaretPosition = 0
+
     on create
         SetName("Text Field")
         SetInputGroup("TextField")
@@ -904,6 +910,16 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return GetTokenStartIndex(GetCaretPosition())
     end
 
+    /*
+    This action finds the start index of the first token before the given search
+    index. If the search index is located in the middle of a token, the index
+    returned will be for that token. If the search index is exactly at the
+    beginning of a token, the start index of the previous token will be returned
+    instead.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the beginning of the first token before the search index.
+    */
     action GetTokenStartIndex(integer searchIndex) returns integer
         boolean tokenIsDone = false
         boolean leadingWhiteSpace = false
@@ -945,9 +961,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                                 currentToken = currentToken + textValue:GetCharacter(currentIndex - 2)
                             end
                         end
-                        //tokenIsDone = true
-                    //else    //this is the end of the token
-                        //tokenIsDone = true
                     end
                     tokenIsDone = true
                 else    //add the character to the current token
@@ -972,6 +985,14 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return GetNextTokenStartIndex(GetCaretPosition())
     end
 
+    /*
+    This action finds the start index of the next token after the given search
+    index. If the search index is located at the start of a token, the index
+    returned will be for the start of the next token.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the start of the next token after the search index.
+    */
     action GetNextTokenStartIndex(integer searchIndex) returns integer
         boolean tokenIsDone = false
         boolean isSpecialCharacterToken = false
@@ -1076,5 +1097,18 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             isWhiteSpace = true
         end
         return isWhiteSpace
+    end
+
+    /*
+    This is set by the TextFieldSavePreviousCaretPositionBehavior for use by the 
+    TextFieldSelectToMouseClickBehavior in determining the selection indices based on 
+    the caret position prior to the mouse click
+    */
+    action SetPreviousCaretPosition(integer previous)
+        previousCaretPosition = previous
+    end
+
+    action GetPreviousCaretPosition returns integer
+        return previousCaretPosition
     end
 end
