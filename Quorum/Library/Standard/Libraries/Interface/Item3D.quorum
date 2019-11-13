@@ -1261,7 +1261,10 @@ class Item3D is Item
         parentItem:Empty()
     */
     action Empty
-        children:Empty()
+        repeat while children:IsEmpty() = false
+            Item3D item = children:GetFromEnd()
+            Remove(item)
+        end
     end
 
     /*  
@@ -2155,14 +2158,14 @@ class Item3D is Item
     action SetLayer(Layer3D parentLayer)
         layer = parentLayer
 
+        integer i = 0
+        repeat children:GetSize() times
+            children:Get(i):SetLayer(parentLayer)
+            i = i + 1
+        end
+
         if layer not= undefined
             layerSet = true
-
-            integer i = 0
-            repeat children:GetSize() times
-                children:Get(i):SetLayer(parentLayer)
-                i = i + 1
-            end
 
             if shape not= undefined
                 if collidable
