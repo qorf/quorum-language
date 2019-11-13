@@ -214,6 +214,15 @@ class MenuItem is Control
         panel:Remove(item)
     end
 
+    action Empty
+        menuItems:Empty()
+        panel:Empty()
+    end
+
+    action IsEmpty returns boolean
+        return menuItems:IsEmpty()
+    end
+
     action SetMenuDirection(integer direction)
         if panelLayout = undefined
             VerticalMenuLayout layout
