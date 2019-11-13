@@ -70,6 +70,8 @@ use Libraries.Interface.Behaviors.Controls.TextFieldPasteFromClipboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToLineEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretToStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCaretToTokenStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextFieldCaretToTokenEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretToEndBehavior  
 use Libraries.Interface.Behaviors.Controls.TextFieldSelectToStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldSelectToEndBehavior   
@@ -1079,6 +1081,18 @@ class Game
             textFieldControlA:AddModifier(textFieldControlA:META)
             TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
+
+            InputSet textFieldAltRight
+            textFieldAltRight:SetKeyboardInput(keys:RIGHT)
+            textFieldAltRight:AddModifier(textFieldAltRight:ALT)
+            TextFieldCaretToTokenEndBehavior textFieldCaretToTokenEndBehavior
+            textFieldTable:Add(textFieldAltRight, textFieldCaretToTokenEndBehavior)
+
+            InputSet textFieldAltLeft
+            textFieldAltLeft:SetKeyboardInput(keys:LEFT)
+            textFieldAltLeft:AddModifier(textFieldAltLeft:ALT)
+            TextFieldCaretToTokenStartBehavior textFieldCaretToTokenStartBehavior
+            textFieldTable:Add(textFieldAltLeft, textFieldCaretToTokenStartBehavior)
         else
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1117,6 +1131,19 @@ class Game
             textFieldControlA:AddModifier(textFieldControlA:CONTROL)
             TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
+
+
+            InputSet textFieldCtrlRight
+            textFieldCtrlRight:SetKeyboardInput(keys:RIGHT)
+            textFieldCtrlRight:AddModifier(textFieldCtrlRight:CONTROL)
+            TextFieldCaretToTokenEndBehavior textFieldCaretToTokenEndBehavior
+            textFieldTable:Add(textFieldCtrlRight, textFieldCaretToTokenEndBehavior)
+
+            InputSet textFieldCtrlLeft
+            textFieldCtrlLeft:SetKeyboardInput(keys:LEFT)
+            textFieldCtrlLeft:AddModifier(textFieldCtrlLeft:CONTROL)
+            TextFieldCaretToTokenStartBehavior textFieldCaretToTokenStartBehavior
+            textFieldTable:Add(textFieldCtrlLeft, textFieldCaretToTokenStartBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
         
