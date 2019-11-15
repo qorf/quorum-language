@@ -33,13 +33,38 @@ class TextBoxSelectToTokenEndBehavior is Behavior
             isReducingCurrentSelection = true
         end
 
+        text carriageReturn = textValue:GetCarriageReturn()
+        text lineFeed = textValue:GetLineFeed()
+        text separator = textBox:GetLineSeparator()
+        
+        //windows
+        if separator = (carriageReturn + lineFeed)
+            if ((currentIndex + 1) < textValue:GetSize())
+                nextCharacter = textValue:GetCharacter(currentIndex)
+                if nextCharacter = nextCharacter:GetCarriageReturn()
+                    currentIndex = currentIndex + 1
+                    currentToken = currentToken + currentToken:GetCarriageReturn() + " "
+                    tokenIsDone = true
+                end
+            end
+        else    //osx
+            if ((currentIndex + 1) < textValue:GetSize())
+                nextCharacter = textValue:GetCharacter(currentIndex)
+                if nextCharacter = nextCharacter:GetCarriageReturn()
+                     currentIndex = currentIndex + 1
+                     currentToken = currentToken + currentToken:GetLineFeed()
+                     tokenIsDone = true
+                end
+            end
+        end
+
         /* if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token 
         (ensuring that the caret stops at the end of every line). */
         if (currentIndex + 1) < textValue:GetSize()
             nextCharacter = textValue:GetCharacter(currentIndex)
             if nextCharacter = nextCharacter:GetCarriageReturn()
                 currentIndex = currentIndex + 1
-                currentToken = currentToken + currentToken:GetCarriageReturn()
+                currentToken = currentToken + currentToken:GetCarriageReturn() + 1
                 tokenIsDone = true  
             elseif nextCharacter = nextCharacter:GetLineFeed()
                 currentIndex = currentIndex + 1

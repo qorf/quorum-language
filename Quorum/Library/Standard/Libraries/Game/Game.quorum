@@ -58,6 +58,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToTokenStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToTokenEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectWordEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldStartDeleteBehavior
 use Libraries.Interface.Behaviors.Controls.TextFieldInsertBehavior
@@ -931,18 +933,32 @@ class Game
 //            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
 //            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
         else
+//            InputSet textBoxSelectLeft
+//            textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
+//            textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
+//            textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
+//            TextBoxSelectToTokenStartBehavior textBoxSelectToTokenStartBehavior
+//            textBoxTable:Add(textBoxSelectLeft, textBoxSelectToTokenStartBehavior)
+//
+//            InputSet textBoxSelectRight
+//            textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
+//            textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
+//            textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
+//            TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
+//            textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
+
             InputSet textBoxSelectLeft
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
             textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
             textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
-            TextBoxSelectToTokenStartBehavior textBoxSelectToTokenStartBehavior
+            TextBoxSelectWordStartBehavior textBoxSelectToTokenStartBehavior
             textBoxTable:Add(textBoxSelectLeft, textBoxSelectToTokenStartBehavior)
 
             InputSet textBoxSelectRight
             textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
             textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
             textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
-            TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
+            TextBoxSelectWordEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
 
 //            InputSet textBoxJumpWordLeft

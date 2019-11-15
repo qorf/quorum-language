@@ -2813,21 +2813,33 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer beginIndex = searchIndex
         text previousCharacter = ""
         text currentCharacter = ""
-
-        if(0 < currentIndex)  //stops the caret at the end of the previous line
-            previousCharacter = textValue:GetCharacter(currentIndex - 1)
-            if previousCharacter = previousCharacter:GetLineFeed()
-                currentIndex = currentIndex - 1
-                currentToken = currentToken + currentToken:GetLineFeed()
-                tokenIsDone = true
-                return beginIndex - currentToken:GetSize()
-            elseif previousCharacter = previousCharacter:GetCarriageReturn()
-                currentIndex = currentIndex - 1
-                currentToken = currentToken + currentToken:GetCarriageReturn()
-                tokenIsDone = true
-                return beginIndex - currentToken:GetSize()
+        text carriageReturn = textValue:GetCarriageReturn()
+        text lineFeed = textValue:GetLineFeed()
+        text separator = me:textValue:GetLineSeparator()
+        
+        //windows
+        if separator = (carriageReturn + lineFeed)
+            if(0 < currentIndex)  //moving to the next line after stop at the end of the line
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                if previousCharacter = previousCharacter:GetLineFeed()  
+                    currentIndex = currentIndex - 1
+                    currentToken = currentToken + currentToken:GetCarriageReturn() + 1
+                    tokenIsDone = true
+                    return beginIndex - currentToken:GetSize() 
+                end
+            end
+        else    //osx
+            if (0 < currentIndex)
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                if previousCharacter = previousCharacter:GetLineFeed()
+                    currentIndex = currentIndex - 1
+                    currentToken = currentToken + currentToken:GetLineFeed()
+                    tokenIsDone = true
+                    return beginIndex - currentToken:GetSize()
+                end
             end
         end
+
 
         repeat while not(tokenIsDone)
             if 0 < currentIndex
@@ -3013,6 +3025,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action GetNextTokenStartIndex(integer searchIndex) returns integer
         text textValue = GetText()
+
+        if textValue:IsEmpty()
+            return 0
+        end
+
         integer currentIndex = searchIndex
         if currentIndex = 0
             text nextCharacter = textValue:GetCharacter(currentIndex) 
@@ -3020,7 +3037,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 currentIndex = currentIndex + 1
                 nextCharacter = textValue:GetCharacter(currentIndex)   
             end
-            return currentIndex
+            if currentIndex not= 0
+                return currentIndex
+            end
         end
         currentIndex = GetTokenEndIndex(searchIndex)
 
@@ -3075,6 +3094,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer beginIndex = searchIndex
         text currentCharacter = ""
         text nextCharacter = ""
+        if textValue:IsEmpty()
+            return 0
+        end
 
         //if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token
         if (currentIndex + 1) < textValue:GetSize()

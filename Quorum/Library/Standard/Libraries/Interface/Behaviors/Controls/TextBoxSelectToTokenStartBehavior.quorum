@@ -29,24 +29,49 @@ class TextBoxSelectToTokenStartBehavior is Behavior
         text previousCharacter = ""
         text currentCharacter = ""
 
-
         //need to check if we are reducing the selection or adding to the current selection
         if ((endSelection = currentIndex) and (startSelection not= endSelection)) //then we are reducing the current selection set flag
             isReducingCurrentSelection = true
         end
 
-        if(0 < currentIndex)  //stops the caret at the end of the previous line
-            previousCharacter = textValue:GetCharacter(currentIndex - 1)
-            if previousCharacter = previousCharacter:GetLineFeed()
-                currentIndex = currentIndex - 1
-                currentToken = currentToken + currentToken:GetLineFeed()
-                tokenIsDone = true
-            elseif previousCharacter = previousCharacter:GetCarriageReturn()
-                currentIndex = currentIndex - 1
-                currentToken = currentToken + currentToken:GetCarriageReturn()
-                tokenIsDone = true
+        text carriageReturn = textValue:GetCarriageReturn()
+        text lineFeed = textValue:GetLineFeed()
+        
+        text separator = textBox:GetLineSeparator()
+        
+        //windows
+        if separator = (carriageReturn + lineFeed)
+            if(0 < currentIndex)  //moving to the next line after stop at the end of the line
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                if previousCharacter = previousCharacter:GetLineFeed()  
+                    currentIndex = currentIndex - 1
+                    currentToken = currentToken + currentToken:GetCarriageReturn() + " "
+                    tokenIsDone = true
+                end
+            end
+        else    //osx
+            if (0 < currentIndex)
+                previousCharacter = textValue:GetCharacter(currentIndex - 1)
+                if previousCharacter = previousCharacter:GetLineFeed()
+                    currentIndex = currentIndex - 1
+                    currentToken = currentToken + currentToken:GetLineFeed()
+                    tokenIsDone = true
+                end
             end
         end
+
+//        if(0 < currentIndex)  //stops the caret at the end of the previous line
+//            previousCharacter = textValue:GetCharacter(currentIndex - 1)
+//            if previousCharacter = previousCharacter:GetLineFeed()
+//                currentIndex = currentIndex - 1
+//                currentToken = currentToken + currentToken:GetLineFeed()
+//                tokenIsDone = true
+//            elseif previousCharacter = previousCharacter:GetCarriageReturn()
+//                currentIndex = currentIndex - 1
+//                currentToken = currentToken + currentToken:GetCarriageReturn()
+//                tokenIsDone = true
+//            end
+//        end
 
         repeat while not(tokenIsDone)
             if 0 < currentIndex
