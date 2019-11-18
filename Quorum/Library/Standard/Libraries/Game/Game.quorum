@@ -951,14 +951,14 @@ class Game
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
             textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
             textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
-            TextBoxSelectWordStartBehavior textBoxSelectToTokenStartBehavior
+            TextBoxSelectToTokenStartBehavior textBoxSelectToTokenStartBehavior
             textBoxTable:Add(textBoxSelectLeft, textBoxSelectToTokenStartBehavior)
 
             InputSet textBoxSelectRight
             textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
             textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
             textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
-            TextBoxSelectWordEndBehavior textBoxSelectToTokenEndBehavior
+            TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
 
 //            InputSet textBoxJumpWordLeft
