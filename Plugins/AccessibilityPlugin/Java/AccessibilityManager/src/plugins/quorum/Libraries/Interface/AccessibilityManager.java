@@ -1117,6 +1117,12 @@ public class AccessibilityManager
             double itemX = ((Item2D_)item).GetScreenX();
             double itemY = (((Item2D_) item).GetScreenY());
             
+            if (itemX == Double.NaN)
+                itemX = 0;
+            
+            if (itemY == Double.NaN)
+                itemY = 0;
+            
             bounds[0] = windowX + itemX;
             bounds[1] = windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight()));
             bounds[2] = ((Item2D_) item).GetWidth();
