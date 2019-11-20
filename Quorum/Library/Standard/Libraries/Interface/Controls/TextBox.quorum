@@ -3028,23 +3028,35 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if textValue:IsEmpty()
             return 0
-        end
+        end    
 
+        boolean inWhiteSpace = false
         integer currentIndex = searchIndex
-        if currentIndex = 0
+
+        if currentIndex > 0 and currentIndex < textValue:GetSize()
+            if ((textValue:GetCharacter(currentIndex - 1) = " " or textValue:GetCharacter(currentIndex - 1) = textValue:GetTab()) and (textValue:GetCharacter(currentIndex) = " " or textValue:GetCharacter(currentIndex) = textValue:GetTab()))
+                inWhiteSpace = true
+            end
+        end
+        /* if we are at the beginning of the text box or in the middle of whitespace then we 
+        skip the leading whitespace and stop at the next character, rather than getting the token end Index*/
+        if currentIndex = 0 or inWhiteSpace
             text nextCharacter = textValue:GetCharacter(currentIndex) 
             repeat while IsWhiteSpace(nextCharacter) and ((currentIndex + 1) < textValue:GetSize())
                 currentIndex = currentIndex + 1
                 nextCharacter = textValue:GetCharacter(currentIndex)   
             end
-            if currentIndex not= 0
+            if currentIndex not= searchIndex
                 return currentIndex
             end
         end
+        
+        /*Get the token end index and then skip any whitespace after the end index to get the next token
+        start index*/
         currentIndex = GetTokenEndIndex(searchIndex)
 
         if currentIndex < textValue:GetSize() and currentIndex >= 0
-            text nextCharacter = textValue:GetCharacter(currentIndex)
+            nextCharacter = textValue:GetCharacter(currentIndex)
             if currentIndex > 0
                 text previousCharacter = textValue:GetCharacter(currentIndex - 1)
                 if IsEndOfLine(previousCharacter)
@@ -3099,17 +3111,24 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         //if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token
-        if (currentIndex + 1) < textValue:GetSize()
+        if (currentIndex) < textValue:GetSize()
             nextCharacter = textValue:GetCharacter(currentIndex)
             if nextCharacter = nextCharacter:GetCarriageReturn()
                 currentIndex = currentIndex + 1
-                currentToken = currentToken + currentToken:GetCarriageReturn()
+                currentToken = currentToken + nextCharacter
+                if (currentIndex < textValue:GetSize())
+                    nextCharacter = textValue:GetCharacter(currentIndex)
+                end
                 tokenIsDone = true  
-                return beginIndex + currentToken:GetSize()
-            elseif nextCharacter = nextCharacter:GetLineFeed()
+            end
+    
+            if nextCharacter = nextCharacter:GetLineFeed()
                 currentIndex = currentIndex + 1
-                currentToken = currentToken + currentToken:GetLineFeed()
+                currentToken = currentToken + nextCharacter
                 tokenIsDone = true
+            end
+
+            if tokenIsDone
                 return beginIndex + currentToken:GetSize()
             end
         end
