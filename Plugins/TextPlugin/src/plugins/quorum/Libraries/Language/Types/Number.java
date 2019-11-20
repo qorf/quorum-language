@@ -79,7 +79,7 @@ public class Number {
         return Double.NaN;
     }
     
-    public static double PrimitiveGetNotANumberValue(){
+    public static double PrimitiveGetNotANumberValue(double self){
         return Double.NaN;
     }
     
