@@ -44,6 +44,8 @@ use Libraries.Interface.Behaviors.FocusPreviousBehavior
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Controls.ButtonUpBehavior
 use Libraries.Interface.Behaviors.Controls.ButtonDownBehavior
+use Libraries.Interface.Behaviors.Controls.ButtonGroupUpBehavior
+use Libraries.Interface.Behaviors.Controls.ButtonGroupDownBehavior
 use Libraries.Interface.Behaviors.Controls.ButtonMouseOffBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxStartDeleteBehavior
@@ -533,15 +535,28 @@ class Game
         NavigateFocusDownToolBar downFocus
         toolbarTable:Add(downSet, downFocus)
 
-        InputSet rightSet
-        rightSet:SetKeyboardInput(keys:LEFT)
-        toolbarTable:Add(rightSet, upFocus)
-
         InputSet leftSet
-        leftSet:SetKeyboardInput(keys:RIGHT)
-        toolbarTable:Add(leftSet, downFocus)
+        leftSet:SetKeyboardInput(keys:LEFT)
+        toolbarTable:Add(leftSet, upFocus)
+
+        InputSet rightSet
+        rightSet:SetKeyboardInput(keys:RIGHT)
+        toolbarTable:Add(rightSet, downFocus)
 
         gameInput:AddInputTable(toolbarTable)
+
+        //Input table for ButtonGroup
+        InputTable groupTable
+        groupTable:SetIdentifier("ButtonGroup")
+
+        ButtonGroupUpBehavior groupUpFocus
+        ButtonGroupDownBehavior groupDownFocus
+        groupTable:Add(upSet, groupUpFocus)
+        groupTable:Add(downSet, groupDownFocus)
+        groupTable:Add(leftSet, groupUpFocus)
+        groupTable:Add(rightSet, groupDownFocus)
+
+        gameInput:AddInputTable(groupTable)
 
         //input table for dialogs
         InputTable dialogTable

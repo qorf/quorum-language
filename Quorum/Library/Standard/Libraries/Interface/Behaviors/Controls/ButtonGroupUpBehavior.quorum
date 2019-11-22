@@ -1,0 +1,14 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.ButtonGroup
+
+class ButtonGroupUpBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is ButtonGroup
+            ButtonGroup group = cast(ButtonGroup, event:GetItem())
+            group:SelectPrevious()
+        end
+    end
+end

@@ -1,0 +1,53 @@
+package Libraries.Interface.Selections
+
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+
+class ButtonGroupSelection is Selection
+
+    integer index = -1
+
+    action Initialize(ButtonGroup group, integer index)
+        text value = ""
+        me:index = index
+        RadioButton button = GetButton()
+        if button not= undefined
+            value = button:GetName()
+        end
+        parent:Selection:Initialize(group, value)
+    end
+
+    action Set(integer index)
+        me:index = index
+        RadioButton button = GetButton()
+        if button not= undefined
+            SetDisplayName(button:GetName())
+        else
+            SetDisplayName("")
+        end
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+
+    action GetButton returns RadioButton
+        ButtonGroup group = GetButtonGroup()
+        if index >= 0 and group not= undefined and index < group:GetSize()
+            return group:GetButtonAt(index)
+        end
+        return undefined
+    end
+
+    action GetButtonGroup returns ButtonGroup
+        if GetItem() is ButtonGroup
+            ButtonGroup group = cast(ButtonGroup, GetItem())
+            return group
+        end
+        return undefined
+    end
+
+    action IsEmpty returns boolean
+        return index < 0
+    end
+end

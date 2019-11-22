@@ -12,6 +12,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.ToggleView
 use Libraries.Interface.Views.RadioButtonView
+use Libraries.Interface.Events.FocusEvent
 
 class RadioButton is ToggleButton
 
@@ -20,6 +21,7 @@ class RadioButton is ToggleButton
 
     on create
         // The layout should already be present, courtesy of our inheritance of Button.
+        SetFocusable(false)
         FlowLayout layout = cast(FlowLayout, GetLayout())
         layout:SetIgnoreHidden(false)
         layout:SetSingleLine(true)
@@ -76,6 +78,7 @@ class RadioButton is ToggleButton
         ButtonGroup group = GetButtonGroup()
         if toggleState = true and group not= undefined
             group:DeselectAll()
+            group:UpdateSelection(me)
         end
 
         parent:ToggleButton:toggled = toggleState
@@ -103,6 +106,24 @@ class RadioButton is ToggleButton
         if accessibility not= undefined
             accessibility:ToggleButtonToggled(me)
         end
+    end
+
+    action GainedFocus(FocusEvent event)
+        SetToggleState(true)
+    end
+
+    action GetNextFocus returns Item
+        if GetButtonGroup() not= undefined
+            return GetButtonGroup():GetNextFocus()
+        end
+        return parent:Item:GetNextFocus()
+    end
+
+    action GetPreviousFocus returns Item
+        if GetButtonGroup() not= undefined
+            return GetButtonGroup():GetPreviousFocus()
+        end
+        return parent:Item:GetPreviousFocus()
     end
 
     /*

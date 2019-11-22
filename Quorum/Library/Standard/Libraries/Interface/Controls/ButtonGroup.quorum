@@ -1,35 +1,121 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.ButtonGroupSelection
 
-class ButtonGroup
+class ButtonGroup is Control
     
-    Array<ToggleButton> buttons
+    Array<RadioButton> buttons
+    ButtonGroupSelection selection
     
-    action AddButton(ToggleButton button)
-        buttons:AddToFront(button)
-        button:SetButtonGroup(me)
+    on create
+        SetFocusable(true)
+        FlowLayout layout
+        SetLayout(layout)
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        SetInputGroup("ButtonGroup")
+        selection:Initialize(me, -1)
     end
 
-    action RemoveButton(ToggleButton button)
-        buttons:Remove(button)
-        button:SetButtonGroup(undefined)
+    action Add(Item2D item)
+        if item is RadioButton
+            RadioButton button = cast(RadioButton, item)
+            buttons:Add(button)
+            button:SetButtonGroup(me)
+        end
+        parent:Control:Add(item)
     end
 
-    action EmptyGroup()
+    action Remove(Item2D item) returns boolean
+        if item is RadioButton
+            RadioButton button = cast(RadioButton, item)
+            buttons:Remove(button)
+            button:SetButtonGroup(undefined)
+        end
+        return parent:Control:Remove(item)
+    end
+
+    action Empty
         integer i = 0
         repeat while i < buttons:GetSize()
-            RemoveButton(buttons:Get(i))
+            Remove(buttons:Get(i))
             i = i + 1
+        end
+        parent:Control:Empty()
+    end
+
+    action SelectNext
+        integer index = selection:GetIndex()
+        if index + 1 < GetSize()
+            buttons:Get(index + 1):SetToggleState(true)
+        else 
+            buttons:Get(0):SetToggleState(true)
         end
     end
 
-    action GetButtonAt(integer index) returns ToggleButton
+    action SelectPrevious
+        integer index = selection:GetIndex()
+        if index - 1 >= 0
+            buttons:Get(index - 1):SetToggleState(true)
+        else 
+            buttons:Get(GetSize() - 1):SetToggleState(true)
+        end
+    end
+
+    action UpdateSelection(RadioButton button)
+        integer size = GetSize()
+        integer index = selection:GetIndex()
+        if index >= 0 and index < size
+            if GetButtonAt(index) = button
+                return now
+            end
+        end
+
+        integer counter = 0
+
+        if button not= undefined
+            repeat while counter < size
+                if buttons:Get(counter) = button
+                    selection:Set(counter)
+                    return now
+                end
+                counter = counter + 1
+            end
+        end
+    end
+
+    action GetSelection returns ButtonGroupSelection
+        return selection
+    end
+
+    action GetSelectedButton returns RadioButton
+        return selection:GetButton()
+    end
+
+    action GetButtonAt(integer index) returns RadioButton
         return buttons:Get(index)
     end
 
-    action GetButtons() returns Array<ToggleButton>
+    action GetButtons returns Array<RadioButton>
         return buttons
+    end
+
+    action GetSize returns integer
+        return buttons:GetSize()
+    end
+
+    action GainedFocus(FocusEvent event)
+        if selection:GetIndex() = -1
+            RadioButton first = buttons:Get(0)
+            first:SetToggleState(true)
+        else
+            buttons:Get(selection:GetIndex()):SetToggleState(true)
+        end
     end
 
     action DeselectAll()
