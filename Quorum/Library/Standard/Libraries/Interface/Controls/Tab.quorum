@@ -21,8 +21,9 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 
-class Tab is ToggleButton
+class Tab is Button
     TabPane container = undefined
+    TabBar bar = undefined
 
     // The Item that is displayed in the TabPane when the Tab is activated.
     Item2D relatedItem = undefined
@@ -31,6 +32,7 @@ class Tab is ToggleButton
     // undefined, the relatedItem is focused instead, if possible.
     Item2D focusTarget = undefined
 
+    private boolean toggled = false
     Layout layout = undefined
     LayoutProperties defaultProperties = undefined
     LayoutProperties iconLayoutProperties = undefined
@@ -42,8 +44,6 @@ class Tab is ToggleButton
     Button closeButton
 
     on create
-        AllowToggleOff(false)
-
         FlowLayout flow
         layout = flow
         flow:SetIgnoreHidden(true)
@@ -113,6 +113,14 @@ class Tab is ToggleButton
         me:container = pane
     end
 
+    action GetTabBar returns TabBar
+        return bar
+    end
+
+    action SetTabBar(TabBar bar)
+        me:bar = bar
+    end
+
     action IsAccessibleParent returns boolean
         return true
     end
@@ -178,9 +186,33 @@ class Tab is ToggleButton
         return closeButton:IsShowing()
     end
 
+    action SetToggleState(boolean toggleState)
+        if toggled = toggleState
+            return now
+        end
+
+        if toggleState = true and bar not= undefined
+            bar:DeselectAll()
+        end
+
+        toggled = toggleState
+        if GetView2D() is LabelBoxToggleView
+            LabelBoxToggleView content = cast(LabelBoxToggleView, GetView2D())
+            content:SetToggleState(toggleState)
+        end
+        if toggleState = true
+            OnToggleOn()
+        else
+            OnToggleOff()
+        end
+    end
+
+    action IsActivated returns boolean
+        return toggled
+    end
+
     action OnToggleOn
-        if GetButtonGroup() is TabBar
-            TabBar bar = cast(TabBar, GetButtonGroup())
+        if bar not= undefined
             TabPane pane = bar:GetTabPane()
             if pane not= undefined
                 pane:UpdateSelection(me)
@@ -191,8 +223,7 @@ class Tab is ToggleButton
     end
 
     action OnToggleOff
-        if GetButtonGroup() is TabBar
-            TabBar bar = cast(TabBar, GetButtonGroup())
+        if bar not= undefined
             TabPane pane = bar:GetTabPane()
             if pane not= undefined
                 pane:UpdateSelection(undefined)
@@ -201,7 +232,7 @@ class Tab is ToggleButton
     end
 
     action Activate(BehaviorEvent event)
-        if GetToggleState() = true and CanToggleOff() = false
+        if IsActivated()
             if relatedItem not= undefined
                 if focusTarget not= undefined
                     focusTarget:Focus()
@@ -209,8 +240,7 @@ class Tab is ToggleButton
                     relatedItem:Focus()
                 end
             else
-                if GetButtonGroup() is TabBar
-                    TabBar bar = cast(TabBar, GetButtonGroup())
+                if bar not= undefined
                     TabPane pane = bar:GetTabPane()
                     if pane not= undefined
                         Focus()
@@ -218,7 +248,8 @@ class Tab is ToggleButton
                 end
             end
         else
-            parent:ToggleButton:Activate(event)
+            SetToggleState(true)
+            Activate()
         end
     end
 

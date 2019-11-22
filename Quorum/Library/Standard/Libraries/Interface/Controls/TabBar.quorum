@@ -16,7 +16,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 
-class TabBar is Control, ButtonGroup
+class TabBar is Control
     
     Array<Tab> tabs
     TabFlowLayout layout
@@ -39,20 +39,15 @@ class TabBar is Control, ButtonGroup
     action Add(Array<Tab> array)
         integer counter = 0
         repeat while counter < array:GetSize()
-            Tab tab = array:Get(counter)
-            tabs:Add(tab)
-            parent:Item2D:Add(tab)
-            parent:ButtonGroup:AddButton(tab)
+            Add(array:Get(counter))
             counter = counter + 1
         end
-
-        Resize()
     end
 
     action Add(Tab tab)
         tabs:Add(tab)
         parent:Item2D:Add(tab)
-        parent:ButtonGroup:AddButton(tab)
+        tab:SetTabBar(me)
         Resize()
 
         TabChangeEvent event
@@ -78,7 +73,7 @@ class TabBar is Control, ButtonGroup
 
         tabs:Remove(tab)
         parent:Item2D:Remove(tab)
-        parent:ButtonGroup:RemoveButton(tab)
+        tab:SetTabBar(undefined)
 
         if reselect
             if tabs:GetSize() > 0
@@ -103,6 +98,10 @@ class TabBar is Control, ButtonGroup
 
     action Get(integer index) returns Tab
         return tabs:Get(index)
+    end
+
+    action GetTabs returns Array<Tab>
+        return tabs
     end
 
     action SetTabPane(TabPane tabPane)
@@ -286,6 +285,14 @@ class TabBar is Control, ButtonGroup
         repeat while counter < tabs:GetSize()
             tabs:Get(counter):SetFontSize(size)
             counter = counter + 1
+        end
+    end
+
+    action DeselectAll
+        integer i = 0
+        repeat while i < tabs:GetSize()
+            tabs:Get(i):SetToggleState(false)
+            i = i + 1
         end
     end
 end

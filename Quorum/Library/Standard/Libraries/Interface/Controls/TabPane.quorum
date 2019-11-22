@@ -97,13 +97,6 @@ class TabPane is Control
         end
         if item not= undefined
             viewArea:Add(item)
-            if tab:GetFocusTarget() not= undefined
-                tab:GetFocusTarget():Focus()
-            else
-                item:Focus()
-            end
-        else
-            Focus()
         end
         currentItem = item
         Resize()
@@ -136,8 +129,37 @@ class TabPane is Control
         return bar:Get(index)
     end
 
+    action GetTabs returns Array<Tab>
+        return bar:GetTabs()
+    end
+
     action GetSize returns integer
         return bar:GetSize()
+    end
+
+
+    /*
+        This essentially does what Select does but it will not move focus to the
+        tab
+    */
+    action Display(integer index)
+        if index = -1
+            Deselect()
+        elseif index >= 0 and index < GetSize()
+            Get(index):SetToggleState(true)
+        end
+    end
+
+    action Display(Tab tab)
+        integer size = GetSize()
+        integer counter = 0
+        repeat while counter < size
+            if Get(counter) = tab
+                Display(counter)
+                return now
+            end
+            counter = counter + 1
+        end
     end
 
     action Select(integer index)
@@ -145,6 +167,7 @@ class TabPane is Control
             Deselect()
         elseif index >= 0 and index < GetSize()
             Get(index):SetToggleState(true)
+            Get(index):Activate()
         end
     end
 
@@ -239,7 +262,7 @@ class TabPane is Control
     Control uses a Font.
     */
     action SetFontSize(integer size)
-        parent:Control:SetFontSize(size)
+        parent:Control:SetFontSize(size) 
         if bar not= undefined
             bar:SetFontSize(size)
         end
