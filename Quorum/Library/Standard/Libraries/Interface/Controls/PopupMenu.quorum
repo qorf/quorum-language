@@ -83,6 +83,7 @@ class PopupMenu is MenuRoot, MouseListener
         dialog:Show()
         dialog:GetLayer():AddMouseListener(me)
         Focus()
+        SetSelectingState(true)
     end
 
     action Close
