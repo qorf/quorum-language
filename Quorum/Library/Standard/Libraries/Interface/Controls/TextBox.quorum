@@ -998,8 +998,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             end
 
             selection:Set(startIndex, index, true, false)
-        else
-            selection:Set(index, selection:GetEndIndex(), false, false)
+        else 
+            if index > selection:GetEndIndex()
+                selection:Set(selection:GetEndIndex(), index, true, false)
+            else
+                selection:Set(index, selection:GetEndIndex(), false, false)
+            end
         end
 
         // Report the new selection here.
