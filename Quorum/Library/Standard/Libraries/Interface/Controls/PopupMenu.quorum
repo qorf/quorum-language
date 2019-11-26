@@ -59,9 +59,27 @@ class PopupMenu is MenuRoot, MouseListener
 
     action Remove(MenuItem item)
         // Remove from the MenuPanel
-        item:SetMenuRoot(undefined)
-        menuItems:Remove(item)
         panel:Remove(item)
+        menuItems:Remove(item)
+        item:SetMenuRoot(undefined)
+
+        // Correct the selection if we've just removed it.
+        Array<MenuItem> path = GetSelection():GetPath()
+        if path:IsEmpty() = false and path:Get(0) = item
+            if menuItems:IsEmpty()
+                Deselect()
+            else
+                path:Empty()
+                path:Add(menuItems:Get(0))
+                Select(path)
+            end
+        end
+    end
+
+    action Empty
+        repeat while menuItems:IsEmpty() = false
+            Remove(menuItems:GetFromEnd())
+        end
     end
 
     action OpenAtCursor

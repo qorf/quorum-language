@@ -2,6 +2,7 @@ package Libraries.Interface.Events
 
 use Libraries.Interface.Item
 use Libraries.Game.GameStateManager
+use Libraries.Game.InputSet
 
 class BehaviorEvent 
     Item item = undefined
@@ -9,6 +10,7 @@ class BehaviorEvent
     MouseEvent mouseEvent = undefined
     TextInputEvent textInputEvent = undefined
     TouchEvent touchEvent = undefined
+    InputSet inputSet = undefined
     number seconds = 0
 
     on create
@@ -56,6 +58,14 @@ class BehaviorEvent
         touchEvent = event
     end
 
+    action GetInputSet returns InputSet
+        return inputSet
+    end
+
+    action SetInputSet(InputSet set)
+        inputSet = set
+    end
+
     action SetSecondsSinceLastFrame(number seconds)
         me:seconds = seconds
     end
@@ -71,6 +81,7 @@ class BehaviorEvent
         event:SetMouseEvent(mouseEvent)
         event:SetTextInputEvent(textInputEvent)
         event:SetTouchEvent(touchEvent)
+        event:SetInputSet(inputSet)
         event:SetSecondsSinceLastFrame(seconds)
         return event
     end

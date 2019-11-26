@@ -89,6 +89,15 @@ class DesktopInput is GameInput
     */
     Array<RecentInputTimer> recentKeyPresses
 
+    /* 
+    Whether or not a keyboard event was caught by the InputTables on the current
+    frame. If a key pressed event was used by an InputTable, we flag the text
+    input events until the end of the frame. Behaviors may consider this when
+    handling the text (e.g., the TextBox may ignore text from a keypress that
+    was already used to trigger a shortcut).
+    */
+    boolean keypressCaught = false
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -103,6 +112,7 @@ class DesktopInput is GameInput
         Array<Layer> layers = parent:GameInput:layers
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
+        keypressCaught = false
 
         if layers = undefined
             return now
@@ -626,6 +636,7 @@ class DesktopInput is GameInput
             end
 
             if processed and currentEvent:eventType = currentEvent:PRESSED_KEY
+                keypressCaught = true
                 usedKeys:Set(currentEvent:keyCode, true)
                 
                 integer i = 0
@@ -770,6 +781,7 @@ class DesktopInput is GameInput
 
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
+            currentEvent:SetKeyUsed(keypressCaught)
 
             InputSet set
             set:SetInputType(set:TEXT_INPUT)

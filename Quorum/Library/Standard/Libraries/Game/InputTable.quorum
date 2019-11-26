@@ -71,6 +71,7 @@ class InputTable
     action ProcessInput(InputSet set, BehaviorEvent event) returns boolean
         if table:HasKey(set)
             Behavior behavior = table:GetValue(set)
+            event:SetInputSet(set)
             behavior:Run(event)
             return true
         end

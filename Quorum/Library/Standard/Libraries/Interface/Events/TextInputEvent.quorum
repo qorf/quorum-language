@@ -3,6 +3,7 @@ package Libraries.Interface.Events
 class TextInputEvent 
     text value = ""
     integer unicodeValue = 0
+    boolean keyUsed = false
 
     action SetText(text newValue)
         value = newValue
@@ -18,5 +19,20 @@ class TextInputEvent
 
     action GetUnicodeValue returns integer
         return unicodeValue
+    end
+
+    /*
+    This action indicates if the text input from this event was produced using
+    a keypress that has already been used to trigger a Behavior elsewhere in
+    the engine. For example, pressing CONTROL + SPACE in a code editor text box
+    might open code completion, and then also produce a "Space" text input -- in
+    this case, this value would return true.
+    */
+    action WasKeyUsed returns boolean
+        return keyUsed
+    end
+
+    action SetKeyUsed(boolean used)
+        keyUsed = used
     end
 end

@@ -49,6 +49,10 @@ class MenuRoot is Control
 
     blueprint action GetIterator returns Iterator<MenuItem>
 
+    action IsEmpty returns boolean
+        return GetSize() = 0
+    end
+
     /*
     The HasBar action is used to specify if this MenuRoot uses a special layout
     for the first menu items (i.e., the first set of the menu items is placed in
