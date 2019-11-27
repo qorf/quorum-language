@@ -1758,7 +1758,7 @@ class JavaScriptObjectNotation
         text space = ""
         if IsPrettyPrint()
             space = GetSpaces(level)
-            line = result:GetCarriageReturn()
+            line = result:GetLineFeed()
         end
         
         if IsParent() or level = 0

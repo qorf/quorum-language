@@ -2746,7 +2746,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return inputText
         end
 
-        text separator = textValue:GetLineSeparator()
+        text separator = GetLineSeparator()
         text outputText = inputText
 
         text carriageReturn = separator:GetCarriageReturn()
@@ -2754,6 +2754,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         // If we're using Windows style separators.
         if separator = (carriageReturn + lineFeed)
+            //QS now uses only linefeeds so this wont be needed
+            //This also doesn't check for the only carriage return case
             integer readIndex = 0
             integer index = outputText:IndexOf(lineFeed, readIndex)
             repeat while index >= 0
@@ -2781,6 +2783,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         // If we're using Unix style separators.
         elseif separator = lineFeed
             outputText = outputText:Replace(carriageReturn + lineFeed, lineFeed)
+            outputText = outputText:Replace(carriageReturn, lineFeed)
         end
 
         return outputText

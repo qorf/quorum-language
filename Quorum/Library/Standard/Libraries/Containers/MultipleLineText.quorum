@@ -1193,7 +1193,8 @@ class MultipleLineText
     Attribute: Returns The default characters used to indicate the end of a line of text.
     */
     action GetDefaultLineSeparator returns text
-        return properties:GetProperty("line.separator")
+        text lineFeed = ""
+        return lineFeed:GetLineFeed()//properties:GetProperty("line.separator")
     end
     
 end
