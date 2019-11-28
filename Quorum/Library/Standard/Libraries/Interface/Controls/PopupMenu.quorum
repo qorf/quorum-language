@@ -13,13 +13,16 @@ use Libraries.Interface.Views.LabelBoxView
 
 class PopupMenu is MenuRoot, MouseListener
     
-    MenuPanel panel
+    MenuPanelBlueprint panel = undefined
     Dialog dialog
     GameStateManager manager
     InputMonitor monitor
     Array<MenuItem> menuItems
 
     on create
+        MenuPanel panel
+        me:panel = panel
+
         ManualLayout layout
         SetLayout(layout)
 

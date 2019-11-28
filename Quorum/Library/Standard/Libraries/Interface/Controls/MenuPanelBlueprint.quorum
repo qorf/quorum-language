@@ -1,0 +1,49 @@
+package Libraries.Interface.Controls
+
+class MenuPanelBlueprint is Control
+    
+    number iconRegionWidth = 0
+    number labelRegionWidth = 0
+    number shortcutRegionWidth = 0
+    number arrowRegionWidth = 0
+
+    on create
+        SetName("MenuPanel")
+        SetZ(-1)
+    end
+
+    action SetIconRegionWidth(number width)
+        iconRegionWidth = width
+    end
+
+    action GetIconRegionWidth returns number
+        return iconRegionWidth
+    end
+
+    action SetLabelRegionWidth(number width)
+        labelRegionWidth = width
+    end
+
+    action GetLabelRegionWidth returns number
+        return labelRegionWidth
+    end
+
+    action SetShortcutRegionWidth(number width)
+        shortcutRegionWidth = width
+    end
+
+    action GetShortcutRegionWidth returns number
+        return shortcutRegionWidth
+    end
+
+    action SetArrowRegionWidth(number width)
+        arrowRegionWidth = width
+    end
+
+    action GetArrowRegionWidth returns number
+        return arrowRegionWidth
+    end
+
+    blueprint action IsScrollable returns boolean
+
+end

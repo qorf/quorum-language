@@ -35,7 +35,7 @@ class MenuItem is Control
     MenuItem is a menu. The anchor is used to position the panel depending on
     what direction the panel is expected to open in.
     */
-    MenuPanel panel
+    MenuPanelBlueprint panel = undefined
     Control panelAnchor
     Layout panelLayout = undefined
     LayoutProperties panelProperties = undefined
@@ -88,6 +88,9 @@ class MenuItem is Control
     on create
         SetInputGroup("MenuItem")
         SetAccessibilityCode(parent:Item:MENU_ITEM)
+
+        MenuPanel panel
+        me:panel = panel
 
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetBackgroundColor(undefined)

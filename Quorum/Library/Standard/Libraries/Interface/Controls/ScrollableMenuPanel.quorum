@@ -1,0 +1,27 @@
+package Libraries.Interface.Controls
+
+class ScrollableMenuPanel is MenuPanelBlueprint
+    
+    number itemsInView = 10
+
+    Control scrollAnchor
+    Control scrollBar
+    Control scrollControl
+
+    on create
+
+    end
+
+    action SetItemsInView(number itemCount)
+        if itemCount = itemsInView
+            return now
+        end
+
+        itemsInView = itemCount
+        RequestLayout()
+    end
+
+    action GetItemsInView returns number
+        return itemsInView
+    end
+end
