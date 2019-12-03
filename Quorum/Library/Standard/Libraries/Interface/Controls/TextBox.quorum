@@ -107,6 +107,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     integer caretCharacter = 0
     number caretX = 0
 
+    GameStateManager gameStateManager
     TextBoxSelection selection
 
     /*
@@ -300,8 +301,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         HideCaret()
 
-        GameStateManager gsm
-        Game game = gsm:GetGame()
+        Game game = gameStateManager:GetGame()
         editManager = game:GetEditManager()
     end
 
@@ -1845,7 +1845,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
                 if event:mouseButton = event:LEFT
                     draggingInText = true
-                    MousePositionCaret(event, false)
+
+                    /*
+                    If the click count is 1, there's been 1 click before this 
+                    one, and we want to let the double click behavior handle it.
+                    Otherwise, we position the mouse ourselves.
+                    */
+                    if gameStateManager:GetInput():GetClickCount(me) not= 1
+                        MousePositionCaret(event, false)
+                    end
                 end
             end
         end
@@ -1856,7 +1864,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         draggingInText = false
     end
 
-    private action MousePositionCaret(MouseEvent event, boolean dragging)
+    /*
+    This action positions the caret in accordance with the provided mouse event.
+    This is called internally by the system as needed, and shouldn't be called
+    directly by users.
+    */
+    action MousePositionCaret(MouseEvent event, boolean dragging)
         
         integer line = caretLine
         integer index = caretCharacter
@@ -2424,8 +2437,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             textChangeListeners:Get(counter):TextChanged(event)
             counter = counter + 1
         end
-        GameStateManager manager
-        manager:GetInput():NotifyTextChangeListeners(event)
+        gameStateManager:GetInput():NotifyTextChangeListeners(event)
     end
 
     action SetIndentationStrategy(IndentationStrategy strategy)

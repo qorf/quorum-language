@@ -39,6 +39,7 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
 use Libraries.Interface.Behaviors.CancelBehavior
@@ -888,6 +889,11 @@ class Game
         InputSet rightClickSetTextBox
         rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
         textBoxTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
+
+        InputSet textBoxLeftClick
+        textBoxLeftClick:SetMouseInput(mouse:LEFT)
+        Behavior emptyBehavior
+        textBoxTable:Add(textBoxLeftClick, emptyBehavior)
 
         InputSet doubleClick
         doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)

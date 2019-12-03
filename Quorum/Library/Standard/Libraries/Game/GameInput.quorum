@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Interface.Item
 use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
@@ -510,5 +511,37 @@ class GameInput
                 counter = counter + 1
             end
         end
+    end
+
+    /*
+    This action returns how many times the particular item has been clicked with
+    the mouse in a short period of time, as used to determine things like double
+    click events. For desktop platforms, the period of time measured is based on
+    the multiple click timer in the DesktopConfiguration.
+
+    On platforms which don't support the mouse, this will always return 0.
+
+    Attribute: Parameter item An item that has been added to the game engine.
+    Attribute: Returns How many times the provided item has been recently clicked with the mouse.
+    */
+    action GetClickCount(Item item) returns integer
+        return 0
+    end
+
+    /*
+    This action returns how many times a particular key on the keyboard (as
+    represented by its key code, found in the KeyboardEvent class) has been
+    pressed in a short period of time. For desktop platforms, this period of
+    time is measured based on the multiple key press timer in the 
+    DesktopConfiguration.
+
+    On platforms that don't support multiple key press events, this will always
+    return 0.
+
+    Attribute: Parameter keyCode A key on the keyboard, represented by its integer key code.
+    Attribute: Returns How many times the given key has recently been pressed.
+    */
+    action GetKeyPressCount(integer keyCode) returns integer
+        return 0
     end
 end

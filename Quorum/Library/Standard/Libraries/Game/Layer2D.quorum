@@ -35,6 +35,7 @@ use Libraries.Game.Collision.Narrowphase.TimeOfImpactOutput2D
 use Libraries.Game.Collision.Sweep2D
 use Libraries.Containers.Stack
 use Libraries.Compute.Vector2
+use Libraries.Game.GameInput
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -1152,6 +1153,9 @@ class Layer2D is Layer
         Item2D temp = undefined
         Item result = undefined
 
+        GameInput gameInput = manager:GetInput()
+        integer originalClickCount = event:clickCount
+
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
         repeat while counter < sortedItems:GetSize() and processing
@@ -1167,6 +1171,7 @@ class Layer2D is Layer
 
                     temp = item
                     event:SetSource(temp)
+                    event:clickCount = gameInput:GetClickCount(item) + 1
                     temp:ProcessMouseEvent(event)
                     processing = not event:WasEventHandled()
                     if event:WasEventHandled()
@@ -1177,6 +1182,8 @@ class Layer2D is Layer
 
             counter = counter + 1
         end
+
+        event:clickCount = originalClickCount
 
         if processing
             if event:eventType = event:MOVED_MOUSE

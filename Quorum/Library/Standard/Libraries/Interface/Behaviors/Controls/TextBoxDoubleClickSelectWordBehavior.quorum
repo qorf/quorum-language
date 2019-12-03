@@ -29,6 +29,15 @@ class TextBoxDoubleClickSelectWordBehavior is Behavior
             endOfLineIndex = nextLineIndex - 1
         end
 
+        /*
+        Position the caret according to the click coordinates. If the caret has
+        moved from its original position as part of the click, we don't want to
+        highlight the word, and we're done.
+        */
+        textBox:MousePositionCaret(event:GetMouseEvent(), false)
+        if caretPosition not= textBox:GetCaretPosition()
+            return now
+        end
         
         boolean beginWordIsFinished = false
         integer beginIndex = caretPosition

@@ -191,7 +191,7 @@ class DesktopInput is GameInput
                         if useDefaultTable
                             if table not= undefined
                                 if recentInput not= undefined
-                                    if ItemsAreRelated(seeker, recentInput:item)
+                                    if seeker = recentInput:item
                                         multiSet:SetEventCount(recentInput:count + 1)
                                     else
                                         multiSet:SetEventCount(1)
@@ -203,7 +203,7 @@ class DesktopInput is GameInput
                                 if table:HasKey(set) or table:HasKey(anySet)
                                     if recentInput not= undefined
                                         recentInput:timer = 0
-                                        if recentInput:item not= seeker
+                                        if seeker not= recentInput:item
                                             recentInput:item = seeker
                                             recentInput:count = 1
                                             mouseEvent:clickCount = 1
@@ -999,6 +999,62 @@ class DesktopInput is GameInput
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
         end
+    end
+
+    /*
+    This action returns how many times the particular item has been clicked with
+    the mouse in a short period of time, as used to determine things like double
+    click events. For desktop platforms, the period of time measured is based on
+    the multiple click timer in the DesktopConfiguration.
+
+    On platforms which don't support the mouse, this will always return 0.
+
+    Attribute: Parameter item An item that has been added to the game engine.
+    Attribute: Returns How many times the provided item has been recently clicked with the mouse.
+    */
+    action GetClickCount(Item item) returns integer
+        integer counter = 0
+
+        // This is O(n) over the number of recently clicked items, but this
+        // array remains small (typically in single digits).
+        repeat while counter < recentClicks:GetSize()
+            RecentInputTimer timer = recentClicks:Get(counter)
+            if timer:item = item
+                return timer:count
+            end
+            counter = counter + 1
+        end
+
+        return 0
+    end
+
+    /*
+    This action returns how many times a particular key on the keyboard (as
+    represented by its key code, found in the KeyboardEvent class) has been
+    pressed in a short period of time. For desktop platforms, this period of
+    time is measured based on the multiple key press timer in the 
+    DesktopConfiguration.
+
+    On platforms that don't support multiple key press events, this will always
+    return 0.
+
+    Attribute: Parameter keyCode A key on the keyboard, represented by its integer key code.
+    Attribute: Returns How many times the given key has recently been pressed.
+    */
+    action GetKeyPressCount(integer keyCode) returns integer
+        integer counter = 0
+
+        // This is O(n) over the number of recently pressed keys, but this
+        // array remains small (typically in single digits).
+        repeat while counter < recentKeyPresses:GetSize()
+            RecentInputTimer timer = recentKeyPresses:Get(counter)
+            if timer:inputValue = keyCode
+                return timer:count
+            end
+            counter = counter + 1
+        end
+
+        return 0
     end
 
     /*
