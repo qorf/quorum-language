@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Painter2D
 
 class ScrollableMenuPanel is MenuPanelBlueprint
 
@@ -56,7 +57,7 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
     action RemoveAt(integer index)
         menuItems:RemoveAt(index)
-        parent:Control:RemoveAt(index)
+        parent:Control:Remove(index)
     end
 
     action GetSize returns integer
