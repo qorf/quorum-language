@@ -9,10 +9,25 @@ class MenuPanel is MenuPanelBlueprint
 
         VerticalMenuLayout panelLayout
         SetLayout(panelLayout)
-        SetZ(-1)
     end
 
     action IsScrollable returns boolean
         return false
+    end
+
+    action Add(MenuItem item)
+        parent:Control:Add(item)
+    end
+
+    action Add(integer index, MenuItem item)
+        parent:Control:Add(index, item)
+    end
+
+    action Remove(MenuItem item)
+        parent:Control:Remove(item)
+    end
+
+    action RemoveAt(integer index)
+        parent:Control:RemoveAt(index)
     end
 end

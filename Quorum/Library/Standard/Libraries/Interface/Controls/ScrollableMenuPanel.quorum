@@ -1,14 +1,28 @@
 package Libraries.Interface.Controls
 
+use Libraries.Containers.Array
+
 class ScrollableMenuPanel is MenuPanelBlueprint
-    
+
     number itemsInView = 10
+    number scrollIndex = 0
+    
+    Array<MenuItem> menuItems
 
     Control scrollAnchor
     Control scrollBar
     Control scrollControl
 
     on create
+        SetClipping(true)
+        SetCustomDrawing(true)
+
+        scrollAnchor:SetName("Scroll Anchor")
+        scrollBar:SetName("Scroll Bar")
+        scrollControl:SetName("Scroll Control")
+    end
+
+    action Draw(Painter2D painter)
 
     end
 
@@ -23,5 +37,68 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
     action GetItemsInView returns number
         return itemsInView
+    end
+
+    action Add(MenuItem item)
+        menuItems:Add(item)
+        parent:Control:Add(item)
+    end
+
+    action Add(integer index, MenuItem item)
+        menuItems:Add(index, item)
+        parent:Control:Add(index, item)
+    end
+
+    action Remove(MenuItem item)
+        menuItems:Remove(item)
+        parent:Control:Remove(item)
+    end
+
+    action RemoveAt(integer index)
+        menuItems:RemoveAt(index)
+        parent:Control:RemoveAt(index)
+    end
+
+    action GetSize returns integer
+        return menuItems:GetSize()
+    end
+
+    /*
+    This action returns the index of the first MenuItem visible in the scroll
+    pane. This can return non-integer values to indicate the first item is
+    partially offscreen -- for example, a returned value of 8.4 would indicate
+    that the first visible item in the scroll pane is the 8th indexed item, and
+    it is 40% of the way off of the top of the pane.
+
+    Attribute: Returns The index of the first item visible in the scroll pane, with a decimal component describing how much of it is off the top of the panel (if any).
+    */
+    action GetScrollIndex returns number
+        return scrollIndex
+    end
+
+    action Resize
+        /*
+        We manually override the Resize call here to do special work.
+        This is more convenient than using a Layout because we're doing
+        custom rendering on our components anyway and we want to limit the
+        amount of layout work we're doing to only the relevant MenuItems.
+        */
+
+        // If we're already resizing, return immediately from a recursive call.
+        if parent:Item2D:isResizing
+            return now
+        end
+
+        parent:Item2D:isResizing = true
+
+        // TO-DO: Layout the visible items here based on the scroll index,
+        // and adjust the scroll bar.
+
+        /*
+        We need to reset our layout flag to indicate we don't need resizing
+        until more changes occur, and reset our resizing flag to allow future calls.
+        */
+        ResetLayoutFlag()
+        parent:Item2D:isResizing = false
     end
 end
