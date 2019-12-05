@@ -1517,9 +1517,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         FitCharacterOnScreen(caretLine, caretCharacter)
 
         GetLineDrawables()
-        PositionCaret()
+        caretX = PositionCaret()
         ResetCaretBlinkTimer()
-
 
         EmptySelectionEvent(true)
     end

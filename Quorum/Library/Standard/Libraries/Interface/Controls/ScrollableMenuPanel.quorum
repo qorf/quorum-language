@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Layouts.LayoutProperties
 
 class ScrollableMenuPanel is MenuPanelBlueprint
 
@@ -55,9 +56,9 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         parent:Control:Remove(item)
     end
 
-    action RemoveAt(integer index)
+    action Remove(integer index) returns Item2D
         menuItems:RemoveAt(index)
-        parent:Control:Remove(index)
+        return parent:Control:Remove(index)
     end
 
     action GetSize returns integer
@@ -92,8 +93,108 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         parent:Item2D:isResizing = true
 
-        // TO-DO: Layout the visible items here based on the scroll index,
-        // and adjust the scroll bar.
+        LayoutProperties containerProperties = GetDefaultLayoutProperties()
+
+        number leftBorder = 0
+        number rightBorder = 0
+        number topBorder = 0
+        number bottomBorder = 0
+
+        number thickness = containerProperties:GetBorderThickness()
+
+        if containerProperties:HasLeftBorder()
+             leftBorder = thickness
+        end
+        if containerProperties:HasRightBorder()
+            rightBorder = thickness
+        end
+        if containerProperties:HasTopBorder()
+            topBorder = thickness
+        end
+        if containerProperties:HasBottomBorder()
+            bottomBorder = thickness
+        end
+
+        number longestWidth = 0
+        integer i = 0
+
+        repeat while i < menuItems:GetSize()
+            MenuItem menuItem = menuItems:Get(i)
+            LayoutProperties properties = menuItem:GetDefaultLayoutProperties()
+
+            if properties:NeedsRendering()
+                menuItem:LoadGraphics(properties)
+            end
+
+            if menuItem:GetIconWidth() > GetIconRegionWidth()
+                SetIconRegionWidth(menuItem:GetIconWidth())
+            end
+            if menuItem:GetNameWidth() > GetLabelRegionWidth()
+                SetLabelRegionWidth(menuItem:GetNameWidth())
+            end
+            if menuItem:GetShortcutWidth() > GetShortcutRegionWidth()
+                SetShortcutRegionWidth(menuItem:GetShortcutWidth())
+            end
+            if menuItem:GetSubmenuIconWidth() > GetArrowRegionWidth()
+                SetArrowRegionWidth(menuItem:GetSubmenuIconWidth())
+            end
+
+            i = i + 1
+        end
+ 
+        integer intIndex = cast(integer, scrollIndex)
+        integer itemsToView = cast(integer, itemsInView)
+
+        // If there's a fractional component, we need to consider an additional item which will be at least partially off the screen.
+        if itemsToView not= itemsInView
+            itemsToView = itemsToView + 1
+        end
+
+        integer last = intIndex + itemsToView
+        number offset = scrollIndex - intIndex
+
+        MenuItem lastItem = menuItems:Get(last)
+        lastItem:Resize()
+
+        if longestWidth < lastItem:GetWidth()
+            longestWidth = lastItem:GetWidth()
+        end
+
+        number y = -(1 - offset) * lastItem:GetHeight()
+        lastItem:SetPosition(leftBorder, y)
+        y = y + lastItem:GetHeight()
+
+        number largestHeight = 0
+
+        i = last
+        repeat while i > intIndex
+            i = i - 1
+            MenuItem kid = menuItems:Get(i)
+            kid:Resize()
+
+            if longestWidth < kid:GetWidth()
+                longestWidth = kid:GetWidth()
+            end
+
+            kid:SetPosition(leftBorder, y)
+
+            y = y + kid:GetHeight()
+
+            if kid:GetHeight() > largestHeight
+                largestHeight = kid:GetHeight()
+            end
+        end
+
+        // Set the size of the menu panel to fit the items in view, and adjust the position so the top remains in the same place.
+        number oldHeight = GetHeight()
+        SetSize(longestWidth + leftBorder + rightBorder, bottomBorder + topBorder + largestHeight * itemsInView)
+        MoveY(oldHeight - GetHeight())
+
+        repeat while i < menuItems:GetSize()
+            Item2D kid = menuItems:Get(i)
+            kid:SetWidth(longestWidth)
+            i = i + 1
+        end
 
         /*
         We need to reset our layout flag to indicate we don't need resizing
