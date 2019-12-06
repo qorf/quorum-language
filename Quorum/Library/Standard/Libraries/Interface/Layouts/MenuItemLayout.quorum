@@ -3,7 +3,7 @@ package Libraries.Interface.Layouts
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
-use Libraries.Interface.Controls.MenuPanel
+use Libraries.Interface.Controls.MenuPanelBlueprint
 use Libraries.Interface.Controls.MenuItem
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
@@ -24,12 +24,12 @@ class MenuItemLayout is Layout
         LayoutProperties containerProperties = undefined
         number containerBorder = 0
 
-        MenuPanel parentPanel = undefined
+        MenuPanelBlueprint parentPanel = undefined
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
-            if container:GetParent() is MenuPanel
-                parentPanel = cast(MenuPanel, container:GetParent())
+            if container:GetParent() is MenuPanelBlueprint
+                parentPanel = cast(MenuPanelBlueprint, container:GetParent())
             end
 
             if containerProperties not= undefined

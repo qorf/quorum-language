@@ -56,32 +56,30 @@ class PopupMenu is MenuRoot, MouseListener
     action Add(MenuItem item)
         // Add directly to the base MenuPanel.
         item:SetMenuRoot(me)
-        menuItems:Add(item)
         panel:Add(item)
     end
 
     action Remove(MenuItem item)
         // Remove from the MenuPanel
         panel:Remove(item)
-        menuItems:Remove(item)
         item:SetMenuRoot(undefined)
 
         // Correct the selection if we've just removed it.
         Array<MenuItem> path = GetSelection():GetPath()
         if path:IsEmpty() = false and path:Get(0) = item
-            if menuItems:IsEmpty()
+            if panel:IsEmpty()
                 Deselect()
             else
                 path:Empty()
-                path:Add(menuItems:Get(0))
+                path:Add(panel:Get(0))
                 Select(path)
             end
         end
     end
 
     action Empty
-        repeat while menuItems:IsEmpty() = false
-            Remove(menuItems:GetFromEnd())
+        repeat while panel:IsEmpty() = false
+            Remove(panel:GetFromEnd())
         end
     end
 
@@ -112,8 +110,8 @@ class PopupMenu is MenuRoot, MouseListener
 
         integer counter = 0
 
-        repeat while counter < menuItems:GetSize()
-            MenuItem item = menuItems:Get(counter)
+        repeat while counter < panel:GetSize()
+            MenuItem item = panel:Get(counter)
             item:Close()
             counter = counter + 1
         end
@@ -150,8 +148,8 @@ class PopupMenu is MenuRoot, MouseListener
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
 
-            if menuItems:IsEmpty() = false
-                MenuItem item = menuItems:Get(0)
+            if panel:IsEmpty() = false
+                MenuItem item = panel:Get(0)
                 Array<MenuItem> selectionPath
                 selectionPath:Add(item)
                 Select(selectionPath)
@@ -160,13 +158,13 @@ class PopupMenu is MenuRoot, MouseListener
             integer counter = 0
             MenuItem previous = path:Get(0)
 
-            repeat while counter < menuItems:GetSize()
-                MenuItem item = menuItems:Get(counter)
+            repeat while counter < panel:GetSize()
+                MenuItem item = panel:Get(counter)
                 if item:Equals(previous)
 
                     // Select next item in the list, if there is one.
-                    if counter + 1 < menuItems:GetSize()
-                        MenuItem menuItem = menuItems:Get(counter + 1)
+                    if counter + 1 < panel:GetSize()
+                        MenuItem menuItem = panel:Get(counter + 1)
                         menuItem:Select()
                     end
 
@@ -183,9 +181,8 @@ class PopupMenu is MenuRoot, MouseListener
     action MoveSelectionUp
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
-            Array<MenuItem> items = menuItems
-            if items:IsEmpty() = false
-                MenuItem item = items:GetFromEnd()
+            if panel:IsEmpty() = false
+                MenuItem item = panel:GetFromEnd()
                 Array<MenuItem> selectionPath
                 selectionPath:Add(item)
                 Select(selectionPath)
@@ -194,13 +191,13 @@ class PopupMenu is MenuRoot, MouseListener
             integer counter = 0
             MenuItem previous = path:Get(0)
 
-            repeat while counter < menuItems:GetSize()
-                MenuItem item = menuItems:Get(counter)
+            repeat while counter < panel:GetSize()
+                MenuItem item = panel:Get(counter)
                 if item:Equals(previous)
 
                     // Select the previous element in the menu, if there is one.
                     if counter - 1 >= 0
-                        MenuItem menuItem = menuItems:Get(counter - 1)
+                        MenuItem menuItem = panel:Get(counter - 1)
                         menuItem:Select()
                     end
 
@@ -247,11 +244,57 @@ class PopupMenu is MenuRoot, MouseListener
     end
 
     action GetSize returns integer
-        return menuItems:GetSize()
+        return panel:GetSize()
     end
 
     action GetIterator returns Iterator<MenuItem>
-        return menuItems:GetIterator()
+        return panel:GetIterator()
     end
 
+    action SetScrollable(boolean scrollable)
+        if IsScrollable() = scrollable
+            return now
+        end
+
+        MenuPanelBlueprint newPanel = undefined
+
+        if scrollable
+            ScrollableMenuPanel scrollablePanel
+            newPanel = scrollablePanel
+        else
+            MenuPanel standardPanel
+            newPanel = standardPanel
+        end
+
+        Iterator<MenuItem> iterator = GetIterator()
+
+        repeat while iterator:HasNext()
+            MenuItem item = iterator:Next()
+            panel:Remove(item)
+            newPanel:Add(item)
+        end
+
+        Remove(panel)
+        Add(newPanel)
+
+        panel = newPanel
+    end
+
+    action IsScrollable returns boolean
+        return panel is ScrollableMenuPanel
+    end
+
+    action SetScrollIndex(number index)
+        if panel is ScrollableMenuPanel
+            ScrollableMenuPanel scrollPanel = cast(ScrollableMenuPanel, panel)
+            scrollPanel:SetScrollIndex(index)
+        end
+    end
+
+    action SetItemsInView(number itemsInView)
+        if panel is ScrollableMenuPanel
+            ScrollableMenuPanel scrollPanel = cast(ScrollableMenuPanel, panel)
+            scrollPanel:SetItemsInView(itemsInView)
+        end
+    end
 end

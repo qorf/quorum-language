@@ -5,7 +5,7 @@ use Libraries.Interface.Layouts.VerticalMenuLayout
 class MenuPanel is MenuPanelBlueprint
     
     on create
-        SetName("MenuPanel")
+        SetName("Menu Panel")
 
         VerticalMenuLayout panelLayout
         SetLayout(panelLayout)
@@ -15,19 +15,4 @@ class MenuPanel is MenuPanelBlueprint
         return false
     end
 
-    action Add(MenuItem item)
-        parent:Control:Add(item)
-    end
-
-    action Add(integer index, MenuItem item)
-        parent:Control:Add(index, item)
-    end
-
-    action Remove(MenuItem item)
-        parent:Control:Remove(item)
-    end
-
-    action RemoveAt(integer index)
-        parent:Control:Remove(index)
-    end
 end

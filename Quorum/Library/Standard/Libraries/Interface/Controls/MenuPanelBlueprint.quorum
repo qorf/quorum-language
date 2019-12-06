@@ -1,14 +1,19 @@
 package Libraries.Interface.Controls
 
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+
 class MenuPanelBlueprint is Control
     
+    Array<MenuItem> menuItems
+
     number iconRegionWidth = 0
     number labelRegionWidth = 0
     number shortcutRegionWidth = 0
     number arrowRegionWidth = 0
 
     on create
-        SetName("MenuPanel")
+        SetName("Menu Panel")
         SetZ(-1)
     end
 
@@ -44,14 +49,46 @@ class MenuPanelBlueprint is Control
         return arrowRegionWidth
     end
 
+    action Add(MenuItem item)
+        menuItems:Add(item)
+        parent:Control:Add(item)
+    end
+
+    action Add(integer index, MenuItem item)
+        menuItems:Add(index, item)
+        parent:Control:Add(index, item)
+    end
+
+    action Get(integer index) returns MenuItem
+        return menuItems:Get(index)
+    end
+
+    action GetFromEnd returns MenuItem
+        return menuItems:GetFromEnd()
+    end
+
+    action Remove(MenuItem item)
+        menuItems:Remove(item)
+        parent:Control:Remove(item)
+    end
+
+    action Remove(integer index) returns Item2D
+        menuItems:RemoveAt(index)
+        return parent:Control:Remove(index)
+    end
+
+    action GetSize returns integer
+        return menuItems:GetSize()
+    end
+
+    action IsEmpty returns boolean
+        return menuItems:IsEmpty()
+    end
+
+    action GetIterator returns Iterator<MenuItem>
+        return menuItems:GetIterator()
+    end
+
     blueprint action IsScrollable returns boolean
-
-    blueprint action Add(MenuItem item)
-
-    blueprint action Add(integer index, MenuItem item)
-
-    blueprint action Remove(MenuItem item)
-
-    blueprint action RemoveAt(integer index)
 
 end

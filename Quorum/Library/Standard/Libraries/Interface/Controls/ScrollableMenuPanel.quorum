@@ -1,6 +1,5 @@
 package Libraries.Interface.Controls
 
-use Libraries.Containers.Array
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Layouts.LayoutProperties
 
@@ -9,8 +8,6 @@ class ScrollableMenuPanel is MenuPanelBlueprint
     number itemsInView = 10
     number scrollIndex = 0
     
-    Array<MenuItem> menuItems
-
     Control scrollAnchor
     Control scrollBar
     Control scrollControl
@@ -19,13 +16,40 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         SetClipping(true)
         SetCustomDrawing(true)
 
+        SetName("Scroll Menu Panel")
+
         scrollAnchor:SetName("Scroll Anchor")
         scrollBar:SetName("Scroll Bar")
         scrollControl:SetName("Scroll Control")
     end
 
-    action Draw(Painter2D painter)
+    action IsScrollable returns boolean
+        return true
+    end
 
+    action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+
+        integer intIndex = cast(integer, scrollIndex)
+        integer itemsToView = cast(integer, itemsInView)
+
+        // If there's a fractional component, we need to consider an additional item which will be at least partially off the screen.
+        if itemsToView not= itemsInView
+            itemsToView = itemsToView + 1
+        end
+
+        integer counter = intIndex
+        repeat while counter < intIndex + itemsToView
+            MenuItem item = Get(counter)
+            item:Draw(painter)
+            counter = counter + 1
+        end
     end
 
     action SetItemsInView(number itemCount)
@@ -34,35 +58,13 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         end
 
         itemsInView = itemCount
-        RequestLayout()
+        // Setting the scroll index again triggers a resize, possibly updating
+        // the index to a new value if the old value is no longer valid.
+        SetScrollIndex(scrollIndex)
     end
 
     action GetItemsInView returns number
         return itemsInView
-    end
-
-    action Add(MenuItem item)
-        menuItems:Add(item)
-        parent:Control:Add(item)
-    end
-
-    action Add(integer index, MenuItem item)
-        menuItems:Add(index, item)
-        parent:Control:Add(index, item)
-    end
-
-    action Remove(MenuItem item)
-        menuItems:Remove(item)
-        parent:Control:Remove(item)
-    end
-
-    action Remove(integer index) returns Item2D
-        menuItems:RemoveAt(index)
-        return parent:Control:Remove(index)
-    end
-
-    action GetSize returns integer
-        return menuItems:GetSize()
     end
 
     /*
@@ -78,6 +80,11 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         return scrollIndex
     end
 
+    action SetScrollIndex(number index)
+        scrollIndex = index
+        Resize()
+    end
+
     action Resize
         /*
         We manually override the Resize call here to do special work.
@@ -89,6 +96,14 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         // If we're already resizing, return immediately from a recursive call.
         if parent:Item2D:isResizing
             return now
+        end
+
+        if IsEmpty()
+            return now
+        end
+
+        if scrollIndex + itemsInView > GetSize()
+            scrollIndex = GetSize() - itemsInView
         end
 
         parent:Item2D:isResizing = true
@@ -118,8 +133,8 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         number longestWidth = 0
         integer i = 0
 
-        repeat while i < menuItems:GetSize()
-            MenuItem menuItem = menuItems:Get(i)
+        repeat while i < GetSize()
+            MenuItem menuItem = Get(i)
             LayoutProperties properties = menuItem:GetDefaultLayoutProperties()
 
             if properties:NeedsRendering()
@@ -153,7 +168,7 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         integer last = intIndex + itemsToView
         number offset = scrollIndex - intIndex
 
-        MenuItem lastItem = menuItems:Get(last)
+        MenuItem lastItem = Get(last)
         lastItem:Resize()
 
         if longestWidth < lastItem:GetWidth()
@@ -169,7 +184,7 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         i = last
         repeat while i > intIndex
             i = i - 1
-            MenuItem kid = menuItems:Get(i)
+            MenuItem kid = Get(i)
             kid:Resize()
 
             if longestWidth < kid:GetWidth()
@@ -190,8 +205,8 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         SetSize(longestWidth + leftBorder + rightBorder, bottomBorder + topBorder + largestHeight * itemsInView)
         MoveY(oldHeight - GetHeight())
 
-        repeat while i < menuItems:GetSize()
-            Item2D kid = menuItems:Get(i)
+        repeat while i < GetSize()
+            Item2D kid = Get(i)
             kid:SetWidth(longestWidth)
             i = i + 1
         end
