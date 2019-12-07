@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+import quorum.Libraries.Language.Errors.InputOutputError;
 import quorum.Libraries.Network.NetworkRequest_;
 import quorum.Libraries.Network.NetworkResponseEvent_;
 
@@ -27,7 +29,7 @@ public class NetworkConnection {
     public java.lang.Object me_ = null;
     private quorum.Libraries.Network.NetworkConnection connection = null; 
 
-    public void Request() {
+    public void Request() throws InputOutputError {
         connection = (quorum.Libraries.Network.NetworkConnection) me_;
         NetworkRequest_ request = connection.GetNetworkRequest();
         if (request.GetRequestType().equals("POST")) {
@@ -45,7 +47,7 @@ public class NetworkConnection {
         }
     }
     
-    private void Post(NetworkRequest_ request) {
+    private void Post(NetworkRequest_ request) throws InputOutputError {
         try {
             URL Url = new URL(request.GetWebAddress());
             HttpURLConnection conn;
@@ -112,13 +114,16 @@ public class NetworkConnection {
                 in.close();
             }
             conn.disconnect();
-        } catch (Exception ex) {
-            System.out.println(ex.toString());
-            System.out.println(ex.getMessage());
+        } catch (IOException ex)
+        {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
         }
     }
     
-    private void Get(NetworkRequest_ request) {
+    private void Get(NetworkRequest_ request) throws InputOutputError {
         // Note: Get Request does not send body. Parameters are attached to the URL.
         try {
             String url = request.GetWebAddress() + "?" + request.GetParameters();
@@ -173,9 +178,12 @@ public class NetworkConnection {
                 in.close();
             }
             conn.disconnect();
-        } catch (Exception ex) {
-            System.out.println(ex.toString());
-            System.out.println(ex.getMessage());
+        } catch (IOException ex)
+        {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
         }
     }
     
@@ -187,7 +195,7 @@ public class NetworkConnection {
     
     private void Put(NetworkRequest_ request) {}
     
-    private void SetResponses(HttpURLConnection conn, String responseText) {
+    private void SetResponses(HttpURLConnection conn, String responseText) throws InputOutputError {
         try {
             NetworkResponseEvent_ response = connection.GetNewResponseEvent();
             response.SetWebAddress(conn.getURL().toString());
@@ -213,9 +221,12 @@ public class NetworkConnection {
             }
             response.SetResponseText(responseText);
             connection.SetResponse(response);
-        } catch (Exception ex) {
-            System.out.println(ex.toString());
-            System.out.println(ex.getMessage());
+        } catch (IOException ex)
+        {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
         }
     }
     
