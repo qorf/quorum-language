@@ -109,6 +109,9 @@ use Libraries.Interface.Behaviors.Controls.MenuRootRightBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootActivateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootUpBehavior
 use Libraries.Interface.Behaviors.Controls.MenuRootCloseBehavior
+use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelBeginDraggingBehavior
+use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelDragBehavior
+use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelStopDraggingBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
@@ -1357,6 +1360,28 @@ class Game
         menuRootTable:Add(escapeSet, menuCloseBehavior)
 
         gameInput:AddInputTable(menuRootTable)
+
+        InputTable scrollableMenuTable
+        scrollableMenuTable:SetIdentifier("ScrollableMenuPanel")
+
+        InputSet leftClickDown
+        leftClickDown:SetMouseInput(mouse:LEFT)
+        ScrollableMenuPanelBeginDraggingBehavior menuBeginDraggingBehavior
+        scrollableMenuTable:Add(leftClickDown, menuBeginDraggingBehavior)
+
+        InputSet leftClickDrag
+        leftClickDrag:SetMouseMovementInput(mouse:LEFT)
+        leftClickDrag:SetInputTrigger(leftClickDrag:CONTINUE)
+        ScrollableMenuPanelDragBehavior menuDragBehavior
+        scrollableMenuTable:Add(leftClickDrag, menuDragBehavior)
+
+        InputSet leftClickUp
+        leftClickUp:SetMouseInput(mouse:LEFT)
+        leftClickUp:SetInputTrigger(leftClickUp:FINISH)
+        ScrollableMenuPanelStopDraggingBehavior menuStopDraggingBehavior
+        scrollableMenuTable:Add(leftClickUp, menuStopDraggingBehavior)
+
+        gameInput:AddInputTable(scrollableMenuTable)
 
         InputTable treeItemTable
         treeItemTable:SetIdentifier("TreeItem")

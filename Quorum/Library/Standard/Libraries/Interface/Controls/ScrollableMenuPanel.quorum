@@ -1,26 +1,47 @@
 package Libraries.Interface.Controls
 
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.DrawableView
 
 class ScrollableMenuPanel is MenuPanelBlueprint
 
     number itemsInView = 10
     number scrollIndex = 0
-    
-    Control scrollAnchor
+    number barThickness = 20
+
     Control scrollBar
     Control scrollControl
+
+    // Whether or not the scroll bar is currently being dragged with the mouse.
+    boolean dragging = false
+
+    Vector2 scrollClickPoint
 
     on create
         SetClipping(true)
         SetCustomDrawing(true)
 
         SetName("Scroll Menu Panel")
+        SetInputGroup("ScrollableMenuPanel")
 
-        scrollAnchor:SetName("Scroll Anchor")
         scrollBar:SetName("Scroll Bar")
         scrollControl:SetName("Scroll Control")
+
+        Color color
+        DrawableView scrollBarView
+        DrawableView scrollControlView
+
+        scrollBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        scrollControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        scrollBar:SetView2D(scrollBarView)
+        scrollControl:SetView2D(scrollControlView)
+
+        Add(scrollBar)
+        scrollBar:Add(scrollControl)
     end
 
     action IsScrollable returns boolean
@@ -43,13 +64,22 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         if itemsToView not= itemsInView
             itemsToView = itemsToView + 1
         end
+        if intIndex not= scrollIndex
+            itemsToView = itemsToView + 1
+        end
+
+        if intIndex + itemsToView >= GetSize()
+            itemsToView = GetSize() - 1 - intIndex
+        end
 
         integer counter = intIndex
-        repeat while counter < intIndex + itemsToView
+        repeat while counter <= intIndex + itemsToView
             MenuItem item = Get(counter)
             item:Draw(painter)
             counter = counter + 1
         end
+
+        scrollBar:Draw(painter)
     end
 
     action SetItemsInView(number itemCount)
@@ -160,13 +190,17 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         integer intIndex = cast(integer, scrollIndex)
         integer itemsToView = cast(integer, itemsInView)
 
+        number offset = scrollIndex - intIndex + (itemsInView - itemsToView)
+
         // If there's a fractional component, we need to consider an additional item which will be at least partially off the screen.
         if itemsToView not= itemsInView
             itemsToView = itemsToView + 1
         end
 
         integer last = intIndex + itemsToView
-        number offset = scrollIndex - intIndex
+        if last >= GetSize()
+            last = GetSize() - 1
+        end
 
         MenuItem lastItem = Get(last)
         lastItem:Resize()
@@ -202,7 +236,7 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         // Set the size of the menu panel to fit the items in view, and adjust the position so the top remains in the same place.
         number oldHeight = GetHeight()
-        SetSize(longestWidth + leftBorder + rightBorder, bottomBorder + topBorder + largestHeight * itemsInView)
+        SetSize(longestWidth + leftBorder + rightBorder + barThickness, bottomBorder + topBorder + largestHeight * itemsInView)
         MoveY(oldHeight - GetHeight())
 
         repeat while i < GetSize()
@@ -211,11 +245,66 @@ class ScrollableMenuPanel is MenuPanelBlueprint
             i = i + 1
         end
 
+        scrollBar:SetPosition(longestWidth, 0)
+        scrollBar:SetSize(barThickness, GetHeight())
+
+        number controlRatio = itemsInView / GetSize()
+        if controlRatio >= 1.0
+            scrollControl:Hide()
+            scrollBar:Hide()
+        else
+            scrollControl:Show()
+            scrollBar:Show()
+
+            scrollControl:SetSize(barThickness, GetHeight() * controlRatio)
+            scrollControl:SetPosition(0, GetHeight() * (GetSize() - (scrollIndex + itemsInView)) / GetSize())
+        end
+
         /*
         We need to reset our layout flag to indicate we don't need resizing
         until more changes occur, and reset our resizing flag to allow future calls.
         */
         ResetLayoutFlag()
         parent:Item2D:isResizing = false
+    end
+
+    /*
+    This action returns true if the user is currently dragging the scroll bar
+    with the mouse, or false otherwise.
+
+    Attribute: Returns Whether or not the scroll bar is being dragged with the mouse.
+    */
+    action IsDragging returns boolean
+        return dragging
+    end
+
+    action SetDragging(boolean drag)
+        dragging = drag
+    end
+
+    action SetScrollClickPoint(number x, number y)
+        scrollClickPoint:Set(x, y)
+    end
+
+    private action GetScrollClickPoint returns Vector2
+        return scrollClickPoint
+    end
+
+    action DragScrollControlTo(number x, number y)
+        if not IsDragging()
+            return now
+        end
+
+        number offset = y - scrollClickPoint:GetY()
+        if scrollControl:GetY() + scrollControl:GetHeight() + offset > scrollBar:GetHeight()
+            SetScrollIndex(0)
+        elseif scrollControl:GetY() + offset <= 0
+            SetScrollIndex(GetSize() - itemsInView)
+        else
+            number value = (1.0 - ((scrollControl:GetY() + offset) / (GetHeight() - scrollControl:GetHeight()))) * (GetSize() - itemsInView)
+            SetScrollIndex(value)
+        end
+
+        scrollClickPoint:SetY(y)
     end
 end

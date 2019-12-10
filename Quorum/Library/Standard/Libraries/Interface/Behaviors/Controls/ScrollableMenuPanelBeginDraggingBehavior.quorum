@@ -1,0 +1,23 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.ScrollableMenuPanel
+
+class ScrollableMenuPanelBeginDraggingBehavior is Behavior
+    
+    action Run(BehaviorEvent event)
+        if event:GetItem() is ScrollableMenuPanel
+            ScrollableMenuPanel menu = cast(ScrollableMenuPanel, event:GetItem())
+            menu:SetDragging(true)
+
+            MouseEvent mouseEvent = event:GetMouseEvent()
+            if mouseEvent not= undefined
+                menu:SetScrollClickPoint(mouseEvent:GetX(), mouseEvent:GetY())
+            else
+                menu:SetScrollClickPoint(menu:GetGlobalX() + menu:GetWidth() / 2, menu:GetGlobalY() + menu:GetHeight() / 2)
+            end
+        end
+    end
+end
