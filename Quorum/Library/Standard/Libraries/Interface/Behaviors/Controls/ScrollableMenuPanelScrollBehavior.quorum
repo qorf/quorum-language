@@ -1,0 +1,42 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Compute.Math
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.ScrollableMenuPanel
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+
+class ScrollableMenuPanelScrollBehavior is Behavior
+
+    Math math
+    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is ScrollableMenuPanel
+            ScrollableMenuPanel menu = cast(ScrollableMenuPanel, event:GetItem())
+            MouseEvent mouseEvent = event:GetMouseEvent()
+            if mouseEvent not= undefined
+                number y = mouseEvent:scrollAmount
+                boolean positive = true
+                if y < 0
+                    positive = false
+                    y = y * -1
+                end
+
+                y = y + 1
+                y = math:SquareRoot(math:Logarithm(y))
+                number lines = cast(integer, y / liner)
+                if lines <= 1
+                    lines = 1
+                end
+                
+                if not positive
+                    lines = lines * -1
+                end
+
+                menu:SetScrollIndex(menu:GetScrollIndex() - lines)
+            end
+        end
+    end
+
+end
