@@ -305,6 +305,30 @@ class Block is Location
         return variable
     end 
 
+    /* This action gets all variables in this block and all parents
+
+    */
+    action GetVariablesAllBlocks returns Iterator<Variable>
+        Array<Variable> allBlocks
+
+        i = 0
+        repeat while i < orderedVariables:GetSize()
+            allBlocks:Add(orderedVariables:Get(i))
+            i = i + 1
+        end
+        
+        Block parentBlock = GetParentBlock()
+        repeat while parentBlock not= undefined
+            //check for the variable
+            Iterator<Variable> iterator = parentBlock:GetVariables()
+            repeat while iterator:HasNext()
+                allBlocks:Add(iterator:Next())
+            end
+            parentBlock = parentBlock:GetParentBlock()
+        end
+        return allBlocks:GetIterator()
+    end
+
     /*
         This action returns all variables in this, and only this, block. 
         Variables in parent scope or child scope are excluded.
