@@ -125,6 +125,10 @@ class Layer2D is Layer
     Vector2 workVector2A
     Vector2 workVector2B
 
+    // A reusable array of Item2D used for one-off calculations, such as
+    // GetItemHierarchy.
+    Array<Item2D> workArray
+
     on create
         OrthographicCamera cam
         camera = cam
@@ -1148,7 +1152,7 @@ class Layer2D is Layer
         if sortedItems = undefined or sortedItems:IsEmpty()
             return undefined
         end
-        boolean processing = true
+        boolean found = false
         integer counter = 0
         Item2D temp = undefined
         Item result = undefined
@@ -1158,25 +1162,24 @@ class Layer2D is Layer
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
-        repeat while counter < sortedItems:GetSize() and processing
+        repeat while counter < sortedItems:GetSize() and not found
             Item2D item = sortedItems:Get(counter)
-            if item:IsShowing() and item:Contains(pointVector:GetX(), pointVector:GetY())
-                boolean isClipped = item:GetClipCoordinates(workVector2A, workVector2B)
-
-                // If the Item is subject to clipping, only forward mouse events
-                // to it if the event occurred over an unclipped portion of it.
-                if isClipped = false or
-                        ((pointVector:GetX() >= workVector2A:GetX() and pointVector:GetX() <= workVector2A:GetY()) and
-                         (pointVector:GetY() >= workVector2B:GetX() and pointVector:GetY() <= workVector2B:GetY()))
-
-                    temp = item
-                    event:SetSource(temp)
-                    event:clickCount = gameInput:GetClickCount(item) + 1
-                    temp:ProcessMouseEvent(event)
-                    processing = not event:WasEventHandled()
-                    if event:WasEventHandled()
+            if item:AreChildrenProcessingMouseEvents()
+                workArray:Empty()
+                GetItemHierarchy(item, workArray)
+                integer i = 0
+                repeat while i < workArray:GetSize() and not found
+                    temp = workArray:Get(i)
+                    found = TestMouseInput(temp, event, pointVector, gameInput)
+                    if found
                         result = temp
                     end
+                    i = i + 1
+                end
+            else
+                found = TestMouseInput(item, event, pointVector, gameInput)
+                if found
+                    result = item
                 end
             end
 
@@ -1185,7 +1188,7 @@ class Layer2D is Layer
 
         event:clickCount = originalClickCount
 
-        if processing
+        if not found
             if event:eventType = event:MOVED_MOUSE
                 if mouseMovementListeners:GetSize() > 0
                     counter = 0
@@ -1243,6 +1246,37 @@ class Layer2D is Layer
         end
 
         return result
+    end
+
+    private action TestMouseInput(Item2D item, MouseEvent event, Vector3 pointVector, GameInput gameInput) returns boolean
+        if item:IsShowing() and item:Contains(pointVector:GetX(), pointVector:GetY())
+            boolean isClipped = item:GetClipCoordinates(workVector2A, workVector2B)
+
+            // If the Item is subject to clipping, only forward mouse events
+            // to it if the event occurred over an unclipped portion of it.
+            if isClipped = false or
+                    ((pointVector:GetX() >= workVector2A:GetX() and pointVector:GetX() <= workVector2A:GetY()) and
+                     (pointVector:GetY() >= workVector2B:GetX() and pointVector:GetY() <= workVector2B:GetY()))
+        
+                event:SetSource(item)
+                event:clickCount = gameInput:GetClickCount(item) + 1
+                item:ProcessMouseEvent(event)
+                return event:WasEventHandled()
+            end
+        end
+
+        return false
+    end
+
+    private action GetItemHierarchy(Item2D root, Array<Item2D> array)
+        Array<Item2D> children = root:GetChildren()
+        integer i = children:GetSize()
+        repeat while i > 0
+            i = i - 1
+            GetItemHierarchy(children:Get(i), array)
+        end
+
+        array:Add(root)
     end
 
     private action CalculateDepthSortedArray

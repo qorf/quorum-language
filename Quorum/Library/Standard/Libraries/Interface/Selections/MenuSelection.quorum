@@ -51,6 +51,10 @@ class MenuSelection is Selection
         end
     end
 
+    action GetPathLength returns integer
+        return menuItems:GetSize()
+    end
+
     /* This action empties the selection path. */
     action Empty
         menuItems:Empty()

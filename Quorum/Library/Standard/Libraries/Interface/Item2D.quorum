@@ -197,6 +197,14 @@ class Item2D is Item
     */
     boolean isCustomDrawing = false
 
+    /*
+    Whether or not this Item should send mouse events to its children components
+    if the Item is custom drawing. This only affects custom drawing components.
+    Items that aren't using custom drawing will always let their children handle
+    mouse events before the parent.
+    */
+    boolean childrenProcessingMouseEvents = false
+
     // A reusable Vector3 used for one-off calculations, such as in GetScreenX().
     Vector3 workVector3
 
@@ -2832,6 +2840,29 @@ class Item2D is Item
     */
     action IsCustomDrawing returns boolean
         return isCustomDrawing
+    end
+
+    /*
+    The SetChildrenProcessingMouseEvents action is used to set whether or not
+    children items should receive mouse events if this Item is using custom
+    drawing. This affects only custom drawing Items -- if the Item isn't
+    drawing, children objects will always receive the mouse events first. This
+    value is false by default. This is an advanced feature only necessary for
+    complex custom components, and most users will not need to use this.
+    */
+    action SetChildrenProcessingMouseEvents(boolean shouldProcess)
+        childrenProcessingMouseEvents = shouldProcess
+    end
+
+    /*
+    This action returns whether or not this Item is allowing its children to
+    receive mouse events if the Item is custom drawing. If the Item isn't
+    using custom drawing, this value is irrelevant -- children objects always
+    receive mouse events before the parent if the parent isn't performing
+    custom drawing.
+    */
+    action AreChildrenProcessingMouseEvents returns boolean
+        return childrenProcessingMouseEvents
     end
 
     /*

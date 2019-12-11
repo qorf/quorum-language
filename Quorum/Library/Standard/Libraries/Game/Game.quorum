@@ -112,6 +112,7 @@ use Libraries.Interface.Behaviors.Controls.MenuRootCloseBehavior
 use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelBeginDraggingBehavior
 use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelDragBehavior
 use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelStopDraggingBehavior
+use Libraries.Interface.Behaviors.Controls.ScrollableMenuPanelScrollBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetDownBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
@@ -1380,6 +1381,11 @@ class Game
         leftClickUp:SetInputTrigger(leftClickUp:FINISH)
         ScrollableMenuPanelStopDraggingBehavior menuStopDraggingBehavior
         scrollableMenuTable:Add(leftClickUp, menuStopDraggingBehavior)
+
+        InputSet mouseScroll
+        mouseScroll:SetInputType(mouseScroll:MOUSE_WHEEL_INPUT)
+        ScrollableMenuPanelScrollBehavior menuScrollBehavior
+        scrollableMenuTable:Add(mouseScroll, menuScrollBehavior)
 
         gameInput:AddInputTable(scrollableMenuTable)
 

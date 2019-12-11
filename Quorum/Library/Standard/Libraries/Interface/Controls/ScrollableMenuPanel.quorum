@@ -18,27 +18,21 @@ class ScrollableMenuPanel is MenuPanelBlueprint
     // Whether or not the scroll bar is currently being dragged with the mouse.
     boolean dragging = false
 
+    // Whether the scroll bars have had their graphics loaded yet.
+    boolean scrollGraphicsLoaded = false
+
     Vector2 scrollClickPoint
 
     on create
         SetClipping(true)
         SetCustomDrawing(true)
+        SetChildrenProcessingMouseEvents(true)
 
         SetName("Scroll Menu Panel")
         SetInputGroup("ScrollableMenuPanel")
 
         scrollBar:SetName("Scroll Bar")
         scrollControl:SetName("Scroll Control")
-
-        Color color
-        DrawableView scrollBarView
-        DrawableView scrollControlView
-
-        scrollBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        scrollControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-
-        scrollBar:SetView2D(scrollBarView)
-        scrollControl:SetView2D(scrollControlView)
 
         Add(scrollBar)
         scrollBar:Add(scrollControl)
@@ -58,22 +52,14 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         end
 
         integer intIndex = cast(integer, scrollIndex)
-        integer itemsToView = cast(integer, itemsInView)
+        number last = scrollIndex + itemsInView
 
-        // If there's a fractional component, we need to consider an additional item which will be at least partially off the screen.
-        if itemsToView not= itemsInView
-            itemsToView = itemsToView + 1
-        end
-        if intIndex not= scrollIndex
-            itemsToView = itemsToView + 1
-        end
-
-        if intIndex + itemsToView >= GetSize()
-            itemsToView = GetSize() - 1 - intIndex
+        if last >= GetSize()
+            last = GetSize() - 1
         end
 
         integer counter = intIndex
-        repeat while counter <= intIndex + itemsToView
+        repeat while counter <= last
             MenuItem item = Get(counter)
             item:Draw(painter)
             counter = counter + 1
@@ -111,6 +97,9 @@ class ScrollableMenuPanel is MenuPanelBlueprint
     end
 
     action SetScrollIndex(number index)
+        if index < 0
+            index = 0
+        end
         scrollIndex = index
         Resize()
     end
@@ -163,9 +152,18 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         number longestWidth = 0
         integer i = 0
 
+        integer intIndex = cast(integer, scrollIndex)
+        integer itemsToView = cast(integer, itemsInView)
+
         repeat while i < GetSize()
             MenuItem menuItem = Get(i)
             LayoutProperties properties = menuItem:GetDefaultLayoutProperties()
+
+            if i < intIndex or i > scrollIndex + itemsInView
+                menuItem:Hide()
+            else
+                menuItem:Show()
+            end
 
             if properties:NeedsRendering()
                 menuItem:LoadGraphics(properties)
@@ -187,20 +185,13 @@ class ScrollableMenuPanel is MenuPanelBlueprint
             i = i + 1
         end
  
-        integer intIndex = cast(integer, scrollIndex)
-        integer itemsToView = cast(integer, itemsInView)
+        integer last = cast(integer, scrollIndex + itemsInView)
 
-        number offset = scrollIndex - intIndex + (itemsInView - itemsToView)
-
-        // If there's a fractional component, we need to consider an additional item which will be at least partially off the screen.
-        if itemsToView not= itemsInView
-            itemsToView = itemsToView + 1
-        end
-
-        integer last = intIndex + itemsToView
         if last >= GetSize()
             last = GetSize() - 1
         end
+
+        number offset = (scrollIndex + itemsInView) - last
 
         MenuItem lastItem = Get(last)
         lastItem:Resize()
@@ -268,6 +259,22 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         parent:Item2D:isResizing = false
     end
 
+    action LoadGraphics(LayoutProperties properties)
+        if scrollGraphicsLoaded = false
+            Color color
+            DrawableView scrollBarView
+            DrawableView scrollControlView
+
+            scrollBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+            scrollControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+            scrollBar:SetView2D(scrollBarView)
+            scrollControl:SetView2D(scrollControlView)
+        end
+        scrollGraphicsLoaded = true
+        parent:Control:LoadGraphics(properties)
+    end
+
     /*
     This action returns true if the user is currently dragging the scroll bar
     with the mouse, or false otherwise.
@@ -306,5 +313,18 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         end
 
         scrollClickPoint:SetY(y)
+    end
+
+    action ScrollToView(MenuItem item)
+        integer index = parent:MenuPanelBlueprint:menuItems:GetFirstLocation(item)
+        if index < 0
+            return now
+        end
+
+        if index < scrollIndex
+            SetScrollIndex(index)
+        elseif index + 1 > scrollIndex + itemsInView
+            SetScrollIndex(index + 1 - itemsInView)
+        end
     end
 end
