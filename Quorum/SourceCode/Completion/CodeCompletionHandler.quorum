@@ -267,9 +267,81 @@ class CodeCompletionHandler
                             end
                             Variable variableCached = blockCached:GetVariable(trimmedLeft)
                             if variableCached = undefined
-                                return now
+                                //consider this is request for empty line code completion with a left hand filter.
+                                AddBlockToResult(blockCached, request, result, clazz, true, method, 0)
+                            else 
+                                AddVariableAsClass(variableCached, request, result, finalTable)
                             end
-                            AddVariableAsClass(variableCached, request, result, finalTable)
+                            
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    private action AddBlockToResult(Block block, 
+        CodeCompletionRequest request, 
+        CodeCompletionResult result, Class clazz, 
+        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
+
+        if clazz not= undefined
+            //add all of the fields from this class
+            Iterator<Variable> variables = clazz:GetVariables()
+            repeat while variables:HasNext()
+                Variable variable2 = variables:Next()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size + additionalDotOffset
+                    if isCurrentClass
+                        result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
+                        end
+                    end
+                end
+            end
+
+            //now add all of the parent fields from this class
+            Iterator<Class> parents = clazz:GetParentClasses()
+            repeat while parents:HasNext()
+                Class par = parents:Next()
+                Iterator<Variable> variables2 = par:GetVariables()
+                repeat while variables2:HasNext()
+                    Variable variable2 = variables2:Next()
+                    if variable2:GetType() not= undefined
+                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                        text filter = result:filter
+                        integer size = filter:GetSize()
+                        item:dotOffset = request:caretLocation - size + additionalDotOffset
+                        if isCurrentClass
+                            result:Add(item)
+                        else
+                            if not variable2:IsPrivate()
+                                result:Add(item)
+                            end
+                        end
+                    end
+                end
+            end
+
+
+            variables = block:GetVariablesAllBlocks()
+            repeat while variables:HasNext()
+                Variable variable2 = variables:Next()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size + additionalDotOffset
+                    if isCurrentClass
+                        result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
                         end
                     end
                 end
@@ -306,7 +378,7 @@ class CodeCompletionHandler
                 end
                 i = i - 1
             end
-
+            
             text sub = source:GetSubtext(start, loc)
             return sub
         end
