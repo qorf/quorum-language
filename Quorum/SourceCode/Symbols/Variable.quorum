@@ -159,7 +159,7 @@ class Variable is Symbol
 
         //if this is a variable in a parent class relative to the caller,
         //adjust the syntax to allow access if it is public
-        if calledFrom:GetStaticKey() not= parentClass:GetStaticKey()
+        if parentClass not= undefined and calledFrom:GetStaticKey() not= parentClass:GetStaticKey()
             //check if the class has a "use" for this parent
             name = "parent:" + parentClass:GetStaticKey() + ":" + name
         end
