@@ -125,6 +125,10 @@ class ScrollableMenuPanel is MenuPanelBlueprint
             scrollIndex = GetSize() - itemsInView
         end
 
+        if scrollIndex < 0
+            scrollIndex = 0
+        end
+
         parent:Item2D:isResizing = true
 
         LayoutProperties containerProperties = GetDefaultLayoutProperties()
@@ -192,6 +196,9 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         end
 
         number offset = (scrollIndex + itemsInView) - last
+        if itemsInView > GetSize()
+            offset = 1
+        end
 
         MenuItem lastItem = Get(last)
         lastItem:Resize()
@@ -227,8 +234,6 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         // Set the size of the menu panel to fit the items in view, and adjust the position so the top remains in the same place.
         number oldHeight = GetHeight()
-        SetSize(longestWidth + leftBorder + rightBorder + barThickness, bottomBorder + topBorder + largestHeight * itemsInView)
-        MoveY(oldHeight - GetHeight())
 
         repeat while i < GetSize()
             Item2D kid = Get(i)
@@ -241,9 +246,15 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         number controlRatio = itemsInView / GetSize()
         if controlRatio >= 1.0
+            SetSize(longestWidth + leftBorder + rightBorder, largestHeight * GetSize())
+            MoveY(oldHeight - GetHeight())
+
             scrollControl:Hide()
             scrollBar:Hide()
         else
+            SetSize(longestWidth + leftBorder + rightBorder + barThickness, bottomBorder + topBorder + largestHeight * itemsInView)
+            MoveY(oldHeight - GetHeight())
+
             scrollControl:Show()
             scrollBar:Show()
 
