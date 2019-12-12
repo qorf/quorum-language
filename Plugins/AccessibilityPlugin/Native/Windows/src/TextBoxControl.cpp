@@ -4,6 +4,7 @@
 
 #include "TextBoxControl.h"
 #include "TextBoxProvider.h"
+#include "TextBoxTextRange.h"
 #include "ControlTImpl.h"
 
 TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)

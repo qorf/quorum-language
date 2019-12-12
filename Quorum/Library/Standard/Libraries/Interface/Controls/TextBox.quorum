@@ -1329,13 +1329,17 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             counter = counter + 1
         end
         
+        x1 = x1 + leftCharacterPadding
+        number offset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        position = position - offset
+
         if position = x1
             return 0
         end
       
         number x2 = x1
         counter = 0
-        number distance1 = position
+        number distance1 = math:AbsoluteValue(position - x2)
         repeat while counter < size
             Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter)) 
             x2 = x1 + glyph:horizontalAdvance
@@ -1824,8 +1828,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
             elseif source:Equals(verticalBar) or source:Equals(horizontalBar)
                 // React to click being on the bar itself.
-            else // Assume main text area was clicked.
-
+            else 
+                // Assume main text area was clicked.
                 if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
                     // See if the click should be processed by a Gutter.
                     Array<Gutter> gutters = background:GetGutters()

@@ -166,12 +166,12 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 			m_range.end = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenEndIndex, m_range.begin);
 		}
 	}
-	else if (unit == TextUnit_Line)
+	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		m_range.begin =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
-		m_range.end = m_range.begin + m_pTextBoxControl->GetLineLength() - 1; // -1 for new line character which is skipped by screen readers
+		m_range.end = m_range.begin + m_pTextBoxControl->GetLineLength();
 	}
-	else if (unit == TextUnit_Paragraph || unit == TextUnit_Page || unit == TextUnit_Document)
+	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
 		m_range.begin = 0;
 		m_range.end = m_pTextBoxControl->GetTextboxEndpoint();
