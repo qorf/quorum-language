@@ -332,6 +332,83 @@ class ModelBuilder
 
     /*
     This action will create a new ModelBlueprint with a single node containing a
+    flat plane. The plane will be formed using the given width and depth,
+    and will use the given Material. The attributes mask should be the result of
+    using the BitwiseOperations:Or(...) action on each of the VertexAttributes
+    constant values that are to be used. The supported values are POSITION,
+    COLOR, NORMAL, and TEXTURE_COORDINATES.
+    */
+    action CreatePlane(number width, number depth, Material material, integer attributesMask) returns ModelBlueprint
+        return CreatePlane(width, depth, TRIANGLES, material, attributesMask)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    plane shape. The plane will be formed using the given width and depth.
+    The geometry will be formed using the given primitive type, which must be
+    POINTS, LINES, or TRIANGLES. The resulting ModelBlueprint will use the given
+    Material. The attributes mask should be the result of using the
+    BitwiseOperations:Or(...) action on each of the VertexAttributes constant
+    values that are to be used. The supported values are POSITION, COLOR, 
+    NORMAL, and TEXTURE_COORDINATES.
+    */
+    action CreatePlane(number width, number depth, integer primitiveType, Material material, integer attributes) returns ModelBlueprint
+        Begin()
+        AddPart("plane", primitiveType, attributes, material):BuildPlane(width, depth)
+        return End()
+    end
+
+    /*
+    This action will create a plane with the given width, depth, and
+    color. 
+    */
+    action CreatePlane(number width, number depth, Color color) returns ModelBlueprint
+        Material material
+        ColorAttribute colorAttribute
+        colorAttribute:SetAttribute(colorAttribute:GetDiffuseValue(), color)
+        material:Add(colorAttribute)
+
+        if color:GetAlpha() < 1.0
+            BlendingAttribute blend
+            blend:opacity = color:GetAlpha()
+            material:Add(blend)
+        end
+
+        VertexAttributes attributes
+        integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
+        return CreatePlane(width, depth, TRIANGLES, material, mask)
+    end
+
+    /*
+    This action will create a plane with the given width and depth, and
+    applies the given Texture to it.
+    */
+    action CreatePlane(number width, number depth, Texture texture) returns ModelBlueprint
+        Material material
+        TextureAttribute textureAttribute
+        TextureDescriptor descriptor
+
+        TextureFilter minFilter
+        TextureFilter magFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        descriptor:SetDescriptor(texture, minFilter, magFilter, uWrap, vWrap)
+
+        textureAttribute = textureAttribute:CreateDiffuse(descriptor)
+        material:Add(textureAttribute)
+
+        VertexAttributes attributes
+        integer mask = bits:Or(bits:Or(attributes:POSITION, attributes:NORMAL), attributes:TEXTURE_COORDINATES)
+
+        return CreatePlane(width, depth, TRIANGLES, material, mask)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
     cylinder shape. The cylinder will be made using the given width, height, and
     depth. The primitive type used to form the cylinder will be TRIANGLES.
     */

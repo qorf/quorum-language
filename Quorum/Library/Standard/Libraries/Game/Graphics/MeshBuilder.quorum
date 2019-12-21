@@ -1191,6 +1191,53 @@ begin(createAttributes(attributes), primitiveType);
                  tempVector5:Set(x0, y0, z1), tempVector6:Set(x0, y1, z1), tempVector7:Set(x1, y0, z1), tempVector8:Set(x1, y1, z1))
     end
 
+    action BuildPlane(number width, number depth)
+        BuildPlane(0, 0, 0, width, depth)
+    end
+
+    action BuildPlane(number x, number y, number z, number width, number depth)
+        number halfWidth = width * 0.5
+        number halfDepth = depth * 0.5
+        number x0 = x - halfWidth
+        number z0 = z - halfDepth
+        number x1 = x + halfWidth
+        number z1 = z + halfDepth
+        
+        Vector3 corner00 = tempVector1:Set(x0, y, z0)
+        Vector3 corner01 = tempVector2:Set(x0, y, z1)
+        Vector3 corner11 = tempVector3:Set(x1, y, z1)
+        Vector3 corner10 = tempVector4:Set(x1, y, z0)
+
+        if (bits:And(attributes:GetMask(), (bits:Or(attributes:NORMAL, bits:Or(attributes:BINORMAL, bits:Or(attributes:TANGENT, attributes:TEXTURE_COORDINATES)))))) = 0
+            vertTemp1:Set(corner00, undefined, undefined, undefined)
+            vertTemp2:Set(corner01, undefined, undefined, undefined)
+            vertTemp3:Set(corner10, undefined, undefined, undefined)
+            vertTemp4:Set(corner11, undefined, undefined, undefined)
+            BuildPlane(vertTemp1, vertTemp2, vertTemp3, vertTemp4)
+        else
+            EnsureVertices(4)
+            EnsureRectangleIndices(1)
+            Vector3 norm = calcVector1:Set(0, 1, 0)
+            BuildRectangle(corner00, corner01, corner11, corner10, norm)
+        end
+    end
+
+    action BuildPlane(VertexSchematic corner00, VertexSchematic corner01, VertexSchematic corner10, VertexSchematic corner11)
+        
+        EnsureVertices(4)
+        integer i00 = AddVertex(corner00)
+        integer i10 = AddVertex(corner10)
+        integer i11 = AddVertex(corner11)
+        integer i01 = AddVertex(corner01)
+
+        if primitiveType = LINES or primitiveType = POINTS or primitiveType = TRIANGLES
+            EnsureRectangleIndices(1)
+            BuildRectangle(i00, i10, i11, i01)
+        else
+            alert("I did not recognize the primitive type used to construct the plane - the valid values are POINTS, LINES, and TRIANGLES.")
+        end
+    end
+
     /*
     This action will build a cylinder shape with the given width, height, and
     depth. The curve of the cylinder will be made using the provided number of
