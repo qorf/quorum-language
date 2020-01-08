@@ -110,10 +110,37 @@ public class Painter3D
     {
         renderables.Sort();
         Shader currentShader = null;
+        
+        /*
+        Used to detect if we've rendered the Skybox yet.
+        We render the skybox after all opaque objects and before the first
+        blended (i.e. transparent) objects.
+        */
+        boolean shouldRenderSkybox = (skybox != null);
+        
+        if (shouldRenderSkybox && skybox.IsLoaded() == false)
+            throw new GameRuntimeError("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
+        
         for (int i = 0; i < renderables.GetSize(); i++)
         {
             Renderable_ renderable = (Renderable_)renderables.Get(i);
             Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
+            
+            /*
+            When we find our first blended object, render the skybox first.
+            The Skybox should be in the background before any transparent
+            objects are drawn, so they can blend the skybox into the rendered
+            pixel fragments.
+            */
+            if (shouldRenderSkybox && renderable.UsesBlending())
+            {
+                shouldRenderSkybox = false;
+                if (currentShader != null)
+                    currentShader.End();
+                currentShader = null;
+                skyboxShader.Render(skybox, camera);
+            }
+            
             if (currentShader != renderPlugin.shader) 
             {
                 if (currentShader != null)
@@ -127,6 +154,12 @@ public class Painter3D
             currentShader.End();
         
         renderables.Empty();
+        
+        // Render the Skybox if we haven't already.
+        if (shouldRenderSkybox)
+        {
+            skyboxShader.Render(skybox, camera);
+        }
     }
     
     public void RenderNative(Renderable_ renderable)
