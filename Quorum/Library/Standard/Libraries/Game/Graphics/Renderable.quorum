@@ -10,6 +10,14 @@ use Libraries.Game.Graphics.Environment
 
 class Renderable 
     
+    integer blendingValue = 0
+
+    on create
+        // Temporary BLendingATtribute.
+        BlendingAttribute blat
+        blendingValue = blat:GetBlendedValue()
+    end
+
     public Matrix4 worldTransform
     
     public MeshPart meshPart
@@ -44,6 +52,10 @@ class Renderable
 
     private system action SetNative(Renderable renderable)
 
+    action UsesBlending returns boolean
+        return material:HasAttribute(blendingValue)
+    end
+
     action Compare(Object object) returns integer
 
         Camera cam = GetCamera()
@@ -59,21 +71,17 @@ class Renderable
             return parent:Object:Compare(object)
         end
 
-        // Temporary BLendingATtribute.
-        BlendingAttribute blat
-        integer blendingValue = blat:GetBlendedValue()
-
         
-        boolean blend1 = material:HasAttribute(blendingValue)
+        boolean blend1 = UsesBlending()
         if blend1
-            blat = cast(BlendingAttribute, material:GetAttribute(blendingValue))
-            blend1 = blend1 and blat:blended
+            BlendingAttribute attribute = cast(BlendingAttribute, material:GetAttribute(blendingValue))
+            blend1 = blend1 and attribute:blended
         end
     
-        boolean blend2 = other:material:HasAttribute(blendingValue)
+        boolean blend2 = other:UsesBlending()
         if blend2
-            blat = cast(BlendingAttribute, other:material:GetAttribute(blendingValue))
-            blend2 = blend2 and blat:blended
+            BlendingAttribute attribute = cast(BlendingAttribute, other:material:GetAttribute(blendingValue))
+            blend2 = blend2 and attribute:blended
         end
 
         if not blend1 = blend2
