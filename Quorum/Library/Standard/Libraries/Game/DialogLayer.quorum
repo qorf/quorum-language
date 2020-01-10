@@ -1,6 +1,7 @@
 package Libraries.Game
 
 use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Game.Graphics.Camera
@@ -58,7 +59,16 @@ class DialogLayer is Layer2D
     original Item after the Dialog is closed.
     */
     action OnHide
-        // Return focus to the original focus.
+        // Return focus to the original focus, if this layer was holding onto
+        // the focus (or nothing is currently focused).
+        Item item = manager:GetFocus()
+        if item is Item2D
+            Item2D item2D = cast(Item2D, item)
+            if item2D:GetLayer() not= undefined and item2D:GetLayer():Equals(me) = false
+                return now
+            end
+        end
+
         manager:SetFocus(oldFocus)
     end
 
