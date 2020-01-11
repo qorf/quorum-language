@@ -64,12 +64,10 @@ class DialogLayer is Layer2D
         Item item = manager:GetFocus()
         if item is Item2D
             Item2D item2D = cast(Item2D, item)
-            if item2D:GetLayer() not= undefined and item2D:GetLayer():Equals(me) = false
-                return now
+            if item2D:GetLayer() = undefined or item2D:GetLayer():Equals(me)
+                manager:SetFocus(oldFocus)
             end
         end
-
-        manager:SetFocus(oldFocus)
     end
 
     /*
