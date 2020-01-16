@@ -488,9 +488,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action DeleteBackward
         if (not selection:IsEmpty())
-            TextChangeEvent changeEvent
-            changeEvent:Initialize(me, "", textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
-            NotifyTextChangeListeners(changeEvent)
             DeleteSelection()
             return now
         end
@@ -529,9 +526,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action DeleteForward
         if (not selection:IsEmpty())
-            TextChangeEvent changeEvent
-            changeEvent:Initialize(me, "", textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
-            NotifyTextChangeListeners(changeEvent)
             DeleteSelection()
             return now
         end
@@ -568,10 +562,15 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     end
 
     action DeleteSelection
+        DeleteSelection(true)
+    end
+
+    private action DeleteSelection(boolean triggerTextChangeEvent)
         if selection:IsEmpty()
             return now
         end
 
+        text deletedText = textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex())
         caretCharacter = selection:GetStartIndex()
         integer endIndex = selection:GetEndIndex()
 
@@ -590,6 +589,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         GetLineDrawables()
         PositionCaret()
         ResetCaretBlinkTimer()
+
+        if triggerTextChangeEvent
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", deletedText, selection:GetStartIndex())
+            NotifyTextChangeListeners(changeEvent)
+        end
 
         EmptySelectionEvent(true)
     end
@@ -663,7 +668,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
 
         if shouldDeleteSelection
-            DeleteSelection()
+            DeleteSelection(false)
             SetCaretPosition(caretCharacter + value:GetSize())
         else
             EmptySelectionEvent(true)

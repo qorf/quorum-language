@@ -1394,7 +1394,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             TextChangeEvent changeEvent
             changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
             NotifyTextChangeListeners(changeEvent)
-            DeleteSelection()
+            DeleteSelection(false)
             return now
         end
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -1452,9 +1452,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action DeleteForward
         if (not selection:IsEmpty())
-            TextChangeEvent changeEvent
-            changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
-            NotifyTextChangeListeners(changeEvent)
             DeleteSelection()
             return now
         end
@@ -1504,6 +1501,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     the TextBox's selection is empty, this action does nothing.
     */
     action DeleteSelection
+        DeleteSelection(true)
+    end
+
+    private action DeleteSelection(boolean triggerTextChangeEvent)
         if selection:IsEmpty()
             return now
         end
@@ -1513,6 +1514,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         DecrementStyleIndices(GetCaretPosition(), selection:GetEndIndex() - selection:GetStartIndex())
 
+        text deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
         textValue = textValue:Delete(selection:GetStartIndex(), selection:GetEndIndex())
 
         // Force a recalculation of the width by setting its value to -1.
@@ -1523,6 +1525,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
+
+        if triggerTextChangeEvent
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", deletedText, selection:GetStartIndex())
+            NotifyTextChangeListeners(changeEvent)
+        end
 
         EmptySelectionEvent(true)
     end
@@ -1671,7 +1679,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         if shouldDeleteSelection
-            DeleteSelection()
+            DeleteSelection(false)
         else
             EmptySelectionEvent(true)
         end
