@@ -521,6 +521,12 @@ class DesktopInput is GameInput
             InputSet anySet = undefined
             InputSet uncaughtSet = undefined
 
+            /*
+            Used only on release events, if the InputTable doesn't have a
+            specific input which uses the exact combination of key and modifiers.
+            */
+            InputSet unmodifiedReleaseSet = undefined
+
             if currentEvent:eventType = currentEvent:PRESSED_KEY
                 // For new key presses, we want to copy the modifiers as they
                 // were before the key press.
@@ -564,6 +570,11 @@ class DesktopInput is GameInput
                 // after the key release is resolved.
                 set = keyboardModifiers:Copy()
                 anySet = keyboardModifiers:Copy()
+
+                InputSet unmodifiedSet
+                unmodifiedSet:SetKeyboardInput(currentEvent:keyCode)
+                unmodifiedSet:SetInputTrigger(unmodifiedSet:FINISH)
+                unmodifiedReleaseSet = unmodifiedSet
 
                 /*
                 The uncaughtSet is valid only if the window is focused -- if it
@@ -610,7 +621,13 @@ class DesktopInput is GameInput
                     if uncaughtSet not= undefined
                         processed = table:ProcessInput(uncaughtSet, behaviorEvent)
                     end
+
                     processed = processed or table:ProcessInput(set, behaviorEvent)
+
+                    if processed = false and unmodifiedReleaseSet not= undefined
+                        processed = table:ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                    end
+
                     processed = processed or table:ProcessInput(anySet, behaviorEvent)
                 end
 
@@ -631,7 +648,13 @@ class DesktopInput is GameInput
                 if uncaughtSet not= undefined
                     processed = GetDefaultInputTable():ProcessInput(uncaughtSet, behaviorEvent)
                 end
+
                 processed = processed or GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+
+                if processed = false and unmodifiedReleaseSet not= undefined
+                    processed = GetDefaultInputTable():ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                end
+
                 processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
             end
 
