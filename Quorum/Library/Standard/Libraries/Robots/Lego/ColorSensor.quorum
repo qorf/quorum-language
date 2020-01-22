@@ -246,6 +246,23 @@ class ColorSensor
     */
     
     system action IsLightOn returns boolean
+
+    /*
+    This action turns the flood light on or off entirely.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Sound
+
+    ColorSensor colorSensor
+    Sound sound
+    
+    colorSensor:SetPort(3)
+    colorSensor:SetLightOn(false)
+    */
+    system action SetLightOn(boolean on)
     
     /*
     This action will provide information on the red, green, and blue levels of a measured object.
