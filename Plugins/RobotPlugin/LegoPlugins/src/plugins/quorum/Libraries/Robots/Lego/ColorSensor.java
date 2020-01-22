@@ -94,6 +94,11 @@ public class ColorSensor {
     public boolean IsLightOn() {
         return sensor.isFloodlightOn();
     }
+    
+    public void SetLightOn(boolean on) {
+        sensor.setFloodlight(on);
+    }
+    
     //GetRGB - returns array of RGB values (0-1)
     //RobotC returns each element through reference parameters
     public void FetchRedGreenBlueSample() {
