@@ -37,8 +37,4 @@ public class Number32BitArray {
     public void SetSize(int size) {
         floats = new float[size];
     }
-    
-    public void Empty() {
-        
-    }
 }
