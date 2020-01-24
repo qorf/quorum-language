@@ -181,6 +181,11 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
         bridgeArray[index] = value;
     };
     
+    this.SendToBridgeArray$quorum_Libraries_Containers_Number32BitArray = function(number32array) 
+    {
+        bridgeArray = number32array.plugin_.array_;
+    };
+    
     this.SetLength = function(newLength)
     {
         if (newLength > maxLength)

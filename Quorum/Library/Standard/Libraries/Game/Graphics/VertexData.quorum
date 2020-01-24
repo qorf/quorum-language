@@ -31,22 +31,6 @@ class VertexData is Disposable
 
     blueprint action SetVertices(Number32BitArray vertices)
 
-    /*
-    This action sets the vertices of this VertexData to match the given array
-    of numbers. This will also set an offset of the given amount in to the array,
-    and the user should provide the number of vertices to use from the array
-    by supplying the count.
-    */
-    blueprint action SetVertices(Number32BitArray vertices, integer offset, integer count)
-
-    /*
-    This action sets the vertices of this VertexData to match the given array
-    of numbers. This will also set an offset of the given amount in to the array,
-    and the user should provide the number of vertices to use from the array
-    by supplying the count.
-    */
-//    blueprint action SetVertices(Array<number> vertices, integer offset, integer count)
-
     blueprint action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
 
     // Used to invalidate the data when applicable, e.g. due to context loss.

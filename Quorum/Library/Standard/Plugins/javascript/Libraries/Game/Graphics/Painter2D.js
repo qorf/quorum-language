@@ -303,7 +303,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         this.me_.lastTexture.Bind();
         
-        mesh.SetVertices$quorum_Libraries_Containers_Array$quorum_integer$quorum_integer(this.me_.GetVertices(), 0, index);
+        mesh.SetVertices$quorum_Libraries_Containers_Number32BitArray(this.me_.GetVertices());
         mesh.GetIndexData().plugin_.SetPosition$quorum_integer(0);
         mesh.GetIndexData().plugin_.SetLength(count);
         

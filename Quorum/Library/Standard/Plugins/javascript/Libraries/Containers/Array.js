@@ -121,7 +121,7 @@ function plugins_quorum_Libraries_Containers_Integer32BitArray_() {
     
     this.SetSize$quorum_integer = function(size)
     {
-        this.array_ = new Integer32Array(size);
+        this.array_ = new Int32Array(size);
     };
 
 }
