@@ -40,6 +40,11 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         return this.attributes;
     };
     
+    this.Reload = function()
+    {
+        // Do nothing. There's (currently) nothing to be done here.
+    };
+    
     this.SetVerticesNative$quorum_integer$quorum_integer = function(offset, count) 
     {
         isDirty = true;
@@ -185,6 +190,13 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         bridgeArray[index] = value;
     };
     
+    this.SendToBridgeArray$quorum_Libraries_Containers_Number32BitArray = function(number32array)
+    {
+        bridgeArray = number32array.plugin_.array_;
+        
+        this.PrepareBridgeArray$quorum_integer(bridgeArray.length);
+    };
+    
     this.PopulateVertexBuffer = function() 
     {
         isDirty = true;
@@ -220,3 +232,17 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         return floatArray;
     };
 }
+
+/*
+    private system action SetVerticesNative(integer offset, integer count)
+
+    private system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
+
+    private system action PrepareBridgeArray(integer length)
+
+    private system action SendToBridgeArray(Number32BitArray array)
+
+    private system action SendToBridgeArray(integer index, number value)
+
+    private system action PopulateVertexBuffer
+ */

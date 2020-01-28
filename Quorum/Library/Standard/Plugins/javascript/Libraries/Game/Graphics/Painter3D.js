@@ -11,6 +11,13 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
     var renderables;
     var camera;
     
+    /*
+    Used to detect if we've rendered the Skybox yet.
+    We render the skybox after all opaque objects and before the first
+    blended (i.e. transparent) objects.
+    */
+    var shouldRenderSkybox = false;
+    
     this.Initialize$quorum_Libraries_Game_Graphics_Painter3D$quorum_Libraries_Containers_Array = function(batch, render) 
     {
         quorumBatch = batch;
@@ -72,12 +79,16 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
         
         context.Begin();
         isRendering = true;
+        
+        shouldRenderSkybox = !(skybox === null || skybox === undefined);
     };
     
     this.End = function() 
     {
         this.Flush();
-        if (skybox != null)
+        
+        // Render the Skybox if we haven't already.
+        if (shouldRenderSkybox)
         {
             if (!skybox.plugin_.SidesRequested())
             {
@@ -99,10 +110,33 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
         var renderable;
         var renderPlugin;
         
+        if (shouldRenderSkybox && !skybox.plugin_.SidesRequested())
+        {
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
+            throw exceptionInstance_;
+        }
+        
         for (var i = 0; i < renderables.GetSize(); i++)
         {
             renderable = renderables.Get$quorum_integer(i);
             renderPlugin = renderable.plugin_;
+            
+            /*
+            When we find our first blended object, render the skybox first.
+            The Skybox should be in the background before any transparent
+            objects are drawn, so they can blend the skybox into the rendered
+            pixel fragments.
+            */
+            if (shouldRenderSkybox && renderable.UsesBlending())
+            {
+                shouldRenderSkybox = false;
+                if (currentShader !== null && currentShader !== undefined)
+                    currentShader.End();
+                currentShader = null;
+                skyboxShader.Render(skybox, camera);
+            }
+            
             if (currentShader !== renderPlugin.shader)
             {
                 if (currentShader !== null && currentShader !== undefined)

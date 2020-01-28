@@ -46,19 +46,8 @@ class IndexBufferObject is IndexData
         PutBridgeArray()
     end
 
-    private system action PrepareBridgeArray(integer length)
-
     /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
     private system action SendToBridgeArray(Integer32BitArray array)
-//        PrepareBridgeArray(array:GetSize())
-//        integer index = 0
-//        repeat array:GetSize() times
-//            SendToBridgeArray(index, array:Get(index))
-//            index = index + 1
-//        end
-//    end
-
-    private system action SendToBridgeArray(integer index, integer value)
 
     private system action PutBridgeArray
 
