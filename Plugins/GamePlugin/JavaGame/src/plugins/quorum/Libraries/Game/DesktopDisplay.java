@@ -260,6 +260,9 @@ public class DesktopDisplay {
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
+        if (!resolution.IsFullscreen() && GetPixelScaleFactor() != 1.0)
+            SetScreenResolution(resolution);
+        
         GLFW.glfwSetWindowSizeCallback(window, resizeCallback);
         GLFW.glfwSetKeyCallback(window, keyboardCallback);
         GLFW.glfwSetCursorPosCallback(window, mouseMovementCallback);
@@ -267,9 +270,6 @@ public class DesktopDisplay {
         GLFW.glfwSetScrollCallback(window, scrollCallback);
         GLFW.glfwSetCharCallback(window, textCallback);
         GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
-
-        if (!resolution.IsFullscreen() && GetPixelScaleFactor() != 1.0)
-            SetScreenResolution(resolution);
     }
     
     /*
