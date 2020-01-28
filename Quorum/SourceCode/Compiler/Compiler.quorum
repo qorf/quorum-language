@@ -860,6 +860,46 @@ class Compiler
         text result = ""
         text plugins = ""
         text main = ""
+
+        if request:mainOnlyJavaScript
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                Class clazz = code:GetClass()
+    
+                //Class mainClazz = mainClass
+                text mainClazzName = mainClass:GetStaticKey()
+                text clazzName = clazz:GetStaticKey()
+                if mainClass:GetStaticKey() = clazzName
+                    main = code:WriteJavaScript()
+                    if clazz:HasSystemAction()
+                        File folder = GetStandardLibraryFolder() 
+                        path = folder:GetPath() + "/Plugins/javascript/"
+        
+                        key = clazz:GetStaticKey()
+                        Array<text> keys = key:Split("\.")
+                        i = 0
+                        repeat keys:GetSize() times
+                            newKey = keys:Get(i)
+                            if i = keys:GetSize() - 1
+                                path = path + newKey + ".js"
+                            else
+                                path = path + newKey + "/"
+                            end
+                            i = i + 1
+                        end
+                        File location
+                        location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                        location:SetPath(path)
+                        if location:Exists() 
+                            value = location:Read()
+                            plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                        end
+                    end
+                end
+            end
+            return plugins + result + main
+        end
         Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()
