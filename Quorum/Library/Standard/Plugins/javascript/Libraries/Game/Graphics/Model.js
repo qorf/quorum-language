@@ -165,4 +165,46 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         }
         return blueprint;
     };
+    
+    this.GetCachedPlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color$quorum_boolean = function(width, depth, color, doubleSided) 
+    {
+        var blendKey;
+        if (color.GetAlpha() < 1.0)
+            blendKey = "BLENDED:";
+        else
+            blendKey = "";
+        
+        var searchKey = ":PLANE:DIFFUSE:" + blendKey + width + ":" + depth + ":" + doubleSided;
+        
+        var blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey];
+        
+        if (blueprint === undefined || blueprint === null)
+        {
+            blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.builder.CreatePlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color$quorum_boolean(width, depth, color, doubleSided);
+            blueprint.id = searchKey;
+            plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey] = blueprint;
+        }
+        return blueprint;
+    };
+    
+    this.GetCachedPlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture$quorum_boolean = function(width, depth, texture, doubleSided) 
+    {
+        var searchKey = ":PLANE:TEXTURED:" + width + ":" + depth + ":" + doubleSided;
+        
+        var blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey];
+        
+        if (blueprint === undefined || blueprint === null)
+        {
+            blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.builder.CreatePlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture$quorum_boolean(width, depth, texture, doubleSided);
+            blueprint.id = searchKey;
+            plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey] = blueprint;
+            
+            var material = blueprint.nodes.Get$quorum_integer(0).parts.Get$quorum_integer(0).material;
+            var textureAttribute = new quorum_Libraries_Game_Graphics_TextureAttribute_();
+            var descriptor = material.GetAttribute$quorum_integer(textureAttribute.GetDiffuseValue()).descriptor;
+            descriptor.uWrap.value = descriptor.uWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
+            descriptor.vWrap.value = descriptor.vWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
+        }
+        return blueprint;
+    };
 }
