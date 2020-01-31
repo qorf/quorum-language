@@ -49,7 +49,7 @@ class MultipleLineText
 
     // How many characters can be stored in a leaf. Must be consistent for all
     // nodes in the structure.
-    number maxLeafSize = maxLeafSize:GetPositiveInfinityValue()
+    number maxLeafSize = 0
 
     // An array storing values of the fibonacci sequence which have already
     // been calculated. This array is shared among all other ropes produced by
@@ -67,6 +67,7 @@ class MultipleLineText
 
     on create
         lineSeparator = GetDefaultLineSeparator()
+        maxLeafSize = maxLeafSize:GetPositiveInfinityValue()
     end
 
     /*

@@ -1,35 +1,49 @@
 package Libraries.Game
 
-use Libraries.Game.GameInput
-use Libraries.Game.GameStateManager
+use Libraries.Game.all
+use Libraries.Interface.Behaviors.all
+use Libraries.Interface.all
+use Libraries.Interface.Events.all
+use Libraries.Containers.Array
+use Libraries.Containers.List
+use Libraries.Containers.Iterator
+use Libraries.Containers.HashTable
+use Libraries.Compute.BitwiseOperations
 use Libraries.Interface.Item
-use Libraries.Interface.Item2D
-use Libraries.Interface.Item3D
+use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardProcessor
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseProcessor
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
-use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.TextInputListener
-use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.TextInputProcessor
 use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Containers.Array
-use Libraries.Containers.Iterator
-use Libraries.Compute.BitwiseOperations
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.ResizeProcessor
 
+/*
+This class automatically handles input and notifies event listeners for Games
+running in web browsers. Most users shouldn't need access to this class. 
+For users who want to test input themselves at specific times, use an 
+InputMonitor instead.
+*/
 class WebInput is GameInput
-    
+
+    Array<KeyboardListener> keyboardListeners
+    InputSet keyboardModifiers
+    InputSet mouseButtons
+
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
-    Array<KeyboardListener> keyboardListeners
-    Array<ResizeListener> resizeListeners
     Array<TextInputListener> textInputListeners
-
-    InputSet keyboardModifiers
-    InputSet mouseButtons
+    Array<ResizeListener> resizeListeners
 
     /* 
     Arrays storing the events that have occurred. These are filled by the
@@ -38,10 +52,17 @@ class WebInput is GameInput
     */
     Array<MouseEvent> mouseEvents
     Array<KeyboardEvent> keyboardEvents
+    Array<TextInputEvent> textInputEvents
+    Array<ResizeEvent> resizeEvents
 
     GameStateManager manager
 
     BitwiseOperations bits
+    KeyboardEvent keys
+
+    InputSet set
+    InputSet multiSet = undefined
+    InputSet anySet
 
     /*
     The target of the last Mouse movement event. This is used to track where the
@@ -51,6 +72,13 @@ class WebInput is GameInput
     Item lastMouseMoveTarget = undefined
 
     Array<InputSet> pressedKeys
+
+    /*
+    A HashTable which tracks if the given key (as identified by its keycode) has
+    been used as valid input for an InputSet since the key was pressed. Used for
+    the FINISH_UNCAUGHT InputSet trigger.
+    */
+    HashTable<integer, boolean> usedKeys
 
     /*
     An array containing "recent" mouse clicks. Clicks are considered recent if
@@ -66,6 +94,15 @@ class WebInput is GameInput
     */
     Array<RecentInputTimer> recentKeyPresses
 
+    /* 
+    Whether or not a keyboard event was caught by the InputTables on the current
+    frame. If a key pressed event was used by an InputTable, we flag the text
+    input events until the end of the frame. Behaviors may consider this when
+    handling the text (e.g., the TextBox may ignore text from a keypress that
+    was already used to trigger a shortcut).
+    */
+    boolean keypressCaught = false
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -77,14 +114,19 @@ class WebInput is GameInput
 
         UpdateRecentInputTimers()
 
-        CheckForEvents(mouseEvents, keyboardEvents)
+        CheckForEvents(mouseEvents, keyboardEvents, textInputEvents, resizeEvents)
         Array<Layer> layers = parent:GameInput:layers
 
         MouseEvent mouseEvent = undefined
+        keypressCaught = false
 
-        InputSet set = keyboardModifiers:Copy()
-        InputSet multiSet = undefined
-        InputSet anySet = keyboardModifiers:Copy()
+        if layers = undefined
+            return now
+        end
+
+        set:Set(keyboardModifiers)
+        multiSet = undefined
+        anySet:Set(keyboardModifiers)
 
         RecentInputTimer recentInput = undefined
 
@@ -155,7 +197,7 @@ class WebInput is GameInput
                         if useDefaultTable
                             if table not= undefined
                                 if recentInput not= undefined
-                                    if ItemsAreRelated(seeker, recentInput:item)
+                                    if seeker = recentInput:item
                                         multiSet:SetEventCount(recentInput:count + 1)
                                     else
                                         multiSet:SetEventCount(1)
@@ -167,7 +209,7 @@ class WebInput is GameInput
                                 if table:HasKey(set) or table:HasKey(anySet)
                                     if recentInput not= undefined
                                         recentInput:timer = 0
-                                        if recentInput:item not= seeker
+                                        if seeker not= recentInput:item
                                             recentInput:item = seeker
                                             recentInput:count = 1
                                             mouseEvent:clickCount = 1
@@ -355,73 +397,31 @@ class WebInput is GameInput
         // After processing all the mouse events, trigger CONTINUE InputSets.
         ContinueMouseInputSets()
 
-        /*
-        repeat mouseEvents:GetSize() times
-            mouseEvent = mouseEvents:RemoveFromFront()
-
-            integer counter = layers:GetSize()
-            repeat while counter > 0 and not mouseEvent:WasEventHandled()
-                counter = counter - 1
-                layers:Get(counter):ProcessMouseEvent(mouseEvent)
-            end
-
-            if not mouseEvent:WasEventHandled()
-                NotifyMouseListeners(mouseEvent)
-            end
-        end
-        */
-
-        /*
-        integer counter = 0
-        repeat keyboardEvents:GetSize() times
-            KeyboardEvent currentEvent = keyboardEvents:Get(counter)
-            integer listenerCounter = 0
-
-            repeat keyboardListeners:GetSize() times
-                KeyboardListener currentListener = keyboardListeners:Get(listenerCounter)
-                if currentEvent:eventType = currentEvent:PRESSED_KEY
-                    currentListener:PressedKey(currentEvent)
-                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
-                    currentListener:ReleasedKey(currentEvent)
-                end
-            end
-
-            counter = counter + 1
-        end
-        */
-        if (not keyboardEvents:IsEmpty()) or (not pressedKeys:IsEmpty())
+        if keyboardEvents:IsEmpty() = false or (not pressedKeys:IsEmpty())
             ProcessKeyboardEvents(keyboardEvents)
         end
 
-//        textInputProcessor:Update()
-//        
-//        if textInputProcessor:HasEvents()
-//            ProcessTextInputEvent(textInputProcessor:GetEvents())
-//        end
+        if textInputEvents:IsEmpty() = false
+            ProcessTextInputEvent(textInputEvents)
+        end
 
-//        resizeProcessor:Update()
-//        
-//        if resizeProcessor:HasEvents()
-//            List<ResizeEvent> resizeEvents = resizeProcessor:GetEvents()
-//
-//            repeat while (not resizeEvents:IsEmpty())
-//                ResizeEvent event = resizeEvents:RemoveFromFront()
-//                integer counter = 0
-//                repeat while counter < resizeListeners:GetSize()
-//                    resizeListeners:Get(counter):SizeChanged(event)
-//                    counter = counter + 1
-//                end
-//
-//                counter = 0
-//                repeat while counter < layers:GetSize()
-//                    layers:Get(counter):Resize(event)
-//                    counter = counter + 1
-//                end
-//            end
-//        end
+        if resizeEvents:IsEmpty() = false
+            repeat while (not resizeEvents:IsEmpty())
+                ResizeEvent event = resizeEvents:RemoveFromFront()
+                integer counter = 0
+                repeat while counter < resizeListeners:GetSize()
+                    resizeListeners:Get(counter):SizeChanged(event)
+                    counter = counter + 1
+                end
 
-        mouseEvents:Empty()
-        keyboardEvents:Empty()
+                counter = 0
+                repeat while counter < layers:GetSize()
+                    layers:Get(counter):Resize(event)
+                    counter = counter + 1
+                end
+            end
+        end
+
     end
 
     private action UpdateRecentInputTimers
@@ -514,18 +514,25 @@ class WebInput is GameInput
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
-            InputSet set = keyboardModifiers:Copy()
-            set:SetKeyboardInput(currentEvent:keyCode)
+            InputSet set = undefined
+            InputSet anySet = undefined
+            InputSet uncaughtSet = undefined
 
-            InputSet anySet = keyboardModifiers:Copy()
-            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
-
-            if currentEvent:eventType = currentEvent:RELEASED_KEY
-                set:SetInputTrigger(set:FINISH)
-                anySet:SetInputTrigger(anySet:FINISH)
-            end
+            /*
+            Used only on release events, if the InputTable doesn't have a
+            specific input which uses the exact combination of key and modifiers.
+            */
+            InputSet unmodifiedReleaseSet = undefined
 
             if currentEvent:eventType = currentEvent:PRESSED_KEY
+                // For new key presses, we want to copy the modifiers as they
+                // were before the key press.
+                set = keyboardModifiers:Copy()
+                anySet = keyboardModifiers:Copy()
+
+                // The uncaughtSet is valid only for RELEASED_KEY events.
+                uncaughtSet = undefined
+
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
                     keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
                 elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
@@ -555,7 +562,39 @@ class WebInput is GameInput
                 pressedSet:SetKeyboardInput(currentEvent:keyCode)
                 pressedSet:SetInputTrigger(pressedSet:CONTINUE)
                 pressedKeys:Remove(pressedSet)
+
+                // For released keys, we want to copy the modifiers as they are
+                // after the key release is resolved.
+                set = keyboardModifiers:Copy()
+                anySet = keyboardModifiers:Copy()
+
+                InputSet unmodifiedSet
+                unmodifiedSet:SetKeyboardInput(currentEvent:keyCode)
+                unmodifiedSet:SetInputTrigger(unmodifiedSet:FINISH)
+                unmodifiedReleaseSet = unmodifiedSet
+
+                /*
+                The uncaughtSet is valid only if the window is focused -- if it
+                isn't focused, then either we shouldn't receive the input at
+                all, or we've just lost focus on the window (e.g., due to using
+                Alt + Tab) and the key combination should be discarded.
+                */
+                if manager:GetGame():IsWindowFocused() and 
+                    not (usedKeys:HasKey(currentEvent:keyCode) and usedKeys:GetValue(currentEvent:keyCode) = true)
+
+                    uncaughtSet = keyboardModifiers:Copy()
+                    uncaughtSet:SetInputTrigger(uncaughtSet:FINISH_UNCAUGHT)
+                    uncaughtSet:SetKeyboardInput(currentEvent:keyCode)
+                else
+                    uncaughtSet = undefined
+                end
+
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(anySet:FINISH)
             end
+
+            set:SetKeyboardInput(currentEvent:keyCode)
+            anySet:SetKeyboardInput(currentEvent:ANY_KEY)
 
             text inputGroup = ""
             Item focusedItem = manager:GetFocus()
@@ -576,7 +615,16 @@ class WebInput is GameInput
 
                 InputTable table = GetInputTable(inputGroup)
                 if table not= undefined
-                    processed = table:ProcessInput(set, behaviorEvent)
+                    if uncaughtSet not= undefined
+                        processed = table:ProcessInput(uncaughtSet, behaviorEvent)
+                    end
+
+                    processed = processed or table:ProcessInput(set, behaviorEvent)
+
+                    if processed = false and unmodifiedReleaseSet not= undefined
+                        processed = table:ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                    end
+
                     processed = processed or table:ProcessInput(anySet, behaviorEvent)
                 end
 
@@ -594,8 +642,36 @@ class WebInput is GameInput
             if not processed
                 focusedItem = manager:GetFocus()
                 behaviorEvent:SetItem(focusedItem)
-                processed = GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                if uncaughtSet not= undefined
+                    processed = GetDefaultInputTable():ProcessInput(uncaughtSet, behaviorEvent)
+                end
+
+                processed = processed or GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+
+                if processed = false and unmodifiedReleaseSet not= undefined
+                    processed = GetDefaultInputTable():ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                end
+
                 processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+            end
+
+            if processed and currentEvent:eventType = currentEvent:PRESSED_KEY
+                keypressCaught = true
+                usedKeys:Set(currentEvent:keyCode, true)
+                
+                integer i = 0
+                repeat while i < pressedKeys:GetSize()
+                    integer value = pressedKeys:Get(i):GetInputValue()
+                    
+                    if ((value = keys:ALT_LEFT or value = keys:ALT_RIGHT) and set:HasModifier(set:ALT))
+                    or ((value = keys:SHIFT_LEFT or value = keys:SHIFT_RIGHT) and set:HasModifier(set:SHIFT))
+                    or ((value = keys:CONTROL_LEFT or value = keys:CONTROL_RIGHT) and set:HasModifier(set:CONTROL))
+                    or ((value = keys:META_LEFT or value = keys:META_RIGHT) and set:HasModifier(set:META))
+                        usedKeys:Set(value, true)
+                    end
+
+                    i = i + 1
+                end
             end
 
             repeat while listenIterator:HasNext()
@@ -608,6 +684,10 @@ class WebInput is GameInput
             end
 
             listenIterator:Rewind()
+
+            if currentEvent:eventType = currentEvent:RELEASED_KEY
+                usedKeys:Set(currentEvent:keyCode, false)
+            end
         end
 
         integer counter = 0
@@ -657,29 +737,6 @@ class WebInput is GameInput
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
 
-            /*
-            BehaviorEvent behaviorEvent
-            behaviorEvent:SetItem(focusedItem)
-            behaviorEvent:SetKeyboardEvent(event)
-
-            InputTable table = GetInputTable(inputGroup)
-
-            /*
-            If the table exists, attempt to trigger behaviors that use that
-            specific input or that trigger on any input of that type. Once both
-            are tested, if neither were successful, try to trigger behaviors
-            from the default input table instead.
-            *
-            boolean processed = (table not= undefined)
-            if processed
-                processed = table:ProcessInput(set, behaviorEvent)
-            end
-
-            if not processed
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-            end
-            */
-
             counter = counter + 1
         end
 
@@ -696,18 +753,6 @@ class WebInput is GameInput
 
             BehaviorEvent behaviorEvent
             behaviorEvent:SetKeyboardEvent(event)
-            /*
-            InputTable table = GetInputTable(inputGroup)
-
-            boolean processed = (table not= undefined)
-            if processed
-                processed = table:ProcessInput(set, behaviorEvent)
-            end
-
-            if not processed
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-            end
-            */
 
             /*
             Attempt to trigger an InputTable on the focused item. If that fails,
@@ -743,54 +788,56 @@ class WebInput is GameInput
         end
     end
 
-//    private action ProcessTextInputEvent(List<TextInputEvent> events)
-//        TextInputEvent currentEvent = undefined
-//        TextInputListener currentListener = undefined
-//        Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()
-//
-//        text inputGroup = ""
-//        Item focusedItem = manager:GetFocus()
-//        if focusedItem not= undefined
-//            inputGroup = focusedItem:GetInputGroup()
-//        end
-//
-//        repeat while not events:IsEmpty()
-//            currentEvent = events:RemoveFromFront()
-//
-//            InputSet set
-//            set:SetInputType(set:TEXT_INPUT)
-//
-//            BehaviorEvent behaviorEvent
-//            behaviorEvent:SetItem(focusedItem)
-//            behaviorEvent:SetTextInputEvent(currentEvent)
-//
-//            InputTable table = GetInputTable(inputGroup)
-//
-//            /*
-//            Using boolean short-circuit evaluation. If the table is defined,
-//            the input is processed - if the input set wasn't found in the table,
-//            it returns false. Thus the default table is referenced if there was
-//            no table with an identifier matching the input group, or if such a
-//            table existed but didn't handle this InputSet.
-//            */
-//            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
-//                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-//            end
-//
-//            repeat while listenIterator:HasNext()
-//                currentListener = listenIterator:Next()
-//                currentListener:TextInput(currentEvent)
-//            end
-//
-//            listenIterator:Rewind()
-//        end
-//    end
+    private action ProcessTextInputEvent(Array<TextInputEvent> events)
+        TextInputEvent currentEvent = undefined
+        TextInputListener currentListener = undefined
+        Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()
+
+        text inputGroup = ""
+        Item focusedItem = manager:GetFocus()
+        if focusedItem not= undefined
+            inputGroup = focusedItem:GetInputGroup()
+        end
+
+        repeat while not events:IsEmpty()
+            currentEvent = events:RemoveFromFront()
+            currentEvent:SetKeyUsed(keypressCaught)
+
+            InputSet set
+            set:SetInputType(set:TEXT_INPUT)
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetTextInputEvent(currentEvent)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            Using boolean short-circuit evaluation. If the table is defined,
+            the input is processed - if the input set wasn't found in the table,
+            it returns false. Thus the default table is referenced if there was
+            no table with an identifier matching the input group, or if such a
+            table existed but didn't handle this InputSet.
+            */
+            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+
+            repeat while listenIterator:HasNext()
+                currentListener = listenIterator:Next()
+                currentListener:TextInput(currentEvent)
+            end
+
+            listenIterator:Rewind()
+        end
+    end
 
     /*
-    Checks for any mouse or keyboard events that have occurred, and adds them to
+    Checks for any events that have occurred, and adds them to
     the end of the provided arrays.
     */
-    private system action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents)
+    private system action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents,
+        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents)
 
     /*
     This action forwards a mouse event to the listeners that are stored directly
@@ -982,28 +1029,85 @@ class WebInput is GameInput
     end
 
     /*
-    This action will add a KeyboardListener to the GameInput. The GameInput will
-    notify the KeyboardListener if keys are pressed on the keyboard. This action
-    is automatically called by the Game class when needed.
+    This action returns how many times the particular item has been clicked with
+    the mouse in a short period of time, as used to determine things like double
+    click events. For browser applications, the period of time measured is based
+    on the multiple click timer in the WebConfiguration.
+
+    On platforms which don't support the mouse, this will always return 0.
+
+    Attribute: Parameter item An item that has been added to the game engine.
+    Attribute: Returns How many times the provided item has been recently clicked with the mouse.
+    */
+    action GetClickCount(Item item) returns integer
+        integer counter = 0
+
+        // This is O(n) over the number of recently clicked items, but this
+        // array remains small (typically in single digits).
+        repeat while counter < recentClicks:GetSize()
+            RecentInputTimer timer = recentClicks:Get(counter)
+            if timer:item = item
+                return timer:count
+            end
+            counter = counter + 1
+        end
+
+        return 0
+    end
+
+    /*
+    This action returns how many times a particular key on the keyboard (as
+    represented by its key code, found in the KeyboardEvent class) has been
+    pressed in a short period of time. For browser applications, this period of
+    time is measured based on the multiple key press timer in the 
+    WebConfiguration.
+
+    On platforms that don't support multiple key press events, this will always
+    return 0.
+
+    Attribute: Parameter keyCode A key on the keyboard, represented by its integer key code.
+    Attribute: Returns How many times the given key has recently been pressed.
+    */
+    action GetKeyPressCount(integer keyCode) returns integer
+        integer counter = 0
+
+        // This is O(n) over the number of recently pressed keys, but this
+        // array remains small (typically in single digits).
+        repeat while counter < recentKeyPresses:GetSize()
+            RecentInputTimer timer = recentKeyPresses:Get(counter)
+            if timer:inputValue = keyCode
+                return timer:count
+            end
+            counter = counter + 1
+        end
+
+        return 0
+    end
+
+    /*
+    This action will add a KeyboardListener to the WebInput. The 
+    WebInput will notify the KeyboardListener if keys are pressed on the 
+    keyboard. This action is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
         keyboardListeners:Add(listener)
     end
 
     /*
-    This action will remove a KeyboardListener from the GameInput. The GameInput
-    will no longer notify the given KeyboardListener of KeyboardEvents. This 
-    action is automatically called by the Game class when needed.
+    This action will remove a KeyboardListener from the WebInput. The
+    WebInput will no longer notify the given KeyboardListener of 
+    KeyboardEvents. This action is automatically called by the Game class when 
+    needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardListeners:Remove(listener)
     end
 
     /*
-    This action adds a MouseListener directly to the GameInput. When the
-    GameInput receives a mouse event, it will first check if any of the items
+    This action adds a MouseListener directly to the WebInput. When the
+    WebInput receives a mouse event, it will first check if any of the items
     added to the layers of the Game can handle the event - if none do, then all
-    MouseListeners which are added directly to the GameInput will receive the
+    MouseListeners which are added directly to the WebInput will receive the
     event.
     */
     action AddMouseListener(MouseListener listener)
@@ -1011,10 +1115,10 @@ class WebInput is GameInput
     end
 
     /*
-    This action adds a MouseMovementListener directly to the GameInput. When the
-    GameInput receives a mouse event, it will first check if any of the items
+    This action adds a MouseMovementListener directly to the WebInput. When the
+    WebInput receives a mouse event, it will first check if any of the items
     added to the layers of the Game can handle the event - if none do, then all
-    MouseMovementListeners which are added directly to the GameInput will 
+    MouseMovementListeners which are added directly to the WebInput will 
     receive the event.
     */
     action AddMouseMovementListener(MouseMovementListener listener)
@@ -1022,10 +1126,10 @@ class WebInput is GameInput
     end
 
     /*
-    This action adds a MouseWheelListener directly to the GameInput. When the
-    GameInput receives a mouse event, it will first check if any of the items
+    This action adds a MouseWheelListener directly to the WebInput. When the
+    WebInput receives a mouse event, it will first check if any of the items
     added to the layers of the Game can handle the event - if none do, then all
-    MouseWheelListeners which are added directly to the GameInput will 
+    MouseWheelListeners which are added directly to the WebInput will 
     receive the event.
     */
     action AddMouseWheelListener(MouseWheelListener listener)
@@ -1033,69 +1137,68 @@ class WebInput is GameInput
     end
 
     /*
-    This action adds a TouchListener directly to the GameInput. When the
-    GameInput receives a touch event, it will first check if any of the items
-    added to the layers of the Game can handle the event - if none do, then all
-    TouchListeners which are added directly to the GameInput will 
-    receive the event.
+    This action adds a TouchListener directly to the WebInput. Note that touch
+    isn't supported for browser applications - if the Game is running in a web
+    browser, this action will be ignored.
     */
     action AddTouchListener(TouchListener listener)
-        // Do nothing - the web uses mouse input, not touch input.
+        // Do nothing - touch isn't supported on Desktop.
     end
 
     /*
-    This action removes a MouseListener from the GameInput. It will no longer
-    receive mouse events directly from the GameInput.
+    This action will add a TextInputListener to the WebInput. The 
+    WebInput will notify the TextInputListener when the user provides text
+    input to the game via the keyboard.
+    */
+    action AddTextInputListener(TextInputListener listener)
+        textInputListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a TextInputListener from the WebInput. The
+    WebInput will no longer notify the given TextInputListener of 
+    TextInputEvents. 
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        textInputListeners:Remove(listener)
+    end
+
+    /*
+    This action removes a MouseListener from the WebInput. It will no longer
+    receive mouse events directly from the WebInput.
     */
     action RemoveMouseListener(MouseListener listener)
         mouseListeners:Remove(listener)
     end
 
     /*
-    This action removes a MouseMovementListener from the GameInput. The listener
-    will no longer receive events from the GameInput.
+    This action removes a MouseMovementListener from the WebInput. The listener
+    will no longer receive events from the WebInput.
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
         mouseMovementListeners:Remove(listener)
     end
 
     /*
-    This action removes a MouseWheelListener from the GameInput. The listener
-    will no longer receive events from the GameInput.
+    This action removes a MouseWheelListener from the WebInput. The listener
+    will no longer receive events from the WebInput.
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
         mouseWheelListeners:Remove(listener)
     end
 
     /*
-    This action removes a TouchListener from the GameInput. The listener will
-    no longer receive events from the GameInput.
+    This action removes a TouchListener from the WebInput. Note that touch
+    isn't supported for browser applications - if the Game is running in a web
+    browser, this action will be ignored.
     */
     action RemoveTouchListener(TouchListener listener)
-        // Do nothing - the web uses mouse input, not touch input.
+        // Do nothing - touch isn't supported on Desktop.
     end
 
     /*
-    This action will add a TextInputListener to the GameInput. The 
-    GameInput will notify the TextInputListener when the user provides text
-    input to the game via the keyboard.
-    */
-    action AddTextInputListener(TextInputListener listener)
-        // TO-DO
-    end
-
-    /*
-    This action will remove a TextInputListener from the GameInput. The
-    GameInput will no longer notify the given TextInputListener of 
-    TextInputEvents. 
-    */
-    action RemoveTextInputListener(TextInputListener listener)
-        // TO-DO
-    end
-
-    /*
-    This action will add a ResizeListener to the GameInput. The 
-    GameInput will notify the ResizeListener when the size of the game space
+    This action will add a ResizeListener to the WebInput. The 
+    WebInput will notify the ResizeListener when the size of the game space
     changes, e.g. the window changes size or goes fullscreen.
     */
     action AddResizeListener(ResizeListener listener)
@@ -1103,8 +1206,8 @@ class WebInput is GameInput
     end
 
     /*
-    This action will remove a ResizeListener from the GameInput. The
-    GameInput will no longer notify the given ResizeListener of 
+    This action will remove a ResizeListener from the WebInput. The
+    WebInput will no longer notify the given ResizeListener of 
     ResizeEvents. 
     */
     action RemoveResizeListener(ResizeListener listener)

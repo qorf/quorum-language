@@ -105,7 +105,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         var manager = new quorum_Libraries_Game_GameStateManager_();
         var graphics = manager.GetGameGraphics();
         if (graphics !== null && graphics !== undefined)
-            return graphics.HasContext();
+            return graphics.plugin_.HasContext();
         else
             return false;
     };

@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Fonts
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Glyph
@@ -41,6 +42,9 @@ class FontManager
 
     // Each font uniquely produces a string key to the table.
     HashTable<text, FontStrategy> fontTable
+
+    // Used to determine if the program is being run in a web browser.
+    GameStateManager gameStateManager
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
@@ -130,6 +134,9 @@ class FontManager
 
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
+        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
+            // Temporary value for debugging. REMOVE ALL INSTANCES OF THIS (appears multiple times in file)
+            return true
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             if IsMacCatalina() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
@@ -209,6 +216,9 @@ class FontManager
             fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
+        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
+            // Temporary value for debugging. REMOVE ALL INSTANCES OF THIS (appears multiple times in file)
+            return fontFiles
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             if IsMacCatalina() //catalina changed the default
                 fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
@@ -238,11 +248,19 @@ class FontManager
         else
             FontStrategy strategy = CreateFontStrategy()
 
-            // A Text object is used to circumvent a bug in text primitives
-            // where the Split function breaks on Java regular expression characters.
-//            text keyValue = key
-//            keyValue:SetValue(key)
-            Array<text> fontValues = key:Split("\" + FONT_DELIMITER)
+            Array<text> fontValues = undefined
+
+            /*
+            On desktop platforms which are using Java, we need to pass the "\"
+            character in order to correctly process the delimiter due to how
+            Java handles escape characters in its Split call. For Javascript (on
+            the web) this isn't necessary.
+            */
+            if gameStateManager:GetOperatingSystem() = "Web Browser"
+                fontValues = key:Split(FONT_DELIMITER)
+            else
+                fontValues = key:Split("\" + FONT_DELIMITER)
+            end
 
             strategy:SetSize(cast(integer, fontValues:Get(2)))
             strategy:SetAngle(cast(number, fontValues:Get(3)))
@@ -282,6 +300,9 @@ class FontManager
         if useFreeType
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy
+        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
+            FontKitStrategy fontKitStrategy
+            strategy = fontKitStrategy
         else    // Linux and Android
             QuorumStrategy quorumStrategy
             strategy = quorumStrategy

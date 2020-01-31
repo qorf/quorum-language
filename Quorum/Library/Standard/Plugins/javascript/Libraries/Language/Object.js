@@ -32,6 +32,9 @@ function global_truncate_(value) {
 }
 
 function global_InstanceOf(variable, name) {
+    if (variable === null || variable === undefined)
+        return false;
+    
     var value = variable.parentNames_;
     if(variable.prototype != null) {
         value = variable.prototype.parentNames_;

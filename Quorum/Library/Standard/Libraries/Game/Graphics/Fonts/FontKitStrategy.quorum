@@ -5,16 +5,14 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Drawable
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
-use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureRegion
 
 /*
-The FreeTypeStrategy class is used to load fonts on the system using the FreeType
-font engine. 
+The FontKitStrategy class is used to handle font loading and usage on web 
+browsers. Most users will not need to use this class directly, as the action 
+calls are done within the Font class.
 
 Attribute: Example
 
@@ -30,94 +28,30 @@ Attribute: Example
         action CreateGame
             Font font
             Label label
-            if not font:IsFontAvailable("Verdana")
+            if not font:IsFontAvailable("Veranda")
                 output "The font could not be found!"
                 return now
             end
-            font:LoadFont("Verdana")
+            font:LoadFont("Veranda")
             font:SetSize(18)
             label:SetFont(font)
+            label:SetText("Hello world!")
             Add(label)
         end
     end
 */
-class FreeTypeStrategy is FontStrategy 
-    private integer size = 14
-    private number angle = 0
-    private integer height = 0
-    private boolean initialized = false
-    private HashTable<text, Glyph> glyphTable
-
-    private FontImageSheet imageSheet = undefined
-    private boolean loadedImageSheet = false
-
-    private text style = ""
-
-    on create
-        Color color
-        color = color:Black()
-        SetColor(color)
-    end
+class FontKitStrategy is FontStrategy
     
-    /*
-    This action sets the style of font to use, such as bold, italic, condensed,
-    and so on. This is only applicable to TrueTypeCollection (.ttc) files. Note
-    that this is not currently supported using the FreeType system.
+    integer size = 14
 
-    Attribute: Parameter newStyle The style of the font to load.
+    boolean initialized = false
 
-    Attribute: Example
+    action SetStyle(text style)
 
-        use Libraries.Game.Graphics.Font
-        use Libraries.System.File
-        use Libraries.Game.Game
-
-        class Main is Game
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Font font
-                File file
-                file:SetPath("CustomFont.ttf")
-                font:SetStyle("Bold")
-                font:LoadFont(file)
-            end
-        end
-    */
-    action SetStyle(text newStyle)
-        style = newStyle
     end
 
-    /*
-    This action changes the style of the font. This is only applicable to TrueTypeCollection
-    (.ttc) files. Note that this is not currently supported using the FreeType system.
-
-    Attribute: Parameter style The style of the font to change to.
-
-    Attribute: Example
-
-        use Libraries.Game.Graphics.Font
-        use Libraries.System.File
-        use Libraries.Game.Game
-
-        class Main is Game
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Font font
-                File file
-                file:SetPath("CustomFont.ttf")
-                font:LoadFont(file)
-                font:ChangeSubFont("Italic")
-            end
-        end
-    */
     action ChangeSubFont(text style)
-        
+
     end
 
     /*
@@ -145,15 +79,11 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action LoadFont(File fontFile)
-        if initialized
-            Dispose()
-            EmptyGlyphTable()
-        end
-
-        LoadFontNative(fontFile:GetAbsolutePath())
-        height = GetHeight()
+        LoadFontNative(fontFile)
         initialized = true
     end
+
+    private system action LoadFontNative(File fontFile)
 
     /*
     This action will load a font by name from the system. On Windows, this will
@@ -179,96 +109,20 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action LoadFont(text fontName)
-
-        File fontFile
-        text os = GetOS()
-
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            Properties properties
-            if IsMacCatalina() //catalina changed the default
-                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontFile:SetWorkingDirectory("/Library/Fonts")
-            end
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
-        end
-
-        text fontPath = FindFontExtension(fontName)
-        if fontPath = ""
-            alert("No font file named " + fontName + " could be found on the system!")
-        else
-            fontFile:SetPath(fontPath)
-            LoadFont(fontFile)
-        end
+        LoadFontNative(fontName)
+        initialized = true
     end
 
-    private system action LoadFontNative(text fontFile)
-
-    private action IsMacCatalina returns boolean
-        Properties properties
-        if properties:GetOperatingSystemVersion():Contains("10.15")
-            return true
-        else
-            return false
-        end
-    end
-
-    private action FindFontExtension(text fontName) returns text
-        File fontFile
-        text os = GetOS()
-
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalina() //catalina changed the default
-                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontFile:SetWorkingDirectory("/Library/Fonts")
-            end
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
-        end
-
-        boolean success = false
-        fontFile:SetPath(fontName + ".ttf")
-        
-        if fontFile:Exists()
-           return fontName + ".ttf"
-        else
-            fontFile:SetPath(fontName + ".ttc")
-            if fontFile:Exists()
-                return fontName + ".ttc"
-            else
-                fontFile:SetPath(fontName + ".otf")
-                if fontFile:Exists()
-                    return fontName + ".otf"
-                else
-                    fontFile:SetPath(fontName + ".dfont")
-                    if fontFile:Exists()
-                        return fontName + ".dfont"
-                    else
-                        return ""
-                    end
-                end
-            end
-        end
-    end
+    private system action LoadFontNative(text fontName)
 
     /*
     This action will look in the default system font folder and look for a font
     of the given name. If a font is found with the same name, the action will
     return true. Otherwise, it returns false.
 
-    Attribute: Parameter fontName The name of the font to check for on the system.
+    Attribute: Parameter fontName The name of the font to load.
 
-    Attribute: Returns Returns true if the font is on the system, and false otherwise.
+    Attribute: Returns Returns true if the font is on the system, and false if it is not.
 
     Attribute: Example
 
@@ -286,13 +140,7 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action IsFontAvailable(text fontName) returns boolean
-        if FindFontExtension(fontName) = ""
-            return false
-        else
-            return true
-        end
-    end
+    system action IsFontAvailable(text fontName) returns boolean
 
     /*
     This action will set the size of the font. The default font size is 14.
@@ -319,12 +167,10 @@ class FreeTypeStrategy is FontStrategy
         size = newSize
         if initialized
             SetSizeNative(newSize)
-            height = GetHeight()
-            EmptyGlyphTable()
         end
     end
 
-    private system action SetSizeNative(integer newSize)
+    private system action SetSizeNative(integer size)
 
     /*
     This action will return the current size of the font. The default font size
@@ -354,7 +200,8 @@ class FreeTypeStrategy is FontStrategy
 
     /*
     This action will rotate the characters produced by this font by the given
-    number of degrees.
+    number of degrees. This functionality is not currently supported for FontKit
+    (web browser) fonts.
 
     Attribute: Parameter rotation The number of degrees to rotate the font.
 
@@ -375,12 +222,13 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action Rotate(number rotation)
-        SetAngle(angle + rotation)
+        // Do nothing. Not currently supported for this font type.
     end
 
     /*
     This action will set the angle in degrees of the characters produced by this
-    font.
+    font. This functionality is not currently supported for FontKit (web
+    browser) fonts.
 
     Attribute: Parameter newAngle The number of degrees to angle the font by.
 
@@ -401,25 +249,8 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action SetAngle(number newAngle)
-        if newAngle <= -360
-            newAngle = newAngle - 360 * cast(integer, newAngle/360)
-        end
-        if newAngle < 0
-            newAngle = 360 + newAngle
-        end
-        if newAngle >= 360
-            newAngle = newAngle - 360 * cast(integer, newAngle/360)
-        end
-
-        angle = newAngle
-
-        if initialized
-            SetAngleNative(angle * -1)
-            EmptyGlyphTable()
-        end
+        // Do nothing. Not currently supported for this font type.
     end
-
-    private system action SetAngleNative(number angle)
 
     /*
     This action will set the color of the characters produced by this font.
@@ -444,15 +275,7 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action SetColor(Color newColor)
-        textChanged = true
-        if initialized
-            EmptyGlyphTable()
-        end
-        SetColorNative(newColor)
-    end
-
-    private system action SetColorNative(Color newColor)
+    system action SetColor(Color newColor)
 
     /*
     This action will return the color of the characters produced by this font.
@@ -479,10 +302,10 @@ class FreeTypeStrategy is FontStrategy
     system action GetColor returns Color
 
     /*
-    This action will return the current angle of the font. The default angle is
-    0 degrees.
+    This action will return the current angle of the font. For FontKit fonts,
+    rotation isn't supported, so this always returns 0.
 
-    Attribute: Returns Returns the current angle of the font.
+    Attribute: Returns Returns 0.
 
     Attribute: Example
 
@@ -501,7 +324,7 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action GetAngle returns number
-        return angle
+        return 0
     end
 
     /*
@@ -525,12 +348,7 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action Dispose
-        DisposeNative()
-        initialized = false
-    end
-
-    private system action DisposeNative
+    system action Dispose
 
     /*
     This action will return a Glyph object for this font's representation of the
@@ -558,46 +376,16 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action GetGlyph(text character) returns Glyph
-        if IsImageSheetAvailable() and imageSheet:SupportsCharacter(character)
-            return imageSheet:GetGlyph(character)
-        elseif glyphTable:HasKey(character)
-            return glyphTable:GetValue(character)
-        else
-            Glyph temp = GetGlyphNative(character)
-            glyphTable:Add(character, temp)
-            return temp
-        end
-    end
-
-    private system action GetGlyphNative(text character) returns Glyph
-
-    private action IsImageSheetAvailable returns boolean
-        if loadedImageSheet = false
-            FontImageSheet sheet
-            boolean success = LoadImageSheet(sheet)
-
-            if success
-                imageSheet = sheet
-            end
-
-            loadedImageSheet = true
-        end
-
-        return (imageSheet = undefined) = false
-    end
-
-    private system action LoadImageSheet(FontImageSheet sheet) returns boolean
+    system action GetGlyph(text character) returns Glyph
 
     /*
-    This action calculates the kerning value between a pair of characters and then
-    returns it.
+    This action will return the kerning value of two consecutive characters.
 
     Attribute: Parameter currentCharacter The first character in the pair.
 
     Attribute: Parameter nextCharacter The second character in the pair.
 
-    Attribute: Returns Returns the kerning value between these two characters.
+    Attribute: Returns Returns the kerning value between two characters.
 
     Attribute: Example
 
@@ -612,18 +400,16 @@ class FreeTypeStrategy is FontStrategy
             action CreateGame
                 Font font
                 font:LoadFont("Arial")
-                integer kerning = font:GetKerning("A", "V")
+                integer kerning = font:GetKerning("Y", "a")
             end
         end
     */
-    action GetKerning(text currentCharacter, text nextCharacter) returns integer
-        return 0
-    end
+    system action GetKerning(text currentCharacter, text nextCharacter) returns integer
 
     /*
     This action will check if the font has been loaded yet. If the font has
     been loaded, this will return true. Otherwise, it will return false.
-
+    
     Attribute: Returns Returns true if the font is loaded, and false if it is not.
 
     Attribute: Example
@@ -644,10 +430,14 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action IsLoaded returns boolean
-        return initialized
+        return initialized and FinishedLoading()
     end
 
-    private system action GetHeight returns integer
+    /*
+    FontKits loads asynchronously. Due to this, it's not enough to know that
+    we've sent the request to load -- it also must have finished the request.
+    */
+    private system action FinishedLoading returns boolean
 
     /*
     This action will return the height of each line of text produced by this font.
@@ -671,9 +461,7 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action GetLineHeight returns integer
-        return height
-    end
+    system action GetLineHeight returns integer
 
     /*
     This action will return an array of all files found in the system's default
@@ -706,68 +494,12 @@ class FreeTypeStrategy is FontStrategy
             end
         end
     */
-    action GetAvailableFonts returns Array<File>
+    system action GetAvailableFonts returns Array<File>
 
-        text os = GetOS()
+    system action GetMaximumAscent returns integer
 
-        Array<File> fontFiles = undefined
-        File fontDirectory
+    system action GetMaximumDescent returns integer
 
-        if os:Contains("Windows")
-            fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontDirectory:SetWorkingDirectory("/Library/Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("iOS Device")
-            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        else
-            // Find fonts for a linux system.
-        end
+    system action GetLineGap returns integer
 
-        return fontFiles
-    end
-    
-    // Used to determine where to look for available fonts.
-    private action GetOS returns text
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-        return os
-    end
-
-    private action EmptyGlyphTable
-        Iterator<Glyph> glyphs = glyphTable:GetValueIterator()
-        Glyph temp = undefined
-        TextureRegion tempDrawable = undefined
-        repeat while glyphs:HasNext()
-            temp = glyphs:Next()
-            tempDrawable = temp:texture
-
-            if tempDrawable not= undefined
-                tempDrawable:Dispose()
-            end
-        end
-        glyphTable:Empty()
-
-        // Reset the FontImageSheet as well.
-        imageSheet:Dispose()
-        imageSheet = undefined
-        loadedImageSheet = false
-    end
-
-    action GetMaximumAscent returns integer
-        return 0
-    end
-
-    action GetMaximumDescent returns integer
-        return 0
-    end
-
-    action GetLineGap returns integer
-        return 0
-    end
 end

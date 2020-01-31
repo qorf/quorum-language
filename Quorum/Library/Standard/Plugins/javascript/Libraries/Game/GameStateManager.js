@@ -8,12 +8,15 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     plugins_quorum_Libraries_Game_GameStateManager_.nativePath
     plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem    
     plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics
+    plugins_quorum_Libraries_Game_GameStateManager_.fontManager
     */
 
     if (!plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_)
     {
-        plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem = "Web Browser";
         plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_ = true;
+        
+        plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem = "Web Browser";
+        plugins_quorum_Libraries_Game_GameStateManager_.fontManager = new quorum_Libraries_Game_Graphics_Fonts_FontManager_();
     }
     
     this.SetGame$quorum_Libraries_Game_Game = function(game)
@@ -95,5 +98,15 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetOperatingSystem = function() 
     {
         return plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem;
+    };
+    
+    this.SetFontManager$quorum_Libraries_Game_Graphics_Fonts_FontManager = function(fontManager)
+    {
+        plugins_quorum_Libraries_Game_GameStateManager_.fontManager = fontManager;
+    };
+    
+    this.GetFontManager = function()
+    {
+        return plugins_quorum_Libraries_Game_GameStateManager_.fontManager;
     };
 }
