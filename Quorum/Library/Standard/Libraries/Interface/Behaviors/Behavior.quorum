@@ -18,6 +18,9 @@ the system.
 */
 class Behavior 
 
+    boolean runOnUpdate = false
+    boolean hasBeenRun = false
+
     /*
         When an action is taken with this Behavior, run is called. For example, 
         if a button is clicked in the user interface, Run would be called.
@@ -53,5 +56,43 @@ class Behavior
     */
     action IsFinished returns boolean
         return false
+    end
+
+    /*
+        The SetRunOnUpdate action determines when a behavior should be first run
+        when the behavior is added to an Item. If the value is false, then the
+        Behavior's Run action will be called immediately when it is added to an
+        Item. If it is true, it will be called during the next update loop.
+    */
+    action SetRunOnUpdate(boolean run)
+        runOnUpdate = run
+    end
+
+    /*
+        The IsRunningOnUpdate action returns true if this Behavior calls its Run
+        action during the Game's update loop, and returns false if the Behavior
+        calls its Run action immediately upon being added to an Item. The default
+        value is false.
+    */
+    action IsRunningOnUpdate returns boolean
+        return runOnUpdate
+    end
+
+    /*
+        This action returns true if the Behavior has been run by a current item that
+        it has been added to. This is an internal flag used by the engine, and most
+        users will never need this functionality.
+    */
+    action HasBeenRun returns boolean
+        return hasBeenRun
+    end
+
+    /*
+        This action sets a flag indicating if the Behavior has been run by the
+        current Item this Behavior has been added to. This is used internally by
+        the engine, and most users should never need this functionality.
+    */
+    action SetHasRunFlag(boolean hasRun)
+        hasBeenRun = hasRun
     end
 end
