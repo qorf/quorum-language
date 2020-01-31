@@ -44,7 +44,7 @@ class Compiler
     Array<File> additionalPluginFolders
     Array<File> additionalJarFiles
     boolean hasBeenCompiled = false
-    boolean writeJavaScriptToDisk = false
+    boolean writeJavaScriptToDisk = true
     CodeCompletionHandler codeCompletionhandler
     DocumentationGenerator documentationGenerator
 
@@ -488,14 +488,14 @@ class Compiler
             elseif request:GetOutputType() = JAVASCRIPT
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
-                Iterator<Class> iterator = table:GetClasses()
-                repeat while iterator:HasNext()
-                    Class value = iterator:Next()
-                    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
-                    if op not= undefined
-                        classOpcodes:Add(op)
-                    end
-                end
+                //Iterator<Class> iterator = table:GetClasses()
+                //repeat while iterator:HasNext()
+                //    Class value = iterator:Next()
+                //    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
+                //    if op not= undefined
+                //        classOpcodes:Add(op)
+                //    end
+                //end
                 convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
                 result:convertedJavaScript = convertedJavaScript
                 if IsWritingJavaScriptToDisk()
