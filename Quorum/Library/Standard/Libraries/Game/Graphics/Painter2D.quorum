@@ -448,6 +448,13 @@ class Painter2D
     */
     action Draw(Drawable drawable)
         drawable:SetClipCoordinates(me)
+
+        // If the clip width or height is negative, then the drawing region is
+        // empty. Don't bother drawing it.
+        if clipWidth < 0 or clipHeight < 0
+            return now
+        end
+
         SystemDraw(drawable)
     end
 

@@ -14,6 +14,7 @@ class TextUnderline is TextHighlight
     
     Texture texture = undefined
     ColorGroup color = undefined
+    boolean isError = false
 
     on create
         Color c
@@ -99,4 +100,23 @@ class TextUnderline is TextHighlight
         return color
     end
 
+    /*
+    The SetErrorFlag action is used to designate this underline as representing
+    an error in the text, most commonly a spelling error. This is used by the
+    accessibility platform to inform screen readers if they interact with a
+    spelling error.
+    */
+    action SetErrorFlag(boolean error)
+        isError = error
+    end
+
+    /*
+    This action returns a value indicating whether or not this underline
+    represents an error in the text, most commonly a spelling error. This is
+    used by the accessibility platform to inform screen readers if they interact
+    with a spelling error. By default, this value returns false.
+    */
+    action IsError returns boolean
+        return isError
+    end
 end
