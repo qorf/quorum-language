@@ -181,6 +181,7 @@ use Libraries.Interface.Undo.EditManager
 use Libraries.Interface.Behaviors.Controls.TreeSelectFirstBehavior
 use Libraries.Interface.Behaviors.Controls.TreeSelectLastBehavior
 use Libraries.System.File
+use Libraries.System.SystemHelper
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -274,6 +275,10 @@ class Game
     */
     action StartGame
         manager:SetGame(me)
+
+        SystemHelper systemHelper
+        manager:SetMainThreadName(systemHelper:GetThreadName())
+
         Application application = SelectApplicationType()
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")

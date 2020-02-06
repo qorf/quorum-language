@@ -170,4 +170,19 @@ class GameStateManager
         return display not= undefined and display:IsAvailable()
     end
 
+    /*
+    This action sets the identifier for the main thread. Any work that interacts
+    directly with the graphics system, including adding or removing items from
+    the game, must be done on the main thread. This is set automatically by the
+    game engine, and users should never need to call this directly.
+    */
+    system action SetMainThreadName(text name)
+
+    /*
+    This action returns the identifier for the main thread. Any work that
+    interacts directly with teh graphics system, including adding or removing
+    items from the game, must be done on the main thread -- otherwise, an error
+    will occur.
+    */
+    system action GetMainThreadName returns text
 end

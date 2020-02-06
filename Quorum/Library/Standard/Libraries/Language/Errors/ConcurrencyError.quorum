@@ -1,0 +1,38 @@
+package Libraries.Language.Errors
+
+use Libraries.Language.Errors.Error
+
+/*
+The ConcurrencyError class is an error or exception that is thrown when code
+attempts to access resources that the current thread is not allowed to use.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Drawable
+use Libraries.Language.Errors.ConcurrencyError
+
+class Main is Game
+   action Main
+      StartGame()
+   end
+
+    action CreateGame
+        check
+            // Adding an item to the game on the wrong thread will cause an error.
+            // This can't typically happen in CreateGame, but more complex programs
+            // might otherwise add or manipulate objects in a different thread.
+            Drawable box
+            box:LoadFilledRectangle(100, 100)
+            Add(box)
+        detect e is ConcurrencyError
+            output "Error detected: " + e:GetErrorMessage()
+        end
+    end
+end
+*/
+class ConcurrencyError is Error
+    on create
+        SetErrorMessage("Concurrency Error: I tried to do something in a thread that wasn't allowed to do that.")
+    end
+end
