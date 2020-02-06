@@ -27,6 +27,8 @@ import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
 import quorum.Libraries.Interface.Controls.Tab_;
 import quorum.Libraries.Interface.Controls.TextField_;
+import quorum.Libraries.Interface.Controls.TextStyles.TextHighlight_;
+import quorum.Libraries.Interface.Controls.TextStyles.TextStyle_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Controls.TreeTableCell_;
@@ -1154,5 +1156,18 @@ public class AccessibilityManager
     public static void PauseEventPolling()
     {
         ((quorum.Libraries.Game.DesktopDisplay)GameStateManager.display).plugin_.PauseEventPolling();
+    }
+    
+    public static boolean IsErrorAtIndex(TextBox_ textBox, int index)
+    {
+        Array_ array = textBox.GetTextStylesAtIndex(index);
+        for (int i = 0; i < array.GetSize(); i++)
+        {
+            TextHighlight_ highlight = ((TextStyle_)array.Get(i)).GetHighlight();
+            if (highlight != null && highlight.IsError())
+                return true;
+        }
+            
+        return false;
     }
 }

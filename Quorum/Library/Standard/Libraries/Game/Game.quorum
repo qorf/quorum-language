@@ -57,6 +57,8 @@ use Libraries.Interface.Behaviors.Controls.TextBoxRemoveIndentationBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxOpenKeyboardBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToDocumentStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToDocumentEndBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectToDocumentStartBehavior
+use Libraries.Interface.Behaviors.Controls.TextBoxSelectToDocumentEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenEndBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretToTokenStartBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxSelectToTokenStartBehavior
@@ -635,6 +637,20 @@ class Game
             TextBoxCaretToDocumentEndBehavior textBoxCaretToDocumentEndBehavior
             textBoxTable:Add(textBoxControlEnd, textBoxCaretToDocumentEndBehavior)
 
+            InputSet textBoxShiftControlHome
+            textBoxShiftControlHome:SetKeyboardInput(keys:UP)
+            textBoxShiftControlHome:AddModifier(textBoxShiftControlHome:SHIFT)
+            textBoxShiftControlHome:AddModifier(textBoxShiftControlHome:META)
+            TextBoxSelectToDocumentStartBehavior textBoxSelectToDocumentStartBehavior
+            textBoxTable:Add(textBoxShiftControlHome, textBoxSelectToDocumentStartBehavior)
+
+            InputSet textBoxShiftControlEnd
+            textBoxShiftControlEnd:SetKeyboardInput(keys:DOWN)
+            textBoxShiftControlEnd:AddModifier(textBoxShiftControlEnd:SHIFT)
+            textBoxShiftControlEnd:AddModifier(textBoxShiftControlEnd:META)
+            TextBoxSelectToDocumentEndBehavior textBoxSelectToDocumentEndBehavior
+            textBoxTable:Add(textBoxShiftControlEnd, textBoxCaretToDocumentEndBehavior)
+
             InputSet textBoxAltRight
             textBoxAltRight:SetKeyboardInput(keys:RIGHT)
             textBoxAltRight:AddModifier(textBoxAltRight:ALT)
@@ -697,6 +713,20 @@ class Game
             textBoxControlEnd:AddModifier(textBoxControlEnd:CONTROL)
             TextBoxCaretToDocumentEndBehavior textBoxCaretToDocumentEndBehavior
             textBoxTable:Add(textBoxControlEnd, textBoxCaretToDocumentEndBehavior)
+
+            InputSet textBoxShiftControlHome
+            textBoxShiftControlHome:SetKeyboardInput(keys:HOME)
+            textBoxShiftControlHome:AddModifier(textBoxShiftControlHome:SHIFT)
+            textBoxShiftControlHome:AddModifier(textBoxShiftControlHome:CONTROL)
+            TextBoxSelectToDocumentStartBehavior textBoxSelectToDocumentStartBehavior
+            textBoxTable:Add(textBoxShiftControlHome, textBoxSelectToDocumentStartBehavior)
+
+            InputSet textBoxShiftControlEnd
+            textBoxShiftControlEnd:SetKeyboardInput(keys:END)
+            textBoxShiftControlEnd:AddModifier(textBoxShiftControlEnd:SHIFT)
+            textBoxShiftControlEnd:AddModifier(textBoxShiftControlEnd:CONTROL)
+            TextBoxSelectToDocumentEndBehavior textBoxSelectToDocumentEndBehavior
+            textBoxTable:Add(textBoxShiftControlEnd, textBoxCaretToDocumentEndBehavior)
 
             InputSet textBoxControlRight
             textBoxControlRight:SetKeyboardInput(keys:RIGHT)

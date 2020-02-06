@@ -6,6 +6,8 @@ class TextHighlight
 
     boolean isLineHighlight = false
     boolean visibleWhileSelected = true
+    boolean isError = false
+
 
     /*
     This action returns a Drawable representing the visual content of a text
@@ -52,5 +54,25 @@ class TextHighlight
     */
     action IsVisibleWhileSelected returns boolean
         return visibleWhileSelected
+    end
+
+    /*
+    The SetErrorFlag action is used to designate this highlight as representing
+    an error in the text, most commonly a spelling error. This is used by the
+    accessibility platform to inform screen readers if they interact with a
+    spelling error.
+    */
+    action SetErrorFlag(boolean error)
+        isError = error
+    end
+
+    /*
+    This action returns a value indicating whether or not this highlight
+    represents an error in the text, most commonly a spelling error. This is
+    used by the accessibility platform to inform screen readers if they interact
+    with a spelling error. By default, this value returns false.
+    */
+    action IsError returns boolean
+        return isError
     end
 end

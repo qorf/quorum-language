@@ -120,7 +120,6 @@ void TextBoxControl::UpdateCaret()
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute)
 {
-	UNREFERENCED_PARAMETER(start);
 	VARIANT retval;
 	VariantInit(&retval);
 
@@ -264,6 +263,24 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID
 		{
 			retval.lVal = CaretPosition_Unknown;
 		}
+	}
+	else if (attribute == UIA_AnnotationTypesAttributeId)
+	{
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			bool hasErrors = env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, start);
+			if (hasErrors)
+			{
+				retval.vt = VT_I4;
+				retval.lVal = AnnotationType_SpellingError;
+			}
+		}
+	}
+	else if (attribute == UIA_AnnotationObjectsAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = NULL;
 	}
 	else if (attribute == UIA_CaretBidiModeAttributeId)
 	{

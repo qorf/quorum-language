@@ -89,6 +89,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetListItemText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetListItemText", "(Lquorum/Libraries/Language/Object_;)Ljava/lang/String;");
 	JavaClass_AccessibilityManager.GetBoundingRectangle = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetBoundingRectangle", "(Lquorum/Libraries/Language/Object_;)[D");
 	JavaClass_AccessibilityManager.PauseEventPolling = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "PauseEventPolling", "()V");
+	JavaClass_AccessibilityManager.IsErrorAtIndex = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsErrorAtIndex", "(Lquorum/Libraries/Interface/Controls/TextBox_;I)Z");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
