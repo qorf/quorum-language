@@ -45,4 +45,8 @@ public class SystemHelper
     public int GetAvailableProcessors() {
         return Runtime.getRuntime().availableProcessors();
     }
+    
+    public String GetThreadName() {
+        return "" + Thread.currentThread().getId();
+    }
 }
