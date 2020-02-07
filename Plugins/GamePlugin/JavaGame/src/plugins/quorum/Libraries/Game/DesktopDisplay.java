@@ -201,6 +201,8 @@ public class DesktopDisplay {
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
         
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, glBoolean(config.Get_Libraries_Game_DesktopConfiguration__resizable_()));
+        GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, glBoolean(config.Get_Libraries_Game_DesktopConfiguration__maximized_()));
+        
         // For ease of compatability with the LWJGL 2 release, we request OpenGL 2.1.
         // This may change to a more modern release in the future.
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
@@ -610,6 +612,31 @@ public class DesktopDisplay {
     public boolean IsAvailable()
     {
         return GLFW.glfwGetCurrentContext() != 0;
+    }
+    
+    public void MaximizeWindow()
+    {
+        GLFW.glfwMaximizeWindow(window);
+    }
+    
+    public boolean IsWindowMaximized()
+    {
+        return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+    }
+    
+    public void MinimizeWindow()
+    {
+        GLFW.glfwIconifyWindow(window);
+    }
+    
+    public boolean IsWindowMinimized()
+    {
+        return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
+    }
+    
+    public void RestoreWindow()
+    {
+        GLFW.glfwRestoreWindow(window);
     }
     
     public void SetWindowIcon(String fileName)
