@@ -2779,6 +2779,116 @@ class Game
     end
 
     /*
+    This action maximizes the screen, or restores a maximized screen to its
+    original size. If this is called before the Game window opens, it will
+    launch the window in maximized mode. If the Game is being displayed in
+    full screen, this action will do nothing. This action is only for desktop
+    platforms -- on other platforms, it does nothing.
+
+    Attribute: Parameter maximized True to maximize the window, or false to restore it to its original size.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                SetWindowMaximized(true)
+                StartGame()
+            end
+        end
+    */
+    action SetWindowMaximized(boolean maximized)
+        desktopConfig:maximized = maximized
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+
+            if maximized
+                if display:IsWindowMaximized() = false
+                    display:MaximizeWindow()
+                end
+            else
+                if display:IsWindowMaximized() = true
+                    display:RestoreWindow()
+                end
+            end
+        end
+    end
+
+    /*
+    On desktop platforms, this action returns true if the application is in a
+    maximized window, or false otherwise. On other platforms, this always
+    returns false.
+
+    Attribute: Returns True if the window is maximized, false otherwise.
+    */
+    action IsWindowMaximized returns boolean
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:IsWindowMaximized()
+        end
+        return false
+    end
+
+    /*
+    This action minimizes the screen, or restores a minimized screen to its
+    original size. This action is only for desktop platforms -- on other 
+    platforms, it does nothing.
+
+    Attribute: Parameter minimized True to minimize the window, or false to restore it to its original size.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                SetWindowMinimized(true)
+            end
+        end
+    */
+    action SetWindowMinimized(boolean minimized)
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+
+            if minimized
+                if display:IsWindowMinimized() = false
+                    display:MinimizeWindow()
+                end
+            else
+                if display:IsWindowMinimized() = true
+                    display:RestoreWindow()
+                end
+            end
+        end
+    end
+
+    /*
+    On desktop platforms, this action returns true if the application is
+    currently minimized, or false otherwise. On other platforms, this always
+    returns false.
+
+    Attribute: Returns True if the window is maximized, false otherwise.
+    */
+    action IsWindowMinimized returns boolean
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:IsWindowMinimized()
+        end
+        return false
+    end
+
+    /*
     This action enables or disables vSync in the game. Passing a value of true
     enables it, a value of false disables it. vSync is enabled by default. 
     This action should be called before calling StartGame(). This option is only
