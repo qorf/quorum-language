@@ -1,5 +1,6 @@
-// Generated from /Users/stefika/Repositories/quorum-language/Quorum3Plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Compile/Quorum.g4 by ANTLR 4.2.2
+// Generated from Quorum.g4 by ANTLR 4.2.2
 package plugins.quorum.Libraries.Language.Compile;
+
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
