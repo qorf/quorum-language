@@ -22,7 +22,7 @@ reference : USE name=qualified_name ;
 class_declaration 	
         :	
 	(
-	CLASS ID
+	STATIC? CLASS ID
             generic_declaration?
             inherit_stmnts?       
             class_stmnts*
@@ -262,6 +262,7 @@ RETURN 	:	'return';
 AND	:	'and';
 OR 	:	'or';
 NULL	:	'undefined';
+STATIC  :       'shared';
 ACTION 
 	:	'action'
 	;
