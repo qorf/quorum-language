@@ -54,6 +54,7 @@ class Class is Symbol
     text staticKey = ""
     text staticKeyUnderscores = ""
     text staticKeySlashes = ""
+    boolean staticClass = false
 
     on create
         QualifiedName object
@@ -102,6 +103,14 @@ class Class is Symbol
         errorObject:Add("Error")
 
         AddUnresolvedUseStatement(errorObject)
+    end
+
+    action IsStaticClass returns boolean
+        return staticClass
+    end
+
+    action SetStaticClass(boolean value)
+        staticClass = value
     end
 
     action AddUseLocation(Location location) 

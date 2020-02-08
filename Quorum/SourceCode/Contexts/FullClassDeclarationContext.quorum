@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Location
 
 class FullClassDeclarationContext is ParseContext
     public text className = ""
+    public boolean staticClass = false
     public QualifiedName name = undefined
     public Location classNameLocation
 end

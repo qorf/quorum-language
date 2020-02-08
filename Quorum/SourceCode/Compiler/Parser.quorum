@@ -83,6 +83,10 @@ class Parser is QuorumSourceListener
         CheckName(name, context:GetLocation())
         AddClass(name)
         isFirstGenericInFile = true
+
+        boolean isStatic = context:staticClass
+        currentClass:SetStaticClass(isStatic)
+
         if not documents:IsEmpty()
             Documentation doc = documents:Pop()
             if currentClass not= undefined
@@ -103,7 +107,7 @@ class Parser is QuorumSourceListener
         end
 
         QualifiedName generics = context:name
-
+        
         i = 0
         repeat generics:GetNumberGenerics() times
             currentClass:AddGeneric(generics:GetGeneric(i))
