@@ -55,9 +55,33 @@ class CreateObjectOpcode is QuorumOpcode
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 //methodWriter:VisitType(opcodes:GetCheckCast(), fieldHolder:ConvertStaticKeyToBytecodeInterfacePath())
             end
-            methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
-            methodWriter:VisitInstruction(opcodes:GetDuplicate())
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+            
+
+            if clazz:IsStatic() //"Lplugins/quorum/" + staticKeySlashes + ";"
+                //first get the static class, if it exists and duplicate the reference
+                methodWriter:VisitConstant(clazz:GetStaticKey())
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
+                
+                //now check if it's null. If it is, create the object and toss it in the static hash.
+                JavaBytecodeLabel endLabel
+                methodWriter:VisitJump(opcodes:GetIfNonNull(), endLabel) //jump to the end if it's there
+
+                //it's not there, so load a string, then the object, and put it in the hash
+                methodWriter:VisitConstant(clazz:GetStaticKey())
+                methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath()) //one left on the stack
+                methodWriter:VisitInstruction(opcodes:GetDuplicate())
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
+                methodWriter:VisitLabel(endLabel)
+
+                methodWriter:VisitConstant(clazz:GetStaticKey())
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
+                                
+            else
+                methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
+                methodWriter:VisitInstruction(opcodes:GetDuplicate())
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+            end
 
             if variable:IsField()
                 Class fieldHolder = variable:GetParentClass()

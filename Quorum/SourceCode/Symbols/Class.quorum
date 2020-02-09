@@ -105,11 +105,11 @@ class Class is Symbol
         AddUnresolvedUseStatement(errorObject)
     end
 
-    action IsStaticClass returns boolean
+    action IsStatic returns boolean
         return staticClass
     end
 
-    action SetStaticClass(boolean value)
+    action SetStatic(boolean value)
         staticClass = value
     end
 

@@ -85,7 +85,7 @@ class Parser is QuorumSourceListener
         isFirstGenericInFile = true
 
         boolean isStatic = context:staticClass
-        currentClass:SetStaticClass(isStatic)
+        currentClass:SetStatic(isStatic)
 
         if not documents:IsEmpty()
             Documentation doc = documents:Pop()
