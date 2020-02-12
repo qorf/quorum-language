@@ -54,6 +54,9 @@ struct JClass_AccessibilityManager
 
 	// Used to determine if spelling errors are present at a given index in a TextBox.
 	jmethodID IsErrorAtIndex;
+
+	// Used when navigating by word to return new lines as needed.
+	jmethodID IsIndexAtEndOfLine;
 };
 struct JClass_TextBox
 {
