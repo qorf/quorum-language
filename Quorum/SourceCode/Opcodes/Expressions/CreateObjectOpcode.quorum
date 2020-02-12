@@ -60,7 +60,8 @@ class CreateObjectOpcode is QuorumOpcode
             if clazz:IsStatic() //"Lplugins/quorum/" + staticKeySlashes + ";"
                 //first get the static class, if it exists and duplicate the reference
                 methodWriter:VisitConstant(clazz:GetStaticKey())
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
+                text className = "plugins/quorum/Libraries/Language/Object"
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), className, "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
                 
                 //now check if it's null. If it is, create the object and toss it in the static hash.
                 JavaBytecodeLabel endLabel
@@ -71,11 +72,11 @@ class CreateObjectOpcode is QuorumOpcode
                 methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath()) //one left on the stack
                 methodWriter:VisitInstruction(opcodes:GetDuplicate())
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), className, "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
                 methodWriter:VisitLabel(endLabel)
 
                 methodWriter:VisitConstant(clazz:GetStaticKey())
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "Lplugins/quorum/Libraries/Language/Object;", "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), className, "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
                                 
             else
                 methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
