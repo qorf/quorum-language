@@ -1319,8 +1319,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             size = size - separator:GetSize()
         end
 
-        position = position - leftCharacterPadding
-
         number x1 = 0
         integer counter = 0
         Array<Gutter> gutters = background:GetGutters()

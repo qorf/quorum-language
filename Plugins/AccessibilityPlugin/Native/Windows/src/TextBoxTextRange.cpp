@@ -160,10 +160,17 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 		JNIEnv* env = GetJNIEnv();
 		if (env != NULL)
 		{
-			if (!env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, m_range.begin))
-				m_range.begin = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenStartIndex, m_range.begin);
+			if (env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsIndexAtEndOfLine, m_pTextBoxControl->GetMe(), m_range.begin))
+			{
+				m_range.end = m_range.begin + 1;
+			}
+			else
+			{
+				if (!env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, m_range.begin))
+					m_range.begin = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenStartIndex, m_range.begin);
 
-			m_range.end = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenEndIndex, m_range.begin);
+				m_range.end = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenEndIndex, m_range.begin);
+			}
 		}
 	}
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)

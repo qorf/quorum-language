@@ -1170,4 +1170,14 @@ public class AccessibilityManager
             
         return false;
     }
+    
+    public static boolean IsIndexAtEndOfLine(TextBox_ textBox, int globalIndex)
+    {
+        int line = textBox.GetLineIndexOfCharacter(globalIndex);
+        int lineIndex = globalIndex - textBox.GetIndexOfLine(line);
+        String text = textBox.GetLine(line);
+        String separator = textBox.GetLineSeparator();
+        
+        return lineIndex == (text.length() - separator.length()) && text.endsWith(separator);
+    }
 }
