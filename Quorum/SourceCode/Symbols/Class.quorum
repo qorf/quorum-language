@@ -1481,6 +1481,7 @@ class Class is Symbol
 
     action ResolveParents(SymbolTable table, CompilerErrorManager errors)
         isResolvingParents = true
+        HashTable<text, QualifiedName> tempHash
         Iterator<QualifiedName> names = GetUnresolvedParents()
         repeat while names:HasNext()
             QualifiedName name = names:Next()
@@ -1488,6 +1489,7 @@ class Class is Symbol
 
             if myParent not= undefined //if it is defined, add it as a valid parent
                 parents:Add(myParent:GetStaticKey(), myParent)
+                tempHash:Add(myParent:GetStaticKey(), name)
             end //if it is not, ignore it, as an error has already been issued
         end
 
@@ -1521,6 +1523,35 @@ class Class is Symbol
                 areParentsResolved = true
             end
 
+            //also make sure the parent is not a shared class
+            //There is a technical solution to make this work, but 
+            //allowing it could be confusing for users and more studies are required.
+            if next:IsStatic()
+                CompilerError error
+                text a = ""
+                a = a:GetDoubleQuote()
+                error:SetErrorMessage("The parent " + a + next:GetStaticKey() + a + 
+                    " is a shared class, which cannot be inherited from. Please remove the reference to "
+                    + a + next:GetStaticKey() + a + " after the " + a + " is " + a + " statement in class " + GetStaticKey()) 
+ 
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:SHARED_PARENT_CLASS)
+                error:SetCompilerErrorType(errorType)
+                error:SetLineNumber(me:GetLineNumber())
+                error:SetLineNumberEnd(me:GetLineNumber())
+                error:SetFile(me:GetFile())
+                
+                QualifiedName value = tempHash:GetValue(next:GetStaticKey())
+                if value = undefined
+                    error:SetIndex(me:GetIndex())
+                    error:SetIndexEnd(me:GetIndex() + GetName():GetSize() + 5) //the class and the name
+                else 
+                    error:SetIndex(value:GetIndex())
+                    error:SetIndexEnd(value:GetIndexEnd()) //the class and the name
+                end
+
+                errors:Add(error)
+            end
 
             //otherwise check if the parent is resolved
             if not next:AreParentsResolved()
