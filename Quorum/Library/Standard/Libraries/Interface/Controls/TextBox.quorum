@@ -808,7 +808,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         Array<Drawable> lineDrawables = background:GetLine(lineIndex)
 
-        if startIndex >= lineDrawables:GetSize() or startIndex >= currentLine:GetSize()
+        if lineDrawables = undefined or startIndex >= lineDrawables:GetSize() or startIndex >= currentLine:GetSize()
             return now
         end
 
