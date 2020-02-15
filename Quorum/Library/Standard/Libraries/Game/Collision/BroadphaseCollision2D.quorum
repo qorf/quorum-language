@@ -62,6 +62,10 @@ class BroadphaseCollision2D
 
     integer queryNodeID = -1
 
+    //used only in UpdatePairs
+    integer pairListAmount = -1
+    integer moveListAmount = -1
+
     /*
     This action creates a new node for the Dynamic Bounding Volume Tree with the
     given BoundingBox and given Item and inserts the new node as a leaf in the 
@@ -344,7 +348,7 @@ class BroadphaseCollision2D
     */
     action UpdatePairs(CollisionManager2D collision)
         pairCount = 0
-        pairList:Empty()
+        pairList:Empty(false)
 
         integer i = 0
         repeat while i < moveCount
@@ -357,7 +361,7 @@ class BroadphaseCollision2D
         end
 
         moveCount = 0
-        moveList:Empty()
+        moveList:Empty(false)
 
         pairList:Sort()
         i = 0
@@ -379,6 +383,18 @@ class BroadphaseCollision2D
                 end
             end
         end
+
+        if pairListAmount > pairList:GetSize()
+            pairList:ClearContents(pairList:GetSize(), pairListAmount - 1 )
+        end
+
+        pairListAmount = pairList:GetSize()
+
+        if moveListAmount > moveList:GetSize()
+            moveList:ClearContents(moveList:GetSize(), moveListAmount - 1 )
+        end
+
+        moveListAmount = moveList:GetSize()
     end
 
     /*

@@ -1312,17 +1312,29 @@ class Layer2D is Layer
         array:Add(root)
     end
 
+    integer lastDepthSort = -1
+    Array<Item2D> depthSortTemp
     private action CalculateDepthSortedArray
-        depthSortedArray:Empty()
-
+        depthSortedArray:Empty(false)
+        
         integer i = items:GetSize()
+
         repeat while i > 0
             i = i - 1
             GetDepthSortedItems(items:Get(i), depthSortedArray)
         end
 
+        if lastDepthSort > depthSortedArray:GetSize() 
+            depthSortedArray:ClearContents(depthSortedArray:GetSize(), lastDepthSort - 1)
+        end
+        lastDepthSort = depthSortedArray:GetSize()
+
         if shouldSortDepthBuffer
-            depthSortedArray:Sort(depthSorter)
+            if depthSortTemp:GetSize() not= depthSortedArray:GetSize() 
+                depthSortTemp:SetMaxSize(depthSortedArray:GetSize())
+                depthSortTemp:SetSize(depthSortedArray:GetSize())
+            end
+            depthSortedArray:Sort(depthSorter, depthSortTemp)
         end
     end
 
