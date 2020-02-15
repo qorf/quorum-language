@@ -154,10 +154,13 @@ public class Painter3D
             }
             currentShader.Render(renderable);
         }
-        if (currentShader != null)
+        if (currentShader != null) {
             currentShader.End();
+        }
         
-        renderables.Empty();
+        if(!renderables.IsEmpty()) {
+            renderables.Empty(false);
+        }
     }
     
     public void RenderNative(Renderable_ renderable)
