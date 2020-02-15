@@ -821,9 +821,12 @@ class Array <Type>
     */
     system action Empty(boolean value)
 
+    /*
+        This action clears out any remnant objects. This should only be used if
+        Empty(false) was used.
+    */
     system action ClearContents(integer start, integer stop)
 
-    //system action CreateArrayAtSize(integer size) returns Array<Temp>
     /*
         This action returns a boolean value, true if the container is empty and false if it contains any items. 
 
