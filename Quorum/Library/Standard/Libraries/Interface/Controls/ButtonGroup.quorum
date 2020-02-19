@@ -12,6 +12,8 @@ class ButtonGroup is Control
     ButtonGroupSelection selection
     
     on create
+        SetAccessibilityCode(parent:Item:GROUP)
+
         SetFocusable(true)
         FlowLayout layout
         SetLayout(layout)

@@ -11,6 +11,7 @@ import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
+import quorum.Libraries.Interface.Controls.ButtonGroup_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Cell_;
 import quorum.Libraries.Interface.Controls.Column_;
@@ -83,7 +84,8 @@ public class AccessibilityManager
         TREE_TABLE,
         DIALOG,
         POPUP_MENU,
-        PROGRESS_BAR
+        PROGRESS_BAR,
+        GROUP
     }
             
     enum MenuChanges {
@@ -139,6 +141,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__DIALOG_(), AccessibilityCodes.DIALOG);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__POPUP_MENU_(), AccessibilityCodes.POPUP_MENU);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PROGRESS_BAR_(), AccessibilityCodes.PROGRESS_BAR);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__GROUP_(), AccessibilityCodes.GROUP);
         
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -188,7 +191,7 @@ public class AccessibilityManager
     private native long CreateItemNative(long parent, String name, String description, Item_ item);
     private native long CreateButtonNative(long parent, String name, String description, Item_ item);
     private native long CreateCheckBoxNative(long parent, String name, String description, Item_ item);
-    private native long CreateRadioButtonNative(long parent, String name, String description, Item_ item);
+    private native long CreateRadioButtonNative(long parent, String name, String description, long group, Item_ item);
     private native long CreateTextBoxNative(long parent, String name, String description, TextBox_ quorumSelf);
     private native long CreateTextFieldNative(long parent, String name, String description, TextField_ quorumField);
     private native long CreateMenuBarNative(long parent, String name, Item_ item);
@@ -206,6 +209,7 @@ public class AccessibilityManager
     private native long CreateTreeTableNative(long parent, String name, Item_ item);
     private native long CreateMenuItemNative(long parent, String name, String shortcut, boolean isMenu, long parentMenu, long parentMenuBar, Item_ item, boolean isPopupMenu);
     private native long CreateTreeItemNative(long parent, String name, String description, boolean isMenu, boolean isExpanded, long parentMenu, long parentMenuBar, Item_ item);
+    private native long CreateGroupNative(long parent, String name, String description, Item_ item);
     private native boolean RemoveNative(long itemToRemove);
     private native boolean RemovePopupMenuItemNative(long itemToRemove);
     private native boolean RemoveMenuItemNative(long itemToRemove);
@@ -230,6 +234,7 @@ public class AccessibilityManager
     private native boolean SelectListItemNative(long selectedListItem);
     private native boolean DeselectMenuItemNative(long menubar);
     private native boolean SelectCellNative(long cellPointer);
+    private native boolean SelectRadioButtonNative(long buttonPointer);
     private native boolean MenuExpandedNative(long nativePointer);
     private native boolean MenuCollapsedNative(long nativePointer);
     private native boolean SelectTreeItemNative(long selectedMenuItem);
@@ -280,7 +285,12 @@ public class AccessibilityManager
                 nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case RADIO_BUTTON:
-                nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
+                RadioButton_ button = (RadioButton_)item;
+                ButtonGroup_ group = button.GetButtonGroup();
+                long groupPointer = GetItemPointer(group);
+                if (groupPointer < 0)
+                    groupPointer = 0;
+                nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), groupPointer, item);
                 break;
             case TABLE:
                 nativePointer = CreateSpreadsheetNative(parentLong, item.GetName(), item);
@@ -305,6 +315,9 @@ public class AccessibilityManager
                 break;
             case BUTTON:
                 nativePointer = CreateButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case GROUP:
+                nativePointer = CreateGroupNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
@@ -502,6 +515,8 @@ public class AccessibilityManager
             case TREE_TABLE_CELL:
                 selected = SelectCellNative(selectedItem);
                 break;
+            case RADIO_BUTTON:
+                selected = SelectRadioButtonNative(selectedItem);
             default:
                 selected = false;
         }
