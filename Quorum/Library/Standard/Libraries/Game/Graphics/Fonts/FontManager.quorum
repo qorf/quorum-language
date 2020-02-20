@@ -83,9 +83,17 @@ class FontManager
         end
     end
 
-    action GetLineGap(Font font) returns integer
+    action GetUnderlinePosition(Font font) returns integer
         if font:IsLoaded()
-            return GetFontStrategy(font:GetIdentifier()):GetLineGap()
+            return GetFontStrategy(font:GetIdentifier()):GetUnderlinePosition()
+        else
+            return 0
+        end
+    end
+
+    action GetUnderlineThickness(Font font) returns integer
+        if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetUnderlineThickness()
         else
             return 0
         end

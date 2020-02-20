@@ -1031,8 +1031,12 @@ class QuorumStrategy is FontStrategy
         return fileInformation:GetMaximumDescent()
     end
 
-    action GetLineGap returns integer
-        return fileInformation:GetLineGap()
+    action GetUnderlinePosition returns integer
+        return 0
+    end
+
+    action GetUnderlineThickness returns integer
+        return 0
     end
 
 end

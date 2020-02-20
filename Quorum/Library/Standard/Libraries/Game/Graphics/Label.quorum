@@ -81,6 +81,13 @@ class Label is Control
     Array<Drawable> drawablePool
 
     /*
+    Determines if the label places its Drawables along the baseline or not. If
+    this value is false, then each Drawable will be adjusted upward by the 
+    maximum descent of the Font.
+    */
+    boolean positionOnBaseLine = true
+
+    /*
     Sets the horizontal margins for this label. When the label's text is drawn,
     there will be whitespace between the beginning of the label and the start of
     the text and between the end of the text and the end of the label equal to
@@ -238,6 +245,9 @@ class Label is Control
     */
     action SetFont(Font newFont)
         textChanged = true
+        if newFont:GetSize() not= GetSize()
+            SetSize(newFont:GetSize())
+        end
         parent:Control:SetFont(newFont)
     end
 
@@ -635,7 +645,11 @@ class Label is Control
             number maxLineWidth = 0
             number startingOriginY = originY
 
-            number maxDescent = font:GetMaximumDescent()
+            number maxDescent = 0
+
+            if positionOnBaseLine = false
+                maxDescent = font:GetMaximumDescent()
+            end
 
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
@@ -680,12 +694,12 @@ class Label is Control
                         end
                         
                         if drawable not= undefined
-                            drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight() + maxDescent)
+                            drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight() - maxDescent)
                             Add(drawable)
                         else
                             Drawable space = GetDrawable()
                             space:SetTexture(undefined)
-                            space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine + maxDescent)
+                            space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - maxDescent)
                             space:SetSize(glyph:horizontalAdvance, glyph:verticalAdvance)
                             Add(space)
                         end
@@ -994,5 +1008,31 @@ class Label is Control
         if properties not= undefined
             properties:SetRenderingFlag(false)
         end
+    end
+
+    /*
+    This action determines if the Label should place characters so that they're
+    touching the base line. In other words, if this value is true, most glyphs
+    will be positioned so the bottom of the character is located at the y value
+    of the Label, and descending characters (such as "g" in many fonts) will
+    hang below. If the value is false, the Label will move the position of
+    glyphs upward so hanging glyphs don't descend past the y value of the Label.
+    The default value is true.
+    */
+    action IsPositioningOnBaseLine returns boolean
+        return positionOnBaseLine
+    end
+
+    /*
+    This action determines if the Label should place characters so that they're
+    touching the base line. In other words, if this value is true, most glyphs
+    will be positioned so the bottom of the character is located at the y value
+    of the Label, and descending characters (such as "g" in many fonts) will
+    hang below. If the value is false, the Label will move the position of
+    glyphs upward so hanging glyphs don't descend past the y value of the Label.
+    The default value is true.
+    */
+    action SetPositionOnBaseLine(boolean position)
+        positionOnBaseLine = position
     end
 end

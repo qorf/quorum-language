@@ -391,12 +391,40 @@ public class FreeTypeStrategy
         return true;
     }
     
-    public int GetHeight()
+    public int SystemGetHeight()
     {
         return (int)(GetLineHeightNative(faceHandle) >> 6);
     }
     
     native public long GetLineHeightNative(long handle);
+    
+    public int SystemGetMaximumAscent()
+    {
+        return (int)(GetMaximumAscentNative(faceHandle) >> 6);
+    }
+    
+    native public long GetMaximumAscentNative(long handle);
+    
+    public int SystemGetMaximumDescent()
+    {
+        return (int)(GetMaximumDescentNative(faceHandle) >> 6);
+    }
+    
+    native public long GetMaximumDescentNative(long handle);
+    
+    public int SystemGetUnderlinePosition()
+    {
+        return (int)(GetUnderlinePositionNative(faceHandle) >> 6);
+    }
+    
+    native public long GetUnderlinePositionNative(long handle);
+    
+    public int SystemGetUnderlineThickness()
+    {
+        return (int)(GetUnderlineThicknessNative(faceHandle) >> 6);
+    }
+    
+    native public long GetUnderlineThicknessNative(long handle);
     
     public void DisposeNative()
     {

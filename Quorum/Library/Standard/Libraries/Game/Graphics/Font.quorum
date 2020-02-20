@@ -598,9 +598,14 @@ class Font
         return manager:GetMaximumDescent(me)
     end
 
-    action GetLineGap returns integer
+    action GetUnderlinePosition returns integer
         FontManager manager = gameStateManager:GetFontManager()
-        return manager:GetLineGap(me)
+        return manager:GetUnderlinePosition(me)
+    end
+
+    action GetUnderlineThickness returns integer
+        FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetUnderlineThickness(me)
     end
 
     /*

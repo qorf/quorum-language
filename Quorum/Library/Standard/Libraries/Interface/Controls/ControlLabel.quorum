@@ -12,6 +12,8 @@ class ControlLabel is Label
     SelectionHighlightView view = undefined
 
     on create
+        SetPositionOnBaseLine(false)
+
         LayoutProperties properties = GetDefaultLayoutProperties()
         Color color
         Color selectionColor = color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1)
