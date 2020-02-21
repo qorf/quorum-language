@@ -141,6 +141,11 @@ class Compiler
         return codeCompletionhandler:Request(request)
     end
 
+    /* This action tells the compiler under the hood to dispose of resources
+        after the next compile.
+    */
+    system action Dispose
+
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
         HashTable<text, File> originalFileHash
@@ -165,6 +170,10 @@ class Compiler
                 end
 
             end
+        end
+
+        if request:disposeAfterNextCompile
+            Dispose()
         end
 
         Library library = request:library
