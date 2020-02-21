@@ -25,10 +25,14 @@ import quorum.Libraries.Language.Compile.Lexer;
  */
 public class Compiler {
     public java.lang.Object me_ = null;
-    
+    private boolean disposeAfterNextCompile = false;
     
     public void ConnectToAntlr() {
         
+    }
+    
+    public void Dispose() {
+        disposeAfterNextCompile = true;
     }
     
     public void ParseNative(File_ file, QuorumSourceListener_ listener) {
@@ -58,6 +62,11 @@ public class Compiler {
             Lexer quorumLexer = new Lexer();
             quorumLexer.plugin_.setLexer(lexer);
             listener.SetLexer(quorumLexer);
+            
+            if(disposeAfterNextCompile) {
+                parser.getInterpreter().clearDFA();
+                disposeAfterNextCompile = false;
+            }
         } catch (IOException ex) {
             CompilerError error = new CompilerError();
             error.SetFile(file);
@@ -100,6 +109,11 @@ public class Compiler {
         Lexer quorumLexer = new Lexer();
         quorumLexer.plugin_.setLexer(lexer);
         listener.SetLexer(quorumLexer);
+        
+        if(disposeAfterNextCompile) {
+            parser.getInterpreter().clearDFA();
+            disposeAfterNextCompile = false;
+        }
     }
     
     public static void main(String[] args) {
