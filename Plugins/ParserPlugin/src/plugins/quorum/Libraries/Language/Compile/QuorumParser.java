@@ -1,6 +1,5 @@
-// Generated from Quorum.g4 by ANTLR 4.2.2
+// Generated from /Users/stefika/Repositories/quorum-language/Plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Compile/QuorumParser.g4 by ANTLR 4.8
 package plugins.quorum.Libraries.Language.Compile;
-
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -12,6 +11,8 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class QuorumParser extends Parser {
+	static { RuntimeMetaData.checkVersion("4.8", RuntimeMetaData.VERSION); }
+
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
@@ -27,18 +28,6 @@ public class QuorumParser extends Parser {
 		RIGHT_SQR_BRACE=55, LEFT_PAREN=56, RIGHT_PAREN=57, DOUBLE_QUOTE=58, IF=59, 
 		END=60, CLASS=61, BOOLEAN=62, INT=63, DECIMAL=64, ID=65, STRING=66, NEWLINE=67, 
 		WS=68, COMMENTS=69;
-	public static final String[] tokenNames = {
-		"<INVALID>", "'output'", "'on'", "'create'", "'constant'", "'elseif'", 
-		"'me'", "'until'", "'public'", "'private'", "'alert'", "'detect'", "'always'", 
-		"'check'", "'parent'", "'blueprint'", "'system'", "'is'", "'cast'", "'input'", 
-		"'say'", "'now'", "'while'", "'package'", "'times'", "'repeat'", "'else'", 
-		"'returns'", "'return'", "'and'", "'or'", "'undefined'", "'shared'", "'action'", 
-		"':'", "'integer'", "'number'", "'text'", "'boolean'", "'use'", "NOT", 
-		"NOTEQUALS", "'.'", "','", "'='", "'>'", "'>='", "'<'", "'<='", "'+'", 
-		"'-'", "'*'", "'/'", "'mod'", "'['", "']'", "'('", "')'", "'\"'", "'if'", 
-		"'end'", "'class'", "BOOLEAN", "INT", "DECIMAL", "ID", "STRING", "NEWLINE", 
-		"WS", "COMMENTS"
-	};
 	public static final int
 		RULE_start = 0, RULE_package_rule = 1, RULE_reference = 2, RULE_class_declaration = 3, 
 		RULE_no_class_stmnts = 4, RULE_inherit_stmnts = 5, RULE_inherit_stmt = 6, 
@@ -52,23 +41,85 @@ public class QuorumParser extends Parser {
 		RULE_if_statement = 29, RULE_elseif_statement = 30, RULE_else_statement = 31, 
 		RULE_loop_statement = 32, RULE_initial_parent_action_call = 33, RULE_action_call = 34, 
 		RULE_expression = 35, RULE_function_expression_list = 36;
-	public static final String[] ruleNames = {
-		"start", "package_rule", "reference", "class_declaration", "no_class_stmnts", 
-		"inherit_stmnts", "inherit_stmt", "access_modifier", "class_stmnts", "method_declaration", 
-		"method_shared", "formal_parameter", "qualified_name", "block", "statement", 
-		"solo_method_call", "solo_method_required_method_part", "alert_statement", 
-		"check_statement", "detect_statement", "always_statement", "print_statement", 
-		"speak_statement", "return_statement", "generic_declaration", "generic_statement", 
-		"class_type", "assignment_declaration", "assignment_statement", "if_statement", 
-		"elseif_statement", "else_statement", "loop_statement", "initial_parent_action_call", 
-		"action_call", "expression", "function_expression_list"
-	};
+	private static String[] makeRuleNames() {
+		return new String[] {
+			"start", "package_rule", "reference", "class_declaration", "no_class_stmnts", 
+			"inherit_stmnts", "inherit_stmt", "access_modifier", "class_stmnts", 
+			"method_declaration", "method_shared", "formal_parameter", "qualified_name", 
+			"block", "statement", "solo_method_call", "solo_method_required_method_part", 
+			"alert_statement", "check_statement", "detect_statement", "always_statement", 
+			"print_statement", "speak_statement", "return_statement", "generic_declaration", 
+			"generic_statement", "class_type", "assignment_declaration", "assignment_statement", 
+			"if_statement", "elseif_statement", "else_statement", "loop_statement", 
+			"initial_parent_action_call", "action_call", "expression", "function_expression_list"
+		};
+	}
+	public static final String[] ruleNames = makeRuleNames();
+
+	private static String[] makeLiteralNames() {
+		return new String[] {
+			null, "'output'", "'on'", "'create'", "'constant'", "'elseif'", "'me'", 
+			"'until'", "'public'", "'private'", "'alert'", "'detect'", "'always'", 
+			"'check'", "'parent'", "'blueprint'", "'system'", "'is'", "'cast'", "'input'", 
+			"'say'", "'now'", "'while'", "'package'", "'times'", "'repeat'", "'else'", 
+			"'returns'", "'return'", "'and'", "'or'", "'undefined'", "'shared'", 
+			"'action'", "':'", "'integer'", "'number'", "'text'", "'boolean'", "'use'", 
+			null, null, "'.'", "','", "'='", "'>'", "'>='", "'<'", "'<='", "'+'", 
+			"'-'", "'*'", "'/'", "'mod'", "'['", "']'", "'('", "')'", "'\"'", "'if'", 
+			"'end'", "'class'"
+		};
+	}
+	private static final String[] _LITERAL_NAMES = makeLiteralNames();
+	private static String[] makeSymbolicNames() {
+		return new String[] {
+			null, "OUTPUT", "ON", "CREATE", "CONSTANT", "ELSE_IF", "ME", "UNTIL", 
+			"PUBLIC", "PRIVATE", "ALERT", "DETECT", "ALWAYS", "CHECK", "PARENT", 
+			"BLUEPRINT", "NATIVE", "INHERITS", "CAST", "INPUT", "SAY", "NOW", "WHILE", 
+			"PACKAGE_NAME", "TIMES", "REPEAT", "ELSE", "RETURNS", "RETURN", "AND", 
+			"OR", "NULL", "STATIC", "ACTION", "COLON", "INTEGER_KEYWORD", "NUMBER_KEYWORD", 
+			"TEXT", "BOOLEAN_KEYWORD", "USE", "NOT", "NOTEQUALS", "PERIOD", "COMMA", 
+			"EQUALITY", "GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL", "PLUS", 
+			"MINUS", "MULTIPLY", "DIVIDE", "MODULO", "LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", 
+			"LEFT_PAREN", "RIGHT_PAREN", "DOUBLE_QUOTE", "IF", "END", "CLASS", "BOOLEAN", 
+			"INT", "DECIMAL", "ID", "STRING", "NEWLINE", "WS", "COMMENTS"
+		};
+	}
+	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
+	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
+
+	/**
+	 * @deprecated Use {@link #VOCABULARY} instead.
+	 */
+	@Deprecated
+	public static final String[] tokenNames;
+	static {
+		tokenNames = new String[_SYMBOLIC_NAMES.length];
+		for (int i = 0; i < tokenNames.length; i++) {
+			tokenNames[i] = VOCABULARY.getLiteralName(i);
+			if (tokenNames[i] == null) {
+				tokenNames[i] = VOCABULARY.getSymbolicName(i);
+			}
+
+			if (tokenNames[i] == null) {
+				tokenNames[i] = "<INVALID>";
+			}
+		}
+	}
 
 	@Override
-	public String getGrammarFileName() { return "Quorum.g4"; }
+	@Deprecated
+	public String[] getTokenNames() {
+		return tokenNames;
+	}
 
 	@Override
-	public String[] getTokenNames() { return tokenNames; }
+
+	public Vocabulary getVocabulary() {
+		return VOCABULARY;
+	}
+
+	@Override
+	public String getGrammarFileName() { return "QuorumParser.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -83,19 +134,20 @@ public class QuorumParser extends Parser {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
+
 	public static class StartContext extends ParserRuleContext {
+		public Class_declarationContext class_declaration() {
+			return getRuleContext(Class_declarationContext.class,0);
+		}
 		public TerminalNode EOF() { return getToken(QuorumParser.EOF, 0); }
+		public Package_ruleContext package_rule() {
+			return getRuleContext(Package_ruleContext.class,0);
+		}
 		public List<ReferenceContext> reference() {
 			return getRuleContexts(ReferenceContext.class);
 		}
 		public ReferenceContext reference(int i) {
 			return getRuleContext(ReferenceContext.class,i);
-		}
-		public Class_declarationContext class_declaration() {
-			return getRuleContext(Class_declarationContext.class,0);
-		}
-		public Package_ruleContext package_rule() {
-			return getRuleContext(Package_ruleContext.class,0);
 		}
 		public StartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -103,11 +155,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_start; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterStart(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterStart(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitStart(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitStart(this);
 		}
 	}
 
@@ -119,17 +171,20 @@ public class QuorumParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(94);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
 			case 1:
 				{
-				setState(74); package_rule();
+				setState(74);
+				package_rule();
 				setState(76); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(75); reference();
+					setState(75);
+					reference();
 					}
 					}
 					setState(78); 
@@ -138,7 +193,6 @@ public class QuorumParser extends Parser {
 				} while ( _la==USE );
 				}
 				break;
-
 			case 2:
 				{
 				setState(81); 
@@ -147,23 +201,24 @@ public class QuorumParser extends Parser {
 				do {
 					{
 					{
-					setState(80); reference();
+					setState(80);
+					reference();
 					}
 					}
 					setState(83); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==USE );
-				setState(85); package_rule();
+				setState(85);
+				package_rule();
 				}
 				break;
-
 			case 3:
 				{
-				setState(87); package_rule();
+				setState(87);
+				package_rule();
 				}
 				break;
-
 			case 4:
 				{
 				setState(89); 
@@ -172,7 +227,8 @@ public class QuorumParser extends Parser {
 				do {
 					{
 					{
-					setState(88); reference();
+					setState(88);
+					reference();
 					}
 					}
 					setState(91); 
@@ -181,14 +237,15 @@ public class QuorumParser extends Parser {
 				} while ( _la==USE );
 				}
 				break;
-
 			case 5:
 				{
 				}
 				break;
 			}
-			setState(96); class_declaration();
-			setState(97); match(EOF);
+			setState(96);
+			class_declaration();
+			setState(97);
+			match(EOF);
 			}
 		}
 		catch (RecognitionException re) {
@@ -214,11 +271,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_package_rule; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterPackage_rule(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterPackage_rule(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitPackage_rule(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitPackage_rule(this);
 		}
 	}
 
@@ -228,8 +285,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(99); match(PACKAGE_NAME);
-			setState(100); ((Package_ruleContext)_localctx).name = qualified_name();
+			setState(99);
+			match(PACKAGE_NAME);
+			setState(100);
+			((Package_ruleContext)_localctx).name = qualified_name();
 			}
 		}
 		catch (RecognitionException re) {
@@ -255,11 +314,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_reference; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterReference(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterReference(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitReference(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitReference(this);
 		}
 	}
 
@@ -269,8 +328,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(102); match(USE);
-			setState(103); ((ReferenceContext)_localctx).name = qualified_name();
+			setState(102);
+			match(USE);
+			setState(103);
+			((ReferenceContext)_localctx).name = qualified_name();
 			}
 		}
 		catch (RecognitionException re) {
@@ -296,30 +357,30 @@ public class QuorumParser extends Parser {
 		}
 	}
 	public static class FullClassDeclarationContext extends Class_declarationContext {
+		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public TerminalNode STATIC() { return getToken(QuorumParser.STATIC, 0); }
-		public Class_stmntsContext class_stmnts(int i) {
-			return getRuleContext(Class_stmntsContext.class,i);
-		}
 		public Generic_declarationContext generic_declaration() {
 			return getRuleContext(Generic_declarationContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
-		public List<Class_stmntsContext> class_stmnts() {
-			return getRuleContexts(Class_stmntsContext.class);
 		}
 		public Inherit_stmntsContext inherit_stmnts() {
 			return getRuleContext(Inherit_stmntsContext.class,0);
 		}
+		public List<Class_stmntsContext> class_stmnts() {
+			return getRuleContexts(Class_stmntsContext.class);
+		}
+		public Class_stmntsContext class_stmnts(int i) {
+			return getRuleContext(Class_stmntsContext.class,i);
+		}
 		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterFullClassDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitFullClassDeclaration(this);
 		}
 	}
 	public static class NoClassDeclarationContext extends Class_declarationContext {
@@ -329,11 +390,11 @@ public class QuorumParser extends Parser {
 		public NoClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoClassDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNoClassDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoClassDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNoClassDeclaration(this);
 		}
 	}
 
@@ -343,6 +404,7 @@ public class QuorumParser extends Parser {
 		int _la;
 		try {
 			setState(124);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case STATIC:
 			case CLASS:
@@ -351,28 +413,36 @@ public class QuorumParser extends Parser {
 				{
 				{
 				setState(106);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==STATIC) {
 					{
-					setState(105); match(STATIC);
+					setState(105);
+					match(STATIC);
 					}
 				}
 
-				setState(108); match(CLASS);
-				setState(109); match(ID);
+				setState(108);
+				match(CLASS);
+				setState(109);
+				match(ID);
 				setState(111);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==LESS) {
 					{
-					setState(110); generic_declaration();
+					setState(110);
+					generic_declaration();
 					}
 				}
 
 				setState(114);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==INHERITS) {
 					{
-					setState(113); inherit_stmnts();
+					setState(113);
+					inherit_stmnts();
 					}
 				}
 
@@ -382,14 +452,16 @@ public class QuorumParser extends Parser {
 				while (((((_la - 2)) & ~0x3f) == 0 && ((1L << (_la - 2)) & ((1L << (ON - 2)) | (1L << (CONSTANT - 2)) | (1L << (ME - 2)) | (1L << (PUBLIC - 2)) | (1L << (PRIVATE - 2)) | (1L << (PARENT - 2)) | (1L << (BLUEPRINT - 2)) | (1L << (NATIVE - 2)) | (1L << (ACTION - 2)) | (1L << (INTEGER_KEYWORD - 2)) | (1L << (NUMBER_KEYWORD - 2)) | (1L << (TEXT - 2)) | (1L << (BOOLEAN_KEYWORD - 2)) | (1L << (ID - 2)))) != 0)) {
 					{
 					{
-					setState(116); class_stmnts();
+					setState(116);
+					class_stmnts();
 					}
 					}
 					setState(121);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(122); match(END);
+				setState(122);
+				match(END);
 				}
 				}
 				break;
@@ -417,7 +489,8 @@ public class QuorumParser extends Parser {
 				_localctx = new NoClassDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(123); no_class_stmnts();
+				setState(123);
+				no_class_stmnts();
 				}
 				break;
 			default:
@@ -453,37 +526,37 @@ public class QuorumParser extends Parser {
 		public Method_declarationContext method_declaration(int i) {
 			return getRuleContext(Method_declarationContext.class,i);
 		}
-		public Access_modifierContext access_modifier(int i) {
-			return getRuleContext(Access_modifierContext.class,i);
-		}
 		public List<Access_modifierContext> access_modifier() {
 			return getRuleContexts(Access_modifierContext.class);
+		}
+		public Access_modifierContext access_modifier(int i) {
+			return getRuleContext(Access_modifierContext.class,i);
 		}
 		public ActionsNoClassContext(No_class_stmntsContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterActionsNoClass(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterActionsNoClass(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitActionsNoClass(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitActionsNoClass(this);
 		}
 	}
 	public static class NoActionsNoClassContext extends No_class_stmntsContext {
-		public StatementContext statement(int i) {
-			return getRuleContext(StatementContext.class,i);
-		}
 		public List<StatementContext> statement() {
 			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
 		}
 		public NoActionsNoClassContext(No_class_stmntsContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoActionsNoClass(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNoActionsNoClass(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoActionsNoClass(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNoActionsNoClass(this);
 		}
 	}
 
@@ -493,6 +566,7 @@ public class QuorumParser extends Parser {
 		int _la;
 		try {
 			setState(139);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,12,_ctx) ) {
 			case 1:
 				_localctx = new NoActionsNoClassContext(_localctx);
@@ -504,7 +578,8 @@ public class QuorumParser extends Parser {
 				do {
 					{
 					{
-					setState(126); statement();
+					setState(126);
+					statement();
 					}
 					}
 					setState(129); 
@@ -513,7 +588,6 @@ public class QuorumParser extends Parser {
 				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << OUTPUT) | (1L << CONSTANT) | (1L << ME) | (1L << PUBLIC) | (1L << PRIVATE) | (1L << ALERT) | (1L << CHECK) | (1L << PARENT) | (1L << SAY) | (1L << REPEAT) | (1L << RETURN) | (1L << INTEGER_KEYWORD) | (1L << NUMBER_KEYWORD) | (1L << TEXT) | (1L << BOOLEAN_KEYWORD) | (1L << IF))) != 0) || _la==ID );
 				}
 				break;
-
 			case 2:
 				_localctx = new ActionsNoClassContext(_localctx);
 				enterOuterAlt(_localctx, 2);
@@ -525,14 +599,17 @@ public class QuorumParser extends Parser {
 					{
 					{
 					setState(132);
+					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,10,_ctx) ) {
 					case 1:
 						{
-						setState(131); access_modifier();
+						setState(131);
+						access_modifier();
 						}
 						break;
 					}
-					setState(134); method_declaration();
+					setState(134);
+					method_declaration();
 					}
 					}
 					setState(137); 
@@ -555,14 +632,14 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Inherit_stmntsContext extends ParserRuleContext {
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public List<Inherit_stmtContext> inherit_stmt() {
 			return getRuleContexts(Inherit_stmtContext.class);
 		}
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public Inherit_stmtContext inherit_stmt(int i) {
 			return getRuleContext(Inherit_stmtContext.class,i);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -572,11 +649,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_inherit_stmnts; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherit_stmnts(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInherit_stmnts(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherit_stmnts(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInherit_stmnts(this);
 		}
 	}
 
@@ -587,16 +664,20 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(141); match(INHERITS);
-			setState(142); inherit_stmt();
+			setState(141);
+			match(INHERITS);
+			setState(142);
+			inherit_stmt();
 			setState(147);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				setState(143); match(COMMA);
-				setState(144); inherit_stmt();
+				setState(143);
+				match(COMMA);
+				setState(144);
+				inherit_stmt();
 				}
 				}
 				setState(149);
@@ -617,11 +698,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Inherit_stmtContext extends ParserRuleContext {
-		public Generic_statementContext generic_statement() {
-			return getRuleContext(Generic_statementContext.class,0);
-		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public Generic_statementContext generic_statement() {
+			return getRuleContext(Generic_statementContext.class,0);
 		}
 		public Inherit_stmtContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -629,11 +710,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_inherit_stmt; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherit_stmt(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInherit_stmt(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherit_stmt(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInherit_stmt(this);
 		}
 	}
 
@@ -644,12 +725,15 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(150); qualified_name();
+			setState(150);
+			qualified_name();
 			setState(152);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==LESS) {
 				{
-				setState(151); generic_statement();
+				setState(151);
+				generic_statement();
 				}
 			}
 
@@ -675,11 +759,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_access_modifier; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAccess_modifier(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAccess_modifier(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAccess_modifier(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAccess_modifier(this);
 		}
 	}
 
@@ -695,7 +779,11 @@ public class QuorumParser extends Parser {
 			if ( !(_la==PUBLIC || _la==PRIVATE) ) {
 			_errHandler.recoverInline(this);
 			}
-			consume();
+			else {
+				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+				_errHandler.reportMatch(this);
+				consume();
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -710,11 +798,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Class_stmntsContext extends ParserRuleContext {
-		public Method_declarationContext method_declaration() {
-			return getRuleContext(Method_declarationContext.class,0);
-		}
 		public Assignment_statementContext assignment_statement() {
 			return getRuleContext(Assignment_statementContext.class,0);
+		}
+		public Method_declarationContext method_declaration() {
+			return getRuleContext(Method_declarationContext.class,0);
 		}
 		public Class_stmntsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -722,11 +810,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_class_stmnts; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterClass_stmnts(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterClass_stmnts(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitClass_stmnts(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitClass_stmnts(this);
 		}
 	}
 
@@ -735,18 +823,20 @@ public class QuorumParser extends Parser {
 		enterRule(_localctx, 16, RULE_class_stmnts);
 		try {
 			setState(158);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,15,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(156); assignment_statement();
+				setState(156);
+				assignment_statement();
 				}
 				break;
-
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(157); method_declaration();
+				setState(157);
+				method_declaration();
 				}
 				break;
 			}
@@ -778,38 +868,38 @@ public class QuorumParser extends Parser {
 		public Method_sharedContext method_shared() {
 			return getRuleContext(Method_sharedContext.class,0);
 		}
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
 		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
 		}
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
 		public ActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAction(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAction(this);
 		}
 	}
 	public static class ConstructorContext extends Method_declarationContext {
 		public TerminalNode ON() { return getToken(QuorumParser.ON, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public TerminalNode CREATE() { return getToken(QuorumParser.CREATE, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public ConstructorContext(Method_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterConstructor(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterConstructor(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitConstructor(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitConstructor(this);
 		}
 	}
 	public static class NativeActionContext extends Method_declarationContext {
@@ -824,11 +914,11 @@ public class QuorumParser extends Parser {
 		public NativeActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNativeAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNativeAction(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNativeAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNativeAction(this);
 		}
 	}
 	public static class BlueprintActionContext extends Method_declarationContext {
@@ -843,11 +933,11 @@ public class QuorumParser extends Parser {
 		public BlueprintActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBlueprintAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterBlueprintAction(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBlueprintAction(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitBlueprintAction(this);
 		}
 	}
 
@@ -857,67 +947,82 @@ public class QuorumParser extends Parser {
 		int _la;
 		try {
 			setState(182);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
 			case 1:
 				_localctx = new ActionContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(161);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==PUBLIC || _la==PRIVATE) {
 					{
-					setState(160); ((ActionContext)_localctx).modifier = access_modifier();
+					setState(160);
+					((ActionContext)_localctx).modifier = access_modifier();
 					}
 				}
 
-				setState(163); method_shared();
-				setState(164); block();
-				setState(165); match(END);
+				setState(163);
+				method_shared();
+				setState(164);
+				block();
+				setState(165);
+				match(END);
 				}
 				break;
-
 			case 2:
 				_localctx = new BlueprintActionContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(168);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==PUBLIC || _la==PRIVATE) {
 					{
-					setState(167); ((BlueprintActionContext)_localctx).modifier = access_modifier();
+					setState(167);
+					((BlueprintActionContext)_localctx).modifier = access_modifier();
 					}
 				}
 
-				setState(170); match(BLUEPRINT);
-				setState(171); method_shared();
+				setState(170);
+				match(BLUEPRINT);
+				setState(171);
+				method_shared();
 				}
 				break;
-
 			case 3:
 				_localctx = new NativeActionContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(173);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==PUBLIC || _la==PRIVATE) {
 					{
-					setState(172); ((NativeActionContext)_localctx).modifier = access_modifier();
+					setState(172);
+					((NativeActionContext)_localctx).modifier = access_modifier();
 					}
 				}
 
-				setState(175); match(NATIVE);
-				setState(176); method_shared();
+				setState(175);
+				match(NATIVE);
+				setState(176);
+				method_shared();
 				}
 				break;
-
 			case 4:
 				_localctx = new ConstructorContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(177); match(ON);
-				setState(178); match(CREATE);
-				setState(179); block();
-				setState(180); match(END);
+				setState(177);
+				match(ON);
+				setState(178);
+				match(CREATE);
+				setState(179);
+				block();
+				setState(180);
+				match(END);
 				}
 				break;
 			}
@@ -936,21 +1041,21 @@ public class QuorumParser extends Parser {
 	public static class Method_sharedContext extends ParserRuleContext {
 		public quorum.Libraries.Language.Compile.Context.ActionContext actionContext;
 		public Assignment_declarationContext return_type;
+		public TerminalNode ACTION() { return getToken(QuorumParser.ACTION, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public List<Formal_parameterContext> formal_parameter() {
 			return getRuleContexts(Formal_parameterContext.class);
 		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode ACTION() { return getToken(QuorumParser.ACTION, 0); }
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public Formal_parameterContext formal_parameter(int i) {
 			return getRuleContext(Formal_parameterContext.class,i);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -960,11 +1065,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_method_shared; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMethod_shared(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterMethod_shared(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMethod_shared(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitMethod_shared(this);
 		}
 	}
 
@@ -975,26 +1080,34 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(184); match(ACTION);
-			setState(185); match(ID);
+			setState(184);
+			match(ACTION);
+			setState(185);
+			match(ID);
 			setState(198);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==LEFT_PAREN) {
 				{
-				setState(186); match(LEFT_PAREN);
+				setState(186);
+				match(LEFT_PAREN);
 				setState(195);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (((((_la - 35)) & ~0x3f) == 0 && ((1L << (_la - 35)) & ((1L << (INTEGER_KEYWORD - 35)) | (1L << (NUMBER_KEYWORD - 35)) | (1L << (TEXT - 35)) | (1L << (BOOLEAN_KEYWORD - 35)) | (1L << (ID - 35)))) != 0)) {
 					{
-					setState(187); formal_parameter();
+					setState(187);
+					formal_parameter();
 					setState(192);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 					while (_la==COMMA) {
 						{
 						{
-						setState(188); match(COMMA);
-						setState(189); formal_parameter();
+						setState(188);
+						match(COMMA);
+						setState(189);
+						formal_parameter();
 						}
 						}
 						setState(194);
@@ -1004,16 +1117,20 @@ public class QuorumParser extends Parser {
 					}
 				}
 
-				setState(197); match(RIGHT_PAREN);
+				setState(197);
+				match(RIGHT_PAREN);
 				}
 			}
 
 			setState(202);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==RETURNS) {
 				{
-				setState(200); match(RETURNS);
-				setState(201); ((Method_sharedContext)_localctx).return_type = assignment_declaration();
+				setState(200);
+				match(RETURNS);
+				setState(201);
+				((Method_sharedContext)_localctx).return_type = assignment_declaration();
 				}
 			}
 
@@ -1041,11 +1158,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_formal_parameter; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFormal_parameter(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterFormal_parameter(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFormal_parameter(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitFormal_parameter(this);
 		}
 	}
 
@@ -1055,8 +1172,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(204); assignment_declaration();
-			setState(205); match(ID);
+			setState(204);
+			assignment_declaration();
+			setState(205);
+			match(ID);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1088,11 +1207,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_qualified_name; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterQualified_name(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterQualified_name(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitQualified_name(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitQualified_name(this);
 		}
 	}
 
@@ -1103,17 +1222,20 @@ public class QuorumParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(207); ((Qualified_nameContext)_localctx).ID = match(ID);
+			setState(207);
+			((Qualified_nameContext)_localctx).ID = match(ID);
 			((Qualified_nameContext)_localctx).ids.add(((Qualified_nameContext)_localctx).ID);
 			setState(212);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,24,_ctx);
-			while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(208); match(PERIOD);
-					setState(209); ((Qualified_nameContext)_localctx).ID = match(ID);
+					setState(208);
+					match(PERIOD);
+					setState(209);
+					((Qualified_nameContext)_localctx).ID = match(ID);
 					((Qualified_nameContext)_localctx).ids.add(((Qualified_nameContext)_localctx).ID);
 					}
 					} 
@@ -1136,11 +1258,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class BlockContext extends ParserRuleContext {
-		public StatementContext statement(int i) {
-			return getRuleContext(StatementContext.class,i);
-		}
 		public List<StatementContext> statement() {
 			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
 		}
 		public BlockContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1148,11 +1270,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_block; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBlock(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterBlock(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBlock(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitBlock(this);
 		}
 	}
 
@@ -1169,7 +1291,8 @@ public class QuorumParser extends Parser {
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << OUTPUT) | (1L << CONSTANT) | (1L << ME) | (1L << PUBLIC) | (1L << PRIVATE) | (1L << ALERT) | (1L << CHECK) | (1L << PARENT) | (1L << SAY) | (1L << REPEAT) | (1L << RETURN) | (1L << INTEGER_KEYWORD) | (1L << NUMBER_KEYWORD) | (1L << TEXT) | (1L << BOOLEAN_KEYWORD) | (1L << IF))) != 0) || _la==ID) {
 				{
 				{
-				setState(215); statement();
+				setState(215);
+				statement();
 				}
 				}
 				setState(220);
@@ -1190,32 +1313,32 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class StatementContext extends ParserRuleContext {
-		public Return_statementContext return_statement() {
-			return getRuleContext(Return_statementContext.class,0);
-		}
-		public Check_statementContext check_statement() {
-			return getRuleContext(Check_statementContext.class,0);
+		public Solo_method_callContext solo_method_call() {
+			return getRuleContext(Solo_method_callContext.class,0);
 		}
 		public If_statementContext if_statement() {
 			return getRuleContext(If_statementContext.class,0);
 		}
-		public Solo_method_callContext solo_method_call() {
-			return getRuleContext(Solo_method_callContext.class,0);
-		}
 		public Assignment_statementContext assignment_statement() {
 			return getRuleContext(Assignment_statementContext.class,0);
-		}
-		public Alert_statementContext alert_statement() {
-			return getRuleContext(Alert_statementContext.class,0);
-		}
-		public Speak_statementContext speak_statement() {
-			return getRuleContext(Speak_statementContext.class,0);
 		}
 		public Loop_statementContext loop_statement() {
 			return getRuleContext(Loop_statementContext.class,0);
 		}
+		public Return_statementContext return_statement() {
+			return getRuleContext(Return_statementContext.class,0);
+		}
 		public Print_statementContext print_statement() {
 			return getRuleContext(Print_statementContext.class,0);
+		}
+		public Speak_statementContext speak_statement() {
+			return getRuleContext(Speak_statementContext.class,0);
+		}
+		public Check_statementContext check_statement() {
+			return getRuleContext(Check_statementContext.class,0);
+		}
+		public Alert_statementContext alert_statement() {
+			return getRuleContext(Alert_statementContext.class,0);
 		}
 		public StatementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1223,11 +1346,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterStatement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterStatement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitStatement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitStatement(this);
 		}
 	}
 
@@ -1236,67 +1359,69 @@ public class QuorumParser extends Parser {
 		enterRule(_localctx, 28, RULE_statement);
 		try {
 			setState(230);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,26,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(221); solo_method_call();
+				setState(221);
+				solo_method_call();
 				}
 				break;
-
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(222); if_statement();
+				setState(222);
+				if_statement();
 				}
 				break;
-
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(223); assignment_statement();
+				setState(223);
+				assignment_statement();
 				}
 				break;
-
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(224); loop_statement();
+				setState(224);
+				loop_statement();
 				}
 				break;
-
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(225); return_statement();
+				setState(225);
+				return_statement();
 				}
 				break;
-
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(226); print_statement();
+				setState(226);
+				print_statement();
 				}
 				break;
-
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(227); speak_statement();
+				setState(227);
+				speak_statement();
 				}
 				break;
-
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(228); check_statement();
+				setState(228);
+				check_statement();
 				}
 				break;
-
 			case 9:
 				enterOuterAlt(_localctx, 9);
 				{
-				setState(229); alert_statement();
+				setState(229);
+				alert_statement();
 				}
 				break;
 			}
@@ -1325,61 +1450,61 @@ public class QuorumParser extends Parser {
 	}
 	public static class VariableSoloFunctionCallContext extends Solo_method_callContext {
 		public Token object;
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
+		public Solo_method_required_method_partContext solo_method_required_method_part() {
+			return getRuleContext(Solo_method_required_method_partContext.class,0);
 		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Solo_method_required_method_partContext solo_method_required_method_part() {
-			return getRuleContext(Solo_method_required_method_partContext.class,0);
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
 		}
 		public Action_callContext action_call(int i) {
 			return getRuleContext(Action_callContext.class,i);
 		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public VariableSoloFunctionCallContext(Solo_method_callContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableSoloFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterVariableSoloFunctionCall(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableSoloFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitVariableSoloFunctionCall(this);
 		}
 	}
 	public static class ParentVariableSoloFunctionCallContext extends Solo_method_callContext {
 		public Token fieldName;
 		public Qualified_nameContext parent;
 		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public Initial_parent_action_callContext initial_parent_action_call() {
 			return getRuleContext(Initial_parent_action_callContext.class,0);
 		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
 		public Action_callContext action_call(int i) {
 			return getRuleContext(Action_callContext.class,i);
 		}
 		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public ParentVariableSoloFunctionCallContext(Solo_method_callContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableSoloFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterParentVariableSoloFunctionCall(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableSoloFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitParentVariableSoloFunctionCall(this);
 		}
 	}
 
@@ -1390,38 +1515,47 @@ public class QuorumParser extends Parser {
 		try {
 			int _alt;
 			setState(269);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,33,_ctx) ) {
 			case 1:
 				_localctx = new VariableSoloFunctionCallContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(234);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ME) {
 					{
-					setState(232); match(ME);
-					setState(233); match(COLON);
+					setState(232);
+					match(ME);
+					setState(233);
+					match(COLON);
 					}
 				}
 
 				setState(238);
+				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,28,_ctx) ) {
 				case 1:
 					{
-					setState(236); ((VariableSoloFunctionCallContext)_localctx).object = match(ID);
-					setState(237); match(COLON);
+					setState(236);
+					((VariableSoloFunctionCallContext)_localctx).object = match(ID);
+					setState(237);
+					match(COLON);
 					}
 					break;
 				}
 				setState(245);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,29,_ctx);
-				while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+				while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 					if ( _alt==1 ) {
 						{
 						{
-						setState(240); action_call();
-						setState(241); match(COLON);
+						setState(240);
+						action_call();
+						setState(241);
+						match(COLON);
 						}
 						} 
 					}
@@ -1429,48 +1563,61 @@ public class QuorumParser extends Parser {
 					_errHandler.sync(this);
 					_alt = getInterpreter().adaptivePredict(_input,29,_ctx);
 				}
-				setState(248); solo_method_required_method_part();
+				setState(248);
+				solo_method_required_method_part();
 				}
 				break;
-
 			case 2:
 				_localctx = new ParentVariableSoloFunctionCallContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(255);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ME || _la==ID) {
 					{
 					setState(251);
+					_errHandler.sync(this);
 					_la = _input.LA(1);
 					if (_la==ME) {
 						{
-						setState(249); match(ME);
-						setState(250); match(COLON);
+						setState(249);
+						match(ME);
+						setState(250);
+						match(COLON);
 						}
 					}
 
 					{
-					setState(253); ((ParentVariableSoloFunctionCallContext)_localctx).fieldName = match(ID);
-					setState(254); match(COLON);
+					setState(253);
+					((ParentVariableSoloFunctionCallContext)_localctx).fieldName = match(ID);
+					setState(254);
+					match(COLON);
 					}
 					}
 				}
 
-				setState(257); match(PARENT);
-				setState(258); match(COLON);
-				setState(259); ((ParentVariableSoloFunctionCallContext)_localctx).parent = qualified_name();
-				setState(260); match(COLON);
-				setState(261); initial_parent_action_call();
+				setState(257);
+				match(PARENT);
+				setState(258);
+				match(COLON);
+				setState(259);
+				((ParentVariableSoloFunctionCallContext)_localctx).parent = qualified_name();
+				setState(260);
+				match(COLON);
+				setState(261);
+				initial_parent_action_call();
 				setState(266);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==COLON) {
 					{
 					{
-					setState(262); match(COLON);
+					setState(262);
+					match(COLON);
 					{
-					setState(263); action_call();
+					setState(263);
+					action_call();
 					}
 					}
 					}
@@ -1495,23 +1642,23 @@ public class QuorumParser extends Parser {
 
 	public static class Solo_method_required_method_partContext extends ParserRuleContext {
 		public Token var;
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public Function_expression_listContext function_expression_list() {
 			return getRuleContext(Function_expression_listContext.class,0);
 		}
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public Solo_method_required_method_partContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_solo_method_required_method_part; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterSolo_method_required_method_part(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterSolo_method_required_method_part(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitSolo_method_required_method_part(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitSolo_method_required_method_part(this);
 		}
 	}
 
@@ -1521,10 +1668,14 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(271); ((Solo_method_required_method_partContext)_localctx).var = match(ID);
-			setState(272); match(LEFT_PAREN);
-			setState(273); function_expression_list();
-			setState(274); match(RIGHT_PAREN);
+			setState(271);
+			((Solo_method_required_method_partContext)_localctx).var = match(ID);
+			setState(272);
+			match(LEFT_PAREN);
+			setState(273);
+			function_expression_list();
+			setState(274);
+			match(RIGHT_PAREN);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1539,23 +1690,23 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Alert_statementContext extends ParserRuleContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public TerminalNode ALERT() { return getToken(QuorumParser.ALERT, 0); }
 		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public Alert_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_alert_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAlert_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAlert_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAlert_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAlert_statement(this);
 		}
 	}
 
@@ -1565,10 +1716,14 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(276); match(ALERT);
-			setState(277); match(LEFT_PAREN);
-			setState(278); expression(0);
-			setState(279); match(RIGHT_PAREN);
+			setState(276);
+			match(ALERT);
+			setState(277);
+			match(LEFT_PAREN);
+			setState(278);
+			expression(0);
+			setState(279);
+			match(RIGHT_PAREN);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1584,18 +1739,18 @@ public class QuorumParser extends Parser {
 
 	public static class Check_statementContext extends ParserRuleContext {
 		public TerminalNode CHECK() { return getToken(QuorumParser.CHECK, 0); }
-		public Detect_statementContext detect_statement(int i) {
-			return getRuleContext(Detect_statementContext.class,i);
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
 		}
 		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public Always_statementContext always_statement() {
 			return getRuleContext(Always_statementContext.class,0);
 		}
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
 		public List<Detect_statementContext> detect_statement() {
 			return getRuleContexts(Detect_statementContext.class);
+		}
+		public Detect_statementContext detect_statement(int i) {
+			return getRuleContext(Detect_statementContext.class,i);
 		}
 		public Check_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1603,11 +1758,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_check_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCheck_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterCheck_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCheck_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitCheck_statement(this);
 		}
 	}
 
@@ -1618,9 +1773,12 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(281); match(CHECK);
-			setState(282); block();
+			setState(281);
+			match(CHECK);
+			setState(282);
+			block();
 			setState(292);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case DETECT:
 				{
@@ -1630,7 +1788,8 @@ public class QuorumParser extends Parser {
 				do {
 					{
 					{
-					setState(283); detect_statement();
+					setState(283);
+					detect_statement();
 					}
 					}
 					setState(286); 
@@ -1638,10 +1797,12 @@ public class QuorumParser extends Parser {
 					_la = _input.LA(1);
 				} while ( _la==DETECT );
 				setState(289);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ALWAYS) {
 					{
-					setState(288); always_statement();
+					setState(288);
+					always_statement();
 					}
 				}
 
@@ -1649,13 +1810,15 @@ public class QuorumParser extends Parser {
 				break;
 			case ALWAYS:
 				{
-				setState(291); always_statement();
+				setState(291);
+				always_statement();
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			setState(294); match(END);
+			setState(294);
+			match(END);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1671,21 +1834,21 @@ public class QuorumParser extends Parser {
 
 	public static class Detect_statementContext extends ParserRuleContext {
 		public Token name;
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public TerminalNode DETECT() { return getToken(QuorumParser.DETECT, 0); }
-		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public TerminalNode OR(int i) {
-			return getToken(QuorumParser.OR, i);
-		}
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public List<Qualified_nameContext> qualified_name() {
 			return getRuleContexts(Qualified_nameContext.class);
 		}
 		public Qualified_nameContext qualified_name(int i) {
 			return getRuleContext(Qualified_nameContext.class,i);
+		}
+		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
+		public TerminalNode OR(int i) {
+			return getToken(QuorumParser.OR, i);
 		}
 		public Detect_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1693,11 +1856,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_detect_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDetect_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterDetect_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDetect_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitDetect_statement(this);
 		}
 	}
 
@@ -1708,22 +1871,29 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(296); match(DETECT);
-			setState(297); ((Detect_statementContext)_localctx).name = match(ID);
+			setState(296);
+			match(DETECT);
+			setState(297);
+			((Detect_statementContext)_localctx).name = match(ID);
 			setState(307);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==INHERITS) {
 				{
-				setState(298); match(INHERITS);
-				setState(299); qualified_name();
+				setState(298);
+				match(INHERITS);
+				setState(299);
+				qualified_name();
 				setState(304);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==OR) {
 					{
 					{
-					setState(300); match(OR);
-					setState(301); qualified_name();
+					setState(300);
+					match(OR);
+					setState(301);
+					qualified_name();
 					}
 					}
 					setState(306);
@@ -1733,7 +1903,8 @@ public class QuorumParser extends Parser {
 				}
 			}
 
-			setState(309); block();
+			setState(309);
+			block();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1748,21 +1919,21 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Always_statementContext extends ParserRuleContext {
+		public TerminalNode ALWAYS() { return getToken(QuorumParser.ALWAYS, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public TerminalNode ALWAYS() { return getToken(QuorumParser.ALWAYS, 0); }
 		public Always_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_always_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAlways_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAlways_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAlways_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAlways_statement(this);
 		}
 	}
 
@@ -1772,8 +1943,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(311); match(ALWAYS);
-			setState(312); block();
+			setState(311);
+			match(ALWAYS);
+			setState(312);
+			block();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1798,11 +1971,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_print_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterPrint_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterPrint_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitPrint_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitPrint_statement(this);
 		}
 	}
 
@@ -1812,8 +1985,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(314); match(OUTPUT);
-			setState(315); expression(0);
+			setState(314);
+			match(OUTPUT);
+			setState(315);
+			expression(0);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1828,21 +2003,21 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Speak_statementContext extends ParserRuleContext {
+		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public Speak_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_speak_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterSpeak_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterSpeak_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitSpeak_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitSpeak_statement(this);
 		}
 	}
 
@@ -1852,8 +2027,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(317); match(SAY);
-			setState(318); expression(0);
+			setState(317);
+			match(SAY);
+			setState(318);
+			expression(0);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1869,21 +2046,21 @@ public class QuorumParser extends Parser {
 
 	public static class Return_statementContext extends ParserRuleContext {
 		public TerminalNode RETURN() { return getToken(QuorumParser.RETURN, 0); }
-		public TerminalNode NOW() { return getToken(QuorumParser.NOW, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode NOW() { return getToken(QuorumParser.NOW, 0); }
 		public Return_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_return_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterReturn_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterReturn_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitReturn_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitReturn_statement(this);
 		}
 	}
 
@@ -1893,8 +2070,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(320); match(RETURN);
+			setState(320);
+			match(RETURN);
 			setState(323);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ME:
 			case PARENT:
@@ -1910,12 +2089,14 @@ public class QuorumParser extends Parser {
 			case ID:
 			case STRING:
 				{
-				setState(321); expression(0);
+				setState(321);
+				expression(0);
 				}
 				break;
 			case NOW:
 				{
-				setState(322); match(NOW);
+				setState(322);
+				match(NOW);
 				}
 				break;
 			default:
@@ -1938,12 +2119,12 @@ public class QuorumParser extends Parser {
 		public Token ID;
 		public List<Token> ids = new ArrayList<Token>();
 		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
+		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode ID(int i) {
 			return getToken(QuorumParser.ID, i);
 		}
-		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -1953,11 +2134,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_generic_declaration; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGeneric_declaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterGeneric_declaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGeneric_declaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitGeneric_declaration(this);
 		}
 	}
 
@@ -1968,8 +2149,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(325); match(LESS);
-			setState(326); ((Generic_declarationContext)_localctx).ID = match(ID);
+			setState(325);
+			match(LESS);
+			setState(326);
+			((Generic_declarationContext)_localctx).ID = match(ID);
 			((Generic_declarationContext)_localctx).ids.add(((Generic_declarationContext)_localctx).ID);
 			setState(331);
 			_errHandler.sync(this);
@@ -1977,8 +2160,10 @@ public class QuorumParser extends Parser {
 			while (_la==COMMA) {
 				{
 				{
-				setState(327); match(COMMA);
-				setState(328); ((Generic_declarationContext)_localctx).ID = match(ID);
+				setState(327);
+				match(COMMA);
+				setState(328);
+				((Generic_declarationContext)_localctx).ID = match(ID);
 				((Generic_declarationContext)_localctx).ids.add(((Generic_declarationContext)_localctx).ID);
 				}
 				}
@@ -1986,7 +2171,8 @@ public class QuorumParser extends Parser {
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(334); match(GREATER);
+			setState(334);
+			match(GREATER);
 			}
 		}
 		catch (RecognitionException re) {
@@ -2005,11 +2191,11 @@ public class QuorumParser extends Parser {
 		public List<Assignment_declarationContext> assignment_declaration() {
 			return getRuleContexts(Assignment_declarationContext.class);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public Assignment_declarationContext assignment_declaration(int i) {
 			return getRuleContext(Assignment_declarationContext.class,i);
 		}
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -2019,11 +2205,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_generic_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGeneric_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterGeneric_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGeneric_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitGeneric_statement(this);
 		}
 	}
 
@@ -2034,23 +2220,28 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(336); match(LESS);
-			setState(337); assignment_declaration();
+			setState(336);
+			match(LESS);
+			setState(337);
+			assignment_declaration();
 			setState(342);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				setState(338); match(COMMA);
-				setState(339); assignment_declaration();
+				setState(338);
+				match(COMMA);
+				setState(339);
+				assignment_declaration();
 				}
 				}
 				setState(344);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(345); match(GREATER);
+			setState(345);
+			match(GREATER);
 			}
 		}
 		catch (RecognitionException re) {
@@ -2074,11 +2265,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_class_type; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterClass_type(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterClass_type(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitClass_type(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitClass_type(this);
 		}
 	}
 
@@ -2088,7 +2279,8 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(347); qualified_name();
+			setState(347);
+			qualified_name();
 			}
 		}
 		catch (RecognitionException re) {
@@ -2120,11 +2312,11 @@ public class QuorumParser extends Parser {
 		public IntegerAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterIntegerAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitIntegerAssignmentDeclaration(this);
 		}
 	}
 	public static class NumberAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -2132,11 +2324,11 @@ public class QuorumParser extends Parser {
 		public NumberAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNumberAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNumberAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNumberAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNumberAssignmentDeclaration(this);
 		}
 	}
 	public static class TextAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -2144,11 +2336,11 @@ public class QuorumParser extends Parser {
 		public TextAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterTextAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterTextAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitTextAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitTextAssignmentDeclaration(this);
 		}
 	}
 	public static class BooleanAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -2156,28 +2348,28 @@ public class QuorumParser extends Parser {
 		public BooleanAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBooleanAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterBooleanAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBooleanAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitBooleanAssignmentDeclaration(this);
 		}
 	}
 	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
-		public Generic_statementContext generic_statement() {
-			return getRuleContext(Generic_statementContext.class,0);
-		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public Generic_statementContext generic_statement() {
+			return getRuleContext(Generic_statementContext.class,0);
 		}
 		public GenericAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterGenericAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitGenericAssignmentDeclaration(this);
 		}
 	}
 
@@ -2187,17 +2379,21 @@ public class QuorumParser extends Parser {
 		int _la;
 		try {
 			setState(357);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ID:
 				_localctx = new GenericAssignmentDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(349); qualified_name();
+				setState(349);
+				qualified_name();
 				setState(351);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==LESS) {
 					{
-					setState(350); generic_statement();
+					setState(350);
+					generic_statement();
 					}
 				}
 
@@ -2207,28 +2403,32 @@ public class QuorumParser extends Parser {
 				_localctx = new IntegerAssignmentDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(353); match(INTEGER_KEYWORD);
+				setState(353);
+				match(INTEGER_KEYWORD);
 				}
 				break;
 			case NUMBER_KEYWORD:
 				_localctx = new NumberAssignmentDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(354); match(NUMBER_KEYWORD);
+				setState(354);
+				match(NUMBER_KEYWORD);
 				}
 				break;
 			case TEXT:
 				_localctx = new TextAssignmentDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(355); match(TEXT);
+				setState(355);
+				match(TEXT);
 				}
 				break;
 			case BOOLEAN_KEYWORD:
 				_localctx = new BooleanAssignmentDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(356); match(BOOLEAN_KEYWORD);
+				setState(356);
+				match(BOOLEAN_KEYWORD);
 				}
 				break;
 			default:
@@ -2260,21 +2460,21 @@ public class QuorumParser extends Parser {
 	public static class NoTypeAssignmentContext extends Assignment_statementContext {
 		public Token name;
 		public ExpressionContext rhs;
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
 		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
 		public NoTypeAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoTypeAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNoTypeAssignment(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoTypeAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNoTypeAssignment(this);
 		}
 	}
 	public static class ParentAssignmentContext extends Assignment_statementContext {
@@ -2282,26 +2482,26 @@ public class QuorumParser extends Parser {
 		public Token name;
 		public ExpressionContext rhs;
 		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
 		}
 		public ParentAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterParentAssignment(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitParentAssignment(this);
 		}
 	}
 	public static class ObjectAssignmentContext extends Assignment_statementContext {
@@ -2309,30 +2509,30 @@ public class QuorumParser extends Parser {
 		public Qualified_nameContext parent;
 		public Token name;
 		public ExpressionContext rhs;
-		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
 		public TerminalNode ID(int i) {
 			return getToken(QuorumParser.ID, i);
 		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
 		public ObjectAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterObjectAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterObjectAssignment(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitObjectAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitObjectAssignment(this);
 		}
 	}
 	public static class NormalAssignmentContext extends Assignment_statementContext {
@@ -2344,22 +2544,22 @@ public class QuorumParser extends Parser {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode CONSTANT() { return getToken(QuorumParser.CONSTANT, 0); }
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
 		}
-		public TerminalNode CONSTANT() { return getToken(QuorumParser.CONSTANT, 0); }
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public NormalAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNormalAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNormalAssignment(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNormalAssignment(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNormalAssignment(this);
 		}
 	}
 
@@ -2369,91 +2569,121 @@ public class QuorumParser extends Parser {
 		int _la;
 		try {
 			setState(397);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,49,_ctx) ) {
 			case 1:
 				_localctx = new NoTypeAssignmentContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(361);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ME) {
 					{
-					setState(359); match(ME);
-					setState(360); match(COLON);
+					setState(359);
+					match(ME);
+					setState(360);
+					match(COLON);
 					}
 				}
 
-				setState(363); ((NoTypeAssignmentContext)_localctx).name = match(ID);
-				setState(364); match(EQUALITY);
-				setState(365); ((NoTypeAssignmentContext)_localctx).rhs = expression(0);
+				setState(363);
+				((NoTypeAssignmentContext)_localctx).name = match(ID);
+				setState(364);
+				match(EQUALITY);
+				setState(365);
+				((NoTypeAssignmentContext)_localctx).rhs = expression(0);
 				}
 				break;
-
 			case 2:
 				_localctx = new ParentAssignmentContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(366); match(PARENT);
-				setState(367); match(COLON);
-				setState(368); ((ParentAssignmentContext)_localctx).parent = qualified_name();
-				setState(369); match(COLON);
-				setState(370); ((ParentAssignmentContext)_localctx).name = match(ID);
-				setState(371); match(EQUALITY);
-				setState(372); ((ParentAssignmentContext)_localctx).rhs = expression(0);
+				setState(366);
+				match(PARENT);
+				setState(367);
+				match(COLON);
+				setState(368);
+				((ParentAssignmentContext)_localctx).parent = qualified_name();
+				setState(369);
+				match(COLON);
+				setState(370);
+				((ParentAssignmentContext)_localctx).name = match(ID);
+				setState(371);
+				match(EQUALITY);
+				setState(372);
+				((ParentAssignmentContext)_localctx).rhs = expression(0);
 				}
 				break;
-
 			case 3:
 				_localctx = new ObjectAssignmentContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(374); ((ObjectAssignmentContext)_localctx).object = match(ID);
+				setState(374);
+				((ObjectAssignmentContext)_localctx).object = match(ID);
 				setState(379);
+				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,45,_ctx) ) {
 				case 1:
 					{
-					setState(375); match(COLON);
-					setState(376); match(PARENT);
-					setState(377); match(COLON);
-					setState(378); ((ObjectAssignmentContext)_localctx).parent = qualified_name();
+					setState(375);
+					match(COLON);
+					setState(376);
+					match(PARENT);
+					setState(377);
+					match(COLON);
+					setState(378);
+					((ObjectAssignmentContext)_localctx).parent = qualified_name();
 					}
 					break;
 				}
-				setState(381); match(COLON);
-				setState(382); ((ObjectAssignmentContext)_localctx).name = match(ID);
-				setState(383); match(EQUALITY);
-				setState(384); ((ObjectAssignmentContext)_localctx).rhs = expression(0);
+				setState(381);
+				match(COLON);
+				setState(382);
+				((ObjectAssignmentContext)_localctx).name = match(ID);
+				setState(383);
+				match(EQUALITY);
+				setState(384);
+				((ObjectAssignmentContext)_localctx).rhs = expression(0);
 				}
 				break;
-
 			case 4:
 				_localctx = new NormalAssignmentContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(386);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==PUBLIC || _la==PRIVATE) {
 					{
-					setState(385); ((NormalAssignmentContext)_localctx).modifier = access_modifier();
+					setState(385);
+					((NormalAssignmentContext)_localctx).modifier = access_modifier();
 					}
 				}
 
 				setState(389);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==CONSTANT) {
 					{
-					setState(388); match(CONSTANT);
+					setState(388);
+					match(CONSTANT);
 					}
 				}
 
-				setState(391); ((NormalAssignmentContext)_localctx).type = assignment_declaration();
-				setState(392); ((NormalAssignmentContext)_localctx).name = match(ID);
+				setState(391);
+				((NormalAssignmentContext)_localctx).type = assignment_declaration();
+				setState(392);
+				((NormalAssignmentContext)_localctx).name = match(ID);
 				setState(395);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==EQUALITY) {
 					{
-					setState(393); match(EQUALITY);
-					setState(394); ((NormalAssignmentContext)_localctx).rhs = expression(0);
+					setState(393);
+					match(EQUALITY);
+					setState(394);
+					((NormalAssignmentContext)_localctx).rhs = expression(0);
 					}
 				}
 
@@ -2473,22 +2703,22 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class If_statementContext extends ParserRuleContext {
-		public Elseif_statementContext elseif_statement(int i) {
-			return getRuleContext(Elseif_statementContext.class,i);
-		}
 		public TerminalNode IF() { return getToken(QuorumParser.IF, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public Else_statementContext else_statement() {
-			return getRuleContext(Else_statementContext.class,0);
-		}
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public List<Elseif_statementContext> elseif_statement() {
 			return getRuleContexts(Elseif_statementContext.class);
+		}
+		public Elseif_statementContext elseif_statement(int i) {
+			return getRuleContext(Elseif_statementContext.class,i);
+		}
+		public Else_statementContext else_statement() {
+			return getRuleContext(Else_statementContext.class,0);
 		}
 		public If_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2496,11 +2726,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_if_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIf_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterIf_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIf_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitIf_statement(this);
 		}
 	}
 
@@ -2511,16 +2741,20 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(399); match(IF);
-			setState(400); expression(0);
-			setState(401); block();
+			setState(399);
+			match(IF);
+			setState(400);
+			expression(0);
+			setState(401);
+			block();
 			setState(405);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==ELSE_IF) {
 				{
 				{
-				setState(402); elseif_statement();
+				setState(402);
+				elseif_statement();
 				}
 				}
 				setState(407);
@@ -2528,14 +2762,17 @@ public class QuorumParser extends Parser {
 				_la = _input.LA(1);
 			}
 			setState(409);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==ELSE) {
 				{
-				setState(408); else_statement();
+				setState(408);
+				else_statement();
 				}
 			}
 
-			setState(411); match(END);
+			setState(411);
+			match(END);
 			}
 		}
 		catch (RecognitionException re) {
@@ -2563,11 +2800,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_elseif_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterElseif_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterElseif_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitElseif_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitElseif_statement(this);
 		}
 	}
 
@@ -2577,9 +2814,12 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(413); match(ELSE_IF);
-			setState(414); expression(0);
-			setState(415); block();
+			setState(413);
+			match(ELSE_IF);
+			setState(414);
+			expression(0);
+			setState(415);
+			block();
 			}
 		}
 		catch (RecognitionException re) {
@@ -2604,11 +2844,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_else_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterElse_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterElse_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitElse_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitElse_statement(this);
 		}
 	}
 
@@ -2618,8 +2858,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(417); match(ELSE);
-			setState(418); block();
+			setState(417);
+			match(ELSE);
+			setState(418);
+			block();
 			}
 		}
 		catch (RecognitionException re) {
@@ -2634,28 +2876,28 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Loop_statementContext extends ParserRuleContext {
-		public TerminalNode TIMES() { return getToken(QuorumParser.TIMES, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public TerminalNode UNTIL() { return getToken(QuorumParser.UNTIL, 0); }
+		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode TIMES() { return getToken(QuorumParser.TIMES, 0); }
 		public TerminalNode WHILE() { return getToken(QuorumParser.WHILE, 0); }
-		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
+		public TerminalNode UNTIL() { return getToken(QuorumParser.UNTIL, 0); }
 		public Loop_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_loop_statement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterLoop_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterLoop_statement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitLoop_statement(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitLoop_statement(this);
 		}
 	}
 
@@ -2666,8 +2908,10 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(420); match(REPEAT);
+			setState(420);
+			match(REPEAT);
 			setState(426);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ME:
 			case PARENT:
@@ -2684,8 +2928,10 @@ public class QuorumParser extends Parser {
 			case STRING:
 				{
 				{
-				setState(421); expression(0);
-				setState(422); match(TIMES);
+				setState(421);
+				expression(0);
+				setState(422);
+				match(TIMES);
 				}
 				}
 				break;
@@ -2698,16 +2944,23 @@ public class QuorumParser extends Parser {
 				if ( !(_la==UNTIL || _la==WHILE) ) {
 				_errHandler.recoverInline(this);
 				}
-				consume();
-				setState(425); expression(0);
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
+					consume();
+				}
+				setState(425);
+				expression(0);
 				}
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			setState(428); block();
-			setState(429); match(END);
+			setState(428);
+			block();
+			setState(429);
+			match(END);
 			}
 		}
 		catch (RecognitionException re) {
@@ -2724,22 +2977,22 @@ public class QuorumParser extends Parser {
 	public static class Initial_parent_action_callContext extends ParserRuleContext {
 		public Token var;
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public Function_expression_listContext function_expression_list() {
 			return getRuleContext(Function_expression_listContext.class,0);
 		}
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public Initial_parent_action_callContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_initial_parent_action_call; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInitial_parent_action_call(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInitial_parent_action_call(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInitial_parent_action_call(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInitial_parent_action_call(this);
 		}
 	}
 
@@ -2749,14 +3002,19 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(431); ((Initial_parent_action_callContext)_localctx).var = match(ID);
+			setState(431);
+			((Initial_parent_action_callContext)_localctx).var = match(ID);
 			setState(436);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,53,_ctx) ) {
 			case 1:
 				{
-				setState(432); match(LEFT_PAREN);
-				setState(433); function_expression_list();
-				setState(434); match(RIGHT_PAREN);
+				setState(432);
+				match(LEFT_PAREN);
+				setState(433);
+				function_expression_list();
+				setState(434);
+				match(RIGHT_PAREN);
 				}
 				break;
 			}
@@ -2776,22 +3034,22 @@ public class QuorumParser extends Parser {
 	public static class Action_callContext extends ParserRuleContext {
 		public Token var;
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public Function_expression_listContext function_expression_list() {
 			return getRuleContext(Function_expression_listContext.class,0);
 		}
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public Action_callContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_action_call; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction_call(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAction_call(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction_call(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAction_call(this);
 		}
 	}
 
@@ -2801,14 +3059,19 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(438); ((Action_callContext)_localctx).var = match(ID);
+			setState(438);
+			((Action_callContext)_localctx).var = match(ID);
 			setState(443);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,54,_ctx) ) {
 			case 1:
 				{
-				setState(439); match(LEFT_PAREN);
-				setState(440); function_expression_list();
-				setState(441); match(RIGHT_PAREN);
+				setState(439);
+				match(LEFT_PAREN);
+				setState(440);
+				function_expression_list();
+				setState(441);
+				match(RIGHT_PAREN);
 				}
 				break;
 			}
@@ -2838,24 +3101,24 @@ public class QuorumParser extends Parser {
 	}
 	public static class CastContext extends ExpressionContext {
 		public Assignment_declarationContext type;
-		public Assignment_declarationContext assignment_declaration() {
-			return getRuleContext(Assignment_declarationContext.class,0);
-		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
 		public TerminalNode CAST() { return getToken(QuorumParser.CAST, 0); }
 		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public Assignment_declarationContext assignment_declaration() {
+			return getRuleContext(Assignment_declarationContext.class,0);
 		}
 		public CastContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCast(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterCast(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCast(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitCast(this);
 		}
 	}
 	public static class NullContext extends ExpressionContext {
@@ -2863,103 +3126,103 @@ public class QuorumParser extends Parser {
 		public NullContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNull(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNull(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNull(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNull(this);
 		}
 	}
 	public static class MultiplicationContext extends ExpressionContext {
-		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode MODULO() { return getToken(QuorumParser.MODULO, 0); }
-		public TerminalNode MULTIPLY() { return getToken(QuorumParser.MULTIPLY, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode MULTIPLY() { return getToken(QuorumParser.MULTIPLY, 0); }
+		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
+		public TerminalNode MODULO() { return getToken(QuorumParser.MODULO, 0); }
 		public MultiplicationContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMultiplication(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterMultiplication(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMultiplication(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitMultiplication(this);
 		}
 	}
 	public static class AdditionContext extends ExpressionContext {
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public TerminalNode PLUS() { return getToken(QuorumParser.PLUS, 0); }
 		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
 		public AdditionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAddition(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAddition(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAddition(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAddition(this);
 		}
 	}
 	public static class OrContext extends ExpressionContext {
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public TerminalNode OR() { return getToken(QuorumParser.OR, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
 		public OrContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterOr(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterOr(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitOr(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitOr(this);
 		}
 	}
 	public static class ParenthesisExpressionContext extends ExpressionContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public ParenthesisExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParenthesisExpression(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterParenthesisExpression(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParenthesisExpression(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitParenthesisExpression(this);
 		}
 	}
 	public static class InheritsContext extends ExpressionContext {
 		public Class_typeContext name;
-		public Class_typeContext class_type() {
-			return getRuleContext(Class_typeContext.class,0);
-		}
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
+		public Class_typeContext class_type() {
+			return getRuleContext(Class_typeContext.class,0);
 		}
 		public InheritsContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherits(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInherits(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherits(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInherits(this);
 		}
 	}
 	public static class StringContext extends ExpressionContext {
@@ -2967,11 +3230,11 @@ public class QuorumParser extends Parser {
 		public StringContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterString(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterString(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitString(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitString(this);
 		}
 	}
 	public static class IntegerContext extends ExpressionContext {
@@ -2979,33 +3242,50 @@ public class QuorumParser extends Parser {
 		public IntegerContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInteger(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInteger(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInteger(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInteger(this);
 		}
 	}
 	public static class VariableFunctionCallContext extends ExpressionContext {
 		public List<Action_callContext> action_call() {
 			return getRuleContexts(Action_callContext.class);
 		}
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public Action_callContext action_call(int i) {
 			return getRuleContext(Action_callContext.class,i);
 		}
 		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
 		public VariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterVariableFunctionCall(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitVariableFunctionCall(this);
+		}
+	}
+	public static class InputContext extends ExpressionContext {
+		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInput(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInput(this);
 		}
 	}
 	public static class NotContext extends ExpressionContext {
@@ -3016,47 +3296,30 @@ public class QuorumParser extends Parser {
 		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNot(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterNot(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNot(this);
-		}
-	}
-	public static class InputContext extends ExpressionContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInput(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInput(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitNot(this);
 		}
 	}
 	public static class EqualsContext extends ExpressionContext {
-		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
 		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
 		public EqualsContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterEquals(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterEquals(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitEquals(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitEquals(this);
 		}
 	}
 	public static class DecimalContext extends ExpressionContext {
@@ -3064,29 +3327,29 @@ public class QuorumParser extends Parser {
 		public DecimalContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDecimal(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterDecimal(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDecimal(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitDecimal(this);
 		}
 	}
 	public static class AndContext extends ExpressionContext {
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public TerminalNode AND() { return getToken(QuorumParser.AND, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
 		public AndContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAnd(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterAnd(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAnd(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitAnd(this);
 		}
 	}
 	public static class MeContext extends ExpressionContext {
@@ -3094,32 +3357,32 @@ public class QuorumParser extends Parser {
 		public MeContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMe(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterMe(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMe(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitMe(this);
 		}
 	}
 	public static class GreaterContext extends ExpressionContext {
-		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
+		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
+		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
+		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
 		public GreaterContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGreater(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterGreater(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGreater(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitGreater(this);
 		}
 	}
 	public static class BooleanContext extends ExpressionContext {
@@ -3127,11 +3390,57 @@ public class QuorumParser extends Parser {
 		public BooleanContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBoolean(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterBoolean(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBoolean(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitBoolean(this);
+		}
+	}
+	public static class InputNoParametersContext extends ExpressionContext {
+		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public InputNoParametersContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterInputNoParameters(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitInputNoParameters(this);
+		}
+	}
+	public static class ParentVariableFunctionCallContext extends ExpressionContext {
+		public Token fieldName;
+		public Qualified_nameContext parent;
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public Initial_parent_action_callContext initial_parent_action_call() {
+			return getRuleContext(Initial_parent_action_callContext.class,0);
+		}
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
+		public Action_callContext action_call(int i) {
+			return getRuleContext(Action_callContext.class,i);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterParentVariableFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitParentVariableFunctionCall(this);
 		}
 	}
 	public static class MinusContext extends ExpressionContext {
@@ -3142,57 +3451,11 @@ public class QuorumParser extends Parser {
 		public MinusContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMinus(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterMinus(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMinus(this);
-		}
-	}
-	public static class InputNoParametersContext extends ExpressionContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public InputNoParametersContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInputNoParameters(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInputNoParameters(this);
-		}
-	}
-	public static class ParentVariableFunctionCallContext extends ExpressionContext {
-		public Token fieldName;
-		public Qualified_nameContext parent;
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Initial_parent_action_callContext initial_parent_action_call() {
-			return getRuleContext(Initial_parent_action_callContext.class,0);
-		}
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public Action_callContext action_call(int i) {
-			return getRuleContext(Action_callContext.class,i);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableFunctionCall(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableFunctionCall(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitMinus(this);
 		}
 	}
 
@@ -3213,214 +3476,247 @@ public class QuorumParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(507);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,60,_ctx) ) {
 			case 1:
-				{
-				_localctx = new MinusContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-
-				setState(446); match(MINUS);
-				setState(447); expression(10);
-				}
-				break;
-
-			case 2:
-				{
-				_localctx = new NotContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(448); match(NOT);
-				setState(449); expression(9);
-				}
-				break;
-
-			case 3:
 				{
 				_localctx = new ParenthesisExpressionContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(450); match(LEFT_PAREN);
-				setState(451); expression(0);
-				setState(452); match(RIGHT_PAREN);
+
+				setState(446);
+				match(LEFT_PAREN);
+				setState(447);
+				expression(0);
+				setState(448);
+				match(RIGHT_PAREN);
 				}
 				break;
-
-			case 4:
+			case 2:
 				{
 				_localctx = new IntegerContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(454); match(INT);
+				setState(450);
+				match(INT);
 				}
 				break;
-
-			case 5:
+			case 3:
 				{
 				_localctx = new BooleanContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(455); match(BOOLEAN);
+				setState(451);
+				match(BOOLEAN);
 				}
 				break;
-
-			case 6:
+			case 4:
 				{
 				_localctx = new DecimalContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(456); match(DECIMAL);
+				setState(452);
+				match(DECIMAL);
 				}
 				break;
-
-			case 7:
+			case 5:
 				{
 				_localctx = new StringContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(457); match(STRING);
+				setState(453);
+				match(STRING);
 				}
 				break;
-
-			case 8:
+			case 6:
 				{
 				_localctx = new NullContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(458); match(NULL);
+				setState(454);
+				match(NULL);
 				}
 				break;
-
-			case 9:
+			case 7:
 				{
 				_localctx = new MeContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(459); match(ME);
+				setState(455);
+				match(ME);
 				}
 				break;
-
-			case 10:
+			case 8:
 				{
 				_localctx = new InputContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(460); match(INPUT);
-				setState(461); match(LEFT_PAREN);
-				setState(462); expression(0);
-				setState(463); match(RIGHT_PAREN);
+				setState(456);
+				match(INPUT);
+				setState(457);
+				match(LEFT_PAREN);
+				setState(458);
+				expression(0);
+				setState(459);
+				match(RIGHT_PAREN);
 				}
 				break;
-
-			case 11:
+			case 9:
 				{
 				_localctx = new InputNoParametersContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(465); match(INPUT);
-				setState(466); match(LEFT_PAREN);
-				setState(467); match(RIGHT_PAREN);
+				setState(461);
+				match(INPUT);
+				setState(462);
+				match(LEFT_PAREN);
+				setState(463);
+				match(RIGHT_PAREN);
 				}
 				break;
-
-			case 12:
+			case 10:
 				{
 				_localctx = new VariableFunctionCallContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(470);
+				setState(466);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ME) {
 					{
-					setState(468); match(ME);
-					setState(469); match(COLON);
+					setState(464);
+					match(ME);
+					setState(465);
+					match(COLON);
 					}
 				}
 
-				setState(472); action_call();
-				setState(477);
+				setState(468);
+				action_call();
+				setState(473);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,56,_ctx);
-				while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+				while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 					if ( _alt==1 ) {
 						{
 						{
-						setState(473); match(COLON);
+						setState(469);
+						match(COLON);
 						{
-						setState(474); action_call();
+						setState(470);
+						action_call();
 						}
 						}
 						} 
 					}
-					setState(479);
+					setState(475);
 					_errHandler.sync(this);
 					_alt = getInterpreter().adaptivePredict(_input,56,_ctx);
 				}
 				}
 				break;
-
-			case 13:
+			case 11:
 				{
 				_localctx = new ParentVariableFunctionCallContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(486);
+				setState(482);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==ME || _la==ID) {
 					{
-					setState(482);
+					setState(478);
+					_errHandler.sync(this);
 					_la = _input.LA(1);
 					if (_la==ME) {
 						{
-						setState(480); match(ME);
-						setState(481); match(COLON);
+						setState(476);
+						match(ME);
+						setState(477);
+						match(COLON);
 						}
 					}
 
 					{
-					setState(484); ((ParentVariableFunctionCallContext)_localctx).fieldName = match(ID);
-					setState(485); match(COLON);
+					setState(480);
+					((ParentVariableFunctionCallContext)_localctx).fieldName = match(ID);
+					setState(481);
+					match(COLON);
 					}
 					}
 				}
 
-				setState(488); match(PARENT);
-				setState(489); match(COLON);
-				setState(490); ((ParentVariableFunctionCallContext)_localctx).parent = qualified_name();
-				setState(491); match(COLON);
-				setState(492); initial_parent_action_call();
-				setState(497);
+				setState(484);
+				match(PARENT);
+				setState(485);
+				match(COLON);
+				setState(486);
+				((ParentVariableFunctionCallContext)_localctx).parent = qualified_name();
+				setState(487);
+				match(COLON);
+				setState(488);
+				initial_parent_action_call();
+				setState(493);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,59,_ctx);
-				while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+				while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 					if ( _alt==1 ) {
 						{
 						{
-						setState(493); match(COLON);
+						setState(489);
+						match(COLON);
 						{
-						setState(494); action_call();
+						setState(490);
+						action_call();
 						}
 						}
 						} 
 					}
-					setState(499);
+					setState(495);
 					_errHandler.sync(this);
 					_alt = getInterpreter().adaptivePredict(_input,59,_ctx);
 				}
 				}
 				break;
-
+			case 12:
+				{
+				_localctx = new MinusContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(496);
+				match(MINUS);
+				setState(497);
+				expression(10);
+				}
+				break;
+			case 13:
+				{
+				_localctx = new NotContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(498);
+				match(NOT);
+				setState(499);
+				expression(9);
+				}
+				break;
 			case 14:
 				{
 				_localctx = new CastContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(500); match(CAST);
-				setState(501); match(LEFT_PAREN);
-				setState(502); ((CastContext)_localctx).type = assignment_declaration();
-				setState(503); match(COMMA);
-				setState(504); expression(0);
-				setState(505); match(RIGHT_PAREN);
+				setState(500);
+				match(CAST);
+				setState(501);
+				match(LEFT_PAREN);
+				setState(502);
+				((CastContext)_localctx).type = assignment_declaration();
+				setState(503);
+				match(COMMA);
+				setState(504);
+				expression(0);
+				setState(505);
+				match(RIGHT_PAREN);
 				}
 				break;
 			}
@@ -3428,12 +3724,13 @@ public class QuorumParser extends Parser {
 			setState(532);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,62,_ctx);
-			while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
 					setState(530);
+					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,61,_ctx) ) {
 					case 1:
 						{
@@ -3446,11 +3743,15 @@ public class QuorumParser extends Parser {
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MODULO))) != 0)) ) {
 						_errHandler.recoverInline(this);
 						}
-						consume();
-						setState(511); expression(8);
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(511);
+						expression(8);
 						}
 						break;
-
 					case 2:
 						{
 						_localctx = new AdditionContext(new ExpressionContext(_parentctx, _parentState));
@@ -3462,11 +3763,15 @@ public class QuorumParser extends Parser {
 						if ( !(_la==PLUS || _la==MINUS) ) {
 						_errHandler.recoverInline(this);
 						}
-						consume();
-						setState(514); expression(7);
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(514);
+						expression(7);
 						}
 						break;
-
 					case 3:
 						{
 						_localctx = new GreaterContext(new ExpressionContext(_parentctx, _parentState));
@@ -3478,11 +3783,15 @@ public class QuorumParser extends Parser {
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << GREATER) | (1L << GREATER_EQUAL) | (1L << LESS) | (1L << LESS_EQUAL))) != 0)) ) {
 						_errHandler.recoverInline(this);
 						}
-						consume();
-						setState(517); expression(6);
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(517);
+						expression(6);
 						}
 						break;
-
 					case 4:
 						{
 						_localctx = new EqualsContext(new ExpressionContext(_parentctx, _parentState));
@@ -3494,11 +3803,15 @@ public class QuorumParser extends Parser {
 						if ( !(_la==NOTEQUALS || _la==EQUALITY) ) {
 						_errHandler.recoverInline(this);
 						}
-						consume();
-						setState(520); expression(4);
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(520);
+						expression(4);
 						}
 						break;
-
 					case 5:
 						{
 						_localctx = new AndContext(new ExpressionContext(_parentctx, _parentState));
@@ -3506,12 +3819,13 @@ public class QuorumParser extends Parser {
 						setState(521);
 						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
 						{
-						setState(522); match(AND);
+						setState(522);
+						match(AND);
 						}
-						setState(523); expression(3);
+						setState(523);
+						expression(3);
 						}
 						break;
-
 					case 6:
 						{
 						_localctx = new OrContext(new ExpressionContext(_parentctx, _parentState));
@@ -3519,20 +3833,23 @@ public class QuorumParser extends Parser {
 						setState(524);
 						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 						{
-						setState(525); match(OR);
+						setState(525);
+						match(OR);
 						}
-						setState(526); expression(2);
+						setState(526);
+						expression(2);
 						}
 						break;
-
 					case 7:
 						{
 						_localctx = new InheritsContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(527);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
-						setState(528); match(INHERITS);
-						setState(529); ((InheritsContext)_localctx).name = class_type();
+						setState(528);
+						match(INHERITS);
+						setState(529);
+						((InheritsContext)_localctx).name = class_type();
 						}
 						break;
 					}
@@ -3556,13 +3873,13 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Function_expression_listContext extends ParserRuleContext {
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -3572,11 +3889,11 @@ public class QuorumParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_function_expression_list; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFunction_expression_list(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).enterFunction_expression_list(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFunction_expression_list(this);
+			if ( listener instanceof QuorumParserListener ) ((QuorumParserListener)listener).exitFunction_expression_list(this);
 		}
 	}
 
@@ -3588,18 +3905,22 @@ public class QuorumParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(543);
+			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & ((1L << (ME - 6)) | (1L << (PARENT - 6)) | (1L << (CAST - 6)) | (1L << (INPUT - 6)) | (1L << (NULL - 6)) | (1L << (NOT - 6)) | (1L << (MINUS - 6)) | (1L << (LEFT_PAREN - 6)) | (1L << (BOOLEAN - 6)) | (1L << (INT - 6)) | (1L << (DECIMAL - 6)) | (1L << (ID - 6)) | (1L << (STRING - 6)))) != 0)) {
 				{
-				setState(535); expression(0);
+				setState(535);
+				expression(0);
 				setState(540);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==COMMA) {
 					{
 					{
-					setState(536); match(COMMA);
-					setState(537); expression(0);
+					setState(536);
+					match(COMMA);
+					setState(537);
+					expression(0);
 					}
 					}
 					setState(542);
@@ -3624,31 +3945,33 @@ public class QuorumParser extends Parser {
 
 	public boolean sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
-		case 35: return expression_sempred((ExpressionContext)_localctx, predIndex);
+		case 35:
+			return expression_sempred((ExpressionContext)_localctx, predIndex);
 		}
 		return true;
 	}
 	private boolean expression_sempred(ExpressionContext _localctx, int predIndex) {
 		switch (predIndex) {
-		case 0: return precpred(_ctx, 7);
-
-		case 1: return precpred(_ctx, 6);
-
-		case 2: return precpred(_ctx, 5);
-
-		case 3: return precpred(_ctx, 3);
-
-		case 4: return precpred(_ctx, 2);
-
-		case 5: return precpred(_ctx, 1);
-
-		case 6: return precpred(_ctx, 4);
+		case 0:
+			return precpred(_ctx, 7);
+		case 1:
+			return precpred(_ctx, 6);
+		case 2:
+			return precpred(_ctx, 5);
+		case 3:
+			return precpred(_ctx, 3);
+		case 4:
+			return precpred(_ctx, 2);
+		case 5:
+			return precpred(_ctx, 1);
+		case 6:
+			return precpred(_ctx, 4);
 		}
 		return true;
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3G\u0224\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3G\u0224\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -3684,32 +4007,32 @@ public class QuorumParser extends Parser {
 		"\13\37\3\37\5\37\u019c\n\37\3\37\3\37\3 \3 \3 \3 \3!\3!\3!\3\"\3\"\3\""+
 		"\3\"\3\"\3\"\5\"\u01ad\n\"\3\"\3\"\3\"\3#\3#\3#\3#\3#\5#\u01b7\n#\3$\3"+
 		"$\3$\3$\3$\5$\u01be\n$\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3"+
-		"%\3%\3%\3%\3%\3%\3%\3%\3%\3%\5%\u01d9\n%\3%\3%\3%\7%\u01de\n%\f%\16%\u01e1"+
-		"\13%\3%\3%\5%\u01e5\n%\3%\3%\5%\u01e9\n%\3%\3%\3%\3%\3%\3%\3%\7%\u01f2"+
-		"\n%\f%\16%\u01f5\13%\3%\3%\3%\3%\3%\3%\3%\5%\u01fe\n%\3%\3%\3%\3%\3%\3"+
-		"%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\7%\u0215\n%\f%\16%\u0218"+
-		"\13%\3&\3&\3&\7&\u021d\n&\f&\16&\u0220\13&\5&\u0222\n&\3&\2\3H\'\2\4\6"+
-		"\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDFHJ\2\b\3"+
-		"\2\n\13\4\2\t\t\30\30\3\2\65\67\3\2\63\64\3\2/\62\4\2++..\u0261\2`\3\2"+
-		"\2\2\4e\3\2\2\2\6h\3\2\2\2\b~\3\2\2\2\n\u008d\3\2\2\2\f\u008f\3\2\2\2"+
-		"\16\u0098\3\2\2\2\20\u009c\3\2\2\2\22\u00a0\3\2\2\2\24\u00b8\3\2\2\2\26"+
-		"\u00ba\3\2\2\2\30\u00ce\3\2\2\2\32\u00d1\3\2\2\2\34\u00dc\3\2\2\2\36\u00e8"+
-		"\3\2\2\2 \u010f\3\2\2\2\"\u0111\3\2\2\2$\u0116\3\2\2\2&\u011b\3\2\2\2"+
-		"(\u012a\3\2\2\2*\u0139\3\2\2\2,\u013c\3\2\2\2.\u013f\3\2\2\2\60\u0142"+
-		"\3\2\2\2\62\u0147\3\2\2\2\64\u0152\3\2\2\2\66\u015d\3\2\2\28\u0167\3\2"+
-		"\2\2:\u018f\3\2\2\2<\u0191\3\2\2\2>\u019f\3\2\2\2@\u01a3\3\2\2\2B\u01a6"+
-		"\3\2\2\2D\u01b1\3\2\2\2F\u01b8\3\2\2\2H\u01fd\3\2\2\2J\u0221\3\2\2\2L"+
-		"N\5\4\3\2MO\5\6\4\2NM\3\2\2\2OP\3\2\2\2PN\3\2\2\2PQ\3\2\2\2Qa\3\2\2\2"+
-		"RT\5\6\4\2SR\3\2\2\2TU\3\2\2\2US\3\2\2\2UV\3\2\2\2VW\3\2\2\2WX\5\4\3\2"+
-		"Xa\3\2\2\2Ya\5\4\3\2Z\\\5\6\4\2[Z\3\2\2\2\\]\3\2\2\2][\3\2\2\2]^\3\2\2"+
-		"\2^a\3\2\2\2_a\3\2\2\2`L\3\2\2\2`S\3\2\2\2`Y\3\2\2\2`[\3\2\2\2`_\3\2\2"+
-		"\2ab\3\2\2\2bc\5\b\5\2cd\7\2\2\3d\3\3\2\2\2ef\7\31\2\2fg\5\32\16\2g\5"+
-		"\3\2\2\2hi\7)\2\2ij\5\32\16\2j\7\3\2\2\2km\7\"\2\2lk\3\2\2\2lm\3\2\2\2"+
-		"mn\3\2\2\2no\7?\2\2oq\7C\2\2pr\5\62\32\2qp\3\2\2\2qr\3\2\2\2rt\3\2\2\2"+
-		"su\5\f\7\2ts\3\2\2\2tu\3\2\2\2uy\3\2\2\2vx\5\22\n\2wv\3\2\2\2x{\3\2\2"+
-		"\2yw\3\2\2\2yz\3\2\2\2z|\3\2\2\2{y\3\2\2\2|\177\7>\2\2}\177\5\n\6\2~l"+
-		"\3\2\2\2~}\3\2\2\2\177\t\3\2\2\2\u0080\u0082\5\36\20\2\u0081\u0080\3\2"+
-		"\2\2\u0082\u0083\3\2\2\2\u0083\u0081\3\2\2\2\u0083\u0084\3\2\2\2\u0084"+
+		"%\3%\3%\3%\3%\3%\5%\u01d5\n%\3%\3%\3%\7%\u01da\n%\f%\16%\u01dd\13%\3%"+
+		"\3%\5%\u01e1\n%\3%\3%\5%\u01e5\n%\3%\3%\3%\3%\3%\3%\3%\7%\u01ee\n%\f%"+
+		"\16%\u01f1\13%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\5%\u01fe\n%\3%\3%\3%\3"+
+		"%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\3%\7%\u0215\n%\f%\16"+
+		"%\u0218\13%\3&\3&\3&\7&\u021d\n&\f&\16&\u0220\13&\5&\u0222\n&\3&\2\3H"+
+		"\'\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BD"+
+		"FHJ\2\b\3\2\n\13\4\2\t\t\30\30\3\2\65\67\3\2\63\64\3\2/\62\4\2++..\2\u0261"+
+		"\2`\3\2\2\2\4e\3\2\2\2\6h\3\2\2\2\b~\3\2\2\2\n\u008d\3\2\2\2\f\u008f\3"+
+		"\2\2\2\16\u0098\3\2\2\2\20\u009c\3\2\2\2\22\u00a0\3\2\2\2\24\u00b8\3\2"+
+		"\2\2\26\u00ba\3\2\2\2\30\u00ce\3\2\2\2\32\u00d1\3\2\2\2\34\u00dc\3\2\2"+
+		"\2\36\u00e8\3\2\2\2 \u010f\3\2\2\2\"\u0111\3\2\2\2$\u0116\3\2\2\2&\u011b"+
+		"\3\2\2\2(\u012a\3\2\2\2*\u0139\3\2\2\2,\u013c\3\2\2\2.\u013f\3\2\2\2\60"+
+		"\u0142\3\2\2\2\62\u0147\3\2\2\2\64\u0152\3\2\2\2\66\u015d\3\2\2\28\u0167"+
+		"\3\2\2\2:\u018f\3\2\2\2<\u0191\3\2\2\2>\u019f\3\2\2\2@\u01a3\3\2\2\2B"+
+		"\u01a6\3\2\2\2D\u01b1\3\2\2\2F\u01b8\3\2\2\2H\u01fd\3\2\2\2J\u0221\3\2"+
+		"\2\2LN\5\4\3\2MO\5\6\4\2NM\3\2\2\2OP\3\2\2\2PN\3\2\2\2PQ\3\2\2\2Qa\3\2"+
+		"\2\2RT\5\6\4\2SR\3\2\2\2TU\3\2\2\2US\3\2\2\2UV\3\2\2\2VW\3\2\2\2WX\5\4"+
+		"\3\2Xa\3\2\2\2Ya\5\4\3\2Z\\\5\6\4\2[Z\3\2\2\2\\]\3\2\2\2][\3\2\2\2]^\3"+
+		"\2\2\2^a\3\2\2\2_a\3\2\2\2`L\3\2\2\2`S\3\2\2\2`Y\3\2\2\2`[\3\2\2\2`_\3"+
+		"\2\2\2ab\3\2\2\2bc\5\b\5\2cd\7\2\2\3d\3\3\2\2\2ef\7\31\2\2fg\5\32\16\2"+
+		"g\5\3\2\2\2hi\7)\2\2ij\5\32\16\2j\7\3\2\2\2km\7\"\2\2lk\3\2\2\2lm\3\2"+
+		"\2\2mn\3\2\2\2no\7?\2\2oq\7C\2\2pr\5\62\32\2qp\3\2\2\2qr\3\2\2\2rt\3\2"+
+		"\2\2su\5\f\7\2ts\3\2\2\2tu\3\2\2\2uy\3\2\2\2vx\5\22\n\2wv\3\2\2\2x{\3"+
+		"\2\2\2yw\3\2\2\2yz\3\2\2\2z|\3\2\2\2{y\3\2\2\2|\177\7>\2\2}\177\5\n\6"+
+		"\2~l\3\2\2\2~}\3\2\2\2\177\t\3\2\2\2\u0080\u0082\5\36\20\2\u0081\u0080"+
+		"\3\2\2\2\u0082\u0083\3\2\2\2\u0083\u0081\3\2\2\2\u0083\u0084\3\2\2\2\u0084"+
 		"\u008e\3\2\2\2\u0085\u0087\5\20\t\2\u0086\u0085\3\2\2\2\u0086\u0087\3"+
 		"\2\2\2\u0087\u0088\3\2\2\2\u0088\u008a\5\24\13\2\u0089\u0086\3\2\2\2\u008a"+
 		"\u008b\3\2\2\2\u008b\u0089\3\2\2\2\u008b\u008c\3\2\2\2\u008c\u008e\3\2"+
@@ -3813,28 +4136,28 @@ public class QuorumParser extends Parser {
 		"\u01b2\3\2\2\2\u01b6\u01b7\3\2\2\2\u01b7E\3\2\2\2\u01b8\u01bd\7C\2\2\u01b9"+
 		"\u01ba\7:\2\2\u01ba\u01bb\5J&\2\u01bb\u01bc\7;\2\2\u01bc\u01be\3\2\2\2"+
 		"\u01bd\u01b9\3\2\2\2\u01bd\u01be\3\2\2\2\u01beG\3\2\2\2\u01bf\u01c0\b"+
-		"%\1\2\u01c0\u01c1\7\64\2\2\u01c1\u01fe\5H%\f\u01c2\u01c3\7*\2\2\u01c3"+
-		"\u01fe\5H%\13\u01c4\u01c5\7:\2\2\u01c5\u01c6\5H%\2\u01c6\u01c7\7;\2\2"+
-		"\u01c7\u01fe\3\2\2\2\u01c8\u01fe\7A\2\2\u01c9\u01fe\7@\2\2\u01ca\u01fe"+
-		"\7B\2\2\u01cb\u01fe\7D\2\2\u01cc\u01fe\7!\2\2\u01cd\u01fe\7\b\2\2\u01ce"+
-		"\u01cf\7\25\2\2\u01cf\u01d0\7:\2\2\u01d0\u01d1\5H%\2\u01d1\u01d2\7;\2"+
-		"\2\u01d2\u01fe\3\2\2\2\u01d3\u01d4\7\25\2\2\u01d4\u01d5\7:\2\2\u01d5\u01fe"+
-		"\7;\2\2\u01d6\u01d7\7\b\2\2\u01d7\u01d9\7$\2\2\u01d8\u01d6\3\2\2\2\u01d8"+
-		"\u01d9\3\2\2\2\u01d9\u01da\3\2\2\2\u01da\u01df\5F$\2\u01db\u01dc\7$\2"+
-		"\2\u01dc\u01de\5F$\2\u01dd\u01db\3\2\2\2\u01de\u01e1\3\2\2\2\u01df\u01dd"+
-		"\3\2\2\2\u01df\u01e0\3\2\2\2\u01e0\u01fe\3\2\2\2\u01e1\u01df\3\2\2\2\u01e2"+
-		"\u01e3\7\b\2\2\u01e3\u01e5\7$\2\2\u01e4\u01e2\3\2\2\2\u01e4\u01e5\3\2"+
-		"\2\2\u01e5\u01e6\3\2\2\2\u01e6\u01e7\7C\2\2\u01e7\u01e9\7$\2\2\u01e8\u01e4"+
-		"\3\2\2\2\u01e8\u01e9\3\2\2\2\u01e9\u01ea\3\2\2\2\u01ea\u01eb\7\20\2\2"+
-		"\u01eb\u01ec\7$\2\2\u01ec\u01ed\5\32\16\2\u01ed\u01ee\7$\2\2\u01ee\u01f3"+
-		"\5D#\2\u01ef\u01f0\7$\2\2\u01f0\u01f2\5F$\2\u01f1\u01ef\3\2\2\2\u01f2"+
-		"\u01f5\3\2\2\2\u01f3\u01f1\3\2\2\2\u01f3\u01f4\3\2\2\2\u01f4\u01fe\3\2"+
-		"\2\2\u01f5\u01f3\3\2\2\2\u01f6\u01f7\7\24\2\2\u01f7\u01f8\7:\2\2\u01f8"+
-		"\u01f9\58\35\2\u01f9\u01fa\7-\2\2\u01fa\u01fb\5H%\2\u01fb\u01fc\7;\2\2"+
-		"\u01fc\u01fe\3\2\2\2\u01fd\u01bf\3\2\2\2\u01fd\u01c2\3\2\2\2\u01fd\u01c4"+
-		"\3\2\2\2\u01fd\u01c8\3\2\2\2\u01fd\u01c9\3\2\2\2\u01fd\u01ca\3\2\2\2\u01fd"+
-		"\u01cb\3\2\2\2\u01fd\u01cc\3\2\2\2\u01fd\u01cd\3\2\2\2\u01fd\u01ce\3\2"+
-		"\2\2\u01fd\u01d3\3\2\2\2\u01fd\u01d8\3\2\2\2\u01fd\u01e8\3\2\2\2\u01fd"+
+		"%\1\2\u01c0\u01c1\7:\2\2\u01c1\u01c2\5H%\2\u01c2\u01c3\7;\2\2\u01c3\u01fe"+
+		"\3\2\2\2\u01c4\u01fe\7A\2\2\u01c5\u01fe\7@\2\2\u01c6\u01fe\7B\2\2\u01c7"+
+		"\u01fe\7D\2\2\u01c8\u01fe\7!\2\2\u01c9\u01fe\7\b\2\2\u01ca\u01cb\7\25"+
+		"\2\2\u01cb\u01cc\7:\2\2\u01cc\u01cd\5H%\2\u01cd\u01ce\7;\2\2\u01ce\u01fe"+
+		"\3\2\2\2\u01cf\u01d0\7\25\2\2\u01d0\u01d1\7:\2\2\u01d1\u01fe\7;\2\2\u01d2"+
+		"\u01d3\7\b\2\2\u01d3\u01d5\7$\2\2\u01d4\u01d2\3\2\2\2\u01d4\u01d5\3\2"+
+		"\2\2\u01d5\u01d6\3\2\2\2\u01d6\u01db\5F$\2\u01d7\u01d8\7$\2\2\u01d8\u01da"+
+		"\5F$\2\u01d9\u01d7\3\2\2\2\u01da\u01dd\3\2\2\2\u01db\u01d9\3\2\2\2\u01db"+
+		"\u01dc\3\2\2\2\u01dc\u01fe\3\2\2\2\u01dd\u01db\3\2\2\2\u01de\u01df\7\b"+
+		"\2\2\u01df\u01e1\7$\2\2\u01e0\u01de\3\2\2\2\u01e0\u01e1\3\2\2\2\u01e1"+
+		"\u01e2\3\2\2\2\u01e2\u01e3\7C\2\2\u01e3\u01e5\7$\2\2\u01e4\u01e0\3\2\2"+
+		"\2\u01e4\u01e5\3\2\2\2\u01e5\u01e6\3\2\2\2\u01e6\u01e7\7\20\2\2\u01e7"+
+		"\u01e8\7$\2\2\u01e8\u01e9\5\32\16\2\u01e9\u01ea\7$\2\2\u01ea\u01ef\5D"+
+		"#\2\u01eb\u01ec\7$\2\2\u01ec\u01ee\5F$\2\u01ed\u01eb\3\2\2\2\u01ee\u01f1"+
+		"\3\2\2\2\u01ef\u01ed\3\2\2\2\u01ef\u01f0\3\2\2\2\u01f0\u01fe\3\2\2\2\u01f1"+
+		"\u01ef\3\2\2\2\u01f2\u01f3\7\64\2\2\u01f3\u01fe\5H%\f\u01f4\u01f5\7*\2"+
+		"\2\u01f5\u01fe\5H%\13\u01f6\u01f7\7\24\2\2\u01f7\u01f8\7:\2\2\u01f8\u01f9"+
+		"\58\35\2\u01f9\u01fa\7-\2\2\u01fa\u01fb\5H%\2\u01fb\u01fc\7;\2\2\u01fc"+
+		"\u01fe\3\2\2\2\u01fd\u01bf\3\2\2\2\u01fd\u01c4\3\2\2\2\u01fd\u01c5\3\2"+
+		"\2\2\u01fd\u01c6\3\2\2\2\u01fd\u01c7\3\2\2\2\u01fd\u01c8\3\2\2\2\u01fd"+
+		"\u01c9\3\2\2\2\u01fd\u01ca\3\2\2\2\u01fd\u01cf\3\2\2\2\u01fd\u01d4\3\2"+
+		"\2\2\u01fd\u01e4\3\2\2\2\u01fd\u01f2\3\2\2\2\u01fd\u01f4\3\2\2\2\u01fd"+
 		"\u01f6\3\2\2\2\u01fe\u0216\3\2\2\2\u01ff\u0200\f\t\2\2\u0200\u0201\t\4"+
 		"\2\2\u0201\u0215\5H%\n\u0202\u0203\f\b\2\2\u0203\u0204\t\5\2\2\u0204\u0215"+
 		"\5H%\t\u0205\u0206\f\7\2\2\u0206\u0207\t\6\2\2\u0207\u0215\5H%\b\u0208"+
@@ -3851,8 +4174,8 @@ public class QuorumParser extends Parser {
 		"\u0083\u0086\u008b\u008d\u0095\u009a\u00a0\u00a3\u00aa\u00af\u00b8\u00c2"+
 		"\u00c5\u00c8\u00cc\u00d6\u00dc\u00e8\u00ec\u00f0\u00f7\u00fd\u0101\u010c"+
 		"\u010f\u0120\u0123\u0126\u0132\u0135\u0145\u014d\u0158\u0161\u0167\u016b"+
-		"\u017d\u0184\u0187\u018d\u018f\u0197\u019b\u01ac\u01b6\u01bd\u01d8\u01df"+
-		"\u01e4\u01e8\u01f3\u01fd\u0214\u0216\u021e\u0221";
+		"\u017d\u0184\u0187\u018d\u018f\u0197\u019b\u01ac\u01b6\u01bd\u01d4\u01db"+
+		"\u01e0\u01e4\u01ef\u01fd\u0214\u0216\u021e\u0221";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

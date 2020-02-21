@@ -1,6 +1,5 @@
-// Generated from Quorum.g4 by ANTLR 4.2.2
+// Generated from /Users/stefika/Repositories/quorum-language/Plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Compile/QuorumLexer.g4 by ANTLR 4.8
 package plugins.quorum.Libraries.Language.Compile;
-
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -12,6 +11,8 @@ import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class QuorumLexer extends Lexer {
+	static { RuntimeMetaData.checkVersion("4.8", RuntimeMetaData.VERSION); }
+
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
@@ -27,38 +28,93 @@ public class QuorumLexer extends Lexer {
 		RIGHT_SQR_BRACE=55, LEFT_PAREN=56, RIGHT_PAREN=57, DOUBLE_QUOTE=58, IF=59, 
 		END=60, CLASS=61, BOOLEAN=62, INT=63, DECIMAL=64, ID=65, STRING=66, NEWLINE=67, 
 		WS=68, COMMENTS=69;
+	public static final int
+		WHITESPACE_CHANNEL=2, COMMENT_CHANNEL=3;
+	public static String[] channelNames = {
+		"DEFAULT_TOKEN_CHANNEL", "HIDDEN", "WHITESPACE_CHANNEL", "COMMENT_CHANNEL"
+	};
+
 	public static String[] modeNames = {
 		"DEFAULT_MODE"
 	};
 
-	public static final String[] tokenNames = {
-		"<INVALID>",
-		"'output'", "'on'", "'create'", "'constant'", "'elseif'", "'me'", "'until'", 
-		"'public'", "'private'", "'alert'", "'detect'", "'always'", "'check'", 
-		"'parent'", "'blueprint'", "'system'", "'is'", "'cast'", "'input'", "'say'", 
-		"'now'", "'while'", "'package'", "'times'", "'repeat'", "'else'", "'returns'", 
-		"'return'", "'and'", "'or'", "'undefined'", "'shared'", "'action'", "':'", 
-		"'integer'", "'number'", "'text'", "'boolean'", "'use'", "NOT", "NOTEQUALS", 
-		"'.'", "','", "'='", "'>'", "'>='", "'<'", "'<='", "'+'", "'-'", "'*'", 
-		"'/'", "'mod'", "'['", "']'", "'('", "')'", "'\"'", "'if'", "'end'", "'class'", 
-		"BOOLEAN", "INT", "DECIMAL", "ID", "STRING", "NEWLINE", "WS", "COMMENTS"
-	};
-	public static final String[] ruleNames = {
-		"OUTPUT", "ON", "CREATE", "CONSTANT", "ELSE_IF", "ME", "UNTIL", "PUBLIC", 
-		"PRIVATE", "ALERT", "DETECT", "ALWAYS", "CHECK", "PARENT", "BLUEPRINT", 
-		"NATIVE", "INHERITS", "CAST", "INPUT", "SAY", "NOW", "WHILE", "PACKAGE_NAME", 
-		"TIMES", "REPEAT", "ELSE", "RETURNS", "RETURN", "AND", "OR", "NULL", "STATIC", 
-		"ACTION", "COLON", "INTEGER_KEYWORD", "NUMBER_KEYWORD", "TEXT", "BOOLEAN_KEYWORD", 
-		"USE", "NOT", "NOTEQUALS", "PERIOD", "COMMA", "EQUALITY", "GREATER", "GREATER_EQUAL", 
-		"LESS", "LESS_EQUAL", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", 
-		"LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", "LEFT_PAREN", "RIGHT_PAREN", "DOUBLE_QUOTE", 
-		"IF", "END", "CLASS", "BOOLEAN", "INT", "DECIMAL", "ID", "STRING", "NEWLINE", 
-		"WS", "COMMENTS"
-	};
+	private static String[] makeRuleNames() {
+		return new String[] {
+			"OUTPUT", "ON", "CREATE", "CONSTANT", "ELSE_IF", "ME", "UNTIL", "PUBLIC", 
+			"PRIVATE", "ALERT", "DETECT", "ALWAYS", "CHECK", "PARENT", "BLUEPRINT", 
+			"NATIVE", "INHERITS", "CAST", "INPUT", "SAY", "NOW", "WHILE", "PACKAGE_NAME", 
+			"TIMES", "REPEAT", "ELSE", "RETURNS", "RETURN", "AND", "OR", "NULL", 
+			"STATIC", "ACTION", "COLON", "INTEGER_KEYWORD", "NUMBER_KEYWORD", "TEXT", 
+			"BOOLEAN_KEYWORD", "USE", "NOT", "NOTEQUALS", "PERIOD", "COMMA", "EQUALITY", 
+			"GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL", "PLUS", "MINUS", "MULTIPLY", 
+			"DIVIDE", "MODULO", "LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", "LEFT_PAREN", 
+			"RIGHT_PAREN", "DOUBLE_QUOTE", "IF", "END", "CLASS", "BOOLEAN", "INT", 
+			"DECIMAL", "ID", "STRING", "NEWLINE", "WS", "COMMENTS"
+		};
+	}
+	public static final String[] ruleNames = makeRuleNames();
 
+	private static String[] makeLiteralNames() {
+		return new String[] {
+			null, "'output'", "'on'", "'create'", "'constant'", "'elseif'", "'me'", 
+			"'until'", "'public'", "'private'", "'alert'", "'detect'", "'always'", 
+			"'check'", "'parent'", "'blueprint'", "'system'", "'is'", "'cast'", "'input'", 
+			"'say'", "'now'", "'while'", "'package'", "'times'", "'repeat'", "'else'", 
+			"'returns'", "'return'", "'and'", "'or'", "'undefined'", "'shared'", 
+			"'action'", "':'", "'integer'", "'number'", "'text'", "'boolean'", "'use'", 
+			null, null, "'.'", "','", "'='", "'>'", "'>='", "'<'", "'<='", "'+'", 
+			"'-'", "'*'", "'/'", "'mod'", "'['", "']'", "'('", "')'", "'\"'", "'if'", 
+			"'end'", "'class'"
+		};
+	}
+	private static final String[] _LITERAL_NAMES = makeLiteralNames();
+	private static String[] makeSymbolicNames() {
+		return new String[] {
+			null, "OUTPUT", "ON", "CREATE", "CONSTANT", "ELSE_IF", "ME", "UNTIL", 
+			"PUBLIC", "PRIVATE", "ALERT", "DETECT", "ALWAYS", "CHECK", "PARENT", 
+			"BLUEPRINT", "NATIVE", "INHERITS", "CAST", "INPUT", "SAY", "NOW", "WHILE", 
+			"PACKAGE_NAME", "TIMES", "REPEAT", "ELSE", "RETURNS", "RETURN", "AND", 
+			"OR", "NULL", "STATIC", "ACTION", "COLON", "INTEGER_KEYWORD", "NUMBER_KEYWORD", 
+			"TEXT", "BOOLEAN_KEYWORD", "USE", "NOT", "NOTEQUALS", "PERIOD", "COMMA", 
+			"EQUALITY", "GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL", "PLUS", 
+			"MINUS", "MULTIPLY", "DIVIDE", "MODULO", "LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", 
+			"LEFT_PAREN", "RIGHT_PAREN", "DOUBLE_QUOTE", "IF", "END", "CLASS", "BOOLEAN", 
+			"INT", "DECIMAL", "ID", "STRING", "NEWLINE", "WS", "COMMENTS"
+		};
+	}
+	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
+	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
-	    public static final int WHITESPACE_CHANNEL = 1000;
-	    public static final int COMMENT_CHANNEL = 1001;
+	/**
+	 * @deprecated Use {@link #VOCABULARY} instead.
+	 */
+	@Deprecated
+	public static final String[] tokenNames;
+	static {
+		tokenNames = new String[_SYMBOLIC_NAMES.length];
+		for (int i = 0; i < tokenNames.length; i++) {
+			tokenNames[i] = VOCABULARY.getLiteralName(i);
+			if (tokenNames[i] == null) {
+				tokenNames[i] = VOCABULARY.getSymbolicName(i);
+			}
+
+			if (tokenNames[i] == null) {
+				tokenNames[i] = "<INVALID>";
+			}
+		}
+	}
+
+	@Override
+	@Deprecated
+	public String[] getTokenNames() {
+		return tokenNames;
+	}
+
+	@Override
+
+	public Vocabulary getVocabulary() {
+		return VOCABULARY;
+	}
 
 
 	public QuorumLexer(CharStream input) {
@@ -67,10 +123,7 @@ public class QuorumLexer extends Lexer {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "Quorum.g4"; }
-
-	@Override
-	public String[] getTokenNames() { return tokenNames; }
+	public String getGrammarFileName() { return "QuorumLexer.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -79,39 +132,16 @@ public class QuorumLexer extends Lexer {
 	public String getSerializedATN() { return _serializedATN; }
 
 	@Override
+	public String[] getChannelNames() { return channelNames; }
+
+	@Override
 	public String[] getModeNames() { return modeNames; }
 
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	@Override
-	public void action(RuleContext _localctx, int ruleIndex, int actionIndex) {
-		switch (ruleIndex) {
-		case 66: NEWLINE_action((RuleContext)_localctx, actionIndex); break;
-
-		case 67: WS_action((RuleContext)_localctx, actionIndex); break;
-
-		case 68: COMMENTS_action((RuleContext)_localctx, actionIndex); break;
-		}
-	}
-	private void NEWLINE_action(RuleContext _localctx, int actionIndex) {
-		switch (actionIndex) {
-		case 0: _channel = WHITESPACE_CHANNEL; break;
-		}
-	}
-	private void COMMENTS_action(RuleContext _localctx, int actionIndex) {
-		switch (actionIndex) {
-		case 2: _channel = COMMENT_CHANNEL; break;
-		}
-	}
-	private void WS_action(RuleContext _localctx, int actionIndex) {
-		switch (actionIndex) {
-		case 1: _channel = WHITESPACE_CHANNEL; break;
-		}
-	}
-
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\2G\u0219\b\1\4\2\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\2G\u0219\b\1\4\2\t"+
 		"\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
 		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -149,8 +179,8 @@ public class QuorumLexer extends Lexer {
 		"\359\36;\37= ?!A\"C#E$G%I&K\'M(O)Q*S+U,W-Y.[/]\60_\61a\62c\63e\64g\65"+
 		"i\66k\67m8o9q:s;u<w=y>{?}@\177A\u0081B\u0083C\u0085D\u0087E\u0089F\u008b"+
 		"G\3\2\7\4\2PPpp\4\2C\\c|\6\2\62;C\\aac|\5\2\13\f\17\17\"\"\4\2\f\f\17"+
-		"\17\u0227\2\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2"+
-		"\2\r\3\2\2\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27"+
+		"\17\2\u0227\2\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2"+
+		"\2\2\r\3\2\2\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27"+
 		"\3\2\2\2\2\31\3\2\2\2\2\33\3\2\2\2\2\35\3\2\2\2\2\37\3\2\2\2\2!\3\2\2"+
 		"\2\2#\3\2\2\2\2%\3\2\2\2\2\'\3\2\2\2\2)\3\2\2\2\2+\3\2\2\2\2-\3\2\2\2"+
 		"\2/\3\2\2\2\2\61\3\2\2\2\2\63\3\2\2\2\2\65\3\2\2\2\2\67\3\2\2\2\29\3\2"+
@@ -274,7 +304,7 @@ public class QuorumLexer extends Lexer {
 		"\u01ee\3\2\2\2\u01ee\u01ef\3\2\2\2\u01ef\u01f0\7\f\2\2\u01f0\u01f1\3\2"+
 		"\2\2\u01f1\u01f2\bD\2\2\u01f2\u0088\3\2\2\2\u01f3\u01f5\t\5\2\2\u01f4"+
 		"\u01f3\3\2\2\2\u01f5\u01f6\3\2\2\2\u01f6\u01f4\3\2\2\2\u01f6\u01f7\3\2"+
-		"\2\2\u01f7\u01f8\3\2\2\2\u01f8\u01f9\bE\3\2\u01f9\u008a\3\2\2\2\u01fa"+
+		"\2\2\u01f7\u01f8\3\2\2\2\u01f8\u01f9\bE\2\2\u01f9\u008a\3\2\2\2\u01fa"+
 		"\u01fb\7\61\2\2\u01fb\u01fc\7\61\2\2\u01fc\u0200\3\2\2\2\u01fd\u01ff\n"+
 		"\6\2\2\u01fe\u01fd\3\2\2\2\u01ff\u0202\3\2\2\2\u0200\u01fe\3\2\2\2\u0200"+
 		"\u0201\3\2\2\2\u0201\u0208\3\2\2\2\u0202\u0200\3\2\2\2\u0203\u0205\7\17"+
@@ -284,9 +314,9 @@ public class QuorumLexer extends Lexer {
 		"\u0210\3\2\2\2\u020d\u020f\13\2\2\2\u020e\u020d\3\2\2\2\u020f\u0212\3"+
 		"\2\2\2\u0210\u0211\3\2\2\2\u0210\u020e\3\2\2\2\u0211\u0213\3\2\2\2\u0212"+
 		"\u0210\3\2\2\2\u0213\u0214\7,\2\2\u0214\u0216\7\61\2\2\u0215\u01fa\3\2"+
-		"\2\2\u0215\u020a\3\2\2\2\u0216\u0217\3\2\2\2\u0217\u0218\bF\4\2\u0218"+
+		"\2\2\u0215\u020a\3\2\2\2\u0216\u0217\3\2\2\2\u0217\u0218\bF\3\2\u0218"+
 		"\u008c\3\2\2\2\22\2\u0184\u01c7\u01cc\u01d1\u01d7\u01da\u01e0\u01e7\u01ed"+
-		"\u01f6\u0200\u0204\u0208\u0210\u0215\5\3D\2\3E\3\3F\4";
+		"\u01f6\u0200\u0204\u0208\u0210\u0215\4\2\4\2\2\5\2";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

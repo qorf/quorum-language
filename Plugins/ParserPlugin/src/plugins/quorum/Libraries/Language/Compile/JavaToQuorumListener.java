@@ -31,7 +31,7 @@ import quorum.Libraries.System.File_;
  *
  * @author stefika
  */
-public class JavaToQuorumListener implements QuorumListener {
+public class JavaToQuorumListener implements QuorumParserListener {
 
     private QuorumSourceListener_ listener;
     private File_ file;
