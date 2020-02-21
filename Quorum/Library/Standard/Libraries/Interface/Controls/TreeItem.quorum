@@ -60,6 +60,7 @@ class TreeItem is Control
 
         FlowLayout flow
         layout = flow
+        flow:SetVerticalCentering(true)
 
         TreeLayout verticalFlow
         panelLayout = verticalFlow
@@ -536,6 +537,7 @@ class TreeItem is Control
         if label = undefined
             ControlLabel newLabel
             label = newLabel
+            label:SetHorizontalMargins(4)
 
             LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
             labelProperties:SetPercentageHeight(1.0)

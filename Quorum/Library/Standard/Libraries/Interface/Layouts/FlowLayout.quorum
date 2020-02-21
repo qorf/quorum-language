@@ -14,6 +14,7 @@ class FlowLayout is Layout
     Math math
     boolean ignoreHidden = false
     boolean singleLine = false
+    boolean verticalCentering = false
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
@@ -154,6 +155,9 @@ class FlowLayout is Layout
         number currentY = containerHeight - containerBorder
         number nextY = currentY
 
+        // Used if we're vertically centering items on each line.
+        integer nextItemToCenter = 0
+
         i = 0
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
@@ -212,6 +216,22 @@ class FlowLayout is Layout
                     x = x + leftPadding
 
                     if x + width > containerWidth and singleLine = false
+                        if verticalCentering
+                            integer centerCounter = nextItemToCenter
+                            repeat while centerCounter < i
+                                Item2D lineItem = items:Get(centerCounter)
+                                number destination = (currentY - nextY) - (lineItem:GetHeight() / 2.0)
+                                if properties:IsSnappingToPixels()
+                                    destination = cast(integer, destination)
+                                end
+
+                                lineItem:SetY(destination)
+                                centerCounter = centerCounter + 1
+                            end
+
+                            nextItemToCenter = i
+                        end
+
                         currentY = nextY
                         x = leftPadding
                     end
@@ -281,6 +301,20 @@ class FlowLayout is Layout
             i = i + 1
         end
 
+        if verticalCentering
+            integer centerCounter = nextItemToCenter
+            repeat while centerCounter < i
+                Item2D lineItem = items:Get(centerCounter)
+                number destination = nextY + (currentY - lineItem:GetHeight()) / 2.0
+                if containerProperties:IsSnappingToPixels()
+                    destination = cast(integer, destination)
+                end
+
+                lineItem:SetY(destination)
+                centerCounter = centerCounter + 1
+            end
+        end
+
         if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
             if containerProperties:IsSnappingToPixels()
                 nextY = cast(integer, nextY)
@@ -319,5 +353,13 @@ class FlowLayout is Layout
 
     action IsSingleLine returns boolean
         return singleLine
+    end
+
+    action SetVerticalCentering(boolean centering)
+        verticalCentering = centering
+    end
+
+    action IsVerticalCentering returns boolean
+        return verticalCentering
     end
 end

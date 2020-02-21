@@ -733,7 +733,7 @@ class Label is Control
                 originY = y
             end
 
-            parent:Item2D:SetSize(maxLineWidth, startingOriginY - originY)
+            parent:Item2D:SetSize(maxLineWidth + 2 * horizontalMargins, startingOriginY - originY)
         end
 
     end
