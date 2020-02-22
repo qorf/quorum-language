@@ -8,7 +8,8 @@ that the user is running. Currently, it supports a general property action,
 GetProperty, which can gather any known system property. It also currently
 contains helper methods for determining which operating system the user is on
 and for determining which web page was requested if this is a web project. System 
-properties are equivalent to what are often termed "environment variables."
+properties are equivalent to what are often termed "environment variables." The properties class
+does query the operating system for information, but does not contain any state itself.
 
 Attribute: Example
 use Libraries.System.Properties
@@ -17,7 +18,7 @@ Properties properties
 text address = properties:GetRequestedWebPage()
 output address
 */
-class Properties 
+shared class Properties 
     
     /*
     This is a public constant for the operating system property name.

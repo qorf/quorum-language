@@ -62,9 +62,6 @@ class MultipleLineText
     // The line separator being used across all nodes of the tree.
     text lineSeparator = ""
 
-    // Used to determine the platform's default line separator.
-    Properties properties
-
     on create
         lineSeparator = GetDefaultLineSeparator()
         maxLeafSize = maxLeafSize:GetPositiveInfinityValue()
@@ -1195,7 +1192,6 @@ class MultipleLineText
     */
     action GetDefaultLineSeparator returns text
         text lineFeed = ""
-        return lineFeed:GetLineFeed()//properties:GetProperty("line.separator")
+        return lineFeed:GetLineFeed()
     end
-    
 end

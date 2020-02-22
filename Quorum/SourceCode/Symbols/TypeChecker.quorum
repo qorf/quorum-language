@@ -2637,13 +2637,15 @@ class TypeChecker
             if leftGenericSize = rightGenericSize
                 Iterator<Type> lGenerics = left:GetGenerics()
                 Iterator<Type> rGenerics = right:GetGenerics()
-                repeat while lGenerics:HasNext()
-                    Type lNext = lGenerics:Next()
-                    Type rNext = rGenerics:Next()
-                    if lNext:GetStaticKey() not= rNext:GetStaticKey()
-                        genericsMatch = false
-                    end
+                if lGenerics not= undefined and rGenerics not= undefined
+                    repeat while lGenerics:HasNext()
+                        Type lNext = lGenerics:Next()
+                        Type rNext = rGenerics:Next()
+                        if lNext:GetStaticKey() not= rNext:GetStaticKey()
+                            genericsMatch = false
+                        end
 
+                    end
                 end
             else
                 genericsMatch = false
