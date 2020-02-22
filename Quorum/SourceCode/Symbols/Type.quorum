@@ -8,7 +8,7 @@ class Type
     boolean isConstant = false
     text genericName = ""
     text staticKey = ""
-    Array<Type> generics
+    Array<Type> generics = undefined
     text mappedGeneric = undefined
 
     public constant text OBJECT_KEY = "Libraries.Language.Object"
@@ -60,13 +60,11 @@ class Type
         type:genericName = genericName
 
         Iterator<Type> types = GetGenerics()
-        repeat while types:HasNext()
+        repeat while types not= undefined and types:HasNext()
             Type t = types:Next()
             Type copy = t:Copy()
             type:AddGeneric(copy)
         end
-
-
 
         return type
     end
@@ -79,14 +77,22 @@ class Type
         staticKey = type:GetStaticKey()
         mappedGeneric = type:GetMappedGeneric()
         genericName = type:genericName
-        generics:Empty()
+        
         Iterator<Type> types = type:GetGenerics()
-        repeat while types:HasNext()
-            Type t = types:Next()
-            Type copy = t:Copy()
-            AddGeneric(copy)
+        if types = undefined
+            generics = undefined
+        else 
+            if generics not= undefined
+                generics:Empty()
+            end
+            repeat while types:HasNext()
+                Type t = types:Next()
+                Type copy = t:Copy()
+                AddGeneric(copy)
+            end
         end
     end
+
     /*
         Returns a static key for the object version of this type, even if it is
         a primitive. It does not change the type itself.
@@ -131,6 +137,10 @@ class Type
         This action adds a generic to this type as a subtype.
     */
     action AddGeneric(Type type)
+        if generics = undefined
+            Array<Type> newGenerics
+            generics = newGenerics
+        end
         generics:Add(type)
     end
 
@@ -138,6 +148,9 @@ class Type
         This action returns whether or not this action has generics.
     */
     action HasGenerics returns boolean
+        if generics = undefined
+            return false
+        end
         return not generics:IsEmpty()
     end
 
@@ -157,6 +170,9 @@ class Type
         may have subgenerics.
     */
     action GetGenerics returns Iterator<Type>
+        if generics = undefined
+            return undefined
+        end
         return generics:GetIterator()
     end
 
@@ -170,6 +186,9 @@ class Type
         
     */
     action GetNumberGenerics returns integer
+        if generics = undefined
+            return 0
+        end
         return generics:GetSize()
     end
 
