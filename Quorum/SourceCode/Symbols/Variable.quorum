@@ -46,6 +46,9 @@ class Variable is Symbol
     end
 
     action GetUseLocationIterator(File file) returns Iterator<Location>
+        if file = undefined
+            return undefined
+        end
         text path = file:GetAbsolutePath()
         if useLocationHash:HasKey(path)
             List<Location> loc = useLocationHash:GetValue(path)
