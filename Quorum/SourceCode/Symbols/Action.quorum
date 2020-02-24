@@ -21,7 +21,6 @@ class Action is Symbol
     Location headerLocation = undefined
     Location nameLocation = undefined
     Location returnLocation = undefined
-    //List<Location> callLocations
     HashTable<text, List<Location>> callLocationHash
     List<ActionCallResolution> actionCalls
 
@@ -54,6 +53,12 @@ class Action is Symbol
         text path = file:GetAbsolutePath()
         if callLocationHash:HasKey(path)
             callLocationHash:RemoveKey(path)
+        end
+
+        Iterator<Variable> variables = GetAllLocalVariables()
+        repeat while variables:HasNext()
+            Variable var = variables:Next()
+            var:RemoveUseLocations(file)
         end
     end
 

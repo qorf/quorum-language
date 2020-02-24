@@ -2084,6 +2084,12 @@ class Class is Symbol
             Action act = actions:Next()
             act:RemoveCallLocations(file)
         end
+
+        Iterator<Variable> variables = GetVariables()
+        repeat while variables:HasNext()
+            Variable var = variables:Next()
+            var:RemoveUseLocations(file)
+        end
     end
 
     action ResolveAction(ActionCall call) returns ActionCallResolution

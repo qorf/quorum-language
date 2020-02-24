@@ -4,6 +4,8 @@ use Libraries.Language.Compile.Location
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Containers.HashTable
+use Libraries.System.File
 
 class Variable is Symbol
     boolean isParameter = false
@@ -20,15 +22,44 @@ class Variable is Symbol
     boolean isVisibileToDebugger = true
     Class parentClass = undefined
     boolean definedInAlwaysBlock = false
-    List<Location> useLocations
+    HashTable<text, List<Location>> useLocationHash
     Location typeLocation = undefined
 
     action AddUseLocation(Location location)
-        useLocations:Add(location)
+        File file = location:GetFile()
+        if file = undefined
+           return now //ignore if this isn't supported
+        end
+        text path = file:GetAbsolutePath()
+        List<Location> list = undefined
+        if useLocationHash:HasKey(path)
+            list = useLocationHash:GetValue(path)
+        end
+
+        if list = undefined
+            List<Location> list2
+            list = list2
+            useLocationHash:Add(path, list)
+        end
+
+        list:Add(location)
     end
 
-    action GetUseLocations returns Iterator<Location>
-        return useLocations:GetIterator()
+    action GetUseLocationIterator(File file) returns Iterator<Location>
+        text path = file:GetAbsolutePath()
+        if useLocationHash:HasKey(path)
+            List<Location> loc = useLocationHash:GetValue(path)
+            return loc:GetIterator()
+        end
+
+        return undefined
+    end
+
+    action RemoveUseLocations(File file)
+        text path = file:GetAbsolutePath()
+        if useLocationHash:HasKey(path)
+            useLocationHash:RemoveKey(path)
+        end
     end
 
     action GetTypeLocation returns Location
@@ -41,7 +72,7 @@ class Variable is Symbol
 
     action IsUsed returns boolean
         //only if greater than 2 because the first usage is the definition
-        if useLocations:GetSize() > 0
+        if useLocationHash:GetSize() > 0
             return true
         end
 
