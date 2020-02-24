@@ -2077,6 +2077,13 @@ class Class is Symbol
         if useLocationHash:HasKey(path)
             useLocationHash:RemoveKey(path)
         end
+
+        //Now remove them from all of the actions in this class
+        Iterator<Action> actions = GetActions()
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            act:RemoveCallLocations(file)
+        end
     end
 
     action ResolveAction(ActionCall call) returns ActionCallResolution

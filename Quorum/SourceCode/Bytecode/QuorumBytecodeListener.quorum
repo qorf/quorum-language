@@ -131,7 +131,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         AddClass(context:className)
     end
 
-    action AddClass(text className) 
+    private action AddClass(text className) 
         JavaBytecodeClassWriter newClassWriter
         JavaBytecodeClassWriter newIinterfaceWriter
 
@@ -157,6 +157,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentClassOpcode:SetPackage(packageValue)
         currentClassOpcode:SetClassWriter(classWriter)
         currentClassOpcode:SetInterfaceWriter(interfaceWriter)
+
+        if currentClass not= undefined
+            Iterator<Class> iterator = currentClass:GetValidUses()
+            repeat while iterator:HasNext()
+                Class clazz = iterator:Next()
+                clazz:RemoveUseLocations(currentClass:GetFile())
+            end
+        end
     end
 
     action EnterNoActionsNoClass(NoActionsNoClassContext context) 
