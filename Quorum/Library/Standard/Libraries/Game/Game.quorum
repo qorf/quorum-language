@@ -929,6 +929,14 @@ class Game
         rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
         textBoxTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
 
+        InputSet rightClickControlSet
+        rightClickControlSet:SetMouseInput(mouse:LEFT)
+        rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            textBoxTable:Add(rightClickControlSet, textBoxOpenPopupMenuBehavior)
+        end
+
         InputSet textBoxLeftClick
         textBoxLeftClick:SetMouseInput(mouse:LEFT)
         Behavior emptyBehavior
@@ -980,33 +988,7 @@ class Game
             textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
             TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
-
-//            InputSet textBoxJumpWordLeft
-//            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
-//            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:ALT)
-//            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
-//            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
-//
-//            InputSet textBoxJumpWordRight
-//            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
-//            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:ALT)
-//            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
-//            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
         else
-//            InputSet textBoxSelectLeft
-//            textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
-//            textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
-//            textBoxSelectLeft:AddModifier(textBoxSelectLeft:SHIFT)
-//            TextBoxSelectToTokenStartBehavior textBoxSelectToTokenStartBehavior
-//            textBoxTable:Add(textBoxSelectLeft, textBoxSelectToTokenStartBehavior)
-//
-//            InputSet textBoxSelectRight
-//            textBoxSelectRight:SetKeyboardInput(keys:RIGHT)
-//            textBoxSelectRight:AddModifier(textBoxSelectLeft:CONTROL)
-//            textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
-//            TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
-//            textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
-
             InputSet textBoxSelectLeft
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
             textBoxSelectLeft:AddModifier(textBoxSelectLeft:CONTROL)
@@ -1020,18 +1002,6 @@ class Game
             textBoxSelectRight:AddModifier(textBoxSelectLeft:SHIFT)
             TextBoxSelectToTokenEndBehavior textBoxSelectToTokenEndBehavior
             textBoxTable:Add(textBoxSelectRight, textBoxSelectToTokenEndBehavior)
-
-//            InputSet textBoxJumpWordLeft
-//            textBoxJumpWordLeft:SetKeyboardInput(keys:LEFT)
-//            textBoxJumpWordLeft:AddModifier(textBoxJumpWordLeft:CONTROL)
-//            TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
-//            textBoxTable:Add(textBoxJumpWordLeft, textBoxCaretToTokenStartBehavior)
-//
-//            InputSet textBoxJumpWordRight
-//            textBoxJumpWordRight:SetKeyboardInput(keys:RIGHT)
-//            textBoxJumpWordRight:AddModifier(textBoxJumpWordRight:CONTROL)
-//            TextBoxCaretToTokenEndBehavior textBoxCaretToTokenEndBehavior
-//            textBoxTable:Add(textBoxJumpWordRight, textBoxCaretToTokenEndBehavior)
         end
 
         InputSet endSet
@@ -1148,19 +1118,6 @@ class Game
             textFieldControlV:AddModifier(textFieldControlV:META)
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
-
-//            //now do undo/redo
-//            InputSet textBoxControlZ
-//            textBoxControlZ:SetKeyboardInput(keys:Z)
-//            textBoxControlZ:AddModifier(textBoxControlZ:META)
-//            TextBoxUndoBehavior textBoxUndoBehavior
-//            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
-//
-//            InputSet textBoxControlY
-//            textBoxControlY:SetKeyboardInput(keys:Y)
-//            textBoxControlY:AddModifier(textBoxControlY:META)
-//            TextBoxRedoBehavior textBoxRedoBehavior
-//            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
 //
 //            //Selection
             InputSet textFieldControlA
@@ -1213,19 +1170,6 @@ class Game
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
 
-//            //now do undo/redo
-//            InputSet textBoxControlZ
-//            textBoxControlZ:SetKeyboardInput(keys:Z)
-//            textBoxControlZ:AddModifier(textBoxControlZ:CONTROL)
-//            TextBoxUndoBehavior textBoxUndoBehavior
-//            textBoxTable:Add(textBoxControlZ, textBoxUndoBehavior)
-//
-//            InputSet textBoxControlY
-//            textBoxControlY:SetKeyboardInput(keys:Y)
-//            textBoxControlY:AddModifier(textBoxControlY:CONTROL)
-//            TextBoxRedoBehavior textBoxRedoBehavior
-//            textBoxTable:Add(textBoxControlY, textBoxRedoBehavior)
-//
 //            //Selection
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
@@ -1353,6 +1297,10 @@ class Game
         OpenPopupMenuBehavior openContextMenuBehavior
         buttonTable:Add(rightClickSet, openContextMenuBehavior)
 
+        if manager:GetOperatingSystem():Contains("OS X")
+            buttonTable:Add(rightClickControlSet, openContextMenuBehavior)
+        end
+
         gameInput:AddInputTable(buttonTable)
 
         InputTable menuItemTable
@@ -1445,6 +1393,10 @@ class Game
         rightClickSet:SetMouseInput(mouse:RIGHT)
         TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeItemTable:Add(rightClickSet, treeOpenContextMenuBehavior)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            treeItemTable:Add(rightClickControlSet, treeOpenContextMenuBehavior)
+        end
 
         AddInputTable(treeItemTable)
 
