@@ -1176,7 +1176,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
         Type fieldType = field:GetType()
-        if fieldType:IsMappedToGeneric()
+        if fieldType not= undefined and fieldType:IsMappedToGeneric()
             text map = fieldType:GetMappedGeneric()
             index = fieldHolder:GetIndexOfGeneric(map)
             Type type = variable:GetType()
