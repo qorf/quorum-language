@@ -12,6 +12,10 @@ class DialogLayer is Layer2D
     GameStateManager manager
     Item oldFocus = undefined
 
+    on create
+        SetColliding(false)
+    end
+
     /*
     This action will notify mouse listeners that are a part of this layer of the
     given mouse event. This is called automatically by the Game engine as 
@@ -109,5 +113,9 @@ class DialogLayer is Layer2D
 
         isModal = false
         SetLayout(undefined)
+
+        parent:Layer2D:depthSortedArray:Empty()
+        parent:Layer2D:workArray:Empty()
+        parent:Layer2D:depthSortTemp:Empty()
     end
 end

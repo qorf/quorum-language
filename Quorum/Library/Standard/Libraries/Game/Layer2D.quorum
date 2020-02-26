@@ -372,6 +372,11 @@ class Layer2D is Layer
         shouldLayout = true
     end
 
+    private action RemoveControl(Control control)
+        controls:Remove(control)
+        shouldLayout = true
+    end
+
     /*
     This action will clear all the items in this layer.
 
@@ -433,6 +438,7 @@ class Layer2D is Layer
             body:SetLayer(undefined)
         end
         items:Empty()
+        controls:Empty()
     end
 
     /*
@@ -474,6 +480,10 @@ class Layer2D is Layer
     */
     action Remove(Item2D item) returns boolean
         EnsureCorrectThread()
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
 
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
@@ -550,6 +560,10 @@ class Layer2D is Layer
 
         Item2D item = items:RemoveAt(index)
 
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
+
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
@@ -624,6 +638,10 @@ class Layer2D is Layer
 
         Item2D item = items:RemoveFromFront()
 
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
+
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
@@ -696,6 +714,10 @@ class Layer2D is Layer
         EnsureCorrectThread()
 
         Item2D item = items:RemoveFromEnd()
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
 
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
