@@ -1996,7 +1996,9 @@ class Layer2D is Layer
             if body:IsPhysicsEnabled()
                 body:SetCollisionGroupFlag(false)
             end
-            body:SetTransform0(body:GetTransform())
+            if body:IsCollidable() or body:IsPhysicsEnabled()
+                body:SetTransform0(body:GetTransform())
+            end
             i = i + 1
         end
 
@@ -2011,7 +2013,9 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
-            item:SynchronizeNodes()
+            if item:IsCollidable() or item:IsPhysicsEnabled()
+                item:SynchronizeNodes()
+            end 
             i = i + 1
         end
 
