@@ -110,6 +110,7 @@ public class Array {
             array[i - 1] = array[i];
         }
         size = size - 1;
+        array[size] = null;
         return o;
     }
     
