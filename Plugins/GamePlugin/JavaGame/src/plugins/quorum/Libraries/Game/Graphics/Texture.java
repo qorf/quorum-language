@@ -86,7 +86,7 @@ public class Texture
     public void RemoveReloadableTexture()
     {
         RELOADABLE_TEXTURES.removeValue(this, true);
-    }        
+    }
     
     public void Dispose()
     {
