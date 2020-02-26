@@ -38,7 +38,7 @@ class WeldJoint2D is Joint2D
     
     on create
         parent:Joint2D:SetType(parent:Joint2D:WELDJOINT)
-        referenceAngle = parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()
+        referenceAngle = 0//parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()
         impulse:SetZero()
     end
     
