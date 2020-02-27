@@ -13,7 +13,7 @@
 ;General
 
   ;Name and file
-  !define VERSION "7.5"
+  !define VERSION "7.6"
   !define REGISTRY_KEY "Software\Quorum"
 
   Name "Quorum ${VERSION}"
