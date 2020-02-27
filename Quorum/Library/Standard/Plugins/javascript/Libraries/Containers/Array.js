@@ -86,3 +86,81 @@ function plugins_quorum_Libraries_Containers_Array_() {
         }
     };
 }
+
+function plugins_quorum_Libraries_Containers_Integer32BitArray_() {
+    this.array_ = null;
+
+    this.Get$quorum_integer = function(index)
+    {
+        if(this.array_ === null || index > this.array_.length || index < 0) 
+        {
+            //throw new InvalidLocationError();
+        }
+        else
+        {
+            return this.array_[index];
+        }
+    };
+
+    this.Set$quorum_integer$quorum_integer = function(index, value) 
+    {
+        if(this.array_ === null || index > this.array_.length || index < 0) 
+        {
+            //throw new InvalidLocationError();
+        }
+        else
+        {
+            this.array_[index] = value;
+        }
+    };
+
+    this.GetSize = function()
+    {
+        return this.array_.length;
+    };
+    
+    this.SetSize$quorum_integer = function(size)
+    {
+        this.array_ = new Int32Array(size);
+    };
+
+}
+
+function plugins_quorum_Libraries_Containers_Number32BitArray_() {
+    this.array_ = null;
+
+    this.Get$quorum_integer = function(index)
+    {
+        if(this.array_ === null || index > this.array_.length || index < 0) 
+        {
+            //throw new InvalidLocationError();
+        }
+        else
+        {
+            return this.array_[index];
+        }
+    };
+
+    this.Set$quorum_integer$quorum_number = function(index, value) 
+    {
+        if(this.array_ === null || index > this.array_.length || index < 0) 
+        {
+            //throw new InvalidLocationError();
+        }
+        else
+        {
+            this.array_[index] = value;
+        }
+    };
+
+    this.GetSize = function()
+    {
+        return this.array_.length;
+    };
+    
+    this.SetSize$quorum_integer = function(size)
+    {
+        this.array_ = new Float32Array(size);
+    };
+
+}

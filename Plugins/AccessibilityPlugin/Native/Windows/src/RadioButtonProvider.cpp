@@ -1,4 +1,6 @@
 #include "RadioButtonProvider.h"
+#include "ButtonGroupControl.h"
+#include "ButtonGroupProvider.h"
 
 #include <iostream>
 #include <string>
@@ -66,9 +68,22 @@ IFACEMETHODIMP RadioButtonProvider::get_IsSelected(_Out_ BOOL * pRetVal)
 
 }
 
+// Raises a UIA Event when an item is selected.
+void RadioButtonProvider::NotifyElementSelected()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
+	}
+}
+
 // get_SelectionContainer: Specifies the provider that implements ISelectionProvider and acts as the container for the calling object.
 IFACEMETHODIMP RadioButtonProvider::get_SelectionContainer(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	*pRetVal = NULL;
+	*pRetVal = nullptr;
+
+	m_control->GetParentButtonGroup()->GetProvider().query_to(pRetVal);
+
 	return S_OK;
 }

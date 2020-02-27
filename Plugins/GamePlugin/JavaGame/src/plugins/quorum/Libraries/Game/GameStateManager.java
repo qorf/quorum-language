@@ -45,6 +45,15 @@ public class GameStateManager
 
     // Having direct access to the Java GraphicsManager makes the Java side much easier.
     public static GraphicsManager nativeGraphics;
+
+    /*
+    An ID for the main thread. Certain actions can only be done on the main
+    thread, especially anything which directly touches OpenGL. Aside from the
+    default value here, this value will be set by the Game directly (which will
+    theoretically be the same value, but this offers a degree of protection if
+    the GameStateManager was somehow initialized in the wrong thread first).
+    */
+    public static String mainThreadID = "" + Thread.currentThread().getId();
     
     static
     {
@@ -170,5 +179,15 @@ public class GameStateManager
     public String GetOperatingSystem()
     {
         return operatingSystem;
+    }
+    
+    public void SetMainThreadName(String name)
+    {
+        mainThreadID = name;
+    }
+    
+    public String GetMainThreadName()
+    {
+        return mainThreadID;
     }
 }

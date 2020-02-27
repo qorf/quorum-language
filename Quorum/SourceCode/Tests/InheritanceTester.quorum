@@ -46,6 +46,7 @@ class InheritanceTester
         SystemActionInherit()
         TruckMain()
         ParentActionTest2()
+        StaticClassTest()
         
 //FAIL tests
         path = failPath
@@ -584,6 +585,18 @@ class InheritanceTester
         files:Add(dependent1)
         files:Add(dependent2)
         results:Add(0, "x = 1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action StaticClassTest 
+        Array<File> files
+        Array<Text> results
+        File main
+        main:SetPath(path + "StaticClass.quorum")
+        files:Add(main)
+        results:Add(0, "True")
+        results:Add(1, "True")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

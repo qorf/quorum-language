@@ -163,20 +163,30 @@ class TabPane is Control
     end
 
     action Select(integer index)
+        Select(index, true)
+    end
+
+    action Select(integer index, boolean focusContents)
         if index = -1
             Deselect()
         elseif index >= 0 and index < GetSize()
             Get(index):SetToggleState(true)
-            Get(index):Activate()
+            if focusContents
+                Get(index):Activate()
+            end
         end
     end
 
     action Select(Tab tab)
+        Select(tab, true)
+    end
+
+    action Select(Tab tab, boolean focusContents)
         integer size = GetSize()
         integer counter = 0
         repeat while counter < size
             if Get(counter) = tab
-                Select(counter)
+                Select(counter, focusContents)
                 return now
             end
             counter = counter + 1

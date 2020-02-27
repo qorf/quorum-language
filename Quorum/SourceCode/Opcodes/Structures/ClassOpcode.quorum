@@ -1218,6 +1218,13 @@ class ClassOpcode is QuorumOpcode
         methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
 
+        //if the class is static, place it in the primary store for statics. 
+        if clazz:IsStatic()
+            methodWriter:VisitConstant(clazz:GetStaticKey())
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Object", "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
+        end
+
         //call a method on the object, its non-static main
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,
             "Main", "()V", false)

@@ -19,6 +19,9 @@ public class Array {
         array = new Object_[DEFAULT_CAPACITY];
     }
     
+    public Array(int size) {
+        array = new Object_[size];
+    }
     
     public void SetNative(int location, Object_ value) {
         array[location] = value;
@@ -107,6 +110,7 @@ public class Array {
             array[i - 1] = array[i];
         }
         size = size - 1;
+        array[size] = null;
         return o;
     }
     
@@ -147,8 +151,24 @@ public class Array {
         return size == 0;
     }
 
+    public void ClearContents(int start, int stop) {
+        for(int i = start; i < stop; i++) {
+            array[i] = null;
+        }
+    }
+
+    //public CreateArrayAtSize(int size) returns Array<Temp>
+    
     public void Empty() {
         array = new Object_[array.length];
         size = 0;
+    }
+    
+    public void Empty(boolean value) {
+        if(value) {
+            Empty();
+        } else {
+            size = 0;
+        }
     }
 }

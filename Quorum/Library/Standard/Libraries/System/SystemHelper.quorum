@@ -86,4 +86,18 @@ class SystemHelper
         output help:GetAvailableProcessors()
     */
     system action GetAvailableProcessors returns number
+
+    /*
+        This action returns the name of the thread being actively run on a per system
+        basis.
+
+        Attribute: Returns The name of the thread.
+        Attribute: Example
+
+        use Libraries.System.SystemHelper
+
+        SystemHelper help
+        output help:GetThreadName()
+    */
+    system action GetThreadName returns text
 end

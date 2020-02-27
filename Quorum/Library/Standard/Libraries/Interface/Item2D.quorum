@@ -79,7 +79,7 @@ class Item2D is Item
     /*
     Used internally to pass around position and rotation information
     */
-    PhysicsPosition2D transform
+    PhysicsPosition2D transform = undefined
     Vector2 position
     number z = 0
     number rotation = 0
@@ -114,7 +114,8 @@ class Item2D is Item
     /*
     Stores the shape of the children and also the bounding boxes of the children.
     */
-    Array<Item2DNode> nodes
+    Array<Item2DNode> nodes = undefined
+
     /*
     The number of broadphase nodes that are attached to this item.
     */
@@ -124,7 +125,7 @@ class Item2D is Item
     Used to record the position of the Item2D object from the previous frame, 
     estimated position in the next frame, and target positions.
     */
-    Sweep2D sweep
+    Sweep2D sweep = undefined
 
     /*
     The head of the doubly linked list that records all of the objects
@@ -136,7 +137,7 @@ class Item2D is Item
     /*
     The position of the Item2D object from the previous frame.
     */
-    PhysicsPosition2D transform0
+    PhysicsPosition2D transform0 = undefined
 
     /*
     The property holder for this item. You will only have a property holder
@@ -244,8 +245,7 @@ class Item2D is Item
     constant integer VERTEX_SIZE = 6
     constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
-    Math math
-    PhysicsPosition2D synchronizeNodesTempPosition
+    PhysicsPosition2D synchronizeNodesTempPosition = undefined
 
     GameStateManager manager
 
@@ -1529,7 +1529,7 @@ class Item2D is Item
     use this action directly.
     */
     action PrepareVertices
-
+        Math math
         if verticesChanged
             verticesChanged = false
 
@@ -2003,6 +2003,7 @@ class Item2D is Item
         myItem:SetRotation(90)
     */
     action SetRotation(number degrees)
+        Math math
         rotation = degrees
         verticesChanged = true
         if updateTransform
@@ -2077,6 +2078,7 @@ class Item2D is Item
         number rotation = myItem:GetRotationInRadians()
     */
     action GetRotationInRadians returns number
+        Math math
         return math:DegreesToRadians(rotation)
     end
 
@@ -2092,6 +2094,7 @@ class Item2D is Item
         myItem:Rotate(65)
     */
     action Rotate(number degrees)
+        Math math
         rotation = rotation + degrees
         if degrees not= 0
             verticesChanged = true
@@ -3049,6 +3052,11 @@ class Item2D is Item
     internally and users should not need to use this action.
     */
     action SynchronizeNodes
+        if not IsCollidable()
+            return now
+        end
+
+        Math math        
         synchronizeNodesTempPosition:SetSine(math:Sine(sweep:GetAngle()))
         synchronizeNodesTempPosition:SetCosine(math:Cosine(sweep:GetAngle()))
         synchronizeNodesTempPosition:GetPosition():SetX(sweep:GetCenter():GetX() - synchronizeNodesTempPosition:GetCosine() * sweep:GetLocalCenter():GetX() + synchronizeNodesTempPosition:GetSine() * sweep:GetLocalCenter():GetY())
@@ -3388,6 +3396,22 @@ class Item2D is Item
         collidable = flag
 
         if collidable
+            PhysicsPosition2D transform02
+            Sweep2D sweep2
+            Array<Item2DNode> nodes2
+            PhysicsPosition2D transform2
+            PhysicsPosition2D synchronizeNodesTempPosition2
+
+            me:transform0 = transform02
+            me:sweep = sweep2
+            me:transform = transform2
+            me:nodes = nodes2
+            me:synchronizeNodesTempPosition = synchronizeNodesTempPosition2
+
+            UpdateTransformX()
+            UpdateTransformY()
+            ManageShape()
+
             if layerSet and shape not= undefined
                 BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
                 CreateNodes(broadphase, transform)
@@ -4493,6 +4517,7 @@ class Item2D is Item
     end
 
     action SetScreenPositionFromPhysicsPosition
+        Math math
         shouldTriggerSimulation = false
         MoveX(transform:GetPosition():GetX() - transform0:GetPosition():GetX())
         MoveY(transform:GetPosition():GetY() - transform0:GetPosition():GetY())
@@ -4681,6 +4706,10 @@ class Item2D is Item
     end
 
     action UpdateTransformX
+        if not collidable
+            return now
+        end
+
         if shape not= undefined and shape is Polygon
             Polygon p = cast(Polygon, shape)
             if p:IsBox()
@@ -4698,6 +4727,10 @@ class Item2D is Item
     end
 
     action UpdateTransformY
+        if not collidable
+            return now
+        end
+
         if shape not= undefined and shape is Polygon
             Polygon p = cast(Polygon, shape)
             if p:IsBox()
@@ -4715,6 +4748,10 @@ class Item2D is Item
     end
 
     action UpdateTransformAngle
+        if not collidable
+            return now
+        end
+        Math math
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
         sweep:SetAngle(transform:GetAngle())
     end

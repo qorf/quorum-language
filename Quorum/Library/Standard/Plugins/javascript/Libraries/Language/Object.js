@@ -32,6 +32,9 @@ function global_truncate_(value) {
 }
 
 function global_InstanceOf(variable, name) {
+    if (variable === null || variable === undefined)
+        return false;
+    
     var value = variable.parentNames_;
     if(variable.prototype != null) {
         value = variable.prototype.parentNames_;
@@ -64,10 +67,10 @@ function global_parseInteger(text) {
         index = 1;
     }
     for (; index < text.length; index++) {
-        var char = text.charCodeAt(index) - 48;
-        if(char >= 0 && char < 10) {
+        var char2 = text.charCodeAt(index) - 48;
+        if(char2 >= 0 && char2 < 10) {
             result = result * 10;
-            result = result + char;
+            result = result + char2;
         } else { /* unlike typical javascript, throw an exception from Quorum */
             var error = new quorum_Libraries_Language_Errors_CastError_();
             throw error;

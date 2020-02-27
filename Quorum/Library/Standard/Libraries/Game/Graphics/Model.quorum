@@ -544,6 +544,416 @@ class Model is Item3D
     end
 
     /*
+    This action will load the Model with a plane with the given width,
+    depth, and color.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter color What color the plane should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            plane:LoadPlane(2, 2, cyan)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Color color)
+        ModelBlueprint schematic = GetCachedPlane(width, depth, color, false)
+        Load(schematic)
+        SetDiffuseColor(color)
+        Box box
+        // Using a box with a thin height isn't correct -- it's only a rough
+        // approximation, as we currently lack a "plane" shape.
+        box:Set(width, 0.01, depth)
+        SetShape(box)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture located in the provided file.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter textureFile A file containing a texture to show on the surface of the plane.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File texture
+            texture:SetPath("Floor.png")
+
+            plane:LoadPlane(2, 2, texture)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadPlane(width, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture located at the provided file path.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter textureFile The name of a texture file to be displayed on the surface of the plane.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            plane:LoadPlane(2, 2, "Box.png")
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadPlane(width, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture that has been loaded by the given
+    Drawable.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on the surface of the plane.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable logo
+            logo:Load("Logo.png")
+
+            plane:LoadPlane(2, 2, logo)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadPlane(width, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width,
+    depth, and texture.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on the surface of the plane.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+
+            plane:LoadPlane(2, 2, texture)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Texture texture)
+        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, false)
+        Load(schematic)
+        SetTexture(texture)
+        Box box
+        // Using a box with a thin height isn't correct -- it's only a rough
+        // approximation, as we currently lack a "plane" shape.
+        box:Set(width, 0.01, depth)
+        SetShape(box)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width,
+    depth, and color. If the boolean value provided is true, it will be double
+    sided (allowing it to be viewed from both sides of the plane) -- otherwise,
+    it will only visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter color What color the plane should be.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            plane:LoadPlane(2, 2, cyan, true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Color color, boolean doubleSided)
+        ModelBlueprint schematic = GetCachedPlane(width, depth, color, doubleSided)
+        Load(schematic)
+        SetDiffuseColor(color)
+        Box box
+        // Using a box with a thin height isn't correct -- it's only a rough
+        // approximation, as we currently lack a "plane" shape.
+        box:Set(width, 0.01, depth)
+        SetShape(box)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture located in the provided file.
+    If the boolean value provided is true, it will be double sided (allowing it 
+    to be viewed from both sides of the plane) -- otherwise, it will only 
+    visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter textureFile A file containing a texture to show on the surface of the plane.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File texture
+            texture:SetPath("Floor.png")
+
+            plane:LoadPlane(2, 2, texture, true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, File textureFile, boolean doubleSided)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadPlane(width, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture located at the provided file path.
+    If the boolean value provided is true, it will be double sided (allowing it 
+    to be viewed from both sides of the plane) -- otherwise, it will only 
+    visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter textureFile The name of a texture file to be displayed on the surface of the plane.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            plane:LoadPlane(2, 2, "Box.png", true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, text textureFile, boolean doubleSided)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadPlane(width, depth, texture, doubleSided)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width
+    and depth. The plane will use the texture that has been loaded by the given
+    Drawable. If the boolean value provided is true, it will be double sided 
+    (allowing it to be viewed from both sides of the plane) -- otherwise, it 
+    will only visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on the surface of the plane.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable logo
+            logo:Load("Logo.png")
+
+            plane:LoadPlane(2, 2, logo, true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Drawable drawable, boolean doubleSided)
+        Texture texture = drawable:GetTexture()
+        LoadPlane(width, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a plane with the given width,
+    depth, and texture.
+    If the boolean value provided is true, it will be double sided (allowing it 
+    to be viewed from both sides of the plane) -- otherwise, it will only 
+    visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on the surface of the plane.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+
+            plane:LoadPlane(2, 2, texture, true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Texture texture, boolean doubleSided)
+        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, doubleSided)
+        Load(schematic)
+        SetTexture(texture)
+        Box box
+        // Using a box with a thin height isn't correct -- it's only a rough
+        // approximation, as we currently lack a "plane" shape.
+        box:Set(width, 0.01, depth)
+        SetShape(box)
+    end
+
+    /*
     This action will load the Model with a cylinder with the given width,
     height, depth, and color. The default cylinder will be made using 16
     straight sides to simulate the curve of the cylinder.
@@ -1390,6 +1800,12 @@ class Model is Item3D
     private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
 
     /*
+    Find a plane matching the dimensions (but not necessarily color) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
+    private system action GetCachedPlane(number width, number depth, Color color, boolean doubleSided) returns ModelBlueprint
+
+    /*
     Find a cylinder matching the dimensions (but not necessarily color) provided,
     and return it. If none is found, create a new one and cache it.
     */
@@ -1406,6 +1822,12 @@ class Model is Item3D
     and return it. If none is found, create a new one and cache it.
     */
     private system action GetCachedBox(number width, number height, number depth, Texture texture) returns ModelBlueprint
+
+    /*
+    Find a plane matching the dimensions (but not necessarily texture) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
+    private system action GetCachedPlane(number width, number depth, Texture texture, boolean doubleSided) returns ModelBlueprint
 
     /*
     Find a cylinder matching the dimensions (but not necessarily texture) provided,

@@ -2,8 +2,13 @@
 #include "RadioButtonProvider.h"
 #include "ControlTImpl.h"
 
-RadioButtonControl::RadioButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
+RadioButtonControl::RadioButtonControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, _In_ ButtonGroupControl* parent, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem), m_parentButtonGroup(parent)
 {
+}
+
+ButtonGroupControl* RadioButtonControl::GetParentButtonGroup()
+{
+	return m_parentButtonGroup;
 }
 
 void RadioButtonControl::SetState(_In_ bool controlState)
@@ -19,7 +24,6 @@ void RadioButtonControl::SetState(_In_ bool controlState)
 		toggle = JNI_FALSE;
 	}
 
-	//jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(m_JO_me, JavaClass_TextBox.GetCurrentLineText));
 	JNIEnv* env = GetJNIEnv();
 	env->CallVoidMethod(GetMe(), JavaClass_ToggleButton.SetToggleState, toggle);
 

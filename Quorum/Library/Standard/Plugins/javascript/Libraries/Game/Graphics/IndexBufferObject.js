@@ -105,6 +105,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         writingPosition = 0;
     };
     
+    this.Reload = function()
+    {
+        // Do nothing. There's (currently) nothing to be done here.
+    };
+    
     this.Dispose = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -128,9 +133,9 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         }
     };
     
-    this.SendToBridgeArray$quorum_integer$quorum_integer = function(index, value) 
+    this.SendToBridgeArray$quorum_Libraries_Containers_Integer32BitArray = function(int32array)
     {
-        bridgeArray[index] = value;
+        bridgeArray = int32array.plugin_.array_;
     };
     
     this.PutBridgeArray = function() 
@@ -180,3 +185,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         return integerArray;
     };
 }
+
+/*
+    private system action SendToBridgeArray(Integer32BitArray array)
+ */

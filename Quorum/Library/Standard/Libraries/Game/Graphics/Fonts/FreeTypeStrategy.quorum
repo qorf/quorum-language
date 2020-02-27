@@ -45,6 +45,10 @@ class FreeTypeStrategy is FontStrategy
     private integer size = 14
     private number angle = 0
     private integer height = 0
+    private integer maximumAscent = 0
+    private integer maximumDescent = 0
+    private integer underlinePosition = 0
+    private integer underlineThickness = 0
     private boolean initialized = false
     private HashTable<text, Glyph> glyphTable
 
@@ -151,7 +155,7 @@ class FreeTypeStrategy is FontStrategy
         end
 
         LoadFontNative(fontFile:GetAbsolutePath())
-        height = GetHeight()
+        UpdateFontProperties()
         initialized = true
     end
 
@@ -317,10 +321,9 @@ class FreeTypeStrategy is FontStrategy
     */
     action SetSize (integer newSize)
         size = newSize
-        textChanged = true
         if initialized
             SetSizeNative(newSize)
-            height = GetHeight()
+            UpdateFontProperties()
             EmptyGlyphTable()
         end
     end
@@ -402,8 +405,6 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action SetAngle(number newAngle)
-        textChanged = true
-
         if newAngle <= -360
             newAngle = newAngle - 360 * cast(integer, newAngle/360)
         end
@@ -592,12 +593,6 @@ class FreeTypeStrategy is FontStrategy
 
     private system action LoadImageSheet(FontImageSheet sheet) returns boolean
 
-    // FOR DEBUGGING ONLY. Remove after ImageSheet testing.
-    action GetDebugTexture returns Texture
-        IsImageSheetAvailable()
-        return imageSheet:GetTexture()
-    end
-
     /*
     This action calculates the kerning value between a pair of characters and then
     returns it.
@@ -656,7 +651,27 @@ class FreeTypeStrategy is FontStrategy
         return initialized
     end
 
-    private system action GetHeight returns integer
+    /*
+    Updates the various values that are stored across the entire font, including
+    font height, maximum ascent and descent, and underline properties.
+    */
+    private action UpdateFontProperties
+        height = SystemGetHeight()
+        maximumAscent = SystemGetMaximumAscent()
+        maximumDescent = SystemGetMaximumDescent()
+        underlinePosition = SystemGetUnderlinePosition()
+        underlineThickness = SystemGetUnderlineThickness()
+    end
+
+    private system action SystemGetHeight returns integer
+
+    private system action SystemGetMaximumAscent returns integer
+
+    private system action SystemGetMaximumDescent returns integer
+
+    private system action SystemGetUnderlinePosition returns integer
+
+    private system action SystemGetUnderlineThickness returns integer
 
     /*
     This action will return the height of each line of text produced by this font.
@@ -769,14 +784,18 @@ class FreeTypeStrategy is FontStrategy
     end
 
     action GetMaximumAscent returns integer
-        return 0
+        return maximumAscent
     end
 
     action GetMaximumDescent returns integer
-        return 0
+        return maximumDescent
     end
 
-    action GetLineGap returns integer
-        return 0
+    action GetUnderlinePosition returns integer
+        return underlinePosition
+    end
+
+    action GetUnderlineThickness returns integer
+        return underlineThickness
     end
 end

@@ -71,6 +71,35 @@ public class Model
         return blueprint;
     }
     
+    public ModelBlueprint_ GetCachedPlane(double width, double depth, Color_ color, boolean doubleSided)
+    {
+        String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
+        String searchKey = ":PLANE:DIFFUSE:" + blendKey + width + ":" + depth + ":" + doubleSided;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreatePlane(width, depth, color, doubleSided);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
+    public ModelBlueprint_ GetCachedPlane(double width, double depth, Texture_ texture, boolean doubleSided)
+    {
+        String searchKey = ":PLANE:TEXTURED:" + width + ":" + depth + ":" + doubleSided;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreatePlane(width, depth, texture, doubleSided);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
     public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");

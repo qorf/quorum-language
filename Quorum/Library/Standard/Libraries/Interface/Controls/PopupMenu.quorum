@@ -27,17 +27,21 @@ class PopupMenu is MenuRoot, MouseListener
         ManualLayout layout
         SetLayout(layout)
 
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetBorderThickness(4)
-
         dialog:SetTopBarVisible(false)
         dialog:SetModal(false)
         dialog:Add(me)
 
+        SetBorderThickness(1)
+        panel:SetBorderThickness(1)
         Add(panel)
 
         SetAccessibilityCode(parent:Item:POPUP_MENU)
         SetName("Pop-Up Menu")
+    end
+
+    action SetBorderThickness(number thickness)
+        parent:Control:SetBorderThickness(thickness)
+        panel:SetBorderThickness(thickness)
     end
 
     action IsAccessibleParent returns boolean

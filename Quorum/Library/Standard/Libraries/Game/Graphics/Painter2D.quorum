@@ -87,6 +87,9 @@ class Painter2D
     */
     boolean customDrawingItem = false
 
+    //used in End
+    integer lastSortedArraySize = -1
+
     on create
         color = color:White()
         SetColor(color)
@@ -405,7 +408,13 @@ class Painter2D
 
         SystemEnd()
 
-        sortingArray:Empty()
+        integer current = sortingArray:GetSize()
+        sortingArray:Empty(false)
+
+        if lastSortedArraySize > current
+            sortingArray:ClearContents(current, lastSortedArraySize - 1 )
+        end
+        lastSortedArraySize = current
     end
 
     private system action SystemEnd
@@ -448,6 +457,13 @@ class Painter2D
     */
     action Draw(Drawable drawable)
         drawable:SetClipCoordinates(me)
+
+        // If the clip width or height is negative, then the drawing region is
+        // empty. Don't bother drawing it.
+        if clipWidth < 0 or clipHeight < 0
+            return now
+        end
+
         SystemDraw(drawable)
     end
 

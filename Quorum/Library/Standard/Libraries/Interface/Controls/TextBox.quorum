@@ -808,7 +808,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         Array<Drawable> lineDrawables = background:GetLine(lineIndex)
 
-        if startIndex >= lineDrawables:GetSize() or startIndex >= currentLine:GetSize()
+        if lineDrawables = undefined or startIndex >= lineDrawables:GetSize() or startIndex >= currentLine:GetSize()
             return now
         end
 
@@ -1319,8 +1319,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             size = size - separator:GetSize()
         end
 
-        position = position - leftCharacterPadding
-
         number x1 = 0
         integer counter = 0
         Array<Gutter> gutters = background:GetGutters()
@@ -1394,7 +1392,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             TextChangeEvent changeEvent
             changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
             NotifyTextChangeListeners(changeEvent)
-            DeleteSelection()
+            DeleteSelection(false)
             return now
         end
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -1452,9 +1450,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     */
     action DeleteForward
         if (not selection:IsEmpty())
-            TextChangeEvent changeEvent
-            changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()), selection:GetStartIndex())
-            NotifyTextChangeListeners(changeEvent)
             DeleteSelection()
             return now
         end
@@ -1504,6 +1499,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     the TextBox's selection is empty, this action does nothing.
     */
     action DeleteSelection
+        DeleteSelection(true)
+    end
+
+    private action DeleteSelection(boolean triggerTextChangeEvent)
         if selection:IsEmpty()
             return now
         end
@@ -1513,6 +1512,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         DecrementStyleIndices(GetCaretPosition(), selection:GetEndIndex() - selection:GetStartIndex())
 
+        text deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
         textValue = textValue:Delete(selection:GetStartIndex(), selection:GetEndIndex())
 
         // Force a recalculation of the width by setting its value to -1.
@@ -1523,6 +1523,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
+
+        if triggerTextChangeEvent
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", deletedText, selection:GetStartIndex())
+            NotifyTextChangeListeners(changeEvent)
+        end
 
         EmptySelectionEvent(true)
     end
@@ -1671,7 +1677,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         if shouldDeleteSelection
-            DeleteSelection()
+            DeleteSelection(false)
         else
             EmptySelectionEvent(true)
         end
@@ -2560,6 +2566,28 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         RequestLayout()
 
         return true
+    end
+
+    action GetTextStylesAtIndex(integer index) returns Array<TextStyle>
+        Array<TextStyle> styles
+        integer i = 0
+        repeat while i < textStyles:GetSize()
+            TextStyle style = textStyles:Get(i)
+            if style:GetIndex() <= index and (style:GetIndex() + style:GetSize()) >= index
+                styles:Add(style)
+            elseif style:GetIndex() > index
+                /*
+                Because the TextStyles are sorted from lowest to highest start
+                index, once we've found a style with an excessive start index,
+                we know all of the remaining ones will too.
+                */
+                i = textStyles:GetSize()
+            end
+
+            i = i + 1
+        end
+
+        return styles
     end
 
     action EmptyTextStyles

@@ -171,8 +171,8 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
     integer byte = value:Get(0)
     byte = value:UnsignedIntegerFromByte(byte)
     */
-    this.UnsignedIntegerFromByte$quorum_integer = function(byte){
-       var unsignedInt = byte & 0x00FF;  
+    this.UnsignedIntegerFromByte$quorum_integer = function(byte1){
+       var unsignedInt = byte1 & 0x00FF;  
        return unsignedInt;
     };
 
@@ -193,8 +193,8 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
     integer byte = value:Get(0)
     text letter = value:CharacterFromByte(byte)
     */
-    this.CharacterFromByte$quorum_integer = function(byte){
-        var character = String.fromCharCode(byte);
+    this.CharacterFromByte$quorum_integer = function(byte2){
+        var character = String.fromCharCode(byte2);
         return character;
     };
     
@@ -240,8 +240,8 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
     integer byte = value:Get(0)
     byte = value:IntegerFromByte(byte)
     */
-    this.IntegerFromByte$quorum_integer = function(byte){
-        return byte;
+    this.IntegerFromByte$quorum_integer = function(byte2){
+        return byte2;
     };
 
     /*

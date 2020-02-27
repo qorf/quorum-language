@@ -36,6 +36,8 @@ use Libraries.Game.Collision.Sweep2D
 use Libraries.Containers.Stack
 use Libraries.Compute.Vector2
 use Libraries.Game.GameInput
+use Libraries.System.SystemHelper
+use Libraries.Language.Errors.ConcurrencyError
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -88,6 +90,7 @@ class Layer2D is Layer
     Painter2D painter
 
     GameStateManager manager
+    SystemHelper systemHelper
     GraphicsManager graphics = undefined
     Item2DDepthComparison depthSorter
 
@@ -166,6 +169,22 @@ class Layer2D is Layer
     end
 
     /*
+    This action ensures that the current thread is the same as the main GUI
+    thread. Certain kinds of actions like adding or removing items should only
+    be done on the GUI thread.
+
+    If this code is being called from outside the GUI thread, it alerts a
+    ConcurrencyException.
+    */
+    private action EnsureCorrectThread
+        if manager:GetMainThreadName() not= systemHelper:GetThreadName()
+            ConcurrencyError error
+            error:SetErrorMessage("I can only add or remove items from the Game on the main thread, but I was asked to do so on a different thread.")
+            alert(error)
+        end
+    end
+
+    /*
     This action will add an Item2D to this Layer. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
     possible to draw the given Item2D). The Item2D will be added to the back of
@@ -209,6 +228,8 @@ class Layer2D is Layer
 
     */
     action Add(Item2D item)
+        EnsureCorrectThread()
+
         if item is Control
             AddControl(cast(Control, item))
         end
@@ -267,6 +288,8 @@ class Layer2D is Layer
 
     */
     action Add(integer index, Item2D item)
+        EnsureCorrectThread()
+
         if item is Control
             AddControl(cast(Control, item))
         end
@@ -326,6 +349,8 @@ class Layer2D is Layer
 
     */
     action AddToFront(Item2D item)
+        EnsureCorrectThread()
+
         if item is Control
             AddControl(cast(Control, item))
         end
@@ -344,6 +369,11 @@ class Layer2D is Layer
         controls:Add(control)
         control:RequestLayout()
         control:SetInterfaceScale(interfaceScale)
+        shouldLayout = true
+    end
+
+    private action RemoveControl(Control control)
+        controls:Remove(control)
         shouldLayout = true
     end
 
@@ -408,6 +438,7 @@ class Layer2D is Layer
             body:SetLayer(undefined)
         end
         items:Empty()
+        controls:Empty()
     end
 
     /*
@@ -448,6 +479,12 @@ class Layer2D is Layer
     
     */
     action Remove(Item2D item) returns boolean
+        EnsureCorrectThread()
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
+
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
@@ -519,7 +556,13 @@ class Layer2D is Layer
 
     */
     action RemoveAt(integer index) returns Item2D
+        EnsureCorrectThread()
+
         Item2D item = items:RemoveAt(index)
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
 
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
@@ -591,7 +634,13 @@ class Layer2D is Layer
 
     */
     action RemoveFromFront returns Item2D
+        EnsureCorrectThread()
+
         Item2D item = items:RemoveFromFront()
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
 
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
@@ -662,7 +711,13 @@ class Layer2D is Layer
 
     */
     action RemoveFromEnd returns Item2D
+        EnsureCorrectThread()
+
         Item2D item = items:RemoveFromEnd()
+
+        if item is Control
+            RemoveControl(cast(Control, item))
+        end
 
         JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
@@ -1279,17 +1334,29 @@ class Layer2D is Layer
         array:Add(root)
     end
 
+    integer lastDepthSort = -1
+    Array<Item2D> depthSortTemp
     private action CalculateDepthSortedArray
-        depthSortedArray:Empty()
-
+        depthSortedArray:Empty(false)
+        
         integer i = items:GetSize()
+
         repeat while i > 0
             i = i - 1
             GetDepthSortedItems(items:Get(i), depthSortedArray)
         end
 
+        if lastDepthSort > depthSortedArray:GetSize() 
+            depthSortedArray:ClearContents(depthSortedArray:GetSize(), lastDepthSort - 1)
+        end
+        lastDepthSort = depthSortedArray:GetSize()
+
         if shouldSortDepthBuffer
-            depthSortedArray:Sort(depthSorter)
+            if depthSortTemp:GetSize() not= depthSortedArray:GetSize() 
+                depthSortTemp:SetMaxSize(depthSortedArray:GetSize())
+                depthSortTemp:SetSize(depthSortedArray:GetSize())
+            end
+            depthSortedArray:Sort(depthSorter, depthSortTemp)
         end
     end
 
@@ -1951,7 +2018,9 @@ class Layer2D is Layer
             if body:IsPhysicsEnabled()
                 body:SetCollisionGroupFlag(false)
             end
-            body:SetTransform0(body:GetTransform())
+            if body:IsCollidable() or body:IsPhysicsEnabled()
+                body:SetTransform0(body:GetTransform())
+            end
             i = i + 1
         end
 
@@ -1966,7 +2035,9 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
-            item:SynchronizeNodes()
+            if item:IsCollidable() or item:IsPhysicsEnabled()
+                item:SynchronizeNodes()
+            end 
             i = i + 1
         end
 

@@ -33,6 +33,10 @@ class BroadphaseCollision3D
 
     integer queryNodeID = -1
 
+    //used only in UpdatePairs
+    integer pairListAmount = -1
+    integer moveListAmount = -1
+
     /*
     This action adds the BoundingBox and Item3DNode passed in to the "tree" as a
     node to that "tree" in this BoardphaseCollision3D class. The newly added node
@@ -174,7 +178,7 @@ class BroadphaseCollision3D
     */
     action UpdatePairs(CollisionManager3D collision)
         pairCount = 0
-        pairList:Empty()
+        pairList:Empty(false)
 
         integer i = 0
         repeat while i < moveCount
@@ -187,7 +191,9 @@ class BroadphaseCollision3D
         end
 
         moveCount = 0
-        moveList:Empty()
+        moveList:Empty(false)
+
+        
 
         pairList:Sort()
         i = 0
@@ -209,6 +215,18 @@ class BroadphaseCollision3D
                 end
             end
         end
+
+        if pairListAmount > pairList:GetSize()
+            pairList:ClearContents(pairList:GetSize(), pairListAmount - 1 )
+        end
+
+        pairListAmount = pairList:GetSize()
+
+        if moveListAmount > moveList:GetSize()
+            moveList:ClearContents(moveList:GetSize(), moveListAmount - 1 )
+        end
+
+        moveListAmount = moveList:GetSize()
     end
 
     /*

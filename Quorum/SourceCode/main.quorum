@@ -208,8 +208,9 @@ class Main is WebResponder
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetAbsolutePath("/Users/andreasstefik/Repositories/quorum-language/Quorum/Library/Standard/Libraries/Game/DesktopApplication.quorum")
-        //main:SetPath("ReturnNowInOnCreate.quorum")
+        //main:SetAbsolutePath("/Users/andreasstefik/Repositories/quorum-language/Quorum/Library/Standard/Libraries/Game/DesktopApplication.quorum")
+        main:SetWorkingDirectory("Library/Tests/Game/Pass")
+        main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
         Array<File> files
 //        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
@@ -243,6 +244,8 @@ class Main is WebResponder
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
+        request:SetOutputType(request:JAVASCRIPT)
+        //request:mainOnlyJavaScript = true
         //request:isWebRequest = true
 
         start = time:GetEpochTime()
@@ -287,9 +290,9 @@ class Main is WebResponder
         CompilerErrorManager errors = result:compilerErrorManager
         if errors:IsCompilationErrorFree()
             output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
+            if request:GetOutputType() = request:JAVASCRIPT
                 File myOutput
-                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
+                myOutput:SetWorkingDirectory("Output/Run")
                 myOutput:SetPath("TestQuorum.js")
                 myOutput:Write(result:convertedJavaScript)
                 output "File written."

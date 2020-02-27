@@ -36,7 +36,7 @@ function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
 
 
    this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {      
-        //replace this code with item appropriate material 
+       //replace this code with item appropriate material 
 
         var id = item.GetHashCode();        
         var description = item.GetName();   //used for testing purposes

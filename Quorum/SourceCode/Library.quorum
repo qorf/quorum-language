@@ -19,12 +19,14 @@ class Library
     File outputFolder = undefined
     File buildFolder
     File runJar
+    File runJavaScript
     File pluginJar
     File nativeFolder
     File graphicsFolder
     File robotsFolder
     constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
     constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
+    constant text STANDARD_LIBRARY_JAVASCRIPT = "QuorumStandardLibrary.js"
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
@@ -35,6 +37,9 @@ class Library
     HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
     Array<CompilerListener> listeners
+    boolean outputJavaScript = false
+    text javascriptOutput = ""
+    text javascriptPlugins = ""
 
     action AddListener(CompilerListener listener)
         listeners:Add(listener)
@@ -123,6 +128,7 @@ class Library
         outputLocation:SetPath("Library/Compiled")
         output "Scanning"
         Library library
+        library:outputJavaScript = true
         library:SetCachingLibraryOpcodes(true)
         library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
@@ -158,6 +164,7 @@ class Library
         if outputFolder not= undefined
             buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             runJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            runJavaScript:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             pluginJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             nativeFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             graphicsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
@@ -165,6 +172,7 @@ class Library
 
             buildFolder:SetPath("/Build")
             runJar:SetPath("/Run/" + STANDARD_LIBRARY_JAR)
+            runJavaScript:SetPath("/Run/" + STANDARD_LIBRARY_JAVASCRIPT)
             pluginJar:SetPath("/Run/" + STANDARD_PLUGINS_JAR)
             nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
             graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
@@ -297,6 +305,7 @@ class Library
         end
         generator:Open(runJar)
 
+        text tempJS = ""
         Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()
@@ -313,9 +322,51 @@ class Library
             if buildInterface not= undefined
                 generator:Add(buildInterface)
             end
+
+            if outputJavaScript
+                tempJS = tempJS + WriteJavaScriptOpcode(code)
+            end
         end
 
+        javascriptOutput = javascriptPlugins + tempJS
+        //if runJavaScript:Exists()
+            runJavaScript:Write(javascriptOutput)
+        //end
+
         generator:Close()
+    end
+
+    action WriteJavaScriptOpcode(ClassOpcode code) returns text
+        text result = ""
+        result = result + code:WriteJavaScript()
+        Class clazz = code:GetClass()
+
+        //check if this class has a plugin. If it does, include it.
+        if clazz:HasSystemAction()
+            File folder = GetLocation() 
+            path = folder:GetPath() + "/Plugins/javascript/"
+
+            key = clazz:GetStaticKey()
+            Array<text> keys = key:Split("\.")
+            i = 0
+            repeat keys:GetSize() times
+                newKey = keys:Get(i)
+                if i = keys:GetSize() - 1
+                    path = path + newKey + ".js"
+                else
+                    path = path + newKey + "/"
+                end
+                i = i + 1
+            end
+            File location
+            location:SetWorkingDirectory(folder:GetWorkingDirectory())
+            location:SetPath(path)
+            if location:Exists() 
+                value = location:Read()
+                javascriptPlugins = javascriptPlugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+            end
+        end
+        return result
     end
 
     action WriteStandardPlugins
@@ -335,6 +386,8 @@ class Library
         AddSpeechDependencies(generator)
 
         generator:Close()
+
+        
     end
 
     private action AddStandardPlugins(JarGenerator generator)
@@ -354,10 +407,10 @@ class Library
         antlr:SetPath("org/antlr")
         AddToJar(generator, antlr, to)
 
-        File abego
-        abego:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
-        abego:SetPath("org/abego")
-        AddToJar(generator, abego, to)
+//        File abego
+//        abego:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+//        abego:SetPath("org/abego")
+//        AddToJar(generator, abego, to)
 
         File objectWeb
         objectWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")

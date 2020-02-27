@@ -51,6 +51,12 @@ struct JClass_AccessibilityManager
 
 	// Used to indicate that the accessibility system needs to stop pumping messages for a time, to allow the engine to process input.
 	jmethodID PauseEventPolling;
+
+	// Used to determine if spelling errors are present at a given index in a TextBox.
+	jmethodID IsErrorAtIndex;
+
+	// Used when navigating by word to return new lines as needed.
+	jmethodID IsIndexAtEndOfLine;
 };
 struct JClass_TextBox
 {

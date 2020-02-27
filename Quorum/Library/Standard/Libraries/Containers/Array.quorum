@@ -646,6 +646,43 @@ class Array <Type>
         MergeSort(me, temp, 0, me:GetSize() - 1, comparison)
     end
 
+    /*
+        This action sorts the values of the array using a merge sort algorithm.
+        It is guaranteed to execute in O(n log n). The example uses a support 
+        class called IntegerComparison, which duplicates the default sorting 
+        for integers. This version requires passing a comparison object 
+        and an equally sized array to use as temporary storage.
+
+        Attribute: Example
+
+        use Libraries.Containers.Support.Comparison
+        class IntegerComparison is Comparison
+            action Compare(Object left, Object right) returns integer
+                Integer l = cast(Integer, left)
+                Integer r = cast(Integer, right)
+                if l:GetValue() < r:GetValue()
+                    return parent:Comparison:SMALLER
+                elseif l:GetValue() > r:GetValue()
+                    return parent:Comparison:LARGER
+                else
+                    return parent:Comparison:EQUAL
+                end
+            end
+        end
+
+        use Libraries.Containers.Array
+        Array<integer> myArray
+        Array<integer> temp
+        IntegerComparison compare
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort(compare, temp)
+    */
+    action Sort(Comparison comparison, Array<Type> temp)
+        MergeSort(me, temp, 0, me:GetSize() - 1, comparison)
+    end
+
     private action MergeSort(Array<Type> original, Array<Type> temp,
         integer left, integer right)
 
@@ -766,6 +803,29 @@ class Array <Type>
         myArray:Empty()
     */
     system action Empty
+
+    /*
+        This action empty's the list. While this does set the size to 0, this
+        version of empty does not clear out the contents. The reason for this is 
+        that some algorithms need to manage the memory manually for efficiency.
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        Array<integer> myArray
+        myArray:SetSize(10)
+        myArray:Set(0, 22) 
+        myArray:Set(1, 33)
+        myArray:Set(2, 45)
+        myArray:Set(3, 22)
+        myArray:Empty()
+    */
+    system action Empty(boolean value)
+
+    /*
+        This action clears out any remnant objects. This should only be used if
+        Empty(false) was used.
+    */
+    system action ClearContents(integer start, integer stop)
 
     /*
         This action returns a boolean value, true if the container is empty and false if it contains any items. 

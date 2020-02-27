@@ -69,8 +69,8 @@ Number.prototype.BitCount$IntegerPrimitive = function() {
     var text = Number(this.valueOf()).toString(2);
     var count = 0;
     for(i = 0; i < text.length; i++) {
-        var char = text.charAt(i);
-        if(char == "1") {
+        var char2 = text.charAt(i);
+        if(char2 == "1") {
             count++;
         }
     }

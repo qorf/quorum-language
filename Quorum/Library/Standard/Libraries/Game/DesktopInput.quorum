@@ -69,11 +69,10 @@ class DesktopInput is GameInput
     Array<InputSet> pressedKeys
 
     /*
-    A HashTable which tracks if the given key (as identified by its keycode) has
-    been used as valid input for an InputSet since the key was pressed. Used for
-    the FINISH_UNCAUGHT InputSet trigger.
+    The keycode of the last key pressed. 
+    Used for the FINISH_UNCAUGHT InputSet trigger.
     */
-    HashTable<integer, boolean> usedKeys
+    integer lastKey = -1
 
     /*
     An array containing "recent" mouse clicks. Clicks are considered recent if
@@ -521,6 +520,12 @@ class DesktopInput is GameInput
             InputSet anySet = undefined
             InputSet uncaughtSet = undefined
 
+            /*
+            Used only on release events, if the InputTable doesn't have a
+            specific input which uses the exact combination of key and modifiers.
+            */
+            InputSet unmodifiedReleaseSet = undefined
+
             if currentEvent:eventType = currentEvent:PRESSED_KEY
                 // For new key presses, we want to copy the modifiers as they
                 // were before the key press.
@@ -544,6 +549,8 @@ class DesktopInput is GameInput
                 pressedSet:SetKeyboardInput(currentEvent:keyCode)
                 pressedSet:SetInputTrigger(pressedSet:CONTINUE)
                 pressedKeys:Add(pressedSet)
+
+                lastKey = currentEvent:keyCode
             else
                 if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
                     keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
@@ -565,14 +572,18 @@ class DesktopInput is GameInput
                 set = keyboardModifiers:Copy()
                 anySet = keyboardModifiers:Copy()
 
+                InputSet unmodifiedSet
+                unmodifiedSet:SetKeyboardInput(currentEvent:keyCode)
+                unmodifiedSet:SetInputTrigger(unmodifiedSet:FINISH)
+                unmodifiedReleaseSet = unmodifiedSet
+
                 /*
                 The uncaughtSet is valid only if the window is focused -- if it
                 isn't focused, then either we shouldn't receive the input at
                 all, or we've just lost focus on the window (e.g., due to using
                 Alt + Tab) and the key combination should be discarded.
                 */
-                if manager:GetGame():IsWindowFocused() and 
-                    not (usedKeys:HasKey(currentEvent:keyCode) and usedKeys:GetValue(currentEvent:keyCode) = true)
+                if manager:GetGame():IsWindowFocused() and lastKey = currentEvent:keyCode
 
                     uncaughtSet = keyboardModifiers:Copy()
                     uncaughtSet:SetInputTrigger(uncaughtSet:FINISH_UNCAUGHT)
@@ -610,7 +621,13 @@ class DesktopInput is GameInput
                     if uncaughtSet not= undefined
                         processed = table:ProcessInput(uncaughtSet, behaviorEvent)
                     end
+
                     processed = processed or table:ProcessInput(set, behaviorEvent)
+
+                    if processed = false and unmodifiedReleaseSet not= undefined
+                        processed = table:ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                    end
+
                     processed = processed or table:ProcessInput(anySet, behaviorEvent)
                 end
 
@@ -631,27 +648,18 @@ class DesktopInput is GameInput
                 if uncaughtSet not= undefined
                     processed = GetDefaultInputTable():ProcessInput(uncaughtSet, behaviorEvent)
                 end
+
                 processed = processed or GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+
+                if processed = false and unmodifiedReleaseSet not= undefined
+                    processed = GetDefaultInputTable():ProcessInput(unmodifiedReleaseSet, behaviorEvent)
+                end
+
                 processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
             end
 
             if processed and currentEvent:eventType = currentEvent:PRESSED_KEY
                 keypressCaught = true
-                usedKeys:Set(currentEvent:keyCode, true)
-                
-                integer i = 0
-                repeat while i < pressedKeys:GetSize()
-                    integer value = pressedKeys:Get(i):GetInputValue()
-                    
-                    if ((value = keys:ALT_LEFT or value = keys:ALT_RIGHT) and set:HasModifier(set:ALT))
-                    or ((value = keys:SHIFT_LEFT or value = keys:SHIFT_RIGHT) and set:HasModifier(set:SHIFT))
-                    or ((value = keys:CONTROL_LEFT or value = keys:CONTROL_RIGHT) and set:HasModifier(set:CONTROL))
-                    or ((value = keys:META_LEFT or value = keys:META_RIGHT) and set:HasModifier(set:META))
-                        usedKeys:Set(value, true)
-                    end
-
-                    i = i + 1
-                end
             end
 
             repeat while listenIterator:HasNext()
@@ -664,10 +672,6 @@ class DesktopInput is GameInput
             end
 
             listenIterator:Rewind()
-
-            if currentEvent:eventType = currentEvent:RELEASED_KEY
-                usedKeys:Set(currentEvent:keyCode, false)
-            end
         end
 
         integer counter = 0

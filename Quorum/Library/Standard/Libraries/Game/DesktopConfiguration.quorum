@@ -34,6 +34,13 @@ class DesktopConfiguration is ApplicationConfiguration
     /* If true, the textures will automatically be resized when the window is resized. */
     public boolean autoResizeTextures = true
 
+    /*
+    Whether or not the window should be maximized when launched.
+    This only works if the window isn't fullscreen. By default,
+    this value is false.
+    */
+    public boolean maximized = false
+
     //This private variable is a way to get around Quorum's 
     //lack of contructors. We basically use a temporary Color as a
     //Constructor object, that then returns a Color singleton for 

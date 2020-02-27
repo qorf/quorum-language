@@ -10,6 +10,7 @@
 #include "ItemControl.h"
 #include "ButtonControl.h"
 #include "RadioButtonControl.h"
+#include "ButtonGroupControl.h"
 #include "CheckBoxControl.h"
 #include "TextBoxControl.h"
 #include "MenuBarControl.h"
@@ -122,6 +123,25 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 }
 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateGroupNative(JNIEnv* env, jobject obj, jlong parent, jstring groupName, jstring description, jobject jItem)
+{
+	UNREFERENCED_PARAMETER(obj);
+
+	const char* nativeGroupName = env->GetStringUTFChars(groupName, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+
+	WCHAR* wGroupName = CreateWideStringFromUTF8Win32(nativeGroupName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pGroupControl = Create<ButtonGroupControl>(env, parentItem, wGroupName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(groupName, nativeGroupName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pGroupControl);
+}
+
 // CreateCheckBox: 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCheckBoxNative(JNIEnv *env, jobject obj, jlong parent, jstring togglebuttonName, jstring description, jobject jItem)
 {
@@ -143,7 +163,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 }
 
 // CreateRadioButton: 
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateRadioButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jobject jItem)
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateRadioButtonNative(JNIEnv *env, jobject obj, jlong parent, jstring itemName, jstring description, jlong buttonGroup, jobject jItem)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
@@ -153,13 +173,17 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
 	const auto parentItem = GetItemFromLong(parent);
-	const auto pRadiobuttonControl = Create<RadioButtonControl>(env, parentItem, wRadiobuttonName, wDescription, jItem);
+	ButtonGroupControl* groupControl = nullptr;
+
+	if (buttonGroup)
+		groupControl = static_cast<ButtonGroupControl*>(GetItemFromLong(buttonGroup));
+
+	const auto pRadiobuttonControl = Create<RadioButtonControl>(env, parentItem, wRadiobuttonName, wDescription, groupControl, jItem);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
-
+	
 	return GetItemAsLong(pRadiobuttonControl);
-
 }
 
 // CreateTextBox: 
@@ -810,6 +834,22 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		spreadsheetControl->SetQuorumFocus();
 
 	spreadsheetControl->SetSelected(cellControl);
+
+	return true;
+}
+
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SelectRadioButtonNative(JNIEnv* env, jobject obj, jlong selectedCell)
+{
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
+	RadioButtonControl* buttonControl = static_cast<RadioButtonControl*>(GetItemFromLong(selectedCell));
+	ButtonGroupControl* groupControl = buttonControl->GetParentButtonGroup();
+
+	if (!groupControl->HasQuorumFocus())
+		groupControl->SetQuorumFocus();
+
+	groupControl->SetSelectedRadioButton(buttonControl);
 
 	return true;
 }

@@ -7,6 +7,8 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_library(AccessibilityManagerWindows MODULE
     AccessibilityManagerWindows.cpp
     ButtonControl.cpp
+    ButtonGroupControl.cpp
+    ButtonGroupProvider.cpp
     ButtonProvider.cpp
     CellControl.cpp
     CellProvider.cpp

@@ -50,6 +50,7 @@ class CompilerErrorType
     constant text PRIMITIVE_INVALID_ACTION_CALL_MESSAGE = "Cannot use SetValue or SetValueNative on primitive"
     constant text NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT_MESSAGE = "For an assignment of a primitive with a declared type, a value is required"
     constant text ACCESS_ERROR_MESSAGE = "Tried to access a private variable without permission."
+    constant text SHARED_PARENT_CLASS_MESSAGE = "Tried to inherit from a parent class that is shared."
 
     public constant integer MISSING_VARIABLE = 0
     public constant integer EXPECTED_CLOSURE = 1
@@ -98,6 +99,7 @@ class CompilerErrorType
     public constant integer PRIMITIVE_INVALID_ACTION_CALL = 44
     public constant integer NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT = 45
     public constant integer ACCESS_ERROR = 46
+    public constant integer SHARED_PARENT_CLASS = 47
 
     HashTable<integer, text> messages
     integer currentType = -1
@@ -149,7 +151,8 @@ class CompilerErrorType
         messages:Add(PARSER_NO_VIABLE_ALTERNATIVE, PARSER_NO_VIABLE_ALTERNATIVE_MESSAGE)
         messages:Add(PRIMITIVE_INVALID_ACTION_CALL, PRIMITIVE_INVALID_ACTION_CALL_MESSAGE)
         messages:Add(NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT, NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT_MESSAGE)
-        messages:Add(ACCESS_ERROR, ACCESS_ERROR_MESSAGE)
+        messages:Add(ACCESS_ERROR, ACCESS_ERROR_MESSAGE) //SHARED_PARENT_CLASS
+        messages:Add(SHARED_PARENT_CLASS, SHARED_PARENT_CLASS_MESSAGE)
     end
 
     action GetMessage() returns text
@@ -162,7 +165,7 @@ class CompilerErrorType
     end
 
     action SetCurrentType(integer type)
-        if type < MISSING_VARIABLE or type > ACCESS_ERROR
+        if type < MISSING_VARIABLE or type > SHARED_PARENT_CLASS
             alert("Compiler bug: Invalid CompilerErrorType")
         end
 

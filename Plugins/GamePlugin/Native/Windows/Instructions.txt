@@ -1,0 +1,13 @@
+To build the C plugins for Windows, open the visual studio project located at:
+
+WindowsCPlugins\builds\windows\vc2010\freetype.sln
+
+You may need to retarget the solution for a more modern Visual Studio installation, and you may need to adjust the linker properties
+to point the project to look for additional header files/directories at the correct location for your "jni.h" (located within the JDK).
+
+The output of the project is located in one of the folders in:
+
+WindowsCPlugins\objs\vc2010
+
+Which folder you should look at depends on what build you were targeting. The file you need is "libGameEngineCPlugins32.dll" or "libGameEngineCPlugins64.dll"
+Make sure you produce both the 32 and 64 bit .dlls for Quorum!

@@ -19,6 +19,7 @@ use Libraries.Interface.Selections.TreeSelection
 use Libraries.Interface.Selections.SpreadsheetSelection
 use Libraries.Interface.Selections.ListSelection
 use Libraries.Interface.Selections.TreeTableSelection
+use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.Control
@@ -34,6 +35,7 @@ use Libraries.Interface.Controls.Cell
 use Libraries.Interface.Controls.ListItem
 use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Interface.Controls.ProgressBar
+use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Game.GameStateManager
 
@@ -197,6 +199,13 @@ class AccessibilityManager
                 TreeTableCell cell = treeTableSelection:Get()
 
                 Select(cell)
+            end
+        elseif selection is ButtonGroupSelection
+            ButtonGroupSelection groupSelection = cast(ButtonGroupSelection, selection)
+            if not groupSelection:IsEmpty()
+                RadioButton button = groupSelection:GetButton()
+
+                Select(button)
             end
         else
             // Do generic things

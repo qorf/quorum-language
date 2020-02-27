@@ -231,6 +231,36 @@ class Tab is Button
         end
     end
 
+    /*
+    The OnClose action is called when this Tab is closed (or in other words,
+    when the Tab is removed from a TabPane or TabBar). By default, this action
+    does nothing, but classes inheriting from Tab can override this action to
+    perform clean up before closing the Tab.
+    */
+    action OnClose
+        container = undefined
+        bar = undefined
+
+        // The Item that is displayed in the TabPane when the Tab is activated.
+        relatedItem = undefined
+
+        // The Item that should receive focus when the Tab is activated. If left
+        // undefined, the relatedItem is focused instead, if possible.
+        focusTarget = undefined
+
+        layout = undefined
+        defaultProperties = undefined
+        iconLayoutProperties = undefined
+        labelLayoutProperties = undefined
+        buttonLayoutProperties = undefined
+
+        icon = undefined
+        label = undefined
+        closeButton = undefined
+
+        Empty()
+    end
+
     action Activate(BehaviorEvent event)
         if IsActivated()
             if relatedItem not= undefined

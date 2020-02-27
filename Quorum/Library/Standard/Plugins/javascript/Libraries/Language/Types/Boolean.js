@@ -1,16 +1,16 @@
 function plugins_quorum_Libraries_Language_Types_Boolean_(optional) {
-    this.boolean = false;
+    this.myBoolean = false;
     
     if(optional === undefined) {
     } else {
-        this.boolean = optional;
+        this.myBoolean = optional;
     }
     this.SetValueNative$quorum_boolean = function (bool) {
-        boolean = bool;
+        myBoolean = bool;
     };
     
     this.GetHashCode = function() {
-        return this.boolean ? 1231 : 1237;;
+        return this.myBoolean ? 1231 : 1237;;
     };
 }
 
@@ -19,11 +19,11 @@ Boolean.prototype.GetText = function() {
 };
 
 Boolean.prototype.GetValue = function() {
-    return this.valueOf().boolean;
+    return this.valueOf().myBoolean;
 };
 
 Boolean.prototype.Equals$quorum_Libraries_Language_Object = function (value) {
-    return this.valueOf().boolean === value;
+    return this.valueOf().myBoolean === value;
 };
 
 Boolean.prototype.Compare$quorum_Libraries_Language_Object = function(value) {

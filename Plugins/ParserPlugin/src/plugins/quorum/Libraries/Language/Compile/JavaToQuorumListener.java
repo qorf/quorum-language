@@ -31,7 +31,7 @@ import quorum.Libraries.System.File_;
  *
  * @author stefika
  */
-public class JavaToQuorumListener implements QuorumListener {
+public class JavaToQuorumListener implements QuorumParserListener {
 
     private QuorumSourceListener_ listener;
     private File_ file;
@@ -148,6 +148,12 @@ public class JavaToQuorumListener implements QuorumListener {
             context.className = ctx.ID().getText();
             setLocation(ctx.ID().getSymbol(), context.classNameLocation);
         }
+        if(ctx.STATIC() != null) {
+            context.staticClass = true;
+        } else {
+            context.staticClass = false;
+        }
+        
         setLocation(ctx, context);
         fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterFullClassDeclaration(context);
@@ -159,6 +165,11 @@ public class JavaToQuorumListener implements QuorumListener {
         if(ctx.ID() != null) {
             context.className = ctx.ID().getText();
             setLocation(ctx.ID().getSymbol(), context.classNameLocation);
+        }
+        if(ctx.STATIC() != null) {
+            context.staticClass = true;
+        } else {
+            context.staticClass = false;
         }
         setLocation(ctx, context);
         

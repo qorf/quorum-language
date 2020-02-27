@@ -142,16 +142,6 @@ public class IndexArray extends IndexData
         BufferUtils.disposeUnsafeByteBuffer(byteBuffer);
     }
     
-    public void PrepareBridgeArray(int length)
-    {
-        bridgeArray = new int[length];
-    }
-    
-    public void SendToBridgeArray(int index, int value)
-    {
-        bridgeArray[index] = value;
-    }
-    
     public void SendToBridgeArray(Integer32BitArray_ vertices)
     {
         Integer32BitArray array = (Integer32BitArray) vertices;

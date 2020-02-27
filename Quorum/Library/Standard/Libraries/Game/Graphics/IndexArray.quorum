@@ -34,10 +34,6 @@ class IndexArray is IndexData
 
     private system action SetIndices(integer offset, integer count)
 
-    // blueprint action SetIndices(ShortBuffer) (?)
-
-    // blueprint action GetBuffer returns ShortBuffer (?)
-
     /*
     Binds this set of indices for use by certain OpenGL functions. For an
     IndexArray, this does nothing.
@@ -66,24 +62,12 @@ class IndexArray is IndexData
     system action Dispose
 
     action Put(Integer32BitArray values)
-        //PrepareBridgeArray(values:GetSize())
         SendToBridgeArray(values)
         PutBridgeArray()
     end
 
-    private system action PrepareBridgeArray(integer length)
-
     /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
     private system action SendToBridgeArray(Integer32BitArray array)
-//        PrepareBridgeArray(array:GetSize())
-//        integer index = 0
-//        repeat array:GetSize() times
-//            SendToBridgeArray(index, array:Get(index))
-//            index = index + 1
-//        end
-//    end
-
-    private system action SendToBridgeArray(integer index, integer value)
 
     private system action PutBridgeArray
 

@@ -41,6 +41,7 @@ class Cell is Control
 
         SetInputGroup("SpreadsheetCell")
         SetClipping(true)
+        label:SetPositionOnBaseLine(false)
         Add(label)
         SetAccessibilityCode(parent:Item:CELL)
         SetName("Cell")

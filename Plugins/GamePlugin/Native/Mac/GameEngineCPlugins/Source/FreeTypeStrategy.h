@@ -56,6 +56,38 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTy
   (JNIEnv *, jobject, jlong);
 
 /*
+ * Class:     plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy
+ * Method:    GetMaximumAscentNative
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetMaximumAscentNative
+  (JNIEnv*, jobject, jlong);
+
+/*
+ * Class:     plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy
+ * Method:    GetMaximumDescentNative
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetMaximumDescentNative
+  (JNIEnv*, jobject, jlong);
+
+/*
+ * Class:     plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy
+ * Method:    GetUnderlinePositionNative
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetUnderlinePositionNative
+  (JNIEnv*, jobject, jlong);
+
+/*
+ * Class:     plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy
+ * Method:    GetUnderlineThicknessNative
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetUnderlineThicknessNative
+  (JNIEnv*, jobject, jlong);
+
+/*
  * Class:   plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy
  * Method:  DisposeC
  * Signature: (JL)V

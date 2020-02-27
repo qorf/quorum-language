@@ -237,4 +237,33 @@ class DesktopDisplay is GameDisplay
     action SetWindowIcon(File file)
         SetWindowIcon(file:GetAbsolutePath())
     end
+
+    /*
+    This action maximizes the window. It does nothing if the window is
+    already maximized or if the display is fullscreen.
+    */
+    system action MaximizeWindow
+
+    /*
+    This action returns true if the display is a maximized window. If
+    the display isn't maximized, or if the display is full screen, this
+    returns false.
+    */
+    system action IsWindowMaximized returns boolean
+
+    /*
+    This action minimizes the window.
+    */
+    system action MinimizeWindow
+
+    /*
+    This action returns true if the display is minimized, or false otherwise.
+    */
+    system action IsWindowMinimized returns boolean
+
+    /*
+    This action returns a maximized window to a smaller window, or
+    returns a minimized window to the foreground.
+    */
+    system action RestoreWindow
 end

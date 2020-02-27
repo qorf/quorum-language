@@ -3,8 +3,8 @@
 function plugins_quorum_Libraries_Game_Graphics_IndexArray_() 
 {
     var buffer;
-    var integerArray = [];
-    var bridgeArray = [];
+    var integerArray = null;
+    var bridgeArray = null;
     var length = 0;
     var maxLength;
     var position = 0;
@@ -24,6 +24,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         position = 0;
         
         buffer = graphics.glGenBuffer();
+        
+        if (this.supports32bits)
+            integerArray = new Int32Array(maximumSize);
+        else
+            integerArray = new Int16Array(maximumSize);
     };
     
     this.GetSize = function() 
@@ -65,17 +70,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.GetBuffer = function()
     {
-        var newArray;
-
-        if (this.supports32bits)
-            newArray = new Uint32Array(length);
-        else
-            newArray = new Uint16Array(length);
-        
-        for (var i = 0; i < length - position; i++)
-            newArray[i] = integerArray[position + i];
-        
-        return newArray;
+        return integerArray.subarray(position, length - position);
     };
     
     this.Bind = function() 
@@ -115,7 +110,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Clear = function() 
     {
-        integerArray = [];
+        if (this.supports32bits)
+            integerArray = new Int32Array(maxLength);
+        else
+            integerArray = new Int16Array(maxLength);
+        
         length = 0;
         position = 0;
     };
@@ -127,24 +126,16 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         graphics.glDeleteBuffer(buffer);
         buffer = null;
         
-        integerArray = [];
-        bridgeArray = [];
+        integerArray = null;
+        bridgeArray = null;
         length = 0;
         maxLength = 0;
         position = 0;
     };
     
-    this.PrepareBridgeArray$quorum_integer = function(newLength) 
+    this.SendToBridgeArray$quorum_Libraries_Containers_Integer32BitArray = function(int32array)
     {
-        if (length !== newLength)
-        {
-            this.SetLength(newLength);
-        }
-    };
-    
-    this.SendToBridgeArray$quorum_integer$quorum_integer = function(index, value) 
-    {
-        bridgeArray[index] = value;
+        bridgeArray = int32array.plugin_.array_;
     };
     
     this.PutBridgeArray = function() 
@@ -165,14 +156,6 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     this.SetPosition$quorum_integer = function(newPosition) 
     {
         position = newPosition;
-    };
-    
-    this.NewIntegerArray = function(size)
-    {
-        if (this.supports32bits)
-            return new Uint32Array(size);
-        else
-            return new Uint16Array(size);
     };
     
     this.SetLength = function(newLength)

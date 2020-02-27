@@ -12,26 +12,6 @@ FT_Face *face;
 FT_Error error;
 
 
-/* Code for use with the cache system. 
-typedef struct FontRequestStruct
-{
-    const char* filePath;
-    int faceIndex;
-    double angle;
-} FRequest, *FontRequest;
-
-static FT_Error FontRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
-{
-    FontRequest request = (FontRequest) face_id;
-    
-    error = FT_New_Face(library, request->filePath, request->faceIndex, aface);
-    if (error)
-        return error;
-    
-    
-}
-*/
-
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_InitFreeType(JNIEnv * env, jobject clazz)
 {
     error = FT_Init_FreeType(&library);
@@ -121,44 +101,40 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTy
     return (*face)->size->metrics.height;
 }
 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetMaximumAscentNative(JNIEnv* env, jobject jobj, jlong faceHandle)
+{
+    FT_Face* face = (FT_Face*)faceHandle;
+    return (*face)->size->metrics.ascender;
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetMaximumDescentNative(JNIEnv* env, jobject jobj, jlong faceHandle)
+{
+    FT_Face* face = (FT_Face*)faceHandle;
+    return (*face)->size->metrics.descender;
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetUnderlinePositionNative(JNIEnv* env, jobject jobj, jlong faceHandle)
+{
+    FT_Face* face = (FT_Face*)faceHandle;
+    /*
+    FT_MulFix is used in combination with the underline position (expressed in font units) and the y scale
+    to convert to fractional pixel coordinates (the same format used for the other getter functions here).
+    */
+    return FT_MulFix((*face)->underline_position, (*face)->size->metrics.y_scale);
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_GetUnderlineThicknessNative(JNIEnv* env, jobject jobj, jlong faceHandle)
+{
+    FT_Face* face = (FT_Face*)faceHandle;
+    /*
+    FT_MulFix is used in combination with the underline position (expressed in font units) and the y scale
+    to convert to fractional pixel coordinates (the same format used for the other getter functions here).
+    */
+    return FT_MulFix((*face)->underline_thickness, (*face)->size->metrics.y_scale);
+}
+
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_DisposeC(JNIEnv * env, jobject jobj, jlong faceHandle)
 {
     FT_Face *face = (FT_Face*)faceHandle;
     FT_Done_Face(*face);
 }
-
-/*
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Game_Font_InitCacheManager(JNIEnv * env, jclass clazz)
-{
-    
-
-
-   // our custom face requester is dead simple
-   static FT_Error
-   my_face_requester( FTC_FaceID   face_id,
-                      FT_Library   library,
-                      FT_Pointer   request_data,
-                      FT_Face     *aface )
-   {
-     MyFace  face = (MyFace) face_id;   // simple typecase
-
-     return FT_New_Face( library, face->file_path, face->face_index, aface );
-   }
-
-
-
-   {
-     FTC_Manager  manager;
-     ...
-     // initialize cache manager
-     error = FTC_Manager_New(
-                 library,
-                 0,  // use default 
-                 0,  // use default 
-                 0,  // use default 
-                 & my_face_requester,  // use our requester 
-                 NULL,                 // don't need this.  
-                 &manager );
-   }
-    
-} */

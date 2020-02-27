@@ -59,6 +59,7 @@ class TreeTableCell is Control
 
         SetInputGroup("TreeTableCell")
         SetClipping(true)
+        label:SetPositionOnBaseLine(false)
         Add(label)
         SetAccessibilityCode(parent:Item:TREE_TABLE_CELL)
         SetName("Cell")

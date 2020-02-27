@@ -60,6 +60,7 @@ class Item
     public constant integer POPUP_MENU = 22
     public constant integer PROGRESS_BAR = 23
     public constant integer TREE_TABLE_CELL = 24
+    public constant integer GROUP = 25
 
     private integer accessibilityCode = NOT_ACCESSIBLE
 
@@ -614,9 +615,18 @@ class Item
         repeat while counter < behaviors:GetSize()
             Behavior behavior = behaviors:Get(counter)
 
+            if behavior:IsRunningOnUpdate() and behavior:HasBeenRun() = false
+                BehaviorEvent event
+                event:SetItem(me)
+
+                behavior:SetHasRunFlag(true)
+                behavior:Run(event)
+            end
+
             if behavior:IsFinished()
                 behaviors:RemoveAt(counter)
                 behavior:Dispose()
+                behavior:SetHasRunFlag(false)
             else
                 behavior:Update(seconds)
                 counter = counter + 1
@@ -964,11 +974,15 @@ class Item
     This action adds a new Behavior to this Item.
     */
     action AddBehavior(Behavior behavior)
-        BehaviorEvent event
-        event:SetItem(me)
-
         behaviors:Add(behavior)
-        behavior:Run(event)
+
+        if behavior:IsRunningOnUpdate() = false
+            BehaviorEvent event
+            event:SetItem(me)
+
+            behavior:SetHasRunFlag(true)
+            behavior:Run(event)
+        end
     end
 
     /*

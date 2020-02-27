@@ -60,6 +60,8 @@ class TabBar is Control
             return now
         end
 
+        tab:OnClose()
+
         TabPaneSelection selection = pane:GetSelection()
         boolean reselect = false
 

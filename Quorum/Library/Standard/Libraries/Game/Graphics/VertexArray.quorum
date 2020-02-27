@@ -35,24 +35,6 @@ class VertexArray is VertexData
     */
     system action GetAttributes returns VertexAttributes
 
-    /*
-    This action sets the vertices of this VertexData to match the given array
-    of numbers. This will also set an offset of the given amount in to the array,
-    and the user should provide the number of vertices to use from the array
-    by supplying the count.
-    */
-    action SetVertices(Number32BitArray vertices, integer offset, integer count)
-        SendToBridgeArray(vertices, offset, count)
-        SetVerticesNative(offset, count)
-    end
-
-//    action SetVertices(Array<number> vertices, integer offset, integer count)
-//        SendToBridgeArray(vertices, offset, count)
-//        SetVerticesNative(offset, count)
-//    end
-
-    private system action SetVerticesNative(integer offset, integer count)
-
     action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
         SendToBridgeArray(vertices, sourceOffset, count)
         UpdateVerticesNative(targetOffset, sourceOffset, count)
@@ -79,7 +61,8 @@ class VertexArray is VertexData
         PopulateVertexBuffer()
     end
 
-    system action SendToBridgeArray(Number32BitArray vertices)
+    private system action SendToBridgeArray(Number32BitArray vertices)
+    
     /*
     Directly copies the data stored in the bridge array into the buffer
     stored in the plugin class.
@@ -99,16 +82,6 @@ class VertexArray is VertexData
             index = index + 1
         end
     end
-
-    /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
-//    private action SendToBridgeArray(Array<number> array, integer offset, integer count)
-//        PrepareBridgeArray(count)
-//        integer index = offset
-//        repeat count times
-//            SendToBridgeArray(index, array:Get(index))
-//            index = index + 1
-//        end
-//    end
 
     /* Sends a value to be stored in the bridge array at the given index. */
     private system action SendToBridgeArray(integer index, number value)

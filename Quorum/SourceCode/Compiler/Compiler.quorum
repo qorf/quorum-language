@@ -13,7 +13,7 @@ use Libraries.System.DateTime
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
 
 class Compiler
-    public constant number VERSION = 7.5
+    public constant number VERSION = 7.6
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -44,7 +44,7 @@ class Compiler
     Array<File> additionalPluginFolders
     Array<File> additionalJarFiles
     boolean hasBeenCompiled = false
-    boolean writeJavaScriptToDisk = false
+    boolean writeJavaScriptToDisk = true
     CodeCompletionHandler codeCompletionhandler
     DocumentationGenerator documentationGenerator
 
@@ -141,6 +141,11 @@ class Compiler
         return codeCompletionhandler:Request(request)
     end
 
+    /* This action tells the compiler under the hood to dispose of resources
+        after the next compile.
+    */
+    system action Dispose
+
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
         HashTable<text, File> originalFileHash
@@ -165,6 +170,10 @@ class Compiler
                 end
 
             end
+        end
+
+        if request:disposeAfterNextCompile
+            Dispose()
         end
 
         Library library = request:library
@@ -488,18 +497,18 @@ class Compiler
             elseif request:GetOutputType() = JAVASCRIPT
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
-                Iterator<Class> iterator = table:GetClasses()
-                repeat while iterator:HasNext()
-                    Class value = iterator:Next()
-                    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
-                    if op not= undefined
-                        classOpcodes:Add(op)
-                    end
-                end
+                //Iterator<Class> iterator = table:GetClasses()
+                //repeat while iterator:HasNext()
+                //    Class value = iterator:Next()
+                //    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
+                //    if op not= undefined
+                //        classOpcodes:Add(op)
+                //    end
+                //end
                 convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
                 result:convertedJavaScript = convertedJavaScript
-                if IsWritingJavaScriptToDisk()
-                    WriteJavaScript(convertedJavaScript)
+                if request:writeJavaScriptToDisk
+                    WriteJavaScript(convertedJavaScript, request)
                 end
                 
             elseif request:GetOutputType() = request:DOCUMENT
@@ -542,7 +551,7 @@ class Compiler
         end
     end
 
-    private action WriteJavaScript(text value)
+    private action WriteJavaScript(text value, CompilerRequest request)
         //check if the run folder is there.
         File run = GetRunFolder()
         if run not=undefined
@@ -554,6 +563,67 @@ class Compiler
             jsFile:SetWorkingDirectory(run:GetAbsolutePath())
             jsFile:SetPath(GetName() + ".js")
             jsFile:Write(value)
+
+            File jsSTLCopyLocation
+            jsSTLCopyLocation:SetWorkingDirectory(run:GetAbsolutePath())
+            jsSTLCopyLocation:SetPath("QuorumStandardLibrary.js")
+
+            //now copy the standard library            
+            File loc = request:library:GetLocation()
+            loc = loc:GetParentDirectory()
+            File jsStandardLibrary
+            jsStandardLibrary:SetWorkingDirectory(loc:GetAbsolutePath())
+            jsStandardLibrary:SetPath("Compiled/Run/QuorumStandardLibrary.js")
+            jsStandardLibrary:Copy(jsSTLCopyLocation)
+
+            text readMeText = 
+"
+For this default file to run, the bottom of the Quorum generated JavaScript, this:
+
+var $starter = new quorum_Main_();
+$starter.Main();
+OuTpUt_$tRiNg_;
+
+Must be replaced with this function:
+
+function Start()
+{
+    var $starter = new quorum_Main_();
+    $starter.Main();
+    OuTpUt_$tRiNg_;
+}
+
+There are many ways to load canvases and this is provided only as an exemplar. 
+"
+            text dq = readMeText:GetDoubleQuote()
+            text testHTML = 
+"
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test Web Application</title>
+        <meta charset=" + dq + "UTF-8" + dq + ">
+        <meta name="+ dq +"viewport" + dq +"content="+ dq +"width=device-width, initial-scale=1.0"+ dq +">
+        <script src = "+ dq +"QuorumStandardLibrary.js"+ dq +"></script>
+        <script src = "+ dq + GetName() + ".js"+ dq +"></script>
+    </head>
+    <body onload="+ dq +"Start()"+ dq +">
+        <canvas id="+ dq +"QuorumGraphicsCanvas"+ dq +" width="+ dq +"800"+ dq +" height="+ dq +"600"+ dq +" tabindex="+ dq +"0"+ dq +" style="+ dq +"outline: none"+ dq +">
+            Your browser doesn't appear to support the 
+            <code>&lt;canvas&gt;</code> element.
+        </canvas>
+    </body>
+</html>
+"
+            File readMeFile
+            readMeFile:SetWorkingDirectory(run:GetAbsolutePath())
+            readMeFile:SetPath("README.txt")
+            readMeFile:Write(readMeText)
+
+            File htmlFile
+            htmlFile:SetWorkingDirectory(run:GetAbsolutePath())
+            htmlFile:SetPath(GetName() + ".html")
+            htmlFile:Write(testHTML)
         end
     end
 
@@ -860,6 +930,46 @@ class Compiler
         text result = ""
         text plugins = ""
         text main = ""
+
+        if request:mainOnlyJavaScript
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                Class clazz = code:GetClass()
+    
+                //Class mainClazz = mainClass
+                text mainClazzName = mainClass:GetStaticKey()
+                text clazzName = clazz:GetStaticKey()
+                if mainClass:GetStaticKey() = clazzName
+                    main = code:WriteJavaScript()
+                    if clazz:HasSystemAction()
+                        File folder = GetStandardLibraryFolder() 
+                        path = folder:GetPath() + "/Plugins/javascript/"
+        
+                        key = clazz:GetStaticKey()
+                        Array<text> keys = key:Split("\.")
+                        i = 0
+                        repeat keys:GetSize() times
+                            newKey = keys:Get(i)
+                            if i = keys:GetSize() - 1
+                                path = path + newKey + ".js"
+                            else
+                                path = path + newKey + "/"
+                            end
+                            i = i + 1
+                        end
+                        File location
+                        location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                        location:SetPath(path)
+                        if location:Exists() 
+                            value = location:Read()
+                            plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                        end
+                    end
+                end
+            end
+            return plugins + result + main
+        end
         Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()

@@ -13,6 +13,9 @@ class WebApplication is Application
     */
     action Setup(Game game)
         GameStateManager manager
+        // The code below initializes accessibility for the web.
+        // As it's not yet finished, it's commented out for now.
+        /*
         if manager:GetOperatingSystem():Contains("Web Browser")
             output "Initializing Web accessibility."
             AccessibilityManager accessibility
@@ -20,6 +23,7 @@ class WebApplication is Application
         else
             output "Didn't initialize Web accessibility."
         end
+        */
         parent:Application:Setup(game)
         SetGame(game)
 

@@ -24,7 +24,7 @@ class CompilerTestSuite
     integer failed = 0
     
     boolean testBytecode = true
-    boolean testJavaScript = true
+    boolean testJavaScript = false
     Library library
   
     CompilerProfiler summaryProfiler
@@ -100,7 +100,7 @@ class CompilerTestSuite
     action Main
         DateTime date
         start = date:GetEpochTime()
-        output "Starting Quorum 6.0 Test Suite"
+        output "Starting Quorum 8.0 Test Suite"
         output ""
         output "Scanning Standard Library"
         output ""
