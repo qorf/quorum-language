@@ -665,14 +665,14 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
-        NotifyTextChangeListeners(changeEvent)
-
         if shouldDeleteSelection
             DeleteSelection(false)
             SetCaretPosition(caretCharacter + value:GetSize())
         else
             EmptySelectionEvent(true)
         end
+
+        NotifyTextChangeListeners(changeEvent)
     end
 
     action DraggedMouse(MouseEvent event)

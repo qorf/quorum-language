@@ -26,11 +26,8 @@ class Node
     public Array<NodePart> parts
 
     on create
-
-	rotation:Set(0, 0, 0, 1)
-	scale:Set(1, 1, 1)
-	//parts:SetSize(2)
-
+        rotation:Set(0, 0, 0, 1)
+        scale:Set(1, 1, 1)
     end
 
     /*
@@ -38,9 +35,9 @@ class Node
     translation, scale, and rotation. It then returns the local transform.
     */
     action CalculateLocalTransform returns Matrix4
-	if not isAnimated
-	    localTransform:Set(translation, rotation, scale)
-	end
+        if not isAnimated
+            localTransform:Set(translation, rotation, scale)
+        end
         return localTransform
     end
 
@@ -51,12 +48,12 @@ class Node
     transform will be returned.
     */
     action CalculateWorldTransform returns Matrix4
-	if inheritTransform and parentNode not= undefined
-	    globalTransform:Set(parentNode:globalTransform)
-	    globalTransform:Multiply(localTransform)
-	else
-	    globalTransform:Set(localTransform)
-	end
+        if inheritTransform and parentNode not= undefined
+            globalTransform:Set(parentNode:globalTransform)
+            globalTransform:Multiply(localTransform)
+        else
+            globalTransform:Set(localTransform)
+        end
         return globalTransform
     end
 
@@ -66,8 +63,8 @@ class Node
     CalculateAllTransforms().
     */
     action CalculateTransforms
-	CalculateLocalTransform()
-	CalculateWorldTransform()
+        CalculateLocalTransform()
+        CalculateWorldTransform()
     end
 
     /*
