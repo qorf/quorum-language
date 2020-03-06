@@ -18,7 +18,25 @@ class Layer
     integer viewportWidth = 0
     integer viewportHeight = 0
 
+    text name = "Layer"
+
     boolean automaticResizing = true
+
+    /*
+    This action sets the name of the Layer. This is used to identify the layer,
+    especially in the Scene system.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+    This action returns the name of the Layer. This is used to identify the
+    layer, especially in the Scene system.
+    */
+    action GetName returns text
+        return name
+    end
 
     /*
     This action will update all of the items contained within this Layer. The

@@ -1,0 +1,132 @@
+package Libraries.Game.Scenes
+
+/*
+The SceneProperties class is a wrapper around a number of public constant
+text values which are used by the Scene system.
+*/
+shared class SceneProperties
+
+    public constant text VERSION = "Version"
+    public constant number LASTEST_VERSION = 1.0
+
+    /*
+    The following generic properties are used by a variety of elements of a scene.
+    */
+    public constant text NAME = "Name"
+    public constant text CLASS = "Class"
+    public constant text POSITION = "Position"
+    public constant text SIZE = "Size"
+
+    /*
+    Properties used for Layers.
+
+    Layers require the following properties:
+    NAME
+    CLASS
+    CAMERA
+
+    Layers may optionally also have the following:
+    VIEWPORT
+    PHYSICS
+    */
+    public constant text LAYERS = "Layers"
+    public constant text VIEWPORT = "Viewport"
+
+    /*
+    Properties used for the camera in a Layer.
+
+    Cameras require the following properties:
+    POSITION
+    DIRECTION
+    UP
+    CLASS
+    
+    They may optionally use the following:
+    ZOOM
+    FIELD_OF_VIEW (PerspectiveCamera only)
+    SIZE
+    NEAR
+    FAR
+    */
+    public constant text CAMERA = "Camera"
+    public constant text DIRECTION = "Direction"
+    public constant text UP = "Up"
+    public constant text ZOOM = "Zoom"
+    public constant text FIELD_OF_VIEW = "Field of View"
+    public constant text NEAR = "Near"
+    public constant text FAR = "Far"
+
+    /*
+    Properties related to the use of Physics in a Layer.
+
+    The following properties are required for Physics:
+    ENABLED
+
+    These properties are optional:
+    GRAVITY
+    */
+    public constant text PHYSICS = "Physics"
+    public constant text ENABLED = "Enabled"
+    public constant text GRAVITY = "Gravity"
+
+    /*
+    The following properties are used for Items. Depending on the class of the
+    Layer, items might be 2D or 3D. Different types of items require different
+    properties, as listed in parenthesis below.
+
+    The following properties are required for items:
+    CLASS
+    NAME
+    POSITION
+    SIZE
+    TRANSFORM (Item3D)
+    TYPE (Drawable or Model)
+    POINTS (Drawable with TYPE = TRIANGLE)
+    FILE (If TYPE = CUSTOM)
+
+    The following properties are optional:
+    DESCRIPTION
+    SCALE
+    ROTATION
+    COLOR
+    CHILDREN
+    PHYSICS_ENABLED
+    RESPONSIVENESS
+    VIEW
+    */
+    public constant text ITEMS = "Items"
+    public constant text TRANSFORM = "Transform"
+    public constant text TYPE = "Type"
+    public constant text POINTS = "Points"
+    public constant text SCALE = "Scale"
+    public constant text ROTATION = "Rotation"
+    public constant text COLOR = "Color"
+    public constant text CHILDREN = "Children"
+    public constant text DESCRIPTION = "Description"
+    public constant text PHYSICS_ENABLED = "Physics Enabled"
+    public constant text RESPONSIVENESS = "Responsiveness"
+    public constant text VIEW = "View"
+
+    // Valid values for the TYPE property for Model items.
+    public constant text BOX = "Box"
+    public constant text CYLINDER = "Cylinder"
+    public constant text SPHERE = "Sphere"
+    public constant text PLANE = "Plane"
+
+    // Valid values for the TYPE property for Drawable items.
+    public constant text RECTANGLE = "Rectangle"
+    public constant text CIRCLE = "Circle"
+    public constant text TRIANGLE = "Triangle"
+
+    // CUSTOM is a valid value for the TYPE property for both Models and Drawables.
+    public constant text CUSTOM = "Custom"
+
+    // The FILE value typically indicates the location of a texture or a model file.
+    public constant text FILE = "File"
+
+    // Valid values for the RESPONSIVENESS property.
+    public constant text RESPONSIVE = "Responsive"
+    public constant text NONRESPONSIVE = "Nonresponsive"
+    public constant text UNMOVABLE = "Unmovable"
+
+end

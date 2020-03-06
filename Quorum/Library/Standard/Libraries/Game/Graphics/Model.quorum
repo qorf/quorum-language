@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.ModelData.NodeAnimation
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.ModelBuilder
 use Libraries.Game.Graphics.ModelLoaders.ModelReader
+use Libraries.Game.Scenes.SceneProperties
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
@@ -18,6 +19,7 @@ use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
 use Libraries.System.File
 use Libraries.Game.Collision.Shapes.all
+use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -386,6 +388,11 @@ class Model is Item3D
         Box box
         box:Set(width, height, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:BOX)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -541,6 +548,11 @@ class Model is Item3D
         Box box
         box:Set(width, height, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:BOX)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -584,6 +596,11 @@ class Model is Item3D
         // approximation, as we currently lack a "plane" shape.
         box:Set(width, 0.01, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:PLANE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -737,6 +754,11 @@ class Model is Item3D
         // approximation, as we currently lack a "plane" shape.
         box:Set(width, 0.01, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:PLANE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -783,6 +805,11 @@ class Model is Item3D
         // approximation, as we currently lack a "plane" shape.
         box:Set(width, 0.01, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:PLANE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -951,6 +978,11 @@ class Model is Item3D
         // approximation, as we currently lack a "plane" shape.
         box:Set(width, 0.01, depth)
         SetShape(box)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:PLANE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -1034,6 +1066,11 @@ class Model is Item3D
         Cylinder cylinder
         cylinder:Set(width, height, depth)
         SetShape(cylinder)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:CYLINDER)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -1201,6 +1238,11 @@ class Model is Item3D
         Cylinder cylinder
         cylinder:Set(width, height, depth)
         SetShape(cylinder)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:CYLINDER)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -1433,6 +1475,11 @@ class Model is Item3D
         Sphere sphere
         sphere:Set(width / 2)
         SetShape(sphere)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:SPHERE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*
@@ -1604,6 +1651,11 @@ class Model is Item3D
         Sphere sphere
         sphere:Set(width / 2)
         SetShape(sphere)
+
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:TYPE, properties:SPHERE)
+        SetProperty(properties:TYPE, json)
     end
 
     /*

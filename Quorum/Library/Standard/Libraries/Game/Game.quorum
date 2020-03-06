@@ -25,6 +25,7 @@ use Libraries.Game.WebDisplay
 use Libraries.Game.WebConfiguration
 use Libraries.Game.WebInput
 use Libraries.Game.FocusManager
+use Libraries.Game.Scenes.Scene
 use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
@@ -242,6 +243,8 @@ class Game
     // A pool storing used DialogLayers for later reuse.
     DialogLayerPool dialogLayerPool
 
+    // Used to save to and load from scene files.
+    Scene sceneManager
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -3170,6 +3173,9 @@ class Game
         currentLayer3D = layer3D
         currentLayer2D = layer2D
 
+        currentLayer3D:SetName("Default Layer3D")
+        currentLayer2D:SetName("Default Layer2D")
+
         gameInput:SetLayers(layers)
     end
 
@@ -4994,4 +5000,26 @@ class Game
             display:SetWindowIcon(file)
         end
     end
+
+    /*
+    This action sets the manager used to save and load scenes in the Game.
+    */
+    action SetSceneManager(Scene scene)
+        sceneManager = scene
+    end
+
+    /*
+    This action returns the manager used to save and load scenes in the Game.
+    */
+    action GetSceneManager returns Scene
+        return sceneManager
+    end
+
+    /*
+
+    */
+    action LoadScene(File file)
+        sceneManager:Load(file)
+    end
+
 end

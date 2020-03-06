@@ -140,6 +140,8 @@ class Layer3D is Layer
     Item3DDepthComparison depthSorter
 
     on create
+        SetName("Layer3D")
+
         PerspectiveCamera cam
         camera = cam
         camera:SetPosition(0, 3, -5)

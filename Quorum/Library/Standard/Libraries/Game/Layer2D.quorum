@@ -133,12 +133,14 @@ class Layer2D is Layer
     Array<Item2D> workArray
 
     on create
+        SetName("Layer2D")
+
         OrthographicCamera cam
         camera = cam
         SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
         collisionManager:SetLayer(me)
 
-        graphics = manager:GetGameGraphics()
+        graphics = manager:GetGameGraphics()    
     end
 
     /*
