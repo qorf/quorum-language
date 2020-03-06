@@ -194,6 +194,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     integer visibleStartLine = 0
 
+    boolean refreshGutters = false
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -2123,6 +2125,29 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 end
             end
         end
+
+        if refreshGutters
+            Array<MultipleLineText> lines = textValue:GetLines()
+            Array<Gutter> gutters = background:GetGutters()
+
+            integer totalLines = lines:GetSize()
+            integer lineHeight = font:GetLineHeight()
+            integer firstLineInteger = cast(integer, firstLine)
+
+            integer counter = 0
+            repeat while counter < gutters:GetSize()
+                Gutter gutter = gutters:Get(counter)
+                gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
+                gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
+                counter = counter + 1
+            end
+
+            refreshGutters = false
+        end
+    end
+
+    action RefreshGuttersOnNextUpdate
+        refreshGutters = true
     end
 
     /*
