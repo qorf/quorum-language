@@ -18,12 +18,19 @@ shared class SceneProperties
     public constant text SIZE = "Size"
 
     /*
+    Properties describing the application as a whole.
+    */
+    public constant text APPLICATION = "Application"
+    public constant text FULL_SCREEN = "Full Screen"
+
+    /*
     Properties used for Layers.
 
     Layers require the following properties:
     NAME
     CLASS
     CAMERA
+    ITEMS
 
     Layers may optionally also have the following:
     VIEWPORT
@@ -42,7 +49,7 @@ shared class SceneProperties
     CLASS
     
     They may optionally use the following:
-    ZOOM
+    ZOOM (OrthographicCamera only)
     FIELD_OF_VIEW (PerspectiveCamera only)
     SIZE
     NEAR
@@ -83,6 +90,7 @@ shared class SceneProperties
     TYPE (Drawable or Model)
     POINTS (Drawable with TYPE = TRIANGLE)
     FILE (If TYPE = CUSTOM)
+    INTENSITY (PointLight)
 
     The following properties are optional:
     DESCRIPTION
@@ -106,6 +114,7 @@ shared class SceneProperties
     public constant text PHYSICS_ENABLED = "Physics Enabled"
     public constant text RESPONSIVENESS = "Responsiveness"
     public constant text VIEW = "View"
+    public constant text INTENSITY = "Intensity"
 
     // Valid values for the TYPE property for Model items.
     public constant text BOX = "Box"
@@ -129,4 +138,16 @@ shared class SceneProperties
     public constant text NONRESPONSIVE = "Nonresponsive"
     public constant text UNMOVABLE = "Unmovable"
 
+    /*
+    The following constants are used for lights stored in a layer. PointLights
+    aren't stored here -- those are stored as Items instead. The lights here may
+    include directional lights and ambient lighting.
+
+    The following properties are required:
+    CLASS
+    COLOR
+    DIRECTION (DirectionalLight only)
+    */
+    public constant text LIGHTS = "Lights"
+    
 end

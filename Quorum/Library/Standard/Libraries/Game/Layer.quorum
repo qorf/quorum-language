@@ -591,6 +591,10 @@ class Layer
     */
     blueprint action Resize(ResizeEvent event)
 
+    blueprint action EnablePhysics(boolean flag)
+
+    blueprint action PhysicsEnabled returns boolean
+
     /*
     This action sets the viewport that will be used by this Layer. Anything
     drawn on this Layer will appear in a rectangle that begins x pixels from the

@@ -25,7 +25,8 @@ use Libraries.Game.WebDisplay
 use Libraries.Game.WebConfiguration
 use Libraries.Game.WebInput
 use Libraries.Game.FocusManager
-use Libraries.Game.Scenes.Scene
+use Libraries.Game.Scenes.SceneManager
+use Libraries.Game.Scenes.DefaultSceneManager
 use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
@@ -244,7 +245,7 @@ class Game
     DialogLayerPool dialogLayerPool
 
     // Used to save to and load from scene files.
-    Scene sceneManager
+    SceneManager sceneManager = undefined
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -479,6 +480,10 @@ class Game
 
         SetFocusManager(focusManager)
         CreateDefaultInputTables()
+
+        DefaultSceneManager manager
+        sceneManager = manager
+
         application:Setup(me)
     end
 
@@ -5004,14 +5009,14 @@ class Game
     /*
     This action sets the manager used to save and load scenes in the Game.
     */
-    action SetSceneManager(Scene scene)
+    action SetSceneManager(SceneManager scene)
         sceneManager = scene
     end
 
     /*
     This action returns the manager used to save and load scenes in the Game.
     */
-    action GetSceneManager returns Scene
+    action GetSceneManager returns SceneManager
         return sceneManager
     end
 
@@ -5019,7 +5024,7 @@ class Game
 
     */
     action LoadScene(File file)
-        sceneManager:Load(file)
+
     end
 
 end
