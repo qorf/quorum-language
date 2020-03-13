@@ -40,7 +40,6 @@ class DefaultSceneManager is SceneManager
         end
         
         // Get layers to modify -- either from existing or new.
-        Array<Layer> layers
         JavaScriptObjectNotation layerNotation = scene:GetLayers()
         Iterator<JavaScriptObjectNotation> layerIterator = layerNotation:GetIterator()
         repeat while layerIterator:HasNext()
@@ -64,17 +63,15 @@ class DefaultSceneManager is SceneManager
             end
             gameLayers:Rewind()
 
-            if found
-                layers:Add(current)
-            else
+            if not found
                 if classValue = "Layer2D"
                     Layer2D newLayer
                     current = newLayer
-                    layers:Add(newLayer)
+                    game:AddLayer(newLayer)
                 elseif classValue = "Layer3D"
                     Layer3D newLayer
                     current = newLayer
-                    layers:Add(newLayer)
+                    game:AddLayer(newLayer)
                 end
             end
 
@@ -136,7 +133,13 @@ class DefaultSceneManager is SceneManager
                 Number32BitArray array = ConvertToNumber32BitArray(json:GetObject(properties:VIEWPORT))
                 layer:SetViewport(cast(integer, array:Get(0)), cast(integer, array:Get(1)), cast(integer, array:Get(2)), cast(integer, array:Get(3)))
             elseif key = properties:PHYSICS
-                layer:EnablePhysics(json:GetBoolean(properties:PHYSICS))
+                if layer is Layer2D
+                    Layer2D layer2D = cast(Layer2D, layer)
+                    LoadPhysics2D(layer2D, json:GetObject(key))
+                elseif layer is Layer3D
+                    Layer3D layer3D = cast(Layer3D, layer)
+                    LoadPhysics3D(layer3D, json:GetObject(key))
+                end
             elseif key = properties:LIGHTS
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
             end
@@ -200,6 +203,46 @@ class DefaultSceneManager is SceneManager
         end
     end
 
+    private action LoadPhysics2D(Layer2D layer, JavaScriptObjectNotation json)
+        SceneProperties properties
+
+        Array<text> keys = json:GetKeys()
+
+        integer counter = 0
+        repeat while counter < keys:GetSize()
+            text key = keys:Get(counter)
+
+            if key = properties:ENABLED
+                layer:EnablePhysics(json:GetBoolean(key))
+            elseif key = properties:GRAVITY
+                Number32BitArray gravity = ConvertToNumber32BitArray(json:GetObject(key))
+                layer:SetGravity(gravity:Get(0), gravity:Get(1))
+            end
+
+            counter = counter + 1
+        end
+    end
+
+    private action LoadPhysics3D(Layer3D layer, JavaScriptObjectNotation json)
+        SceneProperties properties
+
+        Array<text> keys = json:GetKeys()
+
+        integer counter = 0
+        repeat while counter < keys:GetSize()
+            text key = keys:Get(counter)
+
+            if key = properties:ENABLED
+                layer:EnablePhysics(json:GetBoolean(key))
+            elseif key = properties:GRAVITY
+                Number32BitArray gravity = ConvertToNumber32BitArray(json:GetObject(key))
+                layer:SetGravity(gravity:Get(0), gravity:Get(1), gravity:Get(2))
+            end
+
+            counter = counter + 1
+        end
+    end
+
     private action LoadItem2Ds(JavaScriptObjectNotation json) returns Array<Item2D>
         Array<Item2D> items
 
@@ -234,6 +277,8 @@ class DefaultSceneManager is SceneManager
         number rotation = 0
         Number32BitArray scale = undefined
         JavaScriptObjectNotation children = undefined
+        integer responsiveness = -1
+        number restitution = -1
 
         // These variables are used if the Item is a Drawable.
         Drawable drawable = undefined
@@ -287,14 +332,16 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:PHYSICS_ENABLED
                 item:EnablePhysics(json:GetBoolean(key))
             elseif key = properties:RESPONSIVENESS
-                text responsiveness = json:GetValue(key)
-                if responsiveness = properties:UNMOVABLE
-                    item:SetResponsiveness(0)
-                elseif responsiveness = properties:NONRESPONSIVE
-                    item:SetResponsiveness(1)
-                elseif responsiveness = properties:RESPONSIVE
-                    item:SetResponsiveness(2)
+                text responsiveValue = json:GetValue(key)
+                if responsiveValue = properties:UNMOVABLE
+                    responsiveness = 0
+                elseif responsiveValue = properties:NONRESPONSIVE
+                    responsiveness = 1
+                elseif responsiveValue = properties:RESPONSIVE
+                    responsiveness = 2
                 end
+            elseif key = properties:RESTITUTION
+                restitution = json:GetNumber(key)
             end
 
             counter = counter + 1
@@ -329,6 +376,14 @@ class DefaultSceneManager is SceneManager
         item:SetSize(size:Get(0), size:Get(1))
         item:SetScale(scale:Get(0), scale:Get(1))
         item:SetRotation(rotation)
+
+        if responsiveness >= 0
+            item:SetResponsiveness(responsiveness)
+        end
+
+        if restitution >= 0
+            item:SetRestitution(restitution)
+        end
 
         if children not= undefined
             Array<Item2D> childItems = LoadItem2Ds(children)

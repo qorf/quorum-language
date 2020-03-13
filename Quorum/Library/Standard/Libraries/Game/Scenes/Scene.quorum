@@ -1,10 +1,15 @@
 package Libraries.Game.Scenes
 
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.System.File
 
 class Scene 
     
     JavaScriptObjectNotation json
+
+    action Load(File file)
+        json:Read(file)
+    end
 
     action SetData(JavaScriptObjectNotation json)
         me:json = json

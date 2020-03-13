@@ -25,6 +25,7 @@ use Libraries.Game.WebDisplay
 use Libraries.Game.WebConfiguration
 use Libraries.Game.WebInput
 use Libraries.Game.FocusManager
+use Libraries.Game.Scenes.Scene
 use Libraries.Game.Scenes.SceneManager
 use Libraries.Game.Scenes.DefaultSceneManager
 use Libraries.Game.Graphics.WebGraphics
@@ -5024,7 +5025,16 @@ class Game
 
     */
     action LoadScene(File file)
+        Scene scene
+        scene:Load(file)
+        LoadScene(scene)
+    end
 
+    /*
+
+    */
+    action LoadScene(Scene scene)
+        sceneManager:Load(scene)
     end
 
 end
