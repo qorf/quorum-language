@@ -17,6 +17,8 @@ use Libraries.Compute.Vector2
 use Libraries.Language.Errors.Error
 use Libraries.System.File
 use Libraries.Containers.Number32BitArray
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -89,6 +91,13 @@ class Drawable is TextureRegion, Item2D
     private boolean useCustomColor = false
     private boolean useCustomGradient = false
     Math math
+
+    integer drawableType = 0
+
+    on create
+        SceneProperties properties
+        drawableType = properties:NONE
+    end
 
     /*
         This action will create a new texture from the image file located at the
@@ -171,6 +180,9 @@ class Drawable is TextureRegion, Item2D
         
         temp:LoadFromFile(file)
         Load(temp)
+
+        SceneProperties properties
+        primitiveType = properties:CUSTOM
     end
 
     /*
@@ -595,6 +607,17 @@ class Drawable is TextureRegion, Item2D
     */
     action GetColorGroup returns ColorGroup
         return colorGroup
+    end
+
+    /*
+    This action returns an integer code representing the type of graphics that's
+    been loaded into this Drawable. The type values can be found in the 
+    SceneProperties class. The default value is NONE.
+
+    Attribute: Returns An integer code from the SceneProperties class that describes the type of image this Drawable uses.
+    */
+    action GetDrawableType returns integer
+        return drawableType
     end
 
     /*
@@ -1282,10 +1305,8 @@ class Drawable is TextureRegion, Item2D
     */
     action LoadRectangle(integer width, integer height)
         Color color
-        Texture temp
-        temp:LoadRectangle(width, height)
-        Load(temp)
-        SetColor(color:Black())
+        color:SetColor(0, 0, 0, 1)
+        LoadRectangle(width, height, color)
     end
 
     /*
@@ -1320,6 +1341,9 @@ class Drawable is TextureRegion, Item2D
         temp:LoadRectangle(width, height)
         Load(temp)
         SetColor(color)
+
+        SceneProperties properties
+        drawableType = properties:RECTANGLE
     end
 
     /*
@@ -1347,10 +1371,8 @@ class Drawable is TextureRegion, Item2D
     */
     action LoadFilledRectangle(integer width, integer height)
         Color color
-        Texture temp
-        temp:LoadFilledRectangle(width, height)
-        Load(temp)
-        SetColor(color:Black())
+        color:SetColor(0, 0, 0, 1)
+        LoadFilledRectangle(width, height, color)
     end
 
     /*
@@ -1385,6 +1407,9 @@ class Drawable is TextureRegion, Item2D
         temp:LoadFilledRectangle(width, height)
         Load(temp)
         SetColor(color)
+
+        SceneProperties properties
+        drawableType = properties:FILLED_RECTANGLE
     end
 
     /*
@@ -1412,13 +1437,8 @@ class Drawable is TextureRegion, Item2D
     */
     action LoadCircle(integer radius)
         Color color
-        Texture temp
-        temp:LoadCircle(radius)
-        Load(temp)
-        SetColor(color)
-        Circle circle
-        circle:SetRadius(radius)
-        SetShape(circle)
+        color:SetColor(0, 0, 0, 1)
+        LoadCircle(radius, color)
     end
 
     /*
@@ -1455,6 +1475,9 @@ class Drawable is TextureRegion, Item2D
         Circle circle
         circle:SetRadius(radius)
         SetShape(circle)
+
+        SceneProperties properties
+        drawableType = properties:CIRCLE
     end
 
     /*
@@ -1482,13 +1505,8 @@ class Drawable is TextureRegion, Item2D
     */
     action LoadFilledCircle(integer radius)
         Color color
-        Texture temp
-        temp:LoadFilledCircle(radius)
-        Load(temp)
-        SetColor(color:Black())
-        Circle circle
-        circle:SetRadius(radius)
-        SetShape(circle)
+        color:SetColor(0, 0, 0, 1)
+        LoadFilledCircle(radius, color)
     end
 
     /*
@@ -1525,6 +1543,9 @@ class Drawable is TextureRegion, Item2D
         Circle circle
         circle:SetRadius(radius)
         SetShape(circle)
+
+        SceneProperties properties
+        drawableType = properties:FILLED_CIRCLE
     end
 
     /*
@@ -1554,23 +1575,8 @@ class Drawable is TextureRegion, Item2D
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
         Color color
-        Texture temp
-        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
-        Load(temp)
-        SetColor(color:Black())
-        Vector2 vertex1
-        Vector2 vertex2
-        Vector2 vertex3
-        vertex1:Set(x1, y1)
-        vertex2:Set(x2, y2)
-        vertex3:Set(x3, y3)
-        Array<Vector2> vertices
-        vertices:Add(vertex1)
-        vertices:Add(vertex2)
-        vertices:Add(vertex3)
-        Polygon polygon
-        polygon:Set(vertices, 3)
-        SetShape(polygon)
+        color:SetColor(0, 0, 0, 1)
+        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, color)
     end
 
     /*
@@ -1619,6 +1625,19 @@ class Drawable is TextureRegion, Item2D
         Polygon polygon
         polygon:Set(vertices, 3)
         SetShape(polygon)
+
+        SceneProperties properties
+        drawableType = properties:FILLED_TRIANGLE
+
+        JavaScriptObjectNotation points
+        points:SetArray()
+        points:Add(x1)
+        points:Add(y1)
+        points:Add(x2)
+        points:Add(y2)
+        points:Add(x3)
+        points:Add(y3)
+        SetProperty(properties:POINTS, points)
     end
 
 end

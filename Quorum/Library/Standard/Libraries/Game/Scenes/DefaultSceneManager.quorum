@@ -1,6 +1,8 @@
 package Libraries.Game.Scenes
 
 use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Containers.Number32BitArray
@@ -19,6 +21,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Game.Graphics.Texture
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -283,7 +286,7 @@ class DefaultSceneManager is SceneManager
         // These variables are used if the Item is a Drawable.
         Drawable drawable = undefined
         text file = ""
-        text type = ""
+        integer type = properties:NONE
         Number32BitArray points = undefined
         Color color = undefined
 
@@ -311,7 +314,7 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:SIZE
                 size = ConvertToNumber32BitArray(json:GetObject(key))
             elseif key = properties:TYPE
-                type = json:GetValue(key)
+                type = json:GetInteger(key)
             elseif key = properties:FILE
                 file = json:GetValue(key)
             elseif key = properties:DESCRIPTION
@@ -348,19 +351,31 @@ class DefaultSceneManager is SceneManager
         end
 
         if drawable not= undefined
-            if type = properties:RECTANGLE
+            if type = properties:FILLED_RECTANGLE
                 if color not= undefined
                     drawable:LoadFilledRectangle(cast(integer, size:Get(0)), cast(integer, size:Get(1)), color)
                 else
                     drawable:LoadFilledRectangle(cast(integer, size:Get(0)), cast(integer, size:Get(1)))
                 end
-            elseif type = properties:CIRCLE
+            elseif type = properties:RECTANGLE
+                if color not= undefined
+                    drawable:LoadRectangle(cast(integer, size:Get(0)), cast(integer, size:Get(1)), color)
+                else
+                    drawable:LoadRectangle(cast(integer, size:Get(0)), cast(integer, size:Get(1)))
+                end
+            elseif type = properties:FILLED_CIRCLE
                 if color not= undefined
                     drawable:LoadFilledCircle(cast(integer, size:Get(0)) / 2, color)
                 else
                     drawable:LoadFilledCircle(cast(integer, size:Get(0)) / 2)
                 end
-            elseif type = properties:TRIANGLE
+            elseif type = properties:CIRCLE
+                if color not= undefined
+                    drawable:LoadCircle(cast(integer, size:Get(0)) / 2, color)
+                else
+                    drawable:LoadCircle(cast(integer, size:Get(0)) / 2)
+                end
+            elseif type = properties:FILLED_TRIANGLE
                 if color not= undefined
                     drawable:LoadFilledTriangle(cast(integer, points:Get(0)), cast(integer, points:Get(1)), cast(integer, points:Get(2)),
                         cast(integer, points:Get(3)), cast(integer, points:Get(4)), cast(integer, points:Get(5)), color)
@@ -410,7 +425,7 @@ class DefaultSceneManager is SceneManager
         // These variables are used if the Item is a Model.
         Model model = undefined
         text file = ""
-        text type = ""
+        integer type = properties:NONE
 
         // Variables used if the Item is a PointLight.
         PointLight light = undefined
@@ -449,7 +464,7 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:TRANSFORM
                 transform = ConvertToNumber32BitArray(json:GetObject(key))
             elseif key = properties:TYPE
-                type = json:GetValue(key)
+                type = json:GetInteger(key)
             elseif key = properties:FILE
                 file = json:GetValue(key)
             elseif key = properties:DESCRIPTION
@@ -577,97 +592,339 @@ class DefaultSceneManager is SceneManager
     end
 
     action Save(Game game) returns Scene
-        return undefined
+        Array<Layer> layers
+        Iterator<Layer> iterator = game:GetLayerIterator()
+
+        repeat while iterator:HasNext()
+            layers:Add(iterator:Next())
+        end
+
+        return Save(layers)
     end
 
-//    /*
-//    ORIGINAL SCENE CODE
-//
-//    public constant text MODELS = "Models"
-//    public constant text PHYSICS_3D = "Physics3D"
-//    public constant text CAMERA = "Camera"
-//    public constant text LIGHTS = "Lights"
-//
-//    ModelSceneProperty modelProperty = undefined
-//    PhysicsSceneProperty physicsProperty = undefined
-//    LightSceneProperty lightsProperty = undefined
-//    action GetPhysicsSceneProperty returns PhysicsSceneProperty
-//        return physicsProperty
-//    end
-//
-//    action GetModelSceneProperty returns ModelSceneProperty
-//        return modelProperty
-//    end
-//
-//    action GetLightSceneProperty returns LightSceneProperty
-//        return lightsProperty
-//    end
-//
-//    action Load(File file)
-//        JavaScriptObjectNotation notation
-//        notation:Read(file)
-//        Array<text> keys = notation:GetKeys()
-//        i = 0
-//        repeat while i < keys:GetSize()
-//            text key = keys:Get(i)
-//            ProcessKey(key, notation)
-//            i = i + 1
-//        end
-//    end
-//
-//    private action ProcessKey(text key, JavaScriptObjectNotation notation)
-//        if key = CAMERA
-//
-//        elseif key = MODELS
-//           JavaScriptObjectNotation models = notation:GetObject(MODELS)
-//           if modelProperty = undefined
-//                ModelSceneProperty prop
-//                modelProperty = prop
-//            end
-//            modelProperty:LoadModels(models)
-//        elseif key = LIGHTS
-//            JavaScriptObjectNotation lights = notation:GetObject(LIGHTS)
-//            if lightsProperty = undefined
-//                LightSceneProperty prop
-//                lightsProperty = prop
-//            end
-//            lightsProperty:LoadLights(lights)
-//        elseif key = PHYSICS_3D
-//            JavaScriptObjectNotation physics = notation:GetObject(PHYSICS_3D)
-//            if physicsProperty = undefined
-//                PhysicsSceneProperty prop
-//                physicsProperty = prop
-//            end
-//            physicsProperty:LoadPhysics3D(physics)
-//        end
-//    end
-//
-//    action Save(text path, Game game)
-//        Iterator<Layer> layers = game:GetLayerIterator()
-//        repeat while layers:HasNext()
-//            Layer layer = layers:Next()
-//            if layer is Layer3D
-//                SaveLayer3D(cast(Layer3D, layer))
-//            end
-//        end
-//    end
-//
-//    action SaveLayer3D(Layer3D layer) returns JavaScriptObjectNotation
-//        JavaScriptObjectNotation notation
-//        notation:SetKey(MODELS)
-//
-//        Iterator<Item3D> items = layer:GetIterator()
-//        i = 1
-//        repeat while items:HasNext()
-//            Item3D item = items:Next()
-//            JavaScriptObjectNotation value = modelProperty:ConvertItem3D(item)
-//            value:SetKey("" + i)
-//            notation:Add(value)
-//            i = i + 1
-//        end
-//
-//        return notation
-//    end
-//    */
+    action Save(Array<Layer> layers) returns Scene
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:LAYERS, SaveLayers(layers))
+        Scene scene
+        scene:SetData(json)
+        return scene
+    end
 
+    private action SaveLayers(Array<Layer> layers) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            json:Add("" + counter, SaveLayer(layer))
+            counter = counter + 1
+        end
+
+        return json
+    end
+
+    private action SaveLayer(Layer layer) returns JavaScriptObjectNotation
+        SceneProperties properties
+        Game game = gameState:GetGame()
+        JavaScriptObjectNotation json
+
+        json:Add(properties:NAME, layer:GetName())
+
+        Layer2D layer2D = undefined
+        Layer3D layer3D = undefined
+
+        if layer is Layer2D
+            json:Add(properties:CLASS, "Layer2D")
+            layer2D = cast(Layer2D, layer)
+        elseif layer is Layer3D
+            json:Add(properties:CLASS, "Layer3D")
+            layer3D = cast(Layer3D, layer)
+        end
+
+        JavaScriptObjectNotation cameraJson
+        Camera camera = layer:GetCamera()
+        if camera is OrthographicCamera
+            cameraJson:Add(properties:CLASS, "OrthographicCamera")
+
+            Camera orthographic = cast(OrthographicCamera, camera)
+            cameraJson:Add(properties:ZOOM, orthographic:GetZoom())
+        elseif camera is PerspectiveCamera
+            cameraJson:Add(properties:CLASS, "PerspectiveCamera")
+
+            PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+            cameraJson:Add(properties:FIELD_OF_VIEW, perspective:GetFieldOfView())
+        end
+
+        Vector3 vector = camera:GetPosition()
+        cameraJson:Add(properties:POSITION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        vector = camera:GetDirection()
+        cameraJson:Add(properties:DIRECTION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        vector = camera:GetUp()
+        cameraJson:Add(properties:UP, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+
+        /*
+        Record the size only if it isn't the default. We don't want the scene to
+        fix the camera to a size if it was mirroring the dimensions of the window.
+        */
+        if camera:GetWidth() not= game:GetScreenWidth() or camera:GetHeight() not= game:GetScreenHeight()
+            cameraJson:Add(properties:SIZE, NewJsonArray(camera:GetWidth(), camera:GetHeight()))
+        end
+
+        cameraJson:Add(properties:FAR, camera:GetFar())
+        cameraJson:Add(properties:NEAR, camera:GetNear())
+
+        json:Add(properties:CAMERA, cameraJson)
+
+        JavaScriptObjectNotation physicsJson
+
+        physicsJson:Add(properties:ENABLED, layer:PhysicsEnabled())
+
+        if layer2D not= undefined
+            if layer:PhysicsEnabled()
+                Vector2 gravity = layer2D:GetGravity()
+                physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY()))
+            end
+
+            json:Add(properties:PHYSICS, physicsJson)
+            json:Add(properties:ITEMS, SaveItem2Ds(layer2D))
+        elseif layer3D not= undefined
+            if layer:PhysicsEnabled()
+                Vector3 gravity = layer3D:GetGravity()
+                physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY(), gravity:GetZ()))
+            end
+
+            json:Add(properties:PHYSICS, physicsJson)
+            json:Add(properties:ITEMS, SaveItem3Ds(layer3D))
+
+            json:Add(properties:LIGHTS, SaveLights(layer3D))
+        end
+
+        return json
+    end
+
+    private action SaveItem2Ds(Layer2D layer) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+
+        Iterator<Item2D> iterator = layer:GetIterator()
+        integer i = 0
+        repeat while iterator:HasNext()
+            Item2D item = iterator:Next()
+            JavaScriptObjectNotation itemJson = SaveItem2D(item)
+
+            if itemJson not= undefined
+                json:Add("" + i, itemJson)
+            end
+
+            i = i + 1
+        end
+
+        return json
+    end
+
+    private action SaveItem2D(Item2D item) returns JavaScriptObjectNotation
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        Drawable drawable = undefined
+
+        if item is Drawable
+            json:Add(properties:CLASS, "Drawable")
+
+            drawable = cast(Drawable, item)
+        else
+            json:Add(properties:CLASS, "Item2D")
+        end
+
+        json:Add(properties:NAME, item:GetName())
+        json:Add(properties:DESCRIPTION, item:GetDescription())
+        json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY()))
+        json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight()))
+        json:Add(properties:SCALE, NewJsonArray(item:GetScaleX(), item:GetScaleY()))
+        json:Add(properties:ROTATION, item:GetRotation())
+        
+        if drawable not= undefined
+            integer type = drawable:GetDrawableType()
+            json:Add(properties:TYPE, type)
+
+            if type = properties:CUSTOM
+                Texture texture = drawable:GetTexture()
+                if texture not= undefined and texture:GetSource() not= ""
+                    json:Add(properties:FILE, texture:GetSource())
+                end
+            elseif type = properties:FILLED_TRIANGLE
+                json:Add(properties:POINTS, item:GetProperty(properties:POINTS))
+            end
+
+            Color color = drawable:GetColor()
+            json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+        end
+
+        boolean physicsEnabled = item:IsPhysicsEnabled()
+        json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
+        if physicsEnabled
+            json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
+        end
+
+        return json
+    end
+
+    private action SaveItem3Ds(Layer3D layer) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+
+        Iterator<Item3D> iterator = layer:GetIterator()
+        integer i = 0
+        repeat while iterator:HasNext()
+            Item3D item = iterator:Next()
+            JavaScriptObjectNotation itemJson = SaveItem3D(item)
+
+            if itemJson not= undefined
+                json:Add("" + i, itemJson)
+            end
+
+            i = i + 1
+        end
+
+        return json
+    end
+
+    private action SaveItem3D(Item3D item) returns JavaScriptObjectNotation
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        Model model = undefined
+        PointLight light = undefined
+
+        if item is Model
+            json:Add(properties:CLASS, "Model")
+
+            model = cast(Model, item)
+        elseif item is PointLight
+            json:Add(properties:CLASS, "PointLight")
+            
+            light = cast(PointLight, item)
+        else
+            json:Add(properties:CLASS, "Item3D")
+        end
+
+        json:Add(properties:NAME, item:GetName())
+        json:Add(properties:DESCRIPTION, item:GetDescription())
+        json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY(), item:GetZ()))
+        json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
+        
+        if item:HasProperty(properties:SCALE)
+            json:Add(properties:SCALE, item:GetProperty(properties:SCALE))
+        end
+
+        if item:HasProperty(properties:ROTATION)
+            json:Add(properties:ROTATION, item:GetProperty(properties:ROTATION))
+        end
+
+        Matrix4 matrix = item:GetTransform()
+        JavaScriptObjectNotation transform
+        transform:SetArray()
+        transform:Add(matrix:row0column0)
+        transform:Add(matrix:row0column1)
+        transform:Add(matrix:row0column2)
+        transform:Add(matrix:row0column3)
+        transform:Add(matrix:row1column0)
+        transform:Add(matrix:row1column1)
+        transform:Add(matrix:row1column2)
+        transform:Add(matrix:row1column3)
+        transform:Add(matrix:row2column0)
+        transform:Add(matrix:row2column1)
+        transform:Add(matrix:row2column2)
+        transform:Add(matrix:row2column3)
+        transform:Add(matrix:row3column0)
+        transform:Add(matrix:row3column1)
+        transform:Add(matrix:row3column2)
+        transform:Add(matrix:row3column3)
+
+        json:Add(properties:TRANSFORM, transform)
+
+        if model not= undefined
+            integer type = model:GetModelType()
+            json:Add(properties:TYPE, type)
+
+            Color color = model:GetColor()
+            if color not= undefined
+                json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            end
+        elseif light not= undefined
+            Color color = light:GetColor()
+            json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            json:Add(properties:INTENSITY, light:GetIntensity())
+        end
+
+        boolean physicsEnabled = item:IsPhysicsEnabled()
+        json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
+        if physicsEnabled
+            json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
+        end
+
+        return json
+    end
+
+    private action SaveLights(Layer3D layer) returns JavaScriptObjectNotation
+        SceneProperties properties
+        JavaScriptObjectNotation json
+
+        integer i = 0
+
+        AmbientLight ambience = layer:GetAmbientLight()
+        if ambience not= undefined
+            JavaScriptObjectNotation ambientJson
+            ambientJson:Add(properties:CLASS, "AmbientLight")
+
+            Color color = ambience:GetColor()
+            ambientJson:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+
+            json:Add("" + i, ambientJson)
+            i = i + 1
+        end
+
+        Iterator<DirectionalLight> lights = layer:GetDirectionalLightIterator()
+        repeat while lights:HasNext()
+            DirectionalLight light = lights:Next()
+            JavaScriptObjectNotation currentJson
+            currentJson:Add(properties:CLASS, "DirectionalLight")
+
+            Color color = light:GetColor()
+            currentJson:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+
+            Vector3 direction = light:GetDirection()
+            currentJson:Add(properties:DIRECTION, NewJsonArray(direction:GetX(), direction:GetY(), direction:GetZ()))
+
+            json:Add("" + i, currentJson)
+
+            i = i + 1
+        end
+
+        return json
+    end
+
+    private action NewJsonArray(number x, number y) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:SetArray()
+        json:Add(x)
+        json:Add(y)
+        return json
+    end
+
+    private action NewJsonArray(number x, number y, number z) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:SetArray()
+        json:Add(x)
+        json:Add(y)
+        json:Add(z)
+        return json
+    end
+
+    private action NewJsonArray(number w, number x, number y, number z) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:SetArray()
+        json:Add(w)
+        json:Add(x)
+        json:Add(y)
+        json:Add(z)
+        return json
+    end
 end

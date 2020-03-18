@@ -1,7 +1,9 @@
 package Libraries.Game.Scenes
 
 use Libraries.Game.Game
+use Libraries.Game.Layer
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
 
 class SceneManager 
@@ -9,6 +11,8 @@ class SceneManager
     blueprint action Load(Scene scene)
 
     blueprint action Save(Game game) returns Scene
+
+    blueprint action Save(Array<Layer> layers) returns Scene
 
     private action ConvertToNumber32BitArray(JavaScriptObjectNotation json) returns Number32BitArray
         Number32BitArray array

@@ -19,7 +19,6 @@ use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
 use Libraries.System.File
 use Libraries.Game.Collision.Shapes.all
-use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -68,6 +67,16 @@ class Model is Item3D
     private boolean defaultShareKeyframes = true
 
     private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
+
+    integer modelType = 0
+
+    // The color of this Model. Used only if a primitive shape has been loaded.
+    Color diffuseColor = undefined
+
+    on create
+        SceneProperties properties
+        modelType = properties:NONE
+    end
 
     /*
     This action returns an array containing all Material objects used by this
@@ -268,6 +277,44 @@ class Model is Item3D
     end
 
     /*
+    This action returns the type of Model that has been loaded using one of the
+    integer codes found in SceneProperties. By default, this value is NONE.
+
+    Attribute: Returns An integer code representing the type of Model that has been loaded.
+    */
+    action GetModelType returns integer
+        return modelType
+    end
+
+    /*
+    This action sets the diffuse color of a primitive model. This action has no
+    effect on custom models loaded from files.
+    */
+    action SetColor(Color color)
+        integer counter = 0
+        Array<Material> materials = GetMaterials()
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            ColorAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            end
+            counter = counter + 1
+        end
+
+        diffuseColor = color
+    end
+
+    /*
+    This action returns the diffuse color of a primitive model. If a primitive
+    shape hasn't been loaded, this action will return undefined.
+    */
+    action GetColor returns Color
+        return diffuseColor
+    end
+
+    /*
     This action will load a model from a given model file. The supported file
     extensions are .obj, .g3db, and .g3dj.
 
@@ -390,9 +437,8 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:BOX)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:BOX
+        diffuseColor = color
     end
 
     /*
@@ -550,9 +596,7 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:BOX)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:BOX
     end
 
     /*
@@ -598,9 +642,8 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:PLANE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:PLANE
+        diffuseColor = color
     end
 
     /*
@@ -756,9 +799,7 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:PLANE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:PLANE
     end
 
     /*
@@ -807,9 +848,8 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:PLANE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:PLANE
+        diffuseColor = color
     end
 
     /*
@@ -980,9 +1020,7 @@ class Model is Item3D
         SetShape(box)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:PLANE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:PLANE
     end
 
     /*
@@ -1068,9 +1106,8 @@ class Model is Item3D
         SetShape(cylinder)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:CYLINDER)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:CYLINDER
+        diffuseColor = color
     end
 
     /*
@@ -1240,9 +1277,7 @@ class Model is Item3D
         SetShape(cylinder)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:CYLINDER)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:CYLINDER
     end
 
     /*
@@ -1477,9 +1512,8 @@ class Model is Item3D
         SetShape(sphere)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:SPHERE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:SPHERE
+        diffuseColor = color
     end
 
     /*
@@ -1653,9 +1687,7 @@ class Model is Item3D
         SetShape(sphere)
 
         SceneProperties properties
-        JavaScriptObjectNotation json
-        json:Add(properties:TYPE, properties:SPHERE)
-        SetProperty(properties:TYPE, json)
+        modelType = properties:SPHERE
     end
 
     /*

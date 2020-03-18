@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.DirectionalLightsAttribute
 use Libraries.Game.Graphics.PointLight
@@ -182,6 +183,11 @@ class Environment is Attributes
     action GetAmbientLight returns AmbientLight
         AmbientLight light
         ColorAttribute colorAttribute = cast(ColorAttribute, GetAttribute(light:GetAttribute():GetAmbientLightValue()))
+        
+        if colorAttribute = undefined
+            return undefined
+        end
+
         light:GetAttribute():SetAttribute(colorAttribute:GetAmbientLightValue(), colorAttribute:color)
         return light
     end
@@ -215,6 +221,20 @@ class Environment is Attributes
         end
 
         return false
+    end
+
+    /*
+    This action returns an iterator containing all of the DirectionLights in the
+    environment.
+    */
+    action GetDirectionalLightIterator returns Iterator<DirectionalLight>
+        DirectionalLightsAttribute newAttribute
+        DirectionalLightsAttribute lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(newAttribute:GetDirectionalLightsValue()))
+        if lightsAttribute = undefined
+            return newAttribute:lights:GetIterator()
+        else
+            return lightsAttribute:lights:GetIterator()
+        end
     end
 
 end

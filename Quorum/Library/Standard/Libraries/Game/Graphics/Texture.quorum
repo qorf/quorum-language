@@ -55,6 +55,8 @@ class Texture is Disposable
     TextureWrap horizontalWrap
     TextureWrap verticalWrap
 
+    text source = undefined
+
     on create
         GameStateManager manager
         gl20 = manager:GetGameGraphics()
@@ -173,6 +175,7 @@ class Texture is Disposable
     Attribute: Parameter drawable A drawable that will be loaded with this Texture after the Texture has finished loading.
     */
     action LoadAsynchronously(File file, Format format, boolean useMipMaps, Drawable drawable)
+        source = file:GetPath()
         PixelMap temp
         temp:LoadAsynchronously(file, format, useMipMaps, drawable, me)
     end
@@ -430,6 +433,8 @@ class Texture is Disposable
         end
     */
     private action LoadFromFile(File file, Format format, boolean useMipMaps)
+        source = file:GetPath()
+
         GameStateManager manager
         Application application = manager:GetApplication()
         if application is WebApplication
@@ -1345,4 +1350,14 @@ class Texture is Disposable
         end
     end
 
+    /*
+    This action returns the relative file path to the file that was used to
+    load this texture, if there is one. If no file has been loaded, this will
+    return an empty string instead.
+
+    Attribute: Returns The relative file path to the loaded file, or the empty string if no file is loaded.
+    */
+    action GetSource returns text
+        return source
+    end
 end

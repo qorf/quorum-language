@@ -117,19 +117,23 @@ shared class SceneProperties
     public constant text VIEW = "View"
     public constant text INTENSITY = "Intensity"
 
+    // CUSTOM is a valid value for the TYPE property for both Models and Drawables.
+    // NONE is typically used for TYPE if a Model or Drawable hasn't been loaded yet.
+    public constant integer NONE = -1
+    public constant integer CUSTOM = 0
+
     // Valid values for the TYPE property for Model items.
-    public constant text BOX = "Box"
-    public constant text CYLINDER = "Cylinder"
-    public constant text SPHERE = "Sphere"
-    public constant text PLANE = "Plane"
+    public constant integer BOX = 1
+    public constant integer CYLINDER = 2
+    public constant integer SPHERE = 3
+    public constant integer PLANE = 4
 
     // Valid values for the TYPE property for Drawable items.
-    public constant text RECTANGLE = "Rectangle"
-    public constant text CIRCLE = "Circle"
-    public constant text TRIANGLE = "Triangle"
-
-    // CUSTOM is a valid value for the TYPE property for both Models and Drawables.
-    public constant text CUSTOM = "Custom"
+    public constant integer RECTANGLE = 1
+    public constant integer FILLED_RECTANGLE = 2
+    public constant integer CIRCLE = 3
+    public constant integer FILLED_CIRCLE = 4
+    public constant integer FILLED_TRIANGLE = 5
 
     // The FILE value typically indicates the location of a texture or a model file.
     public constant text FILE = "File"

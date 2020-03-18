@@ -91,67 +91,67 @@ class ModelSceneProperty is SceneProperty
     end
 
     private action LoadCurrentModelIntoMemory
-        Color loadedColor
-        loadedColor:SetColor(currentColorArray:Get(0), currentColorArray:Get(1), currentColorArray:Get(2), currentColorArray:Get(3))
-        
-        if currentType = properties:TYPE
-            currentModel:LoadBox(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
-        elseif currentType = properties:SPHERE
-            currentModel:LoadSphere(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
-        elseif currentType = properties:CYLINDER
-            currentModel:LoadCylinder(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
-        elseif currentType = properties:PLANE
-            currentModel:LoadPlane(currentSizeArray:Get(0), currentSizeArray:Get(2), loadedColor)
-        end
-
-        currentModel:SetPosition(currentPositionArray:Get(0), currentPositionArray:Get(1), currentPositionArray:Get(2))
-
-        boolean useTransform = false
-
-        if currentTransformArray not= undefined
-            useTransform = true
-            Matrix4 transform = currentModel:GetTransform()
-            transform:row0column0 = currentTransformArray:Get(0)
-            transform:row0column1 = currentTransformArray:Get(1)
-            transform:row0column2 = currentTransformArray:Get(2)
-            transform:row0column3 = currentTransformArray:Get(3)
-            transform:row1column0 = currentTransformArray:Get(4)
-            transform:row1column1 = currentTransformArray:Get(5)
-            transform:row1column2 = currentTransformArray:Get(6)
-            transform:row1column3 = currentTransformArray:Get(7)
-            transform:row2column0 = currentTransformArray:Get(8)
-            transform:row2column1 = currentTransformArray:Get(9)
-            transform:row2column2 = currentTransformArray:Get(10)
-            transform:row2column3 = currentTransformArray:Get(11)
-            transform:row3column0 = currentTransformArray:Get(12)
-            transform:row3column1 = currentTransformArray:Get(13)
-            transform:row3column2 = currentTransformArray:Get(14)
-            transform:row3column3 = currentTransformArray:Get(15)
-        end
-
-        if currentScaleArray not= undefined
-            if useTransform = false
-                currentModel:Scale(currentScaleArray:Get(0), currentScaleArray:Get(1), currentScaleArray:Get(2))
-            end
-
-            JavaScriptObjectNotation json
-            json:SetArray()
-            json:Add(currentScaleArray:Get(0))
-            json:Add(currentScaleArray:Get(1))
-            json:Add(currentScaleArray:Get(2))
-            currentModel:SetProperty(properties:SCALE, json)
-        end
-
-        if currentEnablePhysics
-            currentModel:EnablePhysics(currentEnablePhysics)
-            if currentResponsiveness = properties:RESPONSIVE
-                currentModel:SetResponsive()
-            elseif currentResponsiveness = properties:NONRESPONSIVE
-                currentModel:SetNonResponsive()
-            else
-                currentModel:SetUnmovable()
-            end
-        end
+//        Color loadedColor
+//        loadedColor:SetColor(currentColorArray:Get(0), currentColorArray:Get(1), currentColorArray:Get(2), currentColorArray:Get(3))
+//        
+//        if currentType = properties:TYPE
+//            currentModel:LoadBox(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+//        elseif currentType = properties:SPHERE
+//            currentModel:LoadSphere(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+//        elseif currentType = properties:CYLINDER
+//            currentModel:LoadCylinder(currentSizeArray:Get(0), currentSizeArray:Get(1), currentSizeArray:Get(2), loadedColor)
+//        elseif currentType = properties:PLANE
+//            currentModel:LoadPlane(currentSizeArray:Get(0), currentSizeArray:Get(2), loadedColor)
+//        end
+//
+//        currentModel:SetPosition(currentPositionArray:Get(0), currentPositionArray:Get(1), currentPositionArray:Get(2))
+//
+//        boolean useTransform = false
+//
+//        if currentTransformArray not= undefined
+//            useTransform = true
+//            Matrix4 transform = currentModel:GetTransform()
+//            transform:row0column0 = currentTransformArray:Get(0)
+//            transform:row0column1 = currentTransformArray:Get(1)
+//            transform:row0column2 = currentTransformArray:Get(2)
+//            transform:row0column3 = currentTransformArray:Get(3)
+//            transform:row1column0 = currentTransformArray:Get(4)
+//            transform:row1column1 = currentTransformArray:Get(5)
+//            transform:row1column2 = currentTransformArray:Get(6)
+//            transform:row1column3 = currentTransformArray:Get(7)
+//            transform:row2column0 = currentTransformArray:Get(8)
+//            transform:row2column1 = currentTransformArray:Get(9)
+//            transform:row2column2 = currentTransformArray:Get(10)
+//            transform:row2column3 = currentTransformArray:Get(11)
+//            transform:row3column0 = currentTransformArray:Get(12)
+//            transform:row3column1 = currentTransformArray:Get(13)
+//            transform:row3column2 = currentTransformArray:Get(14)
+//            transform:row3column3 = currentTransformArray:Get(15)
+//        end
+//
+//        if currentScaleArray not= undefined
+//            if useTransform = false
+//                currentModel:Scale(currentScaleArray:Get(0), currentScaleArray:Get(1), currentScaleArray:Get(2))
+//            end
+//
+//            JavaScriptObjectNotation json
+//            json:SetArray()
+//            json:Add(currentScaleArray:Get(0))
+//            json:Add(currentScaleArray:Get(1))
+//            json:Add(currentScaleArray:Get(2))
+//            currentModel:SetProperty(properties:SCALE, json)
+//        end
+//
+//        if currentEnablePhysics
+//            currentModel:EnablePhysics(currentEnablePhysics)
+//            if currentResponsiveness = properties:RESPONSIVE
+//                currentModel:SetResponsive()
+//            elseif currentResponsiveness = properties:NONRESPONSIVE
+//                currentModel:SetNonResponsive()
+//            else
+//                currentModel:SetUnmovable()
+//            end
+//        end
     end
 
     action LoadModels(JavaScriptObjectNotation notation)
