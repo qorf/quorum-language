@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import java.util.Hashtable;
+import quorum.Libraries.Compute.Vector3;
 import quorum.Libraries.Compute.Vector3_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Game.Graphics.Model_;
@@ -53,6 +54,10 @@ public class Model
             blueprint = builder.CreateBox(width, height, depth, color);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -67,6 +72,10 @@ public class Model
             blueprint = builder.CreateBox(width, height, depth, texture);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -82,6 +91,10 @@ public class Model
             blueprint = builder.CreatePlane(width, depth, color, doubleSided);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, 0, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -96,6 +109,10 @@ public class Model
             blueprint = builder.CreatePlane(width, depth, texture, doubleSided);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, 0, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -111,6 +128,10 @@ public class Model
             blueprint = builder.CreateCylinder(width, height, depth, divisions, color);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -125,6 +146,10 @@ public class Model
             blueprint = builder.CreateCylinder(width, height, depth, divisions, texture);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -140,6 +165,10 @@ public class Model
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, color);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
@@ -154,6 +183,10 @@ public class Model
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, texture);
             blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
+            
+            Vector3_ vector = new Vector3();
+            vector.Set(width, height, depth);
+            dimensionsTable.put(blueprint, vector);
         }
         return blueprint;
     }
