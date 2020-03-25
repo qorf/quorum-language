@@ -89,6 +89,9 @@ class TextBoxRenderer is Control
 
     action AddCharacter(integer line, integer index, Drawable character)
         Array<Drawable> array = GetLine(line)
+        if array = undefined
+            return now
+        end
         Add(character)
         array:Add(index, character)
     end

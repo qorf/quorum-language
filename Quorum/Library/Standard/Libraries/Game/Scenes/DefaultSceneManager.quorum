@@ -856,11 +856,13 @@ class DefaultSceneManager is SceneManager
         json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
         
         if item:HasProperty(properties:SCALE)
-            json:Add(properties:SCALE, item:GetProperty(properties:SCALE))
+            JavaScriptObjectNotation scaleJson = item:GetProperty(properties:SCALE)
+            json:Add(properties:SCALE, NewJsonArray(scaleJson:Get(0):GetNumber(), scaleJson:Get(1):GetNumber(), scaleJson:Get(2):GetNumber()))
         end
 
         if item:HasProperty(properties:ROTATION)
-            json:Add(properties:ROTATION, item:GetProperty(properties:ROTATION))
+            JavaScriptObjectNotation rotationJson = item:GetProperty(properties:ROTATION)
+            json:Add(properties:ROTATION, NewJsonArray(rotationJson:Get(0):GetNumber(), rotationJson:Get(1):GetNumber(), rotationJson:Get(2):GetNumber()))
         end
 
         Matrix4 matrix = item:GetTransform()
