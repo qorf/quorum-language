@@ -119,6 +119,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     integer previousCaretPosition = 0
 
+    /* This field dictates whether this control should render as a password field. */
+    boolean passwordField = false
+
     on create
         SetName("Text Field")
         SetInputGroup("TextField")
@@ -127,8 +130,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         SetClipping(true)
         AddMouseListener(me)
         AddMouseMovementListener(me)
-
-//        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
         Add(background)
 
@@ -157,6 +158,14 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         defaultProperties:SetSelectionFontColor(color:Black())
 
         HideCaret()
+    end
+
+    action IsPasswordField returns boolean
+        return passwordField
+    end
+
+    action SetPasswordField(boolean value)
+        me:passwordField = value
     end
 
     action GetLeftCharacterPadding returns integer
@@ -239,7 +248,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
         repeat size times
-            Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
+            Glyph glyph = undefined
+            if IsPasswordField()
+                glyph = font:GetGlyph("*")
+            else 
+                glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
+            end
+            
             Drawable draw = undefined
             if glyph:texture not= undefined
                 Drawable newDrawable
