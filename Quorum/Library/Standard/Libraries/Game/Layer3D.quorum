@@ -3030,8 +3030,4 @@ class Layer3D is Layer
         Camera camera = GetCamera()
         camera:SetSize(width, height)
     end
-
-    action GetDirectionalLightIterator returns Iterator<DirectionalLight>
-        return environment:GetDirectionalLightIterator()
-    end
 end

@@ -26,12 +26,12 @@ class Skybox
     all of the sides of the Skybox are loaded. These are set to true inside the
     LoadSide action, and set to false by the Dispose action.
     */
-    boolean rightLoaded = false
-    boolean leftLoaded = false
-    boolean upLoaded = false
-    boolean downLoaded = false
-    boolean frontLoaded = false
-    boolean backLoaded = false
+    File rightSource = undefined
+    File leftSource = undefined
+    File upSource = undefined
+    File downSource = undefined
+    File frontSource = undefined
+    File backSource = undefined
 
     /*
     The Load action loads all six sides of the Skybox. It takes six text
@@ -132,7 +132,7 @@ class Skybox
             Texture texture
             cubeMap = texture
             InitializeCubeMap(texture)
-        end
+        end    
 
         LoadSide(right, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
         LoadSide(left, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
@@ -731,8 +731,8 @@ class Skybox
     loading is handled during online execution.
     */
     action IsLoaded returns boolean
-        return rightLoaded = true and leftLoaded = true and upLoaded = true and
-            downLoaded = true and frontLoaded = true and backLoaded = true
+        return rightSource not= undefined and leftSource not= undefined and upSource not= undefined and
+            downSource not= undefined and frontSource not= undefined and backSource not= undefined
     end
 
     /*
@@ -743,12 +743,12 @@ class Skybox
     action Dispose
         cubeMap:Dispose()
         cubeMap = undefined
-        rightLoaded = false
-        leftLoaded = false
-        upLoaded = false
-        downLoaded = false
-        frontLoaded = false
-        backLoaded = false
+        rightSource = undefined
+        leftSource = undefined
+        upSource = undefined
+        downSource = undefined
+        frontSource = undefined
+        backSource = undefined
     end
 
     /*
@@ -979,5 +979,47 @@ class Skybox
         else
             inverter = -1
         end
+    end
+
+    /*
+    This action returns the file that was used to load the right side of the skybox.
+    */
+    action GetRightFile returns File
+        return rightSource
+    end
+
+    /*
+    This action returns the file that was used to load the left side of the skybox.
+    */
+    action GetLeftFile returns File
+        return leftSource
+    end
+
+    /*
+    This action returns the file that was used to load the top side of the skybox.
+    */
+    action GetTopFile returns File
+        return upSource
+    end
+
+    /*
+    This action returns the file that was used to load the bottom side of the skybox.
+    */
+    action GetBottomFile returns File
+        return downSource
+    end
+
+    /*
+    This action returns the file that was used to load the front side of the skybox.
+    */
+    action GetFrontFile returns File
+        return frontSource
+    end
+
+    /*
+    This action returns the file that was used to load the back side of the skybox.
+    */
+    action GetBackFile returns File
+        return backSource
     end
 end

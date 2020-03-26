@@ -1270,7 +1270,11 @@ class Layer2D is Layer
                 if mouseListeners:GetSize() > 0
                     counter = 0
                     event:SetEventHandled(true)
-                    repeat mouseListeners:GetSize() times
+                    integer startSize = mouseListeners:GetSize()
+                    repeat while counter < mouseListeners:GetSize()
+                        if counter >= mouseListeners:GetSize()
+                            output "counter = " + counter + ", size = " + mouseListeners:GetSize() + ", startSize = " + startSize
+                        end
                         mouseListeners:Get(counter):ClickedMouse(event)
                         counter = counter + 1
                     end
@@ -1503,6 +1507,14 @@ class Layer2D is Layer
 
     */
     action AddMouseListener(MouseListener listener)
+        if listener = undefined
+            check
+                alert("Undefined MouseListener!")
+            detect e is Error
+                output e:GetErrorMessage()
+                e:OutputStackTrace()
+            end
+        end
         mouseListeners:Add(listener)
     end
 

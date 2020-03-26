@@ -188,7 +188,7 @@ class Environment is Attributes
             return undefined
         end
 
-        light:GetAttribute():SetAttribute(colorAttribute:GetAmbientLightValue(), colorAttribute:color)
+        light:SetColor(colorAttribute:color)
         return light
     end
 

@@ -47,22 +47,22 @@ public class Skybox
         switch(side)
         {
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).rightLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).rightSource = file;
                 break;
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).leftLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).leftSource = file;
                 break;
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).upLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).upSource = file;
                 break;
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).downLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).downSource = file;
                 break;
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).backLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).backSource = file;
                 break;
             case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).frontLoaded = true;
+                ((quorum.Libraries.Game.Graphics.Skybox)me_).frontSource = file;
                 break;
         }
     }

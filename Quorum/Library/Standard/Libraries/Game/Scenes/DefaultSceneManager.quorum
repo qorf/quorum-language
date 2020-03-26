@@ -25,6 +25,8 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Skybox
+use Libraries.System.File
 
 class DefaultSceneManager is SceneManager
     
@@ -32,8 +34,6 @@ class DefaultSceneManager is SceneManager
 
     action Load(Scene scene)
         Game game = gameState:GetGame()
-        Iterator<Layer> gameLayers = game:GetLayerIterator()
-        
         SceneProperties properties
 
         // Modify any application-level properties.
@@ -41,46 +41,56 @@ class DefaultSceneManager is SceneManager
         if application not= undefined
             LoadApplicationProperties(game, application)
         end
+
         
         // Get layers to modify -- either from existing or new.
         JavaScriptObjectNotation layerNotation = scene:GetLayers()
         Iterator<JavaScriptObjectNotation> layerIterator = layerNotation:GetIterator()
         repeat while layerIterator:HasNext()
             JavaScriptObjectNotation layerJson = layerIterator:Next()
-            text name = layerJson:GetValue(properties:NAME)
-            text classValue = layerJson:GetValue(properties:CLASS)
-            boolean found = false
-            Layer current = undefined
-
-            // Search if any of the existing layers match the requested one.
-            // If the candidate matches, use that. Otherwise, make a new one.
-            repeat while found = false and gameLayers:HasNext()
-                current = gameLayers:Next()
-                if current:GetName() = name
-                    if classValue = "Layer2D"
-                        found = (current is Layer2D)
-                    elseif classValue = "Layer3D"
-                        found = (current is Layer3D)
-                    end
-                end
-            end
-            gameLayers:Rewind()
-
-            if not found
-                if classValue = "Layer2D"
-                    Layer2D newLayer
-                    current = newLayer
-                    game:AddLayer(newLayer)
-                elseif classValue = "Layer3D"
-                    Layer3D newLayer
-                    current = newLayer
-                    game:AddLayer(newLayer)
-                end
-            end
-
+            Layer current = SelectLayer(layerJson)
             LoadLayer(current, layerJson)
         end
 
+    end
+
+    private action SelectLayer(JavaScriptObjectNotation layerJson) returns Layer
+        Game game = gameState:GetGame()
+        SceneProperties properties
+
+        text name = layerJson:GetValue(properties:NAME)
+        text classValue = layerJson:GetValue(properties:CLASS)
+        Iterator<Layer> gameLayers = game:GetLayerIterator()
+        boolean found = false
+        Layer current = undefined
+
+        // Search if any of the existing layers match the requested one.
+        // If the candidate matches, use that. Otherwise, make a new one.
+        repeat while found = false and gameLayers:HasNext()
+            current = gameLayers:Next()
+            if current:GetName() = name
+                if classValue = "Layer2D"
+                    found = (current is Layer2D)
+                elseif classValue = "Layer3D"
+                    found = (current is Layer3D)
+                end
+            end
+        end
+        gameLayers:Rewind()
+
+        if not found
+            if classValue = "Layer2D"
+                Layer2D newLayer
+                current = newLayer
+                game:AddLayer(newLayer)
+            elseif classValue = "Layer3D"
+                Layer3D newLayer
+                current = newLayer
+                game:AddLayer(newLayer)
+            end
+        end
+
+        return current
     end
 
     private action LoadApplicationProperties(Game game, JavaScriptObjectNotation application)
@@ -145,6 +155,8 @@ class DefaultSceneManager is SceneManager
                 end
             elseif key = properties:LIGHTS
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
+            elseif key = properties:SKYBOX
+
             end
 
             counter = counter + 1
@@ -591,6 +603,31 @@ class DefaultSceneManager is SceneManager
         end
     end
 
+    private action LoadSkybox(Layer3D layer, JavaScriptObjectNotation json)
+        Skybox skybox
+        File left
+        File right
+        File down
+        File up
+        File back
+        File front
+        JavaScriptObjectNotation current = json:Get(0)
+        right:SetPath(current:GetValue())
+        current = json:Get(1)
+        left:SetPath(current:GetValue())
+        current = json:Get(2)
+        up:SetPath(current:GetValue())
+        current = json:Get(3)
+        down:SetPath(current:GetValue())
+        current = json:Get(4)
+        front:SetPath(current:GetValue())
+        current = json:Get(5)
+        back:SetPath(current:GetValue())
+
+        skybox:Load(right, left, up, down, front, back)
+        layer:SetSkybox(skybox)
+    end
+
     action Save(Game game) returns Scene
         Array<Layer> layers
         Iterator<Layer> iterator = game:GetLayerIterator()
@@ -687,7 +724,10 @@ class DefaultSceneManager is SceneManager
             end
 
             json:Add(properties:PHYSICS, physicsJson)
-            json:Add(properties:ITEMS, SaveItem2Ds(layer2D))
+
+            if layer2D:IsEmpty() = false
+                json:Add(properties:ITEMS, SaveItem2Ds(layer2D))
+            end
         elseif layer3D not= undefined
             if layer:PhysicsEnabled()
                 Vector3 gravity = layer3D:GetGravity()
@@ -695,9 +735,14 @@ class DefaultSceneManager is SceneManager
             end
 
             json:Add(properties:PHYSICS, physicsJson)
-            json:Add(properties:ITEMS, SaveItem3Ds(layer3D))
 
-            json:Add(properties:LIGHTS, SaveLights(layer3D))
+            if layer3D:IsEmpty() = false
+                json:Add(properties:ITEMS, SaveItem3Ds(layer3D))
+            end
+
+            if layer3D:GetAmbientLight() not= undefined or layer3D:GetDirectionalLights():HasNext()
+                json:Add(properties:LIGHTS, SaveLights(layer3D))
+            end
         end
 
         return json
@@ -811,11 +856,13 @@ class DefaultSceneManager is SceneManager
         json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
         
         if item:HasProperty(properties:SCALE)
-            json:Add(properties:SCALE, item:GetProperty(properties:SCALE))
+            JavaScriptObjectNotation scaleJson = item:GetProperty(properties:SCALE)
+            json:Add(properties:SCALE, NewJsonArray(scaleJson:Get(0):GetNumber(), scaleJson:Get(1):GetNumber(), scaleJson:Get(2):GetNumber()))
         end
 
         if item:HasProperty(properties:ROTATION)
-            json:Add(properties:ROTATION, item:GetProperty(properties:ROTATION))
+            JavaScriptObjectNotation rotationJson = item:GetProperty(properties:ROTATION)
+            json:Add(properties:ROTATION, NewJsonArray(rotationJson:Get(0):GetNumber(), rotationJson:Get(1):GetNumber(), rotationJson:Get(2):GetNumber()))
         end
 
         Matrix4 matrix = item:GetTransform()
@@ -881,7 +928,7 @@ class DefaultSceneManager is SceneManager
             i = i + 1
         end
 
-        Iterator<DirectionalLight> lights = layer:GetDirectionalLightIterator()
+        Iterator<DirectionalLight> lights = layer:GetDirectionalLights()
         repeat while lights:HasNext()
             DirectionalLight light = lights:Next()
             JavaScriptObjectNotation currentJson
@@ -897,6 +944,19 @@ class DefaultSceneManager is SceneManager
 
             i = i + 1
         end
+
+        return json
+    end
+
+    action SaveSkybox(Skybox skybox) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:SetArray()
+        json:Add(skybox:GetRightFile():GetPath())
+        json:Add(skybox:GetLeftFile():GetPath())
+        json:Add(skybox:GetTopFile():GetPath())
+        json:Add(skybox:GetBottomFile():GetPath())
+        json:Add(skybox:GetFrontFile():GetPath())
+        json:Add(skybox:GetBackFile():GetPath())
 
         return json
     end
