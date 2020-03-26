@@ -835,6 +835,41 @@ class JavaScriptObjectNotation
     end
 
     /*
+    This method returns whether or not there is an attribute at that key.
+
+    Attribute: Parameter key The key of the object to return
+
+    Attribute; Returns The value of the object with the specified key.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            output json:HasValue("item1")
+            output json:HasValue("item2")
+            output json:HasValue("item7") //false
+       end
+    end
+    */
+    action HasValue(text key) returns boolean
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
     This method returns the value of a JavaScriptObjectNotation object by the key name as a JavaScriptObjectNotation object.
     
     Attribute; Returns The value of the object as text.
