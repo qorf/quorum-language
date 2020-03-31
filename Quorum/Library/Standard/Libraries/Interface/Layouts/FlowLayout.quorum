@@ -8,6 +8,7 @@ use Libraries.Interface.Controls.MenuBar
 use Libraries.Interface.Controls.Dialog
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.RadioButton
 
 class FlowLayout is Layout
 
@@ -209,6 +210,10 @@ class FlowLayout is Layout
                         width = control:GetWidth()
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
                         width = containerWidth - x
+                        if width = 0
+                            // If there's no space left to fill, fill the next line instead.
+                            width = containerWidth
+                        end
                     elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
                         width = (containerWidth - containerBorder * 2 - properties:GetLeftPadding() - properties:GetRightPadding()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
                     end

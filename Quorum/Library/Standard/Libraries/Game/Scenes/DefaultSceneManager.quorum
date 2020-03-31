@@ -466,7 +466,9 @@ class DefaultSceneManager is SceneManager
         repeat while counter < keys:GetSize()
             text key = keys:Get(counter)
 
-            if key = properties:NAME
+            if CustomLoadProperty3D(item, key, json)
+                // If we custom loaded this property, we don't do the normal processing for that key.
+            elseif key = properties:NAME
                 item:SetName(json:GetValue(key))
             elseif key = properties:POSITION
                 Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
@@ -577,6 +579,13 @@ class DefaultSceneManager is SceneManager
         end
 
         return item
+    end
+
+    /*
+    This action can be used to override a portion of the default Item3D loading.
+    */
+    action CustomLoadProperty3D(Item3D item, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     private action LoadLights(Layer3D layer, JavaScriptObjectNotation json)
@@ -850,64 +859,88 @@ class DefaultSceneManager is SceneManager
             json:Add(properties:CLASS, "Item3D")
         end
 
-        json:Add(properties:NAME, item:GetName())
-        json:Add(properties:DESCRIPTION, item:GetDescription())
-        json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY(), item:GetZ()))
-        json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
-        
-        if item:HasProperty(properties:SCALE)
+        if not CustomSaveProperty3D(item, properties:NAME, json)
+            json:Add(properties:NAME, item:GetName())
+        end
+        if not CustomSaveProperty3D(item, properties:DESCRIPTION, json)
+            json:Add(properties:DESCRIPTION, item:GetDescription())
+        end
+        if not CustomSaveProperty3D(item, properties:POSITION, json)
+            json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY(), item:GetZ()))
+        end
+        if not CustomSaveProperty3D(item, properties:SIZE, json)
+            json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
+        end
+        if (not CustomSaveProperty3D(item, properties:SCALE, json)) and item:HasProperty(properties:SCALE)
             JavaScriptObjectNotation scaleJson = item:GetProperty(properties:SCALE)
             json:Add(properties:SCALE, NewJsonArray(scaleJson:Get(0):GetNumber(), scaleJson:Get(1):GetNumber(), scaleJson:Get(2):GetNumber()))
         end
-
-        if item:HasProperty(properties:ROTATION)
+        if (not CustomSaveProperty3D(item, properties:ROTATION, json)) and item:HasProperty(properties:ROTATION)
             JavaScriptObjectNotation rotationJson = item:GetProperty(properties:ROTATION)
             json:Add(properties:ROTATION, NewJsonArray(rotationJson:Get(0):GetNumber(), rotationJson:Get(1):GetNumber(), rotationJson:Get(2):GetNumber()))
         end
-
-        Matrix4 matrix = item:GetTransform()
-        JavaScriptObjectNotation transform
-        transform:SetArray()
-        transform:Add(matrix:row0column0)
-        transform:Add(matrix:row0column1)
-        transform:Add(matrix:row0column2)
-        transform:Add(matrix:row0column3)
-        transform:Add(matrix:row1column0)
-        transform:Add(matrix:row1column1)
-        transform:Add(matrix:row1column2)
-        transform:Add(matrix:row1column3)
-        transform:Add(matrix:row2column0)
-        transform:Add(matrix:row2column1)
-        transform:Add(matrix:row2column2)
-        transform:Add(matrix:row2column3)
-        transform:Add(matrix:row3column0)
-        transform:Add(matrix:row3column1)
-        transform:Add(matrix:row3column2)
-        transform:Add(matrix:row3column3)
-
-        json:Add(properties:TRANSFORM, transform)
+        if not CustomSaveProperty3D(item, properties:TRANSFORM, json)
+            Matrix4 matrix = item:GetTransform()
+            JavaScriptObjectNotation transform
+            transform:SetArray()
+            transform:Add(matrix:row0column0)
+            transform:Add(matrix:row0column1)
+            transform:Add(matrix:row0column2)
+            transform:Add(matrix:row0column3)
+            transform:Add(matrix:row1column0)
+            transform:Add(matrix:row1column1)
+            transform:Add(matrix:row1column2)
+            transform:Add(matrix:row1column3)
+            transform:Add(matrix:row2column0)
+            transform:Add(matrix:row2column1)
+            transform:Add(matrix:row2column2)
+            transform:Add(matrix:row2column3)
+            transform:Add(matrix:row3column0)
+            transform:Add(matrix:row3column1)
+            transform:Add(matrix:row3column2)
+            transform:Add(matrix:row3column3)
+    
+            json:Add(properties:TRANSFORM, transform)
+        end
 
         if model not= undefined
-            integer type = model:GetModelType()
-            json:Add(properties:TYPE, type)
-
-            Color color = model:GetColor()
-            if color not= undefined
-                json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            if not CustomSaveProperty3D(item, properties:TYPE, json)    
+                integer type = model:GetModelType()
+                json:Add(properties:TYPE, type)
+            end
+            if not CustomSaveProperty3D(item, properties:COLOR, json)    
+                Color color = model:GetColor()
+                if color not= undefined
+                    json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+                end
             end
         elseif light not= undefined
-            Color color = light:GetColor()
-            json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
-            json:Add(properties:INTENSITY, light:GetIntensity())
+            if not CustomSaveProperty3D(item, properties:COLOR, json)
+                Color color = light:GetColor()
+                json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            end
+            if not CustomSaveProperty3D(item, properties:INTENSITY, json)
+                json:Add(properties:INTENSITY, light:GetIntensity())
+            end
         end
 
         boolean physicsEnabled = item:IsPhysicsEnabled()
-        json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
-        if physicsEnabled
+        if not CustomSaveProperty3D(item, properties:PHYSICS_ENABLED, json)
+            json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
+        end
+        if (not CustomSaveProperty3D(item, properties:RESPONSIVENESS, json)) and physicsEnabled
             json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
         end
 
         return json
+    end
+
+    /*
+    This function can be overridden to make custom modifications to the JSON for a particular
+    property type. This should return true if a custom modification was made, or false otherwise.
+    */
+    private action CustomSaveProperty3D(Item3D item, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     private action SaveLights(Layer3D layer) returns JavaScriptObjectNotation
