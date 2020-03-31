@@ -121,7 +121,7 @@ class LayoutProperties
     
     ColorGroup backgroundColor = undefined
     ColorGroup borderColor = undefined
-    number borderThickness = 0
+    integer borderThickness = 0
     integer borderStyle = ALL
     
     Font font = undefined
@@ -435,12 +435,12 @@ class LayoutProperties
         return borderColor
     end
 
-    action SetBorderThickness(number thickness)
+    action SetBorderThickness(integer thickness)
         borderThickness = thickness
         needsRendering = true
     end
 
-    action GetBorderThickness returns number
+    action GetBorderThickness returns integer
         return borderThickness
     end
 

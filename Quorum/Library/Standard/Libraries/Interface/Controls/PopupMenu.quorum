@@ -39,7 +39,7 @@ class PopupMenu is MenuRoot, MouseListener
         SetName("Pop-Up Menu")
     end
 
-    action SetBorderThickness(number thickness)
+    action SetBorderThickness(integer thickness)
         parent:Control:SetBorderThickness(thickness)
         panel:SetBorderThickness(thickness)
     end
@@ -89,7 +89,9 @@ class PopupMenu is MenuRoot, MouseListener
     end
 
     action OpenAtCursor
-        OpenAt(monitor:GetMouseX(), manager:GetGameDisplay():GetHeight() - monitor:GetMouseY())
+        number x = monitor:GetMouseX()
+        number y = manager:GetGameDisplay():GetHeight() - monitor:GetMouseY()
+        OpenAt(x, y)
     end
 
     action OpenAt(number x, number y)

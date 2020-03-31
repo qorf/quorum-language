@@ -98,11 +98,11 @@ class DialogLayer is Layer2D
     */
     action Reset
         GameStateManager manager
-        viewportWidth = manager:GetGameDisplay():GetWidth()
-        viewportHeight = manager:GetGameDisplay():GetHeight()
+        integer viewportWidth = manager:GetGameDisplay():GetWidth()
+        integer viewportHeight = manager:GetGameDisplay():GetHeight()
         Camera camera = parent:Layer2D:camera
         camera:SetFar(20000)
-        camera:SetPosition(viewportWidth/2, viewportHeight/2, 10000)
+        camera:SetPosition(viewportWidth/2.0, viewportHeight/2.0, 10000)
         camera:SetSize(viewportWidth, viewportHeight)
         camera:Update()
 
