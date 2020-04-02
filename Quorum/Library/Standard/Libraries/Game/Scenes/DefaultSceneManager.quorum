@@ -294,6 +294,8 @@ class DefaultSceneManager is SceneManager
         JavaScriptObjectNotation children = undefined
         integer responsiveness = -1
         number restitution = -1
+        number mass = -1
+        number friction = -1
 
         // These variables are used if the Item is a Drawable.
         Drawable drawable = undefined
@@ -355,6 +357,10 @@ class DefaultSceneManager is SceneManager
                 elseif responsiveValue = properties:RESPONSIVE
                     responsiveness = 2
                 end
+            elseif key = properties:MASS
+                mass = json:GetNumber(key)
+            elseif key = properties:FRICTION
+                friction = json:GetNumber(key)
             elseif key = properties:RESTITUTION
                 restitution = json:GetNumber(key)
             end
@@ -406,6 +412,14 @@ class DefaultSceneManager is SceneManager
 
         if responsiveness >= 0
             item:SetResponsiveness(responsiveness)
+        end
+
+        if mass >= 0
+            item:SetMass(mass)
+        end
+
+        if friction >= 0
+            item:SetFriction(friction)
         end
 
         if restitution >= 0
@@ -505,6 +519,10 @@ class DefaultSceneManager is SceneManager
                 elseif responsiveness = "RESPONSIVE"
                     item:SetResponsiveness(2)
                 end
+            elseif key = properties:MASS
+                item:SetMass(json:GetNumber(key))
+            elseif key = properties:FRICTION
+                item:SetFriction(json:GetNumber(key))
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
             end
@@ -817,6 +835,9 @@ class DefaultSceneManager is SceneManager
         json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
         if physicsEnabled
             json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
+            json:Add(properties:MASS, item:GetMass())
+            json:Add(properties:FRICTION, item:GetFriction())
+            json:Add(properties:RESTITUTION, item:GetRestitution())
         end
 
         return json
@@ -930,6 +951,15 @@ class DefaultSceneManager is SceneManager
         end
         if (not CustomSaveProperty3D(item, properties:RESPONSIVENESS, json)) and physicsEnabled
             json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
+        end
+        if (not CustomSaveProperty3D(item, properties:MASS, json)) and physicsEnabled
+            json:Add(properties:MASS, item:GetMass())
+        end
+        if (not CustomSaveProperty3D(item, properties:FRICTION, json)) and physicsEnabled
+            json:Add(properties:FRICTION, item:GetFriction())
+        end
+        if (not CustomSaveProperty3D(item, properties:RESTITUTION, json)) and physicsEnabled
+            json:Add(properties:RESTITUTION, item:GetRestitution())
         end
 
         return json
