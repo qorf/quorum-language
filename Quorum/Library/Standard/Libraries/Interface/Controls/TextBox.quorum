@@ -2292,7 +2292,26 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action SetLine(integer line, text value)
-        // NYI
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, GetText(), 0)
+
+        textValue = textValue:SetLine(line, value)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ResetCaretBlinkTimer()
+
+        //For now we are going to assume that setting the text
+        //of a text box is not an action that needs an undo state
+        if textEditManager not= undefined
+            textEditManager:SetToIgnore(true)
+        end
+
+        NotifyTextChangeListeners(changeEvent)
+        EmptySelectionEvent(true)
+
+        if textEditManager not= undefined
+            textEditManager:SetToIgnore(false)
+        end
     end
 
     action Empty

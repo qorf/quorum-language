@@ -781,6 +781,23 @@ class MultipleLineText
         return newTree
     end
 
+    action SetLine(integer index, text value) returns MultipleLineText
+        integer count = GetLineCount()
+        integer charIndex = CharacterIndexFromLineIndex(index)
+        MultipleLineText oldLine = GetLine(index)
+        integer oldLeafSize = oldLine:GetSize()
+
+        MultipleLineText deleted = undefined
+        if index = count - 1
+            deleted = Delete(charIndex, charIndex + oldLeafSize)
+        else
+            deleted = Delete(charIndex, charIndex + oldLeafSize - 1)
+        end
+        
+        MultipleLineText newTree = deleted:Insert(charIndex, value)
+        return newTree
+    end
+
     /*
     Recursive call that handles insertion. Separated out from the "original"
     insert call so that the recursive call does not handle certain one-time
