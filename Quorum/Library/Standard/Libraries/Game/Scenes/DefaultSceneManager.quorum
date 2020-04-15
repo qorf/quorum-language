@@ -189,7 +189,9 @@ class DefaultSceneManager is SceneManager
         repeat while counter < keys:GetSize()
             text key = keys:Get(counter)
 
-            if key = properties:POSITION
+            if CustomLoadCameraProperty(layer, camera, key, json)
+                // Don't check the keys if it was handled by custom loading.
+            elseif key = properties:POSITION
                 Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
                 camera:SetPosition(position:Get(0), position:Get(1), position:Get(2))
             elseif key = properties:DIRECTION
@@ -216,6 +218,13 @@ class DefaultSceneManager is SceneManager
 
             counter = counter + 1
         end
+    end
+
+    /*
+    This action can be used to override a portion of the default camera loading.
+    */
+    private action CustomLoadCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     private action LoadPhysics2D(Layer2D layer, JavaScriptObjectNotation json)
@@ -711,32 +720,49 @@ class DefaultSceneManager is SceneManager
         if camera is OrthographicCamera
             cameraJson:Add(properties:CLASS, "OrthographicCamera")
 
-            Camera orthographic = cast(OrthographicCamera, camera)
-            cameraJson:Add(properties:ZOOM, orthographic:GetZoom())
+            OrthographicCamera orthographic = cast(OrthographicCamera, camera)
+
+            if not CustomSaveCameraProperty(orthographic, properties:ZOOM, cameraJson)
+                cameraJson:Add(properties:ZOOM, orthographic:GetZoom())
+            end
         elseif camera is PerspectiveCamera
             cameraJson:Add(properties:CLASS, "PerspectiveCamera")
 
             PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
-            cameraJson:Add(properties:FIELD_OF_VIEW, perspective:GetFieldOfView())
+            if not CustomSaveCameraProperty(perspective, properties:FIELD_OF_VIEW, cameraJson)
+                cameraJson:Add(properties:FIELD_OF_VIEW, perspective:GetFieldOfView())
+            end
         end
 
-        Vector3 vector = camera:GetPosition()
-        cameraJson:Add(properties:POSITION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
-        vector = camera:GetDirection()
-        cameraJson:Add(properties:DIRECTION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
-        vector = camera:GetUp()
-        cameraJson:Add(properties:UP, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
-
-        /*
-        Record the size only if it isn't the default. We don't want the scene to
-        fix the camera to a size if it was mirroring the dimensions of the window.
-        */
-        if camera:GetWidth() not= game:GetScreenWidth() or camera:GetHeight() not= game:GetScreenHeight()
-            cameraJson:Add(properties:SIZE, NewJsonArray(camera:GetWidth(), camera:GetHeight()))
+        if not CustomSaveCameraProperty(camera, properties:POSITION, cameraJson)
+            Vector3 vector = camera:GetPosition()
+            cameraJson:Add(properties:POSITION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        end
+        if not CustomSaveCameraProperty(camera, properties:DIRECTION, cameraJson)
+            Vector3 vector = camera:GetDirection()
+            cameraJson:Add(properties:DIRECTION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        end
+        if not CustomSaveCameraProperty(camera, properties:UP, cameraJson)
+            Vector3 vector = camera:GetUp()
+            cameraJson:Add(properties:UP, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
         end
 
-        cameraJson:Add(properties:FAR, camera:GetFar())
-        cameraJson:Add(properties:NEAR, camera:GetNear())
+        if not CustomSaveCameraProperty(camera, properties:SIZE, cameraJson)
+            /*
+            Record the size only if it isn't the default. We don't want the scene to
+            fix the camera to a size if it was mirroring the dimensions of the window.
+            */
+            if camera:GetWidth() not= game:GetScreenWidth() or camera:GetHeight() not= game:GetScreenHeight()
+                cameraJson:Add(properties:SIZE, NewJsonArray(camera:GetWidth(), camera:GetHeight()))
+            end
+        end
+
+        if not CustomSaveCameraProperty(camera, properties:FAR, cameraJson)
+            cameraJson:Add(properties:FAR, camera:GetFar())
+        end
+        if not CustomSaveCameraProperty(camera, properties:NEAR, cameraJson)
+            cameraJson:Add(properties:NEAR, camera:GetNear())
+        end
 
         json:Add(properties:CAMERA, cameraJson)
 
@@ -773,6 +799,14 @@ class DefaultSceneManager is SceneManager
         end
 
         return json
+    end
+
+    /*
+    This function can be overridden to make custom modifications to the JSON for a particular
+    property type. This should return true if a custom modification was made, or false otherwise.
+    */
+    private action CustomSaveCameraProperty(Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     private action SaveItem2Ds(Layer2D layer) returns JavaScriptObjectNotation

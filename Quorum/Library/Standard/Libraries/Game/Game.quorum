@@ -5037,4 +5037,19 @@ class Game
         sceneManager:Load(scene)
     end
 
+    /*
+
+    */
+    action SaveScene returns Scene
+        return sceneManager:Save(me)
+    end
+
+    /*
+
+    */
+    action SaveScene(File file) returns Scene
+        Scene scene = SaveScene()
+        scene:Save(file)
+        return scene
+    end
 end

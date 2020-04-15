@@ -11,6 +11,10 @@ class Scene
         json:Read(file)
     end
 
+    action Save(File file)
+        file:Write(json:ToText())
+    end
+
     action SetData(JavaScriptObjectNotation json)
         me:json = json
     end
