@@ -235,7 +235,7 @@ class Action is Symbol
             text typeKey = ""
             text key = param:GetStaticKey()
             text name = param:GetName()
-            typeKey = GetTypeName(type, variable)
+            typeKey = GetTypeName(type, param)
 
             text value = typeKey + " " + name
             result = result + value
