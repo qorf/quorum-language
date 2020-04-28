@@ -86,6 +86,27 @@ shared class Math
     system action Cosine(number value) returns number
 
     /*
+        This action returns true if the values x and y are within epsilon of each other.
+        If epsilon is greater than 1, it is set to 1.
+        Attribute: Parameter x The first number
+        Attribute: Parameter y The second number
+        Attribute: Parameter epsilon The max distance between the values
+
+        Attribute: Returns true if the values are equal within epison
+
+        Attribute: Example
+        use Libraries.Compute.Math
+        Math math
+        boolean value = math:Equals(11.9, 11.901, 0.001)
+    */
+    action Equals(number x, number y, number epsilon) returns boolean
+        if epsilon > 1
+            epsilon = 1
+        end
+        return AbsoluteValue(y - x) <= epsilon
+    end
+
+    /*
     This action calculates the tangent of a number in radians and returns the result.
 
     Attribute: Parameter value The value that the tangent will be calculated from.
@@ -159,12 +180,6 @@ shared class Math
 
     */
     system action InverseSine(number value) returns number
-
-
-
-
-
-
 
     /*
     This action calculates the inverse cosine of a number value in radians.
@@ -335,6 +350,22 @@ shared class Math
     */
     system action Round(number value) returns number
 
+    /*
+    This action rounds a number to the closest integer value. A midpoint value
+    (5) will round up.
+
+    Attribute: Parameter value The value to round.
+    Attribute: Returns the number result.
+
+    Attribute: Example
+
+    use Libraries.Compute.Math
+
+    Math math
+    number result = math:RoundToNearestInteger(11.932356)
+
+    */
+    system action RoundToNearestInteger(number value) returns number
 
     /*
     This action rounds a number to the nearest integer and will either round up or down when at a midpoint.
@@ -451,6 +482,22 @@ shared class Math
     system action RaiseToPower(number value, number power) returns number
 
     /*
+        This action raises the natural number 'e' to the power of x.
+
+        Attribute: Parameter power the power to raise e to.
+
+        Attribute: Returns Returns the number result.
+
+        Attribute: Example
+        use Libraries.Compute.Math
+        Math math
+        number result = math:RaiseNaturalNumberToPower(5)
+    */
+    action RaiseNaturalNumberToPower(number power) returns number
+        return RaiseToPower(e, power)
+    end
+
+    /*
     This action calculates the absolute value of an integer and returns the result.
 
     Attribute: Parameter value The value that the absolute value will be calculated from.
@@ -531,6 +578,17 @@ shared class Math
             return a
         else
             return b
+        end
+    end
+
+    /*
+    This action calculates the minimum between two numbers.
+    */
+    action MinimumOf(number a, number b) returns number
+        if (a > b)
+            return b
+        else
+            return a
         end
     end
 
