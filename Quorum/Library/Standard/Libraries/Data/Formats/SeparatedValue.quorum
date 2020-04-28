@@ -5,6 +5,7 @@ use Libraries.System.FileReader
 use Libraries.Language.Errors.FileNotFoundError
 use Libraries.Containers.Array
 use Libraries.Containers.Table
+use Libraries.Data.Formats.SeparatedValueFileReader
 
 /*
 The SeparatedValue class reads in data files in a format with common separator.
@@ -21,7 +22,7 @@ File csv //then create a file
 csv:SetPath("Data.csv") //set its path to a file we've created
 csvReader:Read(csv) //read the csv file
 */
-class SeparatedValue 
+class SeparatedValue
     text separator = "," //by default, a comma separated value reader
     Table<text> table
     integer numberColumns = -1
@@ -111,6 +112,30 @@ class SeparatedValue
         throw an error if a file has not been properly read in.
 
         Attribute: Parameter row The row being accessed.
+
+        Attribute: Returns This returns an array of a row.
+
+        Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.SeparatedValue
+
+        SeparatedValue csvReader //first create the reader
+        File csv //then create a file
+        csv:SetPath("Data.csv") //set its path to a file we've created
+        csvReader:Read(csv) //read the csv file
+
+        Array<text> values = csvReader:Get(1) //access the item at row 1, column 3
+    */
+    action GetRow(integer row) returns Array<text>
+        return table:GetRow(row)
+    end
+
+    /*
+        This action returns a value from a previously read in file. It will
+        throw an error if a file has not been properly read in.
+
+        Attribute: Parameter row The row being accessed.
         Attribute: Parameter column The column being accessed.
 
         Attribute: Returns This returns a text representation of a cell.
@@ -149,6 +174,27 @@ class SeparatedValue
         rows = csvReader:GetNumberOfRows()
     */
     action GetNumberOfRows returns integer
+        return table:GetNumberOfRows()
+    end
+
+    /*
+        This action returns the number of available rows.
+
+        Attribute: Returns This returns the number of rows.
+
+        Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.SeparatedValue
+
+        SeparatedValue csvReader //first create the reader
+        File csv //then create a file
+        csv:SetPath("Data.csv") //set its path to a file we've created
+        csvReader:Read(csv) //read the csv file
+
+        rows = csvReader:GetSize()
+    */
+    action GetSize returns integer
         return table:GetNumberOfRows()
     end
 
@@ -201,6 +247,7 @@ class SeparatedValue
             count = count + 1
         end
 
+        current = current:Trim()
         row:Add(current)
         return row
     end
