@@ -101,6 +101,26 @@ public class Math {
     public double Round(double value){ 
         return java.lang.Math.round(value); 
     }
+    
+    public double RoundToNearestInteger(double x) {
+        double y = Floor(x);
+        double d = x - y;
+
+        if (d > 0.5) {
+            if (y == -1.0) {
+                return -0.0; // Preserve sign of operand
+            }
+            return y+1.0;
+        }
+
+        if (d < 0.5) {
+            return y;
+        }
+
+        /* half way, round to even */
+        long z = (long) y;
+        return (z & 1) == 0 ? y : y + 1.0;
+    }
 
     public double RaiseToPower(double value, double power){ 
         return java.lang.Math.pow(value, power); 
