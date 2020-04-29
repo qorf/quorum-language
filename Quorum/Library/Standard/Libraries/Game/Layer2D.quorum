@@ -1383,6 +1383,10 @@ class Layer2D is Layer
     adds itself to the array then recurses on the children elements.
     */
     private action GetDepthSortedItems(Item2D item, Array<Item2D> array)
+        if item:IsShowing() = false
+            return now
+        end
+
         Array<Item2D> children = item:GetChildren()
         integer i = children:GetSize()
 
