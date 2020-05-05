@@ -143,6 +143,7 @@ class ActionsTester
         MissingReturn10()
         MissingVariable()
         ReturnCast2ActionsInt()
+        SameParameterName()
         SetterBeforeUseFail()
         TextJunk1()
         TextJunk2()
@@ -1513,6 +1514,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "ReturnCast2ActionsInt.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action SameParameterName
+        Array<File> files
+        File main
+        main:SetPath(path + "SameParameterName.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

@@ -6,6 +6,8 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CodeCompletionItem
 use Libraries.Language.Support.CompareResult
 use Libraries.System.File
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorType
 
 class Action is Symbol
     List<Variable> parameters
@@ -170,14 +172,25 @@ class Action is Symbol
         end
     end
 
-    action AddParameter(Variable parameter)
+    action AddParameter(Variable parameter) returns CompilerError
         Type type = parameter:GetType()
         integer size = type:GetBytecodeSize()
         parameter:SetBytecodeLocation(bytecodeLocation)
         bytecodeLocation = bytecodeLocation + size
 
+        //Thanks to Gabriel for finding this issue. The compiler should have been checking for this.
+        if HasParameter(parameter:GetStaticKey())
+            CompilerError error
+            error:SetLocation(parameter)
+            error:SetErrorMessage("Parameter " + parameter:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:DUPLICATE)
+            error:SetCompilerErrorType(errorType)
+            return error
+        end
         parameters:Add(parameter)
         parameterHash:Add(parameter:GetStaticKey(), parameter)
+        return undefined
     end
 
     action GetBytecodeLocation returns integer
@@ -186,6 +199,10 @@ class Action is Symbol
 
     action GetParameter(text key) returns Variable
         return parameterHash:GetValue(key)
+    end
+
+    action HasParameter(text key) returns boolean
+        return parameterHash:HasKey(key)
     end
 
     action GetParametersSize returns integer

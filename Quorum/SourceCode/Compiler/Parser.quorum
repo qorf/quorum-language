@@ -405,9 +405,14 @@ class Parser is QuorumSourceListener
 
             //this type is required. If it is undefined, then it means 
             //that something else about this parse is wrong.
-            //do we need an additional compiler error here?
+            //We also need to make sure they aren't using the same name.
+            //Special thanks to Gabriel for finding this issue.
             if param:GetType() not= undefined
-                currentAction:AddParameter(param)
+                CompilerError error = currentAction:AddParameter(param)
+                if error not= undefined
+                    CompilerErrorManager manager = me:GetCompilerErrorManager()
+                    manager:Add(error)
+                end
             end
         end
         
