@@ -324,8 +324,11 @@ class Action is Symbol
             Class clazz = GetParentClass()
             integer i = clazz:GetIndexOfGeneric(type:GetMappedGeneric())
             Type varType = variable:GetType()
-            Type t = varType:GetGeneric(i)
-            result = t:GetName()
+            if varType not= undefined and varType:HasGenerics()
+                and i < varType:GetNumberGenerics()
+                Type t = varType:GetGeneric(i)
+                result = t:GetName()
+            end
         else
             result = type:GetName()
         end
