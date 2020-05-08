@@ -12,7 +12,7 @@ class InputSet
     all the bits used to store information.
     */
     constant integer VALUE_SIZE = 8
-    constant integer TYPE_SIZE = 3
+    constant integer TYPE_SIZE = 4
     constant integer TRIGGER_SIZE = 2
     constant integer EVENT_COUNT_SIZE = 2
     public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + EVENT_COUNT_SIZE
@@ -50,6 +50,11 @@ class InputSet
         CONTINUE: Each frame a finger is touching the screen.
         FINISH: When the finger is removed from the screen.
         FINISH_UNCAUGHT: N/A
+
+    DRAG_INPUT:
+        BEGIN: When the mouse begins to move while holding a button down.
+        CONTINUE: Each frame where the mouse moves while still holding the button.
+        FINISH: When the mouse button is released.
     */
 
     public constant integer KEYBOARD_INPUT = 0
@@ -59,6 +64,8 @@ class InputSet
     public constant integer TOUCH_INPUT = 4
     public constant integer TEXT_INPUT = 5
     public constant integer TOUCH_MOVEMENT_INPUT = 6
+    public constant integer DRAG_ITEM_INPUT = 7
+    public constant integer DROP_ITEM_INPUT = 8
     public constant integer BEGIN = 0
     public constant integer FINISH = 1
     public constant integer CONTINUE = 2
@@ -77,13 +84,13 @@ class InputSet
 
     The individual bits represent the following information:
         1st to 8th bits: Integer value of the key or mouse input.
-        9th to 11th bits: What kind of input this is. Corresponds to one of the input constants.
-        12th to 13th bits: How the input is triggered. Can represent an input event beginning, finishing, or continuing.
-        14th to 15th bits: How many previous events should be registered before triggering this one.
-        16th bit: Shift key modifier - 1 if required, 0 otherwise.
-        17th bit: Control key modifier - 1 if required, 0 otherwise.
-        18th bit: Alt key modifier - 1 if required, 0 otherwise.
-        19th bit: Meta key modifier - 1 if required, 0 otherwise.
+        9th to 12th bits: What kind of input this is. Corresponds to one of the input constants.
+        13th to 14th bits: How the input is triggered. Can represent an input event beginning, finishing, or continuing.
+        15th to 16th bits: How many previous events should be registered before triggering this one.
+        17th bit: Shift key modifier - 1 if required, 0 otherwise.
+        18th bit: Control key modifier - 1 if required, 0 otherwise.
+        19th bit: Alt key modifier - 1 if required, 0 otherwise.
+        20th bit: Meta key modifier - 1 if required, 0 otherwise.
     */
     integer bitmask = 0
 
@@ -124,6 +131,16 @@ class InputSet
         SetBits(mouseButton, VALUE_SIZE, 0)
     end
 
+    action SetDragItemInput
+        SetInputType(DRAG_ITEM_INPUT)
+        SetBits(0, VALUE_SIZE, 0)
+    end
+
+    action SetDropItemInput
+        SetInputType(DROP_ITEM_INPUT)
+        SetBits(0, VALUE_SIZE, 0)
+    end
+
     action SetInputType(integer type)
         integer mask = bits:ShiftLeft(-1, TYPE_SIZE)
         mask = bits:Or(bits:ShiftLeft(mask, VALUE_SIZE), bits:Negate(bits:ShiftLeft(-1, VALUE_SIZE)))
@@ -156,6 +173,10 @@ class InputSet
 
     action GetInputType returns integer
         return GetBits(TYPE_SIZE, VALUE_SIZE)
+    end
+
+    action SetInputValue(integer value)
+        SetBits(value, VALUE_SIZE, 0)
     end
 
     action GetInputValue returns integer
@@ -290,6 +311,10 @@ class InputSet
             return result + "Text Input"
         elseif type = TOUCH_MOVEMENT_INPUT
             return result + "Drag"
+        elseif type = DRAG_ITEM_INPUT
+            return result + "Drag Item"
+        elseif type = DROP_ITEM_INPUT
+            return result + "Drop Item"
         end
 
         return result

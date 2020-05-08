@@ -1251,6 +1251,63 @@ class Layer3D is Layer
     end
 
     /*
+    This action finds an Item on this layer which is present at the given coordinates
+    and will respond to at least one of the given InputSets.
+    */
+    action GetItemWithInput(number x, number y, Array<InputSet> inputValues) returns Item
+        Ray ray = camera:GetPickRay(camera:GetWidth() - x, y)
+        Vector3 origin = ray:GetOrigin()
+
+        integer counter = 0
+        Game game = manager:GetGame()
+
+        /*
+        TO-DO: This array of all items is regenerated for each mouse event
+        processed. It would be more efficient to maintain this array
+        independently of this action.
+        */
+        Array<Item3D> allItems
+        repeat items:GetSize() times
+            GetChildrenHierarchy(items:Get(counter), allItems)
+            counter = counter + 1
+        end
+        counter = 0
+
+        repeat allItems:GetSize() times
+            Item3D temp = allItems:Get(counter)
+            if RayIntersectsItem(ray, temp)
+                eventTargetArray:Add(temp)
+            end
+
+            counter = counter + 1
+        end
+
+        if eventTargetArray:GetSize() not= 0
+            depthSorter:SetOrigin(origin)
+            eventTargetArray:Sort(depthSorter)
+            counter = 0
+            repeat while counter < eventTargetArray:GetSize()
+                Item3D item = eventTargetArray:Get(counter)
+                InputTable table = game:GetInputTable(item:GetInputGroup())
+                if table not= undefined
+                    integer i = 0
+                    repeat while i < inputValues:GetSize()
+                        if table:HasKey(inputValues:Get(i))
+                            return item
+                        end
+                        i = i + 1
+                    end
+                end
+                counter = counter + 1
+            end
+
+            eventTargetArray:Empty()
+        end
+
+        return undefined
+    end
+
+    /*
     This action will notify touch listeners that are a part of this layer of the
     given touch event. This is called automatically by the Game engine as 
     needed. Most users will never need to use this action directly.
@@ -1258,6 +1315,12 @@ class Layer3D is Layer
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
     action ProcessTouchEvent(TouchEvent event) returns Item
+        if event:GetX() < GetViewportX() or (event:GetX() > GetViewportX() + GetViewportWidth())
+            or event:GetY() < GetViewportY() or (event:GetY() > GetViewportY() + GetViewportHeight())
+            
+            return undefined
+        end
+
         Ray ray = camera:GetPickRay(camera:GetWidth() - event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 

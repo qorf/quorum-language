@@ -1,0 +1,106 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Item
+
+class DragAndDropEvent
+
+    public constant integer DRAGGING_BEGAN = 0
+    public constant integer DRAGGING_CONTINUED = 1
+    public constant integer DRAGGED_ONTO_DESTINATION = 2
+    public constant integer DRAGGED_OFF_DESTINATION = 3
+    public constant integer DROPPED = 4
+
+    public integer eventType = -1
+
+    // The x coordinate (in screen coordinates) where the drag event originated from.
+    integer startX = 0
+    // The y coordinate (in screen coordinates) where the drag event originated from.
+    integer startY = 0
+
+    // The current x coordinate (in screen coordinates) of the cursor.
+    integer currentX = 0
+    // The current y coordinate (in screen coordinates) of the cursor.
+    integer currentY = 0
+
+    // How much the cursor has moved on the x-axis since the last frame, in screen coordinates.
+    integer movementX = 0
+    // How much the cursor has moved on the y-axis since the last frame, in screen coordinates.
+    integer movementY = 0
+
+    Item sourceItem = undefined
+    Item destinationItem = undefined
+
+    /*
+    This action sets the values of the event. This is done internally by the system when events are created, and most users
+    will never need to call this action directly.
+    */
+    action Set(integer eventType, integer startX, integer startY, integer currentX, integer currentY, integer movementX, integer movementY, Item sourceItem, Item destinationItem)
+        me:eventType = eventType
+        me:startX = startX
+        me:startY = startY
+        me:currentX = currentX
+        me:currentY = currentY
+        me:movementX = movementX
+        me:movementY = movementY
+        me:sourceItem = sourceItem
+        me:destinationItem = destinationItem
+    end
+
+    /*
+    This action returns the x coordinate where this drag event began. The returned value is in screen coordinates.
+    */
+    action GetStartX returns integer
+        return startX
+    end
+
+    /*
+    This action returns the y coordinate where this drag event began. The returned value is in screen coordinates.
+    */
+    action GetStartY returns integer
+        return startY
+    end
+
+    /*
+    This action returns the current x coordinate of the cursor while it is dragging. The returned value is in screen coordinates.
+    */
+    action GetX returns integer
+        return currentX
+    end
+
+    /*
+    This action returns the current y coordinate of the cursor while it is dragging. The returned value is in screen coordinates.
+    */
+    action GetY returns integer
+        return currentY
+    end
+
+    /*
+    This action returns how much the x coordinate of the cursor has changed during the last frame of animation. The returned value is in screen coordinates.
+    */
+    action GetMovementX returns integer
+        return movementX
+    end
+
+    /*
+    This action returns how much the y coordinate of the cursor has changed during the last frame of animation. The returned value is in screen coordinates.
+    */
+    action GetMovementY returns integer
+        return movementY
+    end
+
+    /*
+    This action returns the Item that is being dragged.
+    */
+    action GetSource returns Item
+        return sourceItem
+    end
+
+    /*
+    This action returns the Item that is underneath the cursor. In applications where you are dragging and dropping an Item into a container, for example,
+    this would be the container the source Item is being dropped into.
+    */
+    action GetDestination returns Item
+        return destinationItem
+    end
+
+end

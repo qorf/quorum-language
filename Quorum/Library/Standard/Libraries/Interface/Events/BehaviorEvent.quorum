@@ -10,6 +10,7 @@ class BehaviorEvent
     MouseEvent mouseEvent = undefined
     TextInputEvent textInputEvent = undefined
     TouchEvent touchEvent = undefined
+    DragAndDropEvent dragEvent = undefined
     InputSet inputSet = undefined
     number seconds = 0
 
@@ -56,6 +57,14 @@ class BehaviorEvent
 
     action SetTouchEvent(TouchEvent event)
         touchEvent = event
+    end
+
+    action SetDragAndDropEvent(DragAndDropEvent event)
+        dragEvent = event
+    end
+
+    action GetDragAndDropEvent returns DragAndDropEvent
+        return dragEvent
     end
 
     action GetInputSet returns InputSet

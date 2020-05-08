@@ -1205,6 +1205,12 @@ class Layer2D is Layer
     Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
+        if event:GetX() < GetViewportX() or (event:GetX() > GetViewportX() + GetViewportWidth())
+            or event:GetY() < GetViewportY() or (event:GetY() > GetViewportY() + GetViewportHeight())
+            
+            return undefined
+        end
+
         Array<Item2D> sortedItems = GetDepthSortedItems()
         if sortedItems = undefined or sortedItems:IsEmpty()
             return undefined
@@ -1272,9 +1278,6 @@ class Layer2D is Layer
                     event:SetEventHandled(true)
                     integer startSize = mouseListeners:GetSize()
                     repeat while counter < mouseListeners:GetSize()
-                        if counter >= mouseListeners:GetSize()
-                            output "counter = " + counter + ", size = " + mouseListeners:GetSize() + ", startSize = " + startSize
-                        end
                         mouseListeners:Get(counter):ClickedMouse(event)
                         counter = counter + 1
                     end
@@ -1309,24 +1312,103 @@ class Layer2D is Layer
         return result
     end
 
-    private action TestMouseInput(Item2D item, MouseEvent event, Vector3 pointVector, GameInput gameInput) returns boolean
-        if item:IsShowing() and item:Contains(pointVector:GetX(), pointVector:GetY())
+    /*
+    This action finds an Item on this layer which is present at the given coordinates
+    and will respond to at least one of the given InputSets.
+    */
+    action GetItemWithInput(number x, number y, Array<InputSet> inputValues) returns Item
+        if x < GetViewportX() or (x > GetViewportX() + GetViewportWidth())
+            or y < GetViewportY() or (y > GetViewportY() + GetViewportHeight())
+            
+            return undefined
+        end
+
+        Array<Item2D> sortedItems = GetDepthSortedItems()
+        if sortedItems = undefined or sortedItems:IsEmpty()
+            return undefined
+        end
+
+        integer counter = 0
+        Item2D temp = undefined
+
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(x, y)
+        Game game = manager:GetGame()
+
+        repeat while counter < sortedItems:GetSize()
+            Item2D item = sortedItems:Get(counter)
+            if item:AreChildrenProcessingMouseEvents()
+                workArray:Empty()
+                GetItemHierarchy(item, workArray)
+                integer i = 0
+                repeat while i < workArray:GetSize()
+                    temp = workArray:Get(i)
+                    if DoesItemContainPoint(temp, pointVector:GetX(), pointVector:GetY())
+                        InputTable table = game:GetInputTable(temp:GetInputGroup())
+                        if table not= undefined
+                            integer inputCounter = 0
+                            repeat while inputCounter < inputValues:GetSize()
+                                if table:HasKey(inputValues:Get(inputCounter))
+                                    return temp
+                                end
+                                inputCounter = inputCounter + 1
+                            end
+                        end
+                    end
+
+                    i = i + 1
+                end
+            else
+                if DoesItemContainPoint(item, pointVector:GetX(), pointVector:GetY())
+                    InputTable table = game:GetInputTable(item:GetInputGroup())
+                    if table not= undefined
+                        integer inputCounter = 0
+                        repeat while inputCounter < inputValues:GetSize()
+                            if table:HasKey(inputValues:Get(inputCounter))
+                                return item
+                            end
+                            inputCounter = inputCounter + 1
+                        end
+                    end
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        return undefined
+    end
+
+    /*
+    Returns true if the provided world coordinates are contained within the given Item.
+    If the Item isn't showing, or if the coordinate falls in an area that's outside of the
+    clipping region of the Item, this will return false.
+    */
+    private action DoesItemContainPoint(Item2D item, number x, number y) returns boolean
+        if item:IsShowing() and item:Contains(x, y)
             boolean isClipped = item:GetClipCoordinates(workVector2A, workVector2B)
 
             // If the Item is subject to clipping, only forward mouse events
             // to it if the event occurred over an unclipped portion of it.
             if isClipped = false or
-                    ((pointVector:GetX() >= workVector2A:GetX() and pointVector:GetX() <= workVector2A:GetY()) and
-                     (pointVector:GetY() >= workVector2B:GetX() and pointVector:GetY() <= workVector2B:GetY()))
+                    ((x >= workVector2A:GetX() and x <= workVector2A:GetY()) and
+                     (y >= workVector2B:GetX() and y <= workVector2B:GetY()))
         
-                event:SetSource(item)
-                event:clickCount = gameInput:GetClickCount(item) + 1
-                item:ProcessMouseEvent(event)
-                return event:WasEventHandled()
+                return true
             end
         end
 
         return false
+    end
+
+    private action TestMouseInput(Item2D item, MouseEvent event, Vector3 pointVector, GameInput gameInput) returns boolean
+        if DoesItemContainPoint(item, pointVector:GetX(), pointVector:GetY())
+            event:SetSource(item)
+            event:clickCount = gameInput:GetClickCount(item) + 1
+            item:ProcessMouseEvent(event)
+            return event:WasEventHandled()
+        else
+            return false
+        end
     end
 
     private action GetItemHierarchy(Item2D root, Array<Item2D> array)

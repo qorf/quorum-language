@@ -26,6 +26,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.ResizeProcessor
+use Libraries.Interface.Events.DragAndDropEvent
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -97,6 +98,45 @@ class DesktopInput is GameInput
     */
     boolean keypressCaught = false
 
+    DragAndDropEvent dragEvent
+    boolean startedDrag = false
+    Array<InputSet> dragInputSets
+    Array<InputSet> dropInputSets
+
+    on create
+        InputSet beginDragSet
+        beginDragSet:SetDragItemInput()
+        beginDragSet:SetInputTrigger(beginDragSet:BEGIN)
+        InputSet continueDragSet
+        continueDragSet:SetDragItemInput()
+        continueDragSet:SetInputTrigger(beginDragSet:CONTINUE)
+        InputSet finishDragSet
+        finishDragSet:SetDragItemInput()
+        finishDragSet:SetInputTrigger(beginDragSet:FINISH)
+
+        dragInputSets:Add(beginDragSet)
+        dragInputSets:Add(continueDragSet)
+        dragInputSets:Add(finishDragSet)
+
+        InputSet beginDropSet
+        beginDropSet:SetDropItemInput()
+        beginDropSet:SetInputTrigger(beginDropSet:BEGIN)
+        InputSet continueDropSet
+        continueDropSet:SetDropItemInput()
+        continueDropSet:SetInputTrigger(beginDropSet:CONTINUE)
+        InputSet finishDropSet
+        finishDropSet:SetDropItemInput()
+        finishDropSet:SetInputTrigger(beginDropSet:FINISH)
+        InputSet finishUncaughtDropSet
+        finishUncaughtDropSet:SetDropItemInput()
+        finishUncaughtDropSet:SetInputTrigger(beginDropSet:FINISH_UNCAUGHT)
+
+        dropInputSets:Add(beginDropSet)
+        dropInputSets:Add(continueDropSet)
+        dropInputSets:Add(finishDropSet)
+        dropInputSets:Add(finishUncaughtDropSet)
+    end
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -125,6 +165,8 @@ class DesktopInput is GameInput
 
         Item target = undefined
         Item mouseMoveTarget = undefined
+
+        boolean draggedThisFrame = false
 
         repeat mouseEvents:GetSize() times
             mouseEvent = mouseEvents:RemoveFromFront()
@@ -167,7 +209,7 @@ class DesktopInput is GameInput
                 Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
 
                 if mouseEvent:GetSource() not= undefined
-                    Item seeker = mouseEvent:GetSource()
+                    Item seeker = mouseEvent:GetSource()    
 
                     boolean noMoveTarget = true
                     if not (mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE)
@@ -245,6 +287,28 @@ class DesktopInput is GameInput
                     end
 
                 end
+            end
+
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE and mouseEvent:GetSource() not= undefined
+                dragEvent:Set(dragEvent:DRAGGING_BEGAN, mouseEvent:GetX(), mouseEvent:GetY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, mouseEvent:GetSource(), undefined)
+            elseif mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE and dragEvent:GetSource() not= undefined
+                if startedDrag = false
+                    ProcessDragEvent(dragEvent)
+                    startedDrag = true
+                end
+
+                dragEvent:Set(dragEvent:DRAGGING_CONTINUED, dragEvent:GetStartX(), dragEvent:GetStartY(),
+                    mouseEvent:GetX(), mouseEvent:GetY(),
+                    mouseEvent:GetX() - dragEvent:GetX(), mouseEvent:GetY() - dragEvent:GetY(),
+                    dragEvent:GetSource(), dragEvent:GetDestination())
+
+                ProcessDragEvent(dragEvent)
+            elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                dragEvent:Set(dragEvent:DROPPED, dragEvent:GetStartX(), dragEvent:GetStartY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, dragEvent:GetSource(), dragEvent:GetDestination())
+                ProcessDragEvent(dragEvent)
+
+                startedDrag = false
+                dragEvent:Set(-1, 0, 0, 0, 0, 0, 0, undefined, undefined)
             end
 
             if not mouseEvent:WasEventHandled()
@@ -420,6 +484,158 @@ class DesktopInput is GameInput
                 repeat while counter < layers:GetSize()
                     layers:Get(counter):Resize(event)
                     counter = counter + 1
+                end
+            end
+        end
+
+    end
+
+    private action ProcessDragEvent(DragAndDropEvent event)
+        
+        Item seeker = event:GetSource()
+
+        InputSet dragSet = keyboardModifiers:Copy()
+        dragSet:SetDragItemInput()
+        if event:eventType = event:DRAGGING_BEGAN
+            dragSet:SetInputTrigger(dragSet:BEGIN)
+        elseif event:eventType = event:DRAGGING_CONTINUED
+            dragSet:SetInputTrigger(dragSet:CONTINUE)
+        elseif event:eventType = event:DROPPED
+            dragSet:SetInputTrigger(dragSet:FINISH)    
+        end
+
+        InputTable table = undefined
+        number seconds = manager:GetGameDisplay():GetSecondsBetweenFrames()
+        boolean supportsDrag = false
+        repeat while seeker not= undefined and table = undefined
+            table = GetInputTable(seeker:GetInputGroup())
+    
+            if table not= undefined
+                integer i = 0
+                repeat while supportsDrag = false and i < dragInputSets:GetSize()
+                    if table:HasKey(dragInputSets:Get(i))
+                        supportsDrag = true
+                    end
+                    i = i + 1
+                end
+
+                if table:HasKey(dragSet) = false
+                    table = undefined
+                end
+            end
+
+            if seeker is Item2D
+                Item2D target2D = cast(Item2D, seeker)
+                seeker = target2D:GetParent()
+            elseif seeker is Item3D
+                Item3D target3D = cast(Item3D, seeker)
+                seeker = target3D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+
+        if supportsDrag = false
+            return now
+        end
+
+        Array<Layer> layers = parent:GameInput:layers
+        integer counter = layers:GetSize()
+        Item destination = undefined
+        repeat while counter > 0 and destination = undefined
+            counter = counter - 1
+            Layer layer = layers:Get(counter)
+            destination = layer:GetItemWithInput(event:GetX(), event:GetY(), dropInputSets)
+        end
+
+        Item oldDestination = event:GetDestination()
+        if event:eventType not= event:DRAGGING_BEGAN
+            event:Set(event:eventType, event:GetStartX(), event:GetStartY(), event:GetX(), event:GetY(), event:GetMovementX(), event:GetMovementY(), event:GetSource(), destination)
+        end
+
+        if table not= undefined
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(event:GetSource())
+            behaviorEvent:SetDragAndDropEvent(event)
+            behaviorEvent:SetSecondsSinceLastFrame(seconds)
+
+            table:ProcessInput(dragSet, behaviorEvent)
+        end
+
+        // TO-DO: Also handle listeners here.
+
+        /*
+        Send events to the drop input listeners as needed.
+
+        The stored InputSets in the dropInputSets Array correspond to the following event types:
+        0) DRAGGED_ONTO_DESTINATION
+        1) DRAGGING_CONTINUED
+        2) DROPPED
+        3) DRAGGED_OFF_DESTINATION
+        */
+        if event:eventType = event:DRAGGING_CONTINUED
+            if oldDestination not= destination
+                if oldDestination not= undefined
+                    InputTable destinationTable = oldDestination:GetInputTable()
+                    if destinationTable not= undefined
+                        DragAndDropEvent dropEvent
+                        dropEvent:Set(dropEvent:DRAGGED_OFF_DESTINATION, event:GetStartX(), event:GetStartY(), event:GetX(), event:GetY(), event:GetMovementX(),
+                            event:GetMovementY(), event:GetSource(), oldDestination)
+    
+                        BehaviorEvent behaviorEvent
+                        behaviorEvent:SetItem(oldDestination)
+                        behaviorEvent:SetDragAndDropEvent(dropEvent)
+                        behaviorEvent:SetSecondsSinceLastFrame(seconds)
+
+                        destinationTable:ProcessInput(dropInputSets:Get(3), behaviorEvent)
+                    end
+                end
+                if destination not= undefined
+                    InputTable destinationTable = destination:GetInputTable()
+                    if destinationTable not= undefined
+                        DragAndDropEvent dropEvent
+                        dropEvent:Set(dropEvent:DRAGGED_ONTO_DESTINATION, event:GetStartX(), event:GetStartY(), event:GetX(), event:GetY(), event:GetMovementX(),
+                            event:GetMovementY(), event:GetSource(), destination)
+    
+                        BehaviorEvent behaviorEvent
+                        behaviorEvent:SetItem(destination)
+                        behaviorEvent:SetDragAndDropEvent(dropEvent)
+                        behaviorEvent:SetSecondsSinceLastFrame(seconds)
+
+                        destinationTable:ProcessInput(dropInputSets:Get(0), behaviorEvent)
+                    end
+                end
+            else
+                if destination not= undefined
+                    InputTable destinationTable = destination:GetInputTable()
+                    if destinationTable not= undefined
+                        DragAndDropEvent dropEvent
+                        dropEvent:Set(dropEvent:DRAGGING_CONTINUED, event:GetStartX(), event:GetStartY(), event:GetX(), event:GetY(), event:GetMovementX(),
+                            event:GetMovementY(), event:GetSource(), destination)
+    
+                        BehaviorEvent behaviorEvent
+                        behaviorEvent:SetItem(destination)
+                        behaviorEvent:SetDragAndDropEvent(dropEvent)
+                        behaviorEvent:SetSecondsSinceLastFrame(seconds)
+    
+                        destinationTable:ProcessInput(dropInputSets:Get(1), behaviorEvent)
+                    end
+                end
+            end
+        elseif event:eventType = event:DROPPED
+            if destination not= undefined
+                InputTable destinationTable = destination:GetInputTable()
+                if destinationTable not= undefined
+                    DragAndDropEvent dropEvent
+                    dropEvent:Set(dropEvent:DROPPED, event:GetStartX(), event:GetStartY(), event:GetX(), event:GetY(), event:GetMovementX(),
+                        event:GetMovementY(), event:GetSource(), destination)
+
+                    BehaviorEvent behaviorEvent
+                    behaviorEvent:SetItem(destination)
+                    behaviorEvent:SetDragAndDropEvent(dropEvent)
+                    behaviorEvent:SetSecondsSinceLastFrame(seconds)
+
+                    destinationTable:ProcessInput(dropInputSets:Get(2), behaviorEvent)
                 end
             end
         end

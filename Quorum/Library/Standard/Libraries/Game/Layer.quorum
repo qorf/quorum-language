@@ -9,6 +9,7 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
+use Libraries.Containers.Array
 
 class Layer 
     
@@ -254,6 +255,12 @@ class Layer
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
     blueprint action ProcessTouchEvent(TouchEvent event) returns Item
+
+    /*
+    This action finds an Item on this layer which is present at the given coordinates
+    and will respond to at least one of the given InputSets.
+    */
+    blueprint action GetItemWithInput(number x, number y, Array<InputSet> inputValues) returns Item
 
     /*
     This action will add a MouseListener to the layer. When the layer receives a
