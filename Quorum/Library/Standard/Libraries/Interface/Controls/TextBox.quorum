@@ -1684,9 +1684,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             EmptySelectionEvent(true)
         end
 
-        IncrementStyleIndices(GetCaretPosition(), value:GetSize())
-
         textValue = textValue:Insert(GetCaretPosition(), value)
+        IncrementStyleIndices(GetCaretPosition(), value:GetSize())
         
         text separator = textValue:GetLineSeparator()
 
