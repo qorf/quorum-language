@@ -2634,6 +2634,31 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return styles
     end
 
+    action GetTextStylesOnLine(integer line) returns Array<TextStyle>
+        integer startIndex = GetIndexOfLine(line)
+        integer endIndex = startIndex + GetLine(line):GetSize()
+
+        Array<TextStyle> styles
+        integer i = 0
+        repeat while i < textStyles:GetSize()
+            TextStyle style = textStyles:Get(i)
+            if style:GetIndex() <= endIndex and (style:GetIndex() + style:GetSize()) >= startIndex
+                styles:Add(style)
+            elseif style:GetIndex() > endIndex
+                /*
+                Because the TextStyles are sorted from lowest to highest start
+                index, once we've found a style with an excessive start index,
+                we know all of the remaining ones will be too.
+                */
+                i = textStyles:GetSize()
+            end
+
+            i = i + 1
+        end
+
+        return styles
+    end
+
     action EmptyTextStyles
         textStyles:Empty()
         styleTable:Empty()
