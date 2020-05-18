@@ -1,0 +1,409 @@
+package Libraries.Compute.Statistics
+
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Matrix
+
+/*
+    The DataFrame class is a collection of columns and rows, like a spreadsheet, 
+    that can be used for statistics and other calculations. By default, it can load
+    comma separated files. Other file types can be supported using the Load action with 
+    a file loader for the custom type. DataFrame objects can also be transformed
+    using the Transform action, which is useful for sorting, filtering, or other
+    operations. Transforms generally make a copy of the data frame and act on that copy,
+    not the original.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+*/
+class DataFrame
+    Array<DataFrameColumn> columns
+
+    /*
+        This action loads a data frame from a file. 
+
+        Attribute: Parameter file The file to load.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        frame:Load(file) 
+    */
+    action Load(File file)
+        if file not= undefined and file:Exists()
+            text extension = file:GetFileExtension()
+            if extension = "csv"
+                CommaSeparatedLoader loader
+                Load(file, loader)
+            end
+        end
+    end
+
+    /*
+        This action runs a calculation on the data frame. Calculations are not intended
+        to be destructive to the original data.
+
+        Attribute: Parameter calculation The calculation we want conducted on this frame.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        frame:Load(file)
+    */
+    action Calculate(DataFrameCalculation calculation)
+        calculation:Calculate(me)
+    end
+
+    /*
+        This action loads a data frame from a file relative to the working directory,
+        which is typically where the executable lives.
+
+        Attribute: Parameter location The file to load, parsed as text relative to the working directly. This is
+                usually the directory of the executable.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+    */
+    action Load(text location)
+        File file
+        file:SetPath(location)
+        Load(file)
+    end
+
+    /*
+        This action obtains a column from the DataFrame. This column is the original, not a copy,
+        so modifications made to the column will be permanent. If the goal is to obtain a copy, 
+        then either the Copy actions or the Transform classes should be used.
+
+
+        Attribute: Parameter index The column we want back.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        DataFrameColumn column = frame:GetColumn(0)
+    */
+    action GetColumn(integer index) returns DataFrameColumn
+        return columns:Get(index)
+    end
+
+    /*
+        This action replaces the columns in the DataFrame. It is needed by
+        the Loader infrastructure in order to change the columns. However, for most users,
+        the Transform infrastructure should be used instead of adjusting these manually.
+        In other words, do not use this action unless you know what you are doing.
+
+        Attribute: Parameter columns The new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        Array<DataFrameColumn> col
+        frame:SetColumns(col)
+    */
+    action SetColumns(Array<DataFrameColumn> columns)
+        me:columns = columns
+    end
+
+    /*
+        This action gets the columns in the DataFrame. This allows direct
+        control of the columns for this particular data frame. We suggest not using 
+        these values directly unless required by an application.
+
+        Attribute: Parameter columns The new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        Array<DataFrameColumn> col = frame:GetColumns()
+    */
+    action GetColumns returns Array<DataFrameColumn>
+        return me:columns
+    end
+    /*
+        This action returns the number of columns in the data frame. This value
+        is not related to the number of rows in any particular column.
+
+        Attribute: Returns the number of columns in the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        output frame:GetSize()
+    */
+    action GetSize returns integer
+        return columns:GetSize()
+    end
+
+    /*
+        This action returns true if the number of columns is zero
+
+        Attribute: Returns true if the number of columns is zero.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        output frame:IsEmpty()
+    */
+    action IsEmpty returns boolean
+        return columns:GetSize() = 0
+    end
+
+    /*
+        This action returns the first column with the name "header" in
+        its header row. If multiple columns have the same name, then to 
+        get them all, you will need to iterate and find each one using GetColumn(integer) instead. 
+
+
+        Attribute: Parameter header The column we want back.
+        Attribute: Returns the column, possibly undefined if no column of that name exists
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        DataFrameColumn column = frame:GetColumn("Gender")
+    */
+    action GetColumn(text header) returns DataFrameColumn
+        i = 0
+        repeat while i < columns:GetSize()
+            DataFrameColumn column = columns:Get(i)
+            if column not= undefined and column:GetHeader() = header
+                return column
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    /*
+        This action loads data from a file and then places it into the existing data frame. 
+        If data already exists in this data frame, it is discarded and replaced.
+
+        Attribute: Parameter file The file we want processed
+        Attribute: Parameter loader The object we want to manage loading the file type
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        CommaSeparatedLoader loader
+        frame:Load(file, loader) 
+    */
+    action Load(File file, DataFrameLoader loader)
+        loader:Load(me, file)
+    end
+
+    /*
+        This action takes a DataFrame and converts it into a matrix with number values. If
+        the data frame contains columns that cannot be converted to numbers, this action
+        throws an exception. Finally, all columns must have the same size for this conversion to work.
+
+        Attribute: Returns A matrix of real number values
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Matrix
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //reverse the data frame
+        Matrix matrix = frame:ConvertToMatrix()
+        output matrix:ToText()
+    */
+    action ConvertToMatrix returns Matrix
+        Matrix matrix
+
+        if IsEmpty()
+            return matrix
+        end
+        DataFrameColumn first = GetColumn(0)
+        integer firstSize = first:GetSize()
+        matrix:SetSize(first:GetSize(), GetSize())
+
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = GetColumn(i)
+            if column:GetSize() not= firstSize
+                alert("Cannot create an n x m Matrix, as the columns have different sizes")
+            end
+            
+            integer j = 0
+            repeat while j < column:GetSize()
+                number value = column:GetAsNumber(j)
+                matrix:Set(j, i, value)
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return matrix
+    end
+
+    /*
+        This action takes the data from the current DataFrame then transforms into 
+        a copy of this data frame. While custom Transforms can choose to adjust the original, 
+        by default they do not. 
+
+        Attribute: Parameter transform The object we want to copy and transform the frame
+        Attribute: Returns Typically a copy of the DataFrame, transformed by the transformer.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Transforms.ReverseTransform
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //reverse the data frame
+        ReverseTransform reverse
+        frame:Transform(reverse) 
+    */
+    action Transform(DataFrameTransform transform) returns DataFrame
+        return transform:Transform(me)
+    end
+
+    /*
+        This action creates a chart, given a particular DataFrameChartCreator instance
+        and returns a chart from it for this particular data.
+
+        Attribute: Parameter creator The object that converts the DataFrame into a chart
+        Attribute: Returns A chart object, which can be embedded into a user interface
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Charts.BarChartCreator
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //We might instantiate an object to create a bar chart, setting some properties if we want to
+        BarChartCreator create
+        frame:CreateChart(create) 
+    */
+    action CreateChart(DataFrameChartCreator creator) returns Chart
+        return creator:Create(me)
+    end
+
+    /*
+        Returns a copy of the data frame, except that it only copies certain columns and rows
+
+        Attribute: Parameter columnStart The 0-indexed first column
+        Attribute: Parameter columnEnd The 0-indexed last column
+        Attribute: Parameter rowStart The 0-indexed first row
+        Attribute: Parameter rowEnd The 0-indexed last row
+        Attribute: Returns A copy of the data frame with constrained columns and rows
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //return a copy with a max of the first five rows
+        DataFrame copy = frame:Copy(0, frame:GetSize(), 0, 5)
+    */
+    action Copy(integer columnStart, integer columnEnd, integer rowStart, integer rowEnd) returns DataFrame
+        DataFrame newFrame
+        
+        i = columnStart
+        repeat while i < columnEnd
+            DataFrameColumn column = GetColumn(i)
+            DataFrameColumn copy = column:Copy(rowStart, rowEnd)
+            newFrame:columns:Add(copy)
+            i = i + 1
+        end
+
+        return newFrame
+    end
+
+    /*
+        This action returns a copy of the data frame, which deep copies every column.
+
+        Attribute: Returns A copy of the data frame with constrained columns and rows
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //return a copy of the entire DataFrame
+        DataFrame copy = frame:Copy()
+    */
+    action Copy returns DataFrame
+        DataFrame newFrame
+        
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = GetColumn(i)
+            DataFrameColumn copy = column:Copy()
+            newFrame:columns:Add(copy)
+            i = i + 1
+        end
+
+        return newFrame
+    end
+end

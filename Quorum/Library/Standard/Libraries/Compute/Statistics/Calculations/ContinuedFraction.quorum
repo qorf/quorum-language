@@ -1,0 +1,97 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Math
+
+/*
+    This class represents continued fractions: https://en.wikipedia.org/wiki/Continued_fraction
+    Attribute: Author Andreas Stefik
+*/
+class ContinuedFraction 
+    constant number DEFAULT_EPSILON = 0.00000001//10e-9
+    Math math
+    blueprint action GetA(integer n, number x) returns number
+    blueprint action GetB(integer n, number x) returns number
+
+    /*
+        Evaluate the continued fraction for a particular number.
+    */
+    action Evaluate(number x) returns number
+        integer a = 0
+        return Evaluate(x, DEFAULT_EPSILON, a:GetMaximumValue())
+    end
+
+    /*
+        Evaluate the continued fraction for a number with a particular max error.
+    */
+    action Evaluate(number x, number epsilon) returns number
+        integer a = 0
+        return Evaluate(x, epsilon, a:GetMaximumValue())
+    end
+
+    /*
+        Evaluate the continued fraction for a max number of iterations.
+    */
+    action Evaluate(number x, integer maxIterations) returns number
+        return Evaluate(x, DEFAULT_EPSILON, maxIterations)
+    end
+
+    /*
+        Evaluate the continued fraction for a number, with a specified error, 
+        for a maximum number of iterations.
+    */
+    action Evaluate(number x, number epsilon, integer maxIterations) returns number
+        number small = 0.0000000000000000000000000000000000000000000000001
+        number hPrev = GetA(0, x)
+
+        if math:Equals(hPrev, 0.0, small)
+            hPrev = small
+        end
+
+        integer n = 1
+        number dPrev = 0.0
+        number cPrev = hPrev
+        number hN = hPrev
+        
+        repeat while n < maxIterations
+            constant number a = GetA(n, x)
+            constant number b = GetB(n, x)
+            
+            number dN = a + b * dPrev
+            if math:Equals(dN, 0.0, small) 
+                dN = small
+            end
+            number cN = a + b / cPrev
+            if math:Equals(cN, 0.0, small)
+                cN = small
+            end
+
+            dN = 1 / dN
+            constant number deltaN = cN * dN
+            hN = hPrev * deltaN
+
+            if hN:IsInfinite()
+                alert("Continued Fraction will not converge, infinity: " + x)
+            end
+
+            if hN:IsNotANumber()
+                alert("Continued Fraction will not converge, not a number: " + x)
+            end
+
+            //convert the break statement
+            if math:AbsoluteValue(deltaN - 1.0) < epsilon
+               return hN 
+            else
+                dPrev = dN
+                cPrev = cN
+                hPrev = hN
+                n = n + 1
+            end
+        end
+
+        if n >= maxIterations
+            alert("Continued Fraction will not converge, with max iterations " + maxIterations + " and x of " + x)
+        end
+
+        return hN
+    end
+end

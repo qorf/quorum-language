@@ -1,0 +1,631 @@
+package Libraries.Compute.Statistics.Tests
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Transforms.ColumnFilterTransform
+use Libraries.Compute.MatrixTransform.OrthonormalTriangularDecomposition
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Calculations.Variance
+use Libraries.Compute.Statistics.Calculations.SumOfSquares
+use Libraries.Compute.Statistics.Calculations.Moment
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.MatrixTransform.LowerUpperDecomposition
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.TDistribution
+use Libraries.Compute.Statistics.Distributions.FDistribution
+
+/*
+    This class conducts an Ordinary Least Squares regression on a DataFrame. By default, an 
+    intercept is calculated and included in the model. More information about this kind of statistical
+    test can be found at here: https://en.wikipedia.org/wiki/Ordinary_least_squares. It was adapted from the 
+    same model in Apache Commons, but was expanded upon to simplify the library and add a variety of helper
+    actions that were missing. More information about this class can be found on its documentation page:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/regression/OLSMultipleLinearRegression.html
+
+    Attribute: Author Andreas Stefik
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Columns.NumberColumn
+    use Libraries.Containers.Array
+    use Libraries.Compute.Statistics.DataFrameColumn
+    use Libraries.Compute.Statistics.Tests.Regression
+
+    DataFrame frame
+    NumberColumn column0
+    column0:SetHeader("y")
+    column0:Add("1")
+    column0:Add("2")
+    column0:Add("3")
+    column0:Add("4")
+    column0:Add("5")
+    column0:Add("6")
+
+    NumberColumn column2
+    column2:SetHeader("2")
+    column2:Add("12.0")
+    column2:Add("6")
+    column2:Add("-4")
+    column2:Add("1")
+    column2:Add("97")
+    column2:Add("65")
+
+    NumberColumn column3
+    column3:SetHeader("3")
+    column3:Add("-51.0")
+    column3:Add("167")
+    column3:Add("24")
+    column3:Add("2")
+    column3:Add("120")
+    column3:Add("69")
+
+    NumberColumn column4
+    column4:SetHeader("4")
+    column4:Add("4")
+    column4:Add("-68")
+    column4:Add("-41")
+    column4:Add("3")
+    column4:Add("159")
+    column4:Add("73")
+
+    Array<DataFrameColumn> columns
+    columns:Add(column0)
+    columns:Add(column2)
+    columns:Add(column3)
+    columns:Add(column4)
+
+    frame:SetColumns(columns)
+    Regression regression
+    regression:SetPredictedColumn("y")
+    regression:AddPredictorColumn("2")
+    regression:AddPredictorColumn("3")
+    regression:AddPredictorColumn("4")
+    frame:Calculate(regression)
+
+    //Output a series of attributes about the regression
+    output "Beta: " + regression:GetCoefficients():ToText()
+    output "Beta-critical values: " + regression:GetCoefficientProbabilityValues():ToText()
+    output "Residuals: " + regression:GetResiduals():ToText()
+    output "Residual Sum of Squared: " + regression:GetResidualSumOfSquares()
+    output "Total Sum of Squared: " + regression:GetTotalSumOfSquares()
+    output "F " + regression:GetCriticalValue()
+    output "p = " + regression:GetProbabilityValue()
+    output "R^2: " + regression:GetEffectSize()
+*/
+class Regression is DataFrameCalculation
+    text predictedColumn = ""
+    Array<text> predictors
+    boolean hasIntercept = true
+    OrthonormalTriangularDecomposition decomp
+    Vector beta = undefined
+    Vector predicted = undefined
+    Vector residuals = undefined
+    Matrix predictorMatrix = undefined
+    Matrix varianceCovarianceMatrix = undefined
+    number residualSumOfSquares = 0
+    number totalSumOfSquares = 0
+    number probabilityValue = 0
+    number fValue = 0
+    Vector betaProbabilityValues = undefined
+    number r2 = 0
+    number adjustedR2 = 0
+
+    action Calculate(DataFrame frame)         
+        if predictors:GetSize() < 1
+            return now
+        end
+
+        //first copy only the columns under test, so we don't mess up the original data frame.
+        ColumnFilterTransform transform
+        i = 0
+        repeat while i < predictors:GetSize()
+            text value = predictors:Get(i)
+            transform:Add(value)
+            i = i + 1
+        end
+        DataFrameColumn column = frame:GetColumn(predictedColumn)
+        DataFrame transformed = frame:Transform(transform)
+        Array<DataFrameColumn> columns = transformed:GetColumns()
+
+        //If the user is requesting the intercept, inject a column with all 1s into the data frame
+        //then convert it into the matrix
+        if hasIntercept
+            NumberColumn interceptColumn
+            interceptColumn:SetHeader("InterceptColumn")
+            integer size = column:GetSize()
+            i = 0
+            repeat while i < size
+                interceptColumn:Add("1")
+                i = i + 1
+            end
+            columns:Add(0, interceptColumn)
+        end
+
+        Vector y = column:ConvertToVector()
+        predictorMatrix = transformed:ConvertToMatrix()
+        decomp:Calculate(predictorMatrix)
+
+        if column:CanConvertToVector()
+            predicted = column:ConvertToVector()
+        else
+            return now
+        end
+
+        beta = decomp:Solve(predicted)
+        residuals = CalculateResiduals(predicted, predictorMatrix, beta)
+        residualSumOfSquares = CalculateResidualSumOfSquares(residuals)
+        totalSumOfSquares = CalculateTotalSumOfSquares(column, hasIntercept)
+        
+        varianceCovarianceMatrix = CalculateVarianceCovarianceMatrix(predictorMatrix, decomp)
+        betaProbabilityValues = CalculatePValues(predictorMatrix, decomp, residuals, beta)
+
+        r2 = CalculateEffectSize(residualSumOfSquares, totalSumOfSquares)
+        adjustedR2 = CalculateAdjustedEffectSize(predictorMatrix, r2, hasIntercept)
+
+        fValue = CalculateCriticalValue(predictorMatrix, r2)
+        probabilityValue = CalculateProbabilityValue(predictorMatrix, fValue)
+    end
+
+    /*
+        This action calculates the sum of squares for an instance of this regression. It uses
+        a SumOfSquares if there is no Intercept and the second moment if it does. 
+
+        Attribute: Parameter column The column we are calculating the total from
+        Attribute: Parameter intercept whether or not the regression has an intercept
+        Attribute: Returns the total sum of squares
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.DataFrameColumn
+        use Libraries.Compute.Statistics.Tests.Regression
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+
+        DataFrameColumn column = frame:GetColumn("DT")
+
+        Regression regression
+        number value = regression:CalculateTotalSumOfSquares(column, false)
+        output value
+    */
+    action CalculateTotalSumOfSquares(DataFrameColumn column, boolean intercept) returns number
+        if not intercept
+            SumOfSquares sumOfSquares
+            column:Calculate(sumOfSquares)
+            return sumOfSquares:GetResult()
+        else
+            Mean mean 
+            column:Calculate(mean)
+
+            Moment moment
+            moment:SetMean(mean:GetMean())
+            moment:SetMoment(2)
+            column:Calculate(moment)
+            return moment:GetResult()
+        end
+    end
+
+    /*
+        This calculates the degrees of freedom of the numerator in the F-ratio. It is equivalent
+        to the number of columns in the matrix - 1
+        Attribute: Parameter predictors a matrix to calculate on
+        Attribute: Returns The number of columns in the matrix - 1
+    */
+    action CalculateNumeratorDegreesOfFreedom(Matrix predictors) returns number
+        return predictors:GetColumns() - 1
+    end
+
+    /*
+        This calculates the degrees of freedom of the denominator in the F-ratio. It is equivalent
+        to the number of rows in the matrix - the number of columns
+
+        Attribute: Parameter predictors a matrix to calculate on
+        Attribute: Returns The number of rows in the matrix - the number of columns.
+    */
+    action CalculateDenominatorDegreesOfFreedom(Matrix predictors) returns number
+        return predictors:GetRows() - predictors:GetColumns()
+    end
+
+    /*
+        This action returns the critical value for the matrix and the given effect size (R^2). 
+        The calculation for this action is typically termed in statistics an "F-value," an esoteric
+        way of describing the location a result rests on a distribution. We calculate this value by
+        the following equation:
+
+        R2 / (p - 1)
+        (1 - R^2) / (n - p)
+
+        While an example is included on how to calculate this value, it is complicated and we highly 
+        recommend calculating the regression and just calling GetCriticalValue instead.
+
+        Attribute: Parameter predictors The matrix of predictor values.
+        Attribute: r2 This is the calculated effect size, typically called "R^2) (R squared). 
+        Attribute: Returns This returns the critical value, typically called "F" in statistics.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.DataFrameColumn
+        use Libraries.Compute.Statistics.Tests.Regression
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        Regression regression
+
+        DataFrameColumn column = frame:GetColumn(predictedColumn)
+        Vector y = column:ConvertToVector()
+        Matrix predictorMatrix = transformed:ConvertToMatrix()
+        OrthonormalTriangularDecomposition decomp
+        decomp:Calculate(predictorMatrix)
+        Vector predicted = undefined
+
+        if column:CanConvertToVector()
+            predicted = column:ConvertToVector()
+        else
+            return now
+        end
+
+        Vector beta = decomp:Solve(predicted)
+        Vector residuals = regression:CalculateResiduals(predicted, predictorMatrix, beta)
+        number residualSumOfSquares = regression:CalculateResidualSumOfSquares(residuals)
+        number totalSumOfSquares = regression:CalculateTotalSumOfSquares(column, hasIntercept)
+
+        number r2 = regression:CalculateEffectSize(residualSumOfSquares, totalSumOfSquares)
+        number fValue = regression:CalculateCriticalValue(predictorMatrix, r2)
+        output fValue
+    */
+    action CalculateCriticalValue(Matrix predictors, number r2) returns number
+        number numeratorDegreesOfFreedom = CalculateNumeratorDegreesOfFreedom(predictors)
+        number denominatorDegreesOfFreedom = CalculateDenominatorDegreesOfFreedom(predictors)
+
+        number F = 0
+        number numerator = r2 / numeratorDegreesOfFreedom
+        number denominator = (1 - r2) / denominatorDegreesOfFreedom
+        F = numerator / denominator
+        return F
+    end
+
+    /*
+        This action returns the probability value (p-value) for the overall regression. This is
+        sometimes called an "omnibus p-value."
+
+        Attribute: Parameter predictors The matrix of predictor values.
+        Attribute: criticalValue The critical value
+        Attribute: Returns The probability value.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.DataFrameColumn
+        use Libraries.Compute.Statistics.Tests.Regression
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        Matrix predictorMatrix = transformed:ConvertToMatrix()
+        Regression regression
+        number p = regression:CalculateProbabilityValue(predictors, 0.9)
+        output p
+    */
+    action CalculateProbabilityValue(Matrix predictors, number criticalValue) returns number
+        //in this case, p is the number of coefficients in the model, including the intercept
+        //n is the number of items in ONE of the columns
+        number numeratorDegreesOfFreedom = CalculateNumeratorDegreesOfFreedom(predictors)
+        number denominatorDegreesOfFreedom = CalculateDenominatorDegreesOfFreedom(predictors)
+
+        FDistribution dist
+        dist:Setup(numeratorDegreesOfFreedom,denominatorDegreesOfFreedom)
+
+        number value = 1 - dist:CumulativeProbability(criticalValue)
+        return value
+    end
+
+    /*
+        This action calculates the probability values for each beta-coefficient in the model. This is 
+        a complex test and should not be used externally unless you really know what you are doing.
+
+        Attribute: Parameter predictors The matrix of values
+        Attribute: Parameter ortho A decomposition object for the matrix
+        Attribute: Parameter residuals The errors in the model
+        Attribute: Parameter betas The coefficients
+        Attribute: Returns a vector of the probability values
+    */
+    action CalculatePValues(
+        Matrix predictors, 
+        OrthonormalTriangularDecomposition ortho, 
+        Vector residuals,
+        Vector betas) returns Vector
+        Vector standardErrors = CalculateRegressionParametersStandardErrors(predictors, ortho, residuals)
+        //get degrees of freedom of the system
+        integer degreesOfFreedomResiduals = residuals:GetSize() - betas:GetSize()
+
+        Vector result
+        result:SetSize(betas:GetSize())
+
+        Math math
+        i = 0
+        repeat while i < betas:GetSize()
+            number t = betas:Get(i) / standardErrors:Get(i)
+            TDistribution dist
+            dist:Setup(degreesOfFreedomResiduals)
+            number prob = -math:AbsoluteValue(t)
+            number p = dist:CumulativeProbability(prob) * 2.0
+            result:Set(i, p)
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        This action calculates the standard errors from the residuals.
+
+        Attribute: Parameter predictors The matrix of values
+        Attribute: Parameter ortho A decomposition object for the matrix
+        Attribute: Parameter residuals The errors in the model
+    */
+    action CalculateRegressionParametersStandardErrors
+        (Matrix predictors, OrthonormalTriangularDecomposition ortho, Vector residuals) returns Vector
+        Matrix varCovar = CalculateVarianceCovarianceMatrix(predictors, ortho)
+        number sigma = CalculateErrorVariance(predictors, residuals)
+        integer columns = varCovar:GetColumns()
+        Vector result
+        result:SetSize(columns)
+
+        Math math
+        i = 0
+        repeat while i < columns
+            number temp = sigma * varCovar:Get(i, i)
+            temp = math:SquareRoot(temp)
+            result:Set(i, temp)
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        This action calculates the total error variance from the residuals.
+
+        Attribute: Parameter predictors The matrix of values
+        Attribute: Parameter residuals The errors in the model
+    */
+    action CalculateErrorVariance(Matrix predictors, Vector residuals) returns number
+        number result = residuals:DotProduct(residuals)
+        result = result / (predictors:GetRows() - predictors:GetColumns())
+        return result
+    end
+
+    /*
+        This action calculates the variance-covariance matrix
+
+        Attribute: Parameter predictors The matrix of values
+        Attribute: Parameter ortho An already calculated decomposition
+    */
+    action CalculateVarianceCovarianceMatrix(
+        Matrix predictors, OrthonormalTriangularDecomposition ortho) returns Matrix
+        integer columns = predictors:GetColumns()
+        Matrix upper = ortho:GetUpperTriangularMatrix()
+
+        //LU Decomposition requires a square matrix. The upper triangular is largely filled with 0s on the bottom,
+        //so we can get rid of those to make it square
+        Matrix square = upper:GetSubMatrix(0,0,columns,columns)
+        LowerUpperDecomposition luDecomp
+        luDecomp:Calculate(square)
+
+        Matrix inverse = luDecomp:GetInverse()
+        Matrix result = inverse:Multiply(inverse:Transpose())
+        return result
+    end
+
+    /*
+        This action calculates the residuals.
+
+        Attribute: Parameter y The matrix of values
+        Attribute: Parameter predictors The matrix of values
+        Attribute: Parameter b The beta coefficients
+        Attribute: Returns returns the residuals
+    */
+    action CalculateResiduals(Vector y, Matrix predictors, Vector b) returns Vector
+        Vector copy = y:Copy()
+        Vector value = predictors:Multiply(b)
+        copy:Subtract(value)
+        return copy
+    end
+
+    /*
+        This action calculates the residuals.
+
+        Attribute: Parameter residuals The residuals
+        Attribute: Returns returns the sum of squares from the residuals
+    */
+    action CalculateResidualSumOfSquares(Vector residuals) returns number
+        number value = residuals:DotProduct(residuals)
+        return value
+    end
+
+    /*
+        Returns the total effect size, in statistics typically termed R^2 (R-squared). This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The R^2 if the regression is calculated
+    */
+    action GetEffectSize returns number
+        return r2
+    end
+    
+    /*
+        This action returns the effect size for the calculation. The technical name for this effect is "R^2" and the 
+        calculation for this is 1 - the residual sum of squares dividided by the total sum of squares. 
+
+        Attribute: Parameter residualSumOfSquares The residual sum of squares
+        Attribute: Parameter totalSumOfSquares The total sum of squares
+    */
+    action CalculateEffectSize(number residualSumOfSquares, number totalSumOfSquares) returns number
+        return 1 - (GetResidualSumOfSquares() / GetTotalSumOfSquares())
+    end
+
+    /*
+        This action calculates an adjusted effect size. This adjustment accounts for the number of predictors
+        included in the model.  
+
+        Attribute: Parameter predictors
+        Attribute: Parameter r2 the effect size
+        Attribute: Parameter intercept whether the regression includes an intercept.
+        Attribute: Returns The R^2 if the regression is calculated
+    */
+    action CalculateAdjustedEffectSize(Matrix predictors, number r2, boolean intercept) returns number
+        number result = 0
+        number n = predictors:GetRows()
+        number k = predictors:GetColumns()
+
+        if not intercept
+            return 1 - (1 - r2) * (n / (n - k))
+        else
+            number numerator = GetResidualSumOfSquares() * (n - 1)
+            number denominator = GetTotalSumOfSquares() * (n - k)
+            return 1 - (numerator / denominator)
+        end
+    end
+
+    /*
+        Returns the total adjusted effect size, in statistics typically termed adjusted R^2 (R-squared). This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The adjusted R^2 if the regression is calculated
+    */
+    action GetAdjustedEffectSize returns number
+        return adjustedR2
+    end
+
+    /*
+        Returns the total residual sum of squares. This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The residual sum of squares
+    */
+    action GetResidualSumOfSquares returns number
+        return residualSumOfSquares
+    end
+
+    /*
+        Returns the total sum of squares. This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The total sum of squares
+    */
+    action GetTotalSumOfSquares returns number
+        return totalSumOfSquares
+    end
+
+//    action Multiply(Matrix matrix, Vector vector) returns Vector
+//        if vector:GetSize() not= matrix:GetColumns()
+//            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + matrix:GetColumns() + " columns.")
+//        end
+//        Vector result
+//        result:SetSize(matrix:GetRows())
+//
+//        row = 0
+//        repeat while row < matrix:GetRows()
+//            column = 0
+//            number sum = 0
+//            repeat while column < matrix:GetColumns()
+//                number value = matrix:Get(row, column)
+//                number beta = vector:Get(column)
+//                sum = sum + (value * beta)
+//                column = column + 1
+//            end
+//            result:Set(row, sum)
+//            row = row + 1
+//        end
+//        return result
+//    end
+
+    /*
+        Returns the total beta coefficients. This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The beta coefficients
+    */
+    action GetCoefficients returns Vector
+        return beta
+    end
+
+    /*
+        Returns the residuals. This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The residuals
+    */
+    action GetResiduals returns Vector
+        return residuals
+    end
+
+    /*
+        This action adds a column to the set that predict the outcome variable.
+    */
+    action AddPredictorColumn(text name)
+        predictors:Add(name)
+    end
+    
+    /*
+        Returns the column name to be predicted (y)
+    */
+    action GetPredictedColumn returns text
+        return predictedColumn
+    end
+
+    /*
+        Returns the column name to be predicted (y)
+    */
+    action SetPredictedColumn(text predictedColumn)
+        me:predictedColumn = predictedColumn
+    end
+
+    /*
+        Returns whether or not this regression includes an intercept.
+    */
+    action HasIntercept returns boolean
+        return hasIntercept
+    end
+
+    /*
+        Sets whether or not this regression includes an intercept.
+    */
+    action SetHasIntercept(boolean hasIntercept)
+        me:hasIntercept = hasIntercept
+    end
+
+    /*
+        Returns the critical value
+    */
+    action GetCriticalValue returns number
+        return fValue
+    end
+
+    /*
+        Returns the probability value
+    */
+    action GetProbabilityValue returns number
+        return probabilityValue
+    end
+
+    /*
+        Returns the probability values for the beta coefficients
+    */
+    action GetCoefficientProbabilityValues returns Vector
+        return betaProbabilityValues
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+    */
+    action GetFormalSummary returns text
+        text result = "We conducted a multi-variate regression "
+        
+
+        return result
+    end
+end

@@ -1,0 +1,71 @@
+package Libraries.Compute.Statistics.Columns
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.DataFrameColumn
+
+/*
+    TextColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
+    or not. 
+
+    Attribute: Author Andreas Stefik
+*/
+class TextColumn is DataFrameColumn
+    /* This is the new system, which is rows. */
+    Array<Text> rows
+
+    action Add(text value)
+        if value = undefined
+            rows:Add(undefined)
+            return now
+        end
+
+        rows:Add(value)
+    end
+
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+        Text num = rows:Get(index)
+        calculation:Add(num)
+    end
+
+    action GetSize returns integer
+        return rows:GetSize()
+    end
+
+    action Get(integer row) returns Text
+        return rows:Get(row)
+    end
+
+    action Swap(integer left, integer right)
+        Text temp = undefined
+        temp = rows:Get(left)
+        rows:Set(left, rows:Get(right))
+        rows:Set(right, temp)
+    end
+
+    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+        TextColumn column
+        column:SetHeader(GetHeader())
+
+        i = rowStart
+        repeat while i < rowEnd
+            Text value = rows:Get(i)
+            if value = undefined
+                column:rows:Add(undefined)
+            else
+                Text value2
+                value2:SetValue(value:GetValue())
+                column:rows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        return column
+    end
+
+    action Copy returns DataFrameColumn
+        return Copy(0, rows:GetSize())
+    end
+end

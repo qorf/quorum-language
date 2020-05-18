@@ -1,0 +1,86 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+
+/*
+    This class calculates the variance of a particular DataFrameColumn. The variance
+    calculated in this case is the sample variance. More information can be found about
+    variance here: https://en.wikipedia.org/wiki/Variance
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Variance
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Variance variance
+    variance:SetMean(17) //set the mean before using it
+    DataFrameColumn column = frame:GetColumn(0)
+    column:Calculate(variance)
+    number variance = variance:GetVariance()
+*/
+class Variance is DataFrameColumnCalculation
+    integer size = 0
+    number mean = 0
+    number variance = 0
+
+    action Start(DataFrameColumn column) 
+        size = column:GetSize()
+    end
+   
+    action Add(Number value) 
+        if value not= undefined
+            Math math
+            number num = value:GetValue()
+            number n = num - mean
+            n = math:RaiseToPower(n, 2) / (size - 1)
+            variance = variance + n
+        end
+    end
+
+    action Add(Integer value) 
+        if value not= undefined
+            Math math
+            number num = value:GetValue()
+            number n = num - mean
+            n = math:RaiseToPower(n, 2) / (size - 1)
+            variance = variance + n
+        end
+    end
+
+    /*
+        This calculation can be used again if Empty is called after using it on a column.
+    */
+    action Empty
+        size = 0
+        mean = 0
+        variance = 0
+    end
+
+    /*
+        Returns the sample variance.
+    */
+    action GetVariance returns number
+        return variance
+    end
+
+    /*
+        Returns the mean
+    */
+    action GetMean returns number
+        return mean
+    end
+
+    /*
+        Sets the mean. The variance then uses this valus in its calculation.
+    */
+    action SetMean(number mean)
+        me:mean = mean
+    end
+end

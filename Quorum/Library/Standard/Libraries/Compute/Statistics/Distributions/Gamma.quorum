@@ -1,0 +1,346 @@
+package Libraries.Compute.Statistics.Distributions
+
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+
+/*
+    This class, ported from Apache Commons, is an implementation of the Gamma Distribution.
+    More information can be found here: https://en.wikipedia.org/wiki/Gamma_distribution
+*/
+class Gamma 
+    constant number GAMMA = 0.577215664901532860606512090082
+    Math math
+    constant number LANCZOS_G = 607.0 / 128.0
+    constant number HALF_LOG_2_PI = 0.5 * math:Logarithm(2.0 * math:pi)
+    /** The constant value of &radic;(2&pi;). */
+    constant number SQRT_TWO_PI = 2.506628274631000502
+
+    Array<number> lanczos
+
+    /** The constant {@code A0} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_A0 = 0.00000000611609510448141581788
+
+    /** The constant {@code A1} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_A1 = 0.00000000624730830116465516210
+
+    /** The constant {@code B1} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B1 = 0.203610414066806987300
+
+    /** The constant {@code B2} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B2 = 0.0266205348428949217746
+
+    /** The constant {@code B3} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B3 = 0.000493944979382446875238
+
+    /** The constant {@code B4} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B4 = -0.00000851419432440314906588
+
+    /** The constant {@code B5} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B5 = -0.00000643045481779353022248
+
+    /** The constant {@code B6} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B6 = 0.000000992641840672773722196
+
+    /** The constant {@code B7} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B7 = -0.0000000607761895722825260739
+
+    /** The constant {@code B8} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_B8 = 0.000000000195755836614639731882
+
+    /** The constant {@code P0} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P0 = 0.000000006116095104481415817861
+
+    /** The constant {@code P1} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P1 = 0.000000006871674113067198736152
+
+    /** The constant {@code P2} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P2 = 0.0000000006820161668496170657918
+
+    /** The constant {@code P3} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P3 = 0.00000000004686843322948848031080
+
+    /** The constant {@code P4} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P4 = 0.000000000001572833027710446286995
+
+    /** The constant {@code P5} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P5 = -0.0000000000001249441572276366213222
+
+    /** The constant {@code P6} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_P6 = 0.000000000000004343529937408594255178
+
+    /** The constant {@code Q1} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_Q1 = 0.3056961078365221025009
+
+    /** The constant {@code Q2} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_Q2 = 0.05464213086042296536016
+
+    /** The constant {@code Q3} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_Q3 = 0.004956830093825887312020
+
+    /** The constant {@code Q4} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_Q4 = 0.0002692369466186361192876
+
+    /** The constant {@code C} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C = -0.422784335098467139393487909917598
+
+    /** The constant {@code C0} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C0 = 0.577215664901532860606512090082402
+
+    /** The constant {@code C1} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C1 = -0.655878071520253881077019515145390
+
+    /** The constant {@code C2} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C2 = -0.0420026350340952355290039348754298
+
+    /** The constant {@code C3} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C3 = 0.166538611382291489501700795102105
+
+    /** The constant {@code C4} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C4 = -0.0421977345555443367482083012891874
+
+    /** The constant {@code C5} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C5 = -0.00962197152787697356211492167234820
+
+    /** The constant {@code C6} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C6 = 0.00721894324666309954239501034044657
+
+    /** The constant {@code C7} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C7 = -0.00116516759185906511211397108401839
+
+    /** The constant {@code C8} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C8 = -0.000215241674114950972815729963053648
+
+    /** The constant {@code C9} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C9 = 0.000128050282388116186153198626328164
+
+    /** The constant {@code C10} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C10 = -0.0000201348547807882386556893914210218
+
+    /** The constant {@code C11} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C11 = -0.00000125049348214267065734535947383309
+
+    /** The constant {@code C12} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C12 = 0.00000113302723198169588237412962033074
+
+    /** The constant {@code C13} defined in {@code DGAM1}. */
+    constant number INV_GAMMA1P_M1_C13 = -0.000000205633841697760710345015413002057
+
+    on create
+       lanczos:Add(0.99999999999999709182)
+       lanczos:Add(57.156235665862923517)
+       lanczos:Add(-59.597960355475491248)
+       lanczos:Add(14.136097974741747174)
+       lanczos:Add(-0.49191381609762019978)
+       lanczos:Add(0.000033994649984811888699)
+       lanczos:Add(0.000046523628927048575665)
+       lanczos:Add(-0.000098374475304879564677)
+       lanczos:Add(0.00015808870322491248884)
+       lanczos:Add(-0.00021026444172410488319)
+       lanczos:Add(0.00021743961811521264320)
+       lanczos:Add(-0.00016431810653676389022)
+       lanczos:Add(0.000084418223983852743293)
+       lanczos:Add(-0.000026190838401581408670)
+       lanczos:Add(0.0000036899182659531622704)
+    end
+
+    action Gamma(number x) returns number
+        if x = math:RoundToNearestInteger(x) and x <= 0.0
+            return x:GetNotANumberValue()
+        end
+
+        number ret = 0.0
+        number absX = math:AbsoluteValue(x)
+
+        if absX <= 20.0
+            if x >= 1.0
+                /*
+                 * From the recurrence relation
+                 * Gamma(x) = (x - 1) * ... * (x - n) * Gamma(x - n),
+                 * then
+                 * Gamma(t) = 1 / [1 + invGamma1pm1(t - 1)],
+                 * where t = x - n. This means that t must satisfy
+                 * -0.5 <= t - 1 <= 1.5.
+                 */
+                number prod = 1.0
+                number t = x
+                repeat while t > 2.5
+                    t = t - 1.0
+                    prod = prod * t
+                end
+                ret = prod / (1.0 + InvGamma1pm1(t - 1.0))
+            else 
+                /*
+                 * From the recurrence relation
+                 * Gamma(x) = Gamma(x + n + 1) / [x * (x + 1) * ... * (x + n)]
+                 * then
+                 * Gamma(x + n + 1) = 1 / [1 + invGamma1pm1(x + n)],
+                 * which requires -0.5 <= x + n <= 1.5.
+                 */
+                number prod = x
+                number t = x
+                repeat while t < -0.5
+                    t = t + 1.0
+                    prod =  prod * t
+                end
+                ret = 1.0 / (prod * (1.0 + InvGamma1pm1(t)))
+            end
+        else
+            number y = absX + LANCZOS_G + 0.5
+            number gammaAbs = SQRT_TWO_PI / absX *
+                math:RaiseToPower(y, absX + 0.5) *
+                math:RaiseNaturalNumberToPower(-y) * Lanczos(absX)
+
+            if x > 0.0
+                ret  = gammaAbs
+            else
+                /*
+                 * From the reflection formula
+                 * Gamma(x) * Gamma(1 - x) * sin(pi * x) = pi,
+                 * and the recurrence relation
+                 * Gamma(1 - x) = -x * Gamma(-x),
+                 * it is found
+                 * Gamma(x) = -pi / [x * sin(pi * x) * Gamma(-x)].
+                 */
+                ret = -math:pi / (x * math:Sine(math:pi * x) * gammaAbs)
+            end
+        end
+
+        return ret
+    end
+
+    action LogGamma(number x) returns number
+        number ret = 0
+
+        if x:IsNotANumber() or x <= 0.0
+            return x:GetNotANumberValue()
+        elseif x < 0.5
+            return LogGamma1p(x) - math:Logarithm(x)
+        elseif x <= 2.5
+            return LogGamma1p((x - 0.5) - 0.5)
+        elseif x <= 8.0
+            integer n =  cast(integer, x - 1.5)
+            number prod = 1.0
+            i = 1
+            repeat while i <= n
+                prod = prod * (x - i)
+                i = i + 1
+            end
+            return LogGamma1p(x - (n + 1)) + math:Logarithm(prod)
+        else 
+            number sum = Lanczos(x)
+            number tmp = x + LANCZOS_G + 0.5
+            ret = ((x + 0.5) * math:Logarithm(tmp)) - tmp +
+                HALF_LOG_2_PI + math:Logarithm(sum / x)
+        end
+        return ret
+    end
+
+    action Lanczos(number x) returns number
+        number sum = 0.0
+        i = lanczos:GetSize() - 1
+        repeat while i > 0
+            sum = lanczos:Get(i) / (x + i)
+            i = i - 1
+        end
+
+        return sum + lanczos:Get(0)
+    end
+
+    action LogGamma1p(number x) returns number
+        if x < -0.5
+            alert("Number too small")
+        elseif x > 1.5
+            alert("Number too large")
+        end
+        return -math:NaturalLogarithm(1 + InvGamma1pm1(x))
+    end
+
+    action InvGamma1pm1(number x) returns number
+        if x < -0.5
+            alert("x is less than -0.5")
+        end
+
+        if x > 1.5
+             alert("x is greater than 1.5")
+        end
+
+        number ret = 0
+        number t = 0
+        if x <= 0.5
+            t = x
+        else
+            t = (x - 0.5) - 0.5
+        end
+
+        if t < 0.0
+            number a = INV_GAMMA1P_M1_A0 + t * INV_GAMMA1P_M1_A1
+            number b = INV_GAMMA1P_M1_B8
+            b = INV_GAMMA1P_M1_B7 + t * b
+            b = INV_GAMMA1P_M1_B6 + t * b
+            b = INV_GAMMA1P_M1_B5 + t * b
+            b = INV_GAMMA1P_M1_B4 + t * b
+            b = INV_GAMMA1P_M1_B3 + t * b
+            b = INV_GAMMA1P_M1_B2 + t * b
+            b = INV_GAMMA1P_M1_B1 + t * b
+            b = 1.0 + t * b
+
+            number c = INV_GAMMA1P_M1_C13 + t * (a / b)
+            c = INV_GAMMA1P_M1_C12 + t * c
+            c = INV_GAMMA1P_M1_C11 + t * c
+            c = INV_GAMMA1P_M1_C10 + t * c
+            c = INV_GAMMA1P_M1_C9 + t * c
+            c = INV_GAMMA1P_M1_C8 + t * c
+            c = INV_GAMMA1P_M1_C7 + t * c
+            c = INV_GAMMA1P_M1_C6 + t * c
+            c = INV_GAMMA1P_M1_C5 + t * c
+            c = INV_GAMMA1P_M1_C4 + t * c
+            c = INV_GAMMA1P_M1_C3 + t * c
+            c = INV_GAMMA1P_M1_C2 + t * c
+            c = INV_GAMMA1P_M1_C1 + t * c
+            c = INV_GAMMA1P_M1_C + t * c
+
+            if x > 0.5
+                ret = t * c / x
+            else 
+                ret = x * ((c + 0.5) + 0.5)
+            end
+        else
+            number p = INV_GAMMA1P_M1_P6
+            p = INV_GAMMA1P_M1_P5 + t * p
+            p = INV_GAMMA1P_M1_P4 + t * p
+            p = INV_GAMMA1P_M1_P3 + t * p
+            p = INV_GAMMA1P_M1_P2 + t * p
+            p = INV_GAMMA1P_M1_P1 + t * p
+            p = INV_GAMMA1P_M1_P0 + t * p
+
+            number q = INV_GAMMA1P_M1_Q4
+            q = INV_GAMMA1P_M1_Q3 + t * q
+            q = INV_GAMMA1P_M1_Q2 + t * q
+            q = INV_GAMMA1P_M1_Q1 + t * q
+            q = 1.0 + t * q
+
+            number c = INV_GAMMA1P_M1_C13 + (p / q) * t
+            c = INV_GAMMA1P_M1_C12 + t * c
+            c = INV_GAMMA1P_M1_C11 + t * c
+            c = INV_GAMMA1P_M1_C10 + t * c
+            c = INV_GAMMA1P_M1_C9 + t * c
+            c = INV_GAMMA1P_M1_C8 + t * c
+            c = INV_GAMMA1P_M1_C7 + t * c
+            c = INV_GAMMA1P_M1_C6 + t * c
+            c = INV_GAMMA1P_M1_C5 + t * c
+            c = INV_GAMMA1P_M1_C4 + t * c
+            c = INV_GAMMA1P_M1_C3 + t * c
+            c = INV_GAMMA1P_M1_C2 + t * c
+            c = INV_GAMMA1P_M1_C1 + t * c
+            c = INV_GAMMA1P_M1_C0 + t * c
+
+            if x > 0.5
+                ret = (t / x) * ((c - 0.5) - 0.5)
+            else
+                ret = x * c
+            end
+        end
+
+        return ret
+    end
+end

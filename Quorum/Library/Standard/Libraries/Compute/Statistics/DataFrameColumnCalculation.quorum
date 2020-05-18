@@ -1,0 +1,96 @@
+package Libraries.Compute.Statistics
+
+use Libraries.Compute.Statistics.DataFrameColumn
+
+/*
+    The Calculation class is a general class that can be sent to an individual 
+    column to calculate a value on it. Calculations can either be Iterable, meaning
+    that the column will pass individual values to the calculation, or not Iterable,
+    which means the column will call Calculate(Column column), asking the system
+    to do the entire calculation all at once. This allows the calculations to work
+    on streams of data, in addition to raw data sets. 
+
+    The way this works is that if the calculation is iterable, the column itself
+    will go through its data, one by one, and pass the items to the calculation. 
+    This may be numbers, integers, or some other data type and any of them can be 
+    empty values as undefined (indicating an empty value in the data set). This 
+    allows many calculations to have very small implementations, just a few lines,
+    for many kinds of statistical calculations. Finally, calculations can be
+    made re-usable by implementing the Empty call, which resets calculations to 
+    their default state.
+
+    Attribute: Author Andreas Stefik
+*/
+class DataFrameColumnCalculation 
+    /*
+        This action is called at the start of a calculation and passes the column
+        that will be computed upon, so that the calculation can obtain any information 
+        it needs from the column.
+    */
+    action Start(DataFrameColumn column) end
+
+    /*
+        This action is called at the end of a calculation.
+    */
+    action End(DataFrameColumn column) end
+
+    /*
+        This action can calculate the equation from a particular column. By default
+        this action will only be called if the Calculation is not Iterable. Because 
+        the Column class is not guaranteed to have any particular data type, individual
+        Calculation classes may need to cast to a particular column or data type
+        to perform their operations. If a calculation is Iterable, the column
+        will pass all of its data, one by one, to the calculation instead.
+    */ 
+    action Calculate(DataFrameColumn column) end
+
+    /*
+        If the calculation returns true from IsIterable, this is a Number object 
+        that was passed to the calculation. This may be undefined, which indicates
+        that the column did not contain a value at this position in the column.
+    */
+    action Add(Number value) end
+
+    /*
+        If the calculation returns true from IsIterable, this is an Integer object 
+        that was passed to the calculation. This may be undefined, which indicates
+        that the column did not contain a value at this position in the column.
+    */
+    action Add(Integer value) end
+
+    /*
+        If the calculation returns true from IsIterable, this is a Boolean object 
+        that was passed to the calculation. This may be undefined, which indicates
+        that the column did not contain a value at this position in the column.
+    */
+    action Add(Boolean value) end
+
+    /*
+        If the calculation returns true from IsIterable, this is a Text object 
+        that was passed to the calculation. This may be undefined, which indicates
+        that the column did not contain a value at this position in the column.
+    */
+    action Add(Text value) end
+
+    /* If the calculation otherwise has no primitive type, it sends it to the column
+       as a raw object. Columns might use this if they have custom types.
+    */
+    action Add(Object value) end
+
+    /*
+        If this action returns true, each element of the column will be sent 
+        to this calculation one by one. If this is false, the column should ask
+        this class to conduct the calculation all at once using the Calculate
+        action. 
+    */
+    action IsIterable returns boolean
+        return true
+    end
+
+    /*
+        This action deletes any saved data in the calculation and returns it
+        to its default state.
+    */
+    action Empty
+    end
+end

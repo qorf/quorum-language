@@ -1,0 +1,144 @@
+package Libraries.Compute.Statistics.Loaders
+
+use Libraries.Compute.Statistics.DataFrameLoader
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Data.Formats.SeparatedValue
+
+/*
+    This class can load data into a DataFrame from a comma separated value file.
+    By default, this class chooses its columns from the first value in a cell.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+
+    //Load a comma separated file
+    DataFrame frame
+    CommaSeparatedLoader loader
+    File file
+    file:SetPath("Data.csv")
+    frame:Load(file, loader) 
+*/
+class CommaSeparatedLoader is DataFrameLoader
+    
+    action Load(DataFrame frame, File file)
+        SeparatedValue reader
+        reader:Read(file)
+
+        Array<text> header = undefined
+        //first, by default, grab the header row
+        if reader:GetSize() > 0
+            header = reader:GetRow(0)
+        else
+            alert("Tried to read an empty CSV file")
+        end
+
+        //This makes the columns based on the first item
+        //if that item does not exist in the first row (e.g., NA value)
+        //then we will need to make the column later
+        Array<DataFrameColumn> newColumns
+        if reader:GetSize() > 1
+            Array<text> row = reader:GetRow(1)
+            i = 0
+            repeat while i < row:GetSize()
+                text value = row:Get(i)
+                DataFrameColumn column = GenerateColumnFromText(value)
+                newColumns:Add(column)
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < header:GetSize()
+            text value = header:Get(i)
+            DataFrameColumn column = newColumns:Get(i)
+            if column not= undefined
+                column:SetHeader(value)
+            end
+            i = i + 1
+        end
+        
+        //get all the rows and convert them to named columns. By default, assume
+        //a header row. Perhaps allow a way to turn this off
+        i = 1
+        repeat while i < reader:GetSize()
+            Array<text> row = reader:GetRow(i)
+            if row:GetSize() = newColumns:GetSize() //does it match or is there extra stuff?
+                j = 0
+                repeat while j < row:GetSize()
+                    DataFrameColumn col = newColumns:Get(j)
+                    col:Add(row:Get(j))
+                    j = j + 1
+                end
+            //in this case, the size of the row is less than the columns
+            elseif row:GetSize() < newColumns:GetSize()
+                j = 0
+                repeat while j < newColumns:GetSize()
+                    DataFrameColumn col = newColumns:Get(j)
+                    
+                    //if there is data, add it. Otherwise, add missing data markers
+                    if j < row:GetSize()
+                        col:Add(row:Get(j))
+                    else
+                        col:Add(undefined)
+                    end
+                    j = j + 1
+                end
+            //This might need to be modified for the case where we have
+            //data in a row, but down farther in a file. In this case
+            //no column may have been created
+            else 
+                j = 0
+                //there was only so many columns in the header
+                //so add data just for those first
+                repeat while j < row:GetSize()
+                    DataFrameColumn col = newColumns:Get(j)
+                    col:Add(row:Get(j))
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+        frame:SetColumns(newColumns)
+    end
+
+    action GenerateColumnFromText(text value) returns DataFrameColumn
+        if value = undefined or value:IsEmpty()
+            TextColumn column
+            return column
+        end
+
+        check
+            integer val = cast(integer, value)
+            IntegerColumn column
+            return column
+        detect e
+        end
+
+        check
+            number val = cast(number, value)
+            NumberColumn column
+            return column
+        detect e
+        end
+
+        check
+            boolean val = cast(boolean, value)
+            BooleanColumn column
+            return column
+        detect e
+        end
+
+        TextColumn column
+        return column
+    end
+end

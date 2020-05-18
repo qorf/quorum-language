@@ -1,0 +1,105 @@
+package Libraries.Compute.Statistics.Columns
+
+use Libraries.Containers.Array
+use Libraries.Compute.Random
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+
+/*
+    IntegerColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
+    or not. 
+
+    Attribute: Author Andreas Stefik
+*/
+class IntegerColumn is DataFrameColumn
+    /* This is the new system, which is rows. */
+    Array<Integer> rows
+
+    action Add(text value)
+        if value = undefined
+            rows:Add(undefined)
+            return now
+        end
+
+        check 
+            integer num = cast(integer, value)
+            rows:Add(num)
+        detect e
+            rows:Add(undefined) //add a missing value
+        end
+    end
+
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+        Integer int = rows:Get(index)
+        calculation:Add(int)
+    end
+
+    action GetAsNumber(integer index) returns number
+        Integer num = rows:Get(index)
+        if num = undefined
+            alert("Cannot convert value at position " + index + " to number.")
+        end
+        return num:GetValue()
+    end
+
+    action ConvertToVector returns Vector
+        Vector vector
+        vector:SetSize(GetSize())
+        i = 0
+        repeat while i < rows:GetSize()
+            Integer value = rows:Get(i)
+            if value = undefined
+                vector:Set(i, 0)
+            else
+                vector:Set(i, value:GetValue())
+            end
+            i = i + 1
+        end
+        return vector
+    end
+
+    action CanConvertToVector returns boolean
+        return true
+    end
+
+    action GetSize returns integer
+        return rows:GetSize()
+    end
+
+    action Get(integer row) returns Integer
+        return rows:Get(row)
+    end
+
+    action Swap(integer left, integer right)
+        Integer temp = undefined
+        temp = rows:Get(left)
+        rows:Set(left, rows:Get(right))
+        rows:Set(right, temp)
+    end
+
+    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+        IntegerColumn column
+        column:SetHeader(GetHeader())
+
+        i = rowStart
+        repeat while i < rowEnd
+            Integer value = rows:Get(i)
+            if value = undefined
+                column:rows:Add(undefined)
+            else
+                Integer value2
+                value2:SetValue(value:GetValue())
+                column:rows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        return column
+    end
+
+    action Copy returns DataFrameColumn
+        return Copy(0, rows:GetSize())
+    end
+end

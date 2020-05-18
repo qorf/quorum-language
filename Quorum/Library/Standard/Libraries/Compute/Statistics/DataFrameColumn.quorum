@@ -1,0 +1,116 @@
+package Libraries.Compute.Statistics
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Vector
+
+/*
+    This class represents a column on the system. Columns do not have a type themselves,
+    but all subclasses can be made to have any arbitrary type, even custom ones. Columns
+    by default can accept calculations, which send elements to the calculation of the 
+    appropriate type and conduct operations. DataFrame objects use the appropriate
+    subclass of column automatically when reading in data frames from disk, based
+    upon the first item in the spreadsheet.
+
+    Note that in most cases, a user will not interact directly with this class. It is a 
+    parent class that encapsulates some common functionality, but typically one would 
+    pass a calculation or other operation to this class. If one needs to directly manipulate 
+    the data in a particular column, then a subclass must be used.
+
+    Attribute: Author Andreas Stefik
+*/
+class DataFrameColumn 
+    /* This is the name of the column. */
+    text header = ""
+    
+    /*
+        This gets the header for this column.
+    */
+    action GetHeader returns text
+        return header
+    end
+
+    /*
+        This sets the header for this column.
+    */
+    action SetHeader(text header)
+        me:header = header
+    end
+
+    /*
+        Columns may optionally add data from a text representation of that data. 
+        This can be in any arbitrary format determined by the column implementor.
+    */
+    action Add(text value)
+    end
+
+    /*
+        This action sends an individual data point to a calculation, typed
+        appropriately by its subclass.
+    */
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+    end
+
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to a number. 
+
+        Attrribute: Parameter index the item to be converted
+    */
+    action GetAsNumber(integer index) returns number
+        alert("Cannot convert value at position " + index + " to number.")
+    end
+
+    /*
+        Some column types can be converted to a raw vector of numbers. All other
+        column types throw an error if they cannot convert.
+    */
+    action ConvertToVector returns Vector
+        alert("Cannot convert to Vector for this type of Column.")
+    end
+
+    /* This action returns whether or not this column type can be converted to a Vector of numbers. */
+    action CanConvertToVector returns boolean
+        return false
+    end
+
+    /*
+        This action swaps two values in the column. 
+    */
+    blueprint action Swap(integer left, integer right)
+
+    /*
+        This action conducts a calculation on this column. The calculation begins 
+        by issuing a Start action. Then if it is an iterable action, sends each
+        data point to the class for processing. If not, it is asked to conduct
+        the entire operation at once on the full data set. Finally, it issues
+        an end action. 
+    */
+    action Calculate(DataFrameColumnCalculation calculation)
+        if calculation = undefined
+            return now
+        end
+
+        calculation:Start(me)
+        boolean iterable = calculation:IsIterable()
+        if iterable
+            i = 0
+            repeat while i < GetSize()
+                SendValueTo(i, calculation)
+                i = i + 1
+            end
+        else
+            calculation:Calculate(me)
+        end
+        calculation:End(me)
+    end
+
+    /* This action conducts a deep copy of the column. */
+    blueprint action Copy returns DataFrameColumn
+
+    /* This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. */
+    blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+
+    /* This action returns the number of rows. */
+    action GetSize returns integer
+        return 0
+    end
+end

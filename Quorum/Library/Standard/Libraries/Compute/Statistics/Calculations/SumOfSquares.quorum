@@ -1,0 +1,59 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+
+/*
+    This class calculates the sum of squares of a particular DataFrameColumn.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Variance
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    SumOfSquares sumOfSquares
+    DataFrameColumn column = frame:GetColumn(0)
+    column:Calculate(sumOfSquares)
+    number result = sumOfSquares:GetResult()
+    output result
+*/
+class SumOfSquares is DataFrameColumnCalculation
+    number result = 0
+
+    action Start(DataFrameColumn column)
+    end
+   
+    action Add(Number value) 
+        if value not= undefined
+            number num = value:GetValue()
+            result = result + num * num
+        end
+    end
+
+    action Add(Integer value) 
+        if value not= undefined
+            number num = value:GetValue()
+            result = result + num * num
+        end
+    end
+
+    /*
+        This calculation can be used again if Empty is called after using it on a column.
+    */
+    action Empty
+        result = 0
+    end
+
+    /*
+        Returns the sample variance.
+    */
+    action GetResult returns number
+        return result
+    end
+end

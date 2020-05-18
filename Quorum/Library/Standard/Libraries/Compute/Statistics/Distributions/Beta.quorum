@@ -1,0 +1,293 @@
+package Libraries.Compute.Statistics.Distributions
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Calculations.RegularizedBetaContinuedFraction
+
+/*
+    This class, ported from Apache Commons, is an implementation of the Beta Distribution.
+    More information can be found here: https://en.wikipedia.org/wiki/Beta_distribution
+*/
+class Beta 
+    constant number DEFAULT_EPSILON = 0.00000000000001
+    constant number HALF_LOG_TWO_PI = 0.9189385332046727
+    Math math
+    Gamma gamma
+    /**
+     * <p>
+     * The coefficients of the series expansion of the Δ function. This function
+     * is defined as follows
+     * </p>
+     * <center>Δ(x) = log Γ(x) - (x - 0.5) log a + a - 0.5 log 2π,</center>
+     * <p>
+     * see equation (23) in Didonato and Morris (1992). The series expansion,
+     * which applies for x ≥ 10, reads
+     * </p>
+     * <pre>
+     *                 14
+     *                ====
+     *             1  \                2 n
+     *     Δ(x) = ---  >    d  (10 / x)
+     *             x  /      n
+     *                ====
+     *                n = 0
+     * <pre>
+     */
+     Array<number> DELTA
+
+     on create
+        Math math
+        DELTA:Add(0.0833333333333333333333333333333)
+        DELTA:Add(-0.0000277777777777777777777777752282)
+        DELTA:Add(0.0000000793650793650793650791732130419)
+        DELTA:Add(-0.000000000595238095238095232389839236182)
+        DELTA:Add(0.00000000000841750841750832853294451671990)
+        DELTA:Add(-0.000000000000191752691751854612334149171243)
+        DELTA:Add(0.00000000000000641025640510325475730918472625)
+        DELTA:Add(-0.000000000000000295506514125338232839867823991)
+        DELTA:Add(0.0000000000000000179643716359402238723287696452)
+        DELTA:Add(-0.00000000000000000139228964661627791231203060395)
+        DELTA:Add(0.000000000000000000133802855014020915603275339093)
+        DELTA:Add(-0.0000000000000000000154246009867966094273710216533)
+        DELTA:Add(0.00000000000000000000197701992980957427278370133333)
+        DELTA:Add(-0.000000000000000000000234065664793997056856992426667)
+        DELTA:Add(0.0000000000000000000000171348014966398575409015466667)
+     end
+
+    
+    action RegularizedBeta(number x, number a, number b) returns number
+        integer value = 0
+        return RegularizedBeta(x, a, b, DEFAULT_EPSILON, value:GetMaximumValue())
+    end
+
+    action RegularizedBeta(number x, number a, number b, number epsilon) returns number
+        integer value = 0
+        return RegularizedBeta(x, a, b, epsilon, value:GetMaximumValue())
+    end
+
+    action RegularizedBeta(number x, number a, number b, integer maxIterations) returns number
+        integer value = 0
+        return RegularizedBeta(x, a, b, DEFAULT_EPSILON, maxIterations)
+    end
+
+    action SumDeltaMinusDeltaSum(number p, number q) returns number
+        if p < 10.0
+            alert("Number is too small: " + p)
+        end
+
+        if q < 10.0
+            alert("Number is too small: " + q)
+        end
+
+        number a = math:MinimumOf(p, q)
+        number b = math:MaximumOf(p, q)
+        number sqrtT = 10.0 / a
+        number t = sqrtT * sqrtT
+        number z = DELTA:Get(DELTA:GetSize() - 1)
+        i = DELTA:GetSize() - 2
+        repeat while i >= 0
+            z = t * z + DELTA:Get(i)
+            i = i - 1
+        end
+        
+        return z / a + DeltaMinusDeltaSum(a,b)
+    end
+
+    action DeltaMinusDeltaSum(number a, number b) returns number
+        if a < 0 or a > b
+            alert("Out of range: a, " + a + ", b, " + b)
+        end
+
+        if b < 10
+            alert("Number is too small" + b)
+        end
+
+        number h = a / b
+        number p = h / (1.0 + h)
+        number q = 1.0 / (1.0 + h)
+        number q2 = q * q
+        Array<number> s
+        s:SetSize(DELTA:GetSize())
+        s:Set(0, 1.0)
+
+        i = 1
+        repeat while i < s:GetSize()
+            s:Set(i, 1.0 + (q + q2 * s:Get(i - 1)))
+            i = i + 1
+        end
+        
+        number sqrtT = 10.0 / b
+        number t = sqrtT * sqrtT
+        number w = DELTA:Get(DELTA:GetSize() - 1) * s:Get(s:GetSize() - 1)
+        i = DELTA:GetSize() - 2
+        repeat while i >= 0
+            w = t * w + DELTA:Get(i) * s:Get(i)
+            i = i - 1
+        end
+
+        return w * p / b
+    end
+
+    action LogBeta(number p, number q) returns number
+        if p:IsNotANumber() or q:IsNotANumber() or p <= 0.0 or q <= 0.0
+            return p:GetNotANumberValue()
+        end
+
+        number a = math:MinimumOf(p, q)
+        number b = math:MaximumOf(p, q)
+
+        if a >= 10.0
+            number w = SumDeltaMinusDeltaSum(a, b)
+            number h = a / b
+            number c = h / (1.0 + h)
+            number u = -(a - 0.5) * math:NaturalLogarithm(c)
+            number v = b * math:NaturalLogarithm(h + 1)
+            if u <= v
+                return (((-0.5 * math:NaturalLogarithm(b) + HALF_LOG_TWO_PI) + w) - u) - v
+            else
+                return (((-0.5 * math:NaturalLogarithm(b) + HALF_LOG_TWO_PI) + w) - v) - u
+            end
+        elseif a > 2.0
+            if b > 1000.0
+                integer n = cast(integer, math:Floor(a - 1.0))
+                number prod = 1.0
+                number ared = a
+                i = 0
+                repeat while i < n
+                    ared = ared - 1.0
+                    prod = prod * ared / (1.0 + ared / b)
+                    i = i + 1
+                end
+                
+                return (math:NaturalLogarithm(prod) - n * math:NaturalLogarithm(b))
+                    + (gamma:LogGamma(ared) + LogGammaMinusLogGammaSum(ared, b))
+            else 
+                number prod1 = 1.0
+                number ared = a
+                repeat while ared > 2.0
+                    ared = ared - 1.0
+                    number h = ared / b
+                    prod1 = prod1 * h / (1.0 + h)
+                end
+
+                if b < 10.0
+                    number prod2 = 1.0
+                    number bred = b
+                    repeat while bred > 2.0
+                        bred = bred - 1.0
+                        prod2 = prod2 * bred / (ared + bred)
+                    end
+
+                    return math:NaturalLogarithm(prod1) + math:NaturalLogarithm(prod2) + 
+                        (gamma:LogGamma(ared) + (gamma:LogGamma(bred) - 
+                        LogGammaSum(ared, bred)))
+                else
+                    return math:NaturalLogarithm(prod1) + gamma:LogGamma(ared) +
+                            LogGammaMinusLogGammaSum(ared, b)
+                end
+            end
+        elseif a >= 1.0
+            if b > 2.0
+                if b < 10.0
+                    number prod = 1.0
+                    number bred = b
+                    repeat while bred > 2.0
+                        bred = bred - 1.0
+                        prod = prod * bred / (a + bred)
+                    end
+
+                    return math:NaturalLogarithm(prod) + 
+                        (gamma:LogGamma(a) + 
+                            (gamma:LogGamma(bred) - LogGammaSum(a, bred))
+                        )
+                else
+                    return gamma:LogGamma(a) + LogGammaMinusLogGammaSum(a, b)
+                end
+            else
+                return gamma:LogGamma(a) + gamma:LogGamma(b) - LogGammaSum(a, b)
+            end
+        else 
+            if b > 10.0
+                return gamma:LogGamma(a) +
+                       LogGammaMinusLogGammaSum(a, b)
+            else
+                // The following command is the original NSWC implementation.
+                // return Gamma.logGamma(a) +
+                // (Gamma.logGamma(b) - Gamma.logGamma(a + b));
+                // The following command turns out to be more accurate.
+                return math:NaturalLogarithm(gamma:Gamma(a) * gamma:Gamma(b) /
+                    gamma:Gamma(a + b))
+            end
+        end
+    end
+
+    action LogGammaMinusLogGammaSum(number a, number b) returns number
+        if a < 0.0
+            alert("Number is too small, " + a)
+        end
+
+        if b < 10.0
+            alert("Number is too small, " + b)
+        end
+
+        number d = 0
+        number w = 0
+        if a <= b
+            d = b + (a - 0.5)
+            w = DeltaMinusDeltaSum(a, b)
+        else
+            d = a + (b - 0.5)
+            w = DeltaMinusDeltaSum(b, a)
+        end
+
+        number u = d * math:NaturalLogarithm(1 + (a / b))
+        number v = a * (math:NaturalLogarithm(b) - 1.0)
+
+        if u <= v
+            return (w - u) - v
+        else
+            return (w - v) - u
+        end
+    end
+
+    action LogGammaSum(number a, number b) returns number
+        if a < 1.0 or a > 2.0
+            alert("Number out of range, " + a)
+        end
+
+        if b < 1.0 or b > 2.0
+            alert("Number out of range, " + b)
+        end
+
+        number x = (a - 1.0) + (b - 1.0)
+        if x <= 0.5
+            return gamma:LogGamma1p(1.0 + x)
+        elseif x <= 1.5
+            return gamma:LogGamma1p(x) + math:NaturalLogarithm(x + 1)
+        else 
+            return gamma:LogGamma1p(x - 1.0) + math:NaturalLogarithm(x * (1.0 + x))
+        end
+    end
+
+    action RegularizedBeta(number x, number a, number b, number epsilon, integer maxIterations) returns number
+        number ret = 0
+
+        if  x:IsNotANumber() or a:IsNotANumber() or b:IsNotANumber()
+            or x < 0 or x > 1 or a <= 0 or b <= 0
+            ret = a:GetNotANumberValue()
+        elseif x > (a + 1) / (2 + b + a) and
+               1 - x <= (b + 1) / (2 + b + a)
+            ret = 1 - RegularizedBeta(1 - x, b, a, epsilon, maxIterations)
+        else
+            RegularizedBetaContinuedFraction fraction
+            fraction:SetA(a)
+            fraction:SetB(b)
+
+            ret = math:RaiseNaturalNumberToPower((a * math:NaturalLogarithm(x)) + (b * math:NaturalLogarithm(-x + 1)) - 
+                math:NaturalLogarithm(a) - LogBeta(a, b)) *
+                1.0 / fraction:Evaluate(x, epsilon, maxIterations)
+        end
+
+        return ret
+    end
+end

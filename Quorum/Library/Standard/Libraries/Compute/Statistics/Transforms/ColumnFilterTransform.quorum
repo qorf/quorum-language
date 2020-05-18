@@ -1,0 +1,48 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Containers.Array
+
+/*
+    This action takes the data from the current DataFrame then reverses it so that the top row is now 
+    at the bottom and vice versa.
+
+    Attribute: Author Andreas Stefik 
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.ColumnRowFilterTransform
+    use Libraries.System.File
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv")
+
+    //Get a copy of the data frame's first two columns, up to row 5.
+    ColumnFilterTransform transform
+    transform:Add("DT")
+    frame:Transform(transform) 
+*/
+class ColumnFilterTransform is DataFrameTransform
+    Array<text> columns
+    action Transform(DataFrame frame) returns DataFrame 
+        integer i = 0
+        DataFrame newFrame
+        Array<DataFrameColumn> newColumns
+        repeat while i < columns:GetSize()
+            text value = columns:Get(i)
+            DataFrameColumn column = frame:GetColumn(value)
+            DataFrameColumn copy = column:Copy()
+            newColumns:Add(copy)
+            i = i + 1
+        end
+        newFrame:SetColumns(newColumns)
+        return newFrame
+    end
+
+    action Add(text column)
+        columns:Add(column)
+    end
+end

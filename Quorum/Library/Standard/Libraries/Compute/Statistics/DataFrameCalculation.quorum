@@ -1,0 +1,41 @@
+package Libraries.Compute.Statistics
+
+use Libraries.Compute.Statistics.DataFrame
+
+/*
+    This class runs a calculation on a data frame. Calculations are not intended
+    to be destructive to the original data.
+
+    Attribute: Author Andreas Stefik
+    Attribute: Parameter calculation The calculation we want conducted on this frame.
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.System.File
+
+    //Load a comma separated file
+    DataFrame frame
+    File file
+    file:SetPath("Data.csv")
+    frame:Load(file)
+*/
+class DataFrameCalculation 
+
+    /*
+        This action runs the calculation in a subclass. This action should never destroy data in the frame that is 
+        passed.
+    
+        Attribute: Parameter calculation The calculation we want conducted on this frame.
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.System.File
+    
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        frame:Load(file)
+    */
+    blueprint action Calculate(DataFrame column) 
+end

@@ -1,0 +1,74 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+
+/*
+    This action takes the data from the current DataFrame then reverses it so that the top row is now 
+    at the bottom and vice versa.
+
+    Attribute: Author Andreas Stefik 
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.ColumnRowFilterTransform
+    use Libraries.System.File
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv")
+
+    //Get a copy of the data frame's first two columns, up to row 5.
+    ColumnRowFilterTransform transform
+    transform:SetColumnStart(0)
+    transform:SetColumnEnd(1)
+    transform:SetRowStart(0)
+    transform:SetRowEnd(5)
+    frame:Transform(transform) 
+*/
+class ColumnRowFilterTransform is DataFrameTransform
+    integer columnStart = 0
+    integer columnEnd = 0
+    integer rowStart = 0
+    integer rowEnd = 0
+
+    action Transform(DataFrame frame) returns DataFrame 
+        DataFrame newFrame = frame:Copy(columnStart, columnEnd, rowStart, rowEnd)
+        return newFrame
+    end
+
+    /* The 0-index starting column. */
+    action GetColumnStart returns integer
+        return columnStart
+    end
+
+    /* The 0-index starting column. */
+    action SetColumnStart(integer columnStart)
+        me:columnStart = columnStart
+    end
+    /* The 0-index ending column. */
+    action GetColumnEnd returns integer
+        return columnEnd
+    end
+    /* The 0-index ending column. */
+    action SetColumnEnd(integer columnEnd)
+        me:columnEnd = columnEnd
+    end
+    /* The 0-index starting row. */
+    action GetRowStart returns integer
+        return rowStart
+    end
+    /* The 0-index starting row. */
+    action GetRowEnd returns integer
+        return rowEnd
+    end
+    /* The 0-index starting row. */
+    action SetRowStart(integer rowStart)
+        me:rowStart = rowStart
+    end
+    /* The 0-index ending row. */
+    action SetRowEnd(integer rowEnd)
+        me:rowEnd = rowEnd
+    end
+end
