@@ -1,0 +1,245 @@
+package Libraries.Compute
+
+use Libraries.Containers.Number64BitArray
+
+/*
+    This class represents a mathematical vector of number values. 
+    
+    Attribute: Author Andreas Stefik
+    Attribute: Example
+    
+    use Libraries.Compute.Vector
+
+    Vector vector
+    vector:SetSize(2)
+    vector:Set(0, 4.8)
+    vector:Set(1, 3.2)
+    
+    output vector:ToText()
+*/
+class Vector
+    Number64BitArray array
+    constant text ERROR = "Operation cannot be performed unless the vectors are the same size."
+
+    /* 
+        This action returns a number at a particular point in the vector.
+
+        Attribute: Parameter index where in the vector to get a number
+        Attribute: Returns the value to return
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        output vector:Get(0)
+    */
+    action Get(integer index) returns number
+        return array:Get(index)
+    end
+
+    /* 
+        This action sets a number at a particular point in the vector.
+
+        Attribute: Parameter index where in the vector to get a number
+        Attribute: Parameter value the value to put in the vector.
+
+        Attribute: Returns the value to return
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        vector:Set(0, 2)
+        output vector:Get(0)
+    */
+    action Set(integer index, number value)
+        array:Set(index, value)
+    end
+
+    /* 
+        This action returns the size of the vector
+
+        Attribute: Returns the size
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        output vector:GetSize()
+    */
+    action GetSize returns integer
+        return array:GetSize()
+    end
+
+    /* 
+        This action sets the size of the vector. Note that this action must be called before the vector
+        is used. This is because the vector class is optimized for memory.
+
+        Attribute: size Sets the size of the vector.
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        output vector:GetSize()
+    */
+    action SetSize(integer size)
+        array:SetSize(size)
+    end
+
+    /*
+        This action adds this vector onto the current one. Because this action changes the vector
+        being added on, a copy may be needed for non-destructive operations.
+
+        Attribute: vector The vector to add on to this one.
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+
+        Vector vector2
+        vector2:SetSize(3)
+        vector:Add(vector2)
+
+        //this will output 0s because both vectors are 0
+        output vector:ToText()
+    */
+    action Add(Vector vector)
+        if GetSize() not= vector:GetSize()
+            alert(ERROR)
+        end
+
+        i = 0
+        repeat while i < GetSize()
+            Set(i, Get(i) + vector:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        This action subtracts this vector onto the current one. Because this action changes the vector
+        being added on, a copy may be needed for non-destructive operations.
+
+        Attribute: vector The vector to subtract on to this one.
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+
+        Vector vector2
+        vector2:SetSize(3)
+        vector:Subtract(vector2)
+
+        //this will output 0s because both vectors are 0
+        output vector:ToText()
+    */
+    action Subtract(Vector vector)
+        if GetSize() not= vector:GetSize()
+            alert(ERROR)
+        end
+
+        i = 0
+        repeat while i < GetSize()
+            Set(i, Get(i) - vector:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        This action calculates the dot product between the two vectors. More information 
+        can be found about dot products here: https://en.wikipedia.org/wiki/Dot_product
+
+        Attribute: vector The vector to dot product with
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+
+        Vector vector2
+        vector2:SetSize(3)
+        output vector:DotProduct(vector2)
+    */
+    action DotProduct(Vector vector) returns number
+        if GetSize() not= vector:GetSize()
+            alert(ERROR)
+        end
+
+        number sum = 0
+        i = 0
+        repeat while i < GetSize()
+            sum = sum + Get(i) * vector:Get(i)
+            i = i + 1
+        end
+        return sum
+    end
+    /*
+        This action returns a copy of the current vector. The new vector's
+        components are a deep copy.
+    
+        Attribute: Returns a new vector that is a deep copy.
+    
+        Attribute: Example
+        
+        use Libraries.Compute.Vector
+    
+        Vector vector
+        vector:SetSize(2)
+        vector:Set(0, 4.8)
+        vector:Set(1, 3.2)
+        
+        Vector copyVector
+        copyVector = vector:Copy()
+        output copyVector:ToText()
+    */
+    action Copy returns Vector
+        Vector vector
+        vector:SetSize(me:GetSize())
+        i = 0
+        repeat while i < me:GetSize()
+            vector:Set(i, Get(i))
+            i = i + 1
+        end
+        return vector
+    end
+
+    /*
+        This action returns a text representation of the vector.
+    
+        Attribute: Returns a text representation of the vector
+    
+        Attribute: Example
+        
+        use Libraries.Compute.Vector
+    
+        Vector vector
+        vector:SetSize(2)
+        vector:Set(0, 4.8)
+        vector:Set(1, 3.2)
+        
+        output vector:ToText()
+    */
+    action ToText returns text
+        text result = "|"
+        i = 0
+        repeat while i < me:GetSize()
+            result = result + Get(i)
+            if i + 1 < GetSize()
+                result = result + ", "
+            else
+                result = result + "|"
+            end
+            i = i + 1
+        end
+        return result
+    end
+end

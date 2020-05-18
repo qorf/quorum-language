@@ -876,6 +876,65 @@ class Matrix
     end
 
     /*
+    This method multiplies the matrix by a vector. The dimensions of the vector must match the rows of the matrix.
+
+    Attribute: Example
+
+    Attribute Parameter vector The vector to multiply by the current matrix.
+
+    Attribute Returns A new Vector after the operation is performed.
+
+    use Libraries.Compute.Matrix
+    use Libraries.Compute.Vector
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:SetSize(2,3)
+            matrix:Set(0, 0, 1)
+            matrix:Set(0, 1, -1)
+            matrix:Set(0, 2, 2)
+    
+            matrix:Set(1, 0, 0)
+            matrix:Set(1, 1, -3)
+            matrix:Set(1, 2, 1)
+    
+            Vector vector
+            vector:SetSize(3)
+            i = 2
+            repeat while i >= 0
+                vector:Set(2 - i, i)
+                i = i - 1
+            end
+            Vector result = matrix:Multiply(vector)
+            output result:ToText()
+        end
+    end
+    */
+    action Multiply(Vector vector) returns Vector
+        if vector:GetSize() not= GetColumns()
+            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + matrix:GetColumns() + " columns.")
+        end
+        Vector result
+        result:SetSize(GetRows())
+
+        row = 0
+        repeat while row < GetRows()
+            column = 0
+            number sum = 0
+            repeat while column < GetColumns()
+                number value = Get(row, column)
+                number beta = vector:Get(column)
+                sum = sum + (value * beta)
+                column = column + 1
+            end
+            result:Set(row, sum)
+            row = row + 1
+        end
+        return result
+    end
+
+    /*
     This method returns a copy of a Matrix.
 
     Attribute Returns A new copied matrix.
