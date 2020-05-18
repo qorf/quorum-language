@@ -269,23 +269,24 @@ class DefaultSceneManager is SceneManager
 
     private action LoadItem2Ds(JavaScriptObjectNotation json) returns Array<Item2D>
         Array<Item2D> items
-
         Iterator<JavaScriptObjectNotation> iterator = json:GetIterator()
         repeat while iterator:HasNext()
             JavaScriptObjectNotation item = iterator:Next()
-            items:Add(LoadItem2D(item))
+            if item not= undefined and not item:IsUndefined() //if this isn't an empty object value
+                items:Add(LoadItem2D(item))
+            end
         end
-
         return items
     end
 
     private action LoadItem3Ds(JavaScriptObjectNotation json) returns Array<Item3D>
         Array<Item3D> items
-
         Iterator<JavaScriptObjectNotation> iterator = json:GetIterator()
         repeat while iterator:HasNext()
             JavaScriptObjectNotation item = iterator:Next()
-            items:Add(LoadItem3D(item))
+            if item not= undefined and not item:IsUndefined() //if this isn't an empty object value
+                items:Add(LoadItem3D(item))
+            end
         end
 
         return items
