@@ -913,7 +913,7 @@ class Matrix
     */
     action Multiply(Vector vector) returns Vector
         if vector:GetSize() not= GetColumns()
-            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + matrix:GetColumns() + " columns.")
+            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + GetColumns() + " columns.")
         end
         Vector result
         result:SetSize(GetRows())
