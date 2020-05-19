@@ -1,0 +1,210 @@
+package Libraries.Testing
+use Libraries.Containers.List
+use Libraries.Containers.Iterator
+
+/*
+
+This class provides us a test platform for running tests on our system. There are two ways to use it. 
+First, if we provide it a Test object, we can call Run, which will execute the test on our system and 
+keep track of whether or not the test passed. Second, if we prefer to run the computation on our own,
+ we can pass a test object through Add, which already stores its pass or fail flag. Depending on the 
+result, if a test passes, the system places it in a list of passed tests. If the test fails, it places 
+it in a list of failed tests. This allows the system to keep a running tally of the total and provide 
+output for the result. 
+
+Attribute: Author Andreas Stefik
+Attribute: Example
+
+use Libraries.Testing.Tester
+use Libraries.Testing.Test
+
+Tester tests
+
+Test result
+result:SetMessage("This is a failed test.")
+
+tests:Add(result)
+*/
+class Tester
+    /* This stores all of the tests that passed. */
+    List<Test> passedTests
+
+    /* This stores all of the tests that failed. */
+    List<Test> failedTests
+    
+    /*
+        This action executes the test in question and tracks whether or not it passed.
+
+        Attribute: Parameter The test to execute.
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        tests:Add(result)
+    */
+    action Run(Test test)
+        if test = undefined
+            return now
+        end
+
+        check
+            test:Run()
+        detect e
+            //no matter what the test thinks, tell it it failed
+            test:SetPassed(false)
+        end
+
+        if test:IsPassed()
+            passedTests:Add(test)
+        else
+            failedTests:Add(test)
+        end
+    end
+
+    /*
+        This action assumes a test has already been evaluated and adds it to the results for this run of the test suite.
+
+        Attribute: Parameter The test to execute.
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        tests:Add(result)
+    */
+    action Add(Test test)
+        if test = undefined
+            return now
+        end
+
+        if test:IsPassed()
+            passedTests:Add(test)
+        else
+            failedTests:Add(test)
+        end
+    end
+
+    /*
+        Returns the number of passing tests.
+
+        Attribute: Returns the number of passing tests.
+
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        output tests:GetPassingSize() //0
+    */
+    action GetPassingSize returns integer
+        return passedTests:GetSize()
+    end
+
+    /*
+        Returns the number of failing tests.
+
+        Attribute: Returns the number of failing tests.
+
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        output tests:GetFailingSize() //1
+    */
+    action GetFailingSize returns integer
+        return failedTests:GetSize()
+    end
+
+    /*
+        Returns the total number of tests.
+
+        Attribute: Returns the number of total tests.
+
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        output tests:GetSize() //1
+    */
+    action GetSize returns integer
+        return GetFailingSize() + GetPassingSize()
+    end
+
+    /*
+        Returns an iterator over the passing tests.
+
+        Attribute: Returns an Iterator<Test>
+
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        Iterator<Test> iterator = tests:GetPassedTestsIterator()
+        repeat while iterator:HasNext()
+            Test value = iterator:Next()
+            output value:GetMessage()
+        end
+    */
+    action GetPassedTestsIterator returns Iterator<Test>
+        return passedTests:GetIterator()
+    end
+    
+    /*
+        Returns an iterator over the passing tests.
+
+        Attribute: Returns an Iterator<Test>
+
+        Attribute: Example
+
+        use Libraries.Testing.Tester
+        use Libraries.Testing.Test
+        
+        Tester tests
+        
+        Test result
+        result:SetMessage("This is a failed test.")
+        
+        Iterator<Test> iterator = tests:GetFailedTestsIterator()
+        repeat while iterator:HasNext()
+            Test value = iterator:Next()
+            output value:GetMessage()
+        end
+    */
+    action GetFailedTestsIterator returns Iterator<Test>
+        return failedTests:GetIterator()
+    end
+end
