@@ -863,7 +863,11 @@ class DefaultSceneManager is SceneManager
             end
 
             Color color = drawable:GetColor()
-            json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            if color not= undefined
+                json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+            else
+                json:Add(properties:COLOR, NewJsonArray(0.0, 0.0, 0.0, 0.0))
+            end
         end
 
         boolean physicsEnabled = item:IsPhysicsEnabled()
