@@ -123,6 +123,9 @@ use Libraries.Interface.Behaviors.Controls.SpreadsheetLeftBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetRightBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetUpBehavior
 use Libraries.Interface.Behaviors.Controls.SpreadsheetActivationBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetCopyBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetCutBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetPasteBehavior
 use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeOpenPopupMenuBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
@@ -1445,6 +1448,9 @@ class Game
 
         InputTable spreadsheetTable
         spreadsheetTable:SetIdentifier("Spreadsheet")
+        SpreadsheetCopyBehavior spreadsheetCopyBehavior
+        SpreadsheetCutBehavior spreadsheetCutBehavior
+        SpreadsheetPasteBehavior spreadsheetPasteBehavior
         SpreadsheetDownBehavior spreadsheetDownBehavior
         SpreadsheetUpBehavior spreadsheetUpBehavior
         SpreadsheetLeftBehavior spreadsheetLeftBehavior
@@ -1456,6 +1462,40 @@ class Game
         spreadsheetTable:Add(leftArrow, spreadsheetLeftBehavior)
         spreadsheetTable:Add(rightArrow, spreadsheetRightBehavior)
         spreadsheetTable:Add(enterSet, spreadsheetActivate)
+
+        //copy past for fields
+        if manager:GetOperatingSystem():Contains("OS X")
+            //first do copy paste
+            InputSet metaC
+            metaC:SetKeyboardInput(keys:C)
+            metaC:AddModifier(metaC:META)
+            spreadsheetTable:Add(metaC, spreadsheetCopyBehavior)
+
+            InputSet metaX
+            metaX:SetKeyboardInput(keys:X)
+            metaX:AddModifier(metaX:META)
+            spreadsheetTable:Add(metaX, spreadsheetCutBehavior)
+
+            InputSet metaV
+            metaV:SetKeyboardInput(keys:V)
+            metaV:AddModifier(metaV:META)
+            spreadsheetTable:Add(metaV, spreadsheetPasteBehavior)
+        else
+            InputSet controlC
+            controlC:SetKeyboardInput(keys:C)
+            controlC:AddModifier(controlC:CONTROL)
+            spreadsheetTable:Add(controlC, spreadsheetCopyBehavior)
+
+            InputSet controlX
+            controlX:SetKeyboardInput(keys:X)
+            controlX:AddModifier(controlX:CONTROL)
+            spreadsheetTable:Add(controlX, spreadsheetCutBehavior)
+
+            InputSet controlV
+            controlV:SetKeyboardInput(keys:V)
+            controlV:AddModifier(controlV:CONTROL)
+            spreadsheetTable:Add(controlV, spreadsheetPasteBehavior)
+        end
 
         gameInput:AddInputTable(spreadsheetTable)
 
