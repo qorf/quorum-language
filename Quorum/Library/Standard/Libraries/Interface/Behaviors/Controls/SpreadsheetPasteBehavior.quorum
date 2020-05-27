@@ -8,6 +8,11 @@ use Libraries.Interface.Controls.Cell
 use Libraries.Game.GameStateManager
 use Libraries.Game.Game
 
+/*
+    This class is a default behavior that adds paste support into the spreadsheet.
+    Broadly, while it can be used as a template for such a behavior, there is generally
+    no reason to interact with this class.
+*/
 class SpreadsheetPasteBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is Spreadsheet

@@ -8,6 +8,11 @@ use Libraries.Interface.Controls.Cell
 use Libraries.Game.GameStateManager
 use Libraries.Game.Game
 
+/*
+    This class is a default behavior that adds cut support into the spreadsheet.
+    Broadly, while it can be used as a template for such a behavior, there is generally
+    no reason to interact with this class.
+*/
 class SpreadsheetCutBehavior is Behavior 
     action Run(BehaviorEvent event)
         if event:GetItem() is Spreadsheet
