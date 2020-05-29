@@ -1,6 +1,7 @@
 package Libraries.Compute
 
 use Libraries.Containers.Number64BitArray
+use Libraries.Containers.Support.Comparison
 
 /*
     This class represents a mathematical vector of number values. 
@@ -72,6 +73,26 @@ class Vector
     */
     action GetSize returns integer
         return array:GetSize()
+    end
+
+    /*
+        This action returns a boolean value, true if the container is empty and false if it contains any items. 
+
+        Attribute: Returns Returns true when the container is empty and false when it is not. 
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        Vector myArray
+        myArray:SetSize(10)
+        myArray:Set(0, 22) 
+        myArray:Set(1, 33)
+        myArray:Set(2, 45)
+        myArray:Set(3, 22)
+        boolean result = myArray:IsEmpty()
+        output result
+    */
+    action IsEmpty returns boolean
+        return GetSize() = 0
     end
 
     /* 
@@ -241,5 +262,81 @@ class Vector
             i = i + 1
         end
         return result
+    end
+
+    /*
+        This action sorts the values of the array using a merge sort algorithm.
+        It is guaranteed to execute in O(n log n).
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        Vector myArray
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort()
+    */
+    action Sort
+        integer size = GetSize()
+        if size = 0 or size = 1
+            return now //it is already sorted
+        end
+        Vector temp
+        temp:SetSize(me:GetSize())
+        MergeSort(me, temp, 0, me:GetSize() - 1)
+    end
+
+
+    private action MergeSort(Vector original, Vector temp,
+        integer left, integer right)
+
+        if left < right 
+           center = (left + right) / 2
+           MergeSort(original, temp, left, center)
+           MergeSort(original, temp, center + 1, right)
+           Merge(original, temp, left, center + 1, right)
+        end
+    end
+    
+    private action Merge(Vector original, Vector temp,
+        integer left, integer center, integer right)
+        leftEnd = center - 1
+        leftTemp = left
+        rightTemp = right
+        centerTemp = center
+        position = left
+
+        repeat while leftTemp <= leftEnd and centerTemp <= right 
+            number l = original:Get(leftTemp)
+            number r = original:Get(centerTemp)
+            integer result = l:Compare(r)
+            if  result = -1 or result = 0
+                temp:Set(position, original:Get(leftTemp))
+                leftTemp = leftTemp + 1
+            else 
+                temp:Set(position, original:Get(centerTemp))
+                centerTemp = centerTemp + 1
+            end
+            position = position + 1
+        end
+
+        repeat while leftTemp <= leftEnd
+            temp:Set(position, original:Get(leftTemp))
+            leftTemp = leftTemp + 1
+            position = position + 1
+        end
+
+        repeat while centerTemp <= right
+            temp:Set(position, original:Get(centerTemp))
+            centerTemp = centerTemp + 1
+            position = position + 1
+        end
+
+        size = right - left + 1
+        i = left
+        repeat size times
+            original:Set(i, temp:Get(i))
+            i = i + 1
+        end
     end
 end
