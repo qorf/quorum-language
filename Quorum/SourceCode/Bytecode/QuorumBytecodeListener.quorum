@@ -2092,6 +2092,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
 
             Type variableType = variable:GetType()
+            //if this type is null, it means the variable was found, but it's type could not be determined.
+            if variableType = undefined
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:OTHER)
+                error:SetCompilerErrorType(t)
+                text message = "I located the variable " + variableName + ", but could not determine its type."
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return undefined
+            end
+
             key = variableType:GetStaticKey()
 
             actionCall:SetVariableToMakeParentCallOn(variable)
