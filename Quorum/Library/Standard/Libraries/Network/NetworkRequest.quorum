@@ -45,7 +45,7 @@ class NetworkRequest
     private text parameters = ""
     private Iterator<text> headerIterator = undefined
     private text nextHeader = ""
-    private text downloadFile = ""
+    private File downloadFile = undefined
 
 
     /*
@@ -83,13 +83,13 @@ class NetworkRequest
     end
     */
     public action SetDownloadFile(File downloadFile)
-        me:downloadFile = downloadFile:GetFileName()
+        me:downloadFile = downloadFile
     end
 
     /*
     Use this method to download a file from the internet. Set the filename and path where you'd like the downloaded file to save on your local computer.
 
-    Attribute: Parameter downloadFile The path name as a text object
+    Attribute: Parameter downloadFile The relative path to the working directory.
 
     Attribute: Example
 
@@ -117,13 +117,15 @@ class NetworkRequest
     end
     */
     public action SetDownloadFile(text downloadFile)
-        me:downloadFile = downloadFile
+        File file
+        file:SetPath(downloadFile)
+        me:downloadFile = file
     end
 
 /*
     Use this method to retrieve the file name from a NetworkRequest object for a file to be downloaded.
 
-    Attribute: Parameter downloadFile The path name as a text object
+    Attribute: Parameter downloadFile The file where the bytes will be downloaded
 
     Attribute: Example
 
@@ -133,11 +135,11 @@ class NetworkRequest
         action Main
             NetworkRequest request
             request:SetDownloadFile("logo.png")
-            output request:GetDownloadFile()
+            output request:GetDownloadFile():GetAbsolutePath()
         end
     end
     */
-    public action GetDownloadFile returns text
+    public action GetDownloadFile returns File
         return me:downloadFile
     end
     /*

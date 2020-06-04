@@ -19,6 +19,7 @@ import java.util.zip.GZIPInputStream;
 import quorum.Libraries.Language.Errors.InputOutputError;
 import quorum.Libraries.Network.NetworkRequest_;
 import quorum.Libraries.Network.NetworkResponseEvent_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -85,9 +86,11 @@ public class NetworkConnection {
                 os.close();
             }
             
-            if (!request.GetDownloadFile().isEmpty()){
+            if (request.GetDownloadFile() != null){
                 InputStream in = conn.getInputStream();
-                FileOutputStream out = new FileOutputStream(request.GetDownloadFile());
+                File_ quorumFile = request.GetDownloadFile();
+                File file = new File(quorumFile.GetAbsolutePath());
+                FileOutputStream out = new FileOutputStream(file);
  
                 int bytesRead = -1;
                 byte[] buffer = new byte[4096];
@@ -149,9 +152,10 @@ public class NetworkConnection {
             conn.setDoOutput(request.GetDoOutput());
             conn.connect();
             
-            if (!request.GetDownloadFile().isEmpty()){
+            if (request.GetDownloadFile() != null){
                 InputStream in = conn.getInputStream();
-                FileOutputStream out = new FileOutputStream(request.GetDownloadFile());
+                File file = new File(request.GetDownloadFile().GetAbsolutePath());
+                FileOutputStream out = new FileOutputStream(file);
  
                 int bytesRead = -1;
                 byte[] buffer = new byte[4096];
