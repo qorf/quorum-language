@@ -180,9 +180,6 @@ class Drawable is TextureRegion, Item2D
         
         temp:LoadFromFile(file)
         Load(temp)
-
-        SceneProperties properties
-        primitiveType = properties:CUSTOM
     end
 
     /*
@@ -293,6 +290,9 @@ class Drawable is TextureRegion, Item2D
         SetRegion(sourceX, sourceY, sourceWidth, sourceHeight)
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM
     end
 
     /*
@@ -330,6 +330,9 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM
     end
 
     /*
@@ -368,6 +371,9 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM
     end
 
     /*
@@ -618,6 +624,16 @@ class Drawable is TextureRegion, Item2D
     */
     action GetDrawableType returns integer
         return drawableType
+    end
+
+    /*
+    This action sets an integer code representing the type of graphics that's
+    been loaded into this Drawable. The type values can be found in the
+    SceneProperties class. This action is used internally by the engine as
+    needed, and most users won't ever need to call this directly.
+    */
+    action SetDrawableType(integer type)
+        drawableType = type
     end
 
     /*

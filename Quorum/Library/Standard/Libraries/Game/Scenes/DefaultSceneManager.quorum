@@ -27,10 +27,12 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
 use Libraries.Game.Graphics.Skybox
 use Libraries.System.File
+use Libraries.Containers.HashTable
 
 class DefaultSceneManager is SceneManager
     
     GameStateManager gameState
+    HashTable<text, Texture> loadedTextures
 
     action Load(Scene scene)
         Game game = gameState:GetGame()
@@ -310,6 +312,10 @@ class DefaultSceneManager is SceneManager
         // These variables are used if the Item is a Drawable.
         Drawable drawable = undefined
         text file = ""
+        number textureRegionLeft = 0
+        number textureRegionRight = 0
+        number textureRegionTop = 0
+        number textureRegionBottom = 0
         integer type = properties:NONE
         Number32BitArray points = undefined
         Color color = undefined
@@ -373,6 +379,14 @@ class DefaultSceneManager is SceneManager
                 friction = json:GetNumber(key)
             elseif key = properties:RESTITUTION
                 restitution = json:GetNumber(key)
+            elseif key = properties:TEXTURE_REGION_LEFT
+                textureRegionLeft = json:GetNumber(key)
+            elseif key = properties:TEXTURE_REGION_RIGHT
+                textureRegionRight = json:GetNumber(key)
+            elseif key = properties:TEXTURE_REGION_TOP
+                textureRegionTop = json:GetNumber(key)
+            elseif key = properties:TEXTURE_REGION_BOTTOM
+                textureRegionBottom = json:GetNumber(key)
             end
 
             counter = counter + 1
@@ -412,7 +426,16 @@ class DefaultSceneManager is SceneManager
                         cast(integer, points:Get(3)), cast(integer, points:Get(4)), cast(integer, points:Get(5)))
                 end
             elseif type = properties:CUSTOM
-                drawable:Load(file)
+                Texture texture = GetTexture(file)
+
+                number textureWidth = texture:GetWidth()
+                number textureHeight = texture:GetHeight()
+                integer x = cast(integer, textureWidth * textureRegionLeft)
+                integer y = cast(integer, textureHeight * textureRegionTop)
+                integer width = cast(integer, textureWidth * textureRegionRight) - x
+                integer height = cast(integer, textureHeight * textureRegionBottom) - y
+
+                drawable:Load(texture, x, y, width, height)
             end
         end
 
@@ -446,6 +469,17 @@ class DefaultSceneManager is SceneManager
         end
 
         return item
+    end
+
+    private action GetTexture(text file) returns Texture
+        if loadedTextures:HasKey(file)
+            return loadedTextures:GetValue(file)
+        else
+            Texture texture
+            texture:LoadFromFile(file)
+            loadedTextures:Add(file, texture)
+            return texture
+        end
     end
 
     private action LoadItem3D(JavaScriptObjectNotation json) returns Item3D
@@ -723,32 +757,32 @@ class DefaultSceneManager is SceneManager
 
             OrthographicCamera orthographic = cast(OrthographicCamera, camera)
 
-            if not CustomSaveCameraProperty(orthographic, properties:ZOOM, cameraJson)
+            if not CustomSaveCameraProperty(layer, orthographic, properties:ZOOM, cameraJson)
                 cameraJson:Add(properties:ZOOM, orthographic:GetZoom())
             end
         elseif camera is PerspectiveCamera
             cameraJson:Add(properties:CLASS, "PerspectiveCamera")
 
             PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
-            if not CustomSaveCameraProperty(perspective, properties:FIELD_OF_VIEW, cameraJson)
+            if not CustomSaveCameraProperty(layer, perspective, properties:FIELD_OF_VIEW, cameraJson)
                 cameraJson:Add(properties:FIELD_OF_VIEW, perspective:GetFieldOfView())
             end
         end
 
-        if not CustomSaveCameraProperty(camera, properties:POSITION, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:POSITION, cameraJson)
             Vector3 vector = camera:GetPosition()
             cameraJson:Add(properties:POSITION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
         end
-        if not CustomSaveCameraProperty(camera, properties:DIRECTION, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:DIRECTION, cameraJson)
             Vector3 vector = camera:GetDirection()
             cameraJson:Add(properties:DIRECTION, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
         end
-        if not CustomSaveCameraProperty(camera, properties:UP, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:UP, cameraJson)
             Vector3 vector = camera:GetUp()
             cameraJson:Add(properties:UP, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
         end
 
-        if not CustomSaveCameraProperty(camera, properties:SIZE, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:SIZE, cameraJson)
             /*
             Record the size only if it isn't the default. We don't want the scene to
             fix the camera to a size if it was mirroring the dimensions of the window.
@@ -758,10 +792,10 @@ class DefaultSceneManager is SceneManager
             end
         end
 
-        if not CustomSaveCameraProperty(camera, properties:FAR, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:FAR, cameraJson)
             cameraJson:Add(properties:FAR, camera:GetFar())
         end
-        if not CustomSaveCameraProperty(camera, properties:NEAR, cameraJson)
+        if not CustomSaveCameraProperty(layer, camera, properties:NEAR, cameraJson)
             cameraJson:Add(properties:NEAR, camera:GetNear())
         end
 
@@ -806,7 +840,7 @@ class DefaultSceneManager is SceneManager
     This function can be overridden to make custom modifications to the JSON for a particular
     property type. This should return true if a custom modification was made, or false otherwise.
     */
-    private action CustomSaveCameraProperty(Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+    private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
         return false
     end
 
@@ -857,6 +891,11 @@ class DefaultSceneManager is SceneManager
                 Texture texture = drawable:GetTexture()
                 if texture not= undefined and texture:GetSource() not= ""
                     json:Add(properties:FILE, texture:GetSource())
+
+                    json:Add(properties:TEXTURE_REGION_LEFT, drawable:GetLeftSide())
+                    json:Add(properties:TEXTURE_REGION_RIGHT, drawable:GetRightSide())
+                    json:Add(properties:TEXTURE_REGION_TOP, drawable:GetTopSide())
+                    json:Add(properties:TEXTURE_REGION_BOTTOM, drawable:GetBottomSide())
                 end
             elseif type = properties:FILLED_TRIANGLE
                 json:Add(properties:POINTS, item:GetProperty(properties:POINTS))
