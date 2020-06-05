@@ -309,6 +309,75 @@ class NetworkConnection
     end
 
     /*
+    This action sets a response event indicating progress toward a download.
+
+    Attribute: Parameter response The NetworkResponseEvent to forward to the listeners.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequestListener
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Containers.Iterator
+
+    class Main is NetworkRequestListener
+        action Main
+            NetworkConnection http
+            http:AddListener(me)
+            http:SetDownloadProgress(0,1)
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+
+        action DownloadProgress(integer length, integer read)
+            output legnth + " of " + read
+        end
+    end
+    */
+    action SetDownloadProgress(integer length, integer read)
+        Notify(length, read)
+    end
+
+    /*
+    This action notifies the listeners with the amount of data that has been processed toward a download.
+
+    Attribute: Parameter length the total size of the download in bytes
+    Attribute: Parameter read the total amount of data that has been read so far in bytes
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkRequestListener
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Containers.Iterator
+
+    class Main is NetworkRequestListener
+        action Main
+            NetworkConnection http
+            http:AddListener(me)
+            http:Notify(0,1)
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            output response:GetResponseText()
+        end
+
+        action DownloadProgress(integer length, integer read)
+            output legnth + " of " + read
+        end
+    end
+    */
+    action Notify(integer length, integer read)
+        Iterator<NetworkRequestListener> iterator = listeners:GetIterator()
+        repeat while iterator:HasNext()
+            NetworkRequestListener listener = iterator:Next()
+            listener:DownloadProgress(length, read)
+        end
+    end
+
+    /*
     This action notifies the listeners with the response event.
 
     Attribute: Parameter response The NetworkResponseEvent to forward to the listeners.
