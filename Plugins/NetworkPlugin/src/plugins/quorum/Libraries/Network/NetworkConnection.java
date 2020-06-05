@@ -92,10 +92,14 @@ public class NetworkConnection {
                 File file = new File(quorumFile.GetAbsolutePath());
                 FileOutputStream out = new FileOutputStream(file);
  
+                int contentLength = conn.getContentLength();
+                int totalSoFar = 0;
                 int bytesRead = -1;
                 byte[] buffer = new byte[4096];
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
+                    totalSoFar += bytesRead;
+                    SetDownloadProgress(contentLength, totalSoFar);
                 }
                 in.close();
                 out.close();
@@ -156,11 +160,14 @@ public class NetworkConnection {
                 InputStream in = conn.getInputStream();
                 File file = new File(request.GetDownloadFile().GetAbsolutePath());
                 FileOutputStream out = new FileOutputStream(file);
- 
+                int contentLength = conn.getContentLength();
+                int totalSoFar = 0;
                 int bytesRead = -1;
                 byte[] buffer = new byte[4096];
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
+                    totalSoFar += bytesRead;
+                    SetDownloadProgress(contentLength, totalSoFar);
                 }
                 in.close();
                 out.close();
@@ -199,6 +206,9 @@ public class NetworkConnection {
     
     private void Put(NetworkRequest_ request) {}
     
+    private void SetDownloadProgress(int length, int read) {
+        connection.SetDownloadProgress(length, read);
+    }
     private void SetResponses(HttpURLConnection conn, String responseText) throws InputOutputError {
         try {
             NetworkResponseEvent_ response = connection.GetNewResponseEvent();
