@@ -97,9 +97,9 @@ public class NetworkConnection {
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
                 }
-                SetResponses(conn, request.GetDownloadFile() + " downloaded.");
                 in.close();
                 out.close();
+                SetResponses(conn, request.GetDownloadFile() + " downloaded.");
             } else {
                 DataInputStream is = new DataInputStream(conn.getInputStream());
                 BufferedReader in = null;
@@ -113,8 +113,8 @@ public class NetworkConnection {
                 while ((line = in.readLine()) != null) {
                     responseText.append(line + "\r\n");
                 }
-                SetResponses(conn, responseText.toString());
                 in.close();
+                SetResponses(conn, responseText.toString());
             }
             conn.disconnect();
         } catch (IOException ex)
@@ -162,9 +162,9 @@ public class NetworkConnection {
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
                 }
-                SetResponses(conn, request.GetDownloadFile() + " downloaded.");
                 in.close();
                 out.close();
+                SetResponses(conn, request.GetDownloadFile() + " downloaded.");
             } else {
                 DataInputStream is = new DataInputStream(conn.getInputStream());
                 BufferedReader in = null;
@@ -178,8 +178,8 @@ public class NetworkConnection {
                 while ((line = in.readLine()) != null) {
                     responseText.append(line + "\r\n");
                 }
-                SetResponses(conn, responseText.toString());
                 in.close();
+                SetResponses(conn, responseText.toString());
             }
             conn.disconnect();
         } catch (IOException ex)
