@@ -217,6 +217,127 @@ class Action is Symbol
         parentClass = clazz
     end
 
+    action GetCodeCompletionItem returns CodeCompletionItem
+        CodeCompletionItem item
+        if GetParametersSize() = 0
+            item:isActionWithoutParameters = true
+        end
+
+        if IsPublic()
+            if IsBlueprint()
+                item:SetType(item:PUBLIC_BLUEPRINT_ACTION)
+            elseif IsSystem()
+                item:SetType(item:PUBLIC_SYSTEM_ACTION)
+            else
+                item:SetType(item:PUBLIC_ACTION)
+            end
+        else 
+            if IsBlueprint()
+                item:SetType(item:PRIVATE_BLUEPRINT_ACTION)
+            elseif IsSystem()
+                item:SetType(item:PRIVATE_SYSTEM_ACTION)
+            else
+                item:SetType(item:PRIVATE_ACTION)
+            end
+        end
+
+        text signature = GetStaticKey()
+        
+        Iterator<Variable> variables = GetParameterIterator()
+        text result = "("
+        integer i = 0
+        repeat while variables:HasNext()
+            Variable param = variables:Next()
+            Type type = param:GetType()
+            text typeKey = ""
+            text key = param:GetStaticKey()
+            text name = param:GetName()
+            typeKey = GetTypeName(type, param)
+
+            text value = typeKey + " " + name
+            result = result + value
+            if variables:HasNext()
+                result = result + ", "
+            end
+            i = i + 1
+        end
+        result = result + ")"
+
+        Type returnType = GetReturnType()
+        //if the return type is void, ignore it. Otherwise, include it
+        if not returnType:IsVoid()
+            item:rightDisplayText = GetTypeName(returnType)
+        end
+
+        text name = GetName()
+        text display = name + result
+
+        item:displayText = display
+        item:completionText = name
+
+        Documentation doc = GetDocumentation()
+        if doc not= undefined
+            text value = "<h1>" + display + "</h1>"
+
+            value = value + "<p>" + doc:GetDescription() + "</p>"
+            value = value + "<p><strong>Parameters</strong></p>"
+            variables = GetParameterIterator()
+            integer i2 = 0
+            value = value + "<ul>"
+            repeat while variables:HasNext()
+                Variable param = variables:Next()
+                Type type = param:GetType()
+                text paramTypeName = GetTypeName(type, param)
+                value = value + "<li>" + paramTypeName + " " + param:GetName()
+                text paramDescription = doc:GetParameterDescription(param:GetName())
+                if paramDescription not= undefined
+                    value = value + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+                else
+                    value = value + "</li>"
+                end
+                
+                i2 = i2 + 1
+            end
+            value = value + "</ul>"
+
+            if not returnType:IsVoid()
+                value = value + "<p><strong>Returns</strong></p>"
+                value = value + item:rightDisplayText + ": " + doc:GetReturns()
+            end
+
+            text example = doc:GetExample()
+            if not example:IsEmpty()
+                value = value + "<p><strong>Example</strong></p>"
+                value = value + example
+            end
+            
+            item:documentationText = value 
+        end
+        
+        return item
+    end
+
+    private action GetTypeName(Type type) returns text
+        text result = ""
+        boolean mapped = type:IsMappedToGeneric()
+        if mapped
+            result = type:GetName()
+        end
+
+        if type:GetNumberGenerics() > 0
+            Iterator<Type> generics = type:GetGenerics()
+            result = result + "<"
+            repeat while generics:HasNext()
+                Type t = generics:Next()
+                result = result + GetTypeName(t)
+            end
+
+            result = result + ">"
+        end
+
+        return result
+    end
+
     action GetCodeCompletionItem(Variable variable) returns CodeCompletionItem
         CodeCompletionItem item
         if GetParametersSize() = 0

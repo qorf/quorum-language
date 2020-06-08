@@ -147,6 +147,7 @@ class CodeCompletionHandler
         //if the symbol table is still undefined, then set it to the last good compile table.
         if finalTable = undefined
             finalTable = lastGoodCompileTable
+            clazz = clazzCached
         end
 
         boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
@@ -221,60 +222,179 @@ class CodeCompletionHandler
                 end
             else
                 if method not= undefined
-                    Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
-                    if block not= undefined
-                        Variable variable = block:GetVariable(trimmedLeft)
-                        if variable not= undefined and not lastCompileFailed
-                            AddVariableAsClass(variable, request, result, finalTable)
-                        //in this case, we've found the variable, but the last compile
-                        //failed. Use the cached version. This assumption needs 
-                        //to be tested carefully to see how well it works in practice.
-                        //It does appear to fix the case where types are being 
-                        //inferred, but not recognized properly in the incomplete
-                        //failed build.
-                        elseif variable not= undefined and lastCompileFailed
-                            Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                            if methodCached = undefined
-                                AddVariableAsClass(variable, request, result, finalTable)
-                                return now
-                            end
-                            Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                            if blockCached = undefined
-                                AddVariableAsClass(variable, request, result, finalTable)
-                                return now
-                            end
-                            Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                            if variableCached = undefined
-                                AddVariableAsClass(variable, request, result, finalTable)
-                                return now
-                            end
+                    //AddInMethodCodeCompletion(request, result, method, trimmedLeft, 
+                    //lastCompileFailed, finalTable, clazzCached, clazz, classNotFound)
+                    AddAction(request, result, method, clazz, trimmedLeft, finalTable)
+                end
+            end
+        end
+    end
 
-                            if variableCached:IsParameter()
-                                GetUnresolvedVariableInformation(variableCached, method, request, result, finalTable)
-                                return now
-                            end
-                            AddVariableAsClass(variableCached, request, result, finalTable)
-                        //if we can't find the variable and the last compile
-                        //failed, check the cache. Maybe it has some information
-                        elseif variable = undefined and lastCompileFailed and classNotFound not= true
-                            Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                            if methodCached = undefined
-                                return now
-                            end
-                            Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                            if blockCached = undefined
-                                return now
-                            end
-                            Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                            if variableCached = undefined
-                                //consider this is request for empty line code completion with a left hand filter.
-                                AddBlockToResult(blockCached, request, result, clazz, true, method, 0)
-                            else 
-                                AddVariableAsClass(variableCached, request, result, finalTable)
-                            end
-                            
+    private action AddAction(CodeCompletionRequest request, CodeCompletionResult result, 
+        Action method, Class clazz, text left, SymbolTable table)
+        Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
+        //if we can't find  block, just return everything relevant inside that action.
+        if block = undefined
+            block = method:GetBlock()
+            if block = undefined
+                return now
+            end
+        end
+
+        Variable variable = block:GetVariable(left)
+        if variable not= undefined //there's a variable we are calling on, so do that instead
+            AddVariableAsClass(variable, request, result, table)
+            AddBlockActions(request, result, false, clazz, variable)
+        else //this is a general call in the block, not on a variable.
+            AddBlockVariables(request, result, true, block, clazz)
+            AddBlockActions(request, result, true, clazz, undefined)
+        end
+    end
+
+    private action AddBlockActions(CodeCompletionRequest request, CodeCompletionResult result, 
+        boolean isCurrentClass, Class clazz, Variable variable)
+        if clazz not= undefined
+            //if this is the current class, load all methods, public or private
+            //if this is a variable, load only its public methods.
+            Iterator<Action> actions = clazz:GetVirtualTable()
+            repeat while actions:HasNext()
+                Action act = actions:Next()
+                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size// + additionalDotOffset
+
+                //is this action in the base class or the v-table?
+                if clazz:HasAction(act:GetStaticKey())
+                    item:isBaseClassAction = true
+                end
+
+                if isCurrentClass
+                    result:Add(item)
+                else
+                    if not act:IsPrivate()
+                        result:Add(item)
+                    end
+                end
+            end
+        end
+    end
+
+    private action AddBlockVariables(CodeCompletionRequest request, CodeCompletionResult result, 
+        boolean isCurrentClass, Block block, Class clazz)
+        if clazz not= undefined
+            //add all of the fields from this class
+            Iterator<Variable> variables = clazz:GetVariables()
+            repeat while variables:HasNext()
+                Variable variable2 = variables:Next()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size// + additionalDotOffset
+                    if isCurrentClass
+                        result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
                         end
                     end
+                end
+            end
+
+            //now add all of the parent fields from this class
+            Iterator<Class> parents = clazz:GetParentClasses()
+            repeat while parents:HasNext()
+                Class par = parents:Next()
+                Iterator<Variable> variables2 = par:GetVariables()
+                repeat while variables2:HasNext()
+                    Variable variable2 = variables2:Next()
+                    if variable2:GetType() not= undefined
+                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                        text filter = result:filter
+                        integer size = filter:GetSize()
+                        item:dotOffset = request:caretLocation - size// + additionalDotOffset
+                        if isCurrentClass
+                            result:Add(item)
+                        else
+                            if not variable2:IsPrivate()
+                                result:Add(item)
+                            end
+                        end
+                    end
+                end
+            end
+
+
+            variables = block:GetVariablesAllBlocks()
+            repeat while variables:HasNext()
+                Variable variable2 = variables:Next()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size// + additionalDotOffset
+                    if isCurrentClass
+                        result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    private action AddInMethodCodeCompletion(
+        CodeCompletionRequest request, CodeCompletionResult result, Action method,
+        text trimmedLeft, boolean lastCompileFailed, SymbolTable finalTable, Class clazzCached,
+        Class clazz, boolean classNotFound)
+
+        Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
+        if block not= undefined
+            Variable variable = block:GetVariable(trimmedLeft)
+            if variable not= undefined and not lastCompileFailed
+                AddVariableAsClass(variable, request, result, finalTable)
+            elseif variable not= undefined and lastCompileFailed
+                Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
+                if methodCached = undefined
+                    AddVariableAsClass(variable, request, result, finalTable)
+                    return now
+                end
+                Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
+                if blockCached = undefined
+                    AddVariableAsClass(variable, request, result, finalTable)
+                    return now
+                end
+                Variable variableCached = blockCached:GetVariable(trimmedLeft)
+                if variableCached = undefined
+                    AddVariableAsClass(variable, request, result, finalTable)
+                    return now
+                end
+
+                if variableCached:IsParameter()
+                    GetUnresolvedVariableInformation(variableCached, method, request, result, finalTable)
+                    return now
+                end
+                AddVariableAsClass(variableCached, request, result, finalTable)
+            //if we can't find the variable and the last compile
+            //failed, check the cache. Maybe it has some information
+            elseif variable = undefined and lastCompileFailed and classNotFound not= true
+                Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
+                if methodCached = undefined
+                    return now
+                end
+                Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
+                if blockCached = undefined
+                    return now
+                end
+                Variable variableCached = blockCached:GetVariable(trimmedLeft)
+                if variableCached = undefined
+                    //consider this is request for empty line code completion with a left hand filter.
+                    AddBlockToResult(blockCached, request, result, clazz, true, method, 0)
+                else 
+                    AddVariableAsClass(variableCached, request, result, finalTable)
                 end
             end
         end

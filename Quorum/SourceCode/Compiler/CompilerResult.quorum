@@ -6,6 +6,8 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.File
 use Libraries.Containers.Array
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Containers.Iterator
 
 class CompilerResult
     public CompilerErrorManager compilerErrorManager = undefined
@@ -21,6 +23,29 @@ class CompilerResult
     public Array<File> projectFiles = undefined
     public HashTable<text, Lexer> lexers
     public Array<Token> sourceTokens = undefined
+
+    action CopyToBareResult returns CompilerResult
+        CompilerResult result
+        SymbolTable table
+
+        if standardLibrary = undefined
+            return result
+        end
+
+        SymbolTable lst = standardLibrary:GetSymbolTable()
+        if symbolTable not= undefined
+            Iterator<Class> iterator = symbolTable:GetClasses()
+            repeat while iterator:HasNext()
+                Class clazz = iterator:Next()
+                if not lst:HasClass(clazz:GetStaticKey())
+                    table:Add(clazz)
+                end
+            end
+        end
+
+        result:symbolTable = table
+        return result
+    end
 
     /*
         This action attempts to save memory by removing information that may 
