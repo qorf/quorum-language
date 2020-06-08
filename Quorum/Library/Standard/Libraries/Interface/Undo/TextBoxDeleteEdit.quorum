@@ -32,10 +32,12 @@ class TextBoxDeleteEdit is Edit
     end
 
     action Undo
+        box:SetCaretPosition(caretPosition)
         box:Insert(caretPosition, value)
     end
 
     action Redo
+        box:SetCaretPosition(caretPosition + value:GetSize())
         box:Delete(caretPosition, caretPosition + value:GetSize())
     end
 end

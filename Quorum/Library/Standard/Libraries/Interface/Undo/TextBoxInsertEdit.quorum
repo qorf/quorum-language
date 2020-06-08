@@ -53,6 +53,7 @@ class TextBoxInsertEdit is Edit
     end
 
     action Undo
+        box:SetCaretPosition(caretStartPosition)
         box:Delete(caretStartPosition, caretEndPosition)
         if IsModify()
             box:Insert(caretStartPosition, deleted)
@@ -61,6 +62,7 @@ class TextBoxInsertEdit is Edit
     end
 
     action Redo
+        box:SetCaretPosition(caretStartPosition)
         if IsModify()
             box:Select(caretStartPosition, caretStartPosition + deleted:GetSize())
         end
