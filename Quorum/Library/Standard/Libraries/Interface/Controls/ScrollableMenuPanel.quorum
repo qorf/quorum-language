@@ -213,22 +213,30 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         number largestHeight = 0
 
-        i = last
-        repeat while i > intIndex
-            i = i - 1
-            MenuItem kid = Get(i)
+        if GetSize() = 1
+            MenuItem kid = Get(0)
             kid:Resize()
-
-            if longestWidth < kid:GetWidth()
-                longestWidth = kid:GetWidth()
-            end
-
-            kid:SetPosition(leftBorder, y)
-
-            y = y + kid:GetHeight()
-
-            if kid:GetHeight() > largestHeight
-                largestHeight = kid:GetHeight()
+            longestWidth = kid:GetWidth()
+            kid:SetPosition(leftBorder, y - kid:GetHeight())
+            largestHeight = kid:GetHeight()
+        else
+            i = last
+            repeat while i > intIndex
+                i = i - 1
+                MenuItem kid = Get(i)
+                kid:Resize()
+    
+                if longestWidth < kid:GetWidth()
+                    longestWidth = kid:GetWidth()
+                end
+    
+                kid:SetPosition(leftBorder, y)
+    
+                y = y + kid:GetHeight()
+    
+                if kid:GetHeight() > largestHeight
+                    largestHeight = kid:GetHeight()
+                end
             end
         end
 

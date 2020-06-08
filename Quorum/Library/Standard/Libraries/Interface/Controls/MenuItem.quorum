@@ -441,7 +441,9 @@ class MenuItem is Control
         end
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        label:SetColor(properties:GetSelectionFontColor())
+        Color select = properties:GetSelectionFontColor()
+
+        label:SetColor(select)
         shortcutLabel:SetColor(properties:GetSelectionFontColor())
 
         MenuRoot menuRoot = GetMenuRoot()
@@ -461,7 +463,8 @@ class MenuItem is Control
         end
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        label:SetColor(properties:GetFontColor())
+        Color select = properties:GetFontColor()
+        label:SetColor(select)
         shortcutLabel:SetColor(properties:GetFontColor())
 
         if open
@@ -676,6 +679,19 @@ class MenuItem is Control
         return array
     end
 
+    /*
+        Returns whether or not the menu item is selected.
+
+        Attribute: Returns true if the item is selected.
+    */
+    action IsSelected returns boolean
+        if GetMenuRoot() = undefined
+            return false
+        end
+        Array<MenuItem> path = GetMenuRoot():GetSelection():GetPath()
+        return path:Has(me)
+    end
+
     action Activate(BehaviorEvent event)
         if IsMenu()
             if open
@@ -740,11 +756,32 @@ class MenuItem is Control
         end
 
         properties:SetBackgroundColor(backgroundColor)
+        if properties:GetBorderColor() = undefined
+            Color color
+            color:SetColor(0, 0, 0, 1)
+            properties:SetBorderColor(color)
+        end
+
+        if properties:GetSelectionBorderColor() = undefined
+            Color color
+            color:SetColor(0, 0, 0, 1)
+            properties:SetSelectionBorderColor(color)
+        end
+
+        if properties:GetSelectionColor() = undefined
+            Color color
+            color:SetColor(0.25, 0.25, 1, 1)
+            properties:SetSelectionColor(color)
+        end
+
+        
 
         panel:SetName(GetName() + " Menu Panel")
         panelProperties:SetBorderThickness(properties:GetBorderThickness())
 
         Color color
+        properties:SetFontColor(color:Black())
+        properties:SetSelectionFontColor(color:White())
 
         LabelBoxView content
         content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
@@ -771,14 +808,20 @@ class MenuItem is Control
             labelText = GetName()
         end
 
-
         Font font = properties:GetFont()
         font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
 
+        boolean selected = IsSelected()
         label:SetFont(font)
         label:SetSize(properties:GetFontSize())
         label:SetInterfaceScale(properties:GetInterfaceScale())
         label:SetText(labelText)
+
+        if selected
+            label:SetColor(properties:GetSelectionFontColor())
+        else
+            label:SetColor(properties:GetFontColor())
+        end
 
         shortcutLabel:SetSize(properties:GetFontSize())
 
@@ -788,8 +831,14 @@ class MenuItem is Control
             shortcutLabel:Show()
         end
 
+        //This is a box with a border on it that is the background of the menu
         LabelBoxView view
-        view:Initialize(backgroundColor, color:Black())
+
+        if selected
+            view:Initialize(properties:GetSelectionColor(), properties:GetSelectionBorderColor())
+        else
+            view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+        end
         SetView2D(view)
 
         parent:Control:LoadGraphics(properties)
