@@ -37,9 +37,7 @@ class CompilerResult
             Iterator<Class> iterator = symbolTable:GetClasses()
             repeat while iterator:HasNext()
                 Class clazz = iterator:Next()
-                if not lst:HasClass(clazz:GetStaticKey())
-                    table:Add(clazz)
-                end
+                table:Add(clazz)
             end
         end
 
