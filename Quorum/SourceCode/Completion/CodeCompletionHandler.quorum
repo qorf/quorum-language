@@ -88,24 +88,39 @@ class CodeCompletionHandler
         boolean isUse = trimmed:StartsWith("use")
         boolean isPackage = trimmed:StartsWith("package")
 
+        text requestLine = request:line //this is already trimmed
+        Array<text> split = requestLine:Split(":")
+        CompilerResult compilerResult = request:result
+        CompilerResult lastCompiledResult = request:lastCompiledResult
+
+        //now set the filter for this particular request
+        SetFilter(result, split, line)
+        SymbolTable last = request:result:symbolTable
+        SymbolTable compiled = lastCompiledResult:symbolTable
+        Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey)
+        SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
+        
+        if clazz = undefined or table = undefined or not IsLegalCall(request, clazz, split)
+            return result
+        end
+
+        request:clazz = clazz
+        request:table = table
+        FindLocation(request, clazz)
+        CheckIfVariableCall(request, result, clazz, split)
+
         if isUse
             AddUseResults(request, result, true)
         elseif not isUse and isPackage
             AddUseResults(request, result, false)
         elseif not isUse and not isPackage
-            AddExpressionResults(request, result)
+            AddRegion(request, result)
         end
 
         return result
     end
 
-    private action AddExpressionResults(CodeCompletionRequest request, CodeCompletionResult result)
-        text line = request:line //this is already trimmed
-        Array<text> split = line:Split(":")
-        CompilerResult compilerResult = request:result
-        CompilerResult lastCompiledResult = request:lastCompiledResult
-
-        //now set the filer for this particular request
+    private action SetFilter(CodeCompletionResult result, Array<text> split, text line)
         if split:GetSize() > 0 and not line:IsEmpty()
             text ch = line:GetCharacter(line:GetSize() - 1)
             if ch = ":"
@@ -114,44 +129,42 @@ class CodeCompletionHandler
                 result:filter = split:Get(split:GetSize() - 1)
             end
         end
-        SymbolTable sandboxSymbolTable = request:result:symbolTable
-        SymbolTable lastGoodCompileTable = undefined
-        if lastCompiledResult not= undefined
-            lastGoodCompileTable = lastCompiledResult:symbolTable
-        end
-        //the most recent compile may contain errors. Get the most recent
-        //successful compile. Store the error compile as well, as it may
-        //help us determine the right values for code completion.
-        text file = request:fileKey
-        Class clazz = sandboxSymbolTable:GetClassInFile(file)
-        SymbolTable finalTable = undefined
-        
-        //we have tried to get the class from the sandbox. It this is undefined
-        //then check the cache. If there is no cached version of the class,
-        //then likely this class hasn't compiled in a while and there may
-        //be little we can do to detect what the user is doing.
-        Class clazzCached = undefined
-        if lastGoodCompileTable not= undefined
-            clazzCached = lastGoodCompileTable:GetClassInFile(file)
-        end
-        boolean classNotFound = false
-        if clazz = undefined and clazzCached not= undefined
-            clazz = clazzCached
-            classNotFound = true
-            finalTable = lastGoodCompileTable
-        elseif clazz not= undefined and clazzCached = undefined
-            clazzCached = clazz //better than nothing to check if there is no previous good cache
-            finalTable = sandboxSymbolTable
+    end
+
+    private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file) returns Class
+        if compiled not= undefined and compiled:symbolTable not= undefined
+            Class clazz = compiled:symbolTable:GetClassInFile(file)
+            if clazz not= undefined
+                return clazz
+            end
         end
 
-        //if the symbol table is still undefined, then set it to the last good compile table.
-        if finalTable = undefined
-            finalTable = lastGoodCompileTable
-            clazz = clazzCached
+        if last not= undefined and last:symbolTable not= undefined
+            Class clazz = last:symbolTable:GetClassInFile(file)
+            if clazz not= undefined
+                return clazz
+            end
         end
 
-        boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
-        
+        return undefined
+    end
+
+    private action GetBestChoiceSymbolTable(CompilerResult last, CompilerResult compiled) returns SymbolTable
+        if compiled not= undefined and compiled:symbolTable not= undefined
+            return compiled:symbolTable
+        end
+
+        if last not= undefined and last:symbolTable not= undefined
+            return last:symbolTable
+        end
+
+        return undefined
+    end
+
+    /*
+        This checks if the request is within bounds and that the class is valid
+    */
+    private action IsLegalCall(CodeCompletionRequest request, Class clazz, Array<text> split) returns boolean
         //now we have checked the cache. If this is still undefined, bail
         if clazz not= undefined
             integer start = clazz:GetIndex()
@@ -160,118 +173,210 @@ class CodeCompletionHandler
             //is it inside of this class? If not, kill the request, because no syntax is legal
             if not(request:caretLocation >= start and request:caretLocation <= finish)
                 clazz = undefined
+                return false
             end
 
             if split:IsEmpty()
                 clazz = undefined
-                return now
+                return false
             end
         else 
-            return now
+            return false
+        end
+        //the class is defined and within bounds.
+        return true
+    end
+
+    private action FindLocation(CodeCompletionRequest request, Class clazz)
+        Action method = GetActionAtIndex(clazz, request:caretLocation)
+            
+        Block block = undefined
+        if method not= undefined
+            block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
         end
 
-        text left = split:Get(0)
-        text trimmedLeft = left:Trim()
-        if clazz not= undefined
-            trimmedLeft = Trim(left, split, result)
-            if trimmedLeft = undefined
-                return now //invalid result detected
-            end
+        request:method = method
+        request:block = block
+    end
 
-            Action method = GetActionAtIndex(clazz, request:caretLocation)
-            Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
-            if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
-                //AddClassToResult(undefined, request, result, clazz, true, method)
-                AddRegion(request, result, clazz, method, block, true)
-            elseif trimmedLeft = "return"
-                AddClassToResult(undefined, request, result, clazz, true, method, 6)
-            elseif left = "parent"
-                //if this is a parent line, get all of the items on it, split
-                //by colons and start chaining through.
-                if split not= undefined and split:GetSize() > 1 and split:GetSize() < 4
-                    text parentName = split:Get(1)
-                    AddParentClassesToResult(parentName, request, result, clazz, true, method)
-                else
-                    AddParentClassesToResult(undefined, request, result, clazz, true, method)
+    private action CheckIfVariableCall(CodeCompletionRequest request, CodeCompletionResult result, 
+        Class clazz, Array<text> split)
+        text left = Trim(split:Get(0):Trim(), split, result)
+        if left = undefined
+            return now //should never return undefined unless the request is invalid
+        end
+        request:left = left
+
+        if request:block not= undefined
+            Variable variable = request:block:GetVariable(left)
+            request:variable = variable
+
+            if variable not= undefined
+                Type type = variable:GetType()
+                SymbolTable table = request:table
+
+                if not type:IsPrimitive()
+                    text key = type:GetStaticKey()
+                    Class varClass = table:GetClass(key)
+                    request:variableClass = varClass
+                else 
+                    text key = type:ConvertToNonPrimitiveStaticKey()
+                    Class varClass = table:GetClass(key)
+                    request:variableClass = varClass
+                    request:isPrimitiveConversion = true
                 end
-            else
-                if method not= undefined
-                    //AddInMethodCodeCompletion(request, result, method, trimmedLeft, 
-                    //lastCompileFailed, finalTable, clazzCached, clazz, classNotFound)
-                    //AddAction(request, result, method, clazz, trimmedLeft, finalTable)
-                    AddRegion(request, result, clazz, method, block, true, trimmedLeft, finalTable)
-                end
             end
         end
     end
 
-    private action AddRegion(CodeCompletionRequest request, CodeCompletionResult result,
-        Class clazz, Action method, Block block, boolean isCurrentClass)
+//    private action AddExpressionResults(CodeCompletionRequest request, CodeCompletionResult result)
+//        
+//        AddRegion(request, result)
 
-        if clazz = undefined
-            return now
-        end
-
-        AddClassVariables(request, result, clazz, isCurrentClass)
-        AddParentVariables(request, result, clazz, isCurrentClass)
-
-        if block = undefined
-            return now
-        end
-
-        AddActions(request, result, clazz, isCurrentClass)
-        AddBlockVariables(request, result, block, clazz, isCurrentClass)
-        AddPrimitives(request, result)
-        AddControlStructures(request, result)
-    end
-
-    private action AddRegion(CodeCompletionRequest request, CodeCompletionResult result,
-        Class clazz, Action method, Block block, boolean isCurrentClass, text variableName, SymbolTable table)
-
-        if clazz = undefined
-            return now
-        end
-
-        Variable variable = block:GetVariable(variableName)
-        if variable not= undefined
-            AddVariableAsClass(request, result, variable, table)
-        else
-            AddRegion(request, result, clazz, method, block, isCurrentClass)
-        end
-    end
-
-    private action AddVariableAsClass(CodeCompletionRequest request, CodeCompletionResult result, 
-        Variable variable, SymbolTable table)
-        Type type = variable:GetType()
         
-        if type not= undefined
-            text key = type:GetStaticKey()
-            if table = undefined
-                return now
-            end
-            Class varClass = table:GetClass(key)
+        
+//        if left = "me" or left:IsEmpty()
+//            request:isRequestInClass = true
+//            AddRegion(request, result)
+//        elseif left = "return"
+//
+//        elseif left = "parent"
+//
+//        else
+//
+//        end
+//        if clazz not= undefined
+//            left = Trim(left:Trim(), split, result)
+//            if left = undefined
+//                return now //invalid result detected
+//            end
+//
+//            
+//            if left = "me" or left:IsEmpty() or left:IsEmpty()
+//                //AddClassToResult(undefined, request, result, clazz, true, method)
+//                request:isRequestInClass = true
+//                AddRegion(request, result)
+//            elseif left = "return"
+//                AddClassToResult(undefined, request, result, clazz, true, method, 6)
+//            elseif left = "parent"
+//                //if this is a parent line, get all of the items on it, split
+//                //by colons and start chaining through.
+//                if split not= undefined and split:GetSize() > 1 and split:GetSize() < 4
+//                    text parentName = split:Get(1)
+//                    AddParentClassesToResult(parentName, request, result, clazz, true, method)
+//                else
+//                    AddParentClassesToResult(undefined, request, result, clazz, true, method)
+//                end
+//            else
+//                if method not= undefined
+//                    //AddInMethodCodeCompletion(request, result, method, trimmedLeft, 
+//                    //lastCompileFailed, finalTable, clazzCached, clazz, classNotFound)
+//                    //AddAction(request, result, method, clazz, trimmedLeft, finalTable)
+//                    AddRegion(request, result, clazz, method, block, true, left, table)
+//                end
+//            end
+//        end
+//    end
 
-            if varClass not= undefined
-                AddRegion(request, result, varClass, undefined, undefined, false)
-                //AddClassToResult(variable, request, result, varClass, false, undefined)
-            elseif not type:IsPrimitive() and varClass = undefined
-                GetUnresolvedVariableInformation(variable, undefined, request, result, table)
-            elseif type:IsPrimitive() and varClass = undefined
-                Class clazz = undefined
-                if type:IsInteger()
-                    clazz = table:GetClass(type:INTEGER_OBJECT_KEY)
-                elseif type:IsNumber()
-                    clazz = table:GetClass(type:NUMBER_OBJECT_KEY)
-                elseif type:IsBoolean()
-                    clazz = table:GetClass(type:BOOLEAN_OBJECT_KEY)
-                else type:IsText()
-                    clazz = table:GetClass(type:TEXT_OBJECT_KEY)
-                end
+    private action AddRegion(CodeCompletionRequest request, CodeCompletionResult result)
+        Class clazz = request:clazz
+        Action method = request:method
+        Block block = request:block
 
-                AddActions(request, result, clazz, false)
+        //we are in the field region, so work there
+        if block = undefined and method = undefined
+            AddFieldRegion(request, result)
+        //if there is ever a case where the block is undefined and the method isn't, that's a compiler
+        //bug. The method "has" a block, so it shouldn't happen ever.
+        elseif block not= undefined and method not= undefined
+            AddActionRegion(request, result)
+        end
+    end
+
+    private action AddAvailableClasses(CodeCompletionRequest request, CodeCompletionResult result)
+        SymbolTable table = request:table
+        Iterator<Class> classes = table:GetClasses()
+
+        if classes not= undefined
+            repeat while classes:HasNext()
+                Class clazz = classes:Next()
+                CodeCompletionItem item = GetClassCompletionItem(clazz)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
+                result:Add(item)
             end
         end
     end
+
+    private action AddActionRegion(CodeCompletionRequest request, CodeCompletionResult result)
+        if request:left = "me"
+            AddClassVariables(request, result)
+            AddParentVariables(request, result)
+        elseif request:variable = undefined
+            AddClassVariables(request, result)
+            AddParentVariables(request, result)
+
+            AddActions(request, result)
+            AddBlockVariables(request, result)
+            AddPrimitives(request, result)
+            AddControlStructures(request, result)
+            AddAvailableClasses(request, result)
+        //this is a call where we've detected we are calling on a variable
+        elseif request:variable not= undefined
+            AddClassVariables(request, result)
+            //AddParentVariables(request, result)
+
+            AddActions(request, result)
+            //AddBlockVariables(request, result)
+        end
+    end
+
+    private action AddFieldRegion(CodeCompletionRequest request, CodeCompletionResult result)
+        if request:left = "me"
+            AddClassVariables(request, result)
+            AddParentVariables(request, result)
+        elseif request:left:IsEmpty()
+            AddClassVariables(request, result)
+            AddParentVariables(request, result)
+            AddPrimitives(request, result)
+            AddAvailableClasses(request, result)
+        end
+    end
+    
+//    private action AddVariableAsClass(CodeCompletionRequest request, CodeCompletionResult result, 
+//        Variable variable, SymbolTable table)
+//        Type type = variable:GetType()
+//        
+//        if type not= undefined
+//            text key = type:GetStaticKey()
+//            if table = undefined
+//                return now
+//            end
+//            Class varClass = table:GetClass(key)
+//
+//            if varClass not= undefined
+//                request:variableClass = varClass
+//                //AddRegion(request, result, varClass, undefined, undefined, false)
+//                //AddClassToResult(variable, request, result, varClass, false, undefined)
+//            elseif not type:IsPrimitive() and varClass = undefined
+//                GetUnresolvedVariableInformation(variable, undefined, request, result, table)
+//            elseif type:IsPrimitive() and varClass = undefined
+//                Class clazz = undefined
+//                if type:IsInteger()
+//                    clazz = table:GetClass(type:INTEGER_OBJECT_KEY)
+//                elseif type:IsNumber()
+//                    clazz = table:GetClass(type:NUMBER_OBJECT_KEY)
+//                elseif type:IsBoolean()
+//                    clazz = table:GetClass(type:BOOLEAN_OBJECT_KEY)
+//                else type:IsText()
+//                    clazz = table:GetClass(type:TEXT_OBJECT_KEY)
+//                end
+//
+//                AddActions(request, result)
+//            end
+//        end
+//    end
 
     private action AddPrimitives(CodeCompletionRequest request, CodeCompletionResult result)
         text filter = result:filter
@@ -328,25 +433,48 @@ class CodeCompletionHandler
         result:Add(repeatItem)
     end
 
-    private action AddActions(CodeCompletionRequest request, CodeCompletionResult result, 
-        Class clazz, boolean includePrivate)
-        if clazz not= undefined
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem()
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size// + additionalDotOffset
+    private action AddActions(CodeCompletionRequest request, CodeCompletionResult result)
+        boolean showPrivate = request:isRequestInClass
+        Class clazzToProcess = request:clazz
+        if request:variable not= undefined
+            clazzToProcess = request:variableClass
+            showPrivate = false
+        end
 
-                //is this action in the base class or the v-table?
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
+        //if this is the current class, load all methods, public or private
+        //if this is a variable, load only its public methods.
+        Iterator<Action> actions = clazzToProcess:GetVirtualTable()
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            CodeCompletionItem item = undefined
+            if request:variable not= undefined
+                item = act:GetCodeCompletionItem(request:variable)
+            else
+                item = act:GetCodeCompletionItem()
+            end
+            text filter = result:filter
+            integer size = filter:GetSize()
+            item:dotOffset = request:caretLocation - size// + additionalDotOffset
+
+            //is this action in the base class or the v-table?
+            if request:clazz:HasAction(act:GetStaticKey())
+                item:isBaseClassAction = true
+            end
+
+            boolean isPrimitive = request:isPrimitiveConversion
+            if isPrimitive
+                text value = act:GetName()
+                if value not= "GetValue" and value not= "SetValue"
+                    if showPrivate
+                        result:Add(item)
+                    else
+                        if not act:IsPrivate()
+                            result:Add(item)
+                        end
+                    end
                 end
-
-                if includePrivate
+            else
+                if showPrivate
                     result:Add(item)
                 else
                     if not act:IsPrivate()
@@ -394,68 +522,74 @@ class CodeCompletionHandler
         return trimmedLeft
     end
 
-    private action AddAction(CodeCompletionRequest request, CodeCompletionResult result, 
-        Action method, Class clazz, text left, SymbolTable table)
-        Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
-        //if we can't find  block, just return everything relevant inside that action.
-        if block = undefined
-            block = method:GetBlock()
-            if block = undefined
-                return now
-            end
+//    private action AddAction(CodeCompletionRequest request, CodeCompletionResult result, 
+//        Action method, Class clazz, text left, SymbolTable table)
+//        Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
+//        //if we can't find  block, just return everything relevant inside that action.
+//        if block = undefined
+//            block = method:GetBlock()
+//            if block = undefined
+//                return now
+//            end
+//        end
+//
+//        Variable variable = block:GetVariable(left)
+//        if variable not= undefined //there's a variable we are calling on, so do that instead
+//            AddVariableAsClass(variable, request, result, table)
+//            AddBlockActions(request, result, clazz, variable, true)
+//        else //this is a general call in the block, not on a variable.
+//            AddBlockVariables(request, result, true, block, clazz)
+//            AddBlockActions(request, result, clazz, undefined, true)
+//        end
+//    end
+
+//    private action AddBlockActions(CodeCompletionRequest request, CodeCompletionResult result, 
+//        Class clazz, Variable variable, boolean isCurrentClass)
+//        if clazz not= undefined
+//            //if this is the current class, load all methods, public or private
+//            //if this is a variable, load only its public methods.
+//            Iterator<Action> actions = clazz:GetVirtualTable()
+//            repeat while actions:HasNext()
+//                Action act = actions:Next()
+//                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+//                text filter = result:filter
+//                integer size = filter:GetSize()
+//                item:dotOffset = request:caretLocation - size// + additionalDotOffset
+//
+//                //is this action in the base class or the v-table?
+//                if clazz:HasAction(act:GetStaticKey())
+//                    item:isBaseClassAction = true
+//                end
+//
+//                if isCurrentClass
+//                    result:Add(item)
+//                else
+//                    if not act:IsPrivate()
+//                        result:Add(item)
+//                    end
+//                end
+//            end
+//        end
+//    end
+
+    /* Add all of the fields from this class */
+    private action AddClassVariables(CodeCompletionRequest request, CodeCompletionResult result)
+        boolean showPrivate = request:isRequestInClass
+        Class clazzToProcess = request:clazz
+        if request:variable not= undefined
+            clazzToProcess = request:variableClass
+            showPrivate = false
         end
 
-        Variable variable = block:GetVariable(left)
-        if variable not= undefined //there's a variable we are calling on, so do that instead
-            AddVariableAsClass(variable, request, result, table)
-            AddBlockActions(request, result, clazz, variable, true)
-        else //this is a general call in the block, not on a variable.
-            AddBlockVariables(request, result, true, block, clazz)
-            AddBlockActions(request, result, clazz, undefined, true)
-        end
-    end
-
-    private action AddBlockActions(CodeCompletionRequest request, CodeCompletionResult result, 
-        Class clazz, Variable variable, boolean isCurrentClass)
-        if clazz not= undefined
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size// + additionalDotOffset
-
-                //is this action in the base class or the v-table?
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
-                end
-
-                if isCurrentClass
-                    result:Add(item)
-                else
-                    if not act:IsPrivate()
-                        result:Add(item)
-                    end
-                end
-            end
-        end
-    end
-
-    private action AddClassVariables(CodeCompletionRequest request, CodeCompletionResult result,
-        Class clazz, boolean isCurrentClass)
-        //add all of the fields from this class
-        Iterator<Variable> variables = clazz:GetVariables()
+        Iterator<Variable> variables = clazzToProcess:GetVariables()
         repeat while variables:HasNext()
             Variable variable2 = variables:Next()
             if variable2:GetType() not= undefined
-                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazzToProcess)
                 text filter = result:filter
                 integer size = filter:GetSize()
                 item:dotOffset = request:caretLocation - size// + additionalDotOffset
-                if isCurrentClass
+                if request:isRequestInClass
                     result:Add(item)
                 else
                     if not variable2:IsPrivate()
@@ -466,21 +600,26 @@ class CodeCompletionHandler
         end
     end
 
-    private action AddParentVariables(CodeCompletionRequest request, CodeCompletionResult result,
-        Class clazz, boolean isCurrentClass)
+    private action AddParentVariables(CodeCompletionRequest request, CodeCompletionResult result)
         //now add all of the parent fields from this class
-        Iterator<Class> parents = clazz:GetParentClasses()
+        Iterator<Class> parents = request:clazz:GetParentClasses()
         repeat while parents:HasNext()
             Class par = parents:Next()
             Iterator<Variable> variables2 = par:GetVariables()
             repeat while variables2:HasNext()
                 Variable variable2 = variables2:Next()
                 if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(request:clazz)
+                    if item not= undefined and variable2:IsPrivate()
+                        item:SetType(item:PARENT_FIELD_PRIVATE)
+                    elseif item not= undefined and not variable2:IsPrivate()
+                        item:SetType(item:PARENT_FIELD_PUBLIC)
+                    end
+
                     text filter = result:filter
                     integer size = filter:GetSize()
                     item:dotOffset = request:caretLocation - size// + additionalDotOffset
-                    if isCurrentClass
+                    if request:isRequestInClass
                         result:Add(item)
                     else
                         if not variable2:IsPrivate()
@@ -492,17 +631,16 @@ class CodeCompletionHandler
         end
     end
 
-    private action AddBlockVariables(CodeCompletionRequest request, CodeCompletionResult result,
-        Block block, Class clazz, boolean isCurrentClass)
-        Iterator<Variable> variables = block:GetVariablesAllBlocks()
+    private action AddBlockVariables(CodeCompletionRequest request, CodeCompletionResult result)
+        Iterator<Variable> variables = request:block:GetVariablesAllBlocks()
         repeat while variables:HasNext()
             Variable variable2 = variables:Next()
             if variable2:GetType() not= undefined
-                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                CodeCompletionItem item = variable2:GetCodeCompletionItem(request:clazz)
                 text filter = result:filter
                 integer size = filter:GetSize()
                 item:dotOffset = request:caretLocation - size// + additionalDotOffset
-                if isCurrentClass
+                if request:isRequestInClass
                     result:Add(item)
                 else
                     if not variable2:IsPrivate()
@@ -513,137 +651,74 @@ class CodeCompletionHandler
         end
     end
 
-    private action AddBlockVariables(CodeCompletionRequest request, CodeCompletionResult result, 
-        boolean isCurrentClass, Block block, Class clazz)
-        if clazz not= undefined
-            AddClassVariables(request, result, clazz, isCurrentClass)
-            AddParentVariables(request, result, clazz, isCurrentClass)
-            AddBlockVariables(request, result, block, clazz, isCurrentClass)
-        end
-    end
-
-    private action AddInMethodCodeCompletion(
-        CodeCompletionRequest request, CodeCompletionResult result, Action method,
-        text trimmedLeft, boolean lastCompileFailed, SymbolTable finalTable, Class clazzCached,
-        Class clazz, boolean classNotFound)
-
-        Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
-        if block not= undefined
-            Variable variable = block:GetVariable(trimmedLeft)
-            if variable not= undefined and not lastCompileFailed
-                AddVariableAsClass(variable, request, result, finalTable)
-            elseif variable not= undefined and lastCompileFailed
-                Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                if methodCached = undefined
-                    AddVariableAsClass(variable, request, result, finalTable)
-                    return now
-                end
-                Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                if blockCached = undefined
-                    AddVariableAsClass(variable, request, result, finalTable)
-                    return now
-                end
-                Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                if variableCached = undefined
-                    AddVariableAsClass(variable, request, result, finalTable)
-                    return now
-                end
-
-                if variableCached:IsParameter()
-                    GetUnresolvedVariableInformation(variableCached, method, request, result, finalTable)
-                    return now
-                end
-                AddVariableAsClass(variableCached, request, result, finalTable)
-            //if we can't find the variable and the last compile
-            //failed, check the cache. Maybe it has some information
-            elseif variable = undefined and lastCompileFailed and classNotFound not= true
-                Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
-                if methodCached = undefined
-                    return now
-                end
-                Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
-                if blockCached = undefined
-                    return now
-                end
-                Variable variableCached = blockCached:GetVariable(trimmedLeft)
-                if variableCached = undefined
-                    //consider this is request for empty line code completion with a left hand filter.
-                    AddBlockToResult(blockCached, request, result, clazz, true, method, 0)
-                else 
-                    AddVariableAsClass(variableCached, request, result, finalTable)
-                end
-            end
-        end
-    end
-
-    private action AddBlockToResult(Block block, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
-
-        if clazz not= undefined
-            //add all of the fields from this class
-            Iterator<Variable> variables = clazz:GetVariables()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size + additionalDotOffset
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
-                            result:Add(item)
-                        end
-                    end
-                end
-            end
-
-            //now add all of the parent fields from this class
-            Iterator<Class> parents = clazz:GetParentClasses()
-            repeat while parents:HasNext()
-                Class par = parents:Next()
-                Iterator<Variable> variables2 = par:GetVariables()
-                repeat while variables2:HasNext()
-                    Variable variable2 = variables2:Next()
-                    if variable2:GetType() not= undefined
-                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                        text filter = result:filter
-                        integer size = filter:GetSize()
-                        item:dotOffset = request:caretLocation - size + additionalDotOffset
-                        if isCurrentClass
-                            result:Add(item)
-                        else
-                            if not variable2:IsPrivate()
-                                result:Add(item)
-                            end
-                        end
-                    end
-                end
-            end
-
-
-            variables = block:GetVariablesAllBlocks()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size + additionalDotOffset
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
-                            result:Add(item)
-                        end
-                    end
-                end
-            end
-        end
-    end
+//    private action AddBlockToResult(Block block, 
+//        CodeCompletionRequest request, 
+//        CodeCompletionResult result, Class clazz, 
+//        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
+//
+//        if clazz not= undefined
+//            //add all of the fields from this class
+//            Iterator<Variable> variables = clazz:GetVariables()
+//            repeat while variables:HasNext()
+//                Variable variable2 = variables:Next()
+//                if variable2:GetType() not= undefined
+//                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size + additionalDotOffset
+//                    if isCurrentClass
+//                        result:Add(item)
+//                    else
+//                        if not variable2:IsPrivate()
+//                            result:Add(item)
+//                        end
+//                    end
+//                end
+//            end
+//
+//            //now add all of the parent fields from this class
+//            Iterator<Class> parents = clazz:GetParentClasses()
+//            repeat while parents:HasNext()
+//                Class par = parents:Next()
+//                Iterator<Variable> variables2 = par:GetVariables()
+//                repeat while variables2:HasNext()
+//                    Variable variable2 = variables2:Next()
+//                    if variable2:GetType() not= undefined
+//                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                        text filter = result:filter
+//                        integer size = filter:GetSize()
+//                        item:dotOffset = request:caretLocation - size + additionalDotOffset
+//                        if isCurrentClass
+//                            result:Add(item)
+//                        else
+//                            if not variable2:IsPrivate()
+//                                result:Add(item)
+//                            end
+//                        end
+//                    end
+//                end
+//            end
+//
+//
+//            variables = block:GetVariablesAllBlocks()
+//            repeat while variables:HasNext()
+//                Variable variable2 = variables:Next()
+//                if variable2:GetType() not= undefined
+//                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size + additionalDotOffset
+//                    if isCurrentClass
+//                        result:Add(item)
+//                    else
+//                        if not variable2:IsPrivate()
+//                            result:Add(item)
+//                        end
+//                    end
+//                end
+//            end
+//        end
+//    end
 
     private action IsMod(text partial, integer i) returns boolean
         if i - 3 < 0
@@ -730,7 +805,7 @@ class CodeCompletionHandler
     end
 
     private action AddSubpackagesAndClasses(CodeCompletionRequest request, CodeCompletionResult result, text name)
-        SymbolTable sandboxSymbolTable = request:result:symbolTable
+        SymbolTable sandboxSymbolTable = request:table
         //first find all of the packages/sub-packages 
         Iterator<text> packs = sandboxSymbolTable:GetSubpackageNames(name)
         repeat while packs:HasNext()
@@ -799,106 +874,106 @@ class CodeCompletionHandler
         end
     end
 
-    private action GetUnresolvedVariableInformation(Variable variable, Action act, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
-        Type type = variable:GetType()
-        if type not= undefined
-            text key = type:GetStaticKey()
-            Class varClass = table:GetClass(key)
-            //perhaps it was not resolved in the case. Check use statements
-            //for anything that looks reasonable.
-            Class variablesClass = variable:GetParentClass()
-            if variablesClass not= undefined and variablesClass:GetValidUseName(key) not= undefined
-                varClass = variablesClass:GetValidUseName(key)
-                AddClassToResult(variable, request, result, varClass, false, undefined)
-            elseif variablesClass not= undefined
-                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
-                Array<Class> classes
-                repeat while iterator:HasNext()
-                    QualifiedName value = iterator:Next()
-                    if value:GetName() = key
-                        Class value1 = table:GetClass(value:GetStaticKey())
-                        if value1 not= undefined
-                            classes:Add(value1)
-                        end
-                    end
-                end
+//    private action GetUnresolvedVariableInformation(Variable variable, Action act, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
+//        Type type = variable:GetType()
+//        if type not= undefined
+//            text key = type:GetStaticKey()
+//            Class varClass = table:GetClass(key)
+//            //perhaps it was not resolved in the case. Check use statements
+//            //for anything that looks reasonable.
+//            Class variablesClass = variable:GetParentClass()
+//            if variablesClass not= undefined and variablesClass:GetValidUseName(key) not= undefined
+//                varClass = variablesClass:GetValidUseName(key)
+//                AddClassToResult(variable, request, result, varClass, false, undefined)
+//            elseif variablesClass not= undefined
+//                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
+//                Array<Class> classes
+//                repeat while iterator:HasNext()
+//                    QualifiedName value = iterator:Next()
+//                    if value:GetName() = key
+//                        Class value1 = table:GetClass(value:GetStaticKey())
+//                        if value1 not= undefined
+//                            classes:Add(value1)
+//                        end
+//                    end
+//                end
+//
+//                if classes:GetSize() = 1
+//                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
+//                end
+//            elseif variablesClass = undefined and act not= undefined
+//                variablesClass = act:GetParentClass()
+//                if variablesClass = undefined
+//                    return now
+//                end
+//                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
+//                Array<Class> classes
+//                repeat while iterator:HasNext()
+//                    QualifiedName value = iterator:Next()
+//                    if value:GetName() = key
+//                        Class value1 = table:GetClass(value:GetStaticKey())
+//                        if value1 not= undefined
+//                            classes:Add(value1)
+//                        end
+//                    end
+//                end
+//
+//                if classes:GetSize() = 1
+//                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
+//                end
+//            end
+//        end
+//    end
 
-                if classes:GetSize() = 1
-                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
-                end
-            elseif variablesClass = undefined and act not= undefined
-                variablesClass = act:GetParentClass()
-                if variablesClass = undefined
-                    return now
-                end
-                Iterator<QualifiedName> iterator = variablesClass:GetUnresolvedUseStatements()
-                Array<Class> classes
-                repeat while iterator:HasNext()
-                    QualifiedName value = iterator:Next()
-                    if value:GetName() = key
-                        Class value1 = table:GetClass(value:GetStaticKey())
-                        if value1 not= undefined
-                            classes:Add(value1)
-                        end
-                    end
-                end
-
-                if classes:GetSize() = 1
-                    AddClassToResult(variable, request, result, classes:Get(0), false, undefined)
-                end
-            end
-        end
-    end
-
-    private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
-        Type type = variable:GetType()
-        if type not= undefined
-            text key = type:GetStaticKey()
-            if table = undefined
-                return now
-            end
-            Class varClass = table:GetClass(key)
-
-            if varClass not= undefined
-                AddClassToResult(variable, request, result, varClass, false, undefined)
-            elseif not type:IsPrimitive() and varClass = undefined
-                GetUnresolvedVariableInformation(variable, undefined, request, result, table)
-            elseif type:IsPrimitive() and varClass = undefined
-                Class clazz = undefined
-                if type:IsInteger()
-                    clazz = table:GetClass(type:INTEGER_OBJECT_KEY)
-                elseif type:IsNumber()
-                    clazz = table:GetClass(type:NUMBER_OBJECT_KEY)
-                elseif type:IsBoolean()
-                    clazz = table:GetClass(type:BOOLEAN_OBJECT_KEY)
-                else type:IsText()
-                    clazz = table:GetClass(type:TEXT_OBJECT_KEY)
-                end
-
-                //if this is the current class, load all methods, public or private
-                //if this is a variable, load only its public methods.
-                Iterator<Action> actions = clazz:GetVirtualTable()
-                repeat while actions:HasNext()
-                    Action act = actions:Next()
-                    CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-
-                    //is this action in the base class or the v-table?
-                    if clazz:HasAction(act:GetStaticKey())
-                        item:isBaseClassAction = true
-                    end
-
-                    //unlike other locations, this cannot possibly be
-                    //the "current" class.
-                    if  not act:IsPrivate() and act:GetName() not= "GetValue" and act:GetName() not= "SetValue"
-                        result:Add(item)
-                    end
-                end
-            end
-        end
-    end
+//    private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
+//        Type type = variable:GetType()
+//        if type not= undefined
+//            text key = type:GetStaticKey()
+//            if table = undefined
+//                return now
+//            end
+//            Class varClass = table:GetClass(key)
+//
+//            if varClass not= undefined
+//                AddClassToResult(variable, request, result, varClass, false, undefined)
+//            elseif not type:IsPrimitive() and varClass = undefined
+//                GetUnresolvedVariableInformation(variable, undefined, request, result, table)
+//            elseif type:IsPrimitive() and varClass = undefined
+//                Class clazz = undefined
+//                if type:IsInteger()
+//                    clazz = table:GetClass(type:INTEGER_OBJECT_KEY)
+//                elseif type:IsNumber()
+//                    clazz = table:GetClass(type:NUMBER_OBJECT_KEY)
+//                elseif type:IsBoolean()
+//                    clazz = table:GetClass(type:BOOLEAN_OBJECT_KEY)
+//                else type:IsText()
+//                    clazz = table:GetClass(type:TEXT_OBJECT_KEY)
+//                end
+//
+//                //if this is the current class, load all methods, public or private
+//                //if this is a variable, load only its public methods.
+//                Iterator<Action> actions = clazz:GetVirtualTable()
+//                repeat while actions:HasNext()
+//                    Action act = actions:Next()
+//                    CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size
+//
+//                    //is this action in the base class or the v-table?
+//                    if clazz:HasAction(act:GetStaticKey())
+//                        item:isBaseClassAction = true
+//                    end
+//
+//                    //unlike other locations, this cannot possibly be
+//                    //the "current" class.
+//                    if  not act:IsPrivate() and act:GetName() not= "GetValue" and act:GetName() not= "SetValue"
+//                        result:Add(item)
+//                    end
+//                end
+//            end
+//        end
+//    end
 
     private action GetVariableInBlock() returns Variable
         Variable variable = undefined
@@ -994,172 +1069,172 @@ class CodeCompletionHandler
         return act
     end
 
-    private action AddParentClassesToResult(text parentName, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod)
+//    private action AddParentClassesToResult(text parentName, 
+//        CodeCompletionRequest request, 
+//        CodeCompletionResult result, Class clazz, 
+//        boolean isCurrentClass, Action insideMethod)
+//
+//        if clazz not= undefined
+//
+//            if parentName = undefined
+//                Iterator<Class> value = clazz:GetParentClasses()
+//                repeat while value:HasNext()
+//                    Class theParent = value:Next()
+//
+//                    CodeCompletionItem item
+//
+//                    name = theParent:GetName()
+//                    key = theParent:GetStaticKey()
+//                    item:displayText = name
+//                    item:completionText = key
+//
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size
+//                    result:Add(item)
+//                end
+//            else //in this case, we have the parent name and are 
+//                 //looking for its operations
+//                 
+//                 //first check if they put in the full static key
+//                Class value = clazz:GetParentClass(parentName)
+//
+//                if value not= undefined
+//                    AddParentClassToResult(undefined, request, result, value, insideMethod)
+//                else
+//                    value = clazz:GetValidUseName(parentName)
+//                    if value not= undefined
+//                        Class validParent = clazz:GetParentClass(value:GetStaticKey())
+//                        if validParent not= undefined
+//                            AddParentClassToResult(undefined, request, result, value, insideMethod)
+//                        end
+//                    end
+//                end
+//
+//            end
+//        end
+//        
+//    end
 
-        if clazz not= undefined
+//    private action AddParentClassToResult(Variable variable, 
+//        CodeCompletionRequest request, 
+//        CodeCompletionResult result, Class clazz, Action insideMethod)
+//
+//        if clazz not= undefined
+//            //add all of the fields from this class
+//            Iterator<Variable> variables = clazz:GetVariables()
+//            repeat while variables:HasNext()
+//                Variable variable2 = variables:Next()
+//                if variable2:GetType() not= undefined
+//                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size
+//                    result:Add(item)
+//                end
+//            end
+//
+//            //there is no need to load parent information here, because this 
+//            //is the parent. Given then, load only the base methods.
+//            //if this is the current class, load all methods, public or private
+//            //if this is a variable, load only its public methods.
+//            Iterator<Action> actions = clazz:GetVirtualTable()
+//            repeat while actions:HasNext()
+//                Action act = actions:Next()
+//                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+//                text filter = result:filter
+//                integer size = filter:GetSize()
+//                item:dotOffset = request:caretLocation - size
+//
+//                //In this case, mark the methods in the base class, 
+//                //but still show anything in this parent's v-table.
+//                if clazz:HasAction(act:GetStaticKey())
+//                    item:isBaseClassAction = true
+//                end
+//
+//                result:Add(item)
+//            end
+//        end
+//    end
 
-            if parentName = undefined
-                Iterator<Class> value = clazz:GetParentClasses()
-                repeat while value:HasNext()
-                    Class theParent = value:Next()
+//    private action AddClassToResult(Variable variable, 
+//        CodeCompletionRequest request, 
+//        CodeCompletionResult result, Class clazz, 
+//        boolean isCurrentClass, Action insideMethod)
+//        AddClassToResult(variable, request, result, clazz, isCurrentClass, insideMethod, 0)
+//    end  
 
-                    CodeCompletionItem item
-
-                    name = theParent:GetName()
-                    key = theParent:GetStaticKey()
-                    item:displayText = name
-                    item:completionText = key
-
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    result:Add(item)
-                end
-            else //in this case, we have the parent name and are 
-                 //looking for its operations
-                 
-                 //first check if they put in the full static key
-                Class value = clazz:GetParentClass(parentName)
-
-                if value not= undefined
-                    AddParentClassToResult(undefined, request, result, value, insideMethod)
-                else
-                    value = clazz:GetValidUseName(parentName)
-                    if value not= undefined
-                        Class validParent = clazz:GetParentClass(value:GetStaticKey())
-                        if validParent not= undefined
-                            AddParentClassToResult(undefined, request, result, value, insideMethod)
-                        end
-                    end
-                end
-
-            end
-        end
-        
-    end
-
-    private action AddParentClassToResult(Variable variable, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, Action insideMethod)
-
-        if clazz not= undefined
-            //add all of the fields from this class
-            Iterator<Variable> variables = clazz:GetVariables()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    result:Add(item)
-                end
-            end
-
-            //there is no need to load parent information here, because this 
-            //is the parent. Given then, load only the base methods.
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-
-                //In this case, mark the methods in the base class, 
-                //but still show anything in this parent's v-table.
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
-                end
-
-                result:Add(item)
-            end
-        end
-    end
-
-    private action AddClassToResult(Variable variable, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod)
-        AddClassToResult(variable, request, result, clazz, isCurrentClass, insideMethod, 0)
-    end  
-
-    private action AddClassToResult(Variable variable, 
-        CodeCompletionRequest request, 
-        CodeCompletionResult result, Class clazz, 
-        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
-
-        if clazz not= undefined
-            //add all of the fields from this class
-            Iterator<Variable> variables = clazz:GetVariables()
-            repeat while variables:HasNext()
-                Variable variable2 = variables:Next()
-                if variable2:GetType() not= undefined
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size + additionalDotOffset
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
-                            result:Add(item)
-                        end
-                    end
-                end
-            end
-
-            //now add all of the parent fields from this class
-            Iterator<Class> parents = clazz:GetParentClasses()
-            repeat while parents:HasNext()
-                Class par = parents:Next()
-                Iterator<Variable> variables2 = par:GetVariables()
-                repeat while variables2:HasNext()
-                    Variable variable2 = variables2:Next()
-                    if variable2:GetType() not= undefined
-                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                        text filter = result:filter
-                        integer size = filter:GetSize()
-                        item:dotOffset = request:caretLocation - size + additionalDotOffset
-                        if isCurrentClass
-                            result:Add(item)
-                        else
-                            if not variable2:IsPrivate()
-                                result:Add(item)
-                            end
-                        end
-                    end
-                end
-            end
-
-            //if this is the current class, load all methods, public or private
-            //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetVirtualTable()
-            repeat while actions:HasNext()
-                Action act = actions:Next()
-                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size + additionalDotOffset
-
-                //is this action in the base class or the v-table?
-                if clazz:HasAction(act:GetStaticKey())
-                    item:isBaseClassAction = true
-                end
-
-                if isCurrentClass
-                    result:Add(item)
-                else
-                    if not act:IsPrivate()
-                        result:Add(item)
-                    end
-                end
-            end
-        end
-    end
+//    private action AddClassToResult(Variable variable, 
+//        CodeCompletionRequest request, 
+//        CodeCompletionResult result, Class clazz, 
+//        boolean isCurrentClass, Action insideMethod, integer additionalDotOffset)
+//
+//        if clazz not= undefined
+//            //add all of the fields from this class
+//            Iterator<Variable> variables = clazz:GetVariables()
+//            repeat while variables:HasNext()
+//                Variable variable2 = variables:Next()
+//                if variable2:GetType() not= undefined
+//                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                    text filter = result:filter
+//                    integer size = filter:GetSize()
+//                    item:dotOffset = request:caretLocation - size + additionalDotOffset
+//                    if isCurrentClass
+//                        result:Add(item)
+//                    else
+//                        if not variable2:IsPrivate()
+//                            result:Add(item)
+//                        end
+//                    end
+//                end
+//            end
+//
+//            //now add all of the parent fields from this class
+//            Iterator<Class> parents = clazz:GetParentClasses()
+//            repeat while parents:HasNext()
+//                Class par = parents:Next()
+//                Iterator<Variable> variables2 = par:GetVariables()
+//                repeat while variables2:HasNext()
+//                    Variable variable2 = variables2:Next()
+//                    if variable2:GetType() not= undefined
+//                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+//                        text filter = result:filter
+//                        integer size = filter:GetSize()
+//                        item:dotOffset = request:caretLocation - size + additionalDotOffset
+//                        if isCurrentClass
+//                            result:Add(item)
+//                        else
+//                            if not variable2:IsPrivate()
+//                                result:Add(item)
+//                            end
+//                        end
+//                    end
+//                end
+//            end
+//
+//            //if this is the current class, load all methods, public or private
+//            //if this is a variable, load only its public methods.
+//            Iterator<Action> actions = clazz:GetVirtualTable()
+//            repeat while actions:HasNext()
+//                Action act = actions:Next()
+//                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+//                text filter = result:filter
+//                integer size = filter:GetSize()
+//                item:dotOffset = request:caretLocation - size + additionalDotOffset
+//
+//                //is this action in the base class or the v-table?
+//                if clazz:HasAction(act:GetStaticKey())
+//                    item:isBaseClassAction = true
+//                end
+//
+//                if isCurrentClass
+//                    result:Add(item)
+//                else
+//                    if not act:IsPrivate()
+//                        result:Add(item)
+//                    end
+//                end
+//            end
+//        end
+//    end
 end

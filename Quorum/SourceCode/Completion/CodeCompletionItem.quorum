@@ -24,6 +24,8 @@ class CodeCompletionItem
     public constant integer PRIMITIVE = 11
     public constant integer CONTROL_STRUCTURE = 12
     public constant integer PACKAGE = 13
+    public constant integer PARENT_FIELD_PUBLIC = 14
+    public constant integer PARENT_FIELD_PRIVATE = 15
 
     integer type = -1
     action GetType returns integer
@@ -31,7 +33,7 @@ class CodeCompletionItem
     end
 
     action SetType(integer type)
-        if type < LOCAL_VARIABLE or type > PACKAGE
+        if type < LOCAL_VARIABLE or type > PARENT_FIELD_PRIVATE
             type = 0
         end
         me:type = type

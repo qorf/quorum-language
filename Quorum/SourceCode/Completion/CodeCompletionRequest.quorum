@@ -1,4 +1,9 @@
 package Libraries.Language.Compile
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Block
+use Libraries.Language.Compile.Symbol.Variable
 
 class CodeCompletionRequest 
     public text fileKey = ""
@@ -10,4 +15,16 @@ class CodeCompletionRequest
     public integer caretLocation = 0
     public CompilerResult result = undefined
     public CompilerResult lastCompiledResult = undefined
+    public Class clazz = undefined
+    public SymbolTable table = undefined
+
+    /* This value indicates to the system to move items over related to the call */
+    public integer bump = 0
+    public Action method = undefined
+    public Block block = undefined
+    public boolean isRequestInClass = true
+    public Class variableClass = undefined
+    public text left = ""
+    public Variable variable = undefined
+    public boolean isPrimitiveConversion = false
 end
