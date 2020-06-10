@@ -94,8 +94,15 @@ class CodeCompletionHandler
 
         //now set the filter for this particular request
         SetFilter(result, split, line)
-        SymbolTable last = request:result:symbolTable
-        SymbolTable compiled = lastCompiledResult:symbolTable
+        SymbolTable last = undefined
+        SymbolTable compiled = undefined
+        if compilerResult not= undefined
+            last = compilerResult:symbolTable
+        end
+
+        if lastCompiledResult not= undefined
+            compiled = lastCompiledResult:symbolTable
+        end
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
         
