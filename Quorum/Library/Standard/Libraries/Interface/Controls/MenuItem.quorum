@@ -793,7 +793,9 @@ class MenuItem is Control
 
         if menuProperties:GetIcon() not= undefined
             icon:Load(menuProperties:GetIcon())
-            icon:SetColor(menuProperties:GetIconColor())
+            if menuProperties:GetIconColor() not= undefined
+                icon:SetColor(menuProperties:GetIconColor())
+            end
             icon:Show()
         else
             icon:LoadFilledRectangle(1, 1, color:Magenta())
