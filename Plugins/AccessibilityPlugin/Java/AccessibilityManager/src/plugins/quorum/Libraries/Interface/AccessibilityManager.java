@@ -229,6 +229,7 @@ public class AccessibilityManager
     private native boolean TextBoxTextChangedNative(long nativePointer, int index, String added, int removed);
     private native boolean TextFieldTextChangedNative(long nativePointer, int index, String added, int removed);
     private native boolean UpdateCaretPositionNative(long nativePointer, String fullText, int caretIndex);
+    private native boolean TextFieldPasswordPropertyChangedNative(long nativePointer, boolean isPassword);
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
     private native boolean SelectListItemNative(long selectedListItem);
@@ -332,6 +333,11 @@ public class AccessibilityManager
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
                 nativePointer = CreateTextFieldNative(parentLong, textField.GetName(), textField.GetDescription(), textField);
+                if (nativePointer != 0 && textField.IsEmpty() == false)
+                {
+                    // Push down the textbox's starting text.
+                    TextFieldTextChangedNative(nativePointer, 0, textField.GetText(), 0);
+                }
                 break;
             case MENU_BAR:
                 nativePointer = CreateMenuBarNative(parentLong, item.GetName(), item);
@@ -449,9 +455,6 @@ public class AccessibilityManager
         if (itemToNotify == null)
             return;
         
-//        if(item instanceof TextBox_) {
-//            NotifyTextBoxNative(itemToRemove, say);
-//        }
         NotifyClients(itemToNotify, say, type);
     }
     
@@ -712,8 +715,16 @@ public class AccessibilityManager
         long nativePointer = ITEM_MAP.get((Item_)textField);
         
         int length = event.GetDeletedText().length();
-        
-        TextFieldTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
+        boolean pass = textField.IsPassword();
+        if(pass) {
+            String value = "";
+            for(int i = 0; i < length; i++) {
+                value = value + "*";
+            }
+            TextFieldTextChangedNative(nativePointer, event.GetIndex(), value, length);
+        } else {
+            TextFieldTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
+        }
     }
     
     public void CaretPositionChanged(Item_ item, Text_ fullText)
@@ -725,6 +736,14 @@ public class AccessibilityManager
         
             UpdateCaretPositionNative(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
+    }
+    
+    public void TextFieldUpdatePassword(TextField_ item) {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+        
+        long nativePointer = ITEM_MAP.get(item);
+        TextFieldPasswordPropertyChangedNative(nativePointer, item.IsPassword());
     }
     
     public void ProgressBarValueChanged(ProgressBar_ item) {
