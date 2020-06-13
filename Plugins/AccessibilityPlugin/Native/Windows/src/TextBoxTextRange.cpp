@@ -197,12 +197,6 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	HRESULT hr = S_OK;
 	*pRetVal = NULL;
 
-	if (textAttributeId == UIA_AnnotationObjectsAttributeId)
-		std::cout << "FindAttribute: UIA_AnnotationObjectsAttributeId" << std::endl;
-
-	if (textAttributeId == UIA_AnnotationTypesAttributeId)
-		std::cout << "FindAttribute: UIA_AnnotationTypesAttributeId" << std::endl;
-
 	int start = searchBackward ? m_range.end : m_range.begin;
 	int finish = searchBackward ? m_range.begin : m_range.end;
 	int current = start;

@@ -54,6 +54,19 @@ std::wstring TextFieldControl::GetText()
 	return m_text;
 }
 
+bool TextFieldControl::IsPassword()
+{
+	JNIEnv* env = GetJNIEnv();
+
+	if (env == NULL)
+	{
+		// If the JNI environment isn't available, we can't call up to it.
+		return false;
+	}
+	jboolean value = (jboolean)(env->CallBooleanMethod(this->GetMe(), JavaClass_TextField.IsPassword));
+	return (bool)value;
+}
+
 void TextFieldControl::UpdateCaret()
 {
 	TextFieldProvider* eventControl = GetProvider().get();
@@ -299,6 +312,29 @@ void TextFieldControl::UpdateSelection(const Range& /* indices */)
 {
 	// TODO: Actually use the provided indices.
 	UpdateCaret();
+}
+
+void TextFieldControl::UpdatePassword(bool value)
+{
+	VARIANT oldPassword, newPassword;
+	oldPassword.vt = VT_BOOL;
+	if (IsPassword()) {
+		oldPassword.boolVal = VARIANT_TRUE;
+	}
+	else {
+		oldPassword.boolVal = VARIANT_FALSE;
+	}
+	
+	newPassword.vt = VT_BOOL;
+
+	if (value) {
+		newPassword.boolVal = VARIANT_TRUE;
+	}
+	else {
+		newPassword.boolVal = VARIANT_FALSE;
+	}
+	const auto provider = GetProvider();
+	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_IsPasswordPropertyId, oldPassword, newPassword);
 }
 
 void TextFieldControl::UpdateText(int index, std::wstring added, int removed)

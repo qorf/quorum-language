@@ -87,6 +87,7 @@ struct JClass_TextField
 	jmethodID GetText;
 	jmethodID GetSelection;
 	jmethodID GetSize;
+	jmethodID IsPassword;
 };
 struct JClass_TextFieldSelection
 {

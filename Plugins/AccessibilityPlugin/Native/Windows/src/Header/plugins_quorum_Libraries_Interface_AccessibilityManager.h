@@ -74,6 +74,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jint index, jstring added, jint removed);
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextChangedNative(JNIEnv* env, jobject obj, jlong field, jint index, jstring added, jint removed);
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldPasswordPropertyChangedNative(JNIEnv* env, jobject obj, long field, jboolean isPassword);
 
 //tabs
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTabPaneNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem);

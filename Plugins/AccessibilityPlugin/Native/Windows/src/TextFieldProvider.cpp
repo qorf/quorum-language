@@ -16,7 +16,38 @@ bool TextFieldProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 
 CONTROLTYPEID TextFieldProvider::GetControlType() const noexcept
 {
-	return UIA_DocumentControlTypeId;
+	return UIA_EditControlTypeId;
+}
+
+void TextFieldProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const
+{
+	switch (propertyId)
+	{
+	case UIA_IsPasswordPropertyId:
+		retVal->vt = VT_BOOL;
+
+		bool value = IsPassword();
+		if (value) {
+			retVal->boolVal = VARIANT_TRUE;
+		}
+		else {
+			retVal->boolVal = VARIANT_FALSE;
+		}
+		break;
+	}
+}
+
+bool TextFieldProvider::IsPassword() const
+{
+	if (m_control == NULL || m_control->GetMe() == NULL)
+	{
+		// If there's no control to find, we don't try to reference its Quorum values.
+		return false;
+	}
+	else
+	{
+		return m_control->IsPassword();
+	}
 }
 
 // ===========
@@ -192,12 +223,15 @@ IFACEMETHODIMP TextFieldProvider::get_Value(BSTR* returnValue)
 	log("TextFieldProvider::get_Value Start");
 	#endif
 
-	std::wstring text = m_control->GetText();
-	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
-
 	#if LOG
-	log("TextFieldProvider::get_Value Finish");
+		log("TextFieldProvider::get_Value Finish");
 	#endif
-
-	return S_OK;
+	if (!m_control->IsPassword()) {
+		std::wstring text = m_control->GetText();
+		*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
+		return S_OK;
+	}
+	else {
+		return UIA_E_INVALIDOPERATION;
+	}
 }

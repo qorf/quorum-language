@@ -14,6 +14,8 @@ class TextFieldProvider : public ProviderT<TextFieldProvider, TextFieldControl, 
 		// Overridden ProviderT functions.
 		bool IsPatternSupported(PATTERNID patternId) const noexcept;
 		CONTROLTYPEID GetControlType() const noexcept;
+		void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
+		bool IsPassword() const;
 
 		// Methods from ITextProvider.
 		IFACEMETHODIMP GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal);

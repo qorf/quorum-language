@@ -16,6 +16,7 @@ class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider>
 		int GetCaretPosition();
 		int GetSize();
 		std::wstring GetText();
+		bool IsPassword();
 		int GetTextFieldEndpoint();
 		Range GetSelectionRange();
 
@@ -26,9 +27,9 @@ class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider>
 
 		// Used to update the TextBox's contents to match with Quorum.
 		void UpdateText(int index, std::wstring added, int removed);
-
+		void UpdatePassword(bool value);
 	private:
 		void UpdateCaret();
-
+		bool isPassword;
 		std::wstring m_text;
 };

@@ -705,7 +705,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		kind = NotificationKind_Other;
 		break;
 	}
-	
+
 	enum NotificationProcessing processing = NotificationProcessing_MostRecent;
 
 	UiaRaiseNotificationEvent(provider, kind, processing, resultString, customBSTR);
@@ -729,6 +729,13 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	std::wstring addedText = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(added, 0));
 	control->UpdateText(index, addedText, removed);
+}
+
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldPasswordPropertyChangedNative(JNIEnv* env, jobject obj, long field, jboolean isPassword) {
+	TextFieldControl* control = static_cast<TextFieldControl*>(GetItemFromLong(field));
+
+	boolean value = (boolean)isPassword;
+	control->UpdatePassword(value);
 }
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextSelectionChangedNative(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)

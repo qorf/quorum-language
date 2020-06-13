@@ -277,10 +277,17 @@ IFACEMETHODIMP TextFieldTextRange::GetEnclosingElement(_Outptr_result_maybenull_
 IFACEMETHODIMP TextFieldTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noexcept try
 {
 	*retVal = nullptr;
-
-	const auto text = textFieldControl->GetText();
 	int startPosition = range.begin;
 	int length = range.end - startPosition;
+
+	bool isPassword = textFieldControl->IsPassword();
+	auto text = textFieldControl->GetText();
+	if (isPassword) {
+		text = L"";
+		for (int i = 0; i < textFieldControl->GetSize(); i++) {
+			text = text + L"*";
+		}
+	}
 
 	if ((maxLength >= 0) && (length > maxLength))
 	{

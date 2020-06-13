@@ -157,6 +157,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextField.GetText = env->GetMethodID(JavaClass_TextField.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_TextField.GetSelection = env->GetMethodID(JavaClass_TextField.me, "GetSelection", "()Lquorum/Libraries/Interface/Selections/TextFieldSelection_;");
 	JavaClass_TextField.GetSize = env->GetMethodID(JavaClass_TextField.me, "GetSize", "()I");
+	JavaClass_TextField.IsPassword = env->GetMethodID(JavaClass_TextField.me, "IsPassword", "()Z");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
