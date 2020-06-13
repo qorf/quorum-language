@@ -25,6 +25,7 @@ use Libraries.Containers.MultipleLineText
 use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
+use Libraries.Interface.AccessibilityManager
 
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -160,12 +161,30 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         HideCaret()
     end
 
-    action IsPasswordField returns boolean
+    /*
+        This action returns whether or not this text field is a protected password.
+
+        Attribute: Returns true if this is a password field.
+    */
+    action IsPassword returns boolean
         return passwordField
     end
 
-    action SetPasswordField(boolean value)
+    /*
+        This action returns whether or not this text field is a protected password.
+
+        Attribute: Parameter value Set this to true to make this a password field
+    */
+    action SetPassword(boolean value)
         me:passwordField = value
+        GameStateManager manager
+        AccessibilityManager access = manager:GetAccessibilityManager()
+        if access not= undefined
+            access:TextFieldUpdatePassword(me)
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, GetText(), GetText(), textValue:GetSize())
+            access:TextChanged(changeEvent)
+        end
     end
 
     action GetLeftCharacterPadding returns integer
@@ -249,7 +268,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         number x = leftCharacterPadding + horizontalOffset
         repeat size times
             Glyph glyph = undefined
-            if IsPasswordField()
+            if IsPassword()
                 glyph = font:GetGlyph("*")
             else 
                 glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
