@@ -13,4 +13,7 @@ public:
 	void SetValue(double value);
 	double GetMinimum();
 	double GetMaximum();
+	double GetPercent(double value);
+private:
+	double currentValue;
 };

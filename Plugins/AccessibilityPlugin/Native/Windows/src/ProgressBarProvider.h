@@ -3,7 +3,7 @@
 #include "ProgressBarControl.h"
 #include "ProviderT.h"
 
-class ProgressBarProvider : public ProviderT<ProgressBarProvider, ProgressBarControl, IRangeValueProvider>
+class ProgressBarProvider : public ProviderT<ProgressBarProvider, ProgressBarControl, IRangeValueProvider, IValueProvider>
 {
 public:
 	ProgressBarProvider(ProgressBarControl* pButtonControl);
@@ -20,4 +20,8 @@ public:
 	IFACEMETHODIMP get_SmallChange(double* pRetVal) noexcept;
 	IFACEMETHODIMP get_Value(double* pRetVal) noexcept;
 	IFACEMETHODIMP SetValue(double val) noexcept;
+
+	// Methods from IValueProvider.
+	IFACEMETHODIMP SetValue(LPCWSTR value);
+	IFACEMETHODIMP get_Value(BSTR* returnValue);
 };
