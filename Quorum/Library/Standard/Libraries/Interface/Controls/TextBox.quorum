@@ -1676,12 +1676,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if shouldDeleteSelection
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
-        end
-
-        if shouldDeleteSelection
             DeleteSelection(false)
-        else
-            EmptySelectionEvent(true)
         end
 
         textValue = textValue:Insert(GetCaretPosition(), value)
@@ -1748,6 +1743,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
         NotifyTextChangeListeners(changeEvent)
+
+        if not shouldDeleteSelection
+            EmptySelectionEvent(true)
+        end
     end
 
     action GetEditManager returns EditManager
