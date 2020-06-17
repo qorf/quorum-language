@@ -5092,4 +5092,56 @@ class Game
         scene:Save(file)
         return scene
     end
+
+    /*
+    This action finds the first Item2D that has been added to the Game with the given name and returns it.
+    If no Item2D with the given name can be found, this action returns undefined instead. 
+
+    Attribute: Parameter name The name of the Item to be found.
+    Attribute: Returns The first Item2D added to the Game which has the given name, or undefined if no such item can be found.
+    */
+    action FindItem2DByName(text name) returns Item2D
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            if layers:Get(counter) is Layer2D
+                Layer2D layer = cast(Layer2D, layers:Get(counter))
+                Iterator<Item2D> iterator = layer:GetIterator()
+                repeat while iterator:HasNext()
+                    Item2D item = iterator:Next()
+                    if item:GetName() = name
+                        return item
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+
+        return undefined
+    end
+
+    /*
+    This action finds the first Item3D that has been added to the Game with the given name and returns it.
+    If no Item3D with the given name can be found, this action returns undefined instead. 
+
+    Attribute: Parameter name The name of the Item to be found.
+    Attribute: Returns The first Item3D added to the Game which has the given name, or undefined if no such item can be found
+    */
+    action FindItem3DByName(text name) returns Item3D
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            if layers:Get(counter) is Layer3D
+                Layer3D layer = cast(Layer3D, layers:Get(counter))
+                Iterator<Item3D> iterator = layer:GetIterator()
+                repeat while iterator:HasNext()
+                    Item3D item = iterator:Next()
+                    if item:GetName() = name
+                        return item
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+
+        return undefined
+    end
 end
