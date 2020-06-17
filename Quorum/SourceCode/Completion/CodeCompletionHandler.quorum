@@ -81,6 +81,7 @@ class CodeCompletionHandler
         text source = request:source
         integer index = request:caretLocation
         text line = GetLineBeforeCursor(index, source)
+        request:unmodifiedLine = line
         result:prefix = line
         text trimmed = line:Trim()
         request:line = trimmed
@@ -342,19 +343,49 @@ class CodeCompletionHandler
         text filter = result:filter
         integer size = filter:GetSize()
 
+        text left = request:unmodifiedLine
+        text space = GetWhiteSpaceAmount(left)
+        text lf = left:GetLineFeed()
+
         CodeCompletionItem ifItem
         ifItem:SetType(ifItem:CONTROL_STRUCTURE)
         ifItem:displayText = "if"
-        ifItem:completionText = "if true end"
+        ifItem:completionText = "if true" + lf + space + "end"
         ifItem:dotOffset = request:caretLocation - size
         result:Add(ifItem)
 
         CodeCompletionItem repeatItem
         repeatItem:SetType(ifItem:CONTROL_STRUCTURE)
         repeatItem:displayText = "repeat"
-        repeatItem:completionText = "repeat while false end"
+        repeatItem:completionText = "repeat while false" + lf + space + "end"
         repeatItem:dotOffset = request:caretLocation - size
         result:Add(repeatItem)
+
+        CodeCompletionItem repeatItem2
+        repeatItem2:SetType(ifItem:CONTROL_STRUCTURE)
+        repeatItem2:displayText = "repeat while <condition>"
+        repeatItem2:completionText = "integer i = 0" + lf + space + "repeat while i < 10" + lf + lf + space + "    i = i + 1" + lf + space + "end"
+        repeatItem2:dotOffset = request:caretLocation - size
+        result:Add(repeatItem2)
+    end
+
+    private action GetWhiteSpaceAmount(text left) returns text
+        text result = ""
+        
+        i = 0
+        repeat while i < left:GetSize()
+            text value = left:GetCharacter(i)
+            if value = " "
+                result = result + value
+            elseif value = "    "
+                result = result + value
+            elseif value = value:GetCarriageReturn() or value = value:GetLineFeed() //note that it exists, but ignore it.
+            else
+                i = left:GetSize()
+            end
+            i = i + 1
+        end
+        return result
     end
 
     private action AddActions(CodeCompletionRequest request, CodeCompletionResult result)
@@ -505,22 +536,35 @@ class CodeCompletionHandler
         end
     end
 
+    private action AddVariable(CodeCompletionRequest request, CodeCompletionResult result, Variable variable)
+        if variable:GetType() not= undefined
+            CodeCompletionItem item = variable:GetCodeCompletionItem(request:clazz)
+            text filter = result:filter
+            integer size = filter:GetSize()
+            item:dotOffset = request:caretLocation - size// + additionalDotOffset
+            if request:isRequestInClass
+                result:Add(item)
+            else
+                if not variable:IsPrivate()
+                    result:Add(item)
+                end
+            end
+        end
+    end
+
     private action AddBlockVariables(CodeCompletionRequest request, CodeCompletionResult result)
         Iterator<Variable> variables = request:block:GetVariablesAllBlocks()
         repeat while variables:HasNext()
-            Variable variable2 = variables:Next()
-            if variable2:GetType() not= undefined
-                CodeCompletionItem item = variable2:GetCodeCompletionItem(request:clazz)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size// + additionalDotOffset
-                if request:isRequestInClass
-                    result:Add(item)
-                else
-                    if not variable2:IsPrivate()
-                        result:Add(item)
-                    end
-                end
+            Variable variable = variables:Next()
+            AddVariable(request, result, variable)
+        end
+
+        Action method = request:method
+        if method not= undefined
+            Iterator<Variable> parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable variable = parameters:Next()
+                AddVariable(request, result, variable)
             end
         end
     end
