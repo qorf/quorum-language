@@ -4,6 +4,7 @@
  */
 package plugins.quorum.Libraries.Language.Types;
 
+import java.util.regex.Pattern;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Language.Errors.InvalidLocationError;
 import quorum.Libraries.Language.Errors.UndefinedObjectError;
@@ -100,6 +101,29 @@ public class Text {
     public String GetCharacterNative(int index) {
         String ret = "" + text.charAt(index);
         return ret;
+    }
+    
+    public Array_ Split(String delimiter, boolean keep) {
+        return PrimitiveSplit(text, delimiter, keep);
+    }
+    
+    public static Array_ PrimitiveSplit(String self, String delimiter, boolean keep) {
+        Array_ array = new quorum.Libraries.Containers.Array();
+        String quote = Pattern.quote(delimiter);
+        String[] split = null;
+        if(keep) {
+            split = self.split(quote, -1); //indicates to Java to keep the trailing parts
+        } else {
+            split = self.split(quote);
+        }
+        
+        for(int i = 0; i < split.length; i++) {
+            String value = split[i];
+            Text_ item = new quorum.Libraries.Language.Types.Text();
+            item.SetValue(value);
+            array.Add(item);
+        }
+        return array;
     }
     
     public int CompareInt(String left, String right, boolean isIgnoringCase) {
