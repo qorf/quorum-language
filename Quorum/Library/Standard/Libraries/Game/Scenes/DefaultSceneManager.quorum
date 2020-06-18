@@ -304,6 +304,7 @@ class DefaultSceneManager is SceneManager
         number rotation = 0
         Number32BitArray scale = undefined
         JavaScriptObjectNotation children = undefined
+        boolean physicsEnabled = true
         integer responsiveness = -1
         number restitution = -1
         number mass = -1
@@ -336,7 +337,9 @@ class DefaultSceneManager is SceneManager
         repeat while counter < keys:GetSize()
             text key = keys:Get(counter)
 
-            if key = properties:NAME
+            if CustomLoadProperty2D(item, key, json)
+                // If we custom loaded this property, we don't do the normal processing for that key.
+            elseif key = properties:NAME
                 item:SetName(json:GetValue(key))
             elseif key = properties:POSITION
                 Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
@@ -363,16 +366,9 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:CHILDREN
                 children = json:GetObject(key)
             elseif key = properties:PHYSICS_ENABLED
-                item:EnablePhysics(json:GetBoolean(key))
+                physicsEnabled = json:GetBoolean(key)
             elseif key = properties:RESPONSIVENESS
-                text responsiveValue = json:GetValue(key)
-                if responsiveValue = properties:UNMOVABLE
-                    responsiveness = 0
-                elseif responsiveValue = properties:NONRESPONSIVE
-                    responsiveness = 1
-                elseif responsiveValue = properties:RESPONSIVE
-                    responsiveness = 2
-                end
+                responsiveness = json:GetInteger(key)
             elseif key = properties:MASS
                 mass = json:GetNumber(key)
             elseif key = properties:FRICTION
@@ -443,20 +439,24 @@ class DefaultSceneManager is SceneManager
         item:SetScale(scale:Get(0), scale:Get(1))
         item:SetRotation(rotation)
 
-        if responsiveness >= 0
-            item:SetResponsiveness(responsiveness)
-        end
+        if physicsEnabled
+            item:EnablePhysics(true)
 
-        if mass >= 0
-            item:SetMass(mass)
-        end
-
-        if friction >= 0
-            item:SetFriction(friction)
-        end
-
-        if restitution >= 0
-            item:SetRestitution(restitution)
+            if responsiveness >= 0
+                item:SetResponsiveness(responsiveness)
+            end
+    
+            if mass >= 0
+                item:SetMass(mass)
+            end
+    
+            if friction >= 0
+                item:SetFriction(friction)
+            end
+    
+            if restitution >= 0
+                item:SetRestitution(restitution)
+            end
         end
 
         if children not= undefined
@@ -641,6 +641,13 @@ class DefaultSceneManager is SceneManager
         end
 
         return item
+    end
+
+    /*
+    This action can be used to override a portion of the default Item3D loading.
+    */
+    action CustomLoadProperty2D(Item2D item, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     /*
@@ -876,45 +883,81 @@ class DefaultSceneManager is SceneManager
             json:Add(properties:CLASS, "Item2D")
         end
 
-        json:Add(properties:NAME, item:GetName())
-        json:Add(properties:DESCRIPTION, item:GetDescription())
-        json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY()))
-        json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight()))
-        json:Add(properties:SCALE, NewJsonArray(item:GetScaleX(), item:GetScaleY()))
-        json:Add(properties:ROTATION, item:GetRotation())
+        if not CustomSaveProperty2D(item, properties:NAME, json)
+            json:Add(properties:NAME, item:GetName())
+        end
+        if not CustomSaveProperty2D(item, properties:DESCRIPTION, json)
+            json:Add(properties:DESCRIPTION, item:GetDescription())
+        end
+        if not CustomSaveProperty2D(item, properties:POSITION, json)
+            json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY()))
+        end
+        if not CustomSaveProperty2D(item, properties:SIZE, json)
+            json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight()))
+        end
+        if not CustomSaveProperty2D(item, properties:SCALE, json)
+            json:Add(properties:SCALE, NewJsonArray(item:GetScaleX(), item:GetScaleY()))
+        end
+        if not CustomSaveProperty2D(item, properties:ROTATION, json)
+            json:Add(properties:ROTATION, item:GetRotation())
+        end
         
         if drawable not= undefined
-            integer type = drawable:GetDrawableType()
-            json:Add(properties:TYPE, type)
-
-            if type = properties:CUSTOM
-                Texture texture = drawable:GetTexture()
-                if texture not= undefined and texture:GetSource() not= ""
-                    json:Add(properties:FILE, texture:GetSource())
-
-                    json:Add(properties:TEXTURE_REGION_LEFT, drawable:GetLeftSide())
-                    json:Add(properties:TEXTURE_REGION_RIGHT, drawable:GetRightSide())
-                    json:Add(properties:TEXTURE_REGION_TOP, drawable:GetTopSide())
-                    json:Add(properties:TEXTURE_REGION_BOTTOM, drawable:GetBottomSide())
+            if not CustomSaveProperty2D(item, properties:TYPE, json)
+                integer type = drawable:GetDrawableType()
+                json:Add(properties:TYPE, type)
+    
+                if type = properties:CUSTOM
+                    Texture texture = drawable:GetTexture()
+                    if texture not= undefined and texture:GetSource() not= ""
+                        if not CustomSaveProperty2D(item, properties:FILE, json)
+                            json:Add(properties:FILE, texture:GetSource())
+                        end
+    
+                        if not CustomSaveProperty2D(item, properties:TEXTURE_REGION_LEFT, json)
+                            json:Add(properties:TEXTURE_REGION_LEFT, drawable:GetLeftSide())
+                        end
+                        if not CustomSaveProperty2D(item, properties:TEXTURE_REGION_RIGHT, json)
+                            json:Add(properties:TEXTURE_REGION_RIGHT, drawable:GetRightSide())
+                        end
+                        if not CustomSaveProperty2D(item, properties:TEXTURE_REGION_TOP, json)
+                            json:Add(properties:TEXTURE_REGION_TOP, drawable:GetTopSide())
+                        end
+                        if not CustomSaveProperty2D(item, properties:TEXTURE_REGION_BOTTOM, json)
+                            json:Add(properties:TEXTURE_REGION_BOTTOM, drawable:GetBottomSide())
+                        end
+                    end
+                elseif type = properties:FILLED_TRIANGLE
+                    if not CustomSaveProperty2D(item, properties:POINTS, json)
+                        json:Add(properties:POINTS, item:GetProperty(properties:POINTS))
+                    end
                 end
-            elseif type = properties:FILLED_TRIANGLE
-                json:Add(properties:POINTS, item:GetProperty(properties:POINTS))
             end
 
-            Color color = drawable:GetColor()
-            if color not= undefined
-                json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
-            else
-                json:Add(properties:COLOR, NewJsonArray(0.0, 0.0, 0.0, 0.0))
+            if not CustomSaveProperty2D(item, properties:COLOR, json)
+                Color color = drawable:GetColor()
+                if color not= undefined
+                    json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+                else
+                    json:Add(properties:COLOR, NewJsonArray(0.0, 0.0, 0.0, 0.0))
+                end
             end
         end
 
         boolean physicsEnabled = item:IsPhysicsEnabled()
-        json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
-        if physicsEnabled
+        if not CustomSaveProperty2D(item, properties:PHYSICS_ENABLED, json)
+            json:Add(properties:PHYSICS_ENABLED, physicsEnabled)
+        end
+        if (not CustomSaveProperty2D(item, properties:RESPONSIVENESS, json)) and physicsEnabled
             json:Add(properties:RESPONSIVENESS, item:GetResponsiveness())
+        end
+        if (not CustomSaveProperty2D(item, properties:MASS, json)) and physicsEnabled
             json:Add(properties:MASS, item:GetMass())
+        end
+        if (not CustomSaveProperty2D(item, properties:FRICTION, json)) and physicsEnabled
             json:Add(properties:FRICTION, item:GetFriction())
+        end
+        if (not CustomSaveProperty2D(item, properties:RESTITUTION, json)) and physicsEnabled
             json:Add(properties:RESTITUTION, item:GetRestitution())
         end
 
@@ -1041,6 +1084,14 @@ class DefaultSceneManager is SceneManager
         end
 
         return json
+    end
+
+    /*
+    This function can be overridden to make custom modifications to the JSON for a particular
+    property type. This should return true if a custom modification was made, or false otherwise.
+    */
+    private action CustomSaveProperty2D(Item2D item, text key, JavaScriptObjectNotation json) returns boolean
+        return false
     end
 
     /*
