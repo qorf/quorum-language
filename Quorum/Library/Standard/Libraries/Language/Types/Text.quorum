@@ -143,7 +143,7 @@ class Text is Object
         Attribute: Returns The unicode symbol's integer value
 
         Attribute: Example
-        text a = "hello world‚Äù
+        text a = "hello world‚Ä?"
         output  "h as a unicode integer value is: " + a:GetUnicodeInteger(0)
     */
     system action GetUnicodeInteger(integer index) returns integer
@@ -589,6 +589,25 @@ class Text is Object
         the delimiter.
         
         Attribute: Parameter delimiter The non-empty delimiter to use.
+        Attribute: Parameter include Include any trailing values after the delimiter, including the empty string.
+        Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
+
+        Attribute: Example
+        use Libraries.Language.Types.Text
+        use Libraries.Containers.Array
+        Text a
+        a:SetValue("hello world")
+        Array<Text> values = a:Split("l")
+    */
+    system action Split(text delimiter, boolean include) returns Array<text>
+
+    /*
+        This action splits the string based on the given non-empty delimiter.
+        The delimiter can be of any length. The string will be split by the
+        given delimiter and an array of text objects will be returned, without
+        the delimiter.
+        
+        Attribute: Parameter delimiter The non-empty delimiter to use.
         Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
 
         Attribute: Example
@@ -600,7 +619,7 @@ class Text is Object
     */
     action Split(text delimiter) returns Array<text>
         // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
-
+        
 	Array<text> results
 	integer pos = 0
 	integer length = me:GetSize()

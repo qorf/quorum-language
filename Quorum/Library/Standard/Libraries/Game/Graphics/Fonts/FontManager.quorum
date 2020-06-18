@@ -45,6 +45,8 @@ class FontManager
 
     // Used to determine if the program is being run in a web browser.
     GameStateManager gameStateManager
+    text lastRequestedKey = ""
+    FontStrategy typicallyRequestedStrategy = undefined
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
@@ -251,8 +253,13 @@ class FontManager
     end
 
     private action GetFontStrategy(text key) returns FontStrategy
+        if key = lastRequestedKey
+            return typicallyRequestedStrategy
+        end
         if fontTable:HasKey(key)
-            return fontTable:GetValue(key)
+            lastRequestedKey = key
+            typicallyRequestedStrategy = fontTable:GetValue(key)
+            return typicallyRequestedStrategy
         else
             FontStrategy strategy = CreateFontStrategy()
 
@@ -283,6 +290,8 @@ class FontManager
 
             fontTable:Add(key, strategy)
 
+            lastRequestedKey = key
+            typicallyRequestedStrategy = strategy
             return strategy
         end
     end
