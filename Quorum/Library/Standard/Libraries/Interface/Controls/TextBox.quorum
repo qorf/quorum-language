@@ -388,7 +388,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         // The font produces characters in white, which can later be set to any
         // color in GetLineDrawables().
-        font:SetColor(color:White())
+        // font:SetColor(color:White())
 
         parent:Control:LoadGraphics(properties)
 
@@ -637,7 +637,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
                 if glyph:texture not= undefined
                     draw:Load(glyph:texture)
-                    draw:SetColor(glyph:color)
                 else
                     draw:SetTexture(undefined)
                     draw:SetSize(0, 0)

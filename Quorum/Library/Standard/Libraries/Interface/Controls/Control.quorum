@@ -18,6 +18,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.System.File
 use Libraries.Game.InputTable
 use Libraries.Game.Game
+use Libraries.Game.Graphics.TextureRegion
 
 class Control is Item2D
 
@@ -582,8 +583,29 @@ class Control is Item2D
 
     Attribute: Parameter icon The Icon to use for this Control.
     */
-    action SetIcon(Icon icon)
+    action SetIcon(TextureRegion icon)
         defaultProperties:SetIcon(icon)
+    end
+
+    /*
+
+    */
+    action GetIcon returns TextureRegion
+        return defaultProperties:GetIcon()
+    end
+
+    /*
+
+    */
+    action SetIconColor(ColorGroup color)
+        defaultProperties:SetIconColor(color)
+    end
+
+    /*
+
+    */
+    action GetIconColor returns ColorGroup
+        return defaultProperties:GetIconColor()
     end
 
     /*

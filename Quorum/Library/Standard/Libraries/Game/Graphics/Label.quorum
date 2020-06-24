@@ -390,8 +390,34 @@ class Label is Control
         end
     */
     action SetColor(Color color)
-        textChanged = true
-        GetFont():SetColor(color)
+        parent:Control:SetFontColor(color)
+        ResetDrawableColors()
+    end
+
+    private action ResetDrawableColors
+        Color color = GetCurrentColor()
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            if children:Get(counter) is Drawable
+                Drawable drawable = cast(Drawable, children:Get(counter))
+                drawable:SetColor(color)
+            end
+            counter = counter + 1
+        end
+    end
+
+    action SetFontColor(Color color)
+        SetColor(color)
+    end
+
+    /*
+    Used by LoadDrawables to color the incoming glyphs.
+    Always returns the font color stored in the layout properties, but this
+    can be overridden by inheriting classes to use colors from other sources.
+    */
+    private action GetCurrentColor returns Color
+        return GetFontColor()
     end
 
     /*
@@ -459,7 +485,7 @@ class Label is Control
         end
     */
     action GetColor returns Color
-        return GetFont():GetColor()
+        return GetFontColor()
     end
 
     /*
@@ -651,6 +677,8 @@ class Label is Control
                 maxDescent = font:GetMaximumDescent()
             end
 
+            Color fontColor = GetCurrentColor()
+
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
                 wordsIndex = 0
@@ -689,7 +717,7 @@ class Label is Control
                         if glyph:texture not= undefined
                             Drawable newDrawable = GetDrawable()
                             newDrawable:Load(glyph:texture)
-                            newDrawable:SetColor(glyph:color)
+                            newDrawable:SetColor(fontColor)
                             drawable = newDrawable
                         end
                         

@@ -46,6 +46,7 @@ class PerspectiveCamera is Camera
     */
     action Update
         number aspect = GetWidth() / GetHeight()
+
         GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView / zoom, aspect)
         GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
         GetCombinedMatrix():Set(GetProjectionMatrix())

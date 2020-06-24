@@ -1,0 +1,235 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.DefaultTreeMenuView
+use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
+use Libraries.Interface.Layouts.TreeLayout
+
+class DefaultTreeItemContent is TreeItemContent
+
+    ControlLabel label = undefined
+    ToggleButton expandButton = undefined
+    Icon icon = undefined
+
+    // Used to ensure the font isn't loaded until the TreeItem's graphics are.
+    boolean fontInitialized = false
+
+    on create
+        FlowLayout flow
+        flow:SetVerticalCentering(true)
+        SetLayout(flow)
+
+        LayoutProperties itemStructureProperties = GetDefaultLayoutProperties()
+        itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
+    end
+
+    action SetTreeItem(TreeItem item)
+        parent:TreeItemContent:SetTreeItem(item)
+        UpdateText(item:GetName())
+    end
+
+    action UpdateText(text name)
+        if label not= undefined and label:GetText() = ""
+            label:SetText(name)
+        end
+    end
+
+    action HideExpandButton
+        if expandButton not= undefined
+            expandButton:Hide()
+        end
+    end
+
+    action ShowExpandButton
+        if expandButton not= undefined
+            expandButton:Show()
+        end
+    end
+
+    action SetExpandState(boolean expand)
+        if expandButton not= undefined
+            if expand
+                expandButton:SetToggleState(true)
+            else
+                expandButton:SetToggleState(false)
+            end
+        end
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        if label not= undefined
+            label:GainedSelection()
+        end
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        if label not= undefined
+            label:LostSelection()
+        end
+    end
+
+    action UnfocusedSelection
+        if label not= undefined
+            label:UnfocusedSelection()
+        end
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        TreeItem treeItem = GetTreeItem()
+
+        if fontInitialized = false
+            fontInitialized = true
+            if treeItem:GetFont() = undefined
+
+                Font font
+                text defaultFontName = treeItem:GetDefaultFontName()
+                if defaultFontName not= undefined
+                    font:LoadFont(defaultFontName)
+                    integer defaultFontSize = treeItem:GetDefaultFontSize()
+                    font:SetSize(defaultFontSize)
+                    treeItem:SetFont(font)
+                    treeItem:SetFontSize(defaultFontSize)
+                end    
+            end
+        end
+
+        Color color
+
+        Font font = treeItem:GetFont()
+        // Height uses a default fall-back value of 10 if height can't be
+        // derived from the Font.
+        integer height = 10
+        if font not= undefined
+            height = font:GetLineHeight()
+
+            if GetFont() not= font
+                SetFont(font)
+            end
+            if GetFontSize() not= treeItem:GetFontSize()
+                SetFontSize(treeItem:GetFontSize())
+            end
+        end
+
+        if expandButton = undefined
+            ToggleButton button
+            expandButton = button
+
+            View2D buttonView = properties:GetView2D()
+            if buttonView = undefined
+                View2D currentView = expandButton:GetView2D()
+                if currentView = undefined
+                    DefaultTreeMenuView content
+                    content:Initialize(height, height * 2)
+                    buttonView = content
+                else
+                    buttonView = currentView
+                end
+            end
+
+            LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
+            buttonProperties:SetView2D(buttonView)
+            buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+            buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
+            buttonProperties:SetPercentageHeight(1.0)
+            buttonProperties:SetPercentageWidth(1.0)
+            buttonProperties:SetTopPadding(4)
+            buttonProperties:SetBottomPadding(4)
+            buttonProperties:SetLeftPadding(4)
+            buttonProperties:SetLabelText("")
+            buttonProperties:SetFont(undefined)
+    
+            ToggleTreeViewBehavior buttonBehavior
+            buttonBehavior:SetTreeItem(treeItem)
+            expandButton:SetBehavior(buttonBehavior)
+    
+            if treeItem:GetSize() = 0
+                expandButton:Hide()
+            else
+                expandButton:Show()
+            end
+
+            /*
+            We don't want the expand button to appear in accessibility hierarchies.
+            The button is purely for visual use -- non-visual access can manipulate
+            the tree item directly to close/expand it.
+            */
+            expandButton:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+
+            Add(expandButton)
+        end
+
+        if icon = undefined
+            Icon newIcon
+            icon = newIcon
+            Add(icon)
+        end
+
+        TextureRegion region = treeItem:GetIcon()
+        ColorGroup iconColor = treeItem:GetIconColor()
+        if region = undefined and icon:GetTexture() not= undefined
+            Drawable drawable
+            drawable:LoadFilledRectangle(1, 1, color:CustomColor(1, 1, 1, 0))
+            region = drawable
+            iconColor = color:CustomColor(1, 1, 1, 0)
+            treeItem:SetIcon(region)
+            treeItem:SetIconColor(iconColor)
+        elseif iconColor = undefined
+            iconColor = color:White()
+        end
+
+        if region not= undefined and icon:GetTexture() not= region:GetTextureField()
+            icon:Load(region)
+            number aspectRatio = icon:GetWidth() / icon:GetHeight()
+    
+            LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+            iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+            iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+            iconProperties:SetPercentageHeight(1.0)
+            iconProperties:SetPercentageWidth(aspectRatio)
+            iconProperties:SetLeftPadding(5)
+            iconProperties:SetRightPadding(5)
+        end
+
+        icon:SetColor(iconColor)
+
+        if label = undefined
+            ControlLabel newLabel
+            label = newLabel
+            label:SetHorizontalMargins(4)
+
+            LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+            labelProperties:SetPercentageHeight(1.0)
+            labelProperties:SetHorizontalLayoutMode(labelProperties:FIT_CONTENTS)
+
+            Add(label)
+        end
+
+        if font not= undefined
+            label:SetFont(font)
+            label:SetSize(properties:GetFontSize())
+            label:SetInterfaceScale(properties:GetInterfaceScale())
+            text labelText = properties:GetLabelText()
+            if labelText = ""
+                labelText = treeItem:GetName()
+            end
+
+            if label:GetText() not= labelText
+                label:SetText(labelText)
+            end
+        end
+        
+        parent:Control:LoadGraphics(properties)
+    end
+
+end

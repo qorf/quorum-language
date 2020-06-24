@@ -1303,6 +1303,10 @@ class Camera
     This action will set the effective width of the camera lens.
     */
     action SetWidth(number width)
+        if width < 0
+            width = 0
+        end
+
         viewportWidth = width
     end
 
@@ -1342,6 +1346,10 @@ class Camera
     This action will set the effective height of the camera lens.
     */
     action SetHeight(number height)
+        if height < 0
+            height = 0
+        end
+
         viewportHeight = height
     end
 
@@ -1383,6 +1391,13 @@ class Camera
     This action will set the effective width and height of the camera lens.
     */
     action SetSize(number width, number height)
+        if width < 0
+            width = 0
+        end
+        if height < 0
+            height = 0
+        end
+
         viewportWidth = width
         viewportHeight = height
     end

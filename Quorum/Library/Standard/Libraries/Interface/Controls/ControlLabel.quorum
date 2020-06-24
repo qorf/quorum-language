@@ -10,6 +10,7 @@ use Libraries.Interface.Views.SelectionHighlightView
 class ControlLabel is Label
     
     SelectionHighlightView view = undefined
+    boolean useSelectionColor = false
 
     on create
         SetPositionOnBaseLine(false)
@@ -26,7 +27,7 @@ class ControlLabel is Label
     end
 
     action GainedSelection
-        SetColor(GetSelectionFontColor())
+        UseSelectionColor(true)
         if view not= undefined
             view:SetSelectionColor(GetSelectionColor())
         end
@@ -35,7 +36,7 @@ class ControlLabel is Label
     end
 
     action UnfocusedSelection
-        SetColor(GetFontColor())
+        UseSelectionColor(false)
         if view not= undefined
             view:SetSelectionColor(GetUnfocusedSelectionColor())
         end
@@ -44,8 +45,21 @@ class ControlLabel is Label
     end
 
     action LostSelection
-        SetColor(GetFontColor())
+        UseSelectionColor(false)
         parent:Control:LostSelection()
+    end
+
+    private action UseSelectionColor(boolean useSelection)
+        useSelectionColor = useSelection
+        parent:Label:ResetDrawableColors()
+    end
+
+    private action GetCurrentColor returns Color
+        if useSelectionColor
+            return GetSelectionFontColor()
+        else
+            return GetFontColor()
+        end
     end
 
     action LoadGraphics(LayoutProperties properties)

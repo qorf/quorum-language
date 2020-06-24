@@ -473,7 +473,7 @@ class LayoutProperties
         if font not= undefined
             font:SetSize(cast(integer, baseFontSize * interfaceScale))
             if fontColor not= undefined
-                font:SetColor(fontColor)
+//                font:SetColor(fontColor)
             end
         end
         needsRendering = true
@@ -498,7 +498,7 @@ class LayoutProperties
     action SetFontColor(Color color)
         fontColor = color
         if font not= undefined
-            font:SetColor(color)
+//            font:SetColor(color)
         end
     end
 
