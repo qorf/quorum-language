@@ -5062,7 +5062,30 @@ class Game
     end
 
     /*
+        This loads a scene file into the game. 
 
+        Attribute: Parameter file the file to be loaded
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Scenes.Scene
+        use Libraries.System.File
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                File file
+                file:SetPath("Scenes/Scene.qs")
+                LoadScene(file)
+            end
+        
+            action Update(number seconds)
+            end
+        end
     */
     action LoadScene(File file)
         Scene scene
@@ -5071,21 +5094,110 @@ class Game
     end
 
     /*
+        This loads a scene file into the game. This is a helper action
+        for loading a scene.
 
+        Attribute: Parameter the relative path to the file being loaded
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Scenes.Scene
+        use Libraries.System.File
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                LoadScene("Scenes/Scene.qs")
+            end
+        
+            action Update(number seconds)
+            end
+        end
+    */
+    action LoadScene(text path)
+        Scene scene
+
+        File file
+        file:SetPath(path)
+        scene:Load(file)
+        LoadScene(scene)
+    end
+
+    /*
+        This loads a scene file into the game. 
+
+        Attribute: Parameter file the file to be loaded
+
+        Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Scenes.Scene
+        use Libraries.System.File
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                Scene scene
+                File file
+                file:SetPath("Scenes/Scene.qs")
+                scene:Load(file)
+                LoadScene(scene)
+            end
+        
+            action Update(number seconds)
+            end
+        end
     */
     action LoadScene(Scene scene)
         sceneManager:Load(scene)
     end
 
     /*
+        This action saves all of the items currently in the game to a 
+        Scene object, which can then be saved.
 
+        Attribute: Returns the Scene object.
+
+        Attribute: Example 
+        use Libraries.Game.Game
+        use Libraries.Game.Scenes.Scene
+        use Libraries.System.File
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                LoadScene("Scenes/Scene.qs")
+
+                //returns undefined if the item is not found
+                Item2D player = FindItem2DByName("1: Girl")
+            end
+        
+            action Update(number seconds)
+            end
+        end
     */
     action SaveScene returns Scene
         return sceneManager:Save(me)
     end
 
     /*
+        This action saves everything currently in the game to a 
+        Scene file, which it returns, and additionally saves this scene 
+        to disk.
 
+        Attribute: Parameter file the file to save the scene to
+
+        Attribute: Returns a scene file
     */
     action SaveScene(File file) returns Scene
         Scene scene = SaveScene()
@@ -5094,11 +5206,17 @@ class Game
     end
 
     /*
-    This action finds the first Item2D that has been added to the Game with the given name and returns it.
-    If no Item2D with the given name can be found, this action returns undefined instead. 
+        This action finds the first Item2D that has been added to the Game with the given 
+        name and returns it. If no Item2D with the given name can be found, this action returns undefined instead. 
+    
 
-    Attribute: Parameter name The name of the Item to be found.
-    Attribute: Returns The first Item2D added to the Game which has the given name, or undefined if no such item can be found.
+        Attribute: Parameter name The name of the Item to be found.
+        Attribute: Returns The first Item2D added to the Game which has the given name, 
+            or undefined if no such item can be found.
+
+        Attribute: Example
+
+        
     */
     action FindItem2DByName(text name) returns Item2D
         integer counter = 0
