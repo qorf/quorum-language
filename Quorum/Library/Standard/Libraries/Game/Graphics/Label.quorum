@@ -649,6 +649,21 @@ class Label is Control
 
             number availableWidth = maxWidth - horizontalMargins
 
+            number standardLayoutWidth = -1
+            /*
+            Hack to allow Labels to accept a percentage width of the parent.
+            This should be replaced with a more comprehensive solution for
+            layouts and Labels.
+            */
+            if properties:GetHorizontalLayoutMode() = properties:STANDARD and GetParent() is Control
+                Control control = cast(Control, GetParent())
+                standardLayoutWidth = properties:GetLeftPadding() + properties:GetRightPadding() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
+            end
+
+            if standardLayoutWidth >= 0
+                availableWidth = standardLayoutWidth - horizontalMargins
+            end
+
             Array<text> lines = Split(targetText, targetText:GetLineFeed())
             Array<text> words = undefined
             Array<Glyph> glyphs
@@ -761,7 +776,14 @@ class Label is Control
                 originY = y
             end
 
-            parent:Item2D:SetSize(maxLineWidth + 2 * horizontalMargins, startingOriginY - originY)
+            number newWidth = maxLineWidth + 2 * horizontalMargins
+
+            if standardLayoutWidth >= 0
+                newWidth = standardLayoutWidth
+            end
+            
+
+            parent:Item2D:SetSize(newWidth, startingOriginY - originY)
         end
 
     end
