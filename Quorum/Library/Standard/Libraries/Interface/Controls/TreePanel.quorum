@@ -1,0 +1,32 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Iterator
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.TreeLayout
+
+class TreePanel is Control
+
+    on create
+        SetName("Tree Panel")
+
+        TreeLayout panelLayout
+        SetLayout(panelLayout)
+
+        LayoutProperties panelProperties = GetDefaultLayoutProperties()
+        panelProperties:SetPercentageWidth(1.0)
+        panelProperties:SetPercentageOriginY(1.0)
+    end
+
+    action GetParentTreeItem returns TreeItem
+        if GetParent() is TreeItem
+            return cast(TreeItem, GetParent())
+        else
+            return undefined
+        end
+    end
+
+    action GetTreeItems returns Iterator<TreeItem>
+        return GetParentTreeItem():GetTreeItems()
+    end
+
+end
