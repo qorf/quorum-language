@@ -35,6 +35,7 @@ use Libraries.Game.WebApplication
 use Libraries.Game.FocusManager
 use Libraries.Language.Errors.UndefinedObjectError
 use Libraries.Containers.Number32BitArray
+use Libraries.Game.Layer
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -1810,12 +1811,22 @@ class Item2D is Item
     
     */
     action ProcessMouseEvent(MouseEvent event)
-        if not Contains(event:GetX(), event:GetY())
-            if parentItem not= undefined
-                parentItem:ProcessMouseEvent(event)
-            end
-            
+        if IsAcceptingMouseInput() = false
+            event:SetEventHandled(false)
             return now
+        end
+
+        Layer layer = GetLayer()
+        if layer not= undefined and GetLayer():GetCamera() not= undefined
+            Vector3 worldCoordinates = layer:GetCamera():ScreenToWorldCoordinates(event:GetX() - layer:GetViewportX(), event:GetY() - layer:GetViewportY())
+
+            if not Contains(worldCoordinates:GetX(), worldCoordinates:GetY())
+                if parentItem not= undefined
+                    parentItem:ProcessMouseEvent(event)
+                end
+    
+                return now
+            end
         end
 
         boolean wasSent = false

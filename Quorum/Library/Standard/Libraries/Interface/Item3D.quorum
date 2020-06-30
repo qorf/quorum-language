@@ -1347,6 +1347,10 @@ class Item3D is Item
     
     */
     action ProcessMouseEvent(MouseEvent event)
+        if IsAcceptingMouseInput() = false
+            event:SetEventHandled(false)
+            return now
+        end
 
         event:SetEventHandled(true)
 

@@ -84,6 +84,8 @@ class Item
 
     HashTable<text, JavaScriptObjectNotation> properties = undefined
 
+    boolean acceptsMouseInput = true
+
     action GetProperty(text key) returns JavaScriptObjectNotation
         if properties = undefined
             return undefined
@@ -158,6 +160,30 @@ class Item
         parentItem:Empty()
     */
     blueprint action Empty
+
+    /*
+    This action sets whether or not this Item accepts mouse input.
+    If set to true, this will intercept incoming mouse events, triggering any
+    related MouseListeners and InputSets and preventing the mouse event from
+    propagating to other Items on the Layer. The default value is true.
+
+    Attribute: Parameter accepts True to set this Item to receive mouse events, or false to ignore them.
+    */
+    action SetAcceptsMouseInput(boolean accepts)
+        acceptsMouseInput = accepts
+    end
+
+    /*
+    This action returns whether or not this Item accepts mouse input.
+    If the value is true, this will intercept incoming mouse events, triggering any
+    related MouseListeners and InputSets and preventing the mouse event from
+    propagating to other Items on the Layer. The default value is true.
+
+    Attribute: Returns True if this Item can receive mouse events, or false otherwise.
+    */
+    action IsAcceptingMouseInput returns boolean
+        return acceptsMouseInput
+    end
 
     /*  
     This action takes a touch event and handles it. It will first test to 

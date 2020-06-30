@@ -1223,7 +1223,7 @@ class Layer2D is Layer
         GameInput gameInput = manager:GetInput()
         integer originalClickCount = event:clickCount
 
-        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX() - GetViewportX(), event:GetY() - GetViewportY())
 
         repeat while counter < sortedItems:GetSize() and not found
             Item2D item = sortedItems:Get(counter)
@@ -1593,14 +1593,6 @@ class Layer2D is Layer
 
     */
     action AddMouseListener(MouseListener listener)
-        if listener = undefined
-            check
-                alert("Undefined MouseListener!")
-            detect e is Error
-                output e:GetErrorMessage()
-                e:OutputStackTrace()
-            end
-        end
         mouseListeners:Add(listener)
     end
 
