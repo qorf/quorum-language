@@ -400,6 +400,13 @@ class Label is Control
         ResetDrawableColors()
     end
 
+    action SetInterfaceScale(number scale)
+        if scale not= GetInterfaceScale()
+            textChanged = true
+        end
+        parent:Control:SetInterfaceScale(scale)
+    end
+
     private action ResetDrawableColors
         Color color = GetCurrentColor()
         Array<Item2D> children = GetChildren()
