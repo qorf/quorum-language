@@ -27,6 +27,7 @@ use Libraries.Game.InputSet
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
 use Libraries.Interface.Behaviors.Controls.PassthroughBehavior
+use Libraries.Game.Graphics.TextureRegion
 
 class MenuItem is Control
     
@@ -39,11 +40,6 @@ class MenuItem is Control
     Control panelAnchor
     Layout panelLayout = undefined
     LayoutProperties panelProperties = undefined
-    LayoutProperties iconProperties = undefined
-    LayoutProperties labelProperties = undefined
-    LayoutProperties shortcutProperties = undefined
-    LayoutProperties arrowProperties = undefined
-    LayoutProperties menuProperties = undefined
 
     /*
     An array containing all elements added to the panel. This is redundant to
@@ -65,9 +61,6 @@ class MenuItem is Control
 
     // The default appearance of MenuItems which are elements of this menu.
     ControlView submenuView = undefined
-
-    // The default appearance of menu panels for this MenuItem and any submenus.
-    View2D panelView = undefined
 
     boolean open = false
 
@@ -102,11 +95,11 @@ class MenuItem is Control
         panelAnchor:SetLayout(layout)
         panelAnchor:SetName("Panel Anchor")
 
-        iconProperties = icon:GetDefaultLayoutProperties()
-        labelProperties = label:GetDefaultLayoutProperties()
-        shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
-        arrowProperties = arrow:GetDefaultLayoutProperties()
-        menuProperties = GetDefaultLayoutProperties()
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
+        LayoutProperties shortcutProperties = shortcutLabel:GetDefaultLayoutProperties()
+        LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+        LayoutProperties menuProperties = GetDefaultLayoutProperties()
 
         Color color
         menuProperties:SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
@@ -722,28 +715,35 @@ class MenuItem is Control
         ColorGroup selectionColor = properties:GetSelectionColor()
 
         if GetParentMenu() = undefined and (GetMenuRoot() not= undefined and GetMenuRoot():HasBar())
-            rootLayout:SetIgnoreHidden(true)
-            SetLayout(rootLayout)
+            if GetLayout() = undefined or GetLayout():Equals(rootLayout) = false
+                rootLayout:SetIgnoreHidden(true)
+                SetLayout(rootLayout)
+            end
 
             shortcutLabel:Hide()
             arrow:Hide()
 
             if backgroundColor = undefined
-                Color color
                 Gradient gradient
-                Color gray = color:CustomColor(0.85, 0.85, 0.9, 1)
-                Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+                Color gray
+                gray:SetColor(0.85, 0.85, 0.9, 1)
+                Color lightGray
+                lightGray:SetColor(0.9, 0.9, 0.9, 1)
                 gradient:Set(gray, gray, lightGray, lightGray)
                 backgroundColor = gradient
+
+                properties:SetBackgroundColor(gradient)
             end
 
             SetMenuDirection(DOWN)
 
-            properties:SetHorizontalLayoutMode(menuProperties:FIT_CONTENTS)
+            properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         else
-            SetLayout(menuItemLayout)
+            if GetLayout() = undefined or GetLayout():Equals(menuItemLayout) = false
+                SetLayout(menuItemLayout)
+            end
 
-            properties:SetHorizontalLayoutMode(menuProperties:STANDARD)
+            properties:SetHorizontalLayoutMode(properties:STANDARD)
             properties:SetPercentageWidth(1.0)
 
             SetMenuDirection(RIGHT)
@@ -752,10 +752,10 @@ class MenuItem is Control
                 Color color
                 color:SetColor(0.85, 0.85, 0.9, 1)
                 backgroundColor = color
+                properties:SetBackgroundColor(backgroundColor)
             end
         end
 
-        properties:SetBackgroundColor(backgroundColor)
         if properties:GetBorderColor() = undefined
             Color color
             color:SetColor(0, 0, 0, 1)
@@ -774,36 +774,54 @@ class MenuItem is Control
             properties:SetSelectionColor(color)
         end
 
-        
-
         panel:SetName(GetName() + " Menu Panel")
-        panelProperties:SetBorderThickness(properties:GetBorderThickness())
+        panel:SetBorderThickness(properties:GetBorderThickness())
 
-        Color color
-        properties:SetFontColor(color:Black())
-        properties:SetSelectionFontColor(color:White())
+        if properties:GetFontColor() = undefined
+            Color color
+            color:SetColor(0, 0, 0, 1)
+            properties:SetFontColor(color)
+        end
 
-        LabelBoxView content
-        content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-        content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
-        content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
-        panelView = content
+        if properties:GetSelectionFontColor() = undefined
+            Color color
+            color:SetColor(1, 1, 1, 1)
+            properties:SetSelectionFontColor(color)
+        end
 
-        panel:SetView2D(panelView)
+        if panel:GetView2D() = undefined
+            LabelBoxView content
+            content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+            content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
 
-        if menuProperties:GetIcon() not= undefined
-            icon:Load(menuProperties:GetIcon())
-            if menuProperties:GetIconColor() not= undefined
-                icon:SetColor(menuProperties:GetIconColor())
+            Color transparent
+            transparent:SetColor(1, 1, 1, 0)
+            Color black = transparent:Black()
+            content:Initialize(transparent, black)
+    
+            panel:SetView2D(content)
+        end
+
+        if properties:GetIcon() not= undefined
+            TextureRegion region = properties:GetIcon()
+            if icon:GetTextureField() not= region:GetTextureField()
+                icon:Load(properties:GetIcon())
+            end
+            if properties:GetIconColor() not= undefined
+                icon:SetColor(properties:GetIconColor())
             end
             icon:Show()
         else
-            icon:LoadFilledRectangle(1, 1, color:Magenta())
             icon:Hide()
         end
 
-        arrow:SetColor(menuProperties:GetFontColor())
-        arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100, menuProperties:GetFontColor())
+        arrow:SetColor(properties:GetFontColor())
+
+        if arrow:IsLoaded() = false
+            arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100)
+        end
+
+        arrow:SetColor(properties:GetFontColor())
 
         text labelText = properties:GetLabelText()
         if labelText = ""
@@ -811,12 +829,20 @@ class MenuItem is Control
         end
 
         Font font = properties:GetFont()
-        font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        integer fontSize = cast(integer, properties:GetFontSize() * properties:GetInterfaceScale())
+        if font:GetSize() not= fontSize
+            font:SetSize(fontSize)
+        end
 
         boolean selected = IsSelected()
+
         label:SetFont(font)
         label:SetSize(properties:GetFontSize())
-        label:SetInterfaceScale(properties:GetInterfaceScale())
+
+//        if label:GetInterfaceScale() not= properties:GetInterfaceScale()
+//            label:SetInterfaceScale(properties:GetInterfaceScale())
+//        end
+
         label:SetText(labelText)
 
         if selected
@@ -834,14 +860,16 @@ class MenuItem is Control
         end
 
         //This is a box with a border on it that is the background of the menu
-        LabelBoxView view
-
-        if selected
-            view:Initialize(properties:GetSelectionColor(), properties:GetSelectionBorderColor())
-        else
-            view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+        if GetView2D() = undefined
+            LabelBoxView view
+    
+            if selected
+                view:Initialize(properties:GetSelectionColor(), properties:GetSelectionBorderColor())
+            else
+                view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+            end
+            SetView2D(view)
         end
-        SetView2D(view)
 
         parent:Control:LoadGraphics(properties)
     end

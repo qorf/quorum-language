@@ -244,11 +244,13 @@ class Label is Control
         end
     */
     action SetFont(Font newFont)
-        textChanged = true
-        if newFont:GetSize() not= GetSize()
-            SetSize(newFont:GetSize())
+        if GetFont() not= newFont
+            textChanged = true
+            if newFont:GetSize() not= GetSize()
+                SetSize(newFont:GetSize())
+            end
+            parent:Control:SetFont(newFont)
         end
-        parent:Control:SetFont(newFont)
     end
 
     /*
@@ -274,8 +276,10 @@ class Label is Control
         end
     */
     action SetText(text newText)
-        targetText = newText
-        textChanged = true
+        if targetText not= newText
+            targetText = newText
+            textChanged = true
+        end
     end
 
     /*
@@ -358,8 +362,10 @@ class Label is Control
         end
     */
     action SetFontSize(integer size)
-        textChanged = true
-        parent:Control:SetFontSize(size)
+        if GetFontSize() not= size
+            textChanged = true
+            parent:Control:SetFontSize(size)
+        end
     end
 
     /*
@@ -1002,8 +1008,10 @@ class Label is Control
     Attribute: Parameter width The maximum width that the Label should be able to expand up to.
     */
     action SetMaximumWidth(number width)
-        maxWidth = width
-        textChanged = true
+        if maxWidth not= width
+            maxWidth = width
+            textChanged = true
+        end
     end
 
     /*
