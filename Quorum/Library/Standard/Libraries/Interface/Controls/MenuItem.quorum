@@ -793,6 +793,7 @@ class MenuItem is Control
             LabelBoxView content
             content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
             content:SetBorderStyle(content:LEFT + content:RIGHT + content:BOTTOM)
+            content:SetApplyEffectsOnClick(false)
 
             Color transparent
             transparent:SetColor(1, 1, 1, 0)
@@ -838,11 +839,6 @@ class MenuItem is Control
 
         label:SetFont(font)
         label:SetSize(properties:GetFontSize())
-
-//        if label:GetInterfaceScale() not= properties:GetInterfaceScale()
-//            label:SetInterfaceScale(properties:GetInterfaceScale())
-//        end
-
         label:SetText(labelText)
 
         if selected
@@ -862,6 +858,7 @@ class MenuItem is Control
         //This is a box with a border on it that is the background of the menu
         if GetView2D() = undefined
             LabelBoxView view
+            view:SetApplyEffectsOnClick(false)
     
             if selected
                 view:Initialize(properties:GetSelectionColor(), properties:GetSelectionBorderColor())
@@ -869,6 +866,9 @@ class MenuItem is Control
                 view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
             end
             SetView2D(view)
+        elseif GetView2D() is LabelBoxView and properties:GetBackgroundColor() not= undefined
+            LabelBoxView view = cast(LabelBoxView, GetView2D())
+            view:SetBackgroundColor(properties:GetBackgroundColor())
         end
 
         parent:Control:LoadGraphics(properties)

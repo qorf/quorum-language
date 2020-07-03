@@ -36,6 +36,8 @@ class LabelBoxView is Item2D, ControlView
 
     integer borderThickness = 0
 
+    boolean applyEffectsOnClick = true
+
     action Initialize(ColorGroup backgroundColor, ColorGroup borderColor)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
@@ -78,6 +80,10 @@ class LabelBoxView is Item2D, ControlView
 
     action SetBackgroundColor(ColorGroup color)
         background:SetColor(color)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return background:GetColorGroup()
     end
 
     action SetText(text newText)
@@ -254,10 +260,20 @@ class LabelBoxView is Item2D, ControlView
         Remove(mouseOverEffect)
     end
 
+    action SetApplyEffectsOnClick(boolean apply)
+        applyEffectsOnClick = apply
+    end
+
+    action IsApplyingEffectsOnClick returns boolean
+        return applyEffectsOnClick
+    end
+
     action ClickedMouse
-        Array<Item2D> items = GetChildren()
-        if not items:Has(clickEffect)
-            Add(clickEffect)
+        if applyEffectsOnClick
+            Array<Item2D> items = GetChildren()
+            if not items:Has(clickEffect)
+                Add(clickEffect)
+            end
         end
     end
 
