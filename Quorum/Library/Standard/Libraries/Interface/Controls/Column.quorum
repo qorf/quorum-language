@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.SpreadsheetSelection
 
 class Column is Control
     Array<Cell> cells
@@ -69,7 +70,14 @@ class Column is Control
         return cells:GetFirstLocation(cell)
     end
 
-    action Empty 
+    action Empty
+        if spreadsheet not= undefined
+            SpreadsheetSelection selection = spreadsheet:GetSelection()
+            if spreadsheet:GetColumnIndex(me) = selection:GetX()
+                selection:Empty()
+            end
+        end
+
         cells:Empty()
         parent:Item2D:Empty()
     end

@@ -75,10 +75,10 @@ class Spreadsheet is Control
         return columns:IsEmpty()
     end
 
-    action Empty 
+    action Empty
+        selection:Empty()
         columns:Empty()
         parent:Item2D:Empty()
-        selection:Empty()
     end
 
     /*

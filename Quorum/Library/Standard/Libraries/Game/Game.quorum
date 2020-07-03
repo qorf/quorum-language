@@ -2712,26 +2712,31 @@ class Game
         desktopConfig:height = height
 
         if applicationType = DESKTOP_APPLICATION
+            number startWidth = 0
+            number startHeight = 0
+            number startX = 0
+            number startY = 0
+
+            if adjustCameras = false
+                Camera cam2D = GetCamera2D()
+
+                startWidth = cam2D:GetWidth()
+                startHeight = cam2D:GetHeight()
+                startX = cam2D:GetPosition():GetX()
+                startY = cam2D:GetPosition():GetY() 
+            end
+
             GameStateManager manager
             DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
             display:SetDisplayMode(width, height, false)
 
-            if adjustCameras
+            if adjustCameras = false
                 Camera cam2D = GetCamera2D()
-                Camera cam3D = GetCamera3D()
 
-                cam3D:SetWidth(width)
-                cam3D:SetHeight(height)
-
-                number xAdjust = (width - cam2D:GetWidth()) / 2
-                number yAdjust = (height - cam2D:GetHeight()) / 2
-
-                cam2D:Move(xAdjust, yAdjust, 0)
-                cam2D:SetWidth(width)
-                cam2D:SetHeight(height)
+                cam2D:SetPosition(startX, startY, cam2D:GetPosition():GetZ())
+                cam2D:SetSize(startWidth, startHeight)
 
                 cam2D:Update()
-                cam3D:Update()
             end
         end
     end
