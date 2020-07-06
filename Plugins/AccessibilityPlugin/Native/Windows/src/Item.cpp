@@ -69,6 +69,11 @@ Item* Item::GetUiaFocusDescendant() const noexcept
 	return nullptr;
 }
 
+bool Item::IsReadyForNotifications()
+{
+	return true;
+}
+
 void Item::NotifyFocusLost()
 {
 }
@@ -84,7 +89,11 @@ void Item::SetName(_In_ std::wstring name)
 	m_ControlName = name;
 
 	const auto provider = GetProviderSimple();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldName, newName);
+
+	if (IsReadyForNotifications())
+	{
+		UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldName, newName);
+	}
 }
 
 const WCHAR* Item::GetName()
@@ -103,7 +112,11 @@ void Item::SetDescription(_In_ std::wstring description)
 	m_ControlDescription = description;
 
 	const auto provider = GetProviderSimple();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_HelpTextPropertyId, oldDescription, newDescription);
+
+	if (IsReadyForNotifications())
+	{
+		UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_HelpTextPropertyId, oldDescription, newDescription);
+	}
 }
 
 const WCHAR* Item::GetDescription()

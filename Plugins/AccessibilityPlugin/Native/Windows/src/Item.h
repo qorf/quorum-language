@@ -48,6 +48,8 @@ public:
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
+	virtual bool IsReadyForNotifications();
+
 	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() = 0;
 	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() = 0;
 

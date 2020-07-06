@@ -18,6 +18,16 @@ public:
 		: BaseT(env, std::move(controlName), std::move(controlDescription), jItem)
 	{
 	}
+	
+	bool IsReadyForNotifications() override
+	{
+		return readyForNotifications;
+	}
+
+	void SetReadyForNotifications(bool value)
+	{
+		readyForNotifications = value;
+	}
 
 	~ControlT();
 	const wil::com_ptr<ProviderT>& GetProvider();
@@ -26,5 +36,6 @@ public:
 
 protected:
 	wil::com_ptr<ProviderT> m_provider;
+	bool readyForNotifications = false;
 };
 
