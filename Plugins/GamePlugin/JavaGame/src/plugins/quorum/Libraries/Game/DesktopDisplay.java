@@ -46,6 +46,13 @@ public class DesktopDisplay {
     // Used to indicate that the GLFW message pump needs to pause because input was received.
     private boolean pauseEventPolling = false;
     
+    /*
+    By default, whenever we resize the window, we also call ContinueGame to allow the resize event to be processed.
+    However, we sometimes need to prevent this, especially if the resize event would happen before
+    we've finished setting up the environment.
+    */
+    private static boolean continueOnResize = true;
+    
     GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
@@ -53,7 +60,11 @@ public class DesktopDisplay {
             {
                 wasResized = true;
                 ResizeProcessor.AddResizeEvent(window, GetWidth(), GetHeight());
-                GameStateManager.game.ContinueGame();
+                
+                if (continueOnResize)
+                {
+                    GameStateManager.game.ContinueGame();
+                }
                 GLFW.glfwSwapBuffers(window);
                 
                 /* 
@@ -281,7 +292,9 @@ public class DesktopDisplay {
     */
     public static void ForceWindowVisible()
     {
+        continueOnResize = false;
         GLFW.glfwShowWindow(window);
+        continueOnResize = true;
     }
 
     public void SetVSync(boolean vsync) 
