@@ -868,7 +868,11 @@ class MenuItem is Control
             SetView2D(view)
         elseif GetView2D() is LabelBoxView and properties:GetBackgroundColor() not= undefined
             LabelBoxView view = cast(LabelBoxView, GetView2D())
-            view:SetBackgroundColor(properties:GetBackgroundColor())
+            if selected
+                view:SetBackgroundColor(properties:GetSelectionColor())
+            else
+                view:SetBackgroundColor(properties:GetBackgroundColor())
+            end
         end
 
         parent:Control:LoadGraphics(properties)
