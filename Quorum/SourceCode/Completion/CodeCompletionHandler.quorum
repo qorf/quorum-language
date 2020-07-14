@@ -486,6 +486,10 @@ class CodeCompletionHandler
             showPrivate = false
         end
 
+        if clazzToProcess = undefined
+            return now
+        end
+
         Iterator<Variable> variables = clazzToProcess:GetVariables()
         repeat while variables:HasNext()
             Variable variable2 = variables:Next()
