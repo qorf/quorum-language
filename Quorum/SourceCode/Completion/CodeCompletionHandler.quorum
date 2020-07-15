@@ -396,6 +396,10 @@ class CodeCompletionHandler
             showPrivate = false
         end
 
+        if clazzToProcess = undefined
+            return now
+        end
+
         //if this is the current class, load all methods, public or private
         //if this is a variable, load only its public methods.
         Iterator<Action> actions = clazzToProcess:GetVirtualTable()
