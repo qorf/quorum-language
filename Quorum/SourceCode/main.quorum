@@ -208,9 +208,9 @@ class Main is WebResponder
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        //main:SetAbsolutePath("/Users/andreasstefik/Repositories/quorum-language/Quorum/Library/Standard/Libraries/Game/DesktopApplication.quorum")
-        main:SetWorkingDirectory("Library/Tests/Game/Pass")
-        main:SetPath("WebTest.quorum")
+        main:SetAbsolutePath("/Users/andreasstefik/NetBeansProjects/ConditionalTest/SourceCode/main.quorum")
+        //main:SetWorkingDirectory("Library/Tests/Game/Pass")
+        //main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
         Array<File> files
 //        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
@@ -244,7 +244,7 @@ class Main is WebResponder
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
-        request:SetOutputType(request:JAVASCRIPT)
+        //request:SetOutputType(request:JAVASCRIPT)
         //request:mainOnlyJavaScript = true
         //request:isWebRequest = true
 

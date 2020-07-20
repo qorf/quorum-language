@@ -28,6 +28,14 @@ class BinaryAndOrOpcode is QuorumOpcode
         return op
     end
 
+    action IsAnd returns boolean
+        return isAnd
+    end
+
+    action IsOnLeft returns boolean
+        return isOnLeft
+    end
+
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
         if left not= undefined
@@ -92,6 +100,72 @@ class BinaryAndOrOpcode is QuorumOpcode
         return result
     end
 
+    private action CalculateJumpPoint
+        if not hasParent
+            if isAnd
+                jumpLabel = falseLabel
+            else
+                jumpLabel = trueLabel
+            end
+            return now
+        end
+
+        boolean onRight = not isOnLeft
+        QuorumOpcode op = opcodeParent
+        BinaryAndOrOpcode currentParent = undefined
+        BinaryAndOrOpcode currentChild = me
+        if op = undefined
+            return now
+        end
+
+        if op is BinaryAndOrOpcode
+            currentParent = cast(BinaryAndOrOpcode, op)
+        end
+
+        repeat while currentParent not= undefined
+            if currentParent:IsAnd() and currentChild:IsOnLeft() and not currentChild:IsAnd()
+                jumpLabel = currentParent:GetRightHandSideLabel()
+                return now
+            elseif currentParent:IsAnd() and currentChild:IsOnLeft() and currentChild:IsAnd()
+                jumpLabel = currentParent:GetJumpLabel()
+                return now
+            elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and currentChild:IsAnd()
+                jumpLabel = currentParent:GetRightHandSideLabel()
+                return now
+            end
+
+
+            QuorumOpcode parentParent = currentParent:opcodeParent
+            if parentParent not= undefined and parentParent is BinaryAndOrOpcode
+                currentChild = currentParent
+                currentParent = cast(BinaryAndOrOpcode, parentParent)
+            else //terminate the loop, we're done
+                if currentParent:IsAnd() and currentChild:IsOnLeft()
+                    jumpLabel = falseLabel
+                elseif currentParent:IsAnd() and not currentChild:IsOnLeft() and isAnd
+                    jumpLabel = falseLabel
+                elseif currentParent:IsAnd() and not currentChild:IsOnLeft() and not isAnd
+                    jumpLabel = trueLabel
+                elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and not onRight
+                    jumpLabel = trueLabel
+                elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and onRight
+                    jumpLabel = currentParent:GetRightHandSideLabel()
+
+                /*
+                    These cases account for when the topmost parent is an OR and we
+                    are on the right hand side. If it is an and, it should jump to the 
+                    false label, otherwise it should go to the true condition
+                */
+                elseif not currentParent:IsAnd() and not currentChild:IsOnLeft() and isAnd
+                    jumpLabel = falseLabel
+                elseif not currentParent:IsAnd() and not currentChild:IsOnLeft() and not isAnd
+                    jumpLabel = trueLabel
+                end
+                currentParent = undefined
+            end
+        end
+    end
+
     action Write
         VisitLineNumber()
         leftHandSideLabel = GetLeftHandSideLabel()
@@ -104,35 +178,7 @@ class BinaryAndOrOpcode is QuorumOpcode
         end
 
         //Set the position that the opcode will jump to.
-        if isAnd
-            if hasParent
-                if opcodeParent:isAnd
-                    jumpLabel = falseLabel
-                else 
-                    if isOnLeft
-                        jumpLabel = opcodeParent:GetRightHandSideLabel()
-                    else 
-                        //does the parent have a parent, cause we're on the RHS
-                        hasParentParent = opcodeParent:hasParent
-                        if hasParentParent
-                            QuorumOpcode parentParent = opcodeParent:opcodeParent
-                            if parentParent is BinaryAndOrOpcode
-                                BinaryAndOrOpcode bop = cast(BinaryAndOrOpcode, opcodeParent:opcodeParent)
-                                jumpLabel = bop:GetJumpLabel()
-                            else
-                                jumpLabel = falseLabel
-                            end
-                        else
-                            jumpLabel = falseLabel
-                        end
-                    end
-                end
-            else
-                jumpLabel = falseLabel
-            end
-        else
-            jumpLabel = trueLabel
-        end
+        CalculateJumpPoint()
 
         //visit the left hand side
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
