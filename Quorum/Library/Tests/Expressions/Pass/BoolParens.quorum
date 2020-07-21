@@ -1,0 +1,90 @@
+class Main
+    action Main
+        Left()
+        Right()
+    end
+
+    action Left
+        output (false or false) or false
+        output (true or false) or false
+        output (false or true) or false
+        output (true or true) or false
+
+        output (false or false) or true
+        output (true or false) or true
+        output (false or true) or true
+        output (true or true) or true
+
+        output (false and false) or false
+        output (true and false) or false
+        output (false and true) or false
+        output (true and true) or false
+
+        output (false and false) or true
+        output (true and false) or true
+        output (false and true) or true
+        output (true and true) or true
+
+        output (false or false) and false
+        output (true or false) and false
+        output (false or true) and false
+        output (true or true) and false
+
+        output (false or false) and true
+        output (true or false) and true
+        output (false or true) and true
+        output (true or true) and true
+
+        output (false and false) and false
+        output (true and false) and false
+        output (false and true) and false
+        output (true and true) and false
+
+        output (false and false) and true
+        output (true and false) and true
+        output (false and true) and true
+        output (true and true) and true
+    end
+
+    action Right
+        output false or (false or false)
+        output true or (false or false)
+        output false or (true or false)
+        output true or (true or false)
+
+        output false or (false or true)
+        output true or (false or true)
+        output false or (true or true)
+        output true or (true or true)
+
+        output false and (false or false)
+        output true and (false or false)
+        output false and (true or false)
+        output true and (true or false)
+
+        output false and (false or true)
+        output true and (false or true)
+        output false and (true or true)
+        output true and (true or true)
+
+        output false or (false and false)
+        output true or (false and false)
+        output false or (true and false)
+        output true or (true and false)
+
+        output false or (false and true)
+        output true or (false and true)
+        output false or (true and true)
+        output true or (true and true)
+
+        output false and (false and false)
+        output true and (false and false)
+        output false and (true and false)
+        output true and (true and false)
+
+        output false and (false and true)
+        output true and (false and true)
+        output false and (true and true)
+        output true and (true and true)
+    end
+end

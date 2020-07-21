@@ -31,6 +31,7 @@ class ExpressionsTester
         AndBooleanBoolean()
         AssignUndefinedToText()
         BooleanAndOrAnd()
+        BoolParens()
         CastTest()
         CompareTextTextField()
         ComplexExpression()
@@ -1113,6 +1114,97 @@ class ExpressionsTester
         main:SetPath(path + "BooleanAndOrAnd.quorum")
         files:Add(main)
         results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action BoolParens
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "BoolParens.quorum")
+        files:Add(main)
+        //Left 
+        results:Add("false")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("true")
+
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+
+        results:Add("false")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("true")
+
+        //Right
+        results:Add("false")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("true")
+        results:Add("false")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("true")
+        results:Add("false")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("true")
+        results:Add("true")
+        results:Add("true")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+
+        results:Add("false")
+        results:Add("false")
+        results:Add("false")
+        results:Add("true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
