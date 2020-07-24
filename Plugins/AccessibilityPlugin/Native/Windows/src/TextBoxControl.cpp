@@ -19,19 +19,7 @@ std::wstring TextBoxControl::GetText()
 
 int TextBoxControl::GetTextboxEndpoint()
 {
-	int endOfText = 0;
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		jstring fullText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
-
-		const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
-
-		endOfText = static_cast<int>(strlen(nativeFullText));
-
-		env->ReleaseStringUTFChars(fullText, nativeFullText);
-	}
-	return endOfText;
+	return static_cast<int>(m_text.length());
 }
 
 int TextBoxControl::GetCaretLine()
