@@ -35,18 +35,6 @@ int TextBoxControl::GetCaretLine()
 	return (int)index;
 }
 
-int TextBoxControl::GetCaretPosition()
-{
-	JNIEnv* env = GetJNIEnv();
-	
-	jint index = 0;
-	if (env != NULL)
-	{
-		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretPosition);
-	}
-	return (int)index + 1;
-}
-
 int TextBoxControl::GetIndexOfLine(int line)
 {
 	JNIEnv* env = GetJNIEnv();
