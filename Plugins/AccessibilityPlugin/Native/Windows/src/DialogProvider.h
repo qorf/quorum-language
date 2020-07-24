@@ -19,4 +19,5 @@ public:
 	IFACEMETHODIMP get_WindowVisualState(_Out_ WindowVisualState* retVal) noexcept;
 	IFACEMETHODIMP SetVisualState(_In_ WindowVisualState retVal) noexcept;
 	IFACEMETHODIMP WaitForInputIdle(_Out_ int  milliseconds, _Out_ BOOL* pRetVal) noexcept;
+	void GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const;
 };

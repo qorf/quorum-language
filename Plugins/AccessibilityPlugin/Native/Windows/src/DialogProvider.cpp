@@ -59,3 +59,14 @@ IFACEMETHODIMP DialogProvider::WaitForInputIdle(_Out_ int  milliseconds, _Out_ B
 {
 	return E_NOTIMPL;
 }
+
+
+void DialogProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const
+{
+	switch (propertyId)
+	{
+	case UIA_IsDialogPropertyId:
+		retVal->boolVal = VARIANT_TRUE;
+		break;
+	}
+}
