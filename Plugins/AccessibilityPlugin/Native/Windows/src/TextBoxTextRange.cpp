@@ -136,12 +136,9 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	if (unit == TextUnit_Character)
 	{
 		m_range.end = m_range.begin;
-		m_range.end++;
-
-		// If the end of the range exceeds the end of the line we started on, reign the end value back in.
-		if (m_range.end - m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) > m_pTextBoxControl->GetLineLength())
+		if (m_range.end < m_pTextBoxControl->GetTextboxEndpoint())
 		{
-			m_range.end = m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine()) + m_pTextBoxControl->GetLineLength();
+			m_range.end++;
 		}
 	}
 	else if (unit == TextUnit_Format)
