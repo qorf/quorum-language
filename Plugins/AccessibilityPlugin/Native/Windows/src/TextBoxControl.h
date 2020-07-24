@@ -70,10 +70,6 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 	public:
 		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
-		// WARNING: Because of the current busy waiting solution these function calls will
-		//			end up making the native code fall behind Quorum at times. It also causes
-		//			Quorum to slow down.
-		// TODO: Fix the busy waiting solution.
 		int GetCaretPosition();
 		int GetCaretLine();
 		int GetIndexOfLine(int line);

@@ -94,17 +94,9 @@ IFACEMETHODIMP TextBoxProvider::RangeFromChild(_In_opt_ IRawElementProviderSimpl
 // RangeFromPoint: Returns the degenerate (empty) text range nearest to the specified screen coordinates.
 IFACEMETHODIMP TextBoxProvider::RangeFromPoint(UiaPoint point, _Outptr_result_maybenull_ ITextRangeProvider** pRetVal)
 {
-	/*
-	*	Since the textbox control is a 1x1 pixel box the given UiaPoint isn't going to be correct. So if UIA calls this
-	*	function then we'll report the caret position as the closest RangeFromPoint since Quorum handles mouse events.
-	*/
-	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-
-	int caretPosition = m_control->GetCaretPosition();
-	Range closestRange(caretPosition, caretPosition);
-
-	*pRetVal = new TextBoxTextRange(m_control, closestRange);
-	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
+	// Not implemented
+	*pRetVal = nullptr;
+	return E_NOTIMPL;
 }
 
 // get_DocumentRange: Retrieves a text range that encloses the main text of a document.
