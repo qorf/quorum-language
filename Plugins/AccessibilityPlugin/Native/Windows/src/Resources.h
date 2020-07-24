@@ -122,6 +122,8 @@ struct JClass_ToolBar
 struct JClass_Dialog
 {
 	jclass me;
+	jmethodID Hide;
+	jmethodID IsModal;
 };
 struct JClass_List
 {

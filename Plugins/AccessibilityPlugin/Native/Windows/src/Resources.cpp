@@ -343,6 +343,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	// Assign the ClassId as a Global Reference
 	JavaClass_Dialog.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+	JavaClass_Dialog.Hide = env->GetMethodID(JavaClass_Dialog.me, "Hide", "()V");
+	JavaClass_Dialog.IsModal = env->GetMethodID(JavaClass_Dialog.me, "IsModal", "()Z");
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion

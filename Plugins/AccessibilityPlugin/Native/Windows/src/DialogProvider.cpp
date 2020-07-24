@@ -16,32 +16,40 @@ bool DialogProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 
 IFACEMETHODIMP DialogProvider::Close() noexcept
 {
-	return E_NOTIMPL;
+	m_control->Close();
+	return S_OK;
 }
 
 IFACEMETHODIMP DialogProvider::get_CanMaximize(_Out_ BOOL* retVal) noexcept
 {
-	return E_NOTIMPL;
+	*retVal = FALSE;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::get_CanMinimize(_Out_ BOOL* retVal) noexcept
 {
-	return E_NOTIMPL;
+	*retVal = FALSE;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::get_IsModal(_Out_ BOOL* retVal) noexcept
 {
-	return E_NOTIMPL;
+	bool result = m_control->IsModal();
+	*retVal = result;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::get_IsTopmost(_Out_ BOOL* retVal) noexcept
 {
-	return E_NOTIMPL;
+	*retVal = TRUE;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::get_WindowInteractionState(_Out_ WindowInteractionState* retVal) noexcept
 {
-	return E_NOTIMPL;
+	*retVal = WindowInteractionState_ReadyForUserInteraction;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::get_WindowVisualState(_Out_ WindowVisualState* retVal) noexcept
 {
-	return E_NOTIMPL;
+	*retVal = WindowVisualState_Normal;
+	return S_OK;
 }
 IFACEMETHODIMP DialogProvider::SetVisualState(_In_ WindowVisualState retVal) noexcept
 {
