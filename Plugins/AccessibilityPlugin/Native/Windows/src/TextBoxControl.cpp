@@ -236,22 +236,6 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID
 		retval.vt = VT_I4;
 		retval.lVal = ActiveEnd_None;
 	}
-	else if (attribute == UIA_CaretPositionAttributeId)
-	{
-		retval.vt = VT_I4;
-		if (GetCaretPosition() == 0)
-		{
-			retval.lVal = CaretPosition_BeginningOfLine;
-		}
-		else if (GetCaretPosition() == GetLineLength())
-		{
-			retval.lVal = CaretPosition_EndOfLine;
-		}
-		else
-		{
-			retval.lVal = CaretPosition_Unknown;
-		}
-	}
 	else if (attribute == UIA_AnnotationTypesAttributeId)
 	{
 		JNIEnv* env = GetJNIEnv();
