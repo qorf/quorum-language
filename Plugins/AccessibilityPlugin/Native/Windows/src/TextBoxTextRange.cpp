@@ -485,9 +485,13 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 
 	else if (unit == TextUnit_Word)
 	{
-		if (IsWhiteSpace(prev) && !IsWhiteSpace(check))
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
 		{
-			return true;
+			if (env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
+			{
+				return true;
+			}
 		}
 
 		return false;
