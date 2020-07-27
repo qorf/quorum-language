@@ -1089,6 +1089,45 @@ public class AccessibilityManager
         return -1;
     }
     
+    public static long GetTableItem(Object_ object, int row, int column)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+        
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        
+        Item_ item = null;
+        if (spreadsheet != null)
+        {
+            item = spreadsheet.GetCell(row, column);
+        }
+        else if (treeTable != null)
+        {
+            item = treeTable.GetCell(row, column);
+        }
+        
+        if (item == null) {
+            return 0;
+        }
+        
+        Long itemPointer = ITEM_MAP.get(item);
+        
+        if (itemPointer == null) {
+            return 0;
+        }
+        else {
+            return itemPointer;
+        }
+    }
+    
+    
     /*
     Used by the native layer. Returns the total number of columns in a TreeTable
     or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
