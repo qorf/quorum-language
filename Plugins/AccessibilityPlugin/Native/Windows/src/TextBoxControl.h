@@ -80,13 +80,11 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int *end);
 
-		void UpdateSelection(const Range& indices);
+		void NotifySelectionChanged();
 
 		// Used to update the TextBox's contents to match with Quorum.
 		void UpdateText(int index, std::wstring added, int removed);
 
 	private:
-		void UpdateCaret();
-
 		std::wstring m_text;
 };

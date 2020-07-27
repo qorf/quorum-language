@@ -85,12 +85,11 @@ Range TextBoxControl::GetSelectionRange()
 	return selectionRange;
 }
 
-void TextBoxControl::UpdateCaret()
+void TextBoxControl::NotifySelectionChanged()
 {
-	TextBoxProvider* eventControl = GetProvider().get();
-	if (eventControl != NULL && UiaClientsAreListening())
+	if (UiaClientsAreListening())
 	{
-		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextSelectionChangedEventId);
 	}
 }
 
@@ -269,12 +268,6 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 			(*end)--;
 	}
 	return true;
-}
-
-void TextBoxControl::UpdateSelection(const Range& /* indices */)
-{
-	// TODO: Actually use the provided indices.
-	UpdateCaret();
 }
 
 void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
