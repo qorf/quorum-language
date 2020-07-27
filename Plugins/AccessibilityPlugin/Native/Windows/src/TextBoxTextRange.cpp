@@ -242,7 +242,6 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 {
 	*retVal = nullptr;
 
-	const auto text = m_pTextBoxControl->GetText();
 	int startPosition = m_range.begin;
 	int length = m_range.end - startPosition;
 
@@ -257,7 +256,8 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 	}
 	else
 	{
-		*retVal = wil::make_bstr(text.substr(startPosition, length).c_str()).release();
+		auto text = m_pTextBoxControl->GetText(startPosition, startPosition + length);
+		*retVal = wil::make_bstr(text.c_str()).release();
 	}
 
 	return S_OK;

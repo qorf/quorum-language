@@ -65,7 +65,9 @@ struct JClass_TextBox
 	jmethodID GetCaretPosition;
 	jmethodID GetIndexOfLine;
 	jmethodID GetLineIndexOfCharacter;
+	jmethodID GetSize;
 	jmethodID GetText;
+	jmethodID GetPartialText;
 	jmethodID GetCurrentLineText;
 	jmethodID GetSelection;
 	jmethodID Select;
