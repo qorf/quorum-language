@@ -67,6 +67,20 @@ class Spreadsheet is Control
         return columns:GetSize()
     end
 
+    action GetRowsSize returns integer
+        integer max = 0
+        integer counter = 0
+        repeat while counter < GetColumnsSize()
+            Column column = columns:Get(counter)
+            if column:GetSize() > max
+                max = column:GetSize()
+            end
+            counter = counter + 1
+        end
+
+        return max
+    end
+
     action GetSelection returns SpreadsheetSelection
         return selection
     end
