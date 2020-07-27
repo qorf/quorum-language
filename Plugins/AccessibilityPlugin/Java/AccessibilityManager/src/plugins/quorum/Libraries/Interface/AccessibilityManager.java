@@ -1090,6 +1090,92 @@ public class AccessibilityManager
     }
     
     /*
+    Used by the native layer. Returns the total number of columns in a TreeTable
+    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    the table structure that contains that cell. If the value can't be retrieved,
+    this returns -1.
+    */
+    public static int GetTableColumnsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+        
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+        
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetColumnsSize();
+        }
+        else if (treeTable != null)
+        {
+            return treeTable.GetColumnsSize();
+        }
+        
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+    
+    /*
+    Used by the native layer. Returns the total number of rows in a TreeTable
+    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    the table structure that contains that cell. If the value can't be retrieved,
+    this returns -1.
+    */
+    public static int GetTableRowsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+        
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+        
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetRowsSize();
+        }
+        else if (treeTable != null)
+        {
+            /*
+            TO-DO: The TreeTable doesn't currently have a way to calculate its number of rows.
+            It's not clear if this should be number of top-most rows, currently visible rows, or all total rows.
+            */
+            return 0;
+        }
+        
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+    
+    /*
     Used by the native layer. Returns the text value of a given cell.
     The cell given might be a Cell object or a TreeTableCell. 
     If the value can't be retrieved, this returns the empty string.
