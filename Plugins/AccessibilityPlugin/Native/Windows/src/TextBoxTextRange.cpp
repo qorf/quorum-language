@@ -493,7 +493,7 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 		return false;
 	}
 
-	else if (unit == TextUnit_Line)
+	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		JNIEnv* env = GetJNIEnv();
 		if (env != NULL)
@@ -506,8 +506,7 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check
-	// Since we don't support TextUnit_Paragraph, requests for it go to the next largest unit, which are Pages.
-	else if (unit == TextUnit_Paragraph || unit == TextUnit_Page || unit == TextUnit_Document)
+	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
 		return false;
 	}
@@ -538,14 +537,9 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	}
 
 	TextUnit walkUnit = unit;
-	if (unit == TextUnit_Word)
+	if (unit == TextUnit_Word || unit == TextUnit_Line)
 	{
 		walkUnit = TextUnit_Character;
-	}
-
-	if (unit == TextUnit_Line)
-	{
-		walkUnit = TextUnit_Paragraph;
 	}
 
 	if (unit == TextUnit_Page)
@@ -578,10 +572,6 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 				{
 					current = next;
 				}
-			}
-			else if (walkUnit == TextUnit_Paragraph)
-			{
-				// TODO: Implement this
 			}
 			else if (walkUnit == TextUnit_Document)
 			{

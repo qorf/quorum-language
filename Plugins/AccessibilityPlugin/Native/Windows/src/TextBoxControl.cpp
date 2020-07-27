@@ -256,7 +256,7 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 	*end = start;
 	if (forward)
 	{
-		if (*end > GetTextboxEndpoint())
+		if (*end >= GetTextboxEndpoint())
 			return false;
 		else
 			(*end)++;
