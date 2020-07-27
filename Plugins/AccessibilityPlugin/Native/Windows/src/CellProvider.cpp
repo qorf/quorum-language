@@ -12,10 +12,7 @@ bool CellProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 
 CONTROLTYPEID CellProvider::GetControlType() const noexcept
 {
-	//if (m_control->IsTreeTableCell())
-	//	return UIA_TreeItemControlTypeId;
-	//else
-		return UIA_ListItemControlTypeId;
+	return UIA_DataItemControlTypeId;
 }
 
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
@@ -146,7 +143,7 @@ IFACEMETHODIMP CellProvider::SetValue(LPCWSTR value)
 
 IFACEMETHODIMP CellProvider::get_Value(BSTR* returnValue)
 {
-	std::wstring text = m_control->GetText();
+	std::wstring text = L"";//m_control->GetText();
 	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
 
 	return S_OK;

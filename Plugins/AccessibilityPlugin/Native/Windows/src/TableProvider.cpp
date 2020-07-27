@@ -12,14 +12,34 @@ bool TableProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 
 CONTROLTYPEID TableProvider::GetControlType() const noexcept
 {
-	return UIA_TableControlTypeId;
+	return UIA_DataGridControlTypeId;
 }
 
 //IGridProvider Methods
 IFACEMETHODIMP TableProvider::get_ColumnCount(int* pRetVal) {
+
+	JNIEnv* env = GetJNIEnv();
+
+	jint count = 0;
+	if (env != NULL)
+	{
+		count = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableColumnsSize, m_control->GetMe());
+		*pRetVal = (int)count;
+	}
+	*pRetVal = count;
 	return S_OK;
 }
+
 IFACEMETHODIMP TableProvider::get_RowCount(int* pRetVal) {
+	JNIEnv* env = GetJNIEnv();
+
+	jint count = 0;
+	if (env != NULL)
+	{
+		count = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableRowsSize, m_control->GetMe());
+		*pRetVal = (int)count;
+	}
+	*pRetVal = count;
 	return S_OK;
 }
 IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSimple** pRetVal) {
