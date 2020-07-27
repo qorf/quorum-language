@@ -130,62 +130,10 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 //						  smaller than the specified unit, or shortened if it is longer than the specified unit.
 IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 {
-	// This control supports the units:  TextUnit_Character, TextUnit_Format, TextUnit_Word, TextUnit_Paragraph, TextUnit_Document
-	// This control does not support: TextUnit_Line, TextUnit_Page
-	HRESULT hr = S_OK;
-	if (unit == TextUnit_Character)
-	{
-		m_range.end = m_range.begin;
-		if (m_range.end < m_pTextBoxControl->GetTextboxEndpoint())
-		{
-			m_range.end++;
-		}
-	}
-	else if (unit == TextUnit_Format)
-	{
-		int walked;
-		m_range.begin = Walk(m_range.begin, false, unit, 0, 0, &walked);
-		m_range.end = Walk(m_range.begin, true, unit, 0, 1, &walked);
-
-		if (walked < 1)
-		{
-			m_range.begin = Walk(m_range.end, false, unit, 0, 1, &walked);
-		}
-	}
-	else if (unit == TextUnit_Word)
-	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			if (env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsIndexAtEndOfLine, m_pTextBoxControl->GetMe(), m_range.begin))
-			{
-				m_range.end = m_range.begin + 1;
-			}
-			else
-			{
-				if (!env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, m_range.begin))
-					m_range.begin = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenStartIndex, m_range.begin);
-
-				m_range.end = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetTokenEndIndex, m_range.begin);
-			}
-		}
-	}
-	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
-	{
-		m_range.begin =  m_pTextBoxControl->GetIndexOfLine(m_pTextBoxControl->GetCaretLine());
-		m_range.end = m_range.begin + m_pTextBoxControl->GetLineLength();
-	}
-	else if (unit == TextUnit_Page || unit == TextUnit_Document)
-	{
-		m_range.begin = 0;
-		m_range.end = m_pTextBoxControl->GetTextboxEndpoint();
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	int walked;
+	m_range.begin = Walk(m_range.begin, false, unit, 0, 0, &walked);
+	m_range.end = Walk(m_range.begin, true, unit, 0, 1, &walked);
+	return S_OK;
 }
 
 // FindAttribute: Retrieves the value of the specified text attribute across the text range. For example, if the text is read-only.
@@ -294,7 +242,6 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 {
 	*retVal = nullptr;
 
-	const auto text = m_pTextBoxControl->GetText();
 	int startPosition = m_range.begin;
 	int length = m_range.end - startPosition;
 
@@ -309,7 +256,8 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 	}
 	else
 	{
-		*retVal = wil::make_bstr(text.substr(startPosition, length).c_str()).release();
+		auto text = m_pTextBoxControl->GetText(startPosition, startPosition + length);
+		*retVal = wil::make_bstr(text.c_str()).release();
 	}
 
 	return S_OK;
@@ -485,9 +433,13 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 
 	else if (unit == TextUnit_Word)
 	{
-		if (IsWhiteSpace(prev) && !IsWhiteSpace(check))
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
 		{
-			return true;
+			if (env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
+			{
+				return true;
+			}
 		}
 
 		return false;
@@ -577,7 +529,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			{
 				if (forward)
 				{
-					current = m_pTextBoxControl->GetTextboxEndpoint();
+					current = m_pTextBoxControl->GetSize();
 				}
 				else
 				{
@@ -596,18 +548,3 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 
 	return current;
 }
-
-bool TextBoxTextRange::IsWhiteSpace(_In_ int check)
-{
-	if (check >= m_pTextBoxControl->GetTextboxEndpoint())
-	{
-		return true;
-	}
-
-	std::wstring line = m_pTextBoxControl->GetText();
-	
-	int isSpace = iswspace(line[check]);
-
-	return isSpace != 0;
-}
-

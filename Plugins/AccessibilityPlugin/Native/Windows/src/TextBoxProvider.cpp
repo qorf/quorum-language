@@ -106,9 +106,9 @@ IFACEMETHODIMP TextBoxProvider::get_DocumentRange(_Outptr_result_maybenull_ ITex
 {
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
-	Range fullDocumentRange = { { 0 }, m_control->GetTextboxEndpoint() };
+	Range fullDocumentRange = { { 0 }, m_control->GetSize() };
 
-	int point = m_control->GetTextboxEndpoint();
+	int point = m_control->GetSize();
 
 	*pRetVal = new TextBoxTextRange(m_control, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;

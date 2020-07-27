@@ -9,17 +9,55 @@
 
 TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
-	m_text = L"";
 }
 
 std::wstring TextBoxControl::GetText()
 {
-	return m_text;
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
+
+		const char* nativeText = env->GetStringUTFChars(jText, 0);
+		std::wstring wText = CreateWideStringFromUTF8Win32(nativeText);
+
+		env->ReleaseStringUTFChars(jText, nativeText);
+
+		return wText;
+	}
+
+	return L"";
 }
 
-int TextBoxControl::GetTextboxEndpoint()
+std::wstring TextBoxControl::GetText(int startIndex, int endIndex)
 {
-	return static_cast<int>(m_text.length());
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetPartialText, startIndex, endIndex));
+
+		const char* nativeText = env->GetStringUTFChars(jText, 0);
+		std::wstring wText = CreateWideStringFromUTF8Win32(nativeText);
+
+		env->ReleaseStringUTFChars(jText, nativeText);
+
+		return wText;
+	}
+
+	return L"";
+}
+
+int TextBoxControl::GetSize()
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint size = 0;
+	if (env != NULL)
+	{
+		size = env->CallIntMethod(javaItem, JavaClass_TextBox.GetSize);
+	}
+
+	return static_cast<int>(size);
 }
 
 int TextBoxControl::GetCaretLine()
@@ -85,12 +123,11 @@ Range TextBoxControl::GetSelectionRange()
 	return selectionRange;
 }
 
-void TextBoxControl::UpdateCaret()
+void TextBoxControl::NotifySelectionChanged()
 {
-	TextBoxProvider* eventControl = GetProvider().get();
-	if (eventControl != NULL && UiaClientsAreListening())
+	if (UiaClientsAreListening())
 	{
-		HRESULT result = UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextSelectionChangedEventId);
 	}
 }
 
@@ -256,7 +293,7 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 	*end = start;
 	if (forward)
 	{
-		if (*end >= GetTextboxEndpoint())
+		if (*end >= GetSize())
 			return false;
 		else
 			(*end)++;
@@ -271,36 +308,10 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 	return true;
 }
 
-void TextBoxControl::UpdateSelection(const Range& /* indices */)
+void TextBoxControl::NotifyTextChanged()
 {
-	// TODO: Actually use the provided indices.
-	UpdateCaret();
-}
-
-void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
-{
-	VARIANT oldText, newText;
-	oldText.vt = VT_BSTR;
-	newText.vt = VT_BSTR;
-	oldText.bstrVal = wil::make_bstr(m_text.c_str()).release();
-
-	std::wstring preText;
-
-	if (index == 0)
-		preText = L"";
-	else
-		preText = m_text.substr(0, index);
-
-	std::wstring postText;
-	if (index + removed >= m_text.length())
-		postText = L"";
-	else
-		postText = m_text.substr(index + removed, std::wstring::npos);
-
-	m_text = preText + added + postText;
-
-	newText.bstrVal = wil::make_bstr(m_text.c_str()).release();
-
-	const auto provider = GetProvider();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ValueValuePropertyId, oldText, newText);
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextChangedEventId);
+	}
 }

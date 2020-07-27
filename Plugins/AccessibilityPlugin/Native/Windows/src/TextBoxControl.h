@@ -74,19 +74,13 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		int GetIndexOfLine(int line);
 		int GetLineLength();
 		std::wstring GetText();
-		int GetTextboxEndpoint();
+		std::wstring GetText(int startIndex, int endIndex);
+		int GetSize();
 		Range GetSelectionRange();
 
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int *end);
 
-		void UpdateSelection(const Range& indices);
-
-		// Used to update the TextBox's contents to match with Quorum.
-		void UpdateText(int index, std::wstring added, int removed);
-
-	private:
-		void UpdateCaret();
-
-		std::wstring m_text;
+		void NotifySelectionChanged();
+		void NotifyTextChanged();
 };

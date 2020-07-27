@@ -639,17 +639,10 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextSelectionChangedNative(JNIEnv *env, jobject obj, jlong textbox, jstring currentLineText, jint startIndex, jint endIndex)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextSelectionChangedNative(JNIEnv *env, jobject obj, jlong textbox, jstring /*currentLineText*/, jint /*startIndex*/, jint /*endIndex*/)
 {
-	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
-	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
-
-	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
-	Range indices((int)startIndex, (int)endIndex);
-
-	pTextBox->UpdateSelection(indices);
-
-	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+	auto textBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
+	textBox->NotifySelectionChanged();
 }
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NotifyTextBoxNative(JNIEnv* env, jobject obj, jlong textbox, jstring say)
@@ -717,10 +710,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jint index, jstring added, jint removed)
 {
-	TextBoxControl* control = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
-
-	std::wstring addedText = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(added, 0));
-	control->UpdateText(index, addedText, removed);
+	auto control = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
+	control->NotifyTextChanged();
 }
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextChangedNative(JNIEnv* env, jobject obj, jlong field, jint index, jstring added, jint removed)
