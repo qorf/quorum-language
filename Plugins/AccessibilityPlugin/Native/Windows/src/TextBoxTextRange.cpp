@@ -548,18 +548,3 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 
 	return current;
 }
-
-bool TextBoxTextRange::IsWhiteSpace(_In_ int check)
-{
-	if (check >= m_pTextBoxControl->GetTextboxEndpoint())
-	{
-		return true;
-	}
-
-	std::wstring line = m_pTextBoxControl->GetText();
-	
-	int isSpace = iswspace(line[check]);
-
-	return isSpace != 0;
-}
-
