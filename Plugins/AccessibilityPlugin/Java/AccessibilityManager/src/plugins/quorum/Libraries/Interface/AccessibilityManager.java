@@ -224,11 +224,10 @@ public class AccessibilityManager
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
-    private native boolean TextBoxTextSelectionChangedNative(long nativePointer, String TextValue, int startIndex, int endIndex);
+    private native boolean TextBoxTextSelectionChangedNative(long nativePointer, int startIndex, int endIndex);
     private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
-    private native boolean TextBoxTextChangedNative(long nativePointer, int index, String added, int removed);
+    private native boolean TextBoxTextChangedNative(long nativePointer);
     private native boolean TextFieldTextChangedNative(long nativePointer, int index, String added, int removed);
-    private native boolean UpdateCaretPositionNative(long nativePointer, String fullText, int caretIndex);
     private native boolean TextFieldPasswordPropertyChangedNative(long nativePointer, boolean isPassword);
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
@@ -326,7 +325,7 @@ public class AccessibilityManager
                 if (nativePointer != 0 && textbox.IsEmpty() == false)
                 {
                     // Push down the textbox's starting text.
-                    TextBoxTextChangedNative(nativePointer, 0, textbox.GetText(), 0);
+                    TextBoxTextChangedNative(nativePointer);
                 }
                 
                 break;
@@ -676,8 +675,7 @@ public class AccessibilityManager
         if (nativePointer == null) {
             return;
         }
-        TextBoxTextSelectionChangedNative(nativePointer, textbox.GetText(),
-            selection.GetStartIndex(), selection.GetEndIndex());
+        TextBoxTextSelectionChangedNative(nativePointer, selection.GetStartIndex(), selection.GetEndIndex());
     }
     
     public void TextSelectionChanged(TextFieldSelection_ selection)
@@ -704,7 +702,7 @@ public class AccessibilityManager
         
         int length = event.GetDeletedText().length();
         
-        TextBoxTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
+        TextBoxTextChangedNative(nativePointer);
     }
     
     public void NativeTextChanged(TextField_ textField, TextChangeEvent_ event)
@@ -724,17 +722,6 @@ public class AccessibilityManager
             TextFieldTextChangedNative(nativePointer, event.GetIndex(), value, length);
         } else {
             TextFieldTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
-        }
-    }
-    
-    public void CaretPositionChanged(Item_ item, Text_ fullText)
-    {
-        Long nativePointer = ITEM_MAP.get(item);
-        if (nativePointer != null)
-        {
-            TextBox_ textbox = (TextBox_)item;
-        
-            UpdateCaretPositionNative(nativePointer, textbox.GetText(), textbox.GetCaretPosition());
         }
     }
     

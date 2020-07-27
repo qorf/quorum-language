@@ -639,7 +639,7 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextSelectionChangedNative(JNIEnv *env, jobject obj, jlong textbox, jstring /*currentLineText*/, jint /*startIndex*/, jint /*endIndex*/)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextSelectionChangedNative(JNIEnv *env, jobject obj, jlong textbox)
 {
 	auto textBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
 	textBox->NotifySelectionChanged();
@@ -708,7 +708,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	env->ReleaseStringUTFChars(say, nativeCurrentLineText);
 }
 
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox, jint index, jstring added, jint removed)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextBoxTextChangedNative(JNIEnv* env, jobject obj, jlong textbox)
 {
 	auto control = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
 	control->NotifyTextChanged();
@@ -740,41 +740,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	textFieldControl->UpdateSelection(indices);
 
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
-}
-
-// UpdateCaretPosition:
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_UpdateCaretPositionNative(JNIEnv *env, jobject obj, jlong textboxHWND, jstring fullText, jint caretIndex)
-{
-	UNREFERENCED_PARAMETER(env);
-	UNREFERENCED_PARAMETER(obj);
-	UNREFERENCED_PARAMETER(textboxHWND);
-	UNREFERENCED_PARAMETER(fullText);
-	UNREFERENCED_PARAMETER(caretIndex);
-}
-
-// InvokeButton: 
-JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InvokeButtonNative(JNIEnv *env, jobject obj, jlong control)
-{
-	UNREFERENCED_PARAMETER(env);
-	UNREFERENCED_PARAMETER(obj);
-	UNREFERENCED_PARAMETER(control);
-
-	// This is apparently never called and should probably be removed from the Java class.
-
-	return false;
-}
-
-// UpdateToggleStatus: 
-JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_UpdateToggleStatusNative(JNIEnv *env, jobject obj, jlong control, jboolean selected)
-{
-	UNREFERENCED_PARAMETER(env);
-	UNREFERENCED_PARAMETER(obj);
-	UNREFERENCED_PARAMETER(control);
-	UNREFERENCED_PARAMETER(selected);
-
-	// This is apparently never called and should probably be removed from the Java class.
-
-	return false;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SelectMenuItemNative(JNIEnv * env, jobject obj, jlong selectedMenuItem)
