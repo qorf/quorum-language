@@ -311,11 +311,6 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 
 void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
 {
-	VARIANT oldText, newText;
-	oldText.vt = VT_BSTR;
-	newText.vt = VT_BSTR;
-	oldText.bstrVal = wil::make_bstr(m_text.c_str()).release();
-
 	std::wstring preText;
 
 	if (index == 0)
@@ -331,8 +326,8 @@ void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
 
 	m_text = preText + added + postText;
 
-	newText.bstrVal = wil::make_bstr(m_text.c_str()).release();
-
-	const auto provider = GetProvider();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ValueValuePropertyId, oldText, newText);
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextChangedEventId);
+	}
 }
