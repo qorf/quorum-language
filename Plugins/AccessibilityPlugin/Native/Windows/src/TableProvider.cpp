@@ -7,22 +7,56 @@ TableProvider::TableProvider(_In_ TableControl* control) : ProviderT(control)
 
 bool TableProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 {
-	return ((patternId == UIA_GridPatternId) || (patternId == UIA_TablePatternId) || (patternId == UIA_SelectionPatternId));
+	return ((patternId == UIA_GridPatternId) || (patternId == UIA_SelectionPatternId));
 }
 
 CONTROLTYPEID TableProvider::GetControlType() const noexcept
 {
-	return UIA_TableControlTypeId;
+	return UIA_DataGridControlTypeId;
 }
 
 //IGridProvider Methods
 IFACEMETHODIMP TableProvider::get_ColumnCount(int* pRetVal) {
+
+	JNIEnv* env = GetJNIEnv();
+
+	jint count = 0;
+	if (env != NULL)
+	{
+		count = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableColumnsSize, m_control->GetMe());
+		*pRetVal = (int)count;
+	}
+	*pRetVal = count;
 	return S_OK;
 }
+
 IFACEMETHODIMP TableProvider::get_RowCount(int* pRetVal) {
+	JNIEnv* env = GetJNIEnv();
+
+	jint count = 0;
+	if (env != NULL)
+	{
+		count = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableRowsSize, m_control->GetMe());
+		*pRetVal = (int)count;
+	}
+	*pRetVal = count;
 	return S_OK;
 }
 IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSimple** pRetVal) {
+	JNIEnv* env = GetJNIEnv();
+
+	jlong pointer = 0;
+	if (env != NULL)
+	{
+		pointer = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableItem,
+			m_control->GetMe(), row, column);
+		if (pointer == 0) {
+			return S_OK; //nothing was found, but ok.
+		}
+		CellControl* control = (CellControl*)pointer;
+		CellProvider* cellProvider = control->GetProvider().get();
+		*pRetVal = cellProvider;
+	}
 	return S_OK;
 }
 

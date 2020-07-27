@@ -42,6 +42,9 @@ struct JClass_AccessibilityManager
 	jmethodID GetCellColumnIndex;
 	jmethodID GetCellRowIndex;
 	jmethodID GetCellText;
+	jmethodID GetTableColumnsSize;
+	jmethodID GetTableRowsSize;
+	jmethodID GetTableItem;
 
 	// Used for Lists.
 	jmethodID GetListItemText;

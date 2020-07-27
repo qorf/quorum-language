@@ -7,15 +7,12 @@ CellProvider::CellProvider(CellControl* pControl) : ProviderT(pControl)
 
 bool CellProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 {
-	return ((patternId == UIA_TableItemPatternId) || (patternId == UIA_GridItemPatternId) || (patternId == UIA_ExpandCollapsePatternId) || (patternId == UIA_ValuePatternId) || (patternId == UIA_SelectionItemPatternId));
+	return ((patternId == UIA_GridItemPatternId) || (patternId == UIA_ExpandCollapsePatternId) || (patternId == UIA_SelectionItemPatternId));
 }
 
 CONTROLTYPEID CellProvider::GetControlType() const noexcept
 {
-	//if (m_control->IsTreeTableCell())
-	//	return UIA_TreeItemControlTypeId;
-	//else
-		return UIA_ListItemControlTypeId;
+	return UIA_DataItemControlTypeId;
 }
 
 IFACEMETHODIMP CellProvider::get_Column(int* pRetVal) 
