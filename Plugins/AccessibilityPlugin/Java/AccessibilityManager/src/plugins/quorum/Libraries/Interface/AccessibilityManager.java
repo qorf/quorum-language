@@ -224,7 +224,7 @@ public class AccessibilityManager
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
-    private native boolean TextBoxTextSelectionChangedNative(long nativePointer, int startIndex, int endIndex);
+    private native boolean TextBoxTextSelectionChangedNative(long nativePointer);
     private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
     private native boolean TextBoxTextChangedNative(long nativePointer);
     private native boolean TextFieldTextChangedNative(long nativePointer, int index, String added, int removed);
@@ -675,7 +675,7 @@ public class AccessibilityManager
         if (nativePointer == null) {
             return;
         }
-        TextBoxTextSelectionChangedNative(nativePointer, selection.GetStartIndex(), selection.GetEndIndex());
+        TextBoxTextSelectionChangedNative(nativePointer);
     }
     
     public void TextSelectionChanged(TextFieldSelection_ selection)
