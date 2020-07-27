@@ -17,7 +17,7 @@ std::wstring TextBoxControl::GetText()
 	return m_text;
 }
 
-int TextBoxControl::GetTextboxEndpoint()
+int TextBoxControl::GetSize()
 {
 	return static_cast<int>(m_text.length());
 }
@@ -256,7 +256,7 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 	*end = start;
 	if (forward)
 	{
-		if (*end >= GetTextboxEndpoint())
+		if (*end >= GetSize())
 			return false;
 		else
 			(*end)++;

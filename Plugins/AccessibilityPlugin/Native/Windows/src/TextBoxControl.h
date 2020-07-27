@@ -74,7 +74,7 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		int GetIndexOfLine(int line);
 		int GetLineLength();
 		std::wstring GetText();
-		int GetTextboxEndpoint();
+		int GetSize();
 		Range GetSelectionRange();
 
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);

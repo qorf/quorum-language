@@ -529,7 +529,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			{
 				if (forward)
 				{
-					current = m_pTextBoxControl->GetTextboxEndpoint();
+					current = m_pTextBoxControl->GetSize();
 				}
 				else
 				{
