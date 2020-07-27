@@ -7,7 +7,7 @@ CellProvider::CellProvider(CellControl* pControl) : ProviderT(pControl)
 
 bool CellProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 {
-	return ((patternId == UIA_TableItemPatternId) || (patternId == UIA_GridItemPatternId) || (patternId == UIA_ExpandCollapsePatternId) || (patternId == UIA_ValuePatternId) || (patternId == UIA_SelectionItemPatternId));
+	return ((patternId == UIA_GridItemPatternId) || (patternId == UIA_ExpandCollapsePatternId) || (patternId == UIA_SelectionItemPatternId));
 }
 
 CONTROLTYPEID CellProvider::GetControlType() const noexcept
@@ -143,7 +143,7 @@ IFACEMETHODIMP CellProvider::SetValue(LPCWSTR value)
 
 IFACEMETHODIMP CellProvider::get_Value(BSTR* returnValue)
 {
-	std::wstring text = L"";//m_control->GetText();
+	std::wstring text = m_control->GetText();
 	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
 
 	return S_OK;

@@ -7,7 +7,7 @@ TableProvider::TableProvider(_In_ TableControl* control) : ProviderT(control)
 
 bool TableProvider::IsPatternSupported(PATTERNID patternId) const noexcept
 {
-	return ((patternId == UIA_GridPatternId) || (patternId == UIA_TablePatternId) || (patternId == UIA_SelectionPatternId));
+	return ((patternId == UIA_GridPatternId) || (patternId == UIA_SelectionPatternId));
 }
 
 CONTROLTYPEID TableProvider::GetControlType() const noexcept
@@ -43,6 +43,21 @@ IFACEMETHODIMP TableProvider::get_RowCount(int* pRetVal) {
 	return S_OK;
 }
 IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSimple** pRetVal) {
+	JNIEnv* env = GetJNIEnv();
+
+	jlong pointer = 0;
+	if (env != NULL)
+	{
+		std::cout << "Position: " << row << "," << column << std::endl;
+		pointer = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableItem,
+			m_control->GetMe(), row, column);
+		if (pointer == 0) {
+			return S_OK; //nothing was found, but ok.
+		}
+		CellControl* control = (CellControl*)pointer;
+		CellProvider* cellProvider = control->GetProvider().get();
+		*pRetVal = cellProvider;
+	}
 	return S_OK;
 }
 

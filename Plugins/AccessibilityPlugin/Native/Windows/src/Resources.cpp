@@ -93,7 +93,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.IsIndexAtEndOfLine = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsIndexAtEndOfLine", "(Lquorum/Libraries/Interface/Controls/TextBox_;I)Z");
 	JavaClass_AccessibilityManager.GetTableColumnsSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableColumnsSize", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetTableRowsSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableRowsSize", "(Lquorum/Libraries/Language/Object_;)I");
-	
+	JavaClass_AccessibilityManager.GetTableItem = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableItem", "(Lquorum/Libraries/Language/Object_;II)J");
+
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
