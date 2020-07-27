@@ -280,6 +280,10 @@ class Dialog is Control
     */
     action SetModal(boolean value)
         isModal = value
+        if GetLayer() is DialogLayer
+            DialogLayer layer = cast(DialogLayer, GetLayer())
+            layer:SetModal(value)
+        end
     end
 
     /*

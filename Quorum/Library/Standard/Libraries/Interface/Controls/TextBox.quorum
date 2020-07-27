@@ -1504,6 +1504,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     private action DeleteSelection(boolean triggerTextChangeEvent)
+        DeleteSelection(triggerTextChangeEvent, true)
+    end
+
+    private action DeleteSelection(boolean triggerTextChangeEvent, boolean triggerSelectionEvent)
         if selection:IsEmpty()
             return now
         end
@@ -1531,7 +1535,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             NotifyTextChangeListeners(changeEvent)
         end
 
-        EmptySelectionEvent(true)
+        if triggerSelectionEvent
+            EmptySelectionEvent(true)
+        end
     end
 
     /*
@@ -1675,7 +1681,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if shouldDeleteSelection
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
-            DeleteSelection(false)
+            DeleteSelection(false, false)
         end
 
         textValue = textValue:Insert(GetCaretPosition(), value)
@@ -1743,9 +1749,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         NotifyTextChangeListeners(changeEvent)
 
-        if not shouldDeleteSelection
-            EmptySelectionEvent(true)
-        end
+        EmptySelectionEvent(true)
     end
 
     action GetEditManager returns EditManager
@@ -2290,7 +2294,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action SetLine(integer line, text value)
         TextChangeEvent changeEvent
-        changeEvent:Initialize(me, value, GetText(), 0)
+
+        text lineText = textValue:GetLine(line):GetText()
+        if line not= GetLineCount() - 1
+            lineText = lineText:GetSubtext(0, lineText:GetSize() - GetLineSeparator():GetSize())
+        end
+
+        changeEvent:Initialize(me, value, lineText, GetIndexOfLine(line))
 
         textValue = textValue:SetLine(line, value)
         GetLineDrawables()
