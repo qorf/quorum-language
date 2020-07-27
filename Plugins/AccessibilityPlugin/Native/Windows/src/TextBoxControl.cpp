@@ -9,7 +9,6 @@
 
 TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
-	m_text = L"";
 }
 
 std::wstring TextBoxControl::GetText()
@@ -309,23 +308,8 @@ bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int 
 	return true;
 }
 
-void TextBoxControl::UpdateText(int index, std::wstring added, int removed)
+void TextBoxControl::NotifyTextChanged()
 {
-	std::wstring preText;
-
-	if (index == 0)
-		preText = L"";
-	else
-		preText = m_text.substr(0, index);
-
-	std::wstring postText;
-	if (index + removed >= m_text.length())
-		postText = L"";
-	else
-		postText = m_text.substr(index + removed, std::wstring::npos);
-
-	m_text = preText + added + postText;
-
 	if (UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextChangedEventId);

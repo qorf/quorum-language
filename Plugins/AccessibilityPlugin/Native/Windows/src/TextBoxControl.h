@@ -82,10 +82,5 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int *end);
 
 		void NotifySelectionChanged();
-
-		// Used to update the TextBox's contents to match with Quorum.
-		void UpdateText(int index, std::wstring added, int removed);
-
-	private:
-		std::wstring m_text;
+		void NotifyTextChanged();
 };
