@@ -55,8 +55,7 @@ IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSi
 			return S_OK; //nothing was found, but ok.
 		}
 		CellControl* control = (CellControl*)pointer;
-		CellProvider* cellProvider = control->GetProvider().get();
-		*pRetVal = cellProvider;
+		control->GetProvider().query_to(pRetVal);
 	}
 	return S_OK;
 }
