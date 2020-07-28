@@ -92,7 +92,6 @@ IFACEMETHODIMP CellProvider::Collapse()
 
 void CellProvider::NotifyElementExpandCollapse()
 {
-	std::cout << "Notify Expanded from Cell Provider" << std::endl;
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
 	{
