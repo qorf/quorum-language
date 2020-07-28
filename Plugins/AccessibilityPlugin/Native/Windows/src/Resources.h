@@ -64,18 +64,13 @@ struct JClass_AccessibilityManager
 struct JClass_TextBox
 {
 	jclass me;
-	jmethodID GetCaretLine;
-	jmethodID GetCaretPosition;
 	jmethodID GetIndexOfLine;
 	jmethodID GetLineIndexOfCharacter;
 	jmethodID GetSize;
 	jmethodID GetText;
 	jmethodID GetPartialText;
-	jmethodID GetCurrentLineText;
 	jmethodID GetSelection;
 	jmethodID Select;
-	jmethodID GetTokenStartIndex;
-	jmethodID GetTokenEndIndex;
 	jmethodID IsBeginningOfToken;
 };
 struct JClass_TextBoxSelection

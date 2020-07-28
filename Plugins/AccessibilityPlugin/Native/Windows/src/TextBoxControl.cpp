@@ -60,19 +60,6 @@ int TextBoxControl::GetSize()
 	return static_cast<int>(size);
 }
 
-int TextBoxControl::GetCaretLine()
-{
-	JNIEnv* env = GetJNIEnv();
-
-	jint index = 0;
-	if (env != NULL)
-	{
-		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretLine);
-	}
-
-	return (int)index;
-}
-
 int TextBoxControl::GetIndexOfLine(int line)
 {
 	JNIEnv* env = GetJNIEnv();
@@ -83,23 +70,6 @@ int TextBoxControl::GetIndexOfLine(int line)
 		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetIndexOfLine, (jint)line);
 	}
 	return (int)index;
-}
-
-int TextBoxControl::GetLineLength()
-{
-	int length = 0;
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetCurrentLineText));
-
-		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
-
-		length = static_cast<int>(strlen(nativeCurrentLineText));
-
-		env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
-	}
-	return length;
 }
 
 Range TextBoxControl::GetSelectionRange()
