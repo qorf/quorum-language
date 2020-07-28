@@ -225,9 +225,9 @@ public class AccessibilityManager
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
     private native boolean TextBoxTextSelectionChangedNative(long nativePointer);
-    private native boolean TextFieldTextSelectionChangedNative(long nativePointer, String textValue, int startIndex, int endIndex);
+    private native boolean TextFieldTextSelectionChangedNative(long nativePointer);
     private native boolean TextBoxTextChangedNative(long nativePointer);
-    private native boolean TextFieldTextChangedNative(long nativePointer, int index, String added, int removed);
+    private native boolean TextFieldTextChangedNative(long nativePointer);
     private native boolean TextFieldPasswordPropertyChangedNative(long nativePointer, boolean isPassword);
     private native long SetFocusNative(long nativePointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
@@ -335,7 +335,7 @@ public class AccessibilityManager
                 if (nativePointer != 0 && textField.IsEmpty() == false)
                 {
                     // Push down the textbox's starting text.
-                    TextFieldTextChangedNative(nativePointer, 0, textField.GetText(), 0);
+                    TextFieldTextChangedNative(nativePointer);
                 }
                 break;
             case MENU_BAR:
@@ -689,8 +689,7 @@ public class AccessibilityManager
         if (nativePointer == null) {
             return;
         }
-        TextFieldTextSelectionChangedNative(nativePointer, textField.GetText(),
-            selection.GetStartIndex(), selection.GetEndIndex());
+        TextFieldTextSelectionChangedNative(nativePointer);
     }
     
     public void NativeTextChanged(TextBox_ textBox, TextChangeEvent_ event)
@@ -711,18 +710,7 @@ public class AccessibilityManager
             return;
         
         long nativePointer = ITEM_MAP.get((Item_)textField);
-        
-        int length = event.GetDeletedText().length();
-        boolean pass = textField.IsPassword();
-        if(pass) {
-            String value = "";
-            for(int i = 0; i < length; i++) {
-                value = value + "*";
-            }
-            TextFieldTextChangedNative(nativePointer, event.GetIndex(), value, length);
-        } else {
-            TextFieldTextChangedNative(nativePointer, event.GetIndex(), event.GetAddedText(), length);
-        }
+        TextFieldTextChangedNative(nativePointer);
     }
     
     public void TextFieldUpdatePassword(TextField_ item) {
