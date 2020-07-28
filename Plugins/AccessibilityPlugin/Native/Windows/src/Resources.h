@@ -83,10 +83,12 @@ struct JClass_TextBoxSelection
 struct JClass_TextField
 {
 	jclass me;
-	jmethodID GetCaretPosition;
 	jmethodID GetText;
+	jmethodID GetPartialText;
 	jmethodID GetSelection;
 	jmethodID GetSize;
+	jmethodID Select;
+	jmethodID IsBeginningOfToken;
 	jmethodID IsPassword;
 };
 struct JClass_TextFieldSelection

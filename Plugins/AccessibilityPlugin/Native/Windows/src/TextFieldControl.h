@@ -3,33 +3,26 @@
 #include <UIAutomation.h>
 
 #include "Resources.h"
-#include "TextBoxControl.h"
-#include "Item.h"
+#include "TextControlBase.h"
+#include "ControlT.h"
 
 class TextFieldProvider;
 
-class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider>
+class TextFieldControl : public ControlT<TextFieldControl, TextFieldProvider, TextControlBase>
 {
 	public:
 		TextFieldControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
-		int GetCaretPosition();
-		int GetSize();
-		std::wstring GetText();
+		bool IsBeginningOfToken(int index) override;
+		int GetIndexOfLine(int line) override;
+		int GetLineIndexOfCharacter(int characterIndex) override;
+		std::wstring GetText() override;
+		std::wstring GetText(int startIndex, int endIndex) override;
+		int GetSize() override;
+		Range GetSelectionRange() override;
+		void Select(const Range& range) override;
+		bool IsErrorAtIndex(int index) override;
+
 		bool IsPassword();
-		int GetTextFieldEndpoint();
-		Range GetSelectionRange();
-
-		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
-		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int* end);
-
-		void UpdateSelection(const Range& indices);
-
-		// Used to update the TextBox's contents to match with Quorum.
-		void UpdateText(int index, std::wstring added, int removed);
 		void UpdatePassword(bool value);
-	private:
-		void UpdateCaret();
-		bool isPassword;
-		std::wstring m_text;
 };

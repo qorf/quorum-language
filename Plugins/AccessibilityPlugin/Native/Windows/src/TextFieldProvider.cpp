@@ -1,6 +1,6 @@
 #include "TextFieldProvider.h"
 #include "TextFieldControl.h"
-#include "TextFieldTextRange.h"
+#include "TextRangeProvider.h"
 
 TextFieldProvider::TextFieldProvider(TextFieldControl* control) : ProviderT(control)
 {
@@ -61,7 +61,7 @@ IFACEMETHODIMP TextFieldProvider::GetSelection(_Outptr_result_maybenull_ SAFEARR
 	Range caretRange = m_control->GetSelectionRange();
 
 
-	ITextRangeProvider* selectionRangeProvider = new TextFieldTextRange(m_control, caretRange);
+	ITextRangeProvider* selectionRangeProvider = new TextRangeProvider(m_control, caretRange);
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
 	{
@@ -130,27 +130,8 @@ IFACEMETHODIMP TextFieldProvider::RangeFromChild(_In_opt_ IRawElementProviderSim
 
 IFACEMETHODIMP TextFieldProvider::RangeFromPoint(UiaPoint screenLocation, _Outptr_result_maybenull_ ITextRangeProvider** retVal)
 {
-	#if LOG
-	log("TextFieldProvider::RangeFromPoint Start");
-	#endif
-
-	/*
-	*	Since the textfield control is a 1x1 pixel box the given UiaPoint isn't going to be correct. So if UIA calls this
-	*	function then we'll report the caret position as the closest RangeFromPoint since Quorum handles mouse events.
-	*/
-	UNREFERENCED_PARAMETER(screenLocation); // This will never be used. Instead we get the point from Quorum.
-
-
-	int caretPosition = m_control->GetCaretPosition();
-	Range closestRange(caretPosition, caretPosition);
-
-	*retVal = new TextFieldTextRange(m_control, closestRange);
-
-	#if LOG
-	log("TextFieldProvider::RangeFromPoint Finish");
-	#endif
-
-	return (*retVal == NULL) ? E_OUTOFMEMORY : S_OK;
+	*retVal = nullptr;
+	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP TextFieldProvider::get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider** retVal)
@@ -161,9 +142,9 @@ IFACEMETHODIMP TextFieldProvider::get_DocumentRange(_Outptr_result_maybenull_ IT
 
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
-	Range fullDocumentRange = { { 0 }, m_control->GetTextFieldEndpoint() };
+	Range fullDocumentRange = { { 0 }, m_control->GetSize() };
 
-	*retVal = new TextFieldTextRange(m_control, fullDocumentRange);
+	*retVal = new TextRangeProvider(m_control, fullDocumentRange);
 
 	#if LOG
 	log("TextFieldProvider::get_DocumentRange Finish");

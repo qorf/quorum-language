@@ -45,11 +45,10 @@ add_library(AccessibilityManagerWindows MODULE
     TabProvider.cpp
     TextBoxControl.cpp
     TextBoxProvider.cpp
-    TextBoxTextRange.cpp
     TextControlBase.cpp
     TextFieldControl.cpp
     TextFieldProvider.cpp
-    TextFieldTextRange.cpp
+    TextRangeProvider.cpp
     ToolBarControl.cpp
     ToolBarProvider.cpp
     TreeControl.cpp

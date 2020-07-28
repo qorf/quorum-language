@@ -5,12 +5,12 @@
 #include "TextControlBase.h"
 
 class __declspec(uuid("c5e2bb94-1a47-41eb-ac0b-e48594676489"))
-TextBoxTextRange: public ITextRangeProvider
+TextRangeProvider: public ITextRangeProvider
 {
 public:
 
-	TextBoxTextRange(_In_ TextControlBase* control, _In_ Range range);
-	virtual ~TextBoxTextRange();
+	TextRangeProvider(_In_ TextControlBase* control, _In_ Range range);
+	virtual ~TextRangeProvider();
 
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();

@@ -1,25 +1,24 @@
 #include <strsafe.h>
 
-#include "TextBoxTextRange.h"
-#include "TextBoxProvider.h"
+#include "TextRangeProvider.h"
 
-TextBoxTextRange::TextBoxTextRange(_In_ TextControlBase* control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
+TextRangeProvider::TextRangeProvider(_In_ TextControlBase* control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
 {
 
 }
 
-TextBoxTextRange::~TextBoxTextRange()
+TextRangeProvider::~TextRangeProvider()
 {
 }
 
 // =========== IUnknown implementation.
 
-IFACEMETHODIMP_(ULONG) TextBoxTextRange::AddRef()
+IFACEMETHODIMP_(ULONG) TextRangeProvider::AddRef()
 {
 	return InterlockedIncrement(&m_refCount);
 }
 
-IFACEMETHODIMP_(ULONG) TextBoxTextRange::Release()
+IFACEMETHODIMP_(ULONG) TextRangeProvider::Release()
 {
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
@@ -29,7 +28,7 @@ IFACEMETHODIMP_(ULONG) TextBoxTextRange::Release()
 	return val;
 }
 
-IFACEMETHODIMP TextBoxTextRange::QueryInterface(_In_ REFIID riid, _Outptr_ void ** ppInterface)
+IFACEMETHODIMP TextRangeProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void ** ppInterface)
 {
 	if (riid == __uuidof(IUnknown))
 	{
@@ -39,7 +38,7 @@ IFACEMETHODIMP TextBoxTextRange::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 	{
 		*ppInterface = static_cast<ITextRangeProvider*>(this);
 	}
-	else if (riid == __uuidof(TextBoxTextRange))
+	else if (riid == __uuidof(TextRangeProvider))
 	{
 		*ppInterface = this;
 	}
@@ -56,11 +55,11 @@ IFACEMETHODIMP TextBoxTextRange::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 // =========== ITextRangeProvider implementation.
 
 // Clone: Returns a new ITextRangeProvider identical to the original ITextRangeProvider and inheriting all properties of the original.
-IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvider ** pRetVal)
+IFACEMETHODIMP TextRangeProvider::Clone(_Outptr_result_maybenull_ ITextRangeProvider ** pRetVal)
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_control, m_range);
+	*pRetVal = new TextRangeProvider(m_control, m_range);
 
 	if (*pRetVal == NULL)
 	{
@@ -71,12 +70,12 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 
 
 // Compare: Retrieves a value that specifies whether this text range has the same endpoints as another text range.
-IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _Out_ BOOL *pRetVal)
+IFACEMETHODIMP TextRangeProvider::Compare(_In_opt_ ITextRangeProvider * range, _Out_ BOOL *pRetVal)
 {
 	*pRetVal = FALSE;
 	if (range != NULL)
 	{
-		TextBoxTextRange *rangeInternal;
+		TextRangeProvider *rangeInternal;
 		if (SUCCEEDED(range->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
 			if (m_control == rangeInternal->m_control && 
@@ -93,14 +92,14 @@ IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _O
 
 
 // CompareEndpoints: Returns a value that specifies whether two text ranges have identical endpoints.
-IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint, _Out_ int *pRetVal)
+IFACEMETHODIMP TextRangeProvider::CompareEndpoints(TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint, _Out_ int *pRetVal)
 {
 	if (targetRange == NULL)
 	{
 		return E_INVALIDARG;
 	}
 
-	TextBoxTextRange *rangeInternal;
+	TextRangeProvider *rangeInternal;
 	if (FAILED(targetRange->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 	{
 		return E_INVALIDARG;
@@ -128,7 +127,7 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 
 // ExpandToEnclosingUnit: Normalizes the text range by the specified text unit. The range is expanded if it is
 //						  smaller than the specified unit, or shortened if it is longer than the specified unit.
-IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
+IFACEMETHODIMP TextRangeProvider::ExpandToEnclosingUnit(_In_ TextUnit unit)
 {
 	int walked;
 	m_range.begin = Walk(m_range.begin, false, unit, 0, 0, &walked);
@@ -137,7 +136,7 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 }
 
 // FindAttribute: Retrieves the value of the specified text attribute across the text range. For example, if the text is read-only.
-IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttributeId, _In_ VARIANT val, _In_ BOOL searchBackward, _Outptr_result_maybenull_ ITextRangeProvider **pRetVal)
+IFACEMETHODIMP TextRangeProvider::FindAttribute(_In_ TEXTATTRIBUTEID textAttributeId, _In_ VARIANT val, _In_ BOOL searchBackward, _Outptr_result_maybenull_ ITextRangeProvider **pRetVal)
 {
 	HRESULT hr = S_OK;
 	*pRetVal = NULL;
@@ -170,7 +169,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 				found.end = searchBackward ? current : next;
 			}
 
-			*pRetVal = new TextBoxTextRange(m_control, found);
+			*pRetVal = new TextRangeProvider(m_control, found);
 
 			if (*pRetVal == NULL)
 			{
@@ -186,7 +185,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 }
 
 // FindText: Returns a text range subset that contains the specified text.
-IFACEMETHODIMP TextBoxTextRange::FindText(_In_ BSTR text, BOOL searchBackward, BOOL ignoreCase, _Outptr_result_maybenull_ ITextRangeProvider **pRetVal)
+IFACEMETHODIMP TextRangeProvider::FindText(_In_ BSTR text, BOOL searchBackward, BOOL ignoreCase, _Outptr_result_maybenull_ ITextRangeProvider **pRetVal)
 {
 	UNREFERENCED_PARAMETER(text);
 	UNREFERENCED_PARAMETER(searchBackward);
@@ -198,7 +197,7 @@ IFACEMETHODIMP TextBoxTextRange::FindText(_In_ BSTR text, BOOL searchBackward, B
 }
 
 // GetAttributeValue: Retrieves the value of the specified text attribute across the text range.
-IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttributeId, _Out_ VARIANT *pRetVal)
+IFACEMETHODIMP TextRangeProvider::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttributeId, _Out_ VARIANT *pRetVal)
 {
 	HRESULT hr = S_OK;
 	VariantInit(pRetVal);
@@ -223,7 +222,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 }
 
 // GetBoundingRectangles: Retrieves a collection of bounding rectangles for each fully or partially visible line of text in a text range.
-IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+IFACEMETHODIMP TextRangeProvider::GetBoundingRectangles(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
 	UNREFERENCED_PARAMETER(pRetVal);
 	return E_NOTIMPL;
@@ -231,14 +230,14 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 
 // GetEnclosingElement: Returns the innermost element that encloses the text range. The enclosing element is typically the text provider that supplies the text range.
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
-IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
+IFACEMETHODIMP TextRangeProvider::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
 	m_control->GetProviderSimple().query_to(pRetVal);
 	return S_OK;
 }
 
 // GetText: Retrieves the plain text of the range. That text is then given to the screen reader to be read aloud.
-IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noexcept try
+IFACEMETHODIMP TextRangeProvider::GetText(int maxLength, _Out_ BSTR* retVal) noexcept try
 {
 	*retVal = nullptr;
 
@@ -264,7 +263,7 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 }
 CATCH_RETURN();
 
-IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
+IFACEMETHODIMP TextRangeProvider::Move(_In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
 	*pRetVal = 0;
 
@@ -287,7 +286,7 @@ IFACEMETHODIMP TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int count, _Out_ 
 }
 
 
-IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
+IFACEMETHODIMP TextRangeProvider::MoveEndpointByUnit(_In_ TextPatternRangeEndpoint endpoint, _In_ TextUnit unit, _In_ int count, _Out_ int *pRetVal)
 {
 	*pRetVal = 0;
 
@@ -314,14 +313,14 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternRangeEndpoin
 }
 
 
-IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint)
+IFACEMETHODIMP TextRangeProvider::MoveEndpointByRange(_In_ TextPatternRangeEndpoint endpoint, _In_opt_ ITextRangeProvider *targetRange, _In_ TextPatternRangeEndpoint targetEndpoint)
 {
 	if (targetRange == NULL)
 	{
 		return E_INVALIDARG;
 	}
 
-	TextBoxTextRange *rangeInternal;
+	TextRangeProvider *rangeInternal;
 	if (FAILED(targetRange->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 	{
 		return E_INVALIDARG;
@@ -366,14 +365,14 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 	return hr;
 }
 
-IFACEMETHODIMP TextBoxTextRange::Select()
+IFACEMETHODIMP TextRangeProvider::Select()
 {
 	m_control->Select(m_range);
 	return S_OK;
 }
 
 
-IFACEMETHODIMP TextBoxTextRange::AddToSelection()
+IFACEMETHODIMP TextRangeProvider::AddToSelection()
 {
 	// According to the Microsoft documentation, this function:
 	// "Adds the text range to the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text."
@@ -382,7 +381,7 @@ IFACEMETHODIMP TextBoxTextRange::AddToSelection()
 	return UIA_E_INVALIDOPERATION;
 }
 
-IFACEMETHODIMP TextBoxTextRange::RemoveFromSelection()
+IFACEMETHODIMP TextRangeProvider::RemoveFromSelection()
 {
 	// According to the Microsoft documentation, this function:
 	// "Removes the text range from the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text."
@@ -392,7 +391,7 @@ IFACEMETHODIMP TextBoxTextRange::RemoveFromSelection()
 }
 
 
-IFACEMETHODIMP TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
+IFACEMETHODIMP TextRangeProvider::ScrollIntoView(_In_ BOOL alignToTop)
 {
 	// The ScrollInView operation is not implemented.
 	UNREFERENCED_PARAMETER(alignToTop);
@@ -400,14 +399,14 @@ IFACEMETHODIMP TextBoxTextRange::ScrollIntoView(_In_ BOOL alignToTop)
 }
 
 
-IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
+IFACEMETHODIMP TextRangeProvider::GetChildren(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
 	// No children
 	*pRetVal = NULL;
 	return S_OK;
 }
 
-bool TextBoxTextRange::StepCharacter(int start, bool forward, _Out_ int* end)
+bool TextRangeProvider::StepCharacter(int start, bool forward, _Out_ int* end)
 {
 	*end = start;
 	if (forward)
@@ -427,7 +426,7 @@ bool TextBoxTextRange::StepCharacter(int start, bool forward, _Out_ int* end)
 	return true;
 }
 
-bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
+bool TextRangeProvider::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
 
@@ -465,7 +464,7 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 
 	else if (unit == TextUnit_Format)
 	{
-		// TextUnit_Format isn't implemented since the textbox control won't contain formatted text.
+		// TextUnit_Format isn't implemented since the text control won't contain formatted text.
 		// At some point it may be possible to implement TextUnit_Format for code highlighting.
 		// For now, if the unit comes in as TextUnit_Format then we say that the EndPoint is a UnitEndPoint.
 		return true;
@@ -474,7 +473,7 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 	return false;
 }
 
-int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked)
+int TextRangeProvider::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked)
 {
 	*walked = 0;
 
@@ -549,7 +548,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	return current;
 }
 
-wil::unique_variant TextBoxTextRange::GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute)
+wil::unique_variant TextRangeProvider::GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute)
 {
 	wil::unique_variant retval;
 

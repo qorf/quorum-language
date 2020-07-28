@@ -2,7 +2,7 @@
 #include "jni.h"
 
 #include "TextBoxControl.h"
-#include "TextBoxTextRange.h"
+#include "TextRangeProvider.h"
 #include "TextBoxProvider.h"
 
 
@@ -39,7 +39,7 @@ IFACEMETHODIMP TextBoxProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY
 {
 	Range caretRange = m_control->GetSelectionRange();
 
-	ITextRangeProvider* selectionRangeProvider = new TextBoxTextRange(m_control, caretRange);
+	ITextRangeProvider* selectionRangeProvider = new TextRangeProvider(m_control, caretRange);
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
 	{
@@ -104,7 +104,7 @@ IFACEMETHODIMP TextBoxProvider::get_DocumentRange(_Outptr_result_maybenull_ ITex
 
 	int point = m_control->GetSize();
 
-	*pRetVal = new TextBoxTextRange(m_control, fullDocumentRange);
+	*pRetVal = new TextRangeProvider(m_control, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }

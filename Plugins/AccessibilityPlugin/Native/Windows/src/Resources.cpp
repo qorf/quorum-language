@@ -153,10 +153,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextField.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
 	// Load the method ids
-	JavaClass_TextField.GetCaretPosition = env->GetMethodID(JavaClass_TextField.me, "GetCaretPosition", "()I");
 	JavaClass_TextField.GetText = env->GetMethodID(JavaClass_TextField.me, "GetText", "()Ljava/lang/String;");
+	JavaClass_TextField.GetPartialText = env->GetMethodID(JavaClass_TextField.me, "GetText", "(II)Ljava/lang/String;");
 	JavaClass_TextField.GetSelection = env->GetMethodID(JavaClass_TextField.me, "GetSelection", "()Lquorum/Libraries/Interface/Selections/TextFieldSelection_;");
 	JavaClass_TextField.GetSize = env->GetMethodID(JavaClass_TextField.me, "GetSize", "()I");
+	JavaClass_TextField.Select = env->GetMethodID(JavaClass_TextField.me, "Select", "(II)V");
+	JavaClass_TextField.IsBeginningOfToken = env->GetMethodID(JavaClass_TextField.me, "IsBeginningOfToken", "(I)Z");
 	JavaClass_TextField.IsPassword = env->GetMethodID(JavaClass_TextField.me, "IsPassword", "()Z");
 
 	// Delete local reference

@@ -716,10 +716,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextChangedNative(JNIEnv* env, jobject obj, jlong field, jint index, jstring added, jint removed)
 {
-	TextFieldControl* control = static_cast<TextFieldControl*>(GetItemFromLong(field));
-
-	std::wstring addedText = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(added, 0));
-	control->UpdateText(index, addedText, removed);
+	auto control = static_cast<TextFieldControl*>(GetItemFromLong(field));
+	control->NotifyTextChanged();
 }
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldPasswordPropertyChangedNative(JNIEnv* env, jobject obj, long field, jboolean isPassword) {
@@ -731,15 +729,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TextFieldTextSelectionChangedNative(JNIEnv* env, jobject obj, jlong textField, jstring currentLineText, jint startIndex, jint endIndex)
 {
-	const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
-	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
-
-	TextFieldControl* textFieldControl = static_cast<TextFieldControl*>(GetItemFromLong(textField));
-	Range indices((int)startIndex, (int)endIndex);
-
-	textFieldControl->UpdateSelection(indices);
-
-	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+	auto control = static_cast<TextFieldControl*>(GetItemFromLong(textField));
+	control->NotifySelectionChanged();
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SelectMenuItemNative(JNIEnv * env, jobject obj, jlong selectedMenuItem)
