@@ -430,39 +430,43 @@ bool TextRangeProvider::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUni
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
 
+	int next;
+	if (!StepCharacter(check, true, &next))
+	{
+		// The end of the document is not the beginning of anything.
+		return false;
+	}
+
+	int prev;
+	if (!StepCharacter(check, false, &prev))
+	{
+		// The beginning of the document is the beginning of everything.
+		return true;
+	}
+
 	if (unit == TextUnit_Character)
 	{
 		return true;
 	}
 
-	int next;
-	int prev;
-
-	if (!StepCharacter(check, true, &next) ||
-		!StepCharacter(check, false, &prev))
-	{
-		// If we're at the beginning or end, we're at an endpoint
-		return true;
-	}
-
-	else if (unit == TextUnit_Word)
+	if (unit == TextUnit_Word)
 	{
 		return m_control->IsBeginningOfToken(check);
 	}
 
-	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
+	if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		auto line = m_control->GetLineIndexOfCharacter(check);
 		return m_control->GetIndexOfLine(line) == check;
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check
-	else if (unit == TextUnit_Page || unit == TextUnit_Document)
+	if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
 		return false;
 	}
 
-	else if (unit == TextUnit_Format)
+	if (unit == TextUnit_Format)
 	{
 		// TextUnit_Format isn't implemented since the text control won't contain formatted text.
 		// At some point it may be possible to implement TextUnit_Format for code highlighting.
@@ -522,6 +526,10 @@ int TextRangeProvider::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit uni
 				if (StepCharacter(current, forward, &next))
 				{
 					current = next;
+				}
+				else
+				{
+					break;
 				}
 			}
 			else if (walkUnit == TextUnit_Document)
