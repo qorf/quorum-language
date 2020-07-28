@@ -368,12 +368,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 
 IFACEMETHODIMP TextBoxTextRange::Select()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		env->CallVoidMethod(m_control->GetMe(), JavaClass_TextBox.Select, (jint)m_range.begin, (jint)m_range.end);
-	}
-
+	m_control->Select(m_range);
 	return S_OK;
 }
 
@@ -433,28 +428,13 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 
 	else if (unit == TextUnit_Word)
 	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			if (env->CallBooleanMethod(m_control->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return m_control->IsBeginningOfToken(check);
 	}
 
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			int line = env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetLineIndexOfCharacter, check);
-			return (env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetIndexOfLine, line)) == check;
-		}
-
-		return true;
+		auto line = m_control->GetLineIndexOfCharacter(check);
+		return m_control->GetIndexOfLine(line) == check;
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check

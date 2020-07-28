@@ -72,6 +72,32 @@ int TextBoxControl::GetIndexOfLine(int line)
 	return (int)index;
 }
 
+bool TextBoxControl::IsBeginningOfToken(int index)
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		if (env->CallBooleanMethod(javaItem, JavaClass_TextBox.IsBeginningOfToken, index))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int TextBoxControl::GetLineIndexOfCharacter(int characterIndex)
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint lineIndex = 0;
+	if (env != NULL)
+	{
+		lineIndex = env->CallIntMethod(javaItem, JavaClass_TextBox.GetLineIndexOfCharacter, characterIndex);
+	}
+	return lineIndex;
+}
+
 Range TextBoxControl::GetSelectionRange()
 {
 	JNIEnv* env = GetJNIEnv();
@@ -91,6 +117,15 @@ Range TextBoxControl::GetSelectionRange()
 	}
 
 	return selectionRange;
+}
+
+void TextBoxControl::Select(const Range& range)
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		env->CallVoidMethod(javaItem, JavaClass_TextBox.Select, range.begin, range.end);
+	}
 }
 
 void TextBoxControl::NotifySelectionChanged()

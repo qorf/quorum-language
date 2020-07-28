@@ -70,11 +70,14 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 	public:
 		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
+		bool IsBeginningOfToken(int index);
 		int GetIndexOfLine(int line);
+		int GetLineIndexOfCharacter(int characterIndex);
 		std::wstring GetText();
 		std::wstring GetText(int startIndex, int endIndex);
 		int GetSize();
 		Range GetSelectionRange();
+		void Select(const Range& range);
 
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int *end);
