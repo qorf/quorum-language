@@ -110,18 +110,13 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_TextBox.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
 	// Load the method ids
-	JavaClass_TextBox.GetCaretLine = env->GetMethodID(JavaClass_TextBox.me, "GetCaretLine", "()I");
-	JavaClass_TextBox.GetCaretPosition = env->GetMethodID(JavaClass_TextBox.me, "GetCaretPosition", "()I");
 	JavaClass_TextBox.GetIndexOfLine = env->GetMethodID(JavaClass_TextBox.me, "GetIndexOfLine", "(I)I");
 	JavaClass_TextBox.GetLineIndexOfCharacter = env->GetMethodID(JavaClass_TextBox.me, "GetLineIndexOfCharacter", "(I)I");
 	JavaClass_TextBox.GetSize = env->GetMethodID(JavaClass_TextBox.me, "GetSize", "()I");
 	JavaClass_TextBox.GetText = env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_TextBox.GetPartialText = env->GetMethodID(JavaClass_TextBox.me, "GetText", "(II)Ljava/lang/String;");
-	JavaClass_TextBox.GetCurrentLineText = env->GetMethodID(JavaClass_TextBox.me, "GetCurrentLineText", "()Ljava/lang/String;");
 	JavaClass_TextBox.GetSelection = env->GetMethodID(JavaClass_TextBox.me, "GetSelection", "()Lquorum/Libraries/Interface/Selections/TextBoxSelection_;");
 	JavaClass_TextBox.Select = env->GetMethodID(JavaClass_TextBox.me, "Select", "(II)V");
-	JavaClass_TextBox.GetTokenStartIndex = env->GetMethodID(JavaClass_TextBox.me, "GetTokenStartIndex", "(I)I");
-	JavaClass_TextBox.GetTokenEndIndex = env->GetMethodID(JavaClass_TextBox.me, "GetTokenEndIndex", "(I)I");
 	JavaClass_TextBox.IsBeginningOfToken = env->GetMethodID(JavaClass_TextBox.me, "IsBeginningOfToken", "(I)Z");
 
 	// Delete local reference

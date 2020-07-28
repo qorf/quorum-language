@@ -23,7 +23,7 @@ public:
 	IFACEMETHODIMP GetRowHeaders(SAFEARRAY** pRetVal);
 
 	// ISelectionProvider methods
-	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal) override;
-	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal) override;
-	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal) override;
+	IFACEMETHODIMP GetSelection(SAFEARRAY** pRetVal) noexcept override;
+	IFACEMETHODIMP get_CanSelectMultiple(BOOL* pRetVal) noexcept override;
+	IFACEMETHODIMP get_IsSelectionRequired(BOOL* pRetVal) noexcept override;
 };

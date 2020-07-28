@@ -3,7 +3,7 @@
 #include "TextBoxTextRange.h"
 #include "TextBoxProvider.h"
 
-TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_pTextBoxControl(control), m_range(range)
+TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
 {
 
 }
@@ -60,7 +60,7 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_pTextBoxControl, m_range);
+	*pRetVal = new TextBoxTextRange(m_control, m_range);
 
 	if (*pRetVal == NULL)
 	{
@@ -79,7 +79,7 @@ IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _O
 		TextBoxTextRange *rangeInternal;
 		if (SUCCEEDED(range->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
-			if (m_pTextBoxControl == rangeInternal->m_pTextBoxControl && 
+			if (m_control == rangeInternal->m_control && 
 				rangeInternal->m_range.begin == m_range.begin &&
 				rangeInternal->m_range.end == m_range.end)
 			{
@@ -107,7 +107,7 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 	}
 
 	HRESULT hr = S_OK;
-	if (m_pTextBoxControl != rangeInternal->m_pTextBoxControl)
+	if (m_control != rangeInternal->m_control)
 	{
 		hr = E_INVALIDARG;
 	}
@@ -151,7 +151,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	{
 		int walked;
 		int next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
-		VARIANT curValue = m_pTextBoxControl->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
+		VARIANT curValue = m_control->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
 
 		hr = VarCmp(&val, &curValue, LOCALE_NEUTRAL);
 
@@ -170,7 +170,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 				found.end = searchBackward ? current : next;
 			}
 
-			*pRetVal = new TextBoxTextRange(m_pTextBoxControl, found);
+			*pRetVal = new TextBoxTextRange(m_control, found);
 
 			if (*pRetVal == NULL)
 			{
@@ -216,7 +216,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 	}
 	else
 	{
-		*pRetVal = m_pTextBoxControl->GetAttributeAtPoint(m_range.begin, textAttributeId);
+		*pRetVal = m_control->GetAttributeAtPoint(m_range.begin, textAttributeId);
 	}
 
 	return hr;
@@ -233,7 +233,7 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	m_pTextBoxControl->GetProvider().query_to(pRetVal);
+	m_control->GetProvider().query_to(pRetVal);
 	return S_OK;
 }
 
@@ -256,7 +256,7 @@ IFACEMETHODIMP TextBoxTextRange::GetText(int maxLength, _Out_ BSTR* retVal) noex
 	}
 	else
 	{
-		auto text = m_pTextBoxControl->GetText(startPosition, startPosition + length);
+		auto text = m_control->GetText(startPosition, startPosition + length);
 		*retVal = wil::make_bstr(text.c_str()).release();
 	}
 
@@ -328,7 +328,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 	}
 
 	HRESULT hr = S_OK;
-	if (m_pTextBoxControl != rangeInternal->m_pTextBoxControl)
+	if (m_control != rangeInternal->m_control)
 	{
 		hr = E_INVALIDARG;
 	}
@@ -371,7 +371,7 @@ IFACEMETHODIMP TextBoxTextRange::Select()
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		env->CallVoidMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.Select, (jint)m_range.begin, (jint)m_range.end);
+		env->CallVoidMethod(m_control->GetMe(), JavaClass_TextBox.Select, (jint)m_range.begin, (jint)m_range.end);
 	}
 
 	return S_OK;
@@ -424,8 +424,8 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 	int next;
 	int prev;
 
-	if (!m_pTextBoxControl->StepCharacter(check, true, &next) ||
-		!m_pTextBoxControl->StepCharacter(check, false, &prev))
+	if (!m_control->StepCharacter(check, true, &next) ||
+		!m_control->StepCharacter(check, false, &prev))
 	{
 		// If we're at the beginning or end, we're at an endpoint
 		return true;
@@ -436,7 +436,7 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 		JNIEnv* env = GetJNIEnv();
 		if (env != NULL)
 		{
-			if (env->CallBooleanMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
+			if (env->CallBooleanMethod(m_control->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
 			{
 				return true;
 			}
@@ -450,8 +450,8 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 		JNIEnv* env = GetJNIEnv();
 		if (env != NULL)
 		{
-			int line = env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetLineIndexOfCharacter, check);
-			return (env->CallIntMethod(m_pTextBoxControl->GetMe(), JavaClass_TextBox.GetIndexOfLine, line)) == check;
+			int line = env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetLineIndexOfCharacter, check);
+			return (env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetIndexOfLine, line)) == check;
 		}
 
 		return true;
@@ -509,7 +509,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	for (int i = 0; i < count; i++)
 	{
 		int checkNext;
-		if (!m_pTextBoxControl->StepCharacter(current, forward, &checkNext))
+		if (!m_control->StepCharacter(current, forward, &checkNext))
 		{
 			// We're at the beginning or end so stop now and return
 			break;
@@ -520,7 +520,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			if (walkUnit == TextUnit_Character)
 			{
 				int next;
-				if (m_pTextBoxControl->StepCharacter(current, forward, &next))
+				if (m_control->StepCharacter(current, forward, &next))
 				{
 					current = next;
 				}
@@ -529,7 +529,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			{
 				if (forward)
 				{
-					current = m_pTextBoxControl->GetSize();
+					current = m_control->GetSize();
 				}
 				else
 				{

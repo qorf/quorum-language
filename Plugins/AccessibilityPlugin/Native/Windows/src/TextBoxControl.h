@@ -70,9 +70,7 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 	public:
 		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
-		int GetCaretLine();
 		int GetIndexOfLine(int line);
-		int GetLineLength();
 		std::wstring GetText();
 		std::wstring GetText(int startIndex, int endIndex);
 		int GetSize();

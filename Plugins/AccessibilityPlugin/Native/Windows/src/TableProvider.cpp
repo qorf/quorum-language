@@ -48,14 +48,14 @@ IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSi
 	jlong pointer = 0;
 	if (env != NULL)
 	{
+		std::cout << row << ", " << column << std::endl;
 		pointer = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableItem,
 			m_control->GetMe(), row, column);
 		if (pointer == 0) {
 			return S_OK; //nothing was found, but ok.
 		}
 		CellControl* control = (CellControl*)pointer;
-		CellProvider* cellProvider = control->GetProvider().get();
-		*pRetVal = cellProvider;
+		control->GetProvider().query_to(pRetVal);
 	}
 	return S_OK;
 }
@@ -71,51 +71,38 @@ IFACEMETHODIMP TableProvider::GetRowHeaders(SAFEARRAY** pRetVal) {
 	return S_OK;
 }
 
-IFACEMETHODIMP TableProvider::GetSelection(SAFEARRAY** pRetVal)
+IFACEMETHODIMP TableProvider::GetSelection(SAFEARRAY** retVal) noexcept try
 {
-	CellControl* cellControl = m_control->GetSelected();
+	const auto cellControl = m_control->GetSelected();
 
 	if (!cellControl)
 	{
-		*pRetVal = NULL;
+		*retVal = NULL;
 		return S_OK;
 	}
 
-	CellProvider* cellProvider = cellControl->GetProvider().get();
+	const auto provider = cellControl->GetProvider();
 
 	HRESULT hr = S_OK;
 
-	*pRetVal = SafeArrayCreateVector(VT_UNKNOWN, 0, 1);
-	if (*pRetVal == NULL)
-	{
-		hr = E_OUTOFMEMORY;
-	}
-	else
-	{
-		long index = 0;
-		hr = SafeArrayPutElement(*pRetVal, &index, cellProvider);
-		if (FAILED(hr))
-		{
-			SafeArrayDestroy(*pRetVal);
-			*pRetVal = NULL;
-		}
-		else
-		{
-			// Since the provider is being passed out of our domain, we need to increment its reference counter.
-			cellProvider->AddRef();
-		}
-	}
+	unique_safearray sa{ SafeArrayCreateVector(VT_UNKNOWN, 0, 1) };
+	THROW_IF_NULL_ALLOC(sa);
 
-	return hr;
+	long index = 0;
+	THROW_IF_FAILED(SafeArrayPutElement(sa.get(), &index, provider.query<IUnknown>().get()));
+
+	*retVal = sa.release();
+	return S_OK;
 }
+CATCH_RETURN();
 
-IFACEMETHODIMP TableProvider::get_CanSelectMultiple(BOOL* pRetVal)
+IFACEMETHODIMP TableProvider::get_CanSelectMultiple(BOOL* pRetVal) noexcept
 {
 	*pRetVal = false;
 	return S_OK;
 }
 
-IFACEMETHODIMP TableProvider::get_IsSelectionRequired(BOOL* pRetVal)
+IFACEMETHODIMP TableProvider::get_IsSelectionRequired(BOOL* pRetVal) noexcept
 {
 	*pRetVal = false;
 	return S_OK;
