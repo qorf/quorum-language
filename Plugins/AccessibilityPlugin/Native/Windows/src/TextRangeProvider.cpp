@@ -542,6 +542,7 @@ int TextRangeProvider::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit uni
 				{
 					current = 0;
 				}
+				break;
 			}
 		} while (!CheckEndpointIsUnitEndpoint(current, unit, specificAttribute));
 		(*walked)++;
