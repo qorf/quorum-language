@@ -80,8 +80,6 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		void Select(const Range& range);
 		bool IsErrorAtIndex(int index);
 
-		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
-
 		void NotifySelectionChanged();
 		void NotifyTextChanged();
 };

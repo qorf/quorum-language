@@ -43,6 +43,7 @@ private:
 	bool StepCharacter(int start, bool forward, _Out_ int* end);
 	bool CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute);
 	int Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked);
+	wil::unique_variant GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute);
 
 	// Ref Counter for this COM object
 	ULONG m_refCount;

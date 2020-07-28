@@ -151,7 +151,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	{
 		int walked;
 		int next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
-		VARIANT curValue = m_control->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
+		auto curValue = GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
 
 		hr = VarCmp(&val, &curValue, LOCALE_NEUTRAL);
 
@@ -216,7 +216,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 	}
 	else
 	{
-		*pRetVal = m_control->GetAttributeAtPoint(m_range.begin, textAttributeId);
+		*pRetVal = GetAttributeAtPoint(m_range.begin, textAttributeId).release();
 	}
 
 	return hr;
@@ -547,4 +547,159 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	}
 
 	return current;
+}
+
+wil::unique_variant TextBoxTextRange::GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute)
+{
+	wil::unique_variant retval;
+
+	// Many attributes are constant across the range, get them here
+	if (attribute == UIA_AnimationStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = AnimationStyle_None;
+	}
+	else if (attribute == UIA_BackgroundColorAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = GetSysColor(COLOR_WINDOW);
+	}
+	else if (attribute == UIA_BulletStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = BulletStyle_None;
+	}
+	else if (attribute == UIA_CapStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = CapStyle_None;
+	}
+	else if (attribute == UIA_CultureAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = GetThreadLocale();
+	}
+	else if (attribute == UIA_HorizontalTextAlignmentAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = HorizontalTextAlignment_Left;
+	}
+	else if (attribute == UIA_IndentationTrailingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_IsHiddenAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsReadOnlyAttributeId)
+	{
+		// TODO: This should change depending on if the text from quorum is read-only.
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsSubscriptAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsSuperscriptAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_MarginLeadingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_MarginTrailingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_OutlineStylesAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = OutlineStyles_None;
+	}
+	else if (attribute == UIA_OverlineColorAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_OverlineStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = TextDecorationLineStyle_None;
+	}
+	else if (attribute == UIA_StrikethroughColorAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_StrikethroughStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = TextDecorationLineStyle_None;
+	}
+	else if (attribute == UIA_TabsAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_TextFlowDirectionsAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = FlowDirections_RightToLeft;
+	}
+	else if (attribute == UIA_LinkAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_IsActiveAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = m_control->HasQuorumFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+	}
+	else if (attribute == UIA_SelectionActiveEndAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = ActiveEnd_None;
+	}
+	else if (attribute == UIA_AnnotationTypesAttributeId)
+	{
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			if (m_control->IsErrorAtIndex(start))
+			{
+				retval.vt = VT_I4;
+				retval.lVal = AnnotationType_SpellingError;
+			}
+		}
+	}
+	else if (attribute == UIA_AnnotationObjectsAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = NULL;
+	}
+	else if (attribute == UIA_CaretBidiModeAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = CaretBidiMode_LTR;
+	}
+
+	return retval;
 }
