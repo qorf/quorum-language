@@ -492,7 +492,7 @@ int TextRangeProvider::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit uni
 	}
 
 	TextUnit walkUnit = unit;
-	if (unit == TextUnit_Word || unit == TextUnit_Line)
+	if (unit == TextUnit_Word || unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		walkUnit = TextUnit_Character;
 	}
