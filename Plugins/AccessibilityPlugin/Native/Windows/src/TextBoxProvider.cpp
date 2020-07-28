@@ -6,12 +6,6 @@
 #include "TextBoxProvider.h"
 
 
-void NotifyCaretPositionChanged(_In_ TextBoxControl* control)
-{
-	TextBoxProvider* eventControl = control->GetProvider().get();
-	THROW_IF_FAILED(UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId));
-}
-
 TextBoxProvider::TextBoxProvider(_In_ TextBoxControl* control) : ProviderT(control)
 {
 	// Nothing to do here.
