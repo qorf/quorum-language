@@ -407,6 +407,26 @@ IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY
 	return S_OK;
 }
 
+bool TextBoxTextRange::StepCharacter(int start, bool forward, _Out_ int* end)
+{
+	*end = start;
+	if (forward)
+	{
+		if (*end >= m_control->GetSize())
+			return false;
+		else
+			(*end)++;
+	}
+	else
+	{
+		if (*end <= 0)
+			return false;
+		else
+			(*end)--;
+	}
+	return true;
+}
+
 bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
@@ -419,8 +439,8 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 	int next;
 	int prev;
 
-	if (!m_control->StepCharacter(check, true, &next) ||
-		!m_control->StepCharacter(check, false, &prev))
+	if (!StepCharacter(check, true, &next) ||
+		!StepCharacter(check, false, &prev))
 	{
 		// If we're at the beginning or end, we're at an endpoint
 		return true;
@@ -489,7 +509,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	for (int i = 0; i < count; i++)
 	{
 		int checkNext;
-		if (!m_control->StepCharacter(current, forward, &checkNext))
+		if (!StepCharacter(current, forward, &checkNext))
 		{
 			// We're at the beginning or end so stop now and return
 			break;
@@ -500,7 +520,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			if (walkUnit == TextUnit_Character)
 			{
 				int next;
-				if (m_control->StepCharacter(current, forward, &next))
+				if (StepCharacter(current, forward, &next))
 				{
 					current = next;
 				}

@@ -80,7 +80,6 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		void Select(const Range& range);
 
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
-		bool StepCharacter(_In_ int start, _In_ bool forward, _Out_ int *end);
 
 		void NotifySelectionChanged();
 		void NotifyTextChanged();

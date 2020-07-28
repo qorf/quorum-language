@@ -293,26 +293,6 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID
 	return retval;
 }
 
-bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int * end)
-{
-	*end = start;
-	if (forward)
-	{
-		if (*end >= GetSize())
-			return false;
-		else
-			(*end)++;
-	}
-	else
-	{
-		if (*end <= 0)
-			return false;
-		else
-			(*end)--;
-	}
-	return true;
-}
-
 void TextBoxControl::NotifyTextChanged()
 {
 	if (UiaClientsAreListening())
