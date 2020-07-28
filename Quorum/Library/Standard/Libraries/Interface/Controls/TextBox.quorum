@@ -2951,7 +2951,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     currentIndex = currentIndex - 1
                     currentToken = currentToken + currentToken:GetCarriageReturn() + 1
                     tokenIsDone = true
-                    output "GetTokenStartIndex (0): " + (beginIndex - currentToken:GetSize()) + ", index = " + searchIndex
                     return beginIndex - currentToken:GetSize() 
                 end
             end
@@ -2962,7 +2961,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     currentIndex = currentIndex - 1
                     currentToken = currentToken + currentToken:GetLineFeed()
                     tokenIsDone = true
-                    output "GetTokenStartIndex (1): " + (beginIndex - currentToken:GetSize()) + ", index = " + searchIndex
                     return beginIndex - currentToken:GetSize()
                 end
             end
@@ -3011,7 +3009,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 elseif (IsWhiteSpace(previousCharacter)) and (0 < (currentIndex - 1))   //stops the caret at the beginning of the line
                     if ((IsEndOfLine(previousCharacter)) and (beginIndex not= currentIndex))
                         tokenIsDone = true
-                        output "GetTokenStartIndex (3): " + (beginIndex - currentToken:GetSize()) + ", index = " + searchIndex
                         return beginIndex - currentToken:GetSize()
                     end                   
                     if currentIndex = beginIndex and (0 < currentIndex - 1)
@@ -3022,7 +3019,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                             repeat while (not(tokenIsDone)) and IsWhiteSpace(previousCharacter) and (0 < (currentIndex - 1))
                                 if ((IsEndOfLine(previousCharacter)) and (beginIndex not= currentIndex))
                                     tokenIsDone = true
-                                    output "GetTokenStartIndex (4): " + (beginIndex - currentToken:GetSize()) + ", index = " + searchIndex
                                     return beginIndex - currentToken:GetSize()
                                 end
                                 currentToken = currentToken + previousCharacter
@@ -3078,10 +3074,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             end
         end
         if (beginIndex - currentToken:GetSize() >= 0)
-            output "GetTokenStartIndex (5): " + (beginIndex - currentToken:GetSize()) + ", index = " + searchIndex
             return beginIndex - currentToken:GetSize()
         else
-            output "GetTokenStartIndex (6): 0 , index = " + searchIndex
             return 0
         end
     end
