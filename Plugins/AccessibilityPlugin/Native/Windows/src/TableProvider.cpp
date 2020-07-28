@@ -48,7 +48,6 @@ IFACEMETHODIMP TableProvider::GetItem(int row, int column, IRawElementProviderSi
 	jlong pointer = 0;
 	if (env != NULL)
 	{
-		std::cout << row << ", " << column << std::endl;
 		pointer = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetTableItem,
 			m_control->GetMe(), row, column);
 		if (pointer == 0) {

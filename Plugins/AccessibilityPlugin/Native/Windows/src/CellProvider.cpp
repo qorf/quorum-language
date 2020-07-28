@@ -81,19 +81,18 @@ IFACEMETHODIMP CellProvider::get_ExpandCollapseState(ExpandCollapseState* pRetVa
 IFACEMETHODIMP CellProvider::Expand()
 {
 	expanded = ExpandCollapseState_Expanded;
-	NotifyElementExpandCollapse();
 	return S_OK;
 }
 
 IFACEMETHODIMP CellProvider::Collapse()
 {
 	expanded = ExpandCollapseState_Collapsed;
-	NotifyElementExpandCollapse();
 	return S_OK;
 }
 
 void CellProvider::NotifyElementExpandCollapse()
 {
+	std::cout << "Notify Expanded from Cell Provider" << std::endl;
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
 	{
