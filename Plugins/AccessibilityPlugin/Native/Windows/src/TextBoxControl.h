@@ -78,6 +78,7 @@ class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
 		int GetSize();
 		Range GetSelectionRange();
 		void Select(const Range& range);
+		bool IsErrorAtIndex(int index);
 
 		VARIANT GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute);
 

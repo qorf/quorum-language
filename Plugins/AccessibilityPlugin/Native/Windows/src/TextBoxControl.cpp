@@ -128,6 +128,20 @@ void TextBoxControl::Select(const Range& range)
 	}
 }
 
+bool TextBoxControl::IsErrorAtIndex(int index)
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		if (env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, index))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void TextBoxControl::NotifySelectionChanged()
 {
 	if (UiaClientsAreListening())
@@ -271,8 +285,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID
 		JNIEnv* env = GetJNIEnv();
 		if (env != NULL)
 		{
-			bool hasErrors = env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, start);
-			if (hasErrors)
+			if (IsErrorAtIndex(start))
 			{
 				retval.vt = VT_I4;
 				retval.lVal = AnnotationType_SpellingError;
