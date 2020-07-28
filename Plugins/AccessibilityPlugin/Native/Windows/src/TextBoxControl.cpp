@@ -60,19 +60,6 @@ int TextBoxControl::GetSize()
 	return static_cast<int>(size);
 }
 
-int TextBoxControl::GetCaretLine()
-{
-	JNIEnv* env = GetJNIEnv();
-
-	jint index = 0;
-	if (env != NULL)
-	{
-		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetCaretLine);
-	}
-
-	return (int)index;
-}
-
 int TextBoxControl::GetIndexOfLine(int line)
 {
 	JNIEnv* env = GetJNIEnv();
@@ -85,21 +72,30 @@ int TextBoxControl::GetIndexOfLine(int line)
 	return (int)index;
 }
 
-int TextBoxControl::GetLineLength()
+bool TextBoxControl::IsBeginningOfToken(int index)
 {
-	int length = 0;
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{
-		jstring currentLineText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetCurrentLineText));
-
-		const char* nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
-
-		length = static_cast<int>(strlen(nativeCurrentLineText));
-
-		env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+		if (env->CallBooleanMethod(javaItem, JavaClass_TextBox.IsBeginningOfToken, index))
+		{
+			return true;
+		}
 	}
-	return length;
+
+	return false;
+}
+
+int TextBoxControl::GetLineIndexOfCharacter(int characterIndex)
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jint lineIndex = 0;
+	if (env != NULL)
+	{
+		lineIndex = env->CallIntMethod(javaItem, JavaClass_TextBox.GetLineIndexOfCharacter, characterIndex);
+	}
+	return lineIndex;
 }
 
 Range TextBoxControl::GetSelectionRange()
@@ -123,195 +119,25 @@ Range TextBoxControl::GetSelectionRange()
 	return selectionRange;
 }
 
-void TextBoxControl::NotifySelectionChanged()
+void TextBoxControl::Select(const Range& range)
 {
-	if (UiaClientsAreListening())
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
 	{
-		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextSelectionChangedEventId);
+		env->CallVoidMethod(javaItem, JavaClass_TextBox.Select, range.begin, range.end);
 	}
 }
 
-VARIANT TextBoxControl::GetAttributeAtPoint(_In_ int start, _In_ TEXTATTRIBUTEID attribute)
+bool TextBoxControl::IsErrorAtIndex(int index)
 {
-	VARIANT retval;
-	VariantInit(&retval);
-
-	// Many attributes are constant across the range, get them here
-	if (attribute == UIA_AnimationStyleAttributeId)
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
 	{
-		retval.vt = VT_I4;
-		retval.lVal = AnimationStyle_None;
-	}
-	else if (attribute == UIA_BackgroundColorAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = GetSysColor(COLOR_WINDOW);
-	}
-	else if (attribute == UIA_BulletStyleAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = BulletStyle_None;
-	}
-	else if (attribute == UIA_CapStyleAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = CapStyle_None;
-	}
-	else if (attribute == UIA_CultureAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = GetThreadLocale();
-	}
-	else if (attribute == UIA_HorizontalTextAlignmentAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = HorizontalTextAlignment_Left;
-	}
-	else if (attribute == UIA_IndentationTrailingAttributeId)
-	{
-		retval.vt = VT_R8;
-		retval.dblVal = 0.0;
-	}
-	else if (attribute == UIA_IsHiddenAttributeId)
-	{
-		retval.vt = VT_BOOL;
-		retval.boolVal = VARIANT_FALSE;
-	}
-	else if (attribute == UIA_IsReadOnlyAttributeId)
-	{
-		// TODO: This should change depending on if the text from quorum is read-only.
-		retval.vt = VT_BOOL;
-		retval.boolVal = VARIANT_FALSE;
-	}
-	else if (attribute == UIA_IsSubscriptAttributeId)
-	{
-		retval.vt = VT_BOOL;
-		retval.boolVal = VARIANT_FALSE;
-	}
-	else if (attribute == UIA_IsSuperscriptAttributeId)
-	{
-		retval.vt = VT_BOOL;
-		retval.boolVal = VARIANT_FALSE;
-	}
-	else if (attribute == UIA_MarginLeadingAttributeId)
-	{
-		retval.vt = VT_R8;
-		retval.dblVal = 0.0;
-	}
-	else if (attribute == UIA_MarginTrailingAttributeId)
-	{
-		retval.vt = VT_R8;
-		retval.dblVal = 0.0;
-	}
-	else if (attribute == UIA_OutlineStylesAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = OutlineStyles_None;
-	}
-	else if (attribute == UIA_OverlineColorAttributeId)
-	{
-		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		if (env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, index))
 		{
-			retval.vt = VT_UNKNOWN;
+			return true;
 		}
-	}
-	else if (attribute == UIA_OverlineStyleAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = TextDecorationLineStyle_None;
-	}
-	else if (attribute == UIA_StrikethroughColorAttributeId)
-	{
-		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
-		{
-			retval.vt = VT_UNKNOWN;
-		}
-	}
-	else if (attribute == UIA_StrikethroughStyleAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = TextDecorationLineStyle_None;
-	}
-	else if (attribute == UIA_TabsAttributeId)
-	{
-		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
-		{
-			retval.vt = VT_UNKNOWN;
-		}
-	}
-	else if (attribute == UIA_TextFlowDirectionsAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = FlowDirections_RightToLeft;
-	}
-	else if (attribute == UIA_LinkAttributeId)
-	{
-		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
-		{
-			retval.vt = VT_UNKNOWN;
-		}
-	}
-	else if (attribute == UIA_IsActiveAttributeId)
-	{
-		retval.vt = VT_BOOL;
-		retval.boolVal = HasQuorumFocus() ? VARIANT_TRUE : VARIANT_FALSE;
-	}
-	else if (attribute == UIA_SelectionActiveEndAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = ActiveEnd_None;
-	}
-	else if (attribute == UIA_AnnotationTypesAttributeId)
-	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			bool hasErrors = env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, start);
-			if (hasErrors)
-			{
-				retval.vt = VT_I4;
-				retval.lVal = AnnotationType_SpellingError;
-			}
-		}
-	}
-	else if (attribute == UIA_AnnotationObjectsAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = NULL;
-	}
-	else if (attribute == UIA_CaretBidiModeAttributeId)
-	{
-		retval.vt = VT_I4;
-		retval.lVal = CaretBidiMode_LTR;
 	}
 
-	return retval;
-}
-
-bool TextBoxControl::StepCharacter(_In_ int start, _In_ bool forward, _Out_ int * end)
-{
-	*end = start;
-	if (forward)
-	{
-		if (*end >= GetSize())
-			return false;
-		else
-			(*end)++;
-	}
-	else
-	{
-		if (*end <= 0)
-			return false;
-		else
-			(*end)--;
-	}
-	return true;
-}
-
-void TextBoxControl::NotifyTextChanged()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextChangedEventId);
-	}
+	return false;
 }

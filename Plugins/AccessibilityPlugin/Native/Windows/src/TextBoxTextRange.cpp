@@ -3,7 +3,7 @@
 #include "TextBoxTextRange.h"
 #include "TextBoxProvider.h"
 
-TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
+TextBoxTextRange::TextBoxTextRange(_In_ TextControlBase* control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
 {
 
 }
@@ -151,7 +151,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	{
 		int walked;
 		int next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
-		VARIANT curValue = m_control->GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
+		auto curValue = GetAttributeAtPoint(searchBackward ? current : next, textAttributeId);
 
 		hr = VarCmp(&val, &curValue, LOCALE_NEUTRAL);
 
@@ -216,7 +216,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 	}
 	else
 	{
-		*pRetVal = m_control->GetAttributeAtPoint(m_range.begin, textAttributeId);
+		*pRetVal = GetAttributeAtPoint(m_range.begin, textAttributeId).release();
 	}
 
 	return hr;
@@ -233,7 +233,7 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	m_control->GetProvider().query_to(pRetVal);
+	m_control->GetProviderSimple().query_to(pRetVal);
 	return S_OK;
 }
 
@@ -368,12 +368,7 @@ IFACEMETHODIMP TextBoxTextRange::MoveEndpointByRange(_In_ TextPatternRangeEndpoi
 
 IFACEMETHODIMP TextBoxTextRange::Select()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		env->CallVoidMethod(m_control->GetMe(), JavaClass_TextBox.Select, (jint)m_range.begin, (jint)m_range.end);
-	}
-
+	m_control->Select(m_range);
 	return S_OK;
 }
 
@@ -412,6 +407,26 @@ IFACEMETHODIMP TextBoxTextRange::GetChildren(_Outptr_result_maybenull_ SAFEARRAY
 	return S_OK;
 }
 
+bool TextBoxTextRange::StepCharacter(int start, bool forward, _Out_ int* end)
+{
+	*end = start;
+	if (forward)
+	{
+		if (*end >= m_control->GetSize())
+			return false;
+		else
+			(*end)++;
+	}
+	else
+	{
+		if (*end <= 0)
+			return false;
+		else
+			(*end)--;
+	}
+	return true;
+}
+
 bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
@@ -424,8 +439,8 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 	int next;
 	int prev;
 
-	if (!m_control->StepCharacter(check, true, &next) ||
-		!m_control->StepCharacter(check, false, &prev))
+	if (!StepCharacter(check, true, &next) ||
+		!StepCharacter(check, false, &prev))
 	{
 		// If we're at the beginning or end, we're at an endpoint
 		return true;
@@ -433,28 +448,13 @@ bool TextBoxTextRange::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit
 
 	else if (unit == TextUnit_Word)
 	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			if (env->CallBooleanMethod(m_control->GetMe(), JavaClass_TextBox.IsBeginningOfToken, check))
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return m_control->IsBeginningOfToken(check);
 	}
 
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
-		JNIEnv* env = GetJNIEnv();
-		if (env != NULL)
-		{
-			int line = env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetLineIndexOfCharacter, check);
-			return (env->CallIntMethod(m_control->GetMe(), JavaClass_TextBox.GetIndexOfLine, line)) == check;
-		}
-
-		return true;
+		auto line = m_control->GetLineIndexOfCharacter(check);
+		return m_control->GetIndexOfLine(line) == check;
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check
@@ -509,7 +509,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	for (int i = 0; i < count; i++)
 	{
 		int checkNext;
-		if (!m_control->StepCharacter(current, forward, &checkNext))
+		if (!StepCharacter(current, forward, &checkNext))
 		{
 			// We're at the beginning or end so stop now and return
 			break;
@@ -520,7 +520,7 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 			if (walkUnit == TextUnit_Character)
 			{
 				int next;
-				if (m_control->StepCharacter(current, forward, &next))
+				if (StepCharacter(current, forward, &next))
 				{
 					current = next;
 				}
@@ -547,4 +547,159 @@ int TextBoxTextRange::Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit
 	}
 
 	return current;
+}
+
+wil::unique_variant TextBoxTextRange::GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute)
+{
+	wil::unique_variant retval;
+
+	// Many attributes are constant across the range, get them here
+	if (attribute == UIA_AnimationStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = AnimationStyle_None;
+	}
+	else if (attribute == UIA_BackgroundColorAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = GetSysColor(COLOR_WINDOW);
+	}
+	else if (attribute == UIA_BulletStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = BulletStyle_None;
+	}
+	else if (attribute == UIA_CapStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = CapStyle_None;
+	}
+	else if (attribute == UIA_CultureAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = GetThreadLocale();
+	}
+	else if (attribute == UIA_HorizontalTextAlignmentAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = HorizontalTextAlignment_Left;
+	}
+	else if (attribute == UIA_IndentationTrailingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_IsHiddenAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsReadOnlyAttributeId)
+	{
+		// TODO: This should change depending on if the text from quorum is read-only.
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsSubscriptAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_IsSuperscriptAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = VARIANT_FALSE;
+	}
+	else if (attribute == UIA_MarginLeadingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_MarginTrailingAttributeId)
+	{
+		retval.vt = VT_R8;
+		retval.dblVal = 0.0;
+	}
+	else if (attribute == UIA_OutlineStylesAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = OutlineStyles_None;
+	}
+	else if (attribute == UIA_OverlineColorAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_OverlineStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = TextDecorationLineStyle_None;
+	}
+	else if (attribute == UIA_StrikethroughColorAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_StrikethroughStyleAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = TextDecorationLineStyle_None;
+	}
+	else if (attribute == UIA_TabsAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_TextFlowDirectionsAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = FlowDirections_RightToLeft;
+	}
+	else if (attribute == UIA_LinkAttributeId)
+	{
+		if (SUCCEEDED(UiaGetReservedNotSupportedValue(&retval.punkVal)))
+		{
+			retval.vt = VT_UNKNOWN;
+		}
+	}
+	else if (attribute == UIA_IsActiveAttributeId)
+	{
+		retval.vt = VT_BOOL;
+		retval.boolVal = m_control->HasQuorumFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+	}
+	else if (attribute == UIA_SelectionActiveEndAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = ActiveEnd_None;
+	}
+	else if (attribute == UIA_AnnotationTypesAttributeId)
+	{
+		JNIEnv* env = GetJNIEnv();
+		if (env != NULL)
+		{
+			if (m_control->IsErrorAtIndex(start))
+			{
+				retval.vt = VT_I4;
+				retval.lVal = AnnotationType_SpellingError;
+			}
+		}
+	}
+	else if (attribute == UIA_AnnotationObjectsAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = NULL;
+	}
+	else if (attribute == UIA_CaretBidiModeAttributeId)
+	{
+		retval.vt = VT_I4;
+		retval.lVal = CaretBidiMode_LTR;
+	}
+
+	return retval;
 }

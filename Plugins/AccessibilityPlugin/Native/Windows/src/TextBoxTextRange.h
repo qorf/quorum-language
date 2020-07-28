@@ -2,14 +2,14 @@
 
 #include <UIAutomation.h>
 
-#include "TextBoxControl.h"
+#include "TextControlBase.h"
 
 class __declspec(uuid("c5e2bb94-1a47-41eb-ac0b-e48594676489"))
 TextBoxTextRange: public ITextRangeProvider
 {
 public:
 
-	TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range/*, _In_ std::wstring text*/);
+	TextBoxTextRange(_In_ TextControlBase* control, _In_ Range range);
 	virtual ~TextBoxTextRange();
 
 	// IUnknown methods
@@ -40,12 +40,14 @@ public:
 private:
 
 	// Helper functions for walking/searching
+	bool StepCharacter(int start, bool forward, _Out_ int* end);
 	bool CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute);
 	int Walk(_In_ int start, _In_ bool forward, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute, _In_ int count, _Out_ int *walked);
+	wil::unique_variant GetAttributeAtPoint(int start, TEXTATTRIBUTEID attribute);
 
 	// Ref Counter for this COM object
 	ULONG m_refCount;
 
-	TextBoxControl* m_control;		// The control object that this UIA object is referring to
-	Range m_range;							// The range for this instance of TextAreaTextRange
+	TextControlBase* m_control;
+	Range m_range;
 };
