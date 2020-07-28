@@ -3,7 +3,7 @@
 #include "TextBoxTextRange.h"
 #include "TextBoxProvider.h"
 
-TextBoxTextRange::TextBoxTextRange(_In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
+TextBoxTextRange::TextBoxTextRange(_In_ TextControlBase* control, _In_ Range range) : m_refCount(1), m_control(control), m_range(range)
 {
 
 }
@@ -233,7 +233,7 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 //						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	m_control->GetProvider().query_to(pRetVal);
+	m_control->GetProviderSimple().query_to(pRetVal);
 	return S_OK;
 }
 

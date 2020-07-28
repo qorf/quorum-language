@@ -46,6 +46,7 @@ add_library(AccessibilityManagerWindows MODULE
     TextBoxControl.cpp
     TextBoxProvider.cpp
     TextBoxTextRange.cpp
+    TextControlBase.cpp
     TextFieldControl.cpp
     TextFieldProvider.cpp
     TextFieldTextRange.cpp

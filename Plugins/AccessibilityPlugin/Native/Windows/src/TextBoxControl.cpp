@@ -141,19 +141,3 @@ bool TextBoxControl::IsErrorAtIndex(int index)
 
 	return false;
 }
-
-void TextBoxControl::NotifySelectionChanged()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextSelectionChangedEventId);
-	}
-}
-
-void TextBoxControl::NotifyTextChanged()
-{
-	if (UiaClientsAreListening())
-	{
-		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Text_TextChangedEventId);
-	}
-}

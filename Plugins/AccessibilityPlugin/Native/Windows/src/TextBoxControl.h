@@ -7,65 +7,22 @@
 
 #include "Resources.h"
 #include "ControlT.h"
-
-/* This structure stores the range that the caret encompasses in the text.
-*  If the caret doesn't have a range, meaning it is only an insertion point for text,
-*  then for the purposes of accessibility this is called the degenerate text range.
-*  A degenerate text range is a range the begins and ends at the same EndPoint.
-*/
-struct Range
-{
-	Range() {};
-	Range(int b, int e) : begin(b), end(e) {};
-	int begin;
-	int end;
-};
-
-/* CompareEndpointPair: Compares two Endpoints to determine whether or not one is less than, equal to, or greater than another.
-*						  This function is used in several locations for walking the text line to determine various qualities about it.
-*						  Less Than: To be less than an EndPoint means that a given EndPoint's line or character value is less than that of another.
-*						  Greater than: To be greater than an EndPoint means that a given EndPoint's line or character value exceeds that of another.
-*						  Equal To: To be equal to an EndPoint means that for a given EndPoint both its line and character values equal that of another.
-*		Return: an Integer value that indicates where one EndPoint is in relation to another.
-*/
-inline int CompareEndpointPair(_In_ int endpoint1, _In_ int endpoint2)
-{
-	// Since the EndPoint will always reside on line zero we only need to compare whether the lefthand
-	// EndPoint's character position is to the left, right, or same as the righthand side.
-	if (endpoint1 < endpoint2)
-	{
-		// Lefthand EndPoint character position is to the left of the righthand side.
-		return -1;
-	}
-	else if (endpoint1 > endpoint2)
-	{
-		// Lefthand EndPoint character position is to the right of the righthand side.
-		return 1;
-	}
-	else
-	{
-		// The EndPoint's are equal to one another, return 0 to indicate this.
-		return 0;
-	}
-}
+#include "TextControlBase.h"
 
 class TextBoxProvider;
 
-class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider>
+class TextBoxControl : public ControlT<TextBoxControl, TextBoxProvider, TextControlBase>
 {
 	public:
 		TextBoxControl(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
 
-		bool IsBeginningOfToken(int index);
-		int GetIndexOfLine(int line);
-		int GetLineIndexOfCharacter(int characterIndex);
-		std::wstring GetText();
-		std::wstring GetText(int startIndex, int endIndex);
-		int GetSize();
-		Range GetSelectionRange();
-		void Select(const Range& range);
-		bool IsErrorAtIndex(int index);
-
-		void NotifySelectionChanged();
-		void NotifyTextChanged();
+		bool IsBeginningOfToken(int index) override;
+		int GetIndexOfLine(int line) override;
+		int GetLineIndexOfCharacter(int characterIndex) override;
+		std::wstring GetText() override;
+		std::wstring GetText(int startIndex, int endIndex) override;
+		int GetSize() override;
+		Range GetSelectionRange() override;
+		void Select(const Range& range) override;
+		bool IsErrorAtIndex(int index) override;
 };
