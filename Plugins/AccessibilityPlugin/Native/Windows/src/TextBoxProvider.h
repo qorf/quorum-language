@@ -29,5 +29,3 @@ public:
 	IFACEMETHODIMP SetValue(LPCWSTR value);
 	IFACEMETHODIMP get_Value(BSTR* returnValue);
 };
-
-void NotifyCaretPositionChanged(_In_ TextBoxControl* control);
