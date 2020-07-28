@@ -3088,14 +3088,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return true
         end
 
-        text textValue = GetText()
-
-        if index >= textValue:GetSize()
+        if index >= GetSize()
             return false
         end
 
-        text previous = textValue:GetCharacter(index - 1)
-        text current = textValue:GetCharacter(index)
+        text previous = textValue:GetText(index - 1, index)
+        text current = textValue:GetText(index, index + 1)
 
         if IsWhiteSpace(current)
             return false

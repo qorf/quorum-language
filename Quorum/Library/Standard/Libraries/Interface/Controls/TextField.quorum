@@ -1137,6 +1137,61 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return isWhiteSpace
     end
 
+    private action IsBeginningOfToken(integer index) returns boolean
+        // Used by the accessibility system, which can ignore the "private" flag.
+        // It's not clear if this will be necessary in the future.
+
+        if index = 0
+            return true
+        end
+
+        if index >= textValue:GetSize()
+            return false
+        end
+
+        text previous = textValue:GetCharacter(index - 1)
+        text current = textValue:GetCharacter(index)
+
+        if IsWhiteSpace(current)
+            return false
+        end
+
+        if IsWhiteSpace(previous)
+            return true
+        end
+
+        if (IsSpecialCharacter(previous) and not IsSpecialCharacter(current))
+            return true
+        end
+
+        if (IsSpecialCharacter(current))
+            if current = ")"
+                if previous = "("
+                    return false
+                end
+            end
+            if current = ">"
+                if previous = ">"
+                    return false
+                end
+            end
+            if current = "<"
+                if previous = "<"
+                    return false
+                end
+            end
+            if current = "/"
+                if previous = "/"
+                    return false
+                end
+            end
+
+            return true
+        end
+
+        return false
+    end
+
     /*
     This is set by the TextFieldSavePreviousCaretPositionBehavior for use by the 
     TextFieldSelectToMouseClickBehavior in determining the selection indices based on 
