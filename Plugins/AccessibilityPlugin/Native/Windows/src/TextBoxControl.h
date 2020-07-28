@@ -8,20 +8,6 @@
 #include "Resources.h"
 #include "ControlT.h"
 
-/* The EndPoint structure where the caret is in terms of line and character.
-*  For now, the line will not be included since we are storing the full
-*  text as a string instead of breaking it into lines.
-*  Note: This implementation is not tested and so it may be necessary to implement
-*        a multi-line solution.
-*
-struct EndPoint
-{
-	EndPoint() : character(0) {};
-	EndPoint(int c) : character(c) {};
-	int character;
-};
-*/
-
 /* This structure stores the range that the caret encompasses in the text.
 *  If the caret doesn't have a range, meaning it is only an insertion point for text,
 *  then for the purposes of accessibility this is called the degenerate text range.
