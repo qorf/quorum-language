@@ -14,7 +14,7 @@ class TreeTableRightBehavior is Behavior
             TreeTableSelection selection = sheet:GetSelection()
             
             // If we're in the left-most column, try to expand a closed row.
-            if selection not= undefined and selection:GetX() = 0
+            if selection not= undefined and selection:GetColumn() = 0
                 TreeTableCell cell = selection:Get()
                 TreeTableRow row = cell:GetRow()
                 if row not= undefined and row:IsExpanded() = false and row:IsEmpty() = false

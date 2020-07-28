@@ -73,7 +73,7 @@ class Column is Control
     action Empty
         if spreadsheet not= undefined
             SpreadsheetSelection selection = spreadsheet:GetSelection()
-            if spreadsheet:GetColumnIndex(me) = selection:GetX()
+            if spreadsheet:GetColumnIndex(me) = selection:GetColumn()
                 selection:Empty()
             end
         end

@@ -6,28 +6,28 @@ use Libraries.Interface.Controls.TreeTable
 use Libraries.Containers.Support.Pair
 
 class TreeTableSelection is Selection
-    integer x = -1
-    integer y = -1
+    integer row = -1
+    integer column = -1
 
     action Initialize(Item item)
         Initialize(item, "")
     end
 
     action IsEmpty returns boolean
-        return x < 0 and y < 0
+        return column < 0 and row < 0
     end
 
     /*
         This action selects a single cell in the TreeTable. In this case, 
         the x represents the column number and the y represents the row.
     */
-    action Set(integer x, integer y)
+    action Set(integer row, integer column)
         TreeTable table = GetTreeTable()
         if table not= undefined
-            TreeTableCell cell = table:GetCell(x, y)
+            TreeTableCell cell = table:GetCell(row, column)
             if cell not= undefined
-                me:x = x
-                me:y = y
+                me:row = row
+                me:column = column
                 SetDisplayName(cell:GetText())
                 return now
             end
@@ -46,8 +46,8 @@ class TreeTableSelection is Selection
             if table not= undefined
                 Pair<integer> coords = table:GetCellCoordinates(cell)
                 if coords:GetFirstValue() > -1 and coords:GetSecondValue() > -1
-                    x = coords:GetFirstValue()
-                    y = coords:GetSecondValue()
+                    row = coords:GetFirstValue()
+                    column = coords:GetSecondValue()
                     SetDisplayName(cell:GetText())
                     return now
                 end
@@ -61,7 +61,7 @@ class TreeTableSelection is Selection
     action Get returns TreeTableCell
         TreeTable table = GetTreeTable()
         if table not= undefined and IsEmpty() = false
-            return table:GetCell(x, y)
+            return table:GetCell(row, column)
         end
         return undefined
     end
@@ -80,16 +80,16 @@ class TreeTableSelection is Selection
     coordinates will be -1.
     */
     action Empty
-        x = -1
-        y = -1
+        row = -1
+        column = -1
         SetDisplayName("")
     end
 
-    action GetX returns integer
-        return x
+    action GetRow returns integer
+        return row
     end
 
-    action GetY returns integer
-        return y
+    action GetColumn returns integer
+        return column
     end
 end

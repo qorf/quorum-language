@@ -116,18 +116,18 @@ class Spreadsheet is Control
     where the x coordinate represents the column and the y coordinate represents
     the row.
     */
-    action Select(integer x, integer y)
+    action Select(integer row, integer column)
         Cell oldSelection = selection:Get()
         if oldSelection not= undefined
             oldSelection:LostSelection()
         end
 
-        Cell cell = GetCell(x, y)
+        Cell cell = GetCell(row, column)
         if cell not= undefined
             cell:GainedSelection()
         end
 
-        selection:Set(x, y)
+        selection:Set(row, column)
     end
 
     action Deselect
@@ -140,41 +140,41 @@ class Spreadsheet is Control
     end
 
     action MoveSelectionUp
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer column = selection:GetColumn()
         
-        if y > 0
-            Select(x, y - 1)
+        if row > 0
+            Select(row - 1, column)
         end
     end
 
     action MoveSelectionDown
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer col = selection:GetColumn()
         
-        if x >= 0 and x < columns:GetSize()
-            Column column = columns:Get(x)
-            if y < column:GetSize() - 1
-                Select(x, y + 1)
+        if col >= 0 and col < columns:GetSize()
+            Column column = columns:Get(col)
+            if row < column:GetSize() - 1
+                Select(row + 1, col)
             end
         end
     end
 
     action MoveSelectionLeft
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer column = selection:GetColumn()
 
-        if selection:GetX() > 0
-            Select(x - 1, y)
+        if selection:GetColumn() > 0
+            Select(row, column - 1)
         end
     end
 
     action MoveSelectionRight
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer column = selection:GetColumn()
         
-        if selection:GetX() < columns:GetSize() - 1
-            Select(x + 1, y)
+        if selection:GetColumn() < columns:GetSize() - 1
+            Select(row, column + 1)
         end
     end
 
@@ -188,17 +188,17 @@ class Spreadsheet is Control
     should be used sparingly if working with lots of cells.
     */
     action GetCellCoordinates(Cell cell) returns Pair<integer>
-        integer x = 0
+        integer col = 0
         Pair<integer> pair
 
-        repeat while x < columns:GetSize()
-            Column column = columns:Get(x)
-            integer y = column:GetCellIndex(cell)
-            if y > -1
-                pair:Set(x, y)
+        repeat while col < columns:GetSize()
+            Column column = columns:Get(col)
+            integer row = column:GetCellIndex(cell)
+            if row > -1
+                pair:Set(row, col)
                 return pair
             end
-            x = x + 1
+            col = col + 1
         end
 
         // If the cell couldn't be found, return -1 for each coordinate.
@@ -215,11 +215,11 @@ class Spreadsheet is Control
     end
 
     /*
-    This action gets the cell located at the given coordinates, where the x
-    coordinate represents the column and the y coordinate represents the row.
+    This action gets the cell located at the given coordinates, specified 
+    as a row and then a column.
     */
-    action GetCell(integer x, integer y) returns Cell
-        return columns:Get(x):GetCell(y)
+    action GetCell(integer row, integer column) returns Cell
+        return columns:Get(column):GetCell(row)
     end
 
     /*

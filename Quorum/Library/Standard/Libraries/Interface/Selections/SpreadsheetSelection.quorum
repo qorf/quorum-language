@@ -6,28 +6,28 @@ use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Containers.Support.Pair
 
 class SpreadsheetSelection is Selection
-    integer x = -1
-    integer y = -1
+    integer row = -1
+    integer column = -1
 
     action Initialize(Item item)
         Initialize(item, "")
     end
 
     action IsEmpty returns boolean
-        return x < 0 or y < 0
+        return row < 0 or column < 0
     end
 
     /*
         This action selects a single cell in the spreadsheet. In this case, 
         the x represents the column number and the y represents the row.
     */
-    action Set(integer x, integer y)
+    action Set(integer row, integer column)
         Spreadsheet sheet = GetSpreadsheet()
         if sheet not= undefined
-            Cell cell = sheet:GetCell(x, y)
+            Cell cell = sheet:GetCell(row, column)
             if cell not= undefined
-                me:x = x
-                me:y = y
+                me:row = row
+                me:column = column
                 SetDisplayName(cell:GetText())
                 return now
             end
@@ -46,8 +46,8 @@ class SpreadsheetSelection is Selection
             if sheet not= undefined
                 Pair<integer> coords = sheet:GetCellCoordinates(cell)
                 if coords:GetFirstValue() > -1 and coords:GetSecondValue() > -1
-                    x = coords:GetFirstValue()
-                    y = coords:GetSecondValue()
+                    row = coords:GetFirstValue()
+                    column = coords:GetSecondValue()
                     SetDisplayName(cell:GetText())
                     return now
                 end
@@ -61,7 +61,7 @@ class SpreadsheetSelection is Selection
     action Get returns Cell
         Spreadsheet sheet = GetSpreadsheet()
         if sheet not= undefined and IsEmpty() = false
-            return sheet:GetCell(x, y)
+            return sheet:GetCell(row, column)
         end
         return undefined
     end
@@ -80,16 +80,16 @@ class SpreadsheetSelection is Selection
     coordinates will be -1.
     */
     action Empty
-        x = -1
-        y = -1
+        row = -1
+        column = -1
         SetDisplayName("")
     end
 
-    action GetX returns integer
-        return x
+    action GetRow returns integer
+        return row
     end
 
-    action GetY returns integer
-        return y
+    action GetColumn returns integer
+        return column
     end
 end

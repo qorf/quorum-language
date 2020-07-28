@@ -15,14 +15,14 @@ class TreeTableLeftBehavior is Behavior
             
             // If we're in the left-most column, try to close an expanded row,
             // or jump to a parent row.
-            if selection not= undefined and selection:GetX() = 0
+            if selection not= undefined and selection:GetColumn() = 0
                 TreeTableCell cell = selection:Get()
                 TreeTableRow row = cell:GetRow()
                 if row not= undefined
                     if row:IsExpanded()
                         sheet:CloseRow(row)
                     elseif row:GetParent() not= undefined
-                        sheet:Select(0, sheet:GetRowIndex(row:GetParent()))
+                        sheet:Select(sheet:GetRowIndex(row:GetParent()), 0)
                     end
                 end
 

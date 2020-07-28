@@ -234,8 +234,8 @@ class TreeTable is Control
 
         // If we're about to remove the selected cell, deselect it first.
         TreeTableCell selectedCell = selection:Get()
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer rowPosition = selection:GetRow()
+        integer colPosition = selection:GetColumn()
         boolean reselect = false
         if selectedCell not= undefined and selectedCell:GetRow() = row
             reselect = true
@@ -264,7 +264,7 @@ class TreeTable is Control
         SetParentTreeTableReferences(row:GetChildren(), undefined)
 
         if reselect
-            Select(x, y - 1)
+            Select(rowPosition - 1, colPosition)
         end
         return true
     end
@@ -386,18 +386,18 @@ class TreeTable is Control
     where the x coordinate represents the column and the y coordinate represents
     the row.
     */
-    action Select(integer x, integer y)
+    action Select(integer row, integer column)
         TreeTableCell oldSelection = selection:Get()
         if oldSelection not= undefined
             oldSelection:LostSelection()
         end
 
-        TreeTableCell cell = GetCell(x, y)
+        TreeTableCell cell = GetCell(row, column)
         if cell not= undefined
             cell:GainedSelection()
         end
 
-        selection:Set(x, y)
+        selection:Set(row, column)
     end
 
     action Deselect
@@ -414,11 +414,11 @@ class TreeTable is Control
             return now
         end
 
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer column = selection:GetColumn()
         
-        if y > 0
-            Select(x, y - 1)
+        if row > 0
+            Select(row - 1, column)
         end
     end
 
@@ -427,13 +427,13 @@ class TreeTable is Control
             return now
         end
 
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer col = selection:GetColumn()
         
-        if x >= 0 and x < columns:GetSize()
-            TreeTableColumn column = columns:Get(x)
-            if y < column:GetSize() - 1
-                Select(x, y + 1)
+        if col >= 0 and col < columns:GetSize()
+            TreeTableColumn column = columns:Get(col)
+            if row < column:GetSize() - 1
+                Select(row + 1, col)
             end
         end
     end
@@ -443,11 +443,11 @@ class TreeTable is Control
             return now
         end
 
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer col = selection:GetColumn()
 
-        if selection:GetX() > 0
-            Select(x - 1, y)
+        if selection:GetColumn() > 0
+            Select(row, col - 1)
         end
     end
 
@@ -456,11 +456,11 @@ class TreeTable is Control
             return now
         end
 
-        integer x = selection:GetX()
-        integer y = selection:GetY()
+        integer row = selection:GetRow()
+        integer column = selection:GetColumn()
         
-        if selection:GetX() < columns:GetSize() - 1
-            Select(x + 1, y)
+        if selection:GetColumn() < columns:GetSize() - 1
+            Select(row, column + 1)
         end
     end
 
@@ -474,17 +474,17 @@ class TreeTable is Control
     should be used sparingly if working with lots of cells.
     */
     action GetCellCoordinates(TreeTableCell cell) returns Pair<integer>
-        integer x = 0
+        integer col = 0
         Pair<integer> pair
 
-        repeat while x < columns:GetSize()
-            TreeTableColumn column = columns:Get(x)
-            integer y = column:GetCellIndex(cell)
-            if y > -1
-                pair:Set(x, y)
+        repeat while col < columns:GetSize()
+            TreeTableColumn column = columns:Get(col)
+            integer row = column:GetCellIndex(cell)
+            if row > -1
+                pair:Set(row, col)
                 return pair
             end
-            x = x + 1
+            col = col + 1
         end
 
         // If the cell couldn't be found, return -1 for each coordinate.
@@ -517,8 +517,8 @@ class TreeTable is Control
     This action gets the cell located at the given coordinates, where the x
     coordinate represents the column and the y coordinate represents the row.
     */
-    action GetCell(integer x, integer y) returns TreeTableCell
-        return columns:Get(x):GetCell(y)
+    action GetCell(integer row, integer column) returns TreeTableCell
+        return columns:Get(column):GetCell(row)
     end
 
     /*
@@ -580,7 +580,7 @@ class TreeTable is Control
             repeat while j < columnSize
                 TreeTableColumn column = columns:Get(j)
                 column:AddCell(index, row, hostCell)
-                if j = selection:GetX() and selection:GetY() >= index
+                if j = selection:GetColumn() and selection:GetRow() >= index
                     MoveSelectionDown()
                 end
                 j = j + 1
@@ -631,7 +631,7 @@ class TreeTable is Control
                 TreeTableColumn column = columns:Get(j)
 
                 // If the remove affects the selction then move the selection up
-                if j = selection:GetX() and selection:GetY() >= index
+                if j = selection:GetColumn() and selection:GetRow() >= index
                     MoveSelectionUp()
                 end
 
