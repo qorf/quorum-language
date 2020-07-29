@@ -29,8 +29,8 @@ public:
 		readyForNotifications = value;
 	}
 
-	~ControlT();
 	const wil::com_ptr<ProviderT>& GetProvider();
+	bool IsProviderCreated() const noexcept override;
 	wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() override;
 	wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() override;
 
