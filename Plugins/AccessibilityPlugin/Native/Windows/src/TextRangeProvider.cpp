@@ -435,6 +435,18 @@ bool TextRangeProvider::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUni
 {
 	UNREFERENCED_PARAMETER(specificAttribute);
 
+	if (unit == TextUnit_Character)
+	{
+		// Deliberately check TextUnit_Character first. Even if we're at the end of the document,
+		// consider this the beginning of a character unit. Otherwise, a degenerate range
+		// at the end of the document normalizes to the last character, and if we do this,
+		// some screen readers don't correctly announce the end of the last (or only) line.
+		// Note, though, that when using a unit other than character, a degenerate end
+		// at the end of the document does normalize to the last word/line/etc. The condition
+		// after this one handles that.
+		return true;
+	}
+
 	int next;
 	if (!StepCharacter(check, true, &next))
 	{
@@ -446,11 +458,6 @@ bool TextRangeProvider::CheckEndpointIsUnitEndpoint(_In_ int check, _In_ TextUni
 	if (!StepCharacter(check, false, &prev))
 	{
 		// The beginning of the document is the beginning of everything.
-		return true;
-	}
-
-	if (unit == TextUnit_Character)
-	{
 		return true;
 	}
 
