@@ -3,12 +3,9 @@
 #include "ControlT.h"
 
 template <typename DerivedT, typename ProviderT, typename BaseT>
-ControlT<DerivedT, ProviderT, BaseT>::~ControlT()
+bool ControlT<DerivedT, ProviderT, BaseT>::IsProviderCreated() const noexcept
 {
-	if (m_provider)
-	{
-		LOG_IF_FAILED(UiaDisconnectProvider(m_provider.get()));
-	}
+	return m_provider != nullptr;
 }
 
 template <typename DerivedT, typename ProviderT, typename BaseT>

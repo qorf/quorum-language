@@ -15,7 +15,7 @@ class Item
 {
 public:
 	Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem);
-	virtual ~Item();
+	virtual ~Item() = default;
 
 	bool HasQuorumFocus() const noexcept;
 	bool HasUiaFocus() const noexcept;
@@ -50,8 +50,11 @@ public:
 
 	virtual bool IsReadyForNotifications();
 
+	virtual bool IsProviderCreated() const noexcept = 0;
 	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() = 0;
 	virtual wil::com_ptr<IRawElementProviderFragment> GetProviderFragment() = 0;
+
+	void Disconnect() noexcept;
 
 protected:
 	std::wstring m_ControlName;

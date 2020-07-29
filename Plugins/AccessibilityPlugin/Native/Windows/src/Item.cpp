@@ -19,12 +19,6 @@ Item::Item(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescri
 	}
 }
 
-Item::~Item()
-{
-	RemoveFromParentInternal();
-	RemoveAllChildren();
-}
-
 bool Item::HasQuorumFocus() const noexcept
 {
 	return (m_root->GetQuorumFocus() == this);
@@ -286,5 +280,23 @@ void Item::RemoveAllChildren() noexcept
 		m_firstChild = nullptr;
 		m_lastChild = nullptr;
 		m_childCount = 0;
+	}
+}
+
+void Item::Disconnect() noexcept
+{
+	// If we're removing the focus from the system, make sure the Quorum focus reflects that.
+	if (m_root && (m_root->GetQuorumFocus() == this))
+	{
+		m_root->SetQuorumFocus(nullptr);
+	}
+
+	RemoveFromParentInternal();
+	RemoveAllChildren();
+
+	if (IsProviderCreated())
+	{
+		auto provider = GetProviderSimple();
+		LOG_IF_FAILED(UiaDisconnectProvider(provider.get()));
 	}
 }
