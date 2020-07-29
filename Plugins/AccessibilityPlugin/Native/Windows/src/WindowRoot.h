@@ -11,6 +11,7 @@ public:
 	~WindowRoot();
 
 	HWND GetHwnd() const noexcept;
+	void DisconnectAndDestroyAll();
 	bool IsHostFocused() const noexcept override;
 
 private:
@@ -20,4 +21,5 @@ private:
 	HWND m_hwnd;
 	WNDPROC m_originalWndProc;
 	bool m_isWindowFocused;
+	bool m_isDisconnecting = false;
 };

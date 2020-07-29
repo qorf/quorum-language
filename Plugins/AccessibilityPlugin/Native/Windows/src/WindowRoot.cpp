@@ -4,6 +4,25 @@
 
 constexpr auto c_propName = L"Quorum.WindowRootObject";
 
+namespace
+{
+
+void DisconnectAndDestroyRecursive(_In_ Item* item)
+{
+	auto child = item->GetFirstChild();
+	while (child != nullptr)
+	{
+		auto next = child->GetNextSibling();
+		DisconnectAndDestroyRecursive(child);
+		child = next;
+	}
+
+	item->Disconnect();
+	delete item;
+}
+
+} // anonymous namespace
+
 WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 	: RootItemT(nullptr /* env */, name /* name */, L"" /* description */, nullptr /* jItem */)
 	, m_hwnd(hwnd)
@@ -38,7 +57,7 @@ bool WindowRoot::IsHostFocused() const noexcept
 
 LRESULT WindowRoot::OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
-	if (msg == WM_GETOBJECT)
+	if ((msg == WM_GETOBJECT) && !m_isDisconnecting)
 	{
 		return UiaReturnRawElementProvider(m_hwnd, wParam, lParam, GetProvider().get());
 	}
@@ -68,4 +87,10 @@ LRESULT WindowRoot::OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) n
 	}
 
 	return CallWindowProc(m_originalWndProc, m_hwnd, msg, wParam, lParam);
+}
+
+void WindowRoot::DisconnectAndDestroyAll()
+{
+	m_isDisconnecting = true;
+	DisconnectAndDestroyRecursive(this);
 }

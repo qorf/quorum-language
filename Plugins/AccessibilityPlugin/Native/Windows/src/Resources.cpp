@@ -426,6 +426,13 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	#endif
 	UNREFERENCED_PARAMETER(env);
 	UNREFERENCED_PARAMETER(obj);
+
+	if (g_mainWindowRoot != nullptr)
+	{
+		g_mainWindowRoot->DisconnectAndDestroyAll();
+		g_mainWindowRoot = nullptr;
+	}
+
 	UiaDisconnectAllProviders();
 	CoUninitialize();
 	#if LOG
