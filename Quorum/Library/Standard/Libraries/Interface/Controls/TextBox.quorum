@@ -3237,29 +3237,29 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         text nextCharacter = ""
         if textValue:IsEmpty()
             return 0
+        elseif searchIndex >= GetSize()
+            return GetSize()
         end
 
         //if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token
-        if (currentIndex) < textValue:GetSize()
-            nextCharacter = textValue:GetCharacter(currentIndex)
-            if nextCharacter = nextCharacter:GetCarriageReturn()
-                currentIndex = currentIndex + 1
-                currentToken = currentToken + nextCharacter
-                if (currentIndex < textValue:GetSize())
-                    nextCharacter = textValue:GetCharacter(currentIndex)
-                end
-                tokenIsDone = true  
+        nextCharacter = textValue:GetCharacter(currentIndex)
+        if nextCharacter = nextCharacter:GetCarriageReturn()
+            currentIndex = currentIndex + 1
+            currentToken = currentToken + nextCharacter
+            if (currentIndex < textValue:GetSize())
+                nextCharacter = textValue:GetCharacter(currentIndex)
             end
-    
-            if nextCharacter = nextCharacter:GetLineFeed()
-                currentIndex = currentIndex + 1
-                currentToken = currentToken + nextCharacter
-                tokenIsDone = true
-            end
+            tokenIsDone = true  
+        end
 
-            if tokenIsDone
-                return beginIndex + currentToken:GetSize()
-            end
+        if nextCharacter = nextCharacter:GetLineFeed()
+            currentIndex = currentIndex + 1
+            currentToken = currentToken + nextCharacter
+            tokenIsDone = true
+        end
+
+        if tokenIsDone
+            return beginIndex + currentToken:GetSize()
         end
 
         //skipping the initial whitespace at the beginning of the line after a line feed

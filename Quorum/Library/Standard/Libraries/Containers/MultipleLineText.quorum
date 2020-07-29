@@ -311,11 +311,17 @@ class MultipleLineText
 
         integer toFill = CharactersToBackfill(refillText, providingText)
         if toFill = 0
-            // If the providing text was empty somehow, delete the empty line and
-            // continue. Most likely this occurs because the last line was empty
-            // (without text wrapping, it's the only line legally allowed to be
-            // empty).
-            if providingText:IsEmpty()
+            /*
+            If the providing text was empty somehow, delete the empty line and
+            continue. Most likely this occurs because the last line was empty
+            (without text wrapping, it's the only line legally allowed to be
+            empty).
+
+            The only exception is the last line. The last line can legally be
+            empty, so long as the previous line ends with a line separator. In
+            that case, we don't want to delete it.
+            */
+            if providingText:IsEmpty() and (refillText:EndsWith(lineSeparator) and lineIndex = GetLineCount() - 2) = false
                 MultipleLineText result = RemoveFromLine(lineIndex + 1, 0)
                 return result:RefillLine(lineIndex + 1)
             else
