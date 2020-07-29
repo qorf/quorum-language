@@ -6,30 +6,29 @@
 #include "TextFieldProvider.h"
 #include "ControlTImpl.h"
 
+namespace
+{
+
+constexpr wchar_t c_passwordPlaceholder = L'*';
+
+} // anonymous namespace
+
 TextFieldControl::TextFieldControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {
 }
 
 std::wstring TextFieldControl::GetText()
 {
-	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
-	{
-		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextField.GetText));
-
-		const char* nativeText = env->GetStringUTFChars(jText, 0);
-		std::wstring wText = CreateWideStringFromUTF8Win32(nativeText);
-
-		env->ReleaseStringUTFChars(jText, nativeText);
-
-		return wText;
-	}
-
-	return L"";
+	return GetText(0, GetSize());
 }
 
 std::wstring TextFieldControl::GetText(int startIndex, int endIndex)
 {
+	if (IsPassword())
+	{
+		return std::wstring(static_cast<size_t>(endIndex - startIndex), c_passwordPlaceholder);
+	}
+
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
 	{

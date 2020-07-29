@@ -207,12 +207,7 @@ IFACEMETHODIMP TextFieldProvider::get_Value(BSTR* returnValue)
 	#if LOG
 		log("TextFieldProvider::get_Value Finish");
 	#endif
-	if (!m_control->IsPassword()) {
-		std::wstring text = m_control->GetText();
-		*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
-		return S_OK;
-	}
-	else {
-		return UIA_E_INVALIDOPERATION;
-	}
+	std::wstring text = m_control->GetText();
+	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
+	return S_OK;
 }
