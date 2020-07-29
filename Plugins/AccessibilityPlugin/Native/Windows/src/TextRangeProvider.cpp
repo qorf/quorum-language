@@ -269,10 +269,15 @@ IFACEMETHODIMP TextRangeProvider::Move(_In_ TextUnit unit, _In_ int count, _Out_
 
 	bool isDegenerate = (m_range.begin == m_range.end);
 
-	int walked;
-	int back = Walk(m_range.begin, false, unit, 0, 0, &walked);
+	int start = m_range.begin;
+	// If the range is degenerate, just move it, without normalizing first.
+	if (!isDegenerate)
+	{
+		int walked;
+		start = Walk(start, false, unit, 0, 0, &walked);
+	}
 
-	int destination = Walk(back, count > 0, unit, 0, abs(count), pRetVal);
+	int destination = Walk(start, count > 0, unit, 0, abs(count), pRetVal);
 
 	m_range.begin = destination;
 	m_range.end = destination;
