@@ -16,10 +16,12 @@ class TextFieldCopyToClipboardBehavior is Behavior
         end
 
         TextField box = cast(TextField, item)
-        TextFieldSelection selection = box:GetSelection()
-        text value = selection:GetText()
-        GameStateManager manager
-        Game game = manager:GetGame()
-        game:SetClipboard(value)
+        if not box:IsPassword()
+            TextFieldSelection selection = box:GetSelection()
+            text value = selection:GetText()
+            GameStateManager manager
+            Game game = manager:GetGame()
+            game:SetClipboard(value)
+        end
     end
 end
