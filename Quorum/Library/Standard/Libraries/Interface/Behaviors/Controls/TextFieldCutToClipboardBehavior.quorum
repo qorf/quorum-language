@@ -16,11 +16,13 @@ class TextFieldCutToClipboardBehavior is Behavior
         end
 
         TextField box = cast(TextField, item)
-        TextFieldSelection selection = box:GetSelection()
-        text value = selection:GetText()
-        GameStateManager manager
-        Game game = manager:GetGame()
-        game:SetClipboard(value)
-        box:DeleteSelection()
+        if not box:IsPassword()
+            TextFieldSelection selection = box:GetSelection()
+            text value = selection:GetText()
+            GameStateManager manager
+            Game game = manager:GetGame()
+            game:SetClipboard(value)
+            box:DeleteSelection()
+        end
     end
 end

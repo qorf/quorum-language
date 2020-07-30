@@ -1060,6 +1060,18 @@ class Game
         textFieldShiftLeftBehavior:SetDirection(textFieldShiftLeftBehavior:LEFT)
         textFieldTable:Add(shiftLeftArrow, textFieldShiftLeftBehavior)
 
+        TextFieldCaretToStartBehavior textFieldUpBehavior
+        textFieldTable:Add(upArrow, textFieldUpBehavior)
+
+        TextFieldSelectToStartBehavior textFieldShiftUpBehavior
+        textFieldTable:Add(shiftUpArrow, textFieldShiftUpBehavior)
+
+        TextFieldCaretToEndBehavior textFieldDownBehavior
+        textFieldTable:Add(downArrow, textFieldDownBehavior)
+
+        TextFieldSelectToEndBehavior textFieldShiftDownBehavior
+        textFieldTable:Add(shiftDownArrow, textFieldShiftDownBehavior)
+        
         TextFieldCaretStartMoveBehavior textFieldRightBehavior
         textFieldRightBehavior:SetDirection(textFieldRightBehavior:RIGHT)
         textFieldTable:Add(rightArrow, textFieldRightBehavior)

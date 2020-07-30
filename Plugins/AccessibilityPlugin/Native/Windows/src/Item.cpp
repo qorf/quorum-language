@@ -291,12 +291,12 @@ void Item::Disconnect() noexcept
 		m_root->SetQuorumFocus(nullptr);
 	}
 
-	RemoveFromParentInternal();
-	RemoveAllChildren();
-
 	if (IsProviderCreated())
 	{
 		auto provider = GetProviderSimple();
 		LOG_IF_FAILED(UiaDisconnectProvider(provider.get()));
 	}
+
+	RemoveFromParentInternal();
+	RemoveAllChildren();
 }
