@@ -22,7 +22,7 @@ Item* ButtonGroupControl::GetUiaFocusDescendant() const noexcept
 void ButtonGroupControl::SetSelectedRadioButton(_In_opt_ RadioButtonControl* selectedButton)
 {
 	m_pSelectedRadioButton = selectedButton;
-	if (m_pSelectedRadioButton != nullptr && UiaClientsAreListening())
+	if (m_pSelectedRadioButton != nullptr && IsReadyForEvents())
 	{
 		m_pSelectedRadioButton->GetProvider()->NotifyElementSelected();
 	}

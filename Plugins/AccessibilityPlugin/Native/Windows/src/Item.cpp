@@ -51,7 +51,7 @@ void Item::SetQuorumFocus()
 void Item::NotifyFocusGained()
 {
 	const auto uiaFocusItem = m_root->GetUiaFocus();
-	if (uiaFocusItem && UiaClientsAreListening())
+	if (uiaFocusItem && IsReadyForEvents())
 	{
 		const auto provider = uiaFocusItem->GetProviderSimple();
 		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
@@ -63,9 +63,9 @@ Item* Item::GetUiaFocusDescendant() const noexcept
 	return nullptr;
 }
 
-bool Item::IsReadyForNotifications()
+bool Item::IsReadyForEvents() const noexcept
 {
-	return true;
+	return (m_root != nullptr) & m_root->IsProviderCreated();
 }
 
 void Item::NotifyFocusLost()
@@ -82,10 +82,9 @@ void Item::SetName(_In_ std::wstring name)
 
 	m_ControlName = name;
 
-	const auto provider = GetProviderSimple();
-
-	if (IsReadyForNotifications())
+	if (IsReadyForEvents())
 	{
+		const auto provider = GetProviderSimple();
 		UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_NamePropertyId, oldName, newName);
 	}
 }
@@ -105,10 +104,9 @@ void Item::SetDescription(_In_ std::wstring description)
 
 	m_ControlDescription = description;
 
-	const auto provider = GetProviderSimple();
-
-	if (IsReadyForNotifications())
+	if (IsReadyForEvents())
 	{
+		const auto provider = GetProviderSimple();
 		UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_HelpTextPropertyId, oldDescription, newDescription);
 	}
 }
@@ -174,7 +172,7 @@ void Item::SetRootRecursive(_In_ RootItemBase* root) noexcept
 
 void Item::NotifyChildAdded()
 {
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		const auto provider = GetProviderSimple();
 		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(
@@ -214,14 +212,14 @@ void Item::RemoveFromParent()
 	}
 
 	wil::com_ptr<IRawElementProviderSimple> parentProvider;
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		parentProvider = m_parent->GetProviderSimple();
 	}
 
 	RemoveFromParentInternal();
 
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		int rid[] = { UiaAppendRuntimeId, m_uniqueId };
 		THROW_IF_FAILED(UiaRaiseStructureChangedEvent(

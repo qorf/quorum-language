@@ -639,13 +639,18 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NotifyTextBoxNative(JNIEnv* env, jobject obj, jlong textbox, jstring say)
 {
+	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
+	if (!pTextBox->IsReadyForEvents())
+	{
+		return;
+	}
+
 	const char* nativeCurrentLineText = env->GetStringUTFChars(say, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 	BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
 	const char* custom = "Custom Announcement";
 	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
 
-	TextBoxControl* pTextBox = static_cast<TextBoxControl*>(GetItemFromLong(textbox));
 	IRawElementProviderSimple* provider = ((IRawElementProviderSimple*)pTextBox->GetProvider().get());
 
 	enum NotificationKind kind = NotificationKind_ActionAborted;
@@ -660,13 +665,18 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NotifyClients(JNIEnv* env, jobject obj, jlong item, jstring say, jint type)
 {
+	Item* itemPointer = GetItemFromLong(item);
+	if (!itemPointer->IsReadyForEvents())
+	{
+		return;
+	}
+
 	const char* nativeCurrentLineText = env->GetStringUTFChars(say, 0);
 	WCHAR* wText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 	BSTR resultString = _com_util::ConvertStringToBSTR(nativeCurrentLineText);
 	const char* custom = "Custom Announcement";
 	BSTR customBSTR = _com_util::ConvertStringToBSTR(custom);
 
-	Item* itemPointer = GetItemFromLong(item);
 	IRawElementProviderSimple* provider = itemPointer->GetProviderSimple().get();
 
 	enum NotificationKind kind;

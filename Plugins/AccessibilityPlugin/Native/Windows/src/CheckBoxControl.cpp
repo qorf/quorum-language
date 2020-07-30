@@ -39,6 +39,9 @@ void CheckBoxControl::UpdateToggleState(_In_ ToggleState state)
 
 	m_toggleState = state;
 
-	const auto provider = GetProvider();
-	UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ToggleToggleStatePropertyId, oldState, newState);
+	if (IsReadyForEvents())
+	{
+		const auto provider = GetProvider();
+		UiaRaiseAutomationPropertyChangedEvent(provider.get(), UIA_ToggleToggleStatePropertyId, oldState, newState);
+	}
 }

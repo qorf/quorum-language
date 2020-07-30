@@ -48,7 +48,7 @@ public:
 	void AppendChild(_In_ Item* child);
 	void RemoveFromParent();
 
-	virtual bool IsReadyForNotifications();
+	bool IsReadyForEvents() const noexcept;
 
 	virtual bool IsProviderCreated() const noexcept = 0;
 	virtual wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() = 0;

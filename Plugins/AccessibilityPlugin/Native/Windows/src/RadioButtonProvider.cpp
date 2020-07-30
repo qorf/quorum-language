@@ -28,7 +28,7 @@ CONTROLTYPEID RadioButtonProvider::GetControlType() const noexcept
 // Select: Deselects any selected items and then selects the current element.
 IFACEMETHODIMP RadioButtonProvider::Select()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
 	}
@@ -71,7 +71,7 @@ IFACEMETHODIMP RadioButtonProvider::get_IsSelected(_Out_ BOOL * pRetVal)
 // Raises a UIA Event when an item is selected.
 void RadioButtonProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);

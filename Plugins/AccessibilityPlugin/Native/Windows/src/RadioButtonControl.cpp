@@ -30,7 +30,7 @@ void RadioButtonControl::SetState(_In_ bool controlState)
 	if (controlState)
 		GetProvider()->Select();
 
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_AutomationPropertyChangedEventId);
 	}

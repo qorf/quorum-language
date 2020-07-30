@@ -22,7 +22,7 @@ Item* ListControl::GetUiaFocusDescendant() const noexcept
 void ListControl::SetSelected(_In_opt_ ListItemControl* item)
 {
 	m_selectedItem = item;
-	if (item != nullptr && UiaClientsAreListening())
+	if (item != nullptr && IsReadyForEvents())
 	{
 		item->GetProvider()->NotifyElementSelected();
 	}

@@ -92,7 +92,7 @@ IFACEMETHODIMP MenuItemProvider::Invoke() noexcept
 // Raises a UIA Event when an item is selected.
 void MenuItemProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId));
 	}
@@ -100,7 +100,7 @@ void MenuItemProvider::NotifyElementSelected()
 
 void MenuItemProvider::NotifyElementInvoked()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_Invoke_InvokedEventId));
 	}
@@ -109,7 +109,7 @@ void MenuItemProvider::NotifyElementInvoked()
 void MenuItemProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		VARIANT oldValue, newValue;
 		oldValue.vt = VT_I4;

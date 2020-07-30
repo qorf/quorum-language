@@ -93,7 +93,7 @@ IFACEMETHODIMP CellProvider::Collapse()
 void CellProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		VARIANT oldValue, newValue;
 		oldValue.vt = VT_I4;
@@ -117,7 +117,7 @@ void CellProvider::NotifyElementExpandCollapse()
 // Raises a UIA Event when an item is selected.
 void CellProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);

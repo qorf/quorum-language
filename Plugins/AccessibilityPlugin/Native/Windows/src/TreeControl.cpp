@@ -22,7 +22,7 @@ Item* TreeControl::GetUiaFocusDescendant() const noexcept
 void TreeControl::SetSelectedTreeItem(_In_opt_ TreeItemControl* selectedTreeItem)
 {
 	m_pSelectedTreeItem = selectedTreeItem;
-	if (m_pSelectedTreeItem != nullptr && UiaClientsAreListening())
+	if (m_pSelectedTreeItem != nullptr && IsReadyForEvents())
 	{
 		m_pSelectedTreeItem->GetProvider()->NotifyElementSelected();
 	}

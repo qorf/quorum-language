@@ -132,6 +132,11 @@ bool TextFieldControl::IsPassword()
 
 void TextFieldControl::UpdatePassword(bool value)
 {
+	if (!IsReadyForEvents())
+	{
+		return;
+	}
+
 	VARIANT oldPassword, newPassword;
 	oldPassword.vt = VT_BOOL;
 	if (IsPassword()) {

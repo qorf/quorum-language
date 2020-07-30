@@ -16,7 +16,7 @@ void ButtonControl::Invoke()
 
 void ButtonControl::NotifyInvoked()
 {
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_Invoke_InvokedEventId);

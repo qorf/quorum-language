@@ -82,7 +82,7 @@ CATCH_RETURN();
 
 void ListItemProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId));
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId));

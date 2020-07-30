@@ -22,7 +22,7 @@ Item* MenuControl::GetUiaFocusDescendant() const noexcept
 void MenuControl::SetSelectedMenuItem(_In_opt_ PopupMenuItemControl * selectedMenuItem)
 {
 	m_pSelectedMenuItem = selectedMenuItem;
-	if (m_pSelectedMenuItem != nullptr && UiaClientsAreListening())
+	if (m_pSelectedMenuItem != nullptr && IsReadyForEvents())
 	{
 		m_pSelectedMenuItem->GetProvider()->NotifyElementSelected();
 	}
@@ -31,7 +31,7 @@ void MenuControl::SetSelectedMenuItem(_In_opt_ PopupMenuItemControl * selectedMe
 void MenuControl::NotifyFocusGained()
 {
 	Item::NotifyFocusGained();
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeStartEventId);
 	}
@@ -40,7 +40,7 @@ void MenuControl::NotifyFocusGained()
 void MenuControl::NotifyFocusLost()
 {
 	Item::NotifyFocusLost();
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeEndEventId);
 	}

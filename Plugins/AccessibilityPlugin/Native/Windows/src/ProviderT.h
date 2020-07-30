@@ -63,7 +63,6 @@ public:
 				break;
 
 			case UIA_NamePropertyId:
-				m_control->SetReadyForNotifications(true);
 				SetBstrPropertyValueIfNotEmpty(retVal, m_control->GetName());
 				break;
 

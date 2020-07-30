@@ -22,7 +22,7 @@ Item* MenuBarControl::GetUiaFocusDescendant() const noexcept
 void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenuItem)
 {
 	m_pSelectedMenuItem = selectedMenuItem;
-	if (m_pSelectedMenuItem != nullptr && UiaClientsAreListening())
+	if (m_pSelectedMenuItem != nullptr && IsReadyForEvents())
 	{
 		m_pSelectedMenuItem->GetProvider()->NotifyElementSelected();
 	}
@@ -31,7 +31,7 @@ void MenuBarControl::SetSelectedMenuItem(_In_opt_ MenuItemControl * selectedMenu
 void MenuBarControl::NotifyFocusGained()
 {
 	Item::NotifyFocusGained();
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeStartEventId);
 	}
@@ -40,7 +40,7 @@ void MenuBarControl::NotifyFocusGained()
 void MenuBarControl::NotifyFocusLost()
 {
 	Item::NotifyFocusLost();
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProvider().get(), UIA_MenuModeEndEventId);
 	}

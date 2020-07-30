@@ -19,16 +19,6 @@ public:
 	{
 	}
 	
-	bool IsReadyForNotifications() override
-	{
-		return readyForNotifications;
-	}
-
-	void SetReadyForNotifications(bool value)
-	{
-		readyForNotifications = value;
-	}
-
 	const wil::com_ptr<ProviderT>& GetProvider();
 	bool IsProviderCreated() const noexcept override;
 	wil::com_ptr<IRawElementProviderSimple> GetProviderSimple() override;
@@ -36,6 +26,5 @@ public:
 
 protected:
 	wil::com_ptr<ProviderT> m_provider;
-	bool readyForNotifications = false;
 };
 

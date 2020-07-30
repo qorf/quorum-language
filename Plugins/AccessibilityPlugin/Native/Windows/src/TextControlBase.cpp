@@ -8,7 +8,7 @@ TextControlBase::TextControlBase(JNIEnv* env, std::wstring&& name, std::wstring&
 
 void TextControlBase::NotifySelectionChanged()
 {
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProviderSimple().get(), UIA_Text_TextSelectionChangedEventId);
 	}
@@ -16,7 +16,7 @@ void TextControlBase::NotifySelectionChanged()
 
 void TextControlBase::NotifyTextChanged()
 {
-	if (UiaClientsAreListening())
+	if (IsReadyForEvents())
 	{
 		UiaRaiseAutomationEvent(GetProviderSimple().get(), UIA_Text_TextChangedEventId);
 	}

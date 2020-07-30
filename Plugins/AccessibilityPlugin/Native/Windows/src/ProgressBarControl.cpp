@@ -22,7 +22,8 @@ void ProgressBarControl::SetValue(double value) {
 	if (currentValue == value) {
 		return;
 	}
-	if (UiaClientsAreListening()) {
+	if (IsReadyForEvents())
+	{
 		VARIANT oldState, newState;
 		oldState.vt = VT_R8;
 		newState.vt = VT_R8;

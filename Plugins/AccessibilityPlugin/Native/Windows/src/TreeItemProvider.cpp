@@ -58,7 +58,7 @@ IFACEMETHODIMP TreeItemProvider::Collapse() noexcept
 // Raises a UIA Event when an item is selected.
 void TreeItemProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId));
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId));
@@ -68,7 +68,7 @@ void TreeItemProvider::NotifyElementSelected()
 void TreeItemProvider::NotifyElementExpandCollapse()
 {
 	// Raise a UI Automation Event
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		VARIANT oldValue, newValue;
 		oldValue.vt = VT_I4;

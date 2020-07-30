@@ -47,7 +47,7 @@ IFACEMETHODIMP CheckBoxProvider::Toggle()
 	}
 
 	// Raise a UI Automation Event
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		UiaRaiseAutomationPropertyChangedEvent(this, UIA_ToggleToggleStatePropertyId, oldValue, newValue);
 	}

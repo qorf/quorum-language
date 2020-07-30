@@ -17,7 +17,7 @@ TabControl* TabPaneControl::GetSelectedTab()
 void TabPaneControl::SetSelectedTab(_In_opt_ TabControl* tab)
 {
 	m_selectedTab = tab;
-	if (tab != nullptr && UiaClientsAreListening())
+	if (tab != nullptr && IsReadyForEvents())
 	{
 		tab->GetProvider()->NotifyElementSelected();
 	}

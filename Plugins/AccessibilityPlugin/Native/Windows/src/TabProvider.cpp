@@ -70,7 +70,7 @@ IFACEMETHODIMP TabProvider::get_SelectionContainer(_Outptr_ IRawElementProviderS
 
 void TabProvider::NotifyElementSelected()
 {
-	if (UiaClientsAreListening())
+	if (m_control->IsReadyForEvents())
 	{
 		THROW_IF_FAILED(UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId));
 	}

@@ -21,7 +21,7 @@ Item* TableControl::GetUiaFocusDescendant() const noexcept
 void TableControl::SetSelected(_In_opt_ CellControl* cell)
 {
 	m_selected = cell;
-	if (cell != nullptr && UiaClientsAreListening())
+	if (cell != nullptr && IsReadyForEvents())
 	{
 		cell->GetProvider()->NotifyElementSelected();
 	}
