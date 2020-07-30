@@ -44,6 +44,11 @@ class DesktopApplication is Application
         parent:Application:glmanager:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
 
         parent:Application:game:CreateGame()
+
+        GameStateManager manager
+        if manager:GetOperatingSystem():Contains("Windows 10")
+            display:FirstTimeShowWindow()
+        end
         
         display:SetResize(true)
 
@@ -113,7 +118,6 @@ class DesktopApplication is Application
        
         display:Destroy()
        
-        GameStateManager manager
         AccessibilityManager accessibility = manager:GetAccessibilityManager()
         if accessibility not= undefined
             accessibility:Shutdown()

@@ -266,4 +266,9 @@ class DesktopDisplay is GameDisplay
     returns a minimized window to the foreground.
     */
     system action RestoreWindow
+
+    /*
+    Used internally by the game engine. This should never be called by users.
+    */
+    system action FirstTimeShowWindow
 end

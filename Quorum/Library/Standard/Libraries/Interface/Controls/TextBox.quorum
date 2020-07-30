@@ -33,6 +33,7 @@ use Libraries.Interface.Undo.TextBoxEditState
 use Libraries.Interface.Controls.TextStyles.TextStyle
 use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Game
+use Libraries.Game.Shapes.Rectangle
 
 class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
 
@@ -2471,6 +2472,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             endIndex = textValue:GetSize()
         end
 
+        if caretAtEnd
+            SetCaretToIndex(endIndex)
+        else
+            SetCaretToIndex(startIndex)
+        end
+
+        caretX = PositionCaret()
+        ResetCaretBlinkTimer()
+
         selection:Set(startIndex, endIndex, caretAtEnd, false)
         UpdateVisualSelection()
     end
@@ -3424,5 +3434,56 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action GetPreviousCaretPosition returns integer
         return previousCaretPosition
+    end
+
+    action GetTextBoundingBox(integer startIndex, integer endIndex) returns Rectangle
+        Rectangle rectangle
+
+        integer startLine = GetLineIndexOfCharacter(startIndex)
+        integer endLine = GetLineIndexOfCharacter(endIndex)
+        number x1 = 0
+        x1 = x1:GetPositiveInfinityValue()
+        number x2 = x1:GetNegativeInfinityValue()
+        number y1 = x1:GetPositiveInfinityValue()
+        number y2 = x1:GetNegativeInfinityValue()
+
+        integer lineIndex = startLine
+        
+        repeat while lineIndex <= endLine
+            Array<Drawable> lineDrawables = background:GetLine(startLine)
+            if lineDrawables:IsEmpty() = false
+                Drawable startDrawable = lineDrawables:Get(0)
+                Drawable endDrawable = lineDrawables:Get(lineDrawables:GetSize() - 1)
+
+                text currentLineText = GetLine(lineIndex)
+
+                Glyph startGlyph = font:GetGlyph(currentLineText:GetCharacter(0))
+                Glyph endGlyph = font:GetGlyph(currentLineText:GetCharacter(currentLineText:GetSize() - 1))
+
+                // draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
+                number newX1 = startDrawable:GetGlobalX() - startGlyph:lengthToGlyph
+                number newX2 = endDrawable:GetGlobalX() - endGlyph:lengthToGlyph + endGlyph:horizontalAdvance
+                number newY1 = startDrawable:GetGlobalY() - startGlyph:heightFromBaseLine + startDrawable:GetHeight()
+                number newY2 = newY1 + font:GetLineHeight()
+
+                if newX1 < x1
+                    x1 = newX1
+                end
+                if newY1 < y1
+                    y1 = newY1
+                end
+                if newX2 > x2
+                    x2 = newX2
+                end
+                if newY2 > y2
+                    y2 = newY2
+                end
+            end
+            lineIndex = lineIndex + 1
+        end
+
+        rectangle:SetRectangle(x1, y1, x2 - x1, y2 - y1)
+
+        return rectangle
     end
 end

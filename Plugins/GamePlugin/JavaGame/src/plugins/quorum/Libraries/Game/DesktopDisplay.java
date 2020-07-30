@@ -285,6 +285,11 @@ public class DesktopDisplay {
         GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
     }
     
+    public void FirstTimeShowWindow()
+    {
+        ForceWindowVisible();
+    }
+    
     /*
     This action forces the window to be visible and focused. This is used by the
     Windows accessibility system to "finish" displaying the window once the UIA
