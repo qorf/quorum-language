@@ -220,7 +220,7 @@ public class DesktopDisplay {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_ANY_PROFILE);
         
-        if (GameStateManager.operatingSystem.contains("Windows 10"))
+        if (GameStateManager.operatingSystem.contains("Windows 10") && config.Get_Libraries_Game_DesktopConfiguration__enableAccessibility_())
         {
             GLFW.glfwWindowHint(GLFW.GLFW_FOCUSED, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);

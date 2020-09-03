@@ -800,7 +800,6 @@ class DesktopInput is GameInput
                 Alt + Tab) and the key combination should be discarded.
                 */
                 if manager:GetGame():IsWindowFocused() and lastKey = currentEvent:keyCode
-
                     uncaughtSet = keyboardModifiers:Copy()
                     uncaughtSet:SetInputTrigger(uncaughtSet:FINISH_UNCAUGHT)
                     uncaughtSet:SetKeyboardInput(currentEvent:keyCode)
