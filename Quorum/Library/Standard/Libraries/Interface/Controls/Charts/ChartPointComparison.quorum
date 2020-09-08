@@ -1,0 +1,25 @@
+package Libraries.Controls.Charts
+
+use Libraries.Containers.Support.Comparison
+
+class ChartPointComparison is Comparison
+
+    action Compare(Object left, Object right) returns integer
+        ChartPoint point1 = cast(ChartPoint, left)
+        ChartPoint point2 = cast(ChartPoint, right)
+        if point1:GetPercentX() < point2:GetPercentX()
+            return parent:Comparison:SMALLER
+        elseif point1:GetPercentX() > point2:GetPercentY()
+            return parent:Comparison:LARGER
+        else
+            if point1:GetPercentY() < point2:GetPercentY()
+                return parent:Comparison:SMALLER
+            elseif point1:GetPercentY() < point2:GetPercentY()
+                return parent:Comparison:LARGER
+            else
+                return parent:Comparison:EQUAL
+            end
+        end
+    end
+
+end

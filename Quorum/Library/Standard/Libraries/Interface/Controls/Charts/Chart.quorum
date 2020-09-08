@@ -470,16 +470,18 @@ class Chart is Control
             horizontalPanel:Add(newLabel)
         end
         if GetYLabel() = undefined
+            Item2D labelAnchor
+
             ControlLabel newLabel
             SetYLabel(newLabel)
             newLabel:SetSize(GetFontSize()+5)
             newLabel:SetText(GetYAxisTitle())
             newLabel:SetName(GetYAxisTitle())
             newLabel:SetDescription("Vertical axis")
-            newLabel:Rotate(90)
             newLabel:SetFocusable(true)
             newLabel:SetAccessibilityCode(parent:Item:ITEM)
-            verticalPanel:Add(newLabel)
+            labelAnchor:Add(newLabel)
+            verticalPanel:Add(labelAnchor)
         end
 
         Add(horizontalPanel)

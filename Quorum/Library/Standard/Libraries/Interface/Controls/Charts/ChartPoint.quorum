@@ -1,10 +1,14 @@
 package Libraries.Controls.Charts
+
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
 
 class ChartPoint is Drawable
     number percentX = 0
     number percentY = 0
     
+    Icon parentRegion = undefined
+
     on create
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
@@ -26,4 +30,11 @@ class ChartPoint is Drawable
         me:percentY = percentY
     end
 
+    action SetParentRegion(Icon region)
+        parentRegion = region
+    end
+
+    action GetParentRegion returns Icon
+        return parentRegion
+    end
 end

@@ -25,6 +25,8 @@ use Libraries.Controls.Charts.ChartOptions
 use Libraries.Compute.Math
 use Libraries.Controls.Charts.ChartPoint
 use Libraries.Interface.Layouts.ScatterPlotLayout
+use Libraries.Interface.Controls.Charts.TwoVariableChart
+use Libraries.Controls.Charts.ChartPointComparison
 
 /*
     The ScatterPlot class ...
@@ -69,6 +71,9 @@ class ScatterPlot is TwoVariableChart
     Color pointColor
     Color pointSelectionColor
 
+    // Used to sort the points when they're being placed into regions.
+    ChartPointComparison comparison
+
     on create
         ScatterPlotLayout lay
         SetLayout(lay)
@@ -97,7 +102,7 @@ class ScatterPlot is TwoVariableChart
         SetAccessibilityCode(parent:Item:ITEM)
 
         pointColor:SetColor(0, 0, 0, 1)
-        pointSelectionColor:SetColor(0, 0, 1, 1)
+        pointSelectionColor:SetColor(1, 0, 0, 1)
     end
 
     /*
@@ -118,7 +123,7 @@ class ScatterPlot is TwoVariableChart
     private action NewRegionIcon(number percentX, number percentY, number percentWidth, number percentHeight) returns Icon
         Icon region
         Color color
-        color:SetColor(191/255.0, 191/255.0, 255/255.0, 0.5)
+        color:SetColor(191/255.0, 191/255.0, 255/255.0, 0.3)
         region:LoadFilledRectangle(1, 1, color)
         region:SetPercentageX(percentX)
         region:SetPercentageY(percentY)
@@ -166,14 +171,17 @@ class ScatterPlot is TwoVariableChart
 
         if points:GetSize() <= quadrantThreshold or currentLevel >= maxSubdivisions
             if points:IsEmpty() = false
+                points:Sort(comparison)
+
                 region:SetDescription(rangeText + ", Use the arrow keys to navigate the points.")
-                
 
                 ChartItem firstPointItem
                 ChartPoint firstPoint = points:Get(0)
                 firstPointItem:SetContainer(me)
-                firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits()))
+                firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
+                    + ", 1 of " + points:GetSize())
                 firstPoint:SetName(firstPointItem:GetDisplayName())
+                firstPoint:SetParentRegion(region)
                 firstPointItem:SetParent(item)
                 firstPointItem:SetFocusTarget(firstPoint)
                 item:SetChild(firstPointItem)
@@ -185,8 +193,10 @@ class ScatterPlot is TwoVariableChart
                     ChartPoint point = points:Get(i)
 
                     pointItem:SetContainer(me)
-                    pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits()))
+                    pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
+                        + ", " + (i + 1) + " of " + points:GetSize())
                     point:SetName(pointItem:GetDisplayName())
+                    point:SetParentRegion(region)
                     pointItem:SetParent(item)
                     pointItem:SetPrevious(previous)
                     pointItem:SetFocusTarget(point)
@@ -303,6 +313,7 @@ class ScatterPlot is TwoVariableChart
         if target is ChartPoint
             ChartPoint temp = cast(ChartPoint, target)
             temp:SetColor(pointColor)
+            temp:GetParentRegion():Hide()
         elseif target is Icon
             target:Hide()
         else
@@ -320,6 +331,7 @@ class ScatterPlot is TwoVariableChart
                 target:Focus()
                 ChartPoint temp = cast(ChartPoint, target)
                 temp:SetColor(pointSelectionColor)
+                temp:GetParentRegion():Show()
             elseif target is Icon
                 target:Focus()
                 target:Show()
