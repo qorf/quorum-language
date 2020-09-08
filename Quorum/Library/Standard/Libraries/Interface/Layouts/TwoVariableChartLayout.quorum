@@ -46,10 +46,16 @@ class TwoVariableChartLayout is ChartLayout
         Array<ControlLabel> xLabels = chart:GetXLabels()
         if not xLabels:IsEmpty()
             Label currentLabel = xLabels:Get(0)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
             labelHeight = currentLabel:GetLineHeight()
             integer i = 0
             repeat while i < xLabels:GetSize()
                 currentLabel = xLabels:Get(i)
+                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                end
                 currentLabel:SetPosition(cast(integer, originPointX + (scaleDivWidth * i) - (currentLabel:GetWidth() / 2)), cast(integer, originPointY - currentLabel:GetLineHeight()))
                 i = i + 1
             end

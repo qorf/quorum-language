@@ -76,6 +76,9 @@ class SharedBarChartLayout is ChartLayout
         Array<ControlLabel> barLabels = chart:GetXLabels()
         if not barLabels:IsEmpty()
             Label currentLabel = barLabels:Get(0)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
             xLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
             integer labelY = originPointY - xLabelOffset
             number xOrigin = originPointX + chartAreaContainer:GetWidth()*barOffset
@@ -83,6 +86,9 @@ class SharedBarChartLayout is ChartLayout
             integer i = 0
             repeat while i < barLabels:GetSize()
                 currentLabel = barLabels:Get(i)
+                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                end
                 currentLabel:SetPosition(xOrigin + barDivWidth * (i) + centerOffset - currentLabel:GetWidth()/2, labelY)
                 i = i + 1
             end
@@ -96,7 +102,7 @@ class SharedBarChartLayout is ChartLayout
         if axisY < 1
             axisY = 1
         end
-        axisLabel:SetX(horizContainer:GetWidth()/2 - axisLabel:GetWidth()/2)
-        axisLabel:SetY(axisY)
+        axisLabel:SetX(cast(integer, horizContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
     end
 end

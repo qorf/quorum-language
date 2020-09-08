@@ -53,11 +53,18 @@ class ChartLayout is Layout
         Array<ControlLabel> scaleLabels = chart:GetScaleLabels()
         if not scaleLabels:IsEmpty()
             Label currentLabel = scaleLabels:Get(0)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+
             maxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
             integer labelY = cast(integer, originPointY - (currentLabel:GetHeight()/5))
             integer i = 0
             repeat while i < scaleLabels:GetSize()
                 currentLabel = scaleLabels:Get(i)
+                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                end
                 currentLabel:SetPosition(originPointX - currentLabel:GetWidth() - 15 , labelY + scaleDivWidth*i)
                 if currentLabel:GetWidth() + 15 > maxYLabelOffset
                     MaxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
