@@ -1,0 +1,96 @@
+package Libraries.Compute.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Calculations.Variance
+
+
+/*
+    This class calculates the mean of a particular DataFrameColumn. 
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Mean
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Mean mean
+    DataFrameColumn column = frame:GetColumn(0)
+    column:Calculate(mean)
+    number leftMean = mean:GetMean()
+*/
+class Summarize is DataFrameColumnCalculation
+    integer size = 0
+    number mean = 0
+    number variance = 0
+    number minimum = 0
+    number maximum = 0
+
+    action Start(DataFrameColumn column) 
+        size = column:GetSize()
+    end
+
+    action Calculate(DataFrameColumn column) 
+        Mean meanCalculation
+        Variance varianceCalculation
+
+        column:Calculate(meanCalculation)
+        number mean = meanCalculation:GetMean()
+
+        varianceCalculation:SetMean(mean)
+        column:Calculate(varianceCalculation)
+
+        
+        i = 0
+        repeat while i < column:GetSize()
+            number value = column:GetAsNumber(i)
+            if value < minimum
+                minimum = value
+            end
+
+            if value > maximum
+                maximum = value
+            end
+            i = i + 1
+        end
+    end
+
+    action IsIterable returns boolean
+        return false
+    end
+
+    /*
+        This Calculation can be re-used if the Empty action is called before
+        passing it to another column. Otherwise, it retains its data.
+    */
+    action Empty
+        size = 0
+        mean = 0
+        variance = 0
+    end
+
+    action GetMean returns number
+        return mean
+    end
+
+    action GetVariance returns number
+        return variance
+    end
+
+    action GetSize returns integer
+        return size
+    end
+    action GetMaximum returns number
+        return maximum
+    end
+
+    action GetMinimum returns number
+        return minimum
+    end
+
+end

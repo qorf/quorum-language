@@ -1,0 +1,132 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Controls.Charts.ChartOptions
+
+/*
+    This class represents one region inside of a chart. This can be anything, 
+    from a region that contains data points to a broader summary of the chart itself. 
+    This item should not be used itself, except when obtaining information from a chart.
+*/
+class ChartItem
+    text information = ""
+    Chart container = undefined
+    ChartItem parentNode = undefined
+    ChartItem childNode = undefined
+    ChartItem nextNode = undefined
+    ChartItem previousNode = undefined
+
+    Item focusTarget = undefined
+    ChartOptions options
+
+    /*
+        This action sets the display name of the chart item. 
+        
+    */
+    action SetDisplayName(text info)
+        information = info
+    end
+
+    /*
+        This action obtains the displayable name for this region of the chart. 
+        Attribute: Returns the display name
+    */
+    action GetDisplayName returns text
+        return information
+    end
+
+    /*
+        Sets the parent of this item.
+    */
+    action SetParent(ChartItem parentNode)
+        me:parentNode = parentNode
+    end
+
+    /*
+        Gets the parent of this item.
+    */
+    action GetParent returns ChartItem
+        return parentNode
+    end
+
+    /*
+        Every chart item has a single parent and child, which indicates broader structure, but not what is in that structure.
+    */
+    action SetChild(ChartItem childNode)
+        me:childNode = childNode
+    end
+
+    /*
+        Every chart item has a single parent and child, which indicates broader structure, but not what is in that structure.
+    */
+    action GetChild returns ChartItem
+        return childNode
+    end
+
+    /*
+        Every chart can go forward or backward in a traversal. 
+    */
+    action SetNext(ChartItem nextNode)
+        me:nextNode = nextNode
+    end
+
+    /*
+        Every chart can go forward or backward in a traversal. 
+    */
+    action GetNext returns ChartItem
+        return nextNode
+    end
+
+    /*
+        Every chart can go forward or backward in a traversal. 
+    */
+    action SetPrevious(ChartItem previousNode)
+        me:previousNode = previousNode
+    end
+
+    /*
+        Every chart can go forward or backward in a traversal. 
+    */
+    action GetPrevious returns ChartItem
+        return previousNode
+    end
+
+    /*
+        Determines what item this should focus on.
+    */
+    action SetFocusTarget(Item focusTarget)
+        me:focusTarget = focusTarget
+    end
+
+    /*
+        Determines what item this should focus on.
+    */
+    action GetFocusTarget returns Item
+        return focusTarget
+    end
+
+    action GainedSelection
+        if container not= undefined
+            container:GainedSelection(me)
+        end
+    end
+
+    action LostSelection
+        if container not= undefined
+            container:LostSelection(me)
+        end
+    end
+
+    action GetContainer returns Chart
+        return container
+    end
+
+    action SetContainer(Chart container)
+        me:container = container
+    end
+
+end

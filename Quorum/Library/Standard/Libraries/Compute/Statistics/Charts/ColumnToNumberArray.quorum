@@ -1,0 +1,37 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Containers.Array
+
+class ColumnToNumberArray is DataFrameColumnCalculation
+    Array<number> items
+
+    action Empty
+        items:Empty()
+    end
+
+    action Add(Number value)
+        if value not= undefined
+            number item = value:GetValue()
+            items:AddToEnd(cast(number, item))
+        end
+    end
+
+    action Add(Integer value)
+        if value not= undefined
+            integer item = value:GetValue()
+            items:AddToEnd(cast(number, item))
+        end
+    end
+
+    action Add(Text value)
+        if value not= undefined
+            text item = value:GetValue()
+            items:AddToEnd(cast(number, item))
+        end
+    end
+
+    action GetItems returns Array<number>
+        return items
+    end
+end

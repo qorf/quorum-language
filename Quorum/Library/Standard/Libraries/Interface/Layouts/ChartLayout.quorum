@@ -1,0 +1,178 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Layouts.Layout
+
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Interface.Controls.Charts.Histogram
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.SharedBarChartParent
+use Libraries.Interface.Controls.Charts.Chart
+
+
+class ChartLayout is Layout
+    integer minimumLabelOffset = 35
+    number yLabelHeight = 0.30
+
+    action LayoutVerticalAxis(Chart chart, Control vertContainer)
+        originPointX = cast(integer, vertContainer:GetWidth())
+        originPointY = 0
+
+        //This is the ticks on the Y axis
+        integer scaleDivWidth = 0
+        Array<Drawable> ticks = chart:GetScaleTicks()
+        if not ticks:IsEmpty()
+            
+            Drawable axis = chart:GetYAxis()
+            scaleDivWidth = cast(integer, axis:GetHeight() / (ticks:GetSize() - 1))
+            
+            Drawable currentTick = ticks:Get(0)
+            integer tickX = originPointX - cast(integer, currentTick:GetWidth() - axis:GetWidth())
+            integer tickY = originPointY// - cast(integer, currentTick:GetHeight()/2)
+            integer i = 0
+            repeat while i < ticks:GetSize()
+                currentTick = ticks:Get(i)
+                currentTick:SetPosition(tickX, tickY)
+                tickY = tickY + scaleDivWidth
+                i = i + 1
+            end
+        end
+
+        //This code represents the labels on the Y axis 
+        originPointX = cast(integer, vertContainer:GetWidth())
+        originPointY = 0
+        integer maxYLabelOffset = 0
+        Array<ControlLabel> scaleLabels = chart:GetScaleLabels()
+        if not scaleLabels:IsEmpty()
+            Label currentLabel = scaleLabels:Get(0)
+            maxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
+            integer labelY = cast(integer, originPointY - (currentLabel:GetHeight()/5))
+            integer i = 0
+            repeat while i < scaleLabels:GetSize()
+                currentLabel = scaleLabels:Get(i)
+                currentLabel:SetPosition(originPointX - currentLabel:GetWidth() - 15 , labelY + scaleDivWidth*i)
+                if currentLabel:GetWidth() + 15 > maxYLabelOffset
+                    MaxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
+                end 
+                i = i + 1
+            end
+        end
+
+        //This is the actual rotated label on the Y axis.
+        originPointX = cast(integer, vertContainer:GetWidth())
+        originPointY = 0
+        ControlLabel axisLabel = chart:GetYLabel()
+        number axisX = originPointX - maxYLabelOffset * 1.5
+        if axisX < minimumLabelOffset
+            axisX = minimumLabelOffset
+        end
+        axisLabel:SetX(axisX)
+        axisLabel:SetY(vertContainer:GetHeight() * yLabelHeight)
+    end
+
+    /*
+        Chart layouts do not have a way to determine the ticks of a subclass because charts are very different in style.
+        As such, every chart needs to override this with ticks relevant for its own chart type.
+    */
+    action LayoutHorizontalAxis(Chart control, Control horizContainer)
+    end
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        LayoutProperties containerProperties
+        integer originPointX = 0
+        integer originPointY = 0
+        
+        if container not= undefined
+            containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= undefined
+                if containerProperties:NeedsRendering()
+                    container:LoadGraphics(containerProperties)
+                end
+            end
+            if container is Chart
+                if items:GetSize() = 0
+                    return now
+                end
+                integer barDivWidth = 0
+                integer scaleDivWidth = 0
+                integer xLabelOffset = 0
+                integer MaxYLabelOffset = 0
+                
+                //title
+                Chart chart = cast(Chart, container)
+                Label titleLabel = chart:GetTitleLabel()
+                titleLabel:SetX(cast(integer, containerWidth/2 - titleLabel:GetWidth()/2))
+                titleLabel:SetY(cast(integer, containerHeight - titleLabel:GetHeight()/2 + -containerHeight*0.025))
+
+                //Get Panel Containers
+                Control horizContainer = chart:GetHorizontalPanel()
+                Control vertContainer = chart:GetVerticalPanel()
+                Control chartAreaContainer = chart:GetChartArea()
+                
+                //setting an origin to position containers
+                originPointX = cast(integer, chart:GetWidth()*0.15)
+                originPointY = cast(integer, chart:GetHeight()*0.15)
+
+                horizContainer:SetPosition(originPointX, (originPointY - horizContainer:GetHeight()))
+                vertContainer:SetPosition(originPointX - vertContainer:GetWidth(), originPointY)
+                chartAreaContainer:SetPosition(originPointX, originPointY)
+                
+                //label axis
+                //panel Chart Area origin
+                originPointX = 0
+                originPointY = 0
+                Drawable axis = undefined
+                axis = chart:GetXAxis()
+                axis:SetPosition(originPointX, originPointY)
+                axis = chart:GetYAxis()
+                axis:SetPosition(originPointX, originPointY)
+    
+                //Layout the horizontal panel
+                LayoutHorizontalAxis(chart, horizContainer)
+                LayoutVerticalAxis(chart, vertContainer)
+                LayoutChartContent(chart, chartAreaContainer)
+                LayoutLegend(chart, containerWidth, containerHeight)
+                
+            end
+
+            //Reset Layout flags so Layout doesn't called more than needed
+            ResetLayoutFlags(container)
+        end
+    end
+
+    // Resets all layout flags for the item and its entire children hierarchy.
+    private action ResetLayoutFlags(Item2D item)
+        if item is Control
+            Control control = cast(Control, item)
+            control:ResetLayoutFlag()
+        end
+
+        Array<Item2D> children = item:GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            ResetLayoutFlags(children:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    action LayoutLegend(Chart chart, number containerWidth, number containerHeight)
+        originPointX = cast(integer, chart:GetWidth()*0.15)
+        originPointY = cast(integer, chart:GetHeight()*0.15)
+        Legend legend = chart:GetLegend()
+        if legend = undefined
+            return now
+        end
+        legend:SetX(originPointX + containerWidth * 0.72)
+        legend:SetY(containerHeight * 0.4)
+    end
+
+    blueprint action LayoutChartContent(Chart chart, Control chartAreaContainer)
+end

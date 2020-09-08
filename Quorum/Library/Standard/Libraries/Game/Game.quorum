@@ -188,6 +188,7 @@ use Libraries.Interface.Behaviors.Controls.TreeSelectFirstBehavior
 use Libraries.Interface.Behaviors.Controls.TreeSelectLastBehavior
 use Libraries.System.File
 use Libraries.System.SystemHelper
+use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1326,6 +1327,16 @@ class Game
         end
 
         gameInput:AddInputTable(buttonTable)
+
+        InputTable chartTable
+        chartTable:SetIdentifier("Chart")
+
+        ChartNavigateBehavior chartNavigateBehavior
+        chartTable:Add(leftArrow, chartNavigateBehavior)
+        chartTable:Add(rightArrow, chartNavigateBehavior)
+        chartTable:Add(upArrow, chartNavigateBehavior)
+        chartTable:Add(downArrow, chartNavigateBehavior)
+        AddInputTable(chartTable)
 
         InputTable menuItemTable
         menuItemTable:SetIdentifier("MenuItem")

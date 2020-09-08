@@ -701,6 +701,7 @@ class Label is Control
 
             number maxDescent = 0
 
+
             if positionOnBaseLine = false
                 maxDescent = font:GetMaximumDescent()
             end
@@ -795,7 +796,6 @@ class Label is Control
                 newWidth = standardLayoutWidth
             end
             
-
             parent:Item2D:SetSize(newWidth, startingOriginY - originY)
         end
 

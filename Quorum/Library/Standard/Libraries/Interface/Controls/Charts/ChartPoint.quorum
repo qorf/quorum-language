@@ -1,0 +1,29 @@
+package Libraries.Controls.Charts
+use Libraries.Game.Graphics.Drawable
+
+class ChartPoint is Drawable
+    number percentX = 0
+    number percentY = 0
+    
+    on create
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action GetPercentX returns number
+        return percentX
+    end
+
+    action SetPercentX(number percentX)
+        me:percentX = percentX
+    end
+
+    action GetPercentY returns number
+        return percentY
+    end
+
+    action SetPercentY(number percentY)
+        me:percentY = percentY
+    end
+
+end

@@ -1,0 +1,158 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Charts.Histogram
+use Libraries.Compute.Calculations.InterQuartileRange
+use Libraries.Compute.Math
+
+/*
+    This class is used to create a histogram for use in an application. By default, it uses 
+    the Freedman-Diaconis rule for bin widths, which provides a reasonable looking histogram
+    in most cases. More information can be found at:
+
+    https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+
+    Attribute: Author Andreas Stefik
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.HistogramCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    //Create a Bar Chart and set some properties
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    HistogramCreator creator
+    creator:SetValueColumn("DRT")
+
+    Chart chart = frame:CreateChart(creator)
+
+    chart:SetTitle("Histogram")
+    chart:SetYAxisTitle("Frequency")
+    chart:SetXAxisTitle("DT")
+
+    //we might then add this chart to a game.
+*/
+class HistogramCreator is DataFrameChartCreator
+    private text chartTitle = undefined
+    private text xTitle = undefined
+    private text yTitle = undefined
+    private number maxScale = maxScale:GetMinimumValue()
+    private integer scaleSteps = -1
+    private boolean groupByName = false
+    
+    private text nameColumn = undefined
+    private text valueColumn = undefined
+    private integer ticks = 5
+
+    action Create(DataFrame frame) returns Chart
+        Histogram chart
+        if valueColumn = undefined
+            alert("Cannot conduct calculation on undefined columns.")
+        end
+
+        //error checking
+        DataFrameColumn values = frame:GetColumn(valueColumn)
+
+        if values = undefined
+            alert("Could not find a column named " + valueColumn)
+        end
+
+        //first calculate the inter-quartile range
+        InterQuartileRange range
+        values:Calculate(range)
+
+        number binWidth = 2 * range:GetInterQuartileRange()
+        Math math
+
+        integer n = values:GetSize()
+        number val = math:RaiseToPower(n, -(1.0 / 3.0))
+        
+        binWidth = binWidth * val
+
+        number min = range:GetMinimum()
+        number max = range:GetMaximum()
+
+        number binSpacing = (max - min)  / binWidth
+
+        integer bins = cast(integer, binSpacing) + 1
+        Array<integer> count
+        i = 0
+        repeat while i < bins
+            count:Add(0)
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < n
+            number value = values:GetAsNumber(i)
+            integer bin = cast(integer, (value - min) / binWidth)
+            count:Set(bin, count:Get(bin) + 1)
+            i = i + 1
+        end
+
+        number maxFrequency = 0
+        i = 0
+        repeat while i < count:GetSize()
+            integer amount = count:Get(i)
+            if amount > maxFrequency
+                maxFrequency = amount
+            end
+            i = i + 1
+        end
+
+        chart:SetScaleMax(maxFrequency)
+
+        number value = math:RaiseToPower(maxFrequency, -(1.0 / 3.0))
+        
+        chart:SetNumberOfSteps(ticks)
+        i = 0
+        repeat while i < count:GetSize()
+            integer amount = count:Get(i)
+            chart:AddBar("" + i, (amount / maxFrequency))
+            i = i + 1
+        end
+        return chart
+    end
+
+    /*
+        Returns the name of the value column specified.
+    */
+    action GetValueColumn returns text
+        return valueColumn
+    end
+
+    /*
+        Sets the name of the name column specified.
+    */
+    action SetValueColumn(text column)
+        me:valueColumn = column
+    end
+
+    /*
+        This returns the number of ticks to present on the chart.
+
+        Attribute: Returns the number of ticks    
+    */
+    action GetTicks returns integer
+        return ticks
+    end
+
+    /*
+        This sets the number of ticks to present on the chart.
+
+        Attribute: Parameter ticks the number of ticks    
+    */
+    action SetTicks(integer ticks)
+        me:ticks = ticks
+    end
+end

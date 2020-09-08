@@ -1,0 +1,102 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Charts.SharedBarChartParent
+use Libraries.Interface.Controls.Icon
+
+class SharedBarChartLayout is ChartLayout
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is SharedBarChartParent)
+            return now
+        end
+        
+        SharedBarChartParent chart = cast(SharedBarChartParent, control)
+        originPointX = 0
+        originPointY = 0
+
+        Drawable axis = chart:GetXAxis()
+        barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
+        number barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2
+        barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
+        Array<Icon> bars = chart:GetBars()
+        if not bars:IsEmpty()
+            Icon currentBar = bars:Get(0)
+            barY = originPointY
+            number xOrig = originPointX + chartAreaContainer:GetWidth()*barOffset
+            integer i = 0
+            repeat while i < bars:GetSize()
+                currentBar = bars:Get(i)
+                currentBar:SetPosition(xOrig + barDivWidth * (i+1) - (currentBar:GetWidth() * 1.25), barY)
+                i = i + 1
+            end
+        end
+    end
+
+    action LayoutHorizontalAxis(Chart control, Control horizContainer)
+        if not (control is SharedBarChartParent)
+            return now
+        end
+        
+        SharedBarChartParent chart = cast(SharedBarChartParent, control)
+        //This is the Ticks on the X Axis
+        Control chartAreaContainer = chart:GetChartArea()
+        originPointX = 0
+        originPointY = cast(integer, horizContainer:GetHeight())
+        number barDivWidth = 0
+        number barOffset = 0.05
+        Array<Drawable> ticks = chart:GetXTicks()
+        if not ticks:IsEmpty()
+
+            Drawable axis = chart:GetXAxis()
+            barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
+            //adjust bar offset
+            barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2 //currently a percentage
+
+            Drawable currentTick = ticks:Get(0)
+            number tickX = originPointX + chartAreaContainer:GetWidth()*barOffset//barDivWidth - cast(integer, currentTick:GetWidth()/2)
+            integer tickY = originPointY - cast(integer, currentTick:GetHeight())
+            integer i = 0
+            repeat while i < ticks:GetSize()
+                currentTick = ticks:Get(i)
+                currentTick:SetPosition(tickX, tickY)
+                tickX = tickX + barDivWidth
+                i = i + 1
+            end
+        end
+
+        //This is the labels on the X axis
+        originPointX = 0
+        originPointY = cast(integer, horizContainer:GetHeight())
+        integer xLabelOffset = 0
+        Array<ControlLabel> barLabels = chart:GetXLabels()
+        if not barLabels:IsEmpty()
+            Label currentLabel = barLabels:Get(0)
+            xLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+            integer labelY = originPointY - xLabelOffset
+            number xOrigin = originPointX + chartAreaContainer:GetWidth()*barOffset
+            number centerOffset = barDivWidth/2
+            integer i = 0
+            repeat while i < barLabels:GetSize()
+                currentLabel = barLabels:Get(i)
+                currentLabel:SetPosition(xOrigin + barDivWidth * (i) + centerOffset - currentLabel:GetWidth()/2, labelY)
+                i = i + 1
+            end
+        end
+
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = cast(integer, horizContainer:GetHeight())
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (xLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(horizContainer:GetWidth()/2 - axisLabel:GetWidth()/2)
+        axisLabel:SetY(axisY)
+    end
+end

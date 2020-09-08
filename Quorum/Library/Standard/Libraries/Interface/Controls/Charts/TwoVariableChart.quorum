@@ -1,0 +1,332 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Controls.Charts.ChartOptions
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Compute.Math
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
+
+class TwoVariableChart is Chart
+
+    // The root ChartItem.
+    ChartItem summary
+
+    // How many ticks are set along the x and y axes.
+    integer xTicks = 0
+    integer yTicks = 0
+
+    // The minimum and maximum values portrayed in the chart area.
+    number xAxisMinimum = 0
+    number xAxisMaximum = 1
+    number yAxisMinimum = 0
+    number yAxisMaximum = 1
+
+    private integer tickLength = 10
+    private integer tickWidth = 3
+
+    action LostSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined and target is ControlLabel
+            ControlLabel temp = cast(ControlLabel, target)
+            temp:LostSelection()
+        end
+    end
+
+    action GainedSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            end            
+        end
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        DisposeDrawables()
+        parent:Chart:LoadGraphics(properties)
+        if properties = undefined
+            return now
+        end
+
+        ChartOptions options
+        
+        Array<Drawable> xTickDrawables = GetXTicks()
+        Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<ControlLabel> xLabels = GetXLabels()
+        Array<ControlLabel> yLabels = GetScaleLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
+        Control chartArea = GetChartArea()
+
+        if xTickDrawables:GetSize() not= xTicks
+            if xTickDrawables:GetSize() < xTicks
+                repeat until xTickDrawables:GetSize() = xTicks
+                    Drawable tick
+                    tick:LoadFilledRectangle(tickWidth, tickLength)
+                    horizontalPanel:Add(tick)
+                    xTickDrawables:Add(tick)
+
+                    ControlLabel label
+                    label:SetFontSize(GetFontSize() - 5)
+                    label:SetFocusable(true)
+                    label:SetAccessibilityCode(parent:Item:ITEM)
+                    horizontalPanel:Add(label)
+                    xLabels:Add(label)
+                end
+            else
+                repeat until xTickDrawables:GetSize() = xTicks
+                    Drawable tick = xTickDrawables:RemoveFromEnd()
+                    horizontalPanel:Remove(tick)
+
+                    ControlLabel label = xLabels:RemoveFromEnd()
+                    horizontalPanel:Remove(label)
+                end
+            end
+
+            number scaleNum = GetXAxisMinimum()
+            number scaleWidth = (GetXAxisMaximum() - GetXAxisMinimum()) / (xTicks - 1)
+
+            integer i = 0
+            repeat while i < xTicks
+                Drawable tick = xTickDrawables:Get(i)
+                tick:SetName("X Tick " + (i + 1))
+
+                //make the labels for each scale tick (auto based on max)
+                ChartOptions chartOptions
+                Math math
+                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
+                ControlLabel label = xLabels:Get(i)
+                label:SetText(scaleText)
+                label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
+                scaleNum = scaleNum + scaleWidth
+                i = i + 1
+            end
+        end
+
+        if yTickDrawables:GetSize() not= yTicks
+            if yTickDrawables:GetSize() < yTicks
+                repeat until yTickDrawables:GetSize() = yTicks
+                    Drawable tick
+                    tick:LoadFilledRectangle(tickLength, tickWidth)
+                    verticalPanel:Add(tick)
+                    yTickDrawables:Add(tick)
+
+                    ControlLabel label
+                    label:SetFontSize(GetFontSize() - 5)
+                    label:SetFocusable(true)
+                    label:SetAccessibilityCode(parent:Item:ITEM)
+                    verticalPanel:Add(label)
+                    yLabels:Add(label)
+                end
+            else
+                repeat until yTickDrawables:GetSize() = yTicks
+                    Drawable tick = yTickDrawables:RemoveFromEnd()
+                    verticalPanel:Remove(tick)
+
+                    ControlLabel label = yLabels:RemoveFromEnd()
+                    verticalPanel:Remove(label)
+                end
+            end
+
+            number scaleNum = GetYAxisMinimum()
+            number scaleWidth = (GetYAxisMaximum() - GetYAxisMinimum()) / (yTicks - 1)
+
+            integer i = 0
+            repeat while i < yTicks
+                Drawable tick = yTickDrawables:Get(i)
+                tick:SetName("Y Tick " + (i + 1))
+
+                //make the labels for each scale tick (auto based on max)
+                ChartOptions chartOptions
+                Math math
+                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
+                ControlLabel label = yLabels:Get(i)
+                label:SetText(scaleText)
+                label:SetName(scaleText + " " + (i + 1) + " of " + yTicks)
+                scaleNum = scaleNum + scaleWidth
+                i = i + 1
+            end
+        end
+
+        if IsShowingLegend()
+            Add(GetLegend())
+        end
+    end
+
+    action SetXTickCount(integer ticks)
+        xTicks = ticks
+    end
+
+    action GetXTickCount returns integer
+        return xTicks
+    end
+
+    action SetYTickCount(integer ticks)
+        yTicks = ticks
+    end
+
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    action GetXAxisMinimum returns number
+        return xAxisMinimum
+    end
+
+    action SetXAxisMinimum(number xAxisMinimum)
+        me:xAxisMinimum = xAxisMinimum
+    end
+
+    action GetXAxisMaximum returns number
+        return xAxisMaximum
+    end
+
+    action SetXAxisMaximum(number xAxisMaximum)
+        me:xAxisMaximum = xAxisMaximum
+    end
+
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
+    end
+
+    action SetYAxisMinimum(number yAxisMinimum)
+        me:yAxisMinimum = yAxisMinimum
+    end
+
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+
+    action SetYAxisMaximum(number yAxisMaximum)
+        me:yAxisMaximum = yAxisMaximum
+    end
+
+    blueprint action GenerateChartAreaInfo returns ChartItem
+
+    /*
+        Generates the tree of ChartItems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    action GenerateInfoTree 
+        if GetDefaultLayoutProperties():NeedsRendering()
+            return now //we haven't loaded graphics yet, so bail.
+        end
+        
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
+        ChartItem xAxis
+        ChartItem yAxis
+
+        //Level 1 top level
+        summary:SetDisplayName(GenerateSummary())
+        summary:SetNext(yAxis)
+        summary:SetChild(yAxis)
+        summary:SetContainer(me)
+        summary:SetFocusTarget(me)
+    
+        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
+        xAxis:SetDisplayName("Horizontal Axis")
+        xAxis:SetFocusTarget(GetXLabel())
+        yAxis:SetDisplayName("Vertical Axis")
+        yAxis:SetFocusTarget(GetYLabel())
+
+        ChartItem chartArea = GenerateChartAreaInfo()
+        
+        xAxis:SetContainer(me)        
+        yAxis:SetContainer(me)
+        chartArea:SetContainer(me)
+
+        yAxis:SetNext(chartArea)
+        chartArea:SetNext(xAxis)
+        xAxis:SetPrevious(chartArea)
+        yAxis:SetPrevious(xAxis)
+
+        chartArea:SetPrevious(yAxis)
+        xAxis:SetParent(summary)
+        yAxis:SetParent(summary)
+        yAxis:SetPrevious(summary)
+        chartArea:SetParent(summary)
+
+        // y-axis labels
+        ChartItem yAxisNode
+        yAxisNode:SetContainer(me)
+        yAxisNode:SetDisplayName("The y-axis has " + yTicks + " tick marks and goes from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
+        yAxisNode:SetParent(yAxis)
+        yAxis:GetFocusTarget():SetDescription("Scale with " + yTicks + " ticks, from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
+        ChartItem firstScale
+        firstScale:SetContainer(me)
+        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        if yTicks > 0
+            firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
+            firstScale:SetParent(yAxis)
+            firstScale:SetFocusTarget(scaleLabels:Get(0))
+            yAxis:SetChild(firstScale)
+        end
+
+        i = 1
+        ChartItem previous = firstScale
+        repeat while i < scaleLabels:GetSize()
+            ChartItem scaleNode
+            scaleNode:SetContainer(me)
+            scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
+            scaleNode:SetParent(yAxis)
+            scaleNode:SetPrevious(previous)
+            scaleNode:SetFocusTarget(scaleLabels:Get(i))
+            previous:SetNext(scaleNode)
+            previous = scaleNode
+            i = i + 1
+        end
+
+        // x-axis labels
+        ChartItem xAxisNode
+        xAxisNode:SetContainer(me)
+        xAxisNode:SetDisplayName("The x-axis has " + xTicks + " tick marks and goes from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
+        xAxisNode:SetParent(xAxis)
+        xAxis:GetFocusTarget():SetDescription("Scale with " + xTicks + " ticks, from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
+        ChartItem firstXTick
+        firstXTick:SetContainer(me)
+        Array<ControlLabel> xLabels = GetXLabels()
+        if xTicks > 0
+            firstXTick:SetDisplayName(xLabels:Get(0):GetText())
+            firstXTick:SetParent(xAxis)
+            firstXTick:SetFocusTarget(xLabels:Get(0))
+            xAxis:SetChild(firstXTick)
+        end
+
+        i = 1
+        previous = firstXTick
+        repeat while i < xLabels:GetSize()
+            ChartItem xNode
+            xNode:SetContainer(me)
+            xNode:SetDisplayName(xLabels:Get(i):GetText())
+            xNode:SetParent(xAxis)
+            xNode:SetPrevious(previous)
+            xNode:SetFocusTarget(xLabels:Get(i))
+            previous:SetNext(xNode)
+            previous = xNode
+            i = i + 1
+        end
+
+        ChartSelection selection = GetSelection()
+        selection:Set(summary)
+    end
+
+end

@@ -1,0 +1,232 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+
+/*
+    This class is used to create a Bar Chart from columns of data in a DataFrame.
+    This creator is also capable of grouping data points together into one bar by
+    averaging their values. Setting the name column and value column will 
+    generate a Bar Chart that can be rendered in the Game Engine. 
+
+    Attribute: Author Gabriel Contreras
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.BarChartCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    //Create a Bar Chart and set some properties
+    BarChartCreator creator
+    creator:SetNameColumn("Group")
+    creator:SetValueColumn("DT")
+    creator:SetNumberOfSteps(4)
+    creator:GroupByName(true)
+
+    Chart chart = frame:CreateChart(creator)
+*/
+class BarChartCreator is DataFrameChartCreator
+    private text chartTitle = undefined
+    private text xTitle = undefined
+    private text yTitle = undefined
+    private number maxScale = maxScale:GetMinimumValue()
+    private integer scaleSteps = -1
+    private boolean groupByName = false
+    
+    private text nameColumn = undefined
+    private text valueColumn = undefined
+
+    action Create(DataFrame frame) returns Chart
+        BarChart chart
+        if nameColumn = undefined or valueColumn = undefined
+            alert("Cannot conduct calculation on undefined columns.")
+        end
+
+        //error checking
+        DataFrameColumn names = frame:GetColumn(nameColumn)
+        DataFrameColumn values = frame:GetColumn(valueColumn)
+
+        if names = undefined
+            alert("Could not find a column named " + nameColumn)
+        end
+        if values = undefined
+            alert("Could not find a column named " + valueColumn)
+        end
+
+        integer size = names:GetSize()
+        if size not= values:GetSize()
+            alert("Column size mismatch")
+        end
+
+        //get usable arrays
+        Array<text> namesArray
+        Array<number> valuesArray
+
+        ColumnToTextArray getNames
+        names:Calculate(getNames)
+        namesArray = getNames:GetItems()
+        ColumnToNumberArray getValues
+        values:Calculate(getValues)
+        valuesArray = getValues:GetItems()
+
+
+        //group items that have name 
+        if groupByName
+            Array<text> newNames
+            Array<number> newValues
+            integer groupCount = 0
+            HashTable<text, number> nameHash
+            i = 0
+            repeat while i < size
+                text name = namesArray:Get(i)
+                number val = valuesArray:Get(i)
+                if nameHash:HasKey(name)
+                    nameHash:Set(name, nameHash:GetValue(name)+ 1)
+                    integer location = newNames:GetFirstLocation(name)
+                    newValues:Set(location, newValues:Get(location) + val)
+                else
+                    nameHash:Add(name, 1)
+                    newNames:AddToEnd(name)
+                    newValues:AddToEnd(val)
+                    groupCount = groupCount + 1
+                end
+            i = i + 1
+            end
+            i = 0
+            repeat while i < groupCount
+                newValues:Set(i, newValues:Get(i) / nameHash:GetValue(newNames:Get(i)) )
+            i = i + 1
+            end
+            namesArray = newNames
+            valuesArray = newValues
+            size = groupCount
+        end
+
+        //adjust values to percentage
+        number max = getValues:GetItems():Get(0)
+        if maxScale = max:GetMinimumValue()
+            integer i = 1
+            repeat while i < size
+                if valuesArray:Get(i) > max
+                    max = valuesArray:Get(i)
+                end
+            i = i + 1
+            end
+        else
+            max = maxScale
+        end
+        i = 0
+        repeat while i < size
+            valuesArray:Set(i, valuesArray:Get(i)/max)
+        i = i + 1
+        end
+
+        //make chart
+        i = 0
+        repeat while i < namesArray:GetSize()
+            chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
+            i = i + 1
+        end
+        if chartTitle not= undefined
+            chart:SetTitle(chartTitle)
+        else
+            chart:SetTitle(valueColumn)
+        end
+        if xTitle not= undefined
+            chart:SetXAxisTitle(xTitle)
+        else
+            chart:SetXAxisTitle(nameColumn)
+        end
+        if yTitle not= undefined
+            chart:SetYAxisTitle(yTitle)
+        end
+        if maxScale not= maxScale:GetMinimumValue()
+            chart:SetScaleMax(maxScale)
+        else
+            chart:SetScaleMax(max)
+        end
+        if scaleSteps not= -1
+            chart:SetNumberOfSteps(scaleSteps)
+        end
+        chart:Resize()
+        return chart
+    end
+    /*
+        Returns the name of the name column specified.
+    */
+    action GetNameColumn returns text
+        return nameColumn
+    end
+
+    /*
+        Returns the name of the value column specified.
+    */
+    action GetValueColumn returns text
+        return valueColumn
+    end
+
+    /*
+        Sets the name of the name column specified.
+    */
+    action SetNameColumn(text column)
+        me:nameColumn = column
+    end
+
+    /*
+        Sets the name of the name column specified.
+    */
+    action SetValueColumn(text column)
+        me:valueColumn = column
+    end
+
+    /*
+        If true the creator will combine rows of the data together if they share
+        the same name and the resulting value will the mean of all entries with 
+        that same name.
+    */
+    action GroupByName(boolean group)
+        me:groupByName = group
+    end
+    /*
+        Set the Title of the Bar Chart.
+    */
+    action SetTitle(text name)
+        chartTitle = name
+    end
+
+    /*
+        Set the title for the X-Axis(Categories) of the Bar Chart.
+    */
+    action SetXAxisTitle(text name)
+        xTitle = name
+    end
+
+    /*
+        Set the title for the Y-Axis(Scale) of the Bar Chart.
+    */
+    action SetYAxisTitle(text name)
+        yTitle = name
+    end
+
+    /*
+        Sets the number of steps in the scale. 
+    */
+    action SetNumberOfSteps(integer steps)
+        scaleSteps = steps
+    end
+
+    /*
+        Sets the maxiumum value that will appear at the top of the scale. Note 
+        that the other values of the scale will be affected by the maximum.
+    */
+    action SetScaleMax(number max)
+        maxScale = max
+    end
+end

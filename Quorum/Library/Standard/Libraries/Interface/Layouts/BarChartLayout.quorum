@@ -1,0 +1,12 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+
+class BarChartLayout is SharedBarChartLayout
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        parent:ChartLayout:Layout(container, items, containerWidth, containerHeight)
+    end
+end

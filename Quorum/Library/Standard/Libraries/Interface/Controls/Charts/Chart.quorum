@@ -1,10 +1,724 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlView
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Containers.Array
+use Libraries.Controls.Charts.ChartOptions
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Item
 
 /*
-    This is a shared parent class for all chart controls on the system. 
+
+    This class represents a generic chart on the system. By default, charts present visual 
+    information to the user and also present themselves as accessible controls to the operating 
+    system. This includes a selection, called ChartSelection, that can be queried for information 
+    that is relevant to particular kinds of charts. For example, a bar chart might have labels, 
+    axes, and bars. Each of these can be navigated up and down to go between parents, with the 
+    top-most level being a summary and any ChartItems underneath being representations of the 
+    underlying structure of the chart. 
+
+    To put this in perspective, consider that a bar chart might allow one to navigate to a 
+    level of a chart that contains the axes, bars, and labels. On the bars, if one presses the 
+    down arrow, this now allows the user to navigate between the bars for information and this 
+    changes the default selection, which informs the operating system of the change. The broad 
+    purpose of this architecture is that it allows the chart to have an overall structure that 
+    is different from the graphical structure, allowing the chart itself to set reasonable 
+    defaults for how to navigate the control with the keyboard
+
+    Attribute: Author Gabriel Contreras and Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            BarChart chart
+            Add(chart)
+        end
+    end
 */
 class Chart is Control
+    Legend legend
+    boolean showLegend = false
+    boolean treeNeedsUpdate = true
+    ChartSelection selection
+    text xName = ""
+    text yName = ""
 
+    Drawable backgroundD = undefined
+    Drawable xAxis = undefined
+    Drawable yAxis = undefined
+
+    //chart drawables
+    Label title = undefined
+    ControlLabel xLabel = undefined
+    ControlLabel yLabel = undefined
+
+    //Panels
+    Control horizontalPanel
+    Control verticalPanel
+    Control chartArea
+
+    Array<ControlLabel> scaleLabels
+    Array<Drawable> scaleTicks
+    Array<Drawable> xTicks
+    Array<ControlLabel> xLabels
+
+    on create
+        horizontalPanel:SetName("Horizontal")
+        verticalPanel:SetName("Vertical")
+        chartArea:SetName("Chart Area")
+
+        ManualLayout panelLayout
+        horizontalPanel:SetLayout(panelLayout)
+        verticalPanel:SetLayout(panelLayout)
+        chartArea:SetLayout(panelLayout)
+
+        horizontalPanel:SetFocusable(true)
+        verticalPanel:SetFocusable(true)
+        chartArea:SetFocusable(true)
+
+        horizontalPanel:SetAccessibilityCode(parent:Item:CUSTOM)
+        verticalPanel:SetAccessibilityCode(parent:Item:CUSTOM)
+        chartArea:SetAccessibilityCode(parent:Item:CUSTOM)
+
+        Add(horizontalPanel)
+        Add(verticalPanel)
+        Add(chartArea)
+    end
+
+    blueprint action GenerateSummary returns text
+    private blueprint action GenerateInfoTree
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetHorizontalPanel returns Control
+        return horizontalPanel
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetVerticalPanel returns Control
+        return verticalPanel
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetChartArea returns Control
+        return chartArea
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetScaleTicks returns Array<Drawable>
+        return scaleTicks
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetScaleLabels returns Array<ControlLabel>
+        return scaleLabels
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetXTicks returns Array<Drawable>
+        return xTicks
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetXLabels returns Array<ControlLabel>
+        return xLabels
+    end
+
+    action SetName(text name)
+        parent:Item2D:SetName(name)
+        
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+
+        if defaultProperties not= undefined
+            defaultProperties:SetLabelText(name)
+        end
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:SetText(name)
+        end
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetTitleLabel returns Label
+        return title
+    end
+
+    action SetTitleLabel(Label label)
+        me:title = label
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetXAxis returns Drawable
+        return xAxis
+    end
+
+    action SetXAxis(Drawable drawable)
+        xAxis = drawable
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetYAxis returns Drawable
+        return yAxis
+    end
+    
+    action SetYAxis(Drawable drawable)
+        yAxis = drawable
+    end
+    /*
+        Set the Title of the Bar Chart.
+
+        Attribute: Parameter name the name of the title.
+    */
+    action SetTitle(text name)
+        SetName(name)
+    end
+
+    /*
+        Returns the Title of the Bar Chart.
+
+        Attribute: Returns the name
+    */
+    action GetTitle returns text
+        return GetName()
+    end
+
+    
+    /*
+        Set the title for the X-Axis(Categories) of the Bar Chart.
+    */
+    action SetXAxisTitle(text name)
+        xName = name
+    end
+
+    /*
+        Returns the title for the X-Axis(Categories) of the Bar Chart.
+    */
+    action GetXAxisTitle returns text
+        return xName
+    end
+
+    /*
+        Set the title for the Y-Axis(Scale) of the Bar Chart.
+    */
+    action SetYAxisTitle(text name)
+        yName = name
+    end
+
+    /*
+        Returns the title for the Y-Axis(Scale) of the Bar Chart.
+    */
+    action GetYAxisTitle returns text
+        return yName
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetXLabel returns ControlLabel
+        return xLabel
+    end
+
+    action SetXLabel(ControlLabel label)
+        me:xLabel = label
+    end
+
+    action SetYLabel(ControlLabel label)
+        me:yLabel = label
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetYLabel returns ControlLabel
+        return yLabel
+    end
+
+    action DisposeDrawables()
+        if title not= undefined
+            title:Dispose()
+            Remove(title)
+            title = undefined
+        end
+
+        if xLabel not= undefined
+            xLabel:Dispose()
+            Remove(xLabel)
+            xLabel = undefined
+        end
+
+        if yLabel not= undefined
+            yLabel:Dispose()
+            Remove(yLabel)
+            yLabel = undefined
+        end
+
+        if backgroundD not= undefined
+            backgroundD:Dispose()
+            Remove(backgroundD)
+            backgroundD = undefined
+        end
+
+        if xAxis not= undefined
+            xAxis:Dispose()
+            Remove(xAxis)
+            xAxis = undefined
+        end
+
+        if yAxis not= undefined
+            yAxis:Dispose()
+            Remove(yAxis)
+            yAxis = undefined
+        end
+
+        if not scaleTicks:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < scaleTicks:GetSize()
+                temp = scaleTicks:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            scaleTicks:Empty()
+        end
+
+        if not scaleLabels:IsEmpty()
+            Label temp = undefined
+            integer i = 0
+            repeat while i < scaleLabels:GetSize()
+                temp = scaleLabels:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            scaleLabels:Empty()
+        end
+
+        if not xTicks:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < xTicks:GetSize()
+                temp = xTicks:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            xTicks:Empty()
+        end
+
+        if not xLabels:IsEmpty()
+            Label temp = undefined
+            integer i = 0
+            repeat while i < xLabels:GetSize()
+                temp = xLabels:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            xLabels:Empty()
+        end
+
+        GetLegend():Empty()
+        GetVerticalPanel():Empty()
+        GetHorizontalPanel():Empty()
+    end
+
+    action LoadGraphics(LayoutProperties properties)        
+        if properties = undefined
+            return now
+        end
+
+        ChartOptions options
+
+        ColorGroup background = properties:GetBackgroundColor()
+        ColorGroup border = properties:GetBorderColor()
+        number borderThickness = properties:GetBorderThickness()
+        text labelText = properties:GetLabelText()
+
+        Font font = properties:GetFont()
+        TextureRegion iconTexture = properties:GetIcon()
+
+        Color color
+        View2D view = properties:GetView2D()
+        
+        if GetWidth() = 0 or GetHeight() = 0
+            SetSize(500,500)//this is for a default size
+        end
+        if GetBackground() = undefined
+            Drawable rect
+            rect:LoadFilledRectangle(cast(integer, GetWidth()) ,cast(integer, GetHeight()), color:White())
+            SetBackground(rect)
+            Add(rect)
+        end
+        
+        Array<Drawable> barTicks = GetXTicks()
+        Array<Drawable> scaleTicks = GetScaleTicks()
+        Array<ControlLabel> barLabels = GetXLabels()
+        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
+        Control chartArea = GetChartArea()
+
+
+        if GetXAxis() = undefined
+            Drawable line
+            line:LoadFilledRectangle(cast(integer, GetWidth() * 0.8), 5)
+            SetXAxis(line)
+            chartArea:Add(line)
+        end
+
+        if GetYAxis() = undefined
+            Drawable line
+            line:LoadFilledRectangle(5, cast(integer, GetHeight() * 0.8))
+            SetYAxis(line)
+            chartArea:Add(line)
+        end
+        
+        if GetTitleLabel() = undefined
+            Label newLabel
+            SetTitleLabel(newLabel)
+            newLabel:SetFont(font)
+            newLabel:SetSize(GetFontSize()+10)
+            newLabel:SetText(labelText)
+            Add(newLabel)
+        end
+
+        if GetXLabel() = undefined
+            ControlLabel newLabel
+            SetXLabel(newLabel)
+            newLabel:SetSize(GetFontSize()+5)
+            newLabel:SetText(GetXAxisTitle())
+            newLabel:SetName(GetXAxisTitle())
+            newLabel:SetDescription("Horizontal axis")
+            newLabel:SetFocusable(true)
+            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            horizontalPanel:Add(newLabel)
+        end
+        if GetYLabel() = undefined
+            ControlLabel newLabel
+            SetYLabel(newLabel)
+            newLabel:SetSize(GetFontSize()+5)
+            newLabel:SetText(GetYAxisTitle())
+            newLabel:SetName(GetYAxisTitle())
+            newLabel:SetDescription("Vertical axis")
+            newLabel:Rotate(90)
+            newLabel:SetFocusable(true)
+            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            verticalPanel:Add(newLabel)
+        end
+
+        Add(horizontalPanel)
+        Add(verticalPanel)
+        Add(chartArea)
+        SetNeedsUpdate(true)
+        parent:Control:LoadGraphics(properties)
+        Resize()
+        SetNextFocus(GetNextFocus())
+        SetPreviousFocus(GetPreviousFocus())
+    end
+
+    action Resize
+        if GetBackground() not= undefined
+            GetBackground():SetSize(GetWidth(), GetHeight())
+        end
+
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
+        Control chartArea = GetChartArea()
+        Array<Drawable> scaleTicks = GetScaleTicks()
+
+        horizontalPanel:SetSize(GetWidth()*0.75, GetHeight()*0.15)
+        verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*0.75)
+        chartArea:SetSize(GetWidth()*0.75, GetHeight()*0.75)
+        integer relativeFont = cast(integer, (GetWidth() + GetHeight()/2) * 0.02)
+        if GetFontSize() not= relativeFont
+            if relativeFont < 50
+                SetFontSize(relativeFont)
+                GetLegend():SetFontSize(relativeFont - 5)
+            end
+        end
+        
+        integer thickness = cast(integer, GetWidth()*0.001) + 3
+        
+        if GetXAxis() not= undefined
+            GetXAxis():SetSize(chartArea:GetWidth(), thickness)
+        end
+
+        if GetYAxis() not= undefined
+            GetYAxis():SetSize(thickness, chartArea:GetHeight())
+        end
+
+        if not scaleTicks:IsEmpty()
+            integer i = 0
+            repeat while i < scaleTicks:GetSize()
+                scaleTicks:Get(i):SetHeight(GetXAxis():GetHeight())
+                scaleTicks:Get(i):SetWidth(GetXAxis():GetHeight() * 3)
+                i = i + 1
+            end
+        end
+        parent:Control:Resize()
+    end
+
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
+    blueprint action LostSelection(ChartItem item)
+
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
+    blueprint action GainedSelection(ChartItem item)
+
+    /*
+        This action gets the ChartSelection, which contains the ChartItem that is currently selected. 
+        The reason why we use this indirection, instead of getting the items directly, is because this ensures
+        the operating system is informed whenever selections are changed. The item can be obtained from this selection
+        by calling GetChartItem on the selection. The selection is intended to never be undefined, even if nothing is selected.
+
+        Attribute: Returns the current selection
+    */
+    action GetSelection returns ChartSelection
+        return selection
+    end
+
+    /*
+        This action sets the ChartItem that is currently selected. 
+        This call has the same effect as calling GetSelection, then Set(ChartItem) on the selection.
+
+        Attribute: Parameter item the current item to be selected
+    */
+    action Select(ChartItem item)
+        selection:Set(item)
+    end
+
+    /*
+        This action tells the chart to select the next item in its navigation path.
+    */
+    action SelectNext
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        ChartItem next = selected:GetNext()
+        if next = undefined
+            return now
+        end
+        selection:Set(next)
+    end
+    
+    /*
+        This action tells the chart to select the previous item in its navigation path.
+    */
+    action SelectPrevious
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        ChartItem next = selected:GetPrevious()
+        if next = undefined
+            return now
+        end
+
+        selection:Set(next)
+    end
+
+    /*
+        This action tells the chart to select a child in its list, if it has one.
+    */
+    action SelectChild
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        ChartItem next = selected:GetChild()
+        if next = undefined
+            return now
+        end
+
+        selection:Set(next)
+    end
+
+    /*
+        This action tells the chart to select the parent of the current item.
+    */
+    action SelectParent
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        ChartItem next = selected:GetParent()
+        if next = undefined
+            return now
+        end
+
+        selection:Set(next)
+    end
+
+    /*
+        This action states to turn on the legend. 
+
+        Attribute: Parameter true if the legend should be shown.
+    */
+    action ShowLegend(boolean show)
+        showLegend = show
+    end
+
+    /*
+        This action states to turn on the legend. 
+
+        Attribute: Returns true if the legend is shown.
+    */
+    action IsShowingLegend returns boolean
+        return showLegend
+    end
+
+    /*
+        This action sets the Legend object
+
+        Attribute: Parameter legend the legend to set
+    */
+    action SetLegend(Legend legend)
+        me:legend = legend
+    end
+
+    /*
+        This action returns the current legend, if one exists
+
+        Attribute: Returns true if the legend is shown.
+    */
+    action GetLegend returns Legend
+        return legend
+    end
+
+    /*
+        This action tells the system to update all of its graphics because its structure has changed. This might 
+        be true if the charts are being used to update a live data source.
+
+        Attribute: Parameter update whether or not an update is required
+    */
+    action SetNeedsUpdate(boolean update)
+        me:treeNeedsUpdate = update
+    end
+    
+    /*
+        This action indicates whether the system needs its graphics updated.
+
+        Attribute: Returns whether or not an update is required
+    */
+    action NeedsTreeUpdate returns boolean
+        return treeNeedsUpdate
+    end
+
+    /*
+        This action overrides the default Update action. If the tree needs to be updated, the tree is regenerated.
+
+        Attribute: Parameter seconds the number of seconds since the last update.
+    */
+    action Update(number seconds)
+        if treeNeedsUpdate
+            GenerateInfoTree()
+            treeNeedsUpdate = false
+        end
+    end
+
+    action GetBackground returns Drawable
+        return backgroundD
+    end
+
+    action SetBackground(Drawable backgroundD)
+        me:backgroundD = backgroundD
+    end
 end

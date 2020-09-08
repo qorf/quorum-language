@@ -1,0 +1,75 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Interface.Controls.Control
+
+use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.System.File
+use Libraries.Interface.Views.ImageControlView
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.Icon
+use Libraries.Containers.Array
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Controls.List
+use Libraries.Game.InputTable
+use Libraries.Game.InputSet
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.HistogramLayout
+use Libraries.Interface.Layouts.BarChartLayout
+use Libraries.Interface.Item
+
+
+class Histogram is SharedBarChartParent
+    LayoutProperties labelProperties
+
+    on create
+        HistogramLayout lay
+        SetLayout(lay)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        Font font
+        font:LoadFont("Arial")
+        properties:SetFont(font)
+        properties:SetFontSize(16)
+
+        Color color
+        Gradient gradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+
+        properties:SetBackgroundColor(gradient)
+        properties:SetBorderColor(color:Black())
+        properties:SetBorderThickness(2)
+        SetName("Histogram")
+
+        SetInputGroup("Chart")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+
+    action GenerateSummary returns text
+        SetDescription("Histogram, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetScaleMax() + 
+            ". Use the arrow keys to navigate the chart.")
+        return GetDescription()
+    end
+end
+

@@ -1,0 +1,409 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Compute.Vector
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Controls.Charts.ChartPoint
+
+/*
+    This class is used to create a scatter plot for use in an application.
+
+    Attribute: Author Andreas Stefik, William Allee
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    //Create a ScatterPlot and set some properties
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    ScatterPlotCreator creator
+    creator:SetXColumn("DT")
+    creator:SetYColumn("FS")
+
+    Chart chart = frame:CreateChart(creator)
+
+    chart:SetTitle("Scatter Plot")
+    chart:SetYAxisTitle("FS")
+    chart:SetXAxisTitle("DT")
+
+    //we might then add this chart to a game.
+*/
+class ScatterPlotCreator is DataFrameChartCreator
+    private text xColumn = undefined
+    private text yColumn = undefined
+
+    integer xTicks = 5
+    integer yTicks = 5
+
+    // The minimum and maximum values portrayed in the chart area.
+    number xAxisMinimum = 0
+    number xAxisMaximum = 1
+    number yAxisMinimum = 0
+    number yAxisMaximum = 1
+
+    /*
+    Whether the minimum and maximum values of the chart area have been
+    set manually. Any value that isn't set manually should instead be
+    derived from the data, e.g., the lowest x-value among the data points
+    for the x-minimum value, etc.
+    */
+    boolean manualXAxisMinimum = false
+    boolean manualXAxisMaximum = false
+    boolean manualYAxisMinimum = false
+    boolean manualYAxisMaximum = false
+
+    action Create(DataFrame frame) returns Chart
+        ScatterPlot chart
+        if xColumn = undefined or yColumn = undefined
+            alert("Cannot create chart without defining an x and y column.")
+        end
+
+        //error checking
+        DataFrameColumn dfx = frame:GetColumn(xColumn)
+        DataFrameColumn dfy = frame:GetColumn(yColumn)
+
+        if dfx = undefined and dfx:CanConvertToVector()
+            alert("Could not find a column named " + xColumn)
+        end
+
+        if dfy = undefined and dfy:CanConvertToVector()
+            alert("Could not find a column named " + yColumn)
+        end
+
+        //at first, assume these are numeric columns. This isn't ideal, you should be able to plot
+        //anything, but for version 1 this might be ok
+        
+        Vector xVector = dfx:ConvertToVector()
+        Vector yVector = dfy:ConvertToVector()
+
+        if xVector:GetSize() not= yVector:GetSize()
+            alert("The default scatter plot creator can only make scatter plots of numeric columns of the same size.")
+        end
+
+        number xMin = GetXAxisMinimum()
+        number xMax = GetXAxisMaximum()
+        number yMin = GetYAxisMinimum()
+        number yMax = GetYAxisMaximum()
+
+        Summarize xSum
+        Summarize ySum
+
+        xSum:Calculate(dfx)
+        ySum:Calculate(dfy)
+
+        if GetManualXAxisMinimum() = false
+            xMin = xSum:GetMinimum()
+        end
+        if GetManualXAxisMaximum() = false
+            xMax = xSum:GetMaximum()
+        end
+        if GetManualYAxisMinimum() = false
+            yMin = ySum:GetMinimum()
+        end
+        if GetManualYAxisMaximum() = false
+            yMax = ySum:GetMaximum()
+        end
+
+        chart:SetXTickCount(xTicks)
+        chart:SetYTickCount(yTicks)
+        chart:SetXAxisMinimum(xMin)
+        chart:SetXAxisMaximum(xMax)
+        chart:SetYAxisMinimum(yMin)
+        chart:SetYAxisMaximum(yMax)
+
+        i = 0
+        repeat while i < dfx:GetSize()
+            number x = dfx:GetAsNumber(i)
+            number y = dfy:GetAsNumber(i)
+
+            ChartPoint point
+            point:SetPercentX((x - xMin) / (xMax - xMin))
+            point:SetPercentY((y - yMin) / (yMax - yMin))
+            chart:Add(point)
+            i = i + 1
+        end
+
+        return chart
+    end
+
+    /*
+    This action returns the identifier of a column from a DataFrame. This column is used to
+    indicate the X value of each point on the ScatterPlot.
+
+    Attribute: Returns The column name of the X variable on the ScatterPlot.
+    */
+    action GetXColumn returns text
+        return xColumn
+    end
+
+    /*
+    This action is used to select a column from a DataFrame by name. The named column will
+    be used as the X value of each point on the ScatterPlot.
+
+    Attribute: Parameter xColumn The name of the column to use for the X axis on the ScatterPlot.
+    */
+    action SetXColumn(text xColumn)
+        me:xColumn = xColumn
+    end
+
+    /*
+    This action returns the identifier of a column from a DataFrame. This column is used to
+    indicate the Y value of each point on the ScatterPlot.
+
+    Attribute: Returns The column name of the Y variable on the ScatterPlot.
+    */
+    action GetYColumn returns text
+        return yColumn
+    end
+
+    /*
+    This action is used to select a column from a DataFrame by name. The named column will
+    be used as the Y value of each point on the ScatterPlot.
+
+    Attribute: Parameter yColumn The name of the column to use for the Y axis on the ScatterPlot.
+    */
+    action SetYColumn(text yColumn)
+        me:yColumn = yColumn
+    end
+
+    /*
+    This action returns how many scale ticks should be used along the X axis of the ScatterPlot.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the X axis of the ScatterPlot.
+    */
+    action GetXTickCount returns integer
+        return xTicks
+    end
+
+    /*
+    This action sets how many scale ticks should be used along the X axis of the ScatterPlot.
+    By default, this value is 5.
+
+    Attribute: Parameter xTicks How many ticks should be used along the X axis of the ScatterPlot.
+    */
+    action SetXTickCount(integer xTicks)
+        me:xTicks = xTicks
+    end
+
+    /*
+    This action returns how many scale ticks should be used along the Y axis of the ScatterPlot.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the Y axis of the ScatterPlot.
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    /*
+    This action sets how many scale ticks should be used along the Y axis of the ScatterPlot.
+    By default, this value is 5.
+
+    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the ScatterPlot.
+    */
+    action SetYTickCount(integer yTicks)
+        me:yTicks = yTicks
+    end
+
+    /*
+    This action returns the minimum value on the X axis, if one has been manually set. If no value
+    has been set, the minimum X axis value will be determined from the minimum value of the dataset
+    used during the Create action. If no value has been set, this returns 0. To determine if a value
+    has been manually set, use the "GetManualXAxisMinimum" action.
+
+    Attribute: Returns The minimum value to be used for the X axis, or 0 if no value has been manually set.
+    */
+    action GetXAxisMinimum returns number
+        return xAxisMinimum
+    end
+
+    /*
+    This action manually sets the minimum value to present on the X axis of the ScatterPlot.
+
+    Attribute: Parameter xAxisMinimum The minimum value to present on the X axis of the ScatterPlot.
+    */
+    action SetXAxisMinimum(number xAxisMinimum)
+        SetManualXAxisMinimum(true)
+        me:xAxisMinimum = xAxisMinimum
+    end
+
+    /*
+    This action returns the maximum value on the X axis, if one has been manually set. If no value
+    has been set, the maximum X axis value will be determined from the maximum value of the dataset
+    used during the Create action. If no value has been set, this returns 1. To determine if a value
+    has been manually set, use the "GetManualXAxisMaximum" action.
+
+    Attribute: Returns The maximum value to be used for the X axis, or 1 if no value has been manually set.
+    */
+    action GetXAxisMaximum returns number
+        return xAxisMaximum
+    end
+
+    /*
+    This action manually sets the maximum value to present on the X axis of the ScatterPlot.
+
+    Attribute: Parameter xAxisMaximum The maximum value to present on the X axis of the ScatterPlot.
+    */
+    action SetXAxisMaximum(number xAxisMaximum)
+        SetManualXAxisMaximum(true)
+        me:xAxisMaximum = xAxisMaximum
+    end
+
+    /*
+    This action returns the minimum value on the Y axis, if one has been manually set. If no value
+    has been set, the minimum Y axis value will be determined from the minimum value of the dataset
+    used during the Create action. If no value has been set, this returns 0. To determine if a value
+    has been manually set, use the "GetManualYAxisMinimum" action.
+
+    Attribute: Returns The minimum value to be used for the Y axis, or 0 if no value has been manually set.
+    */
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
+    end
+
+    /*
+    This action manually sets the minimum value to present on the Y axis of the ScatterPlot.
+
+    Attribute: Parameter yAxisMinimum The minimum value to present on the Y axis of the ScatterPlot.
+    */
+    action SetYAxisMinimum(number yAxisMinimum)
+        SetManualYAxisMinimum(true)
+        me:yAxisMinimum = yAxisMinimum
+    end
+
+    /*
+    This action returns the maximum value on the Y axis, if one has been manually set. If no value
+    has been set, the maximum Y axis value will be determined from the maximum value of the dataset
+    used during the Create action. If no value has been set, this returns 1. To determine if a value
+    has been manually set, use the "GetManualYAxisMaximum" action.
+
+    Attribute: Returns The maximum value to be used for the Y axis, or 1 if no value has been manually set.
+    */
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+
+    /*
+    This action manually sets the maximum value to present on the Y axis of the ScatterPlot.
+
+    Attribute: Parameter yAxisMaximum The maximum value to present on the Y axis of the ScatterPlot.
+    */
+    action SetYAxisMaximum(number yAxisMaximum)
+        SetManualYAxisMaximum(true)
+        me:yAxisMaximum = yAxisMaximum
+    end
+
+    /*
+    This action returns true if the ScatterPlotCreator is using a manually set
+    minimum value for the X axis, or false otherwise. By default, this returns false.
+
+    Attribute: Returns True if using a manually set minimum X value, or false otherwise.
+    */
+    action GetManualXAxisMinimum returns boolean
+        return manualXAxisMinimum
+    end
+
+    /*
+    This action sets whether or not the creator should automatically determine the minimum
+    value of the X axis from the provided dataset during the Create action. Passing this
+    action the "true" value will make it use the manually set value from SetXAxisMinimum,
+    and using "false" will make it automatically determine the value from the data.
+
+    By default, this value is false. Setting the value manually via SetXAxisMinimum also
+    automatically sets this value, so typically this action is only needed to reset a
+    creator to its default behavior via SetManualXAxisMinimum(false).
+
+    Attribute: Parameter manualXAxisMinimum True to use a manually set X axis minimum value, or false to use the default behavior.
+    */
+    action SetManualXAxisMinimum(boolean manualXAxisMinimum)
+        me:manualXAxisMinimum = manualXAxisMinimum
+    end
+
+    /*
+    This action returns true if the ScatterPlotCreator is using a manually set
+    maximum value for the X axis, or false otherwise. By default, this returns false.
+
+    Attribute: Returns True if using a manually set maximum X value, or false otherwise.
+    */
+    action GetManualXAxisMaximum returns boolean
+        return manualXAxisMaximum
+    end
+
+    /*
+    This action sets whether or not the creator should automatically determine the maximum
+    value of the X axis from the provided dataset during the Create action. Passing this
+    action the "true" value will make it use the manually set value from SetXAxisMaximum,
+    and using "false" will make it automatically determine the value from the data.
+
+    By default, this value is false. Setting the value manually via SetXAxisMaximum also
+    automatically sets this value, so typically this action is only needed to reset a
+    creator to its default behavior via SetManualXAxisMaximum(false).
+
+    Attribute: Parameter manualXAxisMaximum True to use a manually set X axis maximum value, or false to use the default behavior.
+    */
+    action SetManualXAxisMaximum(boolean manualXAxisMaximum)
+        me:manualXAxisMaximum = manualXAxisMaximum
+    end
+
+    /*
+    This action returns true if the ScatterPlotCreator is using a manually set
+    minimum value for the Y axis, or false otherwise. By default, this returns false.
+
+    Attribute: Returns True if using a manually set minimum Y value, or false otherwise.
+    */
+    action GetManualYAxisMinimum returns boolean
+        return manualYAxisMinimum
+    end
+
+    /*
+    This action sets whether or not the creator should automatically determine the minimum
+    value of the Y axis from the provided dataset during the Create action. Passing this
+    action the "true" value will make it use the manually set value from SetYAxisMinimum,
+    and using "false" will make it automatically determine the value from the data.
+
+    By default, this value is false. Setting the value manually via SetYAxisMinimum also
+    automatically sets this value, so typically this action is only needed to reset a
+    creator to its default behavior via SetManualYAxisMinimum(false).
+
+    Attribute: Parameter manualXAxisMinimum True to use a manually set Y axis minimum value, or false to use the default behavior.
+    */
+    action SetManualYAxisMinimum(boolean manualYAxisMinimum)
+        me:manualYAxisMinimum = manualYAxisMinimum
+    end
+
+    /*
+    This action returns true if the ScatterPlotCreator is using a manually set
+    maximum value for the Y axis, or false otherwise. By default, this returns false.
+
+    Attribute: Returns True if using a manually set maximum Y value, or false otherwise.
+    */
+    action GetManualYAxisMaximum returns boolean
+        return manualYAxisMaximum
+    end
+
+    /*
+    This action sets whether or not the creator should automatically determine the maximum
+    value of the Y axis from the provided dataset during the Create action. Passing this
+    action the "true" value will make it use the manually set value from SetYAxisMaximum,
+    and using "false" will make it automatically determine the value from the data.
+
+    By default, this value is false. Setting the value manually via SetYAxisMaximum also
+    automatically sets this value, so typically this action is only needed to reset a
+    creator to its default behavior via SetManualYAxisMaximum(false).
+
+    Attribute: Parameter manualXAxisMaximum True to use a manually set Y axis maximum value, or false to use the default behavior.
+    */
+    action SetManualYAxisMaximum(boolean manualYAxisMaximum)
+        me:manualYAxisMaximum = manualYAxisMaximum
+    end
+end

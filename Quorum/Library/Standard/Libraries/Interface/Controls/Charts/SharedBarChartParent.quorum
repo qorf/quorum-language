@@ -1,0 +1,531 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Label
+use Libraries.Controls.Charts.ChartOptions
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
+
+class SharedBarChartParent is Chart
+    private ChartItem summary // root of the tree
+    integer numberOfBars = 0
+    Array<number> barHeights
+    Array<text> barNames
+
+    integer scaleDensity = 2
+    number maxScale = 1
+
+    //Not implemented for now, but is a placeholder for future implementation
+    number minTick = 0
+    Color barColor = undefined
+    Color barSelectionColor = undefined
+
+    
+
+    Array<Icon> bars
+   
+    action LostSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined and target is ControlLabel
+            ControlLabel temp = cast(ControlLabel, target)
+            temp:LostSelection()
+        elseif target not= undefined and target is Icon
+            Color c
+            Icon temp = cast(Icon, target)
+            temp:SetColor(GetBarColor())
+        end
+    end
+
+    action GainedSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            elseif target is Icon
+                Color c
+                Icon temp = cast(Icon, target)
+                temp:SetColor(GetBarSelectionColor())
+            end            
+        end
+    end
+
+    /*
+        Returns the number of bars currently added to the Bar Chart
+    */
+    action GetNumberOfBars returns integer
+        return numberOfBars
+    end
+
+    action GetMinimumTick returns number
+        return minTick
+    end
+
+    //Made private to avoid issues with using this before AddBar
+    private action SetNumberOfBars(integer bars)
+        numberOfBars = bars
+        barHeights:SetSize(numberOfBars)
+        barNames:SetSize(numberOfBars)
+    end
+
+    /*
+        Appends a bar to end of the Bar Chart. NOTE: Height is a percentage
+    */
+    action AddBar(text name, number height)
+        SetBar(numberOfBars+1, name, height)
+    end
+
+    /*
+        Sets the properties of a specific bar. If the index represents a bar 
+        that doesn't exist than it will make it. NOTE: Height is a percentage.
+    */
+    action SetBar(integer bar, text name, number height)
+        SetBarName(bar, name)
+        SetBarHeight(bar, height)
+    end
+
+    /*
+        Sets the height of a specific bar. If the index represents a bar 
+        that doesn't exist than it will make it. NOTE: Height is a percentage.
+    */
+    action SetBarHeight(integer bar, number height)
+        if bar >= numberOfBars
+            SetNumberOfBars(bar)
+        end
+        if height < 0
+            height = 0
+        elseif height > 1.0
+            height = 1.0
+        end
+        barHeights:Set(bar - 1, height)
+        
+    end
+
+    /*
+        Sets the name of a specific bar. If the index represents a bar 
+        that doesn't exist than it will make it.
+    */
+    action SetBarName(integer bar, text name)
+        if bar >= numberOfBars
+            SetNumberOfBars(bar)
+        end
+        if bar <= numberOfBars and bar > 0
+            barNames:Set(bar - 1, name)
+        end
+    end
+
+    /*
+        Sets the number of steps in the scale. 
+    */
+    action SetNumberOfSteps(integer steps)
+        scaleDensity = steps + 1
+    end
+
+    /*
+        Returns the number of steps in the scale.
+    */
+    action GetNumberOfSteps returns integer
+        return scaleDensity - 1
+    end
+
+    /*
+        Sets the maxiumum value that will appear at the top of the scale. Note 
+        that the other values of the scale will be affected by the maximum.
+    */
+    action SetScaleMax(number max)
+        maxScale = max
+    end
+
+    /*
+        Returns the maxiumum value of the scale.
+    */
+    action GetScaleMax returns number
+        return maxScale
+    end
+
+    action SetBarColor(Color color)
+        me:barColor = color
+    end
+
+    action GetBarSelectionColor returns Color
+        return barSelectionColor
+    end
+
+    action SetBarSelectionColor(Color color)
+        me:barSelectionColor = color
+    end
+
+    private action GetPercentFromHeight(number full) returns number
+        Math math
+        return math:Round(full, 2) * 100
+    end
+
+    private action Round(number full) returns number
+        Math math
+        return math:Round(full, 2)
+    end
+  
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetBars returns Array<Icon>
+        return bars
+    end
+
+    
+
+    /*
+        Generates the tree of ChartItems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    action GenerateInfoTree 
+        if GetDefaultLayoutProperties():NeedsRendering()
+            return now //we haven't loaded graphics yet, so bail.
+        end
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
+        ChartItem xAxis
+        ChartItem yAxis
+        ChartItem chartArea//not to be confused with panel
+        //Level 1 top level
+        summary:SetDisplayName(GenerateSummary())
+        summary:SetNext(yAxis)
+        summary:SetChild(yAxis)
+        summary:SetContainer(me)
+        summary:SetFocusTarget(me)
+    
+        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
+        xAxis:SetDisplayName("Horizontal Axis")
+        xAxis:SetFocusTarget(GetXLabel())
+        yAxis:SetDisplayName("Vertical Axis")
+        yAxis:SetFocusTarget(GetYLabel())
+        
+        chartArea:SetDisplayName("Chart Area " + numberOfBars + " bars")
+        chartArea:SetFocusTarget(me:GetChartArea())
+        me:GetChartArea():SetDescription(numberOfBars + " bars")
+        xAxis:SetContainer(me)        
+        yAxis:SetContainer(me)
+        chartArea:SetContainer(me)
+
+        yAxis:SetNext(chartArea)
+        chartArea:SetNext(xAxis)
+        xAxis:SetPrevious(chartArea)
+        yAxis:SetPrevious(xAxis)
+
+        chartArea:SetPrevious(yAxis)
+        xAxis:SetParent(summary)
+        yAxis:SetParent(summary)
+        yAxis:SetPrevious(summary)
+        chartArea:SetParent(summary)
+
+        //Level 3
+        //bars
+        ChartItem firstbar
+        firstbar:SetContainer(me)
+        if numberOfBars > 0
+            chartArea:SetChild(firstbar)
+            bars:Get(0):SetDescription(", " + GetPercentFromHeight(barHeights:Get(0)) 
+                + "%, 1 of " + numberOfBars + ", " + Round(barHeights:Get(0) * maxScale))
+            firstbar:SetParent(chartArea)
+            firstbar:SetFocusTarget(bars:Get(0))
+        end
+        integer i = 1
+        ChartItem previous = firstbar
+        repeat while i < bars:GetSize()
+            ChartItem barNode
+            barNode:SetContainer(me)
+            bars:Get(i):SetDescription(", " + GetPercentFromHeight(barHeights:Get(i)) + "%, "+(i+1) 
+                + " of " + numberOfBars + ", " + Round(barHeights:Get(i) * maxScale))
+            barNode:SetParent(chartArea)
+            barNode:SetFocusTarget(bars:Get(i))
+            previous:SetNext(barNode)
+            barNode:SetPrevious(previous)
+            previous = barNode
+        i = i + 1
+        end
+
+        //scale
+        ChartItem genericScaleNode
+        genericScaleNode:SetContainer(me)
+        genericScaleNode:SetDisplayName("The scale has " + scaleDensity + " tick marks and goes from 0 to " + maxScale)
+        genericScaleNode:SetParent(yAxis)
+        yAxis:GetFocusTarget():SetDescription("Scale with " + scaleDensity + " ticks, from 0 to " + maxScale)
+        ChartItem firstScale
+        firstScale:SetContainer(me)
+        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        if numberOfBars > 0
+            firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
+            firstScale:SetParent(yAxis)
+            firstScale:SetFocusTarget(scaleLabels:Get(0))
+            yAxis:SetChild(firstScale)
+        end
+
+        i = 1
+        previous = firstScale
+        repeat while i < scaleLabels:GetSize()
+            ChartItem scaleNode
+            scaleNode:SetContainer(me)
+            scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
+            scaleNode:SetParent(yAxis)
+            scaleNode:SetPrevious(previous)
+            scaleNode:SetFocusTarget(scaleLabels:Get(i))
+            previous:SetNext(scaleNode)
+            previous = scaleNode
+            i = i + 1
+        end
+
+        //x axis labels
+        Array<ControlLabel> xLabels = GetXLabels()
+        ChartItem firstLabel
+        firstLabel:SetContainer(me)
+        if numberOfBars > 0
+            xAxis:SetChild(firstLabel)
+            firstLabel:SetDisplayName(xLabels:Get(0):GetName())
+            firstLabel:SetParent(xAxis)
+            firstLabel:SetFocusTarget(xLabels:Get(0))
+        end
+
+        i = 1
+        ChartItem previousLabel = firstLabel
+        repeat while i < xLabels:GetSize()
+            ChartItem labelNode
+            labelNode:SetContainer(me)
+            labelNode:SetDisplayName(xLabels:Get(i):GetName())
+            labelNode:SetParent(chartArea)
+            labelNode:SetFocusTarget(xLabels:Get(i))
+            previousLabel:SetNext(labelNode)
+            labelNode:SetPrevious(previousLabel)
+            previousLabel = labelNode
+            i = i + 1
+        end
+
+        ChartSelection selection = GetSelection()
+        selection:Set(summary)
+    end
+
+    action GetBarColor returns Color
+        return barColor
+    end
+
+    action DisposeDrawables()
+        parent:Chart:DisposeDrawables()
+
+        if not bars:IsEmpty()
+            Icon temp = undefined
+            integer i = 0
+            repeat while i< bars:GetSize()
+                temp = bars:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            bars:Empty()
+        end
+
+        GetChartArea():Empty()
+    end
+
+    action GetScaleDensity returns integer
+        return scaleDensity
+    end
+
+    action SetScaleDensity(integer scaleDensity)
+        me:scaleDensity = scaleDensity
+    end
+
+    action GetBarNames returns Array<text>
+        return barNames
+    end
+
+    action GetBarHeights returns Array<number>
+        return barHeights
+    end
+
+    action GetSummary returns ChartItem
+        return summary
+    end
+
+    action SetSummary(ChartItem summary)
+        me:summary = summary
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        DisposeDrawables()
+        parent:Chart:LoadGraphics(properties)
+        if properties = undefined
+            return now
+        end
+
+        ChartOptions options
+        Color color
+        if GetBarColor() = undefined
+            SetBarColor(options:GetBarColor())
+        end
+
+        if GetBarSelectionColor() = undefined
+            SetBarSelectionColor(options:GetSelectionColor())
+        end
+        
+        Array<Icon> bars = GetBars()
+        Array<Drawable> barTicks = GetXTicks()
+        Array<Drawable> scaleTicks = GetScaleTicks()
+        Array<ControlLabel> barLabels = GetXLabels()
+        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
+        Control chartArea = GetChartArea()
+        Array<text> barNames = GetBarNames()
+
+        if scaleTicks:IsEmpty() and scaleLabels:IsEmpty()
+            scaleTicks:SetSize(GetScaleDensity())
+            scaleLabels:SetSize(scaleDensity)
+            number scaleWidth = maxScale / (scaleDensity - 1)
+            number scaleNum = 0
+            integer i = 0
+            repeat while i < scaleDensity
+                //make the ticks that will be on the scale
+                Drawable tick
+                tick:LoadFilledRectangle(10, 3)
+                scaleTicks:Set(i, tick)
+                verticalPanel:Add(scaleTicks:Get(i))
+
+                //make the labels for each scale tick (auto based on max)
+                ChartOptions chartOptions
+                Math math
+                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
+                ControlLabel tempLabel
+                tempLabel:SetText(scaleText)
+                tempLabel:SetFontSize(GetFontSize() - 5)
+                tempLabel:SetName(scaleText + " " + (i + 1) + " of " + scaleDensity)
+                tempLabel:SetFocusable(true)
+                tempLabel:SetAccessibilityCode(parent:Item:ITEM)
+                scaleLabels:Set(i, tempLabel)
+                verticalPanel:Add(scaleLabels:Get(i))
+                scaleNum = scaleNum + scaleWidth
+                i = i + 1
+            end
+        end
+
+        if barTicks:IsEmpty() and barLabels:IsEmpty() and bars:IsEmpty()
+            
+            barTicks:SetSize(numberOfBars)
+            barLabels:SetSize(numberOfBars)
+            bars:SetSize(numberOfBars)
+
+            integer i = 0
+            repeat while i < numberOfBars
+                //make bar ticks
+                Drawable tick
+                tick:LoadFilledRectangle(3, 15)
+                barTicks:Set(i, tick)
+                horizontalPanel:Add(barTicks:Get(i))
+
+                //make bar labels
+                ControlLabel tempLabel
+                
+                Text name
+                name:SetValue(barNames:Get(i))
+
+                if name:GetValue() = undefined
+                    name:SetValue("Bar " + (i + 1))
+                    barNames:Set(i, name:GetValue())
+                end
+                tempLabel:SetText(name:GetValue())
+                tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + numberOfBars)
+                tempLabel:SetFocusable(true)
+                tempLabel:SetAccessibilityCode(parent:Item:ITEM)
+                tempLabel:SetFontSize(GetFontSize())
+                barLabels:Set(i, tempLabel)
+                horizontalPanel:Add(barLabels:Get(i))
+
+                if IsShowingLegend()
+                    GetLegend():Add(name:GetValue())
+                end
+
+                //make bars
+                Icon temp
+                number height = GetBarHeight(i)
+                number width = GetBarWidth()
+                temp:LoadFilledRectangle(cast(integer, width), cast(integer, height), barColor)
+                temp:SetName("Bar " + (i + 1))
+                temp:SetFocusable(true)
+                temp:SetAccessibilityCode(parent:Item:ITEM)
+                temp:SetNextFocus(GetNextFocus())
+                temp:SetPreviousFocus(GetPreviousFocus())
+                bars:Set(i, temp)
+                chartArea:Add(bars:Get(i))
+                
+                i = i + 1
+            end
+            if IsShowingLegend()
+                Add(GetLegend())
+            end
+        end
+    end
+
+    private action GetBarHeight(integer index) returns number
+        integer thickness = cast(integer, GetWidth()*0.001) + 3
+        number height = 0
+        check
+            height = GetYAxis():GetHeight() * barHeights:Get(index)
+        detect e
+            height = 0
+            barHeights:Set(index, 0.0)
+        end
+        number thickHeight = height + thickness/2
+        return thickHeight
+    end
+    
+    private action GetBarWidth returns number
+        number width = (GetXAxis():GetWidth()/(bars:GetSize() + 1))* 0.7 
+        return width
+    end
+    /*
+        This action is called whenever the window is resized.
+    */
+    action Resize
+        parent:Chart:Resize()
+        integer thickness = cast(integer, GetWidth()*0.001) + 3
+       
+        if not bars:IsEmpty()
+            integer i = 0
+            Icon temp
+            repeat while i < bars:GetSize()
+                temp = bars:Get(i)
+                number height = GetBarHeight(i)
+                number width = GetBarWidth()
+                temp:SetSize(width, height)
+                i = i + 1
+            end
+        end
+    end
+end

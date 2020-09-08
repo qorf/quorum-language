@@ -1,0 +1,89 @@
+package Libraries.Controls.Charts
+use Libraries.Game.Graphics.Color
+
+/*
+    This class represents the default options any chart will use when displaying information in a chart. These options
+    can be overriden on a per chart basis, but this provides a way to manage defaults across the board.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Controls.Charts.ChartOptions
+
+    ChartOptions options
+    Color color = options:GetBarColor()
+    output "We have obtained the default bar color on the system."
+*/
+shared class ChartOptions
+    Color barColor = undefined
+    Color selectionColor = undefined
+    integer tickDigits = 1
+
+    on create
+        Color color
+        if barColor = undefined
+            barColor = color:Navy()
+        end
+
+        if selectionColor = undefined
+            selectionColor = color:Blue()
+        end
+    end
+
+    /* 
+        This action obtains the default bar color on the system. It is Navy Blue by default.
+
+        Attribute: Returns returns the default bar color, which is Navy Blue unless changed.
+    */
+    action GetBarColor returns Color
+        return barColor
+    end
+
+    /*
+        This action sets the default color for all charts with bars on the system. If a chart is already created,
+        changing this does not necessarily change its defaults, as these are set when graphics are first loaded.
+
+        Attribute: Parameter barColor The default bar color
+    */ 
+    action SetBarColor(Color barColor)
+        me:barColor = barColor
+    end
+
+    /* 
+        This action obtains the default bar color on the system. It is light Blue by default.
+
+        Attribute: Returns returns the default bar color, which is light Blue unless changed.
+    */
+    action GetSelectionColor returns Color
+        return selectionColor
+    end
+    
+    /*
+        This action sets the default selection color for all charts with bars on the system. If a chart is already created,
+        changing this does not necessarily change its defaults, as these are set when graphics are first loaded.
+
+        Attribute: Parameter barColor The default bar color
+    */ 
+    action SetSelectionColor(Color selectionColor)
+        me:selectionColor = selectionColor
+    end
+
+    /*
+        This obtains how many significant digits are used when representing ticks.
+
+        Attribute: Returns the number of significant digits to use for ticks
+    */ 
+    action GetTickDigits returns integer
+        return tickDigits
+    end
+
+    /*
+        This changes how many significant digits are used when representing ticks.
+
+        Attribute: Parameter tickDigits the new number of digits to use for ticks.
+    */ 
+    action SetTickDigits(integer tickDigits)
+        me:tickDigits = tickDigits
+    end
+end

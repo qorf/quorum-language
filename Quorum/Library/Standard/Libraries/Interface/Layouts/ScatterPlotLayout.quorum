@@ -1,0 +1,30 @@
+package Libraries.Interface.Layouts
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Controls.Charts.ChartPoint
+
+class ScatterPlotLayout is TwoVariableChartLayout
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is ScatterPlot)
+            return now
+        end
+        
+        ScatterPlot chart = cast(ScatterPlot, control)
+        Array<ChartPoint> points = chart:GetChartPoints()
+        if points = undefined
+            return now
+        end
+
+        number width = chartAreaContainer:GetWidth()
+        number height = chartAreaContainer:GetHeight()
+        i = 0
+        repeat while i < points:GetSize()
+            ChartPoint point = points:Get(i)
+            point:SetPosition(cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)), cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)))
+            i = i + 1
+        end
+    end
+end
