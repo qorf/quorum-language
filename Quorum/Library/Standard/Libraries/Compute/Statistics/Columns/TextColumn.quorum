@@ -5,6 +5,9 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
 
 /*
     TextColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -36,6 +39,15 @@ class TextColumn is DataFrameColumn
 
     action Get(integer row) returns Text
         return rows:Get(row)
+    end
+
+    action GetAsText(integer index) returns text
+        Text value = rows:Get(index)
+        if value = undefined
+            return undefined
+        else
+            return value:GetValue()
+        end
     end
 
     action Swap(integer left, integer right)

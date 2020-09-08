@@ -1,0 +1,125 @@
+package Libraries.Compute.Statistics.Loaders
+
+use Libraries.Compute.Statistics.DataFrameSaver
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Data.Formats.SeparatedValue
+
+/*
+    This class can load data into a DataFrame from a comma separated value file.
+    By default, this class chooses its columns from the first value in a cell.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
+    use Libraries.System.File
+
+    //Load a comma separated file
+    DataFrame frame
+    File file
+    file:SetPath("Data.csv")
+    frame:Load(file)
+
+    //this would override itself
+    CommaSeparatedSaver saver
+    saver:Save(frame, file)
+*/
+class CommaSeparatedSaver is DataFrameSaver
+    
+    action Save(DataFrame frame, File file)
+        text result= ConvertToText(frame)
+
+        file:Write(result)
+    end
+
+    /*
+        This action can convert a data from to a Comma separated value text. 
+
+        Attribute: Author Andreas Stefik
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
+        use Libraries.System.File
+    
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        frame:Load(file)
+
+        CommaSeparatedSaver saver
+        text value = saver:ConvertToText(frame)
+        output value
+    */
+    action ConvertToText(DataFrame frame) returns text
+        integer size = frame:GetSize() //number of columns
+
+        text header = ""
+        text data = ""
+        
+        text lf = header:GetLineFeed()
+        integer row = 0
+
+        //get all the headers
+        i = 0
+        repeat while i < size
+            DataFrameColumn column = frame:GetColumn(i)
+            header = header + column:GetHeader()
+
+            if i = size - 1
+                header = header + lf
+            else
+                header = header + ","
+            end
+            i = i + 1
+        end
+
+        data = header
+        //check each column and see if this is a valid row
+        //keep going until it fails everywhere
+        boolean continue = true
+        
+        repeat while continue
+            text currentRow = ""
+            i = 0
+            boolean hadRow = false
+            repeat while i < frame:GetSize()
+                DataFrameColumn column = frame:GetColumn(i)
+                if row < column:GetSize()
+                    text value = column:GetAsText(row)
+                    if value not= undefined
+                        currentRow = currentRow + value
+                    end
+                    hadRow = true
+                end
+            
+                
+                if i  = frame:GetSize() - 1
+                    currentRow = currentRow + lf
+                else
+                    currentRow = currentRow + ","
+                end
+                i = i + 1
+            end
+
+            continue = hadRow
+            if hadRow
+                data = data + currentRow
+            end
+            row = row + 1
+        end
+
+        return data
+    end
+end

@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
+use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Matrix
 
@@ -248,6 +249,31 @@ class DataFrame
     end
 
     /*
+        This action data to a file from a data frame. 
+
+        Attribute: Parameter file The file we want processed
+        Attribute: Parameter saver The object we want to manage saving the file type
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        File file
+        file:SetPath("Data.csv")
+        CommaSeparatedLoader loader
+        frame:Load(file, loader) 
+
+        CommaSeparatedSaver saver
+        frame:Save(file, saver)
+    */
+    action Save(File file, DataFrameSaver saver)
+        saver:Save(me, file)
+    end
+
+    /*
         This action takes a DataFrame and converts it into a matrix with number values. If
         the data frame contains columns that cannot be converted to numbers, this action
         throws an exception. Finally, all columns must have the same size for this conversion to work.
@@ -405,5 +431,26 @@ class DataFrame
         end
 
         return newFrame
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText()
+    */
+    action ToText returns text
+        CommaSeparatedSaver saver
+        return saver:ConvertToText(me)
     end
 end
