@@ -1,6 +1,9 @@
 package Libraries.Compute.Statistics
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -57,6 +60,44 @@ class DataFrameColumn
     */
     action GetAsNumber(integer index) returns number
         alert("Cannot convert value at position " + index + " to number.")
+    end
+
+    action GetAsText(integer index) returns text
+        alert("Cannot convert value at position " + index + " to text.")
+    end
+
+    action ConvertToNumberColumn returns NumberColumn
+        NumberColumn column
+        ConvertColumn(column)
+        return column
+    end
+
+    action ConvertToIntegerColumn returns IntegerColumn
+        IntegerColumn column
+        ConvertColumn(column)
+        return column
+    end
+
+    action ConvertToBooleanColumn returns BooleanColumn
+        BooleanColumn column
+        ConvertColumn(column)
+        return column
+    end
+
+    private action ConvertColumn(DataFrameColumn column)
+        column:SetHeader(GetHeader())
+
+        integer i = 0
+        integer size = GetSize()
+        repeat while i < size
+            text value = GetAsText(i)
+            if value = undefined
+                column:Add(undefined)
+            else
+                column:Add(value)
+            end
+            i = i + 1
+        end
     end
 
     /*

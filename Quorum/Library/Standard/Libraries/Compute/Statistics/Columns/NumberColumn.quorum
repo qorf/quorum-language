@@ -29,6 +29,11 @@ class NumberColumn is DataFrameColumn
         end
     end
 
+    
+    action Add(number value)
+        rows:Add(value)
+    end
+
     action ConvertToVector returns Vector
         Vector vector
         vector:SetSize(GetSize())
@@ -51,6 +56,15 @@ class NumberColumn is DataFrameColumn
 
     action Get(integer row) returns Number
         return rows:Get(row)
+    end
+
+    action GetAsText(integer index) returns text
+        Number value = rows:Get(index)
+        if value = undefined
+            return undefined
+        else
+            return "" + value:GetValue()
+        end
     end
 
     action SendValueTo(integer index, DataFrameColumnCalculation calculation)

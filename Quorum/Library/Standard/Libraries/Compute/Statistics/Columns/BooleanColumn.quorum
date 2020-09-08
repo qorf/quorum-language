@@ -28,6 +28,10 @@ class BooleanColumn is DataFrameColumn
         end
     end
 
+    action Add(boolean value)
+        rows:Add(value)
+    end
+
     action SendValueTo(integer index, DataFrameColumnCalculation calculation)
         Boolean int = rows:Get(index)
         calculation:Add(int)
@@ -35,6 +39,15 @@ class BooleanColumn is DataFrameColumn
 
     action Get(integer row) returns Boolean
         return rows:Get(row)
+    end
+
+    action GetAsText(integer index) returns text
+        Boolean value = rows:Get(index)
+        if value = undefined
+            return undefined
+        else
+            return "" + value:GetValue()
+        end
     end
 
     action GetSize returns integer
