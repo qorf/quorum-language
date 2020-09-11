@@ -1118,6 +1118,43 @@ class Class is Symbol
         end
     end
 
+    /* This action calculates the most likely class that might be meant from a key and returns undefined
+        if it considers its guess to be non-exact. For example, if a name could mean multiple uses, it does this.
+        This action should not be used except in the circumstances that type resolution is not complete and we
+        need a stochastic best guess for the probable type, which is useful in code completion or potentially
+        other applications.
+    */
+    action GuessBestUsage(SymbolTable table, text key) returns Class
+        Class result = undefined
+
+        Library library = table:GetLibrary()
+        //first check the cache and see if the name exists
+        
+        Iterator<Class> iterator = table:GetClassByName(key)
+        repeat while iterator not= undefined and iterator:HasNext()
+            Class value = iterator:Next()
+            if value not= undefined
+                result = value
+            else 
+                return undefined
+            end
+        end
+
+        if library not= undefined and result = undefined
+            SymbolTable stlTable = library:GetSymbolTable()
+            iterator = stlTable:GetClassByName(key)
+            repeat while iterator not= undefined and iterator:HasNext()
+                Class value = iterator:Next()
+                if value not= undefined
+                    result = value
+                else 
+                    return undefined
+                end
+            end
+        end
+        return result
+    end
+
     private action FindPossibleUsage(SymbolTable table, CompilerError error, text key, CompilerErrorManager errors)
         HashTable<text, Class> possibleUses
 
