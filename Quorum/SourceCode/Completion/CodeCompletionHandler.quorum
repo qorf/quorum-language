@@ -626,19 +626,53 @@ class CodeCompletionHandler
         return undefined
     end
     
-    private action AddCustomClasses(CodeCompletionRequest request, CodeCompletionResult result, text pack)
-        SymbolTable sandboxSymbolTable = request:result:symbolTable
-        Iterator<Class> classes = sandboxSymbolTable:GetClassesInPackage(pack)
+    private action GetCustomClassesInPackage(CodeCompletionRequest request, CodeCompletionResult result, text pack)
+        returns HashTable<text, Class>
 
+        SymbolTable sandboxSymbolTable = request:result:symbolTable
+        HashTable<text, Class> results
+        Iterator<Class> classes = sandboxSymbolTable:GetClassesInPackage(pack)
         if classes not= undefined
             repeat while classes:HasNext()
                 Class clazz = classes:Next()
-                CodeCompletionItem item = GetClassCompletionItem(clazz)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                result:Add(item)
+                if not results:HasKey(clazz:GetStaticKey())
+                    results:Add(clazz:GetStaticKey(), clazz)
+                end
             end
+        end
+
+        Library library = FindStandardLibrary(request, result, sandboxSymbolTable)
+        if library not= undefined
+            SymbolTable table = library:GetSymbolTable()
+            if table = undefined
+                return results
+            end
+            classes = table:GetClassesInPackage(pack)
+            if classes not= undefined
+                repeat while classes:HasNext()
+                    Class clazz = classes:Next()
+                    if not results:HasKey(clazz:GetStaticKey())
+                        results:Add(clazz:GetStaticKey(), clazz)
+                    end
+                end
+            end
+        end
+        return results
+    end
+
+    private action AddCustomClasses(CodeCompletionRequest request, CodeCompletionResult result, text pack)
+        SymbolTable sandboxSymbolTable = request:result:symbolTable
+        Iterator<Class> classes = undefined
+
+        HashTable<text, Class> results = GetCustomClassesInPackage(request, result, pack)
+        classes = results:GetValueIterator()
+        repeat while classes not= undefined and classes:HasNext()
+            Class clazz = classes:Next()
+            CodeCompletionItem item = GetClassCompletionItem(clazz)
+            text filter = result:filter
+            integer size = filter:GetSize()
+            item:dotOffset = request:caretLocation - size
+            result:Add(item)
         end
     end
 
@@ -673,12 +707,57 @@ class CodeCompletionHandler
         return item
     end
 
-    private action AddSubpackagesAndClasses(CodeCompletionRequest request, CodeCompletionResult result, text name)
+    private action FindStandardLibrary(CodeCompletionRequest request, CodeCompletionResult result, SymbolTable table)
+        returns Library
+
+        //the code completion system should tell us which standard library we're using.
+        Library library = request:library
+        if library not= undefined
+            return library
+        end
+
+        //if it doesn't, ask the table
+        library = table:GetLibrary()
+        if library not= undefined
+            return library
+        end
+        return library
+    end
+
+    private action GetValidNamesFromTable(CodeCompletionRequest request, CodeCompletionResult result, text name)
+        returns HashTable<text, text>
         SymbolTable sandboxSymbolTable = request:table
-        //first find all of the packages/sub-packages 
+        HashTable<text, text> names
+
         Iterator<text> packs = sandboxSymbolTable:GetSubpackageNames(name)
         repeat while packs:HasNext()
             text pack = packs:Next()
+            names:Add(pack,pack)
+        end
+
+        Library library = FindStandardLibrary(request, result, sandboxSymbolTable)
+        if library not= undefined
+            SymbolTable table = library:GetSymbolTable()
+            if table = undefined
+                return names
+            end
+            packs = table:GetSubpackageNames(name)
+            repeat while packs:HasNext()
+                text pack = packs:Next()
+                names:Add(pack,pack)
+            end
+        end
+        return names
+    end
+
+    private action AddSubpackagesAndClasses(CodeCompletionRequest request, CodeCompletionResult result, text name)
+        SymbolTable sandboxSymbolTable = request:table
+        //first find all of the packages/sub-packages 
+        HashTable<text,text> value = GetValidNamesFromTable(request, result, name)
+        Iterator<text> packs = value:GetValueIterator()
+        repeat while packs:HasNext()
+            text pack = packs:Next()
+            
             integer size = name:GetSize() + 1
             text subpackName = pack:GetSubtext(0, size)
             text filteredName = subpackName + result:filter
@@ -693,8 +772,19 @@ class CodeCompletionHandler
             end
         end
 
+        HashTable<text, Class> results = GetCustomClassesInPackage(request, result, name)
+//        Iterator<Class> classes = results:GetValueIterator()
+//        repeat while classes not= undefined and classes:HasNext()
+//            Class clazz = classes:Next()
+//            CodeCompletionItem item = GetClassCompletionItem(clazz)
+//            text filter = result:filter
+//            integer size = filter:GetSize()
+//            item:dotOffset = request:caretLocation - size
+//            result:Add(item)
+//        end
+
         //next find any classes on the system in the package
-        Iterator<Class> classesInPackage = sandboxSymbolTable:GetClassesInPackage(name)
+        Iterator<Class> classesInPackage = results:GetValueIterator()//sandboxSymbolTable:GetClassesInPackage(name)
         boolean hasAny = false
         if classesInPackage not= undefined
             hasAny = classesInPackage:HasNext()
