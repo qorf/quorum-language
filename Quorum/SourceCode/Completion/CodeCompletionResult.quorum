@@ -6,6 +6,7 @@ use Libraries.Containers.HashTable
 
 class CodeCompletionResult 
     List<CodeCompletionItem> items
+    boolean isUsage = false
     HashTable<text, CodeCompletionItem> hash
     public text filter = ""
     public text prefix = ""
@@ -30,5 +31,13 @@ class CodeCompletionResult
 
     action GetSize returns integer
         return items:GetSize()
+    end
+
+    action IsUsage returns boolean
+        return isUsage
+    end
+
+    action SetUsage(boolean isUsage)
+        me:isUsage = isUsage
     end
 end
