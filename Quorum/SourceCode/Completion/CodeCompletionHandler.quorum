@@ -574,7 +574,9 @@ class CodeCompletionHandler
         Iterator<Variable> variables = request:block:GetVariablesAllBlocks()
         repeat while variables:HasNext()
             Variable variable = variables:Next()
-            AddVariable(request, result, variable)
+            if variable not= undefined and variable:IsVisibleToDebugger()
+                AddVariable(request, result, variable)
+            end
         end
 
         Action method = request:method
@@ -582,7 +584,9 @@ class CodeCompletionHandler
             Iterator<Variable> parameters = method:GetParameterIterator()
             repeat while parameters:HasNext()
                 Variable variable = parameters:Next()
-                AddVariable(request, result, variable)
+                if variable not= undefined and variable:IsVisibleToDebugger()
+                    AddVariable(request, result, variable)
+                end
             end
         end
     end
