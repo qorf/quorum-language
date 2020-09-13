@@ -291,6 +291,8 @@ class CodeCompletionHandler
         if request:left = "me"
             AddClassVariables(request, result)
             AddParentVariables(request, result)
+        elseif request:left = "parent"
+            AddParentVariables(request, result)
         elseif request:variable = undefined
             AddClassVariables(request, result)
             AddParentVariables(request, result)
@@ -545,9 +547,10 @@ class CodeCompletionHandler
                         item:SetType(item:PARENT_FIELD_PUBLIC)
                     end
 
-                    text filter = result:filter
+                    text filter = "parent:"
                     integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size// + additionalDotOffset
+                    item:dotOffset = request:caretLocation - size
+                    result:filter = filter
                     if request:isRequestInClass
                         result:Add(item)
                     else
