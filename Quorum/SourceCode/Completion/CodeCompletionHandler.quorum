@@ -105,10 +105,18 @@ class CodeCompletionHandler
         if lastCompiledResult not= undefined
             compiled = lastCompiledResult:symbolTable
         end
+
+        if last not= undefined 
+            Class lastClazz = last:GetClassInFile(request:fileKey)
+            if lastClazz not= undefined
+                request:clazzCurrentParse = lastClazz
+            end
+        end
+
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
         
-        if clazz = undefined or table = undefined or not IsLegalCall(request, clazz, split)
+        if clazz = undefined or table = undefined or not IsLegalCall(request, request:clazzCurrentParse, split)
             return result
         end
 
@@ -196,7 +204,7 @@ class CodeCompletionHandler
     end
 
     private action FindLocation(CodeCompletionRequest request, Class clazz)
-        Action method = GetActionAtIndex(clazz, request:caretLocation)
+        Action method = GetActionAtIndex(request:clazzCurrentParse, request:caretLocation)
             
         Block block = undefined
         if method not= undefined
