@@ -116,10 +116,12 @@ class CodeCompletionHandler
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
         
-        if clazz = undefined or table = undefined or not IsLegalCall(request, request:clazzCurrentParse, split)
+        if (clazz = undefined or table = undefined or not IsLegalCall(request, request:clazzCurrentParse, split))
+            and not (isUse or isPackage)
             return result
         end
 
+        //true or true  or true and false
         request:clazz = clazz
         request:table = table
         FindLocation(request, clazz)
@@ -784,15 +786,6 @@ class CodeCompletionHandler
         end
 
         HashTable<text, Class> results = GetCustomClassesInPackage(request, result, name)
-//        Iterator<Class> classes = results:GetValueIterator()
-//        repeat while classes not= undefined and classes:HasNext()
-//            Class clazz = classes:Next()
-//            CodeCompletionItem item = GetClassCompletionItem(clazz)
-//            text filter = result:filter
-//            integer size = filter:GetSize()
-//            item:dotOffset = request:caretLocation - size
-//            result:Add(item)
-//        end
 
         //next find any classes on the system in the package
         Iterator<Class> classesInPackage = results:GetValueIterator()//sandboxSymbolTable:GetClassesInPackage(name)
@@ -899,6 +892,9 @@ class CodeCompletionHandler
 
     private action GetActionAtIndex(Class clazz, integer index) returns Action
         Action act = undefined
+        if clazz = undefined
+            return undefined
+        end
         File file = clazz:GetFile()
         text classPath = file:GetAbsolutePath()
 
