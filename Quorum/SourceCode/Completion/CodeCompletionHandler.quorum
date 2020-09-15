@@ -235,7 +235,7 @@ class CodeCompletionHandler
                 Type type = variable:GetType()
                 SymbolTable table = request:table
 
-                if not type:IsPrimitive()
+                if type not= undefined and not type:IsPrimitive()
                     text key = type:GetStaticKey()
                     Class varClass = table:GetClass(key)
                     request:variableClass = varClass
@@ -250,10 +250,12 @@ class CodeCompletionHandler
                         end
                     end
                 else 
-                    text key = type:ConvertToNonPrimitiveStaticKey()
-                    Class varClass = table:GetClass(key)
-                    request:variableClass = varClass
-                    request:isPrimitiveConversion = true
+                    if type not= undefined
+                        text key = type:ConvertToNonPrimitiveStaticKey()
+                        Class varClass = table:GetClass(key)
+                        request:variableClass = varClass
+                        request:isPrimitiveConversion = true
+                    end
                 end
             end
         end
