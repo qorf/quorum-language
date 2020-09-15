@@ -413,11 +413,13 @@ class CodeCompletionHandler
     end
 
     private action AddActions(CodeCompletionRequest request, CodeCompletionResult result)
-        boolean showPrivate = request:isRequestInClass
         Class clazzToProcess = request:clazz
         if request:variable not= undefined
             clazzToProcess = request:variableClass
-            showPrivate = false
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
         end
 
         if clazzToProcess = undefined
@@ -448,7 +450,7 @@ class CodeCompletionHandler
             if isPrimitive
                 text value = act:GetName()
                 if value not= "GetValue" and value not= "SetValue"
-                    if showPrivate
+                    if request:isRequestInClass
                         result:Add(item)
                     else
                         if not act:IsPrivate()
@@ -457,7 +459,7 @@ class CodeCompletionHandler
                     end
                 end
             else
-                if showPrivate
+                if request:isRequestInClass
                     result:Add(item)
                 else
                     if not act:IsPrivate()
@@ -507,11 +509,13 @@ class CodeCompletionHandler
 
     /* Add all of the fields from this class */
     private action AddClassVariables(CodeCompletionRequest request, CodeCompletionResult result)
-        boolean showPrivate = request:isRequestInClass
         Class clazzToProcess = request:clazz
         if request:variable not= undefined
             clazzToProcess = request:variableClass
-            showPrivate = false
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
         end
 
         if clazzToProcess = undefined
