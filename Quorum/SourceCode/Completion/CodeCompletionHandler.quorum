@@ -47,10 +47,12 @@ class CodeCompletionHandler
                 CodeCompletionItem item
                 item:SetType(item:PACKAGE)
                 item:displayText = root
+                item:documentationText = "Root package in Quorum"
                 item:completionText = root
-                text filter = result:filter
+                text filter = ""
                 integer size = filter:GetSize()
                 item:dotOffset = request:caretLocation - size
+                result:filter = filter
                 result:Add(item)
                 AddCustomClasses(request, result, root)
             elseif left = root
