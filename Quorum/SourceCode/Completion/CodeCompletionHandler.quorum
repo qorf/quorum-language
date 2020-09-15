@@ -297,7 +297,8 @@ class CodeCompletionHandler
         if request:left = "me"
             AddClassVariables(request, result)
             AddParentVariables(request, result)
-        elseif request:left = "parent"
+        elseif request:left:StartsWith("parent")
+            result:filter = request:unmodifiedLine:Trim()
             AddParentVariables(request, result)
         elseif request:variable = undefined
             AddClassVariables(request, result)
@@ -560,7 +561,6 @@ class CodeCompletionHandler
                     text filter = "parent:"
                     integer size = filter:GetSize()
                     item:dotOffset = request:caretLocation - size
-                    result:filter = filter
                     if request:isRequestInClass
                         result:Add(item)
                     else
