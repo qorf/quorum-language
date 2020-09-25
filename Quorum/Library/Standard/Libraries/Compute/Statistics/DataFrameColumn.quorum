@@ -4,6 +4,7 @@ use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -52,6 +53,24 @@ class DataFrameColumn
     action SendValueTo(integer index, DataFrameColumnCalculation calculation)
     end
 
+    blueprint action IsUndefined(integer row) returns boolean
+
+    action IsNumberColumn returns boolean
+        return false
+    end
+
+    action IsBooleanColumn returns boolean
+        return false
+    end
+
+    action IsTextColumn returns boolean
+        return false
+    end
+
+    action IsIntegerColumn returns boolean
+        return false
+    end
+
     /*
         Regardless of the type of the column, this action attempts
         to convert the item at the index to a number. 
@@ -64,6 +83,32 @@ class DataFrameColumn
 
     action GetAsText(integer index) returns text
         alert("Cannot convert value at position " + index + " to text.")
+    end
+
+    action GetAsBoolean(integer index) returns boolean
+        alert("Cannot convert value at position " + index + " to a boolean.")
+    end
+
+    action GetAsInteger(integer index) returns integer
+        alert("Cannot convert value at position " + index + " to a boolean.")
+    end
+
+
+
+    action SetAsNumber(integer index, number value)
+        alert("Cannot convert value at position " + index + " to number.")
+    end
+
+    action SetAsText(integer index, text value)
+        alert("Cannot convert value at position " + index + " to text.")
+    end
+
+    action SetAsBoolean(integer index, boolean value)
+        alert("Cannot convert value at position " + index + " to boolean.")
+    end
+
+    action SetAsInteger(integer index, integer value)
+        alert("Cannot convert value at position " + index + " to integer.")
     end
 
     action ConvertToNumberColumn returns NumberColumn
@@ -80,6 +125,12 @@ class DataFrameColumn
 
     action ConvertToBooleanColumn returns BooleanColumn
         BooleanColumn column
+        ConvertColumn(column)
+        return column
+    end
+
+    action ConvertToTextColumn returns TextColumn
+        TextColumn column
         ConvertColumn(column)
         return column
     end
@@ -150,8 +201,12 @@ class DataFrameColumn
     /* This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. */
     blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
 
+    blueprint action SetSize(integer size)
+
     /* This action returns the number of rows. */
     action GetSize returns integer
         return 0
     end
+
+    blueprint action ToText returns text
 end

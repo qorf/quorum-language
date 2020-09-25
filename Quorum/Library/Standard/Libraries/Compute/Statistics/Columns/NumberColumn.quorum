@@ -54,9 +54,15 @@ class NumberColumn is DataFrameColumn
         return true
     end
 
+    action IsUndefined(integer row) returns boolean
+        return rows:Get(row) = undefined
+    end
+
     action Get(integer row) returns Number
         return rows:Get(row)
     end
+
+    
 
     action GetAsText(integer index) returns text
         Number value = rows:Get(index)
@@ -78,6 +84,18 @@ class NumberColumn is DataFrameColumn
             alert("Cannot convert value at position " + index + " to number.")
         end
         return num:GetValue()
+    end
+
+    action IsNumberColumn returns boolean
+        return true
+    end
+
+    action SetAsNumber(integer index, number value)
+        rows:Set(index, value)
+    end
+
+    action SetSize(integer size)
+        rows:SetSize(size)
     end
 
     action GetSize returns integer
@@ -113,5 +131,17 @@ class NumberColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            number value = GetAsNumber(i)
+            result = result + value + lf
+            i = i + 1
+        end
+        return result
     end
 end

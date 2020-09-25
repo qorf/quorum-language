@@ -48,6 +48,22 @@ class IntegerColumn is DataFrameColumn
         return num:GetValue()
     end
 
+    action GetAsInteger(integer index) returns integer
+        Integer num = rows:Get(index)
+        if num = undefined
+            alert("Cannot convert value at position " + index + " to number.")
+        end
+        return num:GetValue()
+    end
+
+    action SetAsInteger(integer index, integer value)
+        rows:Set(index, value)
+    end
+
+    action IsIntegerColumn returns boolean
+        return true
+    end
+
     action GetAsText(integer index) returns text
         Integer value = rows:Get(index)
         if value = undefined
@@ -77,8 +93,16 @@ class IntegerColumn is DataFrameColumn
         return true
     end
 
+    action SetSize(integer size)
+        rows:SetSize(size)
+    end
+
     action GetSize returns integer
         return rows:GetSize()
+    end
+
+    action IsUndefined(integer row) returns boolean
+        return rows:Get(row) = undefined
     end
 
     action Get(integer row) returns Integer
@@ -114,5 +138,17 @@ class IntegerColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            integer value = GetAsInteger(i)
+            result = result + value + lf
+            i = i + 1
+        end
+        return result
     end
 end

@@ -33,8 +33,16 @@ class TextColumn is DataFrameColumn
         calculation:Add(num)
     end
 
+    action SetSize(integer size)
+        rows:SetSize(size)
+    end
+
     action GetSize returns integer
         return rows:GetSize()
+    end
+
+    action IsUndefined(integer row) returns boolean
+        return rows:Get(row) = undefined
     end
 
     action Get(integer row) returns Text
@@ -48,6 +56,14 @@ class TextColumn is DataFrameColumn
         else
             return value:GetValue()
         end
+    end
+
+    action SetAsText(integer index, text value)
+        rows:Set(index, value)
+    end
+
+    action IsTextColumn returns boolean
+        return true
     end
 
     action Swap(integer left, integer right)
@@ -79,5 +95,17 @@ class TextColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            text value = GetAsText(i)
+            result = result + value + lf
+            i = i + 1
+        end
+        return result
     end
 end
