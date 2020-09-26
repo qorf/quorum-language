@@ -41,7 +41,12 @@ class DataFrameColumn
 
     /*
         Columns may optionally add data from a text representation of that data. 
-        This can be in any arbitrary format determined by the column implementor.
+        This can be in any arbitrary format determined by the column implementor. The 
+        Add action does the auto-conversion, while the set values are only accepted
+        if that data type is allowed. The broad purpose is to allow this action to read in
+        from an arbitrary text source and add it to the column.
+
+        Attribute: Parameter value The value to be converted to the proper type for this kind of column.
     */
     action Add(text value)
     end
@@ -49,24 +54,62 @@ class DataFrameColumn
     /*
         This action sends an individual data point to a calculation, typed
         appropriately by its subclass.
+
+        Attribute: Parameter index Which part of the column to send the calculation
+        Attribute: Parameter calculation the calculation to run on this part of the column
     */
     action SendValueTo(integer index, DataFrameColumnCalculation calculation)
     end
 
+    /*
+        This action detects whether a particular index is an undefined value in the column.
+
+        Attribute: Parameter row The row of the column to check
+        Attribute: Returns true if the row is undefined
+    */
     blueprint action IsUndefined(integer row) returns boolean
 
+
+    /*
+        This action detects whether this column ultimately stores numbers inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these numbers however they see fit.
+        
+        Attribute: Returns true if this column stores numbers
+    */
     action IsNumberColumn returns boolean
         return false
     end
 
+    /*
+        This action detects whether this column ultimately stores booleans inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these values however they see fit.
+        
+        Attribute: Returns true if this column stores booleans
+    */
     action IsBooleanColumn returns boolean
         return false
     end
 
+    /*
+        This action detects whether this column ultimately stores text inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these values however they see fit.
+        
+        Attribute: Returns true if this column stores text
+    */
     action IsTextColumn returns boolean
         return false
     end
 
+    /*
+        This action detects whether this column ultimately stores integers inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these values however they see fit.
+        
+        Attribute: Returns true if this column stores integers
+    */
     action IsIntegerColumn returns boolean
         return false
     end
@@ -81,54 +124,126 @@ class DataFrameColumn
         alert("Cannot convert value at position " + index + " to number.")
     end
 
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to text. 
+
+        Attrribute: Parameter index the item to be converted
+    */
     action GetAsText(integer index) returns text
         alert("Cannot convert value at position " + index + " to text.")
     end
 
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to a boolean. 
+
+        Attrribute: Parameter index the item to be converted
+    */
     action GetAsBoolean(integer index) returns boolean
         alert("Cannot convert value at position " + index + " to a boolean.")
     end
 
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to an integer. 
+
+        Attrribute: Parameter index the item to be converted
+    */
     action GetAsInteger(integer index) returns integer
         alert("Cannot convert value at position " + index + " to a boolean.")
     end
 
+    /*
+        This action sets the index to a number if and only if this is a number
+        column.
 
-
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
     action SetAsNumber(integer index, number value)
         alert("Cannot convert value at position " + index + " to number.")
     end
 
+    /*
+        This action sets the index to text if and only if this is a text
+        column.
+
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
     action SetAsText(integer index, text value)
         alert("Cannot convert value at position " + index + " to text.")
     end
 
+    /*
+        This action sets the index to a boolean if and only if this is a boolean
+        column.
+
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
     action SetAsBoolean(integer index, boolean value)
         alert("Cannot convert value at position " + index + " to boolean.")
     end
 
+    /*
+        This action sets the index to an integer if and only if this is an integer
+        column.
+
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
     action SetAsInteger(integer index, integer value)
         alert("Cannot convert value at position " + index + " to integer.")
     end
 
+    /*
+        Regardless of the type of this column, the system will attempt
+        to convert it to a NumberColumn. This may cause an error to be thrown
+        if the types are not compatible.
+
+        Attrribute: Returns the newly converted column
+    */
     action ConvertToNumberColumn returns NumberColumn
         NumberColumn column
         ConvertColumn(column)
         return column
     end
 
+    /*
+        Regardless of the type of this column, the system will attempt
+        to convert it to an IntegerColumn. This may cause an error to be thrown
+        if the types are not compatible.
+
+        Attrribute: Returns the newly converted column
+    */
     action ConvertToIntegerColumn returns IntegerColumn
         IntegerColumn column
         ConvertColumn(column)
         return column
     end
 
+    /*
+        Regardless of the type of this column, the system will attempt
+        to convert it to a BooleanColumn. This may cause an error to be thrown
+        if the types are not compatible.
+
+        Attrribute: Returns the newly converted column
+    */
     action ConvertToBooleanColumn returns BooleanColumn
         BooleanColumn column
         ConvertColumn(column)
         return column
     end
 
+    /*
+        Regardless of the type of this column, the system will attempt
+        to convert it to a TextColumn. This may cause an error to be thrown
+        if the types are not compatible.
+
+        Attrribute: Returns the newly converted column
+    */
     action ConvertToTextColumn returns TextColumn
         TextColumn column
         ConvertColumn(column)
@@ -153,19 +268,32 @@ class DataFrameColumn
 
     /*
         Some column types can be converted to a raw vector of numbers. All other
-        column types throw an error if they cannot convert.
+        column types throw an error if they cannot convert. This vector conversion
+        stores numbers more tightly in primitive form, so no undefined values are allowed,
+        but the system can process on the vector more quickly and efficiently.
+
+        Attribute: Returns the vector
     */
     action ConvertToVector returns Vector
         alert("Cannot convert to Vector for this type of Column.")
     end
 
-    /* This action returns whether or not this column type can be converted to a Vector of numbers. */
+    /* 
+
+        This action returns whether or not this column type can be converted to a Vector of numbers. 
+
+        Attribute: Returns true if this column type can be converted and false if it would throw an error on conversion.
+
+    */
     action CanConvertToVector returns boolean
         return false
     end
 
     /*
         This action swaps two values in the column. 
+
+        Attribute: Parameter left the first index to swap
+        Attribute: Parameter right the second index to swap
     */
     blueprint action Swap(integer left, integer right)
 
@@ -175,6 +303,8 @@ class DataFrameColumn
         data point to the class for processing. If not, it is asked to conduct
         the entire operation at once on the full data set. Finally, it issues
         an end action. 
+
+        Attribute: Parameter the calculation to do on this column.
     */
     action Calculate(DataFrameColumnCalculation calculation)
         if calculation = undefined
@@ -198,15 +328,34 @@ class DataFrameColumn
     /* This action conducts a deep copy of the column. */
     blueprint action Copy returns DataFrameColumn
 
-    /* This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. */
+    /* 
+        This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. 
+
+        Attribute: Parameter rowStart the first row to copy
+        Attribute: Parameter rowEnd the last row to copy
+    */
     blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
 
+    /*
+        This action sets the size of the column to the parameter and then fills it with undefined values. 
+
+        Attribute: Parameter size the size of the column.
+    */
     blueprint action SetSize(integer size)
 
-    /* This action returns the number of rows. */
+    /* 
+        This action returns the number of rows. 
+        Attribute: Returns The size of the column (number of rows).
+    */
     action GetSize returns integer
         return 0
     end
 
+    /*
+        This is a convenience action that converts the entire column to a text format. This 
+        allows it to be sent to the console or a text editor for viewing.
+
+        Attribute: Returns a text representation of the entire column
+    */
     blueprint action ToText returns text
 end
