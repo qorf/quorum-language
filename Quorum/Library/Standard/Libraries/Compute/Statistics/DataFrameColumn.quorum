@@ -16,8 +16,10 @@ use Libraries.Compute.Statistics.Columns.TextColumn
 
     Note that in most cases, a user will not interact directly with this class. It is a 
     parent class that encapsulates some common functionality, but typically one would 
-    pass a calculation or other operation to this class. If one needs to directly manipulate 
-    the data in a particular column, then a subclass must be used.
+    pass a calculation or other operation to this class. The raw data of a column can 
+    also be manipulated directly, but type information must be checked through the appropriate
+    actions (e.g., IsBooleanColumn). This is to balance the need to sometimes just iterate through
+    a column with the need to manipulate its data directly. 
 
     Attribute: Author Andreas Stefik
 */
