@@ -18,10 +18,21 @@ use Libraries.Compute.Statistics.Columns.TextColumn
     parent class that encapsulates some common functionality, but typically one would 
     pass a calculation or other operation to this class. The raw data of a column can 
     also be manipulated directly, but type information must be checked through the appropriate
-    actions (e.g., IsBooleanColumn). This is to balance the need to sometimes just iterate through
-    a column with the need to manipulate its data directly. 
+    actions (e.g., IsBooleanColumn). This is to balance the need to sometimes iterate through
+    a column with the opposite need to manipulate its data directly. 
 
     Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.DataFrameColumn
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    DataFrameColumn col = frame:GetColumn(0)
+    output col:ToText()
 */
 class DataFrameColumn 
     /* This is the name of the column. */
