@@ -29,23 +29,53 @@ use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Controls.Charts.ChartPointComparison
 
 /*
-    The ScatterPlot class ...
+    The ScatterPlot class is a special form of Chart that displays individual
+    data points. Like other charts, the ScatterPlot is a type of Control, and
+    should be used inside of a Game. The ScatterPlot is accessible to screen
+    readers, and can be navigated using the arrows -- when inspecting the main
+    content area, the user can inspect the individual quadrants, and any
+    quadrant that contains many points will be subdivided into further quadrants.
 
     Attribute: Author Andreas Stefik
 
     Attribute: Example
 
-    use Libraries.Interface.Controls.Charts.ScatterPlot
     use Libraries.Game.Game
-
+    use Libraries.Interface.Layouts.ManualLayout
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+    use Libraries.Interface.Controls.Charts.Chart
+    
     class Main is Game
+    
+    
         action Main
             StartGame()
         end
-
+    
         action CreateGame
-            ScatterPlot chart
+            ManualLayout layout
+            SetLayout(layout)
+    
+            // Load some data into a DataFrame -- in this example, we assume we have a file "Data.csv" in the project folder
+            DataFrame frame
+            frame:Load("Data.csv")
+    
+            ScatterPlotCreator creator
+            creator:SetXColumn("DT")
+            creator:SetYColumn("FS")
+    
+            Chart chart = cast(Chart, frame:CreateChart(creator))
+    
+            chart:SetTitle("DT vs. FS")
+            chart:SetYAxisTitle("FS")
+            chart:SetXAxisTitle("DT")
+    
             Add(chart)
+    
+            chart:SetPercentageWidth(1)
+            chart:SetPercentageHeight(1)
+            chart:Focus()
         end
     end
 */
@@ -135,6 +165,11 @@ class ScatterPlot is TwoVariableChart
         return region
     end
 
+    /*
+    This action is used to generate the accessible information used for the main content area
+    of the chart. It is called automatically by the system when the chart is created. Classes
+    that inherit from TwoVariableChart must implement this.
+    */
     action GenerateChartAreaInfo returns ChartItem
         ChartItem chartArea
 
@@ -304,6 +339,14 @@ class ScatterPlot is TwoVariableChart
         return points
     end
 
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
     action LostSelection(ChartItem ci)
         if ci = undefined
             return now
@@ -321,6 +364,14 @@ class ScatterPlot is TwoVariableChart
         end
     end
 
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
     action GainedSelection(ChartItem ci)
         if ci = undefined
             return now
@@ -353,6 +404,11 @@ class ScatterPlot is TwoVariableChart
         end
     end
 
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
         parent:TwoVariableChart:LoadGraphics(properties)
@@ -385,18 +441,46 @@ class ScatterPlot is TwoVariableChart
         parent:Chart:Resize()
     end
 
+    /*
+    When navigating the ScatterPlot's chart area using the keyboard, if there are many points inside of a quadrant,
+    the quadrant will be made up of four sub-regions which can be further inspected. If there are few points, the
+    quadrant will instead provide access to the points. This action sets the maximum number of points
+    that can be in a region without dividing it into subregions.
+
+    Attribute: Parameter threshold The maximum number of points that can be in a single, undivided region of the chart.
+    */
     action SetQuadrantThreshold(integer threshold)
         quadrantThreshold = threshold
     end
     
+    /*
+    When navigating the ScatterPlot's chart area using the keyboard, if there are many points inside of a quadrant,
+    the quadrant will be made up of four sub-regions which can be further inspected. If there are few points, the
+    quadrant will instead provide access to the points. This action returns the maximum number of points
+    that can be in a region without dividing it into subregions.
+
+    Attribute: Returns The maximum number of points that can be in a single, undivided region of the chart.
+    */
     action GetQuadrantThreshold returns integer
         return quadrantThreshold
     end
 
+    /*
+    This action sets the maximum number of times that the chart region can be divided into sub-regions when
+    accessing the chart's contents via the keyboard.
+
+    Attribute: Parameter subdivisions The maximum number of times that the chart region can be divided into sub-regions.
+    */
     action SetMaximumSubdivisons(integer subdivisions)
         maxSubdivisions = subdivisions
     end
 
+    /*
+    This action returns the maximum number of times that the chart region can be divided into sub-regions when
+    accessing the chart's contents via the keyboard.
+
+    Attribute: Returns The maximum number of times that the chart region can be divided into sub-regions.
+    */
     action GetMaximumSubdivisions returns integer
         return maxSubdivisions
     end

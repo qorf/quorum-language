@@ -2,9 +2,7 @@
 #include "WindowRootProvider.h"
 #include "RootItemTImpl.h"
 // Includes used for logging.
-#include <ctime>
 #include <chrono>
-#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <fstream>
@@ -40,13 +38,6 @@ WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 
 	// Make a new folder with the results of this session.
 	std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	//std::string folderString = std::ctime(&currentTime);
-	//std::replace(folderString.begin(), folderString.end(), ' ', '_');
-	//std::replace(folderString.begin(), folderString.end(), ':', '-');
-	//int size_needed = MultiByteToWideChar(CP_UTF8, 0, &folderString[0], (int)folderString.size(), NULL, 0);
-	//std::wstring folder(size_needed, 0);
-	//MultiByteToWideChar(CP_UTF8, 0, &folderString[0], (int)folderString.size(), &folder[0], size_needed);
-	//std::wstring folder(std::put_time(std::gmtime(&currentTime), L"%Y-%M-%d %H:%M:%S"));
 	std::wstringstream stream;
 	stream << std::put_time(std::localtime(&currentTime), L"%m-%d-%Y %H-%M-%S");
 	std::wstring result = log_baseDirectory + L"/" + stream.str();
@@ -55,6 +46,10 @@ WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 	{
 		std::wcout << L"Wrote output directory to " << result << std::endl;
 		log_currentDirectory = result;
+
+		std::wstring fileName(L"/EventLog.csv");
+		log_csvFile = new std::wofstream(log_currentDirectory + fileName);
+		(*log_csvFile) << L"Frame,Poll Count,Is Polling,Source,Event" << std::endl;
 	}
 	else
 	{
@@ -98,6 +93,10 @@ LRESULT WindowRoot::OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) n
 	// If no value exists yet, this will initialize it to 0 and then increment it to 1.
 	log_messages[msg]++;
 	log_messagesSnapshot[msg]++;
+
+	std::wstring source(L"MESSAGE PUMP");
+	std::wstring event = Log_GetMessageName(msg);
+	Log_RecordEvent(source, event);
 
 	if ((msg == WM_GETOBJECT) && !m_isDisconnecting)
 	{
@@ -154,7 +153,9 @@ void WindowRoot::DisconnectAndDestroyAll()
 	file << L"Total events = " << totalCount << L", unique events = " << count << std::endl;
 	file.close();
 
-	std::cout << "Finished writing to file." << std::endl;
+	log_csvFile->close();
+
+	std::cout << "Finished writing to files." << std::endl;
 
 	m_isDisconnecting = true;
 	DisconnectAndDestroyRecursive(this);
@@ -193,5 +194,18 @@ std::wstring WindowRoot::Log_GetMessageName(UINT key)
 		std::wstring prefix(L"Unknown (");
 		std::wstring result(prefix + std::to_wstring(key) + L")");
 		return result;
+	}
+}
+
+void WindowRoot::Log_RecordEvent(std::wstring source, std::wstring event)
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jint frame = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetFrameCount);
+		jint subframe = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSubframeCount);
+		jboolean polling = env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsPollingEvents);
+
+		(*log_csvFile) << frame << L"," << subframe << L"," << polling << L"," << source << L"," << event << std::endl;
 	}
 }

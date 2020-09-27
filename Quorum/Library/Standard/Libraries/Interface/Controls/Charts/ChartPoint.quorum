@@ -3,6 +3,13 @@ package Libraries.Controls.Charts
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 
+/*
+This class is used to represent the visual points that are placed in a ScatterPlot.
+These are meant for internal use by the ScatterPlot, and users will typically never
+use this class directly.
+
+Attribute: Author William Allee
+*/
 class ChartPoint is Drawable
     number percentX = 0
     number percentY = 0
@@ -14,26 +21,64 @@ class ChartPoint is Drawable
         SetAccessibilityCode(parent:Item:ITEM)
     end
 
+    /*
+    This action returns the x position of the point as a percentage
+    of the chart region's width. The percentage is represented as a
+    value between 0.0 and 1.0.
+
+    Attribute: Returns The x position of the point as a percentage.
+    */
     action GetPercentX returns number
         return percentX
     end
 
+    /*
+    This action sets the x position of the point as a percentage
+    of the chart region's width.
+
+    Attribute: Parameter percentX The x position of the point as a percentage.
+    */
     action SetPercentX(number percentX)
         me:percentX = percentX
     end
 
+    /*
+    This action returns the y position of the point as a percentage
+    of the chart region's width. The percentage is represented as a
+    value between 0.0 and 1.0.
+
+    Attribute: Returns The y position of the point as a percentage.
+    */
     action GetPercentY returns number
         return percentY
     end
 
+    /*
+    This action sets the y position of the point as a percentage
+    of the chart region's width.
+
+    Attribute: Parameter percentY The y position of the point as a percentage.
+    */
     action SetPercentY(number percentY)
         me:percentY = percentY
     end
 
+    /*
+    This action sets a reference to the region this point is inside of. The provided
+    region is the actual Icon rendered to the screen.
+
+    Attribute: Parameter region The Icon representing the region this point is inside of.
+    */
     action SetParentRegion(Icon region)
         parentRegion = region
     end
 
+    /*
+    This action returns a reference to the region this point is inside of. The returned
+    region is the actual Icon rendered to the screen.
+
+    Attribute: Returns The Icon representing the region this point is inside of.
+    */
     action GetParentRegion returns Icon
         return parentRegion
     end

@@ -95,6 +95,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetTableRowsSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableRowsSize", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetTableItem = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableItem", "(Lquorum/Libraries/Language/Object_;II)J");
 
+	// Logging functions
+	JavaClass_AccessibilityManager.GetFrameCount = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetFrameCount", "()I");
+	JavaClass_AccessibilityManager.GetSubframeCount = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSubframeCount", "()I");
+	JavaClass_AccessibilityManager.IsPollingEvents = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsPollingEvents", "()Z");
+
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion

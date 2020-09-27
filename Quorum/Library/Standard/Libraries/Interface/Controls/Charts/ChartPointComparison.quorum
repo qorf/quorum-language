@@ -2,6 +2,15 @@ package Libraries.Controls.Charts
 
 use Libraries.Containers.Support.Comparison
 
+/*
+The ChartPointComparison class is used internally by the ScatterPlot class to
+sort points for easy presentation. Points are sorted within each region from
+left to right (lower x values to higher x values), and in case of ties, bottom
+to top (lower y values to higher y values).
+
+This class is used internally by the ScatterPlot. Users will typically not need
+to use this class directly.
+*/
 class ChartPointComparison is Comparison
 
     action Compare(Object left, Object right) returns integer

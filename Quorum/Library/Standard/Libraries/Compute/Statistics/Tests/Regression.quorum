@@ -519,29 +519,6 @@ class Regression is DataFrameCalculation
         return totalSumOfSquares
     end
 
-//    action Multiply(Matrix matrix, Vector vector) returns Vector
-//        if vector:GetSize() not= matrix:GetColumns()
-//            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + matrix:GetColumns() + " columns.")
-//        end
-//        Vector result
-//        result:SetSize(matrix:GetRows())
-//
-//        row = 0
-//        repeat while row < matrix:GetRows()
-//            column = 0
-//            number sum = 0
-//            repeat while column < matrix:GetColumns()
-//                number value = matrix:Get(row, column)
-//                number beta = vector:Get(column)
-//                sum = sum + (value * beta)
-//                column = column + 1
-//            end
-//            result:Set(row, sum)
-//            row = row + 1
-//        end
-//        return result
-//    end
-
     /*
         Returns the total beta coefficients. This action 
         returns 0 unless the regression has been calculated.

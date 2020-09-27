@@ -11,6 +11,17 @@ use Libraries.Interface.Selections.ChartSelection
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 
+/*
+The TwoVariableChart class represents a chart where both the x and y axes
+represent continuous variables. For example, the ScatterPlot class inherits
+from TwoVariableChart.
+
+TwoVariableChart contains a blueprint action, "GenerateChartAreaInfo". Thus,
+it can't be instantiated directly, and inheriting classes need to implement
+that action.
+
+Attribute: Author William Allee
+*/
 class TwoVariableChart is Chart
 
     // The root ChartItem.
@@ -29,6 +40,14 @@ class TwoVariableChart is Chart
     private integer tickLength = 10
     private integer tickWidth = 3
 
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
     action LostSelection(ChartItem ci)
         if ci = undefined
             return now
@@ -41,6 +60,14 @@ class TwoVariableChart is Chart
         end
     end
 
+    /* 
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
     action GainedSelection(ChartItem ci)
         if ci = undefined
             return now
@@ -172,54 +199,123 @@ class TwoVariableChart is Chart
         end
     end
 
+    /*
+    This action sets how many ticks should be placed along the X axis of this chart.
+
+    Attribute: Parameter ticks The number of ticks to place on the X axis.
+    */
     action SetXTickCount(integer ticks)
         xTicks = ticks
     end
 
+    /*
+    This action returns the number of ticks along the X axis of the chart.
+
+    Attribute: Returns The number of ticks along the X axis.
+    */
     action GetXTickCount returns integer
         return xTicks
     end
 
+    /*
+    This action sets how many ticks should be placed along the Y axis of this chart.
+
+    Attribute: Parameter ticks The number of ticks to place on the Y axis.
+    */
     action SetYTickCount(integer ticks)
         yTicks = ticks
     end
 
+    /*
+    This action returns the number of ticks along the Y axis of the chart.
+
+    Attribute: Returns The number of ticks along the Y axis.
+    */
     action GetYTickCount returns integer
         return yTicks
     end
 
+    /*
+    This action returns the minimum value along the X axis.
+
+    Attribute: Returns The minimum value along the X axis.
+    */
     action GetXAxisMinimum returns number
         return xAxisMinimum
     end
 
+    /*
+    This action sets the minimum value along the X axis. This is typically set when the chart is created,
+    and so it isn't necessary to set the value afterward.
+
+    Attribute: Parameter xAxisMinimum The minimum value along the X axis.
+    */
     action SetXAxisMinimum(number xAxisMinimum)
         me:xAxisMinimum = xAxisMinimum
     end
 
+    /*
+    This action returns the maximum value along the X axis.
+
+    Attribute: Returns The maximum value along the X axis.
+    */
     action GetXAxisMaximum returns number
         return xAxisMaximum
     end
 
+    /*
+    This action sets the maximum value along the X axis. This is typically set when the chart is created,
+    and so it isn't necessary to set the value afterward.
+
+    Attribute: Parameter xAxisMaximum The maximum value along the X axis.
+    */
     action SetXAxisMaximum(number xAxisMaximum)
         me:xAxisMaximum = xAxisMaximum
     end
 
+    /*
+    This action returns the minimum value along the Y axis.
+
+    Attribute: Returns The minimum value along the Y axis.
+    */
     action GetYAxisMinimum returns number
         return yAxisMinimum
     end
 
+    /*
+    This action sets the minimum value along the Y axis. This is typically set when the chart is created,
+    and so it isn't necessary to set the value afterward.
+
+    Attribute: Parameter xAxisMaximum The minimum value along the Y axis.
+    */
     action SetYAxisMinimum(number yAxisMinimum)
         me:yAxisMinimum = yAxisMinimum
     end
 
+    /*
+    This action returns the maximum value along the Y axis.
+
+    Attribute: Returns The maximum value along the Y axis.
+    */
     action GetYAxisMaximum returns number
         return yAxisMaximum
     end
 
+    /*
+    This action sets the maximum value along the Y axis. This is typically set when the chart is created,
+    and so it isn't necessary to set the value afterward.
+
+    Attribute: Parameter xAxisMaximum The maximum value along the Y axis.
+    */
     action SetYAxisMaximum(number yAxisMaximum)
         me:yAxisMaximum = yAxisMaximum
     end
 
+    /*
+    This action is used to generate the accessible information used for the main content area
+    of the chart. It is called automatically by the system when the chart is created. Classes
+    that inherit from TwoVariableChart must implement this.
+    */
     blueprint action GenerateChartAreaInfo returns ChartItem
 
     /*

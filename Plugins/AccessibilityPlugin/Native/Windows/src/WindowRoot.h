@@ -15,6 +15,9 @@ public:
 	void DisconnectAndDestroyAll();
 	bool IsHostFocused() const noexcept override;
 
+	// Used to log events across the system.
+	void Log_RecordEvent(std::wstring source, std::wstring event);
+
 private:
 	static LRESULT CALLBACK StaticOverrideWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	LRESULT OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
@@ -34,6 +37,9 @@ private:
 
 	// The folder containing the current session's logging info.
 	std::wstring log_currentDirectory;
+
+	// The main CSV log file that is being written to over the lifetime of the program.
+	std::wofstream* log_csvFile;
 
 	// How many snapshots have been collected.
 	// Whenever a KEYDOWN message is received, a snapshot is created which describes all messages received before that KEYDOWN.

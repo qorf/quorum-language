@@ -53,6 +53,10 @@ public class DesktopDisplay {
     */
     private static boolean continueOnResize = true;
     
+    public static int frameCount = 0;
+    public static int subframeCount;
+    public static boolean pollingEvents = false;
+    
     GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
@@ -435,6 +439,9 @@ public class DesktopDisplay {
     public void Update()
     {
         pauseEventPolling = false;
+        frameCount++;
+        subframeCount = 0;
+        pollingEvents = true;
         
         // We always poll for events at least once.
         GLFW.glfwPollEvents();
@@ -449,6 +456,7 @@ public class DesktopDisplay {
         if (config.Get_Libraries_Game_DesktopConfiguration__limitFramesPerSecond_())
             while (pauseEventPolling == false && (interval < minimum || interval < frameTarget))
             {
+                subframeCount++;
                 if (frameTarget > minimum)
                     GLFW.glfwWaitEventsTimeout(frameTarget - interval);
                 else
@@ -458,6 +466,7 @@ public class DesktopDisplay {
         
         
         GLFW.glfwSwapBuffers(window);
+        pollingEvents = false;
     }
 
     public ScreenResolution_ GetDesktopResolution()

@@ -1381,4 +1381,19 @@ public class AccessibilityManager
         
         return lineIndex == (text.length() - separator.length()) && text.endsWith(separator);
     }
+    
+    public static int GetFrameCount()
+    {
+        return DesktopDisplay.frameCount;
+    }
+    
+    public static int GetSubframeCount()
+    {
+        return DesktopDisplay.subframeCount;
+    }
+    
+    public static boolean IsPollingEvents()
+    {
+        return DesktopDisplay.pollingEvents;
+    }
 }

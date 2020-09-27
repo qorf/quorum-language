@@ -60,6 +60,11 @@ struct JClass_AccessibilityManager
 
 	// Used when navigating by word to return new lines as needed.
 	jmethodID IsIndexAtEndOfLine;
+
+	// Used for logging UIA information.
+	jmethodID GetFrameCount;
+	jmethodID GetSubframeCount;
+	jmethodID IsPollingEvents;
 };
 struct JClass_TextBox
 {
