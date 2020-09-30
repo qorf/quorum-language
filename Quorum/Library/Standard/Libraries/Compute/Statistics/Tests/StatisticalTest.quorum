@@ -1,0 +1,13 @@
+package Libraries.Compute.Statistics.Tests
+
+class StatisticalTest
+    StatisticsFormatting formatting
+
+    action GetStatisticalFormatting returns StatisticsFormatting
+        return formatting
+    end
+
+    action SetStatisticalFormatting(StatisticsFormatting formatting)
+        me:formatting = formatting
+    end
+end

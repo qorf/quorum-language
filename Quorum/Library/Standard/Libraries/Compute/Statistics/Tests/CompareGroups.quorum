@@ -1,0 +1,194 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Calculations.Variance
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.TDistribution
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+
+/*
+    This class implements a one-sample t-test. For more information, see
+    this: https://en.wikipedia.org/wiki/Student%27s_t-test
+
+    Attribute: Author Andreas Stefik
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CompareTwoColumns
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    //independent samples t-test
+    CompareTwoColumns compare
+    compare:SetColumn1("DT")
+    compare:SetColumn1("DRT")
+  
+    //calculate the t-test and output a summary
+    frame:Calculate(compare)
+    output compare:GetFormalSummary()
+*/
+class CompareGroups is DataFrameCalculation, ColumnInput
+    number probabilityValue = 0
+    number column1Variance = 0
+    number column2Variance = 0
+    number column1Mean = 0
+    number column2Mean = 0
+    number cohensD = 0
+    number tValue = 0
+    number degreesOfFreedom = 0
+    boolean twoGroups = false
+
+    action Calculate(DataFrame frame) 
+        
+        if GetColumnSize() < 2
+            alert("I cannot correlate less than two groups.")
+        end
+
+        if GetColumnSize() = 2
+            twoGroups = true
+        end
+
+        DataFrameColumn left = frame:GetColumn(GetColumn(0))
+        DataFrameColumn right = frame:GetColumn(GetColumn(1))
+
+        Mean mean
+        left:Calculate(mean)
+        number leftMean = mean:GetMean()
+        mean:Empty()
+
+        right:Calculate(mean)
+        number rightMean = mean:GetMean()
+
+        column1Mean = leftMean
+        column2Mean = rightMean
+
+        leftSize = left:GetSize()
+        rightSize = right:GetSize()
+
+        Variance variance
+        variance:SetMean(leftMean)
+        left:Calculate(variance)
+        number leftVariance = variance:GetVariance()
+        variance:Empty()
+
+        variance:SetMean(rightMean)
+        right:Calculate(variance)
+        number rightVariance = variance:GetVariance()
+
+        column1Variance = leftVariance
+        column2Variance = rightVariance
+
+        xS1 = leftVariance
+        yS1 = rightVariance
+
+        Math math
+        cohensD = math:SquareRoot((xS1 + yS1) / 2.0)
+        cohensD = (leftMean - rightMean) / cohensD
+
+        xS1 =  xS1 / left:GetSize()
+        yS1 =  yS1 / right:GetSize()
+
+        //compute the top part of the equation
+        top = leftMean - rightMean
+        bottom = math:SquareRoot(xS1 + yS1)
+
+        t = top / bottom
+        tValue = t
+
+        number df = DegreesOfFreedom(leftVariance, rightVariance, 
+                left:GetSize(), right:GetSize())
+        degreesOfFreedom = df
+
+        TDistribution distribution
+        distribution:Setup(df)
+        number absoluteValueT = math:AbsoluteValue(t)
+        number p = 2.0 * distribution:CumulativeProbability(-absoluteValueT)
+        probabilityValue = p
+    end
+
+    
+    private action DegreesOfFreedom(number variance1, number variance2, number size1, number size2) returns number
+        return (((variance1 / size1) + (variance2 / size2)) * ((variance1 / size1) + (variance2 / size2))) /
+        ((variance1 * variance1) / (size1 * size1 * (size1 - 1.0)) + (variance2 * variance2) /
+                (size2 * size2 * (size2 - 1.0)))
+    end
+
+    /*
+        Obtains the degrees of freedom calculated by the test.
+    */
+    action GetDegreesOfFreedom returns number
+        return degreesOfFreedom
+    end
+
+    /*
+        In Statistics, this is often termed a p-value. 
+    */
+    action GetProbabilityValue returns number
+        return me:probabilityValue
+    end
+
+    /*
+        This returns a critical value, or the place on the distribution where are 
+        caluclating our probability values from. The critical value, for a test like a t-test,
+        would be equivalent to a t-value.
+    */
+    action GetCriticalValue returns number
+        return tValue
+    end
+
+    /*
+        Returns the mean of the first column.
+    */
+    action GetMean1 returns number
+        return column1Mean
+    end
+
+    /*
+        Returns the mean of the second column.
+    */
+    action GetMean2 returns number
+        return column2Mean
+    end
+
+    /*
+        Returns the variance of the first column.
+    */
+    action GetVariance1 returns number
+        return column1Variance
+    end
+
+    /*
+        Returns the variance of the second column.
+    */
+    action GetVariance2 returns number
+        return column2Variance
+    end
+
+    /* This action obtains an informal summary of the result. */
+    action GetSummary returns text
+        return ""
+    end
+
+    /* This action returns a formal academic summary of the result. */
+    action GetFormalSummary returns text
+        Math math
+        text result = "We conducted a Welch's T-test with two independent samples. "
+        if column1Mean > column2Mean
+            result = result + " The first group had a higher overall mean (M = " + column1Mean + ", SD = " + math:SquareRoot(column1Variance) + ") compared to "
+                +   "the second (M = " + column2Mean + ", SD = " + math:SquareRoot(column2Variance) + ")"
+        else
+            result = result + " The second group had a higher overall mean (M = " + column2Mean + ", SD = " + math:SquareRoot(column2Variance) + ") compared to "
+                +   "the second (M = " + column1Mean + ", SD = " + math:SquareRoot(column1Variance) + ")"
+        end
+
+        result = result + ", t("
+            + degreesOfFreedom + ") = " + tValue + ", p = " + probabilityValue + ", Cohen's D = "
+            + cohensD
+        return result
+    end
+end

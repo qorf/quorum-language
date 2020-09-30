@@ -1,0 +1,123 @@
+package Libraries.Compute.Statistics.Reporting
+
+/*
+    This class represents data that comes back from a correlation.
+
+    Attribute: Author Andreas Stefik
+*/
+class CorrelateGroupsResult
+    integer leftIndex = 0
+    integer rightIndex = 0
+    number probabilityValue = 0
+    number criticalValue = 0
+    number degreesOfFreedom = 0
+    number correlation = 0
+
+    /*
+        Obtains the probability value (p in statistics) calculated by the test.
+
+        Attribute: Returns the probability
+    */
+    action GetProbabilityValue returns number
+        return probabilityValue
+    end
+
+    /*
+        Sets the probability value (p in statistics) calculated by the test.
+
+        Attribute: Parameter probabilityValue the probability
+    */
+    action SetProbabilityValue(number probabilityValue)
+        me:probabilityValue = probabilityValue
+    end
+
+    /*
+        Obtains the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Returns the degrees of freedom
+    */
+    action GetDegreesOfFreedom returns number
+        return degreesOfFreedom
+    end
+
+    /*
+        Sets the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Parameter degreesOfFreedom the degrees of freedom
+    */
+    action SetDegreesOfFreedom(number degreesOfFreedom)
+        me:degreesOfFreedom = degreesOfFreedom
+    end
+
+    /*
+        Obtains the correlation calculated by the test. This may be of any kind.
+
+        Attribute: Returns the correlation
+    */
+    action GetCorrelation returns number
+        return correlation
+    end
+
+    /*
+        Sets the correlation calculated by the test. This may be of any kind.
+
+        Attribute: Parameter correlation the correlation
+    */
+    action SetCorrelation(number correlation)
+        me:correlation = correlation
+    end
+
+    /*
+        This indicates the left column index
+
+        Attribute: Returns the left index
+    */
+    action GetLeftIndex returns integer
+        return leftIndex
+    end
+
+    /*
+        This sets the left column index
+
+        Attribute: Parameter leftIndex the left index
+    */
+    action SetLeftIndex(integer leftIndex)
+        me:leftIndex = leftIndex
+    end
+
+    /*
+        This indicates the right column index
+
+        Attribute: Returns the right index
+    */
+    action GetRightIndex returns integer
+        return rightIndex
+    end
+
+    /*
+        This sets the right column index
+
+        Attribute: Parameter rightIndex the right index
+    */
+    action SetRightIndex(integer rightIndex)
+        me:rightIndex = rightIndex
+    end
+
+    /*
+        This indicates the critical value for any statistical test that was run
+
+        Attribute: Returns the critical value
+    */
+    action GetCriticalValue returns number
+        return criticalValue
+    end
+
+    /*
+        This sets the critical value for any statistical test that was run
+
+        Attribute: Paremeter criticalValue the critical value
+    */
+    action SetCriticalValue(number criticalValue)
+        me:criticalValue = criticalValue
+    end
+end

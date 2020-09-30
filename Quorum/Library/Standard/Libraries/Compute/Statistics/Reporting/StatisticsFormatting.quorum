@@ -1,0 +1,92 @@
+package Libraries.Compute.Statistics.Tests
+use Libraries.Compute.Math
+
+/*
+    This class handles some basic formatting operations for statistical reporting. By default
+    It uses the conventions from the American Psychological Association. See their
+    Statistics guide for more information: 
+
+    https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+    Attribute: Author Andreas Stefik
+*/
+class StatisticsFormatting
+    public constant number PRECISION_LIMIT = 0.001
+    integer probabilitySignificantDigits = 3
+    integer correlationSignificantDigits = 2
+    integer significantDigits = 3
+
+    /*
+        This action formats specifically the p-value for a particular statistical test.
+
+        Attribute: Parameter value the p-value to format
+    */
+    action FormatProbabilityValue(number value) returns text
+        if value < PRECISION_LIMIT
+            return ".001"
+        end
+
+        Math math
+        value = math:Round(value, probabilitySignificantDigits)
+        text str = "" + value
+        if str:GetCharacter(str:GetSize() - 1) = "0"
+            return str:GetSubtext(0, str:GetSize() - 1)
+        else
+            return str
+        end
+    end
+
+    /*
+        This action formats specifically the correlation for a particular statistical test.
+
+        Attribute: Parameter value the value to format
+    */
+    action FormatCorrelation(number value) returns text
+        Math math
+        value = math:Round(value, correlationSignificantDigits)
+        text str = "" + value
+        return str
+    end
+
+    /*
+        This action formats specifically the degrees of freedom for a particular statistical test.
+
+        Attribute: Parameter value the value to format
+    */
+    action FormatDegreesOfFreedom(number value) returns text
+        Math math
+        value = math:Round(value, significantDigits)
+        text str = "" + value
+        return str
+    end 
+
+    /* The number of significant digits for p-values*/
+    action GetProbabilitySignificantDigits returns integer
+        return probabilitySignificantDigits
+    end
+
+    /* The number of significant digits for p-values*/
+    action SetProbabilitySignificantDigits(integer probabilitySignificantDigits)
+        me:probabilitySignificantDigits = probabilitySignificantDigits
+    end
+
+    /* The number of significant digits for correlations */
+    action GetCorrelationSignificantDigits returns integer
+        return correlationSignificantDigits
+    end
+
+    /* The number of significant digits for correlations */
+    action SetCorrelationSignificantDigits(integer correlationSignificantDigits)
+        me:correlationSignificantDigits = correlationSignificantDigits
+    end
+
+    /* The number of significant digits for other tests */
+    action GetSignificantDigits returns integer
+        return significantDigits
+    end
+
+    /* The number of significant digits for other tests */
+    action SetSignificantDigits(integer significantDigits)
+        me:significantDigits = significantDigits
+    end
+end
