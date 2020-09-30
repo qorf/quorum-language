@@ -26,13 +26,13 @@ use Libraries.Containers.Array
     frame:Transform(transform) 
 */
 class ColumnFilterTransform is DataFrameTransform
-    Array<text> columns
+    Array<integer> columns
     action Transform(DataFrame frame) returns DataFrame 
         integer i = 0
         DataFrame newFrame
         Array<DataFrameColumn> newColumns
         repeat while i < columns:GetSize()
-            text value = columns:Get(i)
+            integer value = columns:Get(i)
             DataFrameColumn column = frame:GetColumn(value)
             DataFrameColumn copy = column:Copy()
             newColumns:Add(copy)
@@ -42,7 +42,7 @@ class ColumnFilterTransform is DataFrameTransform
         return newFrame
     end
 
-    action Add(text column)
+    action AddColumn(integer column)
         columns:Add(column)
     end
 end

@@ -1,4 +1,5 @@
 package Libraries.Compute.Statistics.Tests
+
 use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Matrix
@@ -79,10 +80,10 @@ use Libraries.Compute.Statistics.Distributions.FDistribution
 
     frame:SetColumns(columns)
     Regression regression
-    regression:SetPredictedColumn("y")
-    regression:AddPredictorColumn("2")
-    regression:AddPredictorColumn("3")
-    regression:AddPredictorColumn("4")
+    regression:SetDependentVariable(0)
+    regression:AddFactor(1)
+    regression:AddFactor(2)
+    regression:AddFactor(3)
     frame:Calculate(regression)
 
     //Output a series of attributes about the regression
@@ -96,8 +97,8 @@ use Libraries.Compute.Statistics.Distributions.FDistribution
     output "R^2: " + regression:GetEffectSize()
 */
 class Regression is DataFrameCalculation
-    text predictedColumn = ""
-    Array<text> predictors
+    integer dependentVariable = -1
+    Array<integer> factors
     boolean hasIntercept = true
     OrthonormalTriangularDecomposition decomp
     Vector beta = undefined
@@ -114,19 +115,19 @@ class Regression is DataFrameCalculation
     number adjustedR2 = 0
 
     action Calculate(DataFrame frame)         
-        if predictors:GetSize() < 1
+        if factors:GetSize() < 1
             return now
         end
 
         //first copy only the columns under test, so we don't mess up the original data frame.
         ColumnFilterTransform transform
         i = 0
-        repeat while i < predictors:GetSize()
-            text value = predictors:Get(i)
-            transform:Add(value)
+        repeat while i < factors:GetSize()
+            integer value = factors:Get(i)
+            transform:AddColumn(value)
             i = i + 1
         end
-        DataFrameColumn column = frame:GetColumn(predictedColumn)
+        DataFrameColumn column = frame:GetColumn(dependentVariable)
         DataFrame transformed = frame:Transform(transform)
         Array<DataFrameColumn> columns = transformed:GetColumns()
 
@@ -519,29 +520,6 @@ class Regression is DataFrameCalculation
         return totalSumOfSquares
     end
 
-//    action Multiply(Matrix matrix, Vector vector) returns Vector
-//        if vector:GetSize() not= matrix:GetColumns()
-//            alert("Incompatible dimensions: " + vector:GetSize() + " is the size of the vector, but the matrix has " + matrix:GetColumns() + " columns.")
-//        end
-//        Vector result
-//        result:SetSize(matrix:GetRows())
-//
-//        row = 0
-//        repeat while row < matrix:GetRows()
-//            column = 0
-//            number sum = 0
-//            repeat while column < matrix:GetColumns()
-//                number value = matrix:Get(row, column)
-//                number beta = vector:Get(column)
-//                sum = sum + (value * beta)
-//                column = column + 1
-//            end
-//            result:Set(row, sum)
-//            row = row + 1
-//        end
-//        return result
-//    end
-
     /*
         Returns the total beta coefficients. This action 
         returns 0 unless the regression has been calculated.
@@ -565,22 +543,22 @@ class Regression is DataFrameCalculation
     /*
         This action adds a column to the set that predict the outcome variable.
     */
-    action AddPredictorColumn(text name)
-        predictors:Add(name)
+    action AddFactor(integer column)
+        factors:Add(column)
     end
     
     /*
         Returns the column name to be predicted (y)
     */
-    action GetPredictedColumn returns text
-        return predictedColumn
+    action GetDependentVariable returns integer
+        return dependentVariable
     end
 
     /*
         Returns the column name to be predicted (y)
     */
-    action SetPredictedColumn(text predictedColumn)
-        me:predictedColumn = predictedColumn
+    action SetDependentVariable(integer dependent)
+        me:dependentVariable = dependent
     end
 
     /*
