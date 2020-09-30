@@ -3,6 +3,7 @@ package Libraries.Compute.Statistics.Calculations
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Math
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.Calculations.Mean
 
 /*
     This class calculates the variance of a particular DataFrameColumn. The variance
@@ -20,7 +21,10 @@ use Libraries.Compute.Statistics.DataFrameColumnCalculation
     DataFrame frame
     frame:Load("Data.csv") 
     Variance variance
-    variance:SetMean(17) //set the mean before using it
+
+    //set the mean before using it. Alternatively, we can allow it to calculate for us.
+    //The result is received slightly faster if we set it.
+    variance:SetMean(17) 
     DataFrameColumn column = frame:GetColumn(0)
     column:Calculate(variance)
     number variance = variance:GetVariance()
@@ -29,9 +33,15 @@ class Variance is DataFrameColumnCalculation
     integer size = 0
     number mean = 0
     number variance = 0
+    boolean meanSet = false
 
     action Start(DataFrameColumn column) 
         size = column:GetSize()
+        if not meanSet
+            Mean meanCalc
+            column:Calculate(meanCalc)
+            mean = meanCalc:GetMean()
+        end
     end
    
     action Add(Number value) 
@@ -61,6 +71,7 @@ class Variance is DataFrameColumnCalculation
         size = 0
         mean = 0
         variance = 0
+        meanSet = false
     end
 
     /*
@@ -82,5 +93,6 @@ class Variance is DataFrameColumnCalculation
     */
     action SetMean(number mean)
         me:mean = mean
+        meanSet = true
     end
 end

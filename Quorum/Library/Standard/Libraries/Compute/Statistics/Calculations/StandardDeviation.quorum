@@ -1,0 +1,87 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Math
+
+
+/*
+    This class calculates the Fisher-Pearson standardized moment coefficient, which is commonly
+    used in statistical packages for the concept of skew. The equations used for it were pulled from:
+    http://jse.amstat.org/v19n2/doane.pdf
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Skew
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Kurtosis kurtosis
+    DataFrameColumn column = frame:GetColumn(0)
+    output column:Calculate(kurtosis)
+*/
+class StandardDeviation is DataFrameColumnCalculation
+    number standardDeviation = 0
+    number mean = 0
+    number size = 0
+    boolean meanSet = false
+
+    action Start(DataFrameColumn column) 
+        Variance variance
+
+        if not meanSet
+            Mean meanCalc
+            column:Calculate(meanCalc)
+            mean = meanCalc:GetMean()
+            variance:SetMean(mean)
+        end
+
+        column:Calculate(variance)
+        number var = variance:GetVariance()
+        Math math
+        standardDeviation = math:SquareRoot(var)
+    end
+
+
+    /*
+        This Calculation can be re-used if the Empty action is called before
+        passing it to another column. Otherwise, it retains its data.
+    */
+    action Empty
+        mean = 0
+        standardDeviation = 0
+        size = 0
+        meanSet = false
+    end
+
+    action IsIterable returns boolean
+        return false
+    end
+
+    /*
+        Returns the mean
+    */
+    action GetMean returns number
+        return mean
+    end
+
+    /*
+        Sets the mean. The variance then uses this valus in its calculation.
+    */
+    action SetMean(number mean)
+        me:mean = mean
+        me:meanSet = true
+    end
+
+    /*
+        This action returns the Kurtosis that was calculated.
+    */
+    action GetStandardDeviation returns number
+        return standardDeviation
+    end
+end

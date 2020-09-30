@@ -1,0 +1,92 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Math
+
+
+/*
+    This class calculates the Fisher-Pearson standardized moment coefficient, which is commonly
+    used in statistical packages for the concept of skew. The equations used for it were pulled from:
+    http://jse.amstat.org/v19n2/doane.pdf
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Skew
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Skew skew
+    DataFrameColumn column = frame:GetColumn(0)
+    output column:Calculate(skew)
+*/
+class Skew is DataFrameColumnCalculation
+    number standardDeviation = 0
+    number mean = 0
+    number sum = 0
+    number size = 0
+    number skew = 0
+
+    action Start(DataFrameColumn column) 
+        Mean meanCalc
+        column:Calculate(meanCalc)
+        mean = meanCalc:GetMean()
+        Variance variance
+        variance:SetMean(mean)
+        column:Calculate(variance)
+        number var = variance:GetVariance()
+        Math math
+        standardDeviation = math:SquareRoot(var)
+    end
+
+    action End(DataFrameColumn column) 
+        number adjust = size / ((size - 1) * (size - 2))
+        skew = adjust * sum
+    end
+   
+    action Add(Number value) 
+        if value not= undefined
+            Math math 
+            number num = value:GetValue()
+            number middle = (num - mean) / standardDeviation
+            sum = sum + math:RaiseToPower(middle, 3)
+            size = size + 1
+        end
+    end
+
+    action Add(Integer value) 
+        if value not= undefined
+            Math math 
+            number num = value:GetValue()
+            number middle = (num - mean) / standardDeviation
+            sum = sum + math:RaiseToPower(middle, 3)
+            size = size + 1
+        end
+    end
+
+
+    /*
+        This Calculation can be re-used if the Empty action is called before
+        passing it to another column. Otherwise, it retains its data.
+    */
+    action Empty
+        mean = 0
+        standardDeviation = 0
+        mean = 0
+        sum = 0
+        size = 0
+        skew = 0
+    end
+
+    /*
+        This action returns the Skew that was calculated.
+    */
+    action GetSkew returns number
+        return skew
+    end
+end

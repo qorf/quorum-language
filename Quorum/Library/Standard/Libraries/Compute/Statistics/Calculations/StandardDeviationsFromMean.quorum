@@ -1,0 +1,107 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Math
+
+
+/*
+    This class calculates, for each data point in a column, the number of standard deviations
+    from the mean. In statistics, this is classically called "z-scores."
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.StandardDeviationsFromMean
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    StandardDeviationsFromMean zscores
+    DataFrameColumn column = frame:GetColumn(0)
+    column:Calculate(zscores)
+*/
+class StandardDeviationsFromMean is DataFrameColumnCalculation
+    NumberColumn results
+    number standardDeviation = 0
+    number mean = 0
+
+    action Start(DataFrameColumn column) 
+        Mean meanCalc
+        column:Calculate(meanCalc)
+        mean = meanCalc:GetMean()
+
+        Variance variance
+        variance:SetMean(mean)
+        column:Calculate(variance)
+        number var = variance:GetVariance()
+        Math math
+        standardDeviation = math:SquareRoot(var)
+    end
+   
+    action Add(Number value) 
+        if value not= undefined
+            number num = value:GetValue()
+            number z = CalculateStandardDeviationFromMean(num, mean, standardDeviation)
+            results:Add(z)
+        else 
+            results:Add(undefined)
+        end
+    end
+
+    action Add(Integer value) 
+        if value not= undefined
+            number num = value:GetValue()
+            number z = CalculateStandardDeviationFromMean(num, mean, standardDeviation)
+            results:Add(z)
+        else 
+            results:Add(undefined)
+        end
+    end
+
+    /*
+        This action calculates the number of standard deviations from the mean 
+        for a particular value, mean, and standard deviation.
+
+        Attribute: Parameter value the value to calculate for
+        Attribute: Parameter mean the average value
+        Attribute: Parameter standardDeviation the total standard deviation
+
+        Attribute: Returns the number of standard deviations from the mean (z-score)
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Calculations.StandardDeviationsFromMean
+    
+        StandardDeviationsFromMean zscores
+        //the value is at the mean, so this is zero.
+        output zscores:CalculateStandardDeviationFromMean(2,2,4)
+    */
+    action CalculateStandardDeviationFromMean(number value, number mean, number standardDeviation) returns number
+        return (value - mean) / standardDeviation
+    end
+
+    /*
+        This Calculation can be re-used if the Empty action is called before
+        passing it to another column. Otherwise, it retains its data.
+    */
+    action Empty
+        mean = 0
+        NumberColumn results2
+        results = results2
+    end
+
+    /*
+        This returns a new NumberColumn of the same size as the original, filled 
+        with values that are the number of standard deviations from the mean.
+
+        Attribute: Returns a new column
+    */
+    action GetResultColumn returns NumberColumn
+        return results
+    end
+end
