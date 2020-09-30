@@ -17,6 +17,7 @@ use Libraries.Compute.MatrixTransform.LowerUpperDecomposition
 use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.TDistribution
 use Libraries.Compute.Statistics.Distributions.FDistribution
+use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class conducts an Ordinary Least Squares regression on a DataFrame. By default, an 
@@ -96,9 +97,8 @@ use Libraries.Compute.Statistics.Distributions.FDistribution
     output "p = " + regression:GetProbabilityValue()
     output "R^2: " + regression:GetEffectSize()
 */
-class Regression is DataFrameCalculation
+class Regression is DataFrameCalculation, FactorInput
     integer dependentVariable = -1
-    Array<integer> factors
     boolean hasIntercept = true
     OrthonormalTriangularDecomposition decomp
     Vector beta = undefined
@@ -115,15 +115,15 @@ class Regression is DataFrameCalculation
     number adjustedR2 = 0
 
     action Calculate(DataFrame frame)         
-        if factors:GetSize() < 1
+        if GetFactorSize() < 1
             return now
         end
 
         //first copy only the columns under test, so we don't mess up the original data frame.
         ColumnFilterTransform transform
         i = 0
-        repeat while i < factors:GetSize()
-            integer value = factors:Get(i)
+        repeat while i < GetFactorSize()
+            integer value = GetFactor(i)
             transform:AddColumn(value)
             i = i + 1
         end
@@ -538,13 +538,6 @@ class Regression is DataFrameCalculation
     */
     action GetResiduals returns Vector
         return residuals
-    end
-
-    /*
-        This action adds a column to the set that predict the outcome variable.
-    */
-    action AddFactor(integer column)
-        factors:Add(column)
     end
     
     /*
