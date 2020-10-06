@@ -49,7 +49,7 @@ WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 
 		std::wstring fileName(L"/EventLog.csv");
 		log_csvFile = new std::wofstream(log_currentDirectory + fileName);
-		(*log_csvFile) << L"Frame,Poll Count,Is Polling,Source,Event" << std::endl;
+		(*log_csvFile) << L"Frame,Poll Count,Is Polling,Source,Event Name,Event Code" << std::endl;
 	}
 	else
 	{
@@ -96,7 +96,7 @@ LRESULT WindowRoot::OverrideWindowProc(UINT msg, WPARAM wParam, LPARAM lParam) n
 
 	std::wstring source(L"MESSAGE PUMP");
 	std::wstring event = Log_GetMessageName(msg);
-	Log_RecordEvent(source, event);
+	Log_RecordEvent(source, event, msg);
 
 	if ((msg == WM_GETOBJECT) && !m_isDisconnecting)
 	{
@@ -185,19 +185,17 @@ std::wstring WindowRoot::Log_GetMessageName(UINT key)
 {
 	if (log_messageTranslations.count(key))
 	{
-		std::wstring prefix(log_messageTranslations[key]);
-		std::wstring result(prefix + L" (" + std::to_wstring(key) + L")");
+		std::wstring result(log_messageTranslations[key]);
 		return result;
 	}
 	else
 	{
-		std::wstring prefix(L"Unknown (");
-		std::wstring result(prefix + std::to_wstring(key) + L")");
+		std::wstring result(L"Unknown");
 		return result;
 	}
 }
 
-void WindowRoot::Log_RecordEvent(std::wstring source, std::wstring event)
+void WindowRoot::Log_RecordEvent(std::wstring source, std::wstring event, UINT code)
 {
 	JNIEnv* env = GetJNIEnv();
 	if (env != NULL)
@@ -206,6 +204,6 @@ void WindowRoot::Log_RecordEvent(std::wstring source, std::wstring event)
 		jint subframe = env->CallStaticIntMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetSubframeCount);
 		jboolean polling = env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsPollingEvents);
 
-		(*log_csvFile) << frame << L"," << subframe << L"," << polling << L"," << source << L"," << event << std::endl;
+		(*log_csvFile) << frame << L"," << subframe << L"," << polling << L"," << source << L"," << event << L"," << code << std::endl;
 	}
 }

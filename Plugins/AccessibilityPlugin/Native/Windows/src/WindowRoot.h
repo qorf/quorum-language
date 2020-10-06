@@ -16,7 +16,7 @@ public:
 	bool IsHostFocused() const noexcept override;
 
 	// Used to log events across the system.
-	void Log_RecordEvent(std::wstring source, std::wstring event);
+	void Log_RecordEvent(std::wstring source, std::wstring event, UINT code);
 
 private:
 	static LRESULT CALLBACK StaticOverrideWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
@@ -33,7 +33,7 @@ private:
 
 	// An absolute path to a location on your machine.
 	// Logging info for each session will be put into a new folder that is placed in this location.
-	std::wstring log_baseDirectory = L"C:/Users/Bill/Desktop/Logging";
+	std::wstring log_baseDirectory = L"C:/Users/alleew/Desktop/Logging";
 
 	// The folder containing the current session's logging info.
 	std::wstring log_currentDirectory;
