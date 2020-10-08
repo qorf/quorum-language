@@ -30,6 +30,8 @@ class Summarize is DataFrameColumnCalculation
     number variance = 0
     number minimum = 0
     number maximum = 0
+    number sum = 0
+    number sumOfSquares = 0
 
     action Start(DataFrameColumn column) 
         size = column:GetSize()
@@ -49,6 +51,8 @@ class Summarize is DataFrameColumnCalculation
         i = 0
         repeat while i < column:GetSize()
             number value = column:GetAsNumber(i)
+            sum = sum + value
+            sumOfSquares = sumOfSquares + (value * value)
             if value < minimum
                 minimum = value
             end
@@ -85,6 +89,7 @@ class Summarize is DataFrameColumnCalculation
     action GetSize returns integer
         return size
     end
+
     action GetMaximum returns number
         return maximum
     end
@@ -93,4 +98,11 @@ class Summarize is DataFrameColumnCalculation
         return minimum
     end
 
+    action GetSum returns number
+        return sum
+    end
+
+    action GetSumOfSquares returns number
+        return sumOfSquares
+    end
 end
