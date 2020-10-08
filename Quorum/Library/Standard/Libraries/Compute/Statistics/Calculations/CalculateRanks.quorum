@@ -31,7 +31,7 @@ use Libraries.Containers.Array
     output ranks:GetRanks():ToText()
 */
 class CalculateRanks is DataFrameColumnCalculation
-    Array<DataPair<integer, Object>> values
+    Array<DataPair> values
     integer globalIndex = 0
     integer firstRank = 1
     boolean compareValues = true
@@ -68,10 +68,10 @@ class CalculateRanks is DataFrameColumnCalculation
         integer lastTie = -1
         number averageTie = -1
         boolean manageTies = false
-        DataPair<integer,Object> next = undefined
+        DataPair next = undefined
         i = 0
         repeat while i < values:GetSize()
-            DataPair<integer,Object> pair = values:Get(i)
+            DataPair pair = values:Get(i)
 
             if i + 1 < values:GetSize()
                 next = values:Get(i + 1)
@@ -102,7 +102,7 @@ class CalculateRanks is DataFrameColumnCalculation
                 integer j = firstTie
                 repeat while j <= lastTie
                     //get the item and its index
-                    DataPair<integer,Object> tiedPair = values:Get(j)
+                    DataPair tiedPair = values:Get(j)
                     Integer o2 = cast(Integer, tiedPair:key)
                     integer tiedIndex = o2:GetValue()
                     
@@ -157,8 +157,10 @@ class CalculateRanks is DataFrameColumnCalculation
     end
 
     private action AddNextObject(Object value)
-        DataPair<integer, Object> pair
-        pair:key = globalIndex
+        DataPair pair
+        Integer i
+        i:SetValue(globalIndex)
+        pair:key = i
         pair:value = value
         values:Add(pair)
         globalIndex = globalIndex + 1
