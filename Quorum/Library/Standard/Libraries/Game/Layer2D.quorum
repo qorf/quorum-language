@@ -179,7 +179,7 @@ class Layer2D is Layer
     ConcurrencyException.
     */
     private action EnsureCorrectThread
-        if manager:GetMainThreadName() not= systemHelper:GetThreadName()
+        if (manager:GetApplication() is DesktopApplication) and (manager:GetMainThreadName() not= systemHelper:GetThreadName())
             ConcurrencyError error
             error:SetErrorMessage("I can only add or remove items from the Game on the main thread, but I was asked to do so on a different thread.")
             alert(error)
