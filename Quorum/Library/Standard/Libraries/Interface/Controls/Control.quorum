@@ -52,7 +52,6 @@ class Control is Item2D
     using FIT_CONTENTS for the vertical layout style.
     */
     public integer FIT_CONTENTS = 2
-
     /*
     The FIT_FONT layout style is used to ensure a Control's height can fit the
     Font used in this LayoutProperties, plus padding from the children elements.
@@ -575,6 +574,24 @@ class Control is Item2D
 
     action GetTopPadding returns number
         return defaultProperties:GetTopPadding()
+    end
+
+    /*
+    This action sets the text in this Control's label, if it has one.
+
+    Attribute: Parameter labelText The text to use for this Control's label.
+    */
+    action SetLabelText(text labelText)
+        defaultProperties:SetLabelText(labelText)
+    end
+
+    /*
+    This action returns the text used for this Control's label, if it has one.
+
+    Attribute: Returns The text of this Control's label.
+    */
+    action GetLabelText returns text
+        return defaultProperties:GetLabelText()
     end
 
     /*
