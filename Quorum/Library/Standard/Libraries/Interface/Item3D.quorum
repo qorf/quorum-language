@@ -3219,6 +3219,8 @@ class Item3D is Item
         me:y = collisionTransform:GetOrigin():GetY()
         me:z = collisionTransform:GetOrigin():GetZ()
 
+        SetOffset(offsetX, offsetY, offsetZ)
+
         me:updateTransform = true
     end
 
