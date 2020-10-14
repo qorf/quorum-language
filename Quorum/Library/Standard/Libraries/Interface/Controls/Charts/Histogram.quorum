@@ -44,10 +44,9 @@ class Histogram is SharedBarChartParent
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
         properties:SetVerticalLayoutMode(properties:STANDARD)
-        Font font
-        font:LoadFont("Arial")
+        Font font = GetDefaultFont()
         properties:SetFont(font)
-        properties:SetFontSize(16)
+        properties:SetFontSize(GetDefaultFontSize())
 
         Color color
         Gradient gradient

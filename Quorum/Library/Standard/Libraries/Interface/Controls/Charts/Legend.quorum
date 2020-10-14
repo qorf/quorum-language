@@ -35,10 +35,9 @@ class Legend is Control
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        Font font
-        font:LoadFont("Arial")
+        Font font = GetDefaultFont()
         properties:SetFont(font)
-        properties:SetFontSize(16)
+        properties:SetFontSize(GetDefaultFontSize())
 
         Color color
         Gradient gradient

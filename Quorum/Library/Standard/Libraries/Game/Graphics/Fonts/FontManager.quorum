@@ -155,8 +155,10 @@ class FontManager
             end
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
+        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
+            fontFile:SetWorkingDirectory("/system/fonts")
+        else 
+            fontFile:SetWorkingDirectory("/usr/share/fonts")
         end
 
         fontFile:SetPath(fontName + ".ttf")
@@ -247,6 +249,9 @@ class FontManager
             fontFiles = fontDirectory:GetDirectoryListing()
         else
             // Find fonts for a linux system.
+            fontDirectory:SetWorkingDirectory("/usr/share/fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
         end
 
         return fontFiles

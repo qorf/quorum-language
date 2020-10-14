@@ -834,6 +834,18 @@ class Control is Item2D
             name = "Roboto-Black"
         elseif font:IsFontAvailable("Arial")
             name = "Arial"
+        elseif font:IsFontAvailable("Arial Unicode")
+            font:LoadFont("Arial Unicode")
+            SetFont(font)
+        elseif font:IsFontAvailable("Helvetica")
+            font:LoadFont("Helvetica")
+            SetFont(font)
+        elseif font:IsFontAvailable("Georgia")
+            font:LoadFont("Georgia")
+            SetFont(font)
+        elseif font:IsFontAvailable("Times New Roman")
+            font:LoadFont("Times New Roman")
+            SetFont(font)
         else
             Array<File> availableFontFiles = font:GetAvailableFonts()
             if availableFontFiles:GetSize() > 0
