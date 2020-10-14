@@ -150,6 +150,10 @@ class MenuRoot is Control
     action ActivateSelection
         if IsSelecting()
             MenuItem item = GetMenuItem(selection:GetPath())
+            if item = undefined
+                return now
+            end
+
             if item:IsMenu()
                 item:Open()
             else

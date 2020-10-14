@@ -28,21 +28,48 @@ class TextBoxSelectToLineStartBehavior is Behavior
             end
         end
 
-        integer caretPosition = textBox:GetCaretLinePosition()
+        integer startIndex = 0
+        integer endIndex = 0
+        boolean placeCaretAtEnd = false
 
-        if leadingSpaces >= caretPosition
-            leadingSpaces = 0
+        // If only a single line is selected
+        if selection:GetFirstLine() = selection:GetLastLine()
+            integer selectionStartPosition = selection:GetStartIndex() - textBox:GetIndexOfLine(selection:GetStartIndex())
+            if leadingSpaces >= selectionStartPosition
+                leadingSpaces = 0
+            end
+
+            startIndex = textBox:GetIndexOfLine(textBox:GetCaretLine()) + leadingSpaces
+    
+            if selection:IsCaretAtEnd()
+                endIndex = selection:GetStartIndex()
+            else
+                endIndex = selection:GetEndIndex()
+            end
+
+        // Multiple lines are selected
+        else
+            integer caretPosition = textBox:GetCaretLinePosition()
+            if leadingSpaces >= caretPosition
+                leadingSpaces = 0
+            end
+
+            if selection:IsCaretAtEnd()
+                startIndex = selection:GetStartIndex()
+                endIndex = textBox:GetIndexOfLine(textBox:GetCaretLine()) + leadingSpaces
+                placeCaretAtEnd = true
+            else
+                startIndex = textBox:GetIndexOfLine(textBox:GetCaretLine()) + leadingSpaces
+                endIndex = selection:GetEndIndex()
+            end
         end
 
-        integer startIndex = textBox:GetIndexOfLine(textBox:GetCaretLine()) + leadingSpaces
-        integer endIndex = selection:GetEndIndex()
-
-        if selection:IsCaretAtEnd()
-            endIndex = selection:GetStartIndex()
+        if placeCaretAtEnd
+            textBox:SetCaretPosition(startIndex)
+        else
+            textBox:SetCaretPosition(endIndex)
         end
-
-        textBox:SetCaretPosition(startIndex)
-        textBox:Select(startIndex, endIndex, false)
+        textBox:Select(startIndex, endIndex, placeCaretAtEnd)
     end
 
     action IsFinished returns boolean

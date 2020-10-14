@@ -17,25 +17,36 @@ class TextBoxSelectToLineEndBehavior is Behavior
         TextBoxSelection selection = textBox:GetSelection()
 
         integer currentLine = textBox:GetCaretLine()
-        integer endIndex = 0
         text textValue = textBox:GetCurrentLineText()
         integer size = textValue:GetSize()
         text separator = textBox:GetLineSeparator()
 
-        if textBox:GetLineCount() > currentLine + 1
-            endIndex = (textBox:GetIndexOfLine(currentLine) + (size - separator:GetSize()))
+        // We have to handle multi-line selection with the caret at the beginning differently.
+        // All other cases can be handled the same way in the "else" block.
+        if selection:GetFirstLine() not= selection:GetLastLine() and selection:IsCaretAtEnd() = false
+            integer startIndex = (textBox:GetIndexOfLine(currentLine) + (size - separator:GetSize()))
+            integer endIndex = selection:GetEndIndex()
+
+            textBox:SetCaretPosition(startIndex)
+            textBox:Select(startIndex, endIndex, false)
         else
-            endIndex = textBox:GetSize()
+            integer endIndex = 0
+    
+            if textBox:GetLineCount() > currentLine + 1
+                endIndex = (textBox:GetIndexOfLine(currentLine) + (size - separator:GetSize()))
+            else
+                endIndex = textBox:GetSize()
+            end
+    
+            integer startIndex = selection:GetEndIndex()
+    
+            if selection:IsCaretAtEnd()
+                startIndex = selection:GetStartIndex()
+            end
+    
+            textBox:SetCaretPosition(endIndex)
+            textBox:Select(startIndex, endIndex, true)
         end
-
-        integer startIndex = selection:GetEndIndex()
-
-        if selection:IsCaretAtEnd()
-            startIndex = selection:GetStartIndex()
-        end
-
-        textBox:SetCaretPosition(endIndex)
-        textBox:Select(startIndex, endIndex, true)
     end
 
     action IsFinished returns boolean
