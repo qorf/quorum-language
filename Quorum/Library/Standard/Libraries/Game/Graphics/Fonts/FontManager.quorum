@@ -310,7 +310,7 @@ class FontManager
         device = os:Contains("iOS Device")
         android = os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime")
 
-        useFreeType = useFreeType or mac or sim or device or android
+        useFreeType = useFreeType or mac or sim or device// or android
 
         FontStrategy strategy = undefined
 
@@ -318,8 +318,8 @@ class FontManager
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy
         elseif gameStateManager:GetOperatingSystem() = "Web Browser"
-            FontKitStrategy fontKitStrategy
-            strategy = fontKitStrategy
+            QuorumStrategy quorumStrategy
+            strategy = quorumStrategy
         else    // Linux and Android
             QuorumStrategy quorumStrategy
             strategy = quorumStrategy
