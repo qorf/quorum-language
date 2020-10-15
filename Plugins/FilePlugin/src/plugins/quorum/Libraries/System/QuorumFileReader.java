@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import quorum.Libraries.System.File_;
 
 /**
  * The Java implementation for the "FileReader" Quorum class.
@@ -23,8 +24,8 @@ public class QuorumFileReader {
     protected boolean atEOF = false; // are we at the end of the file?
     protected long readSoFar = 0; // how much have we read so far?
     
-    public void OpenForReadNative(String path) throws FileNotFoundException {
-        file = new File(path);
+    public void OpenForReadNative(File_ quorumFile) throws FileNotFoundException {
+        file = new File(quorumFile.GetAbsolutePath());
         bufferedReader = new BufferedReader(new FileReader(file));
         fileSize = file.length();
         readSoFar = 0;

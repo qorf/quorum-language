@@ -4,6 +4,8 @@
  */
 package plugins.quorum.Libraries.System;
 
+import android.app.Activity;
+import android.content.res.AssetManager;
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
@@ -26,8 +28,16 @@ public class AndroidAssetReader
     
     public void Open(String assetName)
     {
-        InputStream inputStream = AndroidApplication.AssetAsInputStream(assetName);
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        try {
+            Activity activity = AndroidApplication.GetActivity();
+            AssetManager assets = activity.getAssets();
+            InputStream inputStream = assets.open(assetName);
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        }
+        catch (IOException e)
+        {
+            AndroidApplication.LogStatic("AndroidAssetReader - Open", "Exception " + e.getMessage());
+        }
         
     }
     

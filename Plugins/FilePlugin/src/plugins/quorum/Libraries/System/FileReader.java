@@ -8,6 +8,7 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import quorum.Libraries.Language.Errors.*;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -15,14 +16,28 @@ import quorum.Libraries.Language.Errors.*;
  */
 public class FileReader {
     public java.lang.Object me_ = null;
-    private QuorumFileReader inst = new QuorumFileReader();
+    private QuorumFileReader inst;
+    static boolean isAndroid = false;
     
-    public void OpenForReadNative(String path) throws FileNotFoundError {
+    static
+    {
+        isAndroid = File.IsAndroid();
+    }
+    
+    public FileReader() {
+        if(!isAndroid) {
+            inst =  new QuorumFileReader();
+        } else {
+            inst = new QuorumFileReaderAndroid();
+        }
+    }
+    
+    public void OpenForReadNative(File_ file) throws FileNotFoundError {
         try {
-            inst.OpenForReadNative(path);
+            inst.OpenForReadNative(file);
         } catch (FileNotFoundException ex) {
             FileNotFoundError error = new FileNotFoundError();
-            error.SetPath(path);
+            error.SetPath(file.GetAbsolutePath());
             throw error;
         }
     }

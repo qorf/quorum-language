@@ -16,7 +16,27 @@ import static java.nio.file.StandardCopyOption.*;
  */
 public class File {
     public java.lang.Object me_ = null;
-    private QuorumFile inst = new QuorumFile();
+    private QuorumFile inst;
+    static boolean isAndroid = false;
+    
+    static
+    {
+        isAndroid = IsAndroid();
+    }
+    
+    public static boolean IsAndroid() {
+        String os = System.getProperty("os.name");
+        return os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime");
+    }
+    
+    public File() {
+        if(!isAndroid) {
+            inst = new QuorumFile();
+        } else {
+            inst = new QuorumFileAndroid();
+        }
+    }
+    
     
     public double GetLastModifiedNative() {
         return inst.GetLastModifiedNative();
