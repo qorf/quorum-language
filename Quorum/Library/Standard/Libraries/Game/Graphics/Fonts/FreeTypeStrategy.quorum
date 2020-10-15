@@ -187,10 +187,10 @@ class FreeTypeStrategy is FontStrategy
         File fontFile
         text os = GetOS()
 
+        Properties properties
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            Properties properties
             if IsMacCatalina() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
             else
@@ -198,8 +198,10 @@ class FreeTypeStrategy is FontStrategy
             end
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
+        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
+            fontFile:SetWorkingDirectory("/system/fonts")
+        else 
+            fontFile:SetWorkingDirectory("/usr/share/fonts")
         end
 
         text fontPath = FindFontExtension(fontName)
@@ -225,7 +227,7 @@ class FreeTypeStrategy is FontStrategy
     private action FindFontExtension(text fontName) returns text
         File fontFile
         text os = GetOS()
-
+        Properties properties
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
@@ -236,8 +238,10 @@ class FreeTypeStrategy is FontStrategy
             end
         elseif os:Contains("iOS Device")
             fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        else
-            // Find fonts for a linux system.
+        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
+            fontFile:SetWorkingDirectory("/system/fonts")
+        else 
+            fontFile:SetWorkingDirectory("/usr/share/fonts")
         end
 
         boolean success = false

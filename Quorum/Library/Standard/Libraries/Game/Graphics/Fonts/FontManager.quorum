@@ -315,7 +315,7 @@ class FontManager
         device = os:Contains("iOS Device")
         android = os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime")
 
-        useFreeType = useFreeType or mac or sim or device// or android
+        useFreeType = useFreeType or mac or sim or device or android
 
         FontStrategy strategy = undefined
 
