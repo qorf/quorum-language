@@ -47,7 +47,7 @@ class FileReader is FileReaderBlueprint
      * The native side for opening a file. Takes a path only, not a File
      * object.
      */
-    private system action OpenForReadNative(text path)
+    private system action OpenForReadNative(File file)
 
     /*
      * Read data from file on the native side.
@@ -133,7 +133,8 @@ class FileReader is FileReaderBlueprint
         reader:Close()
      */
     action OpenForRead(File file)
-        OpenForReadNative(file:GetAbsolutePath())
+        me:file = file
+        OpenForReadNative(file)
     end
 
     /*
