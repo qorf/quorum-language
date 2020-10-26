@@ -42,11 +42,11 @@ class Summarize is DataFrameColumnCalculation
         Variance varianceCalculation
 
         column:Calculate(meanCalculation)
-        number mean = meanCalculation:GetMean()
+        mean = meanCalculation:GetMean()
 
         varianceCalculation:SetMean(mean)
         column:Calculate(varianceCalculation)
-
+        variance = varianceCalculation:GetVariance()
         
         i = 0
         repeat while i < column:GetSize()
