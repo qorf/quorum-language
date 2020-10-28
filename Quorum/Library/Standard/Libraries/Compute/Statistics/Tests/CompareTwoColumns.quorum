@@ -6,7 +6,7 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.Distributions.TDistribution
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 
 /*
     This class implements a one-sample t-test. For more information, see
@@ -106,10 +106,10 @@ class CompareTwoColumns is DataFrameCalculation
                 left:GetSize(), right:GetSize())
         degreesOfFreedom = df
 
-        TDistribution distribution
+        HeavyTailNormalDistribution distribution
         distribution:Setup(df)
         number absoluteValueT = math:AbsoluteValue(t)
-        number p = 2.0 * distribution:CumulativeProbability(-absoluteValueT)
+        number p = 2.0 * distribution:CumulativeDistribution(-absoluteValueT)
         probabilityValue = p
     end
 

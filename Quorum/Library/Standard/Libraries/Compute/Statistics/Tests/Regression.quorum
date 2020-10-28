@@ -15,8 +15,8 @@ use Libraries.Compute.Statistics.Calculations.Moment
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Compute.MatrixTransform.LowerUpperDecomposition
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.Distributions.TDistribution
-use Libraries.Compute.Statistics.Distributions.FDistribution
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
+use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
@@ -317,10 +317,10 @@ class Regression is DataFrameCalculation, FactorInput
         number numeratorDegreesOfFreedom = CalculateNumeratorDegreesOfFreedom(predictors)
         number denominatorDegreesOfFreedom = CalculateDenominatorDegreesOfFreedom(predictors)
 
-        FDistribution dist
+        VarianceRatioDistribution dist
         dist:Setup(numeratorDegreesOfFreedom,denominatorDegreesOfFreedom)
 
-        number value = 1 - dist:CumulativeProbability(criticalValue)
+        number value = 1 - dist:CumulativeDistribution(criticalValue)
         return value
     end
 
@@ -350,10 +350,10 @@ class Regression is DataFrameCalculation, FactorInput
         i = 0
         repeat while i < betas:GetSize()
             number t = betas:Get(i) / standardErrors:Get(i)
-            TDistribution dist
+            HeavyTailNormalDistribution dist
             dist:Setup(degreesOfFreedomResiduals)
             number prob = -math:AbsoluteValue(t)
-            number p = dist:CumulativeProbability(prob) * 2.0
+            number p = dist:CumulativeDistribution(prob) * 2.0
             result:Set(i, p)
             i = i + 1
         end

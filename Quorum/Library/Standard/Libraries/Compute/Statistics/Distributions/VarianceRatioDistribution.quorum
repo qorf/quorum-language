@@ -1,0 +1,89 @@
+package Libraries.Compute.Statistics.Distributions
+
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.NumberDistribution
+
+/*
+    This class, ported from Apache Commons, is an implementation of the T-Distribution.
+    More information can be found here: https://en.wikipedia.org/wiki/Student%27s_t-distribution
+*/
+class VarianceRatioDistribution is NumberDistribution
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    number degreesOfFreedom = 0.0
+    number numeratorDegreesOfFreedom = 0.0
+    number denominatorDegreesOfFreedom = 0.0
+    number solverAbsoluteAccuracy = 0.0
+    number factor = 0.0
+    number utility = 0.0
+    Beta beta
+    Math math
+
+    action Setup(number numerator, number denominator)
+        if numerator <= 0 or denominator <= 0
+            alert("Cannot compute a F-distribution with a degree of freedom value of " + degreesOfFreedom)
+        end
+        numeratorDegreesOfFreedom = numerator
+        denominatorDegreesOfFreedom = denominator
+    end
+
+    action CumulativeDistribution(number x) returns number
+        number ret = 0.0
+        if x <= 0.0
+            ret = 0.0
+        else
+            number n = numeratorDegreesOfFreedom
+            number m = denominatorDegreesOfFreedom
+
+            number f = beta:RegularizedBeta(
+                    n * x / (m + n * x),
+                    0.5 * n,
+                    0.5 * m)
+
+            return f
+        end
+        return ret
+    end
+
+    
+    action GetLowerBound returns number 
+        return 0
+    end
+
+    
+    action GetUpperBound returns number
+        number inf = 0
+        return inf:GetPositiveInfinityValue()
+    end
+
+    
+    action GetMean returns number
+        number result = 0
+        if (denominatorDegreesOfFreedom > 2)
+            return denominatorDegreesOfFreedom / (denominatorDegreesOfFreedom - 2)
+        end
+
+        return result:GetNotANumberValue()
+    end
+
+    
+    action GetVariance returns number
+        if denominatorDegreesOfFreedom > 4
+            number denomDFMinusTwo = denominatorDegreesOfFreedom - 2
+
+            return ( 2 * (denominatorDegreesOfFreedom * denominatorDegreesOfFreedom) * 
+                    (numeratorDegreesOfFreedom + denominatorDegreesOfFreedom - 2) ) /
+                   ( (numeratorDegreesOfFreedom * (denomDFMinusTwo * denomDFMinusTwo) * (denominatorDegreesOfFreedom - 4)) )
+        end
+
+        return denominatorDegreesOfFreedom:GetNotANumberValue()
+    end
+    
+    action IsSupportConnected returns boolean
+        return true
+    end
+
+    
+    action GetSolverAbsoluteAccuracy returns number
+        return solverAbsoluteAccuracy
+    end
+end

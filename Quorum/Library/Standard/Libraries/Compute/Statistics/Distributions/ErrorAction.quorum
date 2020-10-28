@@ -1,0 +1,215 @@
+package Libraries.Compute.Statistics.Distributions
+use Libraries.Compute.Math
+
+/*
+    This class represents the mathematical concept of an Error Function. What the error function is is a complex 
+    topic and more information can be found on wikipedia: https://en.wikipedia.org/wiki/Error_function . Normally, 
+    users will not need this class, unless conducting a calculation requiring it. 
+
+    The user should note that we changed all of the names in this class. First, traditionally in mathematics, 
+    esoteric names are used like erf or erfi, but we changed these to better reflect the result of the operation. 
+    In each case, we document the name in math for clarity.  All of this work was ported from Apache Commons.
+    
+    Attribute: Author Andreas Stefik
+    
+    Attribute: Example
+    
+    use Libraries.Compute.Statistics.Distributions.ErrorAction
+    ErrorAction errors
+    output errors:Error(5)
+ 
+*/
+shared class ErrorAction
+    constant number X_CRIT = 0.4769362762044697
+
+    /*
+        Returns the error function, in math erf(x). This was ported from the Apache Commons Erf class.
+
+        Attribute: Parameter x the value
+        Attribute: Returns the complementary error function erfc(x)
+     */
+    action Error(number x) returns number
+        Math math
+        //Basically, 40 standard deviations is extreme, so just return 1 or 0 at that point
+        if math:AbsoluteValue(x) > 40
+            if x > 0
+                return 1
+            else
+                return -1
+            end
+        end
+
+        Gamma gamma
+        number ret = gamma:RegularizedGammaP(0.5, x * x, gamma:DEFAULT_EPSILON, 10000)
+        if x < 0
+            ret = -ret
+        end
+        return ret
+    end
+
+    /**
+        Returns the complementary error function or 1 - erf(x). This was ported from the Apache Commons Erf class.
+
+        Attribute: Parameter x the value
+        Attribute: Returns the complementary error function erfc(x)
+     */
+    action ComplementaryError(number x) returns number
+        Math math
+        //Basically, 40 standard deviations is extreme, so just return 1 or 0 at that point
+        if math:AbsoluteValue(x) > 40
+            if x > 0
+                return 0
+            else
+                return 2
+            end
+        end
+
+        Gamma gamma
+        number ret = gamma:RegularizedGammaQ(0.5, x * x, gamma:DEFAULT_EPSILON, 10000)
+        if x < 0
+            ret = 2 - ret
+        end
+        return ret
+    end
+
+    /*
+        Returns the difference between Error(x1) and Error(x2).
+     
+        The implementation uses either Error(double) or ComplementaryError(double)
+        depending on which provides the most precise result.
+     
+        Attribute: Parameter x1 the first value
+        Attribute: Parameter x2 the second value
+        Attribute: Returns erf(x2) - erf(x1)
+     */
+    action Error(number x1, number x2) returns number
+        if x1 > x2
+            return -Error(x2, x1)
+        end
+
+        if x1 < -X_CRIT
+            if x2 < 0
+                return ComplementaryError(-x2) - ComplementaryError(-x1)
+            else
+                return Error(x2) - Error(x1)
+            end
+        else
+            if x2 > X_CRIT and x1 > 0.0
+                return ComplementaryError(x1) - ComplementaryError(x2)
+            else 
+                return Error(x2) - Error(x1)
+            end
+        end
+    end
+
+    /* 
+        This is a helper action for the ERV action.
+    */
+    private action Raise(number x, integer power) returns number
+        Math math 
+        return x * math:RaiseToPower(10, power)
+    end
+
+    /* 
+        This action comes from the ERV utility class in apache commons. Notably, 
+        the erfInv action. The comment from that paper is as follows:
+
+        Returns the inverse erf.
+        <p>
+        This implementation is described in the paper:
+        <a href="http://people.maths.ox.ac.uk/gilesm/files/gems_erfinv.pdf">Approximating
+        the erfinv function</a> by Mike Giles, Oxford-Man Institute of Quantitative Finance,
+        which was published in GPU Computing Gems, volume 2, 2010.
+        The source code is available <a href="http://gpucomputing.net/?q=node/1828">here</a>.
+        </p>
+        Comments from this class come from Apache commons directly.
+    */
+    action InverseError(number x) returns number
+        Math math
+        // beware that the logarithm argument must be
+        // commputed as (1.0 - x) * (1.0 + x),
+        // it must NOT be simplified as 1.0 - x * x as this
+        // would induce rounding errors near the boundaries +/-1
+        number w = - math:NaturalLogarithm((1.0 - x) * (1.0 + x))
+        number p = 0
+        
+        if w < 6.25
+            w = w - 3.125
+            p =  Raise(-3.6444120640178196996,-21)
+            p =   Raise(-1.685059138182016589,-19) + p * w
+            p =   Raise(1.2858480715256400167,-18) + p * w
+            p =    Raise(1.115787767802518096,-17) + p * w
+            p =   Raise(-1.333171662854620906,-16) + p * w
+            p =   Raise(2.0972767875968561637,-17) + p * w
+            p =   Raise(6.6376381343583238325,-15) + p * w
+            p =  Raise(-4.0545662729752068639,-14) + p * w
+            p =  Raise(-8.1519341976054721522,-14) + p * w
+            p =   Raise(2.6335093153082322977,-12) + p * w
+            p =  Raise(-1.2975133253453532498,-11) + p * w
+            p =  Raise(-5.4154120542946279317,-11) + p * w
+            p =    Raise(1.051212273321532285,-09) + p * w
+            p =  Raise(-4.1126339803469836976,-09) + p * w
+            p =  Raise(-2.9070369957882005086,-08) + p * w
+            p =   Raise(4.2347877827932403518,-07) + p * w
+            p =  Raise(-1.3654692000834678645,-06) + p * w
+            p =  Raise(-1.3882523362786468719,-05) + p * w
+            p =    0.0001867342080340571352 + p * w
+            p =  -0.00074070253416626697512 + p * w
+            p =   -0.0060336708714301490533 + p * w
+            p =      0.24015818242558961693 + p * w
+            p =       1.6536545626831027356 + p * w
+        elseif w < 16.0
+            w = math:SquareRoot(w) - 3.25
+            p =   Raise(2.2137376921775787049,-09)
+            p =   Raise(9.0756561938885390979,-08) + p * w
+            p =  Raise(-2.7517406297064545428,-07) + p * w
+            p =   Raise(1.8239629214389227755,-08) + p * w
+            p =   Raise(1.5027403968909827627,-06) + p * w
+            p =   Raise(-4.013867526981545969,-06) + p * w
+            p =   Raise(2.9234449089955446044,-06) + p * w
+            p =   Raise(1.2475304481671778723,-05) + p * w
+            p =  Raise(-4.7318229009055733981,-05) + p * w
+            p =   Raise(6.8284851459573175448,-05) + p * w
+            p =   Raise(2.4031110387097893999,-05) + p * w
+            p =   -0.0003550375203628474796 + p * w
+            p =   0.00095328937973738049703 + p * w
+            p =   -0.0016882755560235047313 + p * w
+            p =    0.0024914420961078508066 + p * w
+            p =   -0.0037512085075692412107 + p * w
+            p =     0.005370914553590063617 + p * w
+            p =       1.0052589676941592334 + p * w
+            p =       3.0838856104922207635 + p * w
+        elseif  not w:IsInfinite()
+            w = math:SquareRoot(w) - 5.0
+            p =  Raise(-2.7109920616438573243,-11)
+            p =  Raise(-2.5556418169965252055,-10) + p * w
+            p =   Raise(1.5076572693500548083,-09) + p * w
+            p =  Raise(-3.7894654401267369937,-09) + p * w
+            p =   Raise(7.6157012080783393804,-09) + p * w
+            p =  Raise(-1.4960026627149240478,-08) + p * w
+            p =   Raise(2.9147953450901080826,-08) + p * w
+            p =  Raise(-6.7711997758452339498,-08) + p * w
+            p =   Raise(2.2900482228026654717,-07) + p * w
+            p =  Raise(-9.9298272942317002539,-07) + p * w
+            p =   Raise(4.5260625972231537039,-06) + p * w
+            p =  Raise(-1.9681778105531670567,-05) + p * w
+            p =   Raise(7.5995277030017761139,-05) + p * w
+            p =  -0.00021503011930044477347 + p * w
+            p =  -0.00013871931833623122026 + p * w
+            p =       1.0103004648645343977 + p * w
+            p =       4.8499064014085844221 + p * w
+        else
+            // this branch does not appears in the original code, it
+            // was added because the previous branch does not handle
+            // x = +/-1 correctly. In this case, w is positive infinity
+            // and as the first coefficient (-2.71e-11) is negative.
+            // Once the first multiplication is done, p becomes negative
+            // infinity and remains so throughout the polynomial evaluation.
+            // So the branch above incorrectly returns negative infinity
+            // instead of the correct positive infinity.
+            p = p:GetPositiveInfinityValue()
+        end
+
+        return p * x
+    end
+end

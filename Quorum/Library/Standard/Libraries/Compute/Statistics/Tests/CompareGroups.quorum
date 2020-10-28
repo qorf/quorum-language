@@ -6,9 +6,13 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.Distributions.TDistribution
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Vector
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
+use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 
 /*
     This class implements a one-sample t-test. For more information, see
@@ -42,6 +46,10 @@ class CompareGroups is DataFrameCalculation, ColumnInput
     number tValue = 0
     number degreesOfFreedom = 0
     boolean twoGroups = false
+    boolean correctFamilyWiseError = true
+    Array<CompareGroupsResult> pairwise
+
+    CompareGroupsResult result = undefined
 
     action Calculate(DataFrame frame) 
         
@@ -49,10 +57,113 @@ class CompareGroups is DataFrameCalculation, ColumnInput
             alert("I cannot correlate less than two groups.")
         end
 
-        if GetColumnSize() = 2
+        if GetColumnSize() = 2 //technically this all boils down to the same thing, 
+                               //but doing it this way allows those that want to to report it this way.
             twoGroups = true
+            Compare2Groups(frame)
+        elseif GetColumnSize() > 2 //run one of the various ANOVAs
+            CompareNGroups(frame)
+        end
+    end
+
+    private action CompareNGroups(DataFrame frame)
+        integer totalSize = 0
+        number degreesFreedomWithinGroup = 0
+        number degreesFreedomBetweenGroup = GetColumnSize() - 1
+        number sumOfSquaresWithinGroup = 0
+        number sumOfSquaresBetweenGroup = 0
+
+        number totalSum = 0
+        number totalSumOfSquares = 0
+        Array<Summarize> summaries
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            totalSize = totalSize + column:GetSize()
+
+            Summarize summarize
+            column:Calculate(summarize)
+            summaries:Add(summarize)
+            totalSum = totalSum + summarize:GetSum()
+            totalSumOfSquares = totalSumOfSquares + summarize:GetSumOfSquares()
+            degreesFreedomWithinGroup = degreesFreedomWithinGroup + column:GetSize() - 1
+
+            number ss = summarize:GetSumOfSquares() - (summarize:GetSum() * summarize:GetSum() / column:GetSize())
+            sumOfSquaresWithinGroup = sumOfSquaresWithinGroup + ss
+            i = i + 1
         end
 
+        totalSumOfSquares = totalSumOfSquares - (totalSum * totalSum / totalSize)
+        sumOfSquaresBetweenGroup = totalSumOfSquares - sumOfSquaresWithinGroup
+        number meanSumofSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
+        number meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
+        number criticalValue = meanSumofSquaresBetweenGroup / meanSumOfSquaresWithinGroup
+
+        number eta = sumOfSquaresBetweenGroup / totalSumOfSquares
+        
+        VarianceRatioDistribution distribution
+        distribution:Setup(degreesFreedomBetweenGroup, degreesFreedomWithinGroup)
+        number p = 1.0 - distribution:CumulativeDistribution(criticalValue)
+
+        CompareGroupsResult result
+        result:SetCriticalValue(criticalValue)
+        result:SetProbabilityValue(p)
+        result:SetFormalTestName("1-Way Analysis of Variance")
+        result:SetEffectSize(eta)
+        result:SetEffectSizeName("Eta-Squared")
+        me:result = result
+
+        Math math
+        number pooledSD = math:SquareRoot(meanSumOfSquaresWithinGroup)
+        
+        //Now calculate a pairwise t-test with pooled standard deviations
+        //and do a bonferroni correction.
+        i = 0
+        repeat while i < GetColumnSize()
+            j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                Summarize leftSummary = summaries:Get(i)
+                Summarize rightSummary = summaries:Get(j)
+
+                number error = pooledSD * 
+                    math:SquareRoot(1.0 / left:GetSize()  + 1.0 / right:GetSize())
+                number meanDifference = leftSummary:GetMean() - rightSummary:GetMean()
+                number t = meanDifference / error
+
+                number bf = (left:GetSize() + right:GetSize()) / 2.0
+                
+                HeavyTailNormalDistribution norm
+                norm:Setup(degreesFreedomWithinGroup)
+                number newP = 2.0 * norm:CumulativeDistribution(-math:AbsoluteValue(t))
+
+                CompareGroupsResult pair
+                pair:SetCriticalValue(t)
+                
+                //apply bonferroni correction
+                if IsCorrectingFamilyWiseError()
+                    number corrected = bf * newP
+                    if corrected > 1
+                        corrected = 1
+                    end
+                    pair:SetFormalTestName("Pairwise T-test with Bonferroni Correction.")
+                    pair:SetProbabilityValue(corrected)
+                else
+                    pair:SetFormalTestName("Pairwise T-test with no family-wise error correction.")
+                    pair:SetProbabilityValue(newP)
+                end
+                pair:AddColumn(i)
+                pair:AddColumn(j)
+                pairwise:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    private action Compare2Groups(DataFrame frame)
         DataFrameColumn left = frame:GetColumn(GetColumn(0))
         DataFrameColumn right = frame:GetColumn(GetColumn(1))
 
@@ -104,13 +215,18 @@ class CompareGroups is DataFrameCalculation, ColumnInput
                 left:GetSize(), right:GetSize())
         degreesOfFreedom = df
 
-        TDistribution distribution
+        HeavyTailNormalDistribution distribution
         distribution:Setup(df)
         number absoluteValueT = math:AbsoluteValue(t)
-        number p = 2.0 * distribution:CumulativeProbability(-absoluteValueT)
+        number p = 2.0 * distribution:CumulativeDistribution(-absoluteValueT)
         probabilityValue = p
-    end
 
+        CompareGroupsResult result
+        result:SetCriticalValue(t)
+        result:SetProbabilityValue(p)
+        result:SetFormalTestName("Welch's T-test")
+        me:result = result
+    end
     
     private action DegreesOfFreedom(number variance1, number variance2, number size1, number size2) returns number
         return (((variance1 / size1) + (variance2 / size2)) * ((variance1 / size1) + (variance2 / size2))) /
@@ -190,5 +306,20 @@ class CompareGroups is DataFrameCalculation, ColumnInput
             + degreesOfFreedom + ") = " + tValue + ", p = " + probabilityValue + ", Cohen's D = "
             + cohensD
         return result
+    end
+    action GetResult returns CompareGroupsResult
+        return result
+    end
+
+    action IsCorrectingFamilyWiseError returns boolean
+        return correctFamilyWiseError
+    end
+
+    action SetCorrectingFamilyWiseError(boolean correctFamilyWiseError)
+        me:correctFamilyWiseError = correctFamilyWiseError
+    end
+
+    action GetPairwiseResults returns Array<CompareGroupsResult>
+        return pairwise
     end
 end

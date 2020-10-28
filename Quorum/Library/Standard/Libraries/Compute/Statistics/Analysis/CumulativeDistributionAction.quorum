@@ -1,0 +1,24 @@
+package Libraries.Compute.Statistics.Analysis
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Statistics.Distributions.NumberDistribution
+
+/*
+    This is a helper class for bracketing the root for cumulative distributions. It does not
+    need to be instantiated by users.
+*/
+class CulumativeDistributionAction is UnivariateAction
+    NumberDistribution distribution = undefined
+
+    action Calculate(number value) returns number
+        return distribution:CumulativeDistribution(value) - value
+    end
+
+    action GetDistribution returns NumberDistribution
+        return distribution
+    end
+
+    action SetDistribution(NumberDistribution distribution)
+        me:distribution = distribution
+    end
+
+end

@@ -1,17 +1,21 @@
 package Libraries.Compute.Statistics.Distributions
 
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.NumberDistribution
+use Libraries.Compute.Statistics.Distributions.Beta
+use Libraries.Compute.Statistics.Distributions.Gamma
 
 /*
     This class, ported from Apache Commons, is an implementation of the T-Distribution.
     More information can be found here: https://en.wikipedia.org/wiki/Student%27s_t-distribution
 */
-class TDistribution
+class HeavyTailNormalDistribution is NumberDistribution
     constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
     number degreesOfFreedom = 0.0
-    number solverAbsoluteAccuracy = 0.0
+    number solverAbsoluteAccuracy = DEFAULT_INVERSE_ABSOLUTE_ACCURACY
     number factor = 0.0
     number utility = 0.0
+    boolean useERF = false
     Beta beta
     Math math
 
@@ -30,6 +34,13 @@ class TDistribution
         me:factor = gamma:LogGamma(nPlus1Over2) - 
             0.5 * (math:Logarithm(math:pi) + math:Logarithm(n)) - 
             gamma:LogGamma(n / 2)
+
+        //Beta is not accurate beyond this. This is a workaround
+        //discussed in https://issues.apache.org/jira/browse/STATISTICS-25
+        number value = 2.99 * math:RaiseToPower(10, 6)
+        if degreesOfFreedom >= value
+            useERF = true
+        end
     end
 
     action GetDegreesOfFreedom() returns number
@@ -48,7 +59,16 @@ class TDistribution
         return factor - nPlus1Over2 * math:NaturalLogarithm(1 + x * x / n)
     end
 
-    action CumulativeProbability(number x) returns number
+    action CumulativeDistribution(number x) returns number
+        //if there's a large degrees of freedom, use error functions
+        if useERF
+            ErrorAction errors
+            Math math
+            number newT = x / math:squareRoot2
+            number val = errors:Error(newT)
+            return 0.5 * (val + 1)
+        end
+
         number ret = 0.0
         if x = 0.0
             ret = 0.5
@@ -164,5 +184,35 @@ class TDistribution
         return utility:GetNotANumberValue()
     end
 
+    action GetLowerBound returns number
+        number value = 0
+        return value:GetNegativeInfinityValue()
+    end
 
+    action GetUpperBound returns number
+        number value = 0
+        return value:GetPositiveInfinityValue()
+    end
+
+    action GetMean returns number
+        number value = 0
+        if degreesOfFreedom > 1
+            return 0
+        end
+
+        return value:GetNotANumberValue()
+    end
+
+    action GetVariance returns number
+        number value = 0
+        if degreesOfFreedom > 2
+            return degreesOfFreedom / (degreesOfFreedom - 2)
+        end
+
+        if degreesOfFreedom > 1 and degreesOfFreedom <= 2
+            return value:GetPositiveInfinityValue()
+        end
+
+        return value:GetNotANumberValue()
+    end
 end

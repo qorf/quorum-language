@@ -1,0 +1,104 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Calculations.Variance
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Vector
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
+use Libraries.Compute.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.Columns.NumberColumn
+
+/*
+
+    This class conducts a comparison between variances for a sample. 
+    In the academic literature, it is typically called a Levene's test. 
+    More information can be found about this test here:
+
+    https://en.wikipedia.org/wiki/Levene%27s_test
+
+    Attribute: Author Tim Kluthe
+    Attribute: Example
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    CompareVariances compare
+    compare:AddColumn(0)
+    compare:AddColumn(1)
+    compare:AddColumn(2)
+    compare:AddColumn(3)
+    frame:Calculate(compare)
+    
+    CompareGroupsResult result = compare:GetResult()
+    
+    output result:GetProbabilityValue()
+*/
+class CompareVariances is CompareGroups
+
+    action Calculate(DataFrame frame) 
+        
+        if GetColumnSize() < 2
+            alert("I cannot correlate less than two groups.")
+        end
+
+        CompareVariances(frame)
+    end
+
+    private action CompareVariances(DataFrame frame)
+        Array<DataFrameColumn> medianDifferencesDataFrameColumns
+        Array<integer> preservedColumns = parent:ColumnInput:columns
+        Array<integer> medianDifferencesColumns
+        Math math
+
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            InterQuartileRange interQuartileRangeCalculation
+
+            column:Calculate(interQuartileRangeCalculation)
+            number median = interQuartileRangeCalculation:GetMedian()
+
+            
+            NumberColumn medianDifferencesColumn    
+            
+            j = 0
+            repeat while j < column:GetSize()
+                medianDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - median))
+
+                j = j + 1
+            end
+
+            medianDifferencesDataFrameColumns:Add(medianDifferencesColumn)
+            medianDifferencesColumns:Add(i)
+
+            i = i + 1
+        end
+
+        DataFrame medianDifferencesDataFrame
+        medianDifferencesDataFrame:SetColumns(medianDifferencesDataFrameColumns)
+        
+        parent:ColumnInput:columns = medianDifferencesColumns
+        parent:CompareGroups:CompareNGroups(medianDifferencesDataFrame)
+        parent:CompareGroups:result:SetFormalTestName("Levene's Test")
+
+        parent:ColumnInput:columns = preservedColumns
+    end
+
+    /* This action obtains an informal summary of the result. */
+    action GetSummary returns text
+        return ""
+    end
+
+    /* This action returns a formal academic summary of the result. */
+    action GetFormalSummary returns text
+        return ""
+    end
+
+end

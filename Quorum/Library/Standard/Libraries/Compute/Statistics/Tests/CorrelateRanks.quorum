@@ -8,7 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Reporting.CorrelateGroupsResult
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.Distributions.TDistribution
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Compute.Statistics.Calculations.Mean
@@ -114,10 +114,10 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput
         number r = spearman
         number t = r / math:SquareRoot((1 - r * r) / (n - 2.0))
 
-        TDistribution distribution
+        HeavyTailNormalDistribution distribution
         distribution:Setup(df)
         number absoluteValueT = math:AbsoluteValue(t)
-        number p = 2.0 * distribution:CumulativeProbability(-absoluteValueT)
+        number p = 2.0 * distribution:CumulativeDistribution(-absoluteValueT)
 
         CorrelateGroupsResult result
         result:SetLeftIndex(leftIndex)

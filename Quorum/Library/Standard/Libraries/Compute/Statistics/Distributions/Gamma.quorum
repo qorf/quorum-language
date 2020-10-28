@@ -2,6 +2,7 @@ package Libraries.Compute.Statistics.Distributions
 
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.GammaContinuedFraction
 
 /*
     This class, ported from Apache Commons, is an implementation of the Gamma Distribution.
@@ -9,6 +10,7 @@ use Libraries.Containers.Array
 */
 class Gamma 
     constant number GAMMA = 0.577215664901532860606512090082
+    public number DEFAULT_EPSILON = 0.000000000000001
     Math math
     constant number LANCZOS_G = 607.0 / 128.0
     constant number HALF_LOG_2_PI = 0.5 * math:Logarithm(2.0 * math:pi)
@@ -341,6 +343,129 @@ class Gamma
             end
         end
 
+        return ret
+    end
+
+    /*
+      Returns the regularized gamma function Q(a, x) = 1 - P(a, x). This is adapted from Apache Commons.
+     
+      Attribute: Parameter a the a parameter.
+      Attribute: Parameter x the value.
+      Attribute: Returns the regularized gamma function P(a, x)
+     */
+    action RegularizedGammaQ(number a, number x) returns number
+        integer max = 0
+        return RegularizedGammaQ(a, x, DEFAULT_EPSILON, max:GetMaximumValue())
+    end
+
+    /*
+      Returns the regularized gamma function Q(a, x) = 1 - P(a, x). This is adapted from Apache Commons.
+     
+      The implementation of this method is based on:
+      <ul>
+       <li>
+        <a href="http://mathworld.wolfram.com/RegularizedGammaFunction.html">
+        Regularized Gamma Function</a>, equation (1).
+       </li>
+       <li>
+        <a href="http://functions.wolfram.com/GammaBetaErf/GammaRegularized/10/0003/">
+        Regularized incomplete gamma function: Continued fraction representations
+        (formula 06.08.10.0003)</a>
+       </li>
+      </ul>
+     
+      Attribute: Parameter a the a parameter.
+      Attribute: Parameter x the value.
+      Attribute: Parameter epsilon When the absolute value of the nth item in the
+      series is less than epsilon the approximation ceases to calculate
+      further elements in the series.
+      Attribute: Parameter maxIterations Maximum number of "iterations" to complete.
+      Attribute: Returns the regularized gamma function P(a, x)
+     */
+    action RegularizedGammaQ(number a, number x, number epsilon, integer maxIterations) returns number
+        number ret = 0
+        Math math
+        if a:IsNotANumber() or x:IsNotANumber() or a <= 0.0 or x < 0.0
+        elseif x = 0.0
+            ret = 1.0
+        elseif x < a + 1.0
+            ret = 1.0 - RegularizedGammaP(a, x, epsilon, maxIterations)
+        else
+            GammaContinuedFraction cf
+            cf:SetA(a)
+            ret = 1.0 / cf:Evaluate(x, epsilon, maxIterations)
+            ret = math:RaiseNaturalNumberToPower(-x + (a * math:NaturalLogarithm(x)) - LogGamma(a)) * ret
+        end
+
+        return ret
+    end
+
+    /*
+      Returns the regularized gamma function P(a, x). The action is ported from Apache Commons.
+      This uses the default epsilon (error) and the maximum number of iterations is the largest
+      possible integer.
+     
+      Attribute: Parameter  a the a parameter.
+      Attribute: Parameter  x the value.
+      Attribute: Returns the regularized gamma function P(a, x)
+     */
+    action RegularizedGammaP(number a, number x) returns number
+        integer max = 0
+        return RegularizedGammaP(a, x, DEFAULT_EPSILON, max:GetMaximumValue())
+    end
+
+    /*
+      Returns the regularized gamma function P(a, x). The action is ported from Apache Commons
+     
+      The implementation of this method is based on:
+      <ul>
+       <li>
+        <a href="http://mathworld.wolfram.com/RegularizedGammaFunction.html">
+        Regularized Gamma Function</a>, equation (1)
+       </li>
+       <li>
+        <a href="http://mathworld.wolfram.com/IncompleteGammaFunction.html">
+        Incomplete Gamma Function</a>, equation (4).
+       </li>
+       <li>
+        <a href="http://mathworld.wolfram.com/ConfluentHypergeometricFunctionoftheFirstKind.html">
+        Confluent Hypergeometric Function of the First Kind</a>, equation (1).
+       </li>
+      </ul>
+     
+      Attribute: Parameter  a the a parameter.
+      Attribute: Parameter  x the value.
+      Attribute: Parameter  epsilon When the absolute value of the nth item in the
+      series is less than epsilon the approximation ceases to calculate
+      further elements in the series.
+      Attribute: Parameter maxIterations Maximum number of "iterations" to complete.
+      Attribute: Returns the regularized gamma function P(a, x)
+     */
+    action RegularizedGammaP(number a, number x, number epsilon, integer maxIterations) returns number
+        number ret = 0
+        Math math
+        if a:IsNotANumber() or x:IsNotANumber() or a <= 0.0 or x < 0.0
+        elseif x = 0.0
+            ret = 0.0
+        elseif x >= a + 1
+            ret = 1.0 - RegularizedGammaQ(a, x, epsilon, maxIterations)
+        else
+            number n = 0.0
+            number an = 1.0 / a
+            number sum = an
+            repeat while math:AbsoluteValue(an / sum) > epsilon and n < maxIterations and sum < n:GetPositiveInfinityValue()
+                n = n + 1.0
+                an = an * x / (a + n)
+                sum = sum + an
+            end
+            if n > maxIterations
+                alert("Maximum iterations exceeded. Did not converge.")
+            elseif sum:IsInfinite()
+                ret = 1.0
+            else
+                ret = math:RaiseNaturalNumberToPower(-x + (a * math:NaturalLogarithm(x)) - LogGamma(a)) * sum
+            end
+        end
         return ret
     end
 end

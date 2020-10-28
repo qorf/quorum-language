@@ -1,0 +1,21 @@
+package Libraries.Compute.Statistics.Calculations
+
+/*
+    This class is a continued fraction used by the Gamma calculations. 
+    It is a helper class and does not need to be used by users.
+*/
+class GammaContinuedFraction is ContinuedFraction
+    number a = 0
+
+    action SetA(number a)
+        me:a = a
+    end
+
+    action GetA(integer n, number x) returns number
+        return ((2.0 * n) + 1.0) - a + x
+    end
+
+    action GetB(integer n, number x) returns number
+        return n * (a - n)
+    end
+end
