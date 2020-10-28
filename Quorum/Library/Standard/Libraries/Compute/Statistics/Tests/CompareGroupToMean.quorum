@@ -29,8 +29,8 @@ use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
     frame:Calculate(compare)
     output compare:GetFormalSummary()
 */
-class CompareColumnToMean is DataFrameCalculation
-    text column = undefined
+class CompareGroupToMean is DataFrameCalculation
+    integer column = -1
     number probabilityValue = 0
     number columnVariance = 0
     number columnMean = 0
@@ -40,7 +40,7 @@ class CompareColumnToMean is DataFrameCalculation
     number degreesOfFreedom = 0
 
     action Calculate(DataFrame frame) 
-        if column = undefined
+        if column = -1
             alert("Cannot conduct calculation on undefined columns.")
         end
 
@@ -96,14 +96,14 @@ class CompareColumnToMean is DataFrameCalculation
     /*
         Returns the name of the column specified.
     */
-    action GetColumn returns text
+    action GetGroup returns integer
         return column
     end
 
     /*
         Sets the name of the column to be analyzed.
     */
-    action SetColumn(text column)
+    action SetGroup(integer column)
         me:column = column
     end
 
@@ -142,12 +142,12 @@ class CompareColumnToMean is DataFrameCalculation
     end
 
     /* Gets the column mean value. */
-    action GetColumnMean returns number
+    action GetGroupMean returns number
         return columnMean
     end
     
     /* Gets the column variance value. */
-    action GetColumnVariance returns number
+    action GetGroupVariance returns number
         return columnVariance
     end
 
