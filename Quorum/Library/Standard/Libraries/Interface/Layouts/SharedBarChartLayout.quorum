@@ -22,7 +22,6 @@ class SharedBarChartLayout is ChartLayout
         Drawable axis = chart:GetXAxis()
         barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
         number barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2
-        barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
         Array<Icon> bars = chart:GetBars()
         if not bars:IsEmpty()
             Icon currentBar = bars:Get(0)
