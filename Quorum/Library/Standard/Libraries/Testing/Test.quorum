@@ -139,7 +139,7 @@ class Test
     */
     action Check(text value, text expected) returns boolean
         boolean result = false
-        if value = expected
+        if (value = undefined and expected = undefined) or (value = expected)
             result = true
         end
         OneTimeCheck(result)
