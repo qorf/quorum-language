@@ -140,6 +140,114 @@ class DataFrame
     end
 
     /*
+        This action adds a column to the data frame. It is destructive in that it changes
+        the existing DataFrame without making a copy.
+
+        Attribute: Parameter column The column to add.
+
+        Attribute: Example
+
+        //We need the DataFrame class to load in files for Data Science operations.
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Columns.NumberColumn
+        use Libraries.Containers.Array
+        use Libraries.Compute.Statistics.DataFrameColumn
+        
+        //Create a DataFrame, which is essentially a table that understands 
+        //more information about the data that is being loaded.
+        DataFrame frame
+        
+        //This creates a NumberColumn, which contains numbers
+        NumberColumn column
+        column:SetHeader("My Column")
+        column:Add(1)
+        column:Add(2)
+        column:Add(3)
+        column:Add(4)
+        column:Add(5)
+        column:Add(6)
+        frame:AddColumn(column)
+        
+        //The system loaded the file, but can also output it a text value, or the console, if we want that.
+        output frame:ToText()
+    */
+    action AddColumn(DataFrameColumn column)
+        me:columns:Add(column)
+    end
+
+    /*
+        This action adds a column to the data frame. It is destructive in that it changes
+        the existing DataFrame without making a copy.
+
+        Attribute: Parameter index the position of the column
+        Attribute: Parameter column The column to add.
+        Attribute: Example
+
+        //We need the DataFrame class to load in files for Data Science operations.
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Columns.NumberColumn
+        use Libraries.Containers.Array
+        use Libraries.Compute.Statistics.DataFrameColumn
+        
+        //Create a DataFrame, which is essentially a table that understands 
+        //more information about the data that is being loaded.
+        DataFrame frame
+        
+        //This creates a NumberColumn, which contains numbers
+        NumberColumn column
+        column:SetHeader("My Column")
+        column:Add(1)
+        column:Add(2)
+        column:Add(3)
+        column:Add(4)
+        column:Add(5)
+        column:Add(6)
+        frame:AddColumn(0, column)
+        
+        //The system loaded the file, but can also output it a text value, or the console, if we want that.
+        output frame:ToText()
+    */
+    action AddColumn(integer index, DataFrameColumn column)
+        me:columns:Add(index, column)
+    end
+
+    /*
+        This action removes a column from the data frame. It is destructive in that it changes
+        the existing DataFrame without making a copy.
+
+        Attribute: Parameter column The column to add.
+
+        Attribute: Example
+
+        //We need the DataFrame class to load in files for Data Science operations.
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Columns.NumberColumn
+        use Libraries.Containers.Array
+        use Libraries.Compute.Statistics.DataFrameColumn
+        
+        //Create a DataFrame, which is essentially a table that understands 
+        //more information about the data that is being loaded.
+        DataFrame frame
+        
+        //This creates a NumberColumn, which contains numbers
+        NumberColumn column
+        column:SetHeader("My Column")
+        column:Add(1)
+        column:Add(2)
+        column:Add(3)
+        column:Add(4)
+        column:Add(5)
+        column:Add(6)
+        frame:AddColumn(column)
+        
+        //The system loaded the file, but can also output it a text value, or the console, if we want that.
+        output frame:ToText()
+    */
+    action RemoveColumnAt(integer index)
+        me:columns:RemoveAt(index)
+    end
+
+    /*
         This action gets the columns in the DataFrame. This allows direct
         control of the columns for this particular data frame. We suggest not using 
         these values directly unless required by an application.
@@ -271,6 +379,32 @@ class DataFrame
     */
     action Save(File file, DataFrameSaver saver)
         saver:Save(me, file)
+    end
+
+    /*
+        This action saves a data frame from a file relative to the working directory,
+        which is typically where the executable lives. The file must have a csv file extension
+        for this to save. Otherwise, it fails silently.
+
+        Attribute: Parameter location The file to save. This action uses the default format of comma separate values (CSV).
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Save("Data.csv") 
+    */
+    action Save(text location)
+        File file
+        file:SetPath(location)
+
+        text extension = file:GetFileExtension()
+        if extension = "csv"
+            CommaSeparatedSaver saver
+            Save(file, saver)
+        end
     end
 
     /*
