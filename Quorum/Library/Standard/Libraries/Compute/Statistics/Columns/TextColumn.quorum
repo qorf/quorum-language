@@ -73,6 +73,10 @@ class TextColumn is DataFrameColumn
         rows:Set(right, temp)
     end
 
+    action Move(integer left, integer right)
+        rows:Set(right, rows:Get(left))
+    end
+
     action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
         TextColumn column
         column:SetHeader(GetHeader())

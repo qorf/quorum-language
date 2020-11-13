@@ -311,6 +311,14 @@ class DataFrameColumn
     blueprint action Swap(integer left, integer right)
 
     /*
+        This action moves the value in row left to the value in row right. 
+
+        Attribute: Parameter left the first index to swap
+        Attribute: Parameter right the second index to swap
+    */
+    blueprint action Move(integer left, integer right)
+
+    /*
         This action conducts a calculation on this column. The calculation begins 
         by issuing a Start action. Then if it is an iterable action, sends each
         data point to the class for processing. If not, it is asked to conduct
