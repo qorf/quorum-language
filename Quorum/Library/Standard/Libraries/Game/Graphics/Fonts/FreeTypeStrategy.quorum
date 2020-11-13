@@ -191,7 +191,7 @@ class FreeTypeStrategy is FontStrategy
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalina() //catalina changed the default
+            if IsMacCatalinaOrGreater() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
             else
                 fontFile:SetWorkingDirectory("/Library/Fonts")
@@ -215,13 +215,32 @@ class FreeTypeStrategy is FontStrategy
 
     private system action LoadFontNative(text fontFile)
 
-    private action IsMacCatalina returns boolean
+    private action IsMacCatalinaOrGreater returns boolean
         Properties properties
-        if properties:GetOperatingSystemVersion():Contains("10.15")
-            return true
-        else
+        text version = properties:GetOperatingSystemVersion()
+
+        //mac uses numbers like 10.15 or 10.16. Split it up and
+        //Choose the other directory if 15 or higher. For whatever reason
+        //OS 11 shows up as 10.16
+        check
+            Array<text> split = version:Split("\.")
+            if split not= undefined and split:GetSize() = 2
+                and split:Get(0) = "10"
+
+                integer right = cast(integer, split:Get(1))
+                if right >= 15
+                    return true
+                else
+                    return false
+                end
+            else
+                return false
+            end
+        detect e
             return false
         end
+
+        return false
     end
 
     private action FindFontExtension(text fontName) returns text
@@ -231,7 +250,7 @@ class FreeTypeStrategy is FontStrategy
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
         elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalina() //catalina changed the default
+            if IsMacCatalinaOrGreater() //catalina changed the default
                 fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
             else
                 fontFile:SetWorkingDirectory("/Library/Fonts")
