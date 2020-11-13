@@ -92,6 +92,7 @@ class CommaSeparatedSaver is DataFrameSaver
         
         repeat while continue
             text currentRow = ""
+            text dq = currentRow:GetDoubleQuote()
             i = 0
             boolean hadRow = false
             repeat while i < frame:GetSize()
@@ -99,7 +100,11 @@ class CommaSeparatedSaver is DataFrameSaver
                 if row < column:GetSize()
                     text value = column:GetAsText(row)
                     if value not= undefined
-                        currentRow = currentRow + value
+                        if not value:IsEmpty() and value:Contains(",")
+                            currentRow = currentRow + dq + value + dq
+                        else
+                            currentRow = currentRow + value
+                        end
                     end
                     hadRow = true
                 end

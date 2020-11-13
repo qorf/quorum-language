@@ -54,8 +54,9 @@ class SeparatedValueFileReader is FileReader
         text lineFeed = myTotal:GetLineFeed()
         text newline = myTotal:GetCarriageReturn()
         
+        integer totalSize = myTotal:GetSize()
         i = 0
-        repeat size times
+        repeat while i < totalSize
             char = myTotal:GetCharacter(i)
             if char = dq
                 isInDoubleQuote = not isInDoubleQuote
@@ -64,9 +65,14 @@ class SeparatedValueFileReader is FileReader
             //Check to see if it's a carriage return, a line feed, or a carriage return line feed. Seems like not all of 
             //the CSV files out there actually follow a reasonable spec, so we have to do stuff like this.
             if (char = lineFeed and not isInDoubleQuote) or (char = newline and not isInDoubleQuote)
-                or (char = newline and i + 1 < (size - 1) and myTotal:GetCharacter(i + 1) = lineFeed and not isInDoubleQuote)
+                //or (char = newline and i + 1 < (size - 1) and myTotal:GetCharacter(i + 1) = lineFeed and not isInDoubleQuote)
                 or (i = (size - 1))
 
+                if char = newline and i + 1 < (size - 1) and myTotal:GetCharacter(i + 1) = lineFeed
+                    //we need to skip a character, because this is a carriage return, line feed
+                    i = i + 1
+                end
+               
                 lines:Add(line)
                 line = ""
             else 
