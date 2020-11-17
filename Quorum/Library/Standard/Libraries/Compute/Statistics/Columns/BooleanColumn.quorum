@@ -15,15 +15,38 @@ class BooleanColumn is DataFrameColumn
     Array<Boolean> rows
 
     action Add(text value)
-        if value = undefined
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
         end
 
         check 
-            boolean bool = cast(boolean, value)
-            rows:Add(bool)
+            text val = value:ToLowerCase()
+            if val = "true"
+                rows:Add(true)
+            elseif val = "t"
+                rows:Add(true)
+            elseif val = "y"
+                rows:Add(true)
+            elseif val = "yes"
+                rows:Add(true)
+            elseif val = "1"
+                rows:Add(true)
+            elseif val = "false"
+                rows:Add(false)
+            elseif val = "f"
+                rows:Add(false)
+            elseif val = "n"
+                rows:Add(false)
+            elseif val = "no"
+                rows:Add(false)
+            elseif val = "0"
+                rows:Add(false)
+            else //We don't recognize this value, so put in undefined
+                rows:Add(undefined) //add a missing value
+                parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+            end
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
