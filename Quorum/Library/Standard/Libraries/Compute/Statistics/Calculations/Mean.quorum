@@ -27,7 +27,7 @@ class Mean is DataFrameColumnCalculation
     number mean = 0
 
     action Start(DataFrameColumn column) 
-        size = column:GetSize()
+        size = column:GetSize() - column:GetUndefinedSize()
     end
    
     action Add(Number value) 

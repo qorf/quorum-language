@@ -36,7 +36,7 @@ class Variance is DataFrameColumnCalculation
     boolean meanSet = false
 
     action Start(DataFrameColumn column) 
-        size = column:GetSize()
+        size = column:GetSize() - column:GetUndefinedSize()
         if not meanSet
             Mean meanCalc
             column:Calculate(meanCalc)

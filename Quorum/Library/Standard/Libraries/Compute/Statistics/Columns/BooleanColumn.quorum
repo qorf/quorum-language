@@ -17,6 +17,7 @@ class BooleanColumn is DataFrameColumn
     action Add(text value)
         if value = undefined
             rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
         end
 
@@ -25,6 +26,7 @@ class BooleanColumn is DataFrameColumn
             rows:Add(bool)
         detect e
             rows:Add(undefined) //add a missing value
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
         end
     end
 

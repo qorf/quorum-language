@@ -37,7 +37,7 @@ class InterQuartileRange is DataFrameColumnCalculation
     number minimum = 0
 
     action Start(DataFrameColumn column) 
-        size = column:GetSize()
+        size = column:GetSize() - column:GetUndefinedSize()
     end
 
     action Calculate(DataFrameColumn column) 

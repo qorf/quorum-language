@@ -22,6 +22,7 @@ class TextColumn is DataFrameColumn
     action Add(text value)
         if value = undefined
             rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
         end
 

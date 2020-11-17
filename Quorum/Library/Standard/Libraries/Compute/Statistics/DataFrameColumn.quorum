@@ -37,6 +37,7 @@ use Libraries.Compute.Statistics.Columns.TextColumn
 class DataFrameColumn 
     /* This is the name of the column. */
     text header = ""
+    integer undefinedSize = 0
     
     /*
         This gets the header for this column.
@@ -370,6 +371,13 @@ class DataFrameColumn
     */
     action GetSize returns integer
         return 0
+    end
+
+    /*  This action returns the number of items in this column that are undefined.
+        Attribute: Returns the number of items that are not defined
+    */
+    action GetUndefinedSize returns integer
+        return undefinedSize
     end
 
     /*

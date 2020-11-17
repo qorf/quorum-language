@@ -16,10 +16,12 @@ use Libraries.Compute.Vector
 class IntegerColumn is DataFrameColumn
     /* This is the new system, which is rows. */
     Array<Integer> rows
+    
 
     action Add(text value)
         if value = undefined
             rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
         end
 
@@ -28,6 +30,7 @@ class IntegerColumn is DataFrameColumn
             rows:Add(num)
         detect e
             rows:Add(undefined) //add a missing value
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
         end
     end
 

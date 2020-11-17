@@ -32,7 +32,7 @@ class Moment is DataFrameColumnCalculation
     integer moment = 1 //assume the first moment
 
     action Start(DataFrameColumn column) 
-        size = column:GetSize()
+        size = column:GetSize() - column:GetUndefinedSize()
     end
    
     action Add(Number value) 
