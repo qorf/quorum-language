@@ -7,6 +7,7 @@ use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Matrix
+use Libraries.Containers.HashTable
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -29,6 +30,66 @@ use Libraries.Compute.Matrix
 */
 class DataFrame
     Array<DataFrameColumn> columns
+
+    HashTable<integer, DataFrameColumn> columnsOnLoad = undefined
+
+    /*
+        This action adds a column that, when the DataFrame is loaded
+        will be used for processing a particular column. This will allow
+        the loader to use customized type information specific to a particular
+        file or situation.
+
+        Attribute: Parameter index the position of the index on loading. For example, 
+            an index of means the column at index 0, if one is loaded.
+        Attribute: Parameter column the DataFrameColumn to use and enter into the 
+            DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        DataFrame frame
+        NumberColumn column
+        frame:AddColumnOnLoad(0, column)
+
+        frame:Load("Data/Sheet.csv")
+        output frame:ToText()
+    */
+    action AddColumnOnLoad(integer index, DataFrameColumn column)
+        if columnsOnLoad = undefined
+            HashTable<integer, DataFrameColumn> col
+            columnsOnLoad = col
+        end
+
+        columnsOnLoad:Add(index, column)
+    end
+
+    /*
+        This action returns a column to load with at a particular index, if one
+        exists.
+    */
+    action GetColumnOnLoad(integer index) returns DataFrameColumn 
+        if columnsOnLoad not= undefined
+            return columnsOnLoad:GetValue(index)
+        end
+        return undefined
+    end
+    
+    /*
+        This action removes a column from the on load procedure. 
+    */
+    action RemoveColumnOnLoad(integer index)
+        columnsOnLoad:RemoveAllKeys(index)
+    end
+
+    /*
+        This action empties the columns loaded and frees up memory from 
+        the initialization. After any load operation, this action is automatically
+        called.
+    */
+    action EmptyColumnsOnLoad
+        columnsOnLoad = undefined //free up memory
+    end
 
     /*
         This action loads a data frame from a file. 
@@ -53,6 +114,7 @@ class DataFrame
                 Load(file, loader)
             end
         end
+        EmptyColumnsOnLoad()
     end
 
     /*
@@ -354,6 +416,7 @@ class DataFrame
     */
     action Load(File file, DataFrameLoader loader)
         loader:Load(me, file)
+        EmptyColumnsOnLoad()
     end
 
     /*

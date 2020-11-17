@@ -51,7 +51,11 @@ class CommaSeparatedLoader is DataFrameLoader
             i = 0
             repeat while i < row:GetSize()
                 text value = row:Get(i)
-                DataFrameColumn column = GenerateColumnFromText(value)
+                DataFrameColumn column = frame:GetColumnOnLoad(i)
+                //if the user didn't specify a column, generate a default
+                if column = undefined
+                    column = GenerateColumnFromText(value)
+                end
                 newColumns:Add(column)
                 i = i + 1
             end
