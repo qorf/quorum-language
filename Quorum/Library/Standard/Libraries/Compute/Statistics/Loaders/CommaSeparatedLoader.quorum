@@ -115,17 +115,16 @@ class CommaSeparatedLoader is DataFrameLoader
         frame:SetColumns(newColumns)
     end
 
+    /*
+        By default, if the first row is an NA value, or text, a text column is used. 
+        If the first column can be interpreted as a number, a NumberColumn is used. 
+        Integer columns are never prioritized as a default, although non-numbers can 
+        be interpreted as booleans given text input in a first row.
+    */
     action GenerateColumnFromText(text value) returns DataFrameColumn
         if value = undefined or value:IsEmpty()
             TextColumn column
             return column
-        end
-
-        check
-            integer val = cast(integer, value)
-            IntegerColumn column
-            return column
-        detect e
         end
 
         check
