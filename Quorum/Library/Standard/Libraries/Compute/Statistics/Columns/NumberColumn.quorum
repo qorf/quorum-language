@@ -144,8 +144,13 @@ class NumberColumn is DataFrameColumn
         text lf = result:GetLineFeed()
         i = 0
         repeat while i < GetSize()
-            number value = GetAsNumber(i)
-            result = result + value + lf
+            Number num = rows:Get(i)
+            if num not= undefined
+                number value = num:GetValue()
+                result = result + value + lf
+            else
+                result = result + GetUndefinedText() + lf
+            end
             i = i + 1
         end
         return result

@@ -387,4 +387,11 @@ class DataFrameColumn
         Attribute: Returns a text representation of the entire column
     */
     blueprint action ToText returns text
+
+    /*
+        This action returns a default text string for undefined values.
+    */
+    action GetUndefinedText returns text
+        return "undefined"
+    end
 end

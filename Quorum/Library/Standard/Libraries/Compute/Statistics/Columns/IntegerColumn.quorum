@@ -152,8 +152,14 @@ class IntegerColumn is DataFrameColumn
         text lf = result:GetLineFeed()
         i = 0
         repeat while i < GetSize()
-            integer value = GetAsInteger(i)
-            result = result + value + lf
+            Integer num = rows:Get(i)
+            if num not= undefined
+                integer value = num:GetValue()
+                result = result + value + lf
+            else
+                result = result + GetUndefinedText() + lf
+            end
+            
             i = i + 1
         end
         return result

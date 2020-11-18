@@ -135,8 +135,13 @@ class BooleanColumn is DataFrameColumn
         text lf = result:GetLineFeed()
         i = 0
         repeat while i < GetSize()
-            boolean value = GetAsBoolean(i)
-            result = result + value + lf
+            Boolean value = rows:Get(i)
+            if value not= undefined
+                boolean b = value:GetValue()
+                result = result + b + lf
+            else
+                result = result + GetUndefinedText() + lf
+            end
             i = i + 1
         end
         return result

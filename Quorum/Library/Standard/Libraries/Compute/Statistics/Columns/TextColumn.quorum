@@ -107,8 +107,14 @@ class TextColumn is DataFrameColumn
         text lf = result:GetLineFeed()
         i = 0
         repeat while i < GetSize()
-            text value = GetAsText(i)
-            result = result + value + lf
+            Text t = rows:Get(i)
+            if t not= undefined
+                text value = t:GetValue()
+                result = result + value + lf
+            else
+                result = result + GetUndefinedText() + lf
+            end
+            
             i = i + 1
         end
         return result
