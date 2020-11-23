@@ -1,0 +1,136 @@
+package Libraries.Compute.Statistics.Columns
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Sound.AudioSamples
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Vector
+
+/*
+    AudioColumn is a DataFrameColumn that contains number objects. The AudioColumn
+    must have an AudioSamples object manually loaded into it. Because this column 
+    contains AudioSamples objects, which must contain samples at each point, no
+    row can be possibly be undefined. The same representation can be used for 
+    multi-channel audio, by setting the channel per column.
+
+    Attribute: Author Andreas Stefik
+*/
+class AudioColumn is DataFrameColumn
+    AudioSamples samples = undefined
+    integer channel = 0
+
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+        number value = samples:Get(index)
+        calculation:Add(value)
+    end
+
+    action ConvertToVector returns Vector
+        Vector vector
+        vector:SetSize(samples:GetSize())
+        i = 0
+        repeat while i < samples:GetSize()
+            number value = samples:Get(i, channel)
+            vector:Set(i, value)
+            i = i + 1
+        end
+        return vector
+    end
+
+    action GetAsNumber(integer index) returns number
+        return samples:Get(index, channel)
+    end
+
+    action CanConvertToVector returns boolean
+        return true
+    end
+
+    action GetSize returns integer
+        return samples:GetSize()
+    end
+
+    action GetSamples returns AudioSamples
+        return samples
+    end
+
+    action SetSamples(AudioSamples samples)
+        me:samples = samples
+    end
+
+    action Copy returns DataFrameColumn
+        AudioSamples copy = samples:Copy()
+        AudioColumn col
+        col:SetSamples(copy)
+        col:SetHeader(GetHeader())
+        return col
+    end
+
+    action IsNumberColumn returns boolean
+        return true
+    end
+
+    action SetAsNumber(integer index, number value)
+        samples:Set(index, value)
+    end
+
+    action Swap(integer left, integer right)
+        number temp = 0
+        temp = samples:Get(left)
+        samples:Set(left, samples:Get(right))
+        samples:Set(right, temp)
+    end
+
+    
+    action SetSize(integer size)
+        samples:SetSize(size)
+    end
+
+    /*
+        An AudioColumn uses an underlying AudioSamples object, which cannot have
+        undefined items.
+    */
+    action IsUndefined(integer row) returns boolean
+        return false
+    end
+    /*
+        This action moves the value in row left to the value in row right. 
+
+        Attribute: Parameter left the first index to swap
+        Attribute: Parameter right the second index to swap
+    */
+    action Move(integer left, integer right)
+        samples:Set(right, samples:Get(left))
+    end
+
+    /* 
+        This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. 
+
+        Attribute: Parameter rowStart the first row to copy
+        Attribute: Parameter rowEnd the last row to copy
+    */
+    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+        AudioSamples copy = samples:Copy(rowStart, rowEnd)
+        AudioColumn col
+        col:SetSamples(copy)
+        col:SetHeader(GetHeader())
+        return col
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            number value = GetAsNumber(i)
+            result = result + value + lf
+            i = i + 1
+        end
+        return result
+    end
+
+    action GetChannel returns integer
+        return channel
+    end
+
+    action SetChannel(integer channel)
+        me:channel = channel
+    end
+end
