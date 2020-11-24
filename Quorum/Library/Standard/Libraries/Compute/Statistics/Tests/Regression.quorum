@@ -18,6 +18,7 @@ use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.Inputs.ColumnInput
 
 /*
     This class conducts an Ordinary Least Squares regression on a DataFrame. By default, an 
@@ -97,7 +98,7 @@ use Libraries.Compute.Statistics.Inputs.FactorInput
     output "p = " + regression:GetProbabilityValue()
     output "R^2: " + regression:GetEffectSize()
 */
-class Regression is DataFrameCalculation, FactorInput
+class Regression is DataFrameCalculation, ColumnInput, FactorInput
     integer dependentVariable = -1
     boolean hasIntercept = true
     OrthonormalTriangularDecomposition decomp
@@ -119,6 +120,13 @@ class Regression is DataFrameCalculation, FactorInput
             return now
         end
 
+        if GetColumnSize() not= 1
+            return now
+        end
+
+        //currently we only support one factor
+        dependentVariable = GetColumn(0)
+
         //first copy only the columns under test, so we don't mess up the original data frame.
         ColumnFilterTransform transform
         i = 0
@@ -127,6 +135,7 @@ class Regression is DataFrameCalculation, FactorInput
             transform:AddColumn(value)
             i = i + 1
         end
+
         DataFrameColumn column = frame:GetColumn(dependentVariable)
         DataFrame transformed = frame:Transform(transform)
         Array<DataFrameColumn> columns = transformed:GetColumns()
@@ -538,20 +547,6 @@ class Regression is DataFrameCalculation, FactorInput
     */
     action GetResiduals returns Vector
         return residuals
-    end
-    
-    /*
-        Returns the column name to be predicted (y)
-    */
-    action GetDependentVariable returns integer
-        return dependentVariable
-    end
-
-    /*
-        Returns the column name to be predicted (y)
-    */
-    action SetDependentVariable(integer dependent)
-        me:dependentVariable = dependent
     end
 
     /*
