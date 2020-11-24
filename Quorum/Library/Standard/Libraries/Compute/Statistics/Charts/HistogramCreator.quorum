@@ -43,22 +43,12 @@ use Libraries.Compute.Math
     //we might then add this chart to a game.
 */
 class HistogramCreator is DataFrameChartCreator
-    private text chartTitle = undefined
-    private text xTitle = undefined
-    private text yTitle = undefined
-    private number maxScale = maxScale:GetMinimumValue()
-    private integer scaleSteps = -1
-    private boolean groupByName = false
-    
-    private text nameColumn = undefined
-    private text valueColumn = undefined
+    private integer valueColumn = -1
     private integer ticks = 5
+    number binWidthOverride = -1
 
     action Create(DataFrame frame) returns Chart
         Histogram chart
-        if valueColumn = undefined
-            alert("Cannot conduct calculation on undefined columns.")
-        end
 
         //error checking
         DataFrameColumn values = frame:GetColumn(valueColumn)
@@ -72,6 +62,15 @@ class HistogramCreator is DataFrameChartCreator
         values:Calculate(range)
 
         number binWidth = 2 * range:GetInterQuartileRange()
+
+        //if the user set the bin width, let them adjust as they see fit.
+        //if they didn't, record the default.
+        if binWidthOverride > 0
+            binWidth = binWidthOverride
+        else 
+            binWidthOverride = binWidth
+        end
+
         Math math
 
         integer n = values:GetSize()
@@ -86,9 +85,11 @@ class HistogramCreator is DataFrameChartCreator
 
         integer bins = cast(integer, binSpacing) + 1
         Array<integer> count
+        Array<number> binFloor
         i = 0
         repeat while i < bins
             count:Add(0)
+            binFloor:Add(binWidth:GetMaximumValue())
             i = i + 1
         end
         
@@ -97,6 +98,11 @@ class HistogramCreator is DataFrameChartCreator
             number value = values:GetAsNumber(i)
             integer bin = cast(integer, (value - min) / binWidth)
             count:Set(bin, count:Get(bin) + 1)
+
+            if value < binFloor:Get(bin)
+                binFloor:Set(bin, value)
+            end
+
             i = i + 1
         end
 
@@ -118,7 +124,13 @@ class HistogramCreator is DataFrameChartCreator
         i = 0
         repeat while i < count:GetSize()
             integer amount = count:Get(i)
-            chart:AddBar("" + i, (amount / maxFrequency))
+            number floor = binFloor:Get(i)
+            boolean doNotDisplay = floor = floor:GetMaximumValue()
+            text valueDisplay = "" + cast(integer, floor)
+            if doNotDisplay
+                valueDisplay = ""
+            end
+            chart:AddBar(valueDisplay, (amount / maxFrequency))
             i = i + 1
         end
         return chart
@@ -127,14 +139,14 @@ class HistogramCreator is DataFrameChartCreator
     /*
         Returns the name of the value column specified.
     */
-    action GetValueColumn returns text
+    action GetColumn returns integer
         return valueColumn
     end
 
     /*
         Sets the name of the name column specified.
     */
-    action SetValueColumn(text column)
+    action SetColumn(integer column)
         me:valueColumn = column
     end
 
@@ -154,5 +166,15 @@ class HistogramCreator is DataFrameChartCreator
     */
     action SetTicks(integer ticks)
         me:ticks = ticks
+    end
+
+    /* Obtains what the bin width was. */
+    action GetBinWidth returns number
+        return binWidthOverride
+    end
+
+    /* Manually changes the bin width. */
+    action SetBinWidth(number binWidthOverride)
+        me:binWidthOverride = binWidthOverride
     end
 end

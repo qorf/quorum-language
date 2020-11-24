@@ -1,13 +1,30 @@
 package Libraries.Compute.Statistics
 
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
-use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Matrix
-use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Tests.CompareGroups
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Tests.CompareGroupToMean
+use Libraries.Compute.Statistics.Tests.CorrelateGroups
+use Libraries.Compute.Statistics.Tests.CorrelateRanks
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Calculations.Variance
+use Libraries.Compute.Statistics.Calculations.StandardDeviation
+use Libraries.Compute.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.Calculations.Median
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Compute.Statistics.Calculations.Kurtosis
+use Libraries.Compute.Statistics.Calculations.Skew
+use Libraries.Interface.Controls.Charts.Chart
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -30,7 +47,7 @@ use Libraries.Containers.HashTable
 */
 class DataFrame
     Array<DataFrameColumn> columns
-
+    DataFrameSelection selection = undefined
     HashTable<integer, DataFrameColumn> columnsOnLoad = undefined
 
     /*
@@ -628,6 +645,1288 @@ class DataFrame
         end
 
         return newFrame
+    end
+
+    
+    /* 
+        Classes can register as listeners of the selection in the DataFrame.
+    */
+    action Add(DataFrameSelectionListener listener)
+        selection:Add(listener)
+    end
+
+    /* 
+        Classes can also de-register as listeners of the selection in the DataFrame.
+    */
+    action Remove(DataFrameSelectionListener listener)
+        selection:Remove(listener)
+    end
+
+    /* 
+        This action returns an iterator of the listeners on the DataFrame's selection.
+    */
+    action GetListeners returns Iterator<DataFrameSelectionListener>
+        return selection:GetListeners()
+    end
+
+    /*
+        This adds adds columns to the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0, 2)
+        output frame:ToText()
+    */
+    action AddSelectedColumnRange(integer start, integer finish)
+        CheckDefaultSelection()
+        integer i = start
+        repeat while i <= finish //inclusive
+            AddSelectedColumn(i)
+            i = i + 1
+        end
+    end
+
+    /*
+        This adds sets columns to the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range. If any previous range was indicated, it is removed.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0, 2)
+        output frame:ToText()
+    */
+    action SetSelectedColumnRange(integer start, integer finish)
+        CheckDefaultSelection()
+        selection:EmptyColumns()
+        AddSelectedColumnRange(start, finish)
+    end
+
+    /*
+        This adds removes columns from the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0, 2)
+        frame:RemoveSelectedColumnRange(1, 2)
+        output frame:ToText()
+    */
+    action RemoveSelectedColumnRange(integer start, integer finish)
+        if selection = undefined or selection:IsEmptyColumns()
+            return now
+        end
+        integer i = start
+        repeat while i <= finish //inclusive
+            RemoveSelectedColumn(i)
+            i = i + 1
+        end
+    end
+    
+    /*
+        This adds adds factors to the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactorRange(0, 2)
+        output frame:ToText()
+    */
+    action AddSelectedFactorRange(integer start, integer finish)
+        CheckDefaultSelection()
+        integer i = start
+        repeat while i <= finish //inclusive
+            AddSelectedFactor(i)
+            i = i + 1
+        end
+    end
+
+    /*
+        This adds sets factors to the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range. If any previous range was indicated, it is removed.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedFactorRange(0, 2)
+        output frame:ToText()
+    */
+    action SetSelectedFactorRange(integer start, integer finish)
+        CheckDefaultSelection()
+        selection:EmptyColumns()
+        AddSelectedFactorRange(start, finish)
+    end
+
+    /*
+        This adds removes factors from the selected range, starting from start and ending
+        at finish, inclusive. In this case, this means that calculations will be conducted
+        across this entire range.
+    
+        Attribute: Parameter start the start of the range
+        Attribute: Parameter finish the end of the range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactorRange(0, 2)
+        frame:RemoveSelectedFactorRange(1, 2)
+        output frame:ToText()
+    */
+    action RemoveSelectedFactorRange(integer start, integer finish)
+        if selection = undefined or selection:IsEmptyColumns()
+            return now
+        end
+        integer i = start
+        repeat while i <= finish //inclusive
+            RemoveSelectedFactor(i)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action gets the selection in the DataFrame. 
+    
+        Attribute: Returns the selection of the frame
+    */
+    action GetSelection returns DataFrameSelection
+        return selection
+    end
+
+    /* Private undefined checker. */
+    private action CheckDefaultSelection
+        if selection = undefined
+            DataFrameSelection select
+            select:SetFrame(me)
+            me:selection = select
+        end
+    end
+
+    /*
+        This adds a column to the selected range.
+    
+        Attribute: Parameter index the column index of the column to add
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:ToText()
+    */
+    action AddSelectedColumn(integer index) 
+        CheckDefaultSelection()
+
+        selection:AddColumn(index)
+    end
+
+    /*
+        This removes a column at the index of the selection.
+    
+        Attribute: Parameter index the selection index of the column to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:RemoveSelectedColumnAt(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedColumnAt(integer index)
+        if selection = undefined or index < 0 or index >= selection:GetColumnSize()
+            return now
+        end
+
+        selection:RemoveColumnAt(index)
+    end
+
+    /*
+        This removes a column of a particular index anywhere from the selection.
+    
+        Attribute: Parameter index the column index of the column to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:RemoveSelectedColumn(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedColumn(integer index)
+        if selection = undefined
+            return now
+        end
+
+        selection:RemoveColumn(index)
+    end
+
+    /*
+        This adds a factor of a particular index anywhere from the selection.
+    
+        Attribute: Parameter index the index of the factor to add
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        output frame:ToText()
+    */
+    action AddSelectedFactor(integer index) 
+        CheckDefaultSelection()
+
+        selection:AddFactor(index)
+    end
+
+    /*
+        This removes a factor at a particular index from the selection.
+    
+        Attribute: Parameter index the selection index of the factor to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        frame:RemoveSelectedFactorAt(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedFactorAt(integer index)
+        if selection = undefined or index < 0 or index >= selection:GetFactorSize()
+            return now
+        end
+
+        selection:RemoveFactorAt(index)
+    end
+
+    /*
+        This removes a factor of a particular index anywhere from the selection.
+    
+        Attribute: Parameter index the factor index of the factor to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        frame:RemoveSelectedFactor(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedFactor(integer index)
+        if selection = undefined
+            return now
+        end
+
+        selection:RemoveFactor(index)
+    end
+
+    /*
+        This action empties the selection, so that no columns are selected.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        frame:EmptySelectedColumns()
+        output frame:ToText()
+    */
+    action EmptySelectedColumns
+        if selection = undefined
+            return now
+        end
+
+        selection:EmptyColumns()
+    end
+
+    /*
+        This action empties the selection, so that no factors are selected.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        frame:EmptySelectedFactors()
+        output frame:ToText()
+    */
+    action EmptySelectedFactors
+        if selection = undefined
+            return now
+        end
+
+        selection:EmptyFactors()
+    end
+
+    /*
+        This action obtains how many columns are selected in the selection.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:GetSelectedColumnSize()
+    */
+    action GetSelectedColumnSize returns integer
+        if selection = undefined
+            return 0
+        end
+        return selection:GetColumnSize()
+    end
+
+    /*
+        This action obtains how many factors are selected in the selection.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactor(0)
+        output frame:GetSelectedFactorSize()
+    */
+    action GetSelectedFactorSize returns integer
+        if selection = undefined
+            return 0
+        end
+        return selection:GetFactorSize()
+    end
+
+    /*
+        This action receives a list of comma separated header values. It returns a list of all
+        columns that would be selected by this list in sorted order by index. It ignores duplicate keys,
+        but throws an error if either a header is not found or if the original DataFrame contains duplicate
+        header names. As such, it is intentionally rigid to prevent the user from making accidental mistakes.
+        The columns do not return in the same order as the header list, nor does it need to because
+        it is designed to change the selection, which is not order dependent.
+    */
+    private action GetColumnsFromHeaderNames(text headers) returns Array<integer> 
+        Array<integer> columns
+        if headers = undefined or headers:IsEmpty()
+            return columns
+        end
+
+        Array<text> split = headers:Split(",")
+        if split = undefined or split:IsEmpty()
+            return columns
+        end
+
+        //Hash all of the header names
+        HashTable<text, integer> head
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = GetColumn(i)
+            text key = column:GetHeader()
+
+            //Don't allow duplicates, as this could lead to really easy user mistakes. If a user wants to use this system
+            //it is on them to give unique header names. Otherwise they can specify columns by index
+            if head:HasKey(key)
+                alert("Detected non-unique column names in this data set, " + key + ". To use this helper action, all column names must be unique in the loaded DataFrame.")
+            else
+                head:Add(key, i)
+            end
+            i = i + 1
+        end
+
+        //now hash all of the values into an array, then sort it
+        HashTable<text, integer> splitHash
+        i = 0
+        repeat while i < split:GetSize()
+            text key = split:Get(i)
+            if not head:HasKey(key)
+                alert("Could not find key " + key + " in the DataFrame. Are you sure it exists?")
+            else
+                integer value = head:GetValue(key)
+                splitHash:Add(key, value) //this automatically ignores duplicates, since it would hash the same
+            end
+            i = i + 1
+        end
+
+        Iterator<text> keys = splitHash:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            integer value = splitHash:GetValue(key)
+            columns:Add(value)
+        end
+        columns:Sort()
+        return columns
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. 
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumns("name1,name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action AddSelectedColumns(text headers) 
+        CheckDefaultSelection()
+        Array<integer> selected = GetColumnsFromHeaderNames(headers)
+        integer i = 0
+        repeat while i < selected:GetSize()
+            AddSelectedColumn(selected:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. 
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedFactors("name1,name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action AddSelectedFactors(text headers) 
+        CheckDefaultSelection()
+        Array<integer> selected = GetColumnsFromHeaderNames(headers)
+        integer i = 0
+        repeat while i < selected:GetSize()
+            AddSelectedFactor(selected:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. This 
+        action removes any previous selection.
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumns("name1,name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action SetSelectedColumns(text headers) 
+        CheckDefaultSelection()
+        selection:EmptyColumns()
+        AddSelectedColumns(headers)
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. This 
+        action removes any previous selection.
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedFactors("name1,name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action SetSelectedFactors(text headers) 
+        CheckDefaultSelection()
+        selection:EmptyFactors()
+        AddSelectedFactors(headers)
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. This 
+        action removes the selection from the list of headers.
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumns("name1,name2")
+        frame:RemoveSelectedColumns("name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action RemoveSelectedColumns(text headers)
+        if selection = undefined
+            return now
+        end
+
+        Array<integer> selected = GetColumnsFromHeaderNames(headers)
+
+        i = 0
+        repeat while i < selected:GetSize()
+            integer value = selected:Get(i)
+            RemoveSelectedColumn(value)
+            i = i + 1    
+        end
+    end
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. This 
+        action removes the selection from the list of headers.
+
+        Attribute: Parameter headers the columns to select
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedFactors("name1,name2")
+        frame:RemoveSelectedFactors("name2")
+        output frame:GetSelectedColumnSize()
+    */
+    action RemoveSelectedFactors(text headers)
+        if selection = undefined
+            return now
+        end
+
+        Array<integer> selected = GetColumnsFromHeaderNames(headers)
+
+        i = 0
+        repeat while i < selected:GetSize()
+            integer value = selected:Get(i)
+            RemoveSelectedFactor(value)
+            i = i + 1    
+        end
+    end
+
+    /* Checks if the selection is valid. */
+    private action IsInvalidSelection returns boolean
+        if selection = undefined or (selection:IsEmptyColumns() and selection:IsEmptyFactors())
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between two or more columns. 
+        The comparison is traditionally called a 1-way ANOVA. The CompareGroups object 
+        returned gives information back in several formats, including text formatted in the 
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareGroups groups = CompareSelectedColumns()
+        output groups:GetFormalSummary()
+    */
+    action CompareSelectedColumns returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() < 2
+            alert("Must compare 2 or more columns")
+        end
+
+        CompareGroups groups
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
+        groups:Calculate(me)
+        return groups
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between a column and a mean.
+        The comparison is traditionally called a one sample t-test. The CompareGroupToMean object
+        returned gives information back in several formats, including text formatted in the
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareGroupToMean result = CompareSelectedColumnToMean(0)
+        output result:GetFormalSummary()
+    */
+    action CompareSelectedColumnToMean(number mean) returns CompareGroupToMean
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() not= 1
+            alert("Must compare the mean to 1 column")
+        end
+
+        CompareGroupToMean groups
+        groups:SetGroup(selection:GetColumn(0))
+        groups:SetMean(mean)
+        groups:Calculate(me)
+        return groups
+    end
+
+    /*
+        This action uses the selection to conduct a correlation between two or more columns. 
+        The comparison is traditionally called a Pearson Correlation. The CompareGroups object 
+        returned gives information back in several formats, including text formatted in the 
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CorrelateGroups groups = CorrelateSelectedColumns()
+        output groups:GetFormalSummary()
+    */
+    action CorrelateSelectedColumns returns CorrelateGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() < 2
+            alert("Must compare 2 or more columns")
+        end
+
+        CorrelateGroups groups
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
+        groups:Calculate(me)
+        return groups
+    end
+
+    /*
+        This action uses the selection to conduct a correlation between the ranks of values
+        between two or more columns. 
+        The comparison is traditionally called a Spearman Correlation. The CompareGroups object 
+        returned gives information back in several formats, including text formatted in the 
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CorrelateRanks groups = CorrelateSelectedRanks()
+        output groups:GetFormalSummary()
+    */
+    action CorrelateSelectedRanks returns CorrelateRanks
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() < 2
+            alert("Must compare 2 or more columns")
+        end
+
+        CorrelateRanks groups
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
+        groups:Calculate(me)
+        return groups
+    end
+
+    /*
+        This action uses the selection to conduct a comparison variances in columns. 
+        The comparison is traditionally called a Levene's Test. The CompareGroups object 
+        returned gives information back in several formats, including text formatted in the 
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareVariances groups = CompareSelectedVariances()
+        output groups:GetFormalSummary()
+    */
+    action CompareSelectedVariances returns CompareVariances
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() < 2
+            alert("Must compare 2 or more columns")
+        end
+
+        CompareVariances groups
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
+        groups:Calculate(me)
+        return groups
+    end
+
+    /*
+        This action uses the selection to conduct a regression.
+        The comparison is traditionally called a Regression. The CompareGroups object
+        returned gives information back in several formats, including text formatted in the
+        American Psychological Association (APA) style.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(1)
+        frame:AddSelectedFactor(2)
+        frame:AddSelectedFactor(3)
+        Regression result = RegressionOnSelected()
+        output result:GetFormalSummary()
+    */
+    action RegressionOnSelected returns Regression
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() = 1
+            alert("Must have a dependent variable having a column")
+        end
+
+        if selection:GetFactorSize() < 1
+            alert("Must have at least one independent variable (factor column)")
+        end
+
+        Regression groups
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(FactorInput, groups))
+        groups:Calculate(me)
+        return groups
+    end
+
+    /* Checks if a single column is selected. */
+    private action IsSingleColumnSelection returns boolean
+        if IsInvalidSelection()
+            return false
+        end
+
+        if selection:GetColumnSize() = 1
+            return true
+        end
+
+        return false
+    end
+
+    /* Detects if more than one columns is selected. */
+    private action IsMultiColumnSelection returns boolean
+        if IsInvalidSelection()
+            return false
+        end
+
+        if selection:GetColumnSize() >= 1
+            return true
+        end
+
+        return false
+    end
+
+    /*
+        This action calculates the mean of the selected column.
+
+        Attribute: Returns the mean
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Mean()
+    */
+    action Mean returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Mean calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetMean()
+    end
+
+    /*
+        This action calculates the mean of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Mean> values = frame:MeanSelectedColumns()
+    */
+    action MeanSelectedColumns returns Array<Mean>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Mean> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Mean calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the variance of the selected column.
+
+        Attribute: Returns the variance
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Variance()
+    */
+    action Variance returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Variance calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetVariance()
+    end
+
+    /*
+        This action calculates the variance of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Variance> values = frame:VarianceSelectedColumns()
+    */
+    action VarianceSelectedColumns returns Array<Variance>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Variance> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Variance calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the standard deviation of the selected column.
+
+        Attribute: Returns the standard deviation
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:StandardDeviation()
+    */
+    action StandardDeviation returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        StandardDeviation calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetStandardDeviation()
+    end
+
+    /*
+        This action calculates the standard deviation of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<StandardDeviation> values = frame:StandardDeviationSelectedColumns()
+    */
+    action StandardDeviationSelectedColumns returns Array<StandardDeviation>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<StandardDeviation> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            StandardDeviation calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the InterQuartileRange of the selected column.
+
+        Attribute: Returns the interquartile range
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        InterQuartileRange range = frame:InterQuartileRange()
+    */
+    action InterQuartileRange returns InterQuartileRange
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        InterQuartileRange calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation
+    end
+
+    /*
+        This action calculates the interquartile range of the selected columns. 
+        In this case, the full calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<InterQuartileRange> values = frame:InterQuartileRangeSelectedColumns()
+    */
+    action InterQuartileRangeSelectedColumns returns Array<InterQuartileRange>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<InterQuartileRange> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            InterQuartileRange calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the median of the selected column.
+
+        Attribute: Returns the median
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Median()
+    */
+    action Median returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Median calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetMedian()
+    end
+
+    /*
+        This action calculates the median of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Median> values = frame:MedianSelectedColumns()
+    */
+    action MedianSelectedColumns returns Array<Median>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Median> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Median calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the skew of the selected column.
+
+        Attribute: Returns the skew
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Skew()
+    */
+    action Skew returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Skew calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetSkew()
+    end
+
+    /*
+        This action calculates the skew of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Skew> values = frame:SkewSelectedColumns()
+    */
+    action SkewSelectedColumns returns Array<Skew>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Skew> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Skew calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the kurtosis of the selected column.
+
+        Attribute: Returns the kurtosis
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Kurtosis()
+    */
+    action Kurtosis returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Kurtosis calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetKurtosis()
+    end
+
+    /*
+        This action calculates the kurtosis of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Kurtosis> values = frame:KurtosisSelectedColumns()
+    */
+    action KurtosisSelectedColumns returns Array<Kurtosis>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Kurtosis> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Kurtosis calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates summary information for the column.
+
+        Attribute: Returns the summary
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        Summarize summary = frame:Summarize()
+    */
+    action Summarize returns Summarize
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Summarize calculation
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation
+    end
+
+    /*
+        This action calculates summaries of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Summarize> values = frame:SummarizeSelectedColumns()
+    */
+    action SummarizeSelectedColumns returns Array<Summarize>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Summarize> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Summarize calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
     end
 
     /*

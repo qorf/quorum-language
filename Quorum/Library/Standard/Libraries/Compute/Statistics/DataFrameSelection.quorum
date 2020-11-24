@@ -1,0 +1,120 @@
+package Libraries.Compute.Statistics
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Containers.Iterator
+
+/*
+    This encompasses the overall selection of columns and factors
+    in the DataFrame. DataFrame, by default, passes through all of its
+    actions into this system. The selection itself is more rigid than the
+    DataFrame, on purpose, so that the potential points of failure exist
+    only in one place.
+    
+    Attribute: Author Andreas Stefik
+*/
+class DataFrameSelection is ColumnInput, FactorInput
+    Array<DataFrameSelectionListener> listeners
+    DataFrame frame = undefined
+
+    action Add(DataFrameSelectionListener listener)
+        listeners:Add(listener)
+    end
+
+    action Remove(DataFrameSelectionListener listener)
+        listeners:Remove(listener)
+    end
+
+    action GetListeners returns Iterator<DataFrameSelectionListener>
+        return listeners:GetIterator()
+    end
+
+    private action FireSelectionChanged
+        Iterator<DataFrameSelectionListener> iterator = GetListeners()
+        repeat while iterator:HasNext()
+            DataFrameSelectionListener listener = iterator:Next()
+            listener:SelectionChanged(frame)
+        end
+    end
+
+    action CopyTo(ColumnInput col)
+        col:EmptyColumns()
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer value = GetColumn(i)
+            col:AddColumn(value)
+            i = i + 1
+        end
+        FireSelectionChanged()
+    end
+
+    action CopyTo(FactorInput col)
+        col:EmptyFactors()
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer value = GetColumn(i)
+            col:AddFactor(value)
+            i = i + 1
+        end
+        FireSelectionChanged()
+    end
+
+    action AddColumn(integer column)
+        parent:Libraries.Compute.Statistics.Inputs.ColumnInput:AddColumn(column)
+        FireSelectionChanged()
+    end
+
+    action AddFactor(integer column)
+        parent:Libraries.Compute.Statistics.Inputs.FactorInput:AddFactor(column)
+        FireSelectionChanged()
+    end
+
+    action RemoveFactorAt(integer index)
+        parent:Libraries.Compute.Statistics.Inputs.FactorInput:RemoveFactorAt(index)
+        FireSelectionChanged()
+    end
+
+    action RemoveFactor(integer column) returns boolean
+        boolean value = parent:Libraries.Compute.Statistics.Inputs.FactorInput:RemoveFactor(column)
+        if value
+            FireSelectionChanged()
+        end
+        return value
+    end
+
+    action EmptyFactors
+        boolean empty = GetFactorSize() = 0
+        parent:Libraries.Compute.Statistics.Inputs.FactorInput:EmptyFactors()
+        if not empty
+            FireSelectionChanged()
+        end
+    end
+
+    action RemoveColumnAt(integer index)
+        parent:Libraries.Compute.Statistics.Inputs.ColumnInput:RemoveColumnAt(index)
+        FireSelectionChanged()
+    end
+    
+    action RemoveColumn(integer column) returns boolean
+        boolean value = parent:Libraries.Compute.Statistics.Inputs.ColumnInput:RemoveColumn(column)
+        if value
+            FireSelectionChanged()
+        end
+        return value
+    end
+
+    action EmptyColumns
+        boolean empty = GetColumnSize() = 0
+        parent:Libraries.Compute.Statistics.Inputs.ColumnInput:EmptyColumns()
+        if not empty
+            FireSelectionChanged()
+        end
+    end
+    action GetFrame returns DataFrame
+        return frame
+    end
+
+    action SetFrame(DataFrame frame)
+        me:frame = frame
+    end
+end
