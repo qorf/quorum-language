@@ -18,6 +18,7 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Item
+use Libraries.Interface.Controls.Charts.ChartDisplay
 
 /*
 
@@ -722,5 +723,26 @@ class Chart is Control
 
     action SetBackground(Drawable backgroundD)
         me:backgroundD = backgroundD
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display
+        ChartDisplay game
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display(integer width, integer height)
+        ChartDisplay game
+        game:SetScreenSize(width,height)
+        game:SetChart(me)
+        game:StartGame()
     end
 end

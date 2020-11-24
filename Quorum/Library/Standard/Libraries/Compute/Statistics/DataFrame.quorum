@@ -25,6 +25,8 @@ use Libraries.Compute.Calculations.Summarize
 use Libraries.Compute.Statistics.Calculations.Kurtosis
 use Libraries.Compute.Statistics.Calculations.Skew
 use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.Charts.HistogramCreator
+use Libraries.Interface.Controls.Charts.Histogram
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -1927,6 +1929,67 @@ class DataFrame
         end
         
         return calculations
+    end
+
+    /*
+        This action creates a Histogram from the current column selection in the DataFrame.
+        By default, it uses the interquartile range to calculate its bin width. This
+        can be overriden by calling Histogram(integer) and passing the bin width directly.
+
+        Attribute: Returns a Histogram chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Histogram
+        
+        DataFrame frame
+        frame:Load("Dogs.csv")
+        frame:AddSelectedColumns("Maximum Life Span")
+        Histogram chart = frame:Histogram()
+        chart:SetTitle("Maximum Life Span of Dog Breeds")
+        chart:SetXAxisTitle("Max Life Span")
+        chart:Display()
+    */
+    action Histogram returns Histogram
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        HistogramCreator creator
+        creator:SetColumn(selection:GetColumn(0))
+        
+        return cast(Histogram, CreateChart(creator))
+    end
+
+    /*
+        This action creates a Histogram from the current column selection in the DataFrame.
+        By default, Histogram() uses the interquartile range to calculate its bin width, whereas in this version, 
+        this is overriden and this bin width is used instead.
+
+        Attribute: Returns a Histogram chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Histogram
+        
+        DataFrame frame
+        frame:Load("Dogs.csv")
+        frame:AddSelectedColumns("Maximum Life Span")
+        Histogram chart = frame:Histogram(5)
+        chart:SetTitle("Maximum Life Span of Dog Breeds")
+        chart:SetXAxisTitle("Max Life Span")
+        chart:Display()
+    */
+    action Histogram(integer binWidth) returns Histogram
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        HistogramCreator creator
+        creator:SetColumn(selection:GetColumn(0))
+        creator:SetBinWidth(binWidth)
+        
+        return cast(Histogram, CreateChart(creator))
     end
 
     /*

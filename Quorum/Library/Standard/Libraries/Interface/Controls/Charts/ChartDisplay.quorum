@@ -1,0 +1,31 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Game.Game
+use Libraries.Interface.Layouts.ManualLayout
+
+/*
+    This class is used as a defult display region for charts. It allows basic
+    charts to be shown on screen, and accessible, without extending the game class.
+
+    Attribute: Author Andreas Stefik
+*/
+class ChartDisplay is Game
+    Chart chart = undefined
+    action GetChart returns Chart
+        return chart
+    end
+
+    action SetChart(Chart chart)
+        me:chart = chart
+    end
+
+    action CreateGame
+        ManualLayout layout
+        SetLayout(layout)
+
+        chart:SetPercentageWidth(1)
+        chart:SetPercentageHeight(1)
+
+        Add(chart)
+        chart:Focus()
+    end
+end
