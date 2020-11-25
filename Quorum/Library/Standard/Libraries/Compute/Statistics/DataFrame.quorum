@@ -1957,8 +1957,14 @@ class DataFrame
 
         HistogramCreator creator
         creator:SetColumn(selection:GetColumn(0))
+        DataFrameColumn col = GetColumn(selection:GetColumn(0))
         
-        return cast(Histogram, CreateChart(creator))
+        Histogram histogram = cast(Histogram, CreateChart(creator))
+        //set a default title.
+        if col:GetHeader() not= undefined
+            histogram:SetXAxisTitle(col:GetHeader())
+        end
+        return histogram
     end
 
     /*
@@ -1988,8 +1994,15 @@ class DataFrame
         HistogramCreator creator
         creator:SetColumn(selection:GetColumn(0))
         creator:SetBinWidth(binWidth)
+
+        DataFrameColumn col = GetColumn(selection:GetColumn(0))
         
-        return cast(Histogram, CreateChart(creator))
+        Histogram histogram = cast(Histogram, CreateChart(creator))
+        //set a default title.
+        if col:GetHeader() not= undefined
+            histogram:SetXAxisTitle(col:GetHeader())
+        end
+        return histogram
     end
 
     /*
