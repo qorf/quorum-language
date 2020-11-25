@@ -83,6 +83,10 @@ class Chart is Control
     Array<Drawable> xTicks
     Array<ControlLabel> xLabels
 
+    integer titleSizeOffset = 10
+    integer xAxisSizeOffset = 5
+    integer yAxisSizeOffset = 5
+
     on create
         horizontalPanel:SetName("Horizontal")
         verticalPanel:SetName("Vertical")
@@ -297,6 +301,10 @@ class Chart is Control
         return yLabel
     end
 
+    action GetDefaultFontSize returns integer
+        return 24
+    end
+
     action DisposeDrawables()
         if title not= undefined
             title:Dispose()
@@ -399,6 +407,48 @@ class Chart is Control
         GetHorizontalPanel():Empty()
     end
 
+    /*  Returns the relative size difference in the title label for the chart. 
+        Attribute: Returns the size difference compared to the base font size
+    */
+    action GetTitleFontSizeOffset returns integer
+        return titleSizeOffset
+    end
+
+    /*  Sets the relative size difference in the title label for the chart. 
+        Attribute: Parameter value the size difference compared to the base font size
+    */
+    action SetTitleFontSizeOffset(integer value)
+        me:titleSizeOffset = value
+    end
+
+    /*  Returns the relative size difference in the x axis label for the chart. 
+        Attribute: Returns the size difference compared to the base font size
+    */
+    action GetXAxisFontSizeOffset returns integer
+        return xAxisSizeOffset
+    end
+
+    /*  Sets the relative size difference in the x axis label for the chart. 
+        Attribute: Parameter value the size difference compared to the base font size
+    */
+    action SetXAxisFontSizeOffset(integer value)
+        me:xAxisSizeOffset = value
+    end
+
+    /*  Returns the relative size difference in the y axis label for the chart. 
+        Attribute: Returns the size difference compared to the base font size
+    */
+    action GetYAxisFontSizeOffset returns integer
+        return yAxisSizeOffset
+    end
+
+    /*  Sets the relative size difference in the y axis label for the chart. 
+        Attribute: Parameter value the size difference compared to the base font size
+    */
+    action SetYAxisFontSizeOffset(integer value)
+        me:yAxisSizeOffset = value
+    end
+
     action LoadGraphics(LayoutProperties properties)        
         if properties = undefined
             return now
@@ -454,7 +504,7 @@ class Chart is Control
             Label newLabel
             SetTitleLabel(newLabel)
             newLabel:SetFont(font)
-            newLabel:SetSize(GetFontSize()+10)
+            newLabel:SetSize(GetFontSize()+titleSizeOffset)
             newLabel:SetText(labelText)
             Add(newLabel)
         end
@@ -462,7 +512,7 @@ class Chart is Control
         if GetXLabel() = undefined
             ControlLabel newLabel
             SetXLabel(newLabel)
-            newLabel:SetSize(GetFontSize()+5)
+            newLabel:SetSize(GetFontSize()+xAxisSizeOffset)
             newLabel:SetText(GetXAxisTitle())
             newLabel:SetName(GetXAxisTitle())
             newLabel:SetDescription("Horizontal axis")
@@ -475,7 +525,7 @@ class Chart is Control
 
             ControlLabel newLabel
             SetYLabel(newLabel)
-            newLabel:SetSize(GetFontSize()+5)
+            newLabel:SetSize(GetFontSize()+yAxisSizeOffset)
             newLabel:SetText(GetYAxisTitle())
             newLabel:SetName(GetYAxisTitle())
             newLabel:SetDescription("Vertical axis")
@@ -509,12 +559,12 @@ class Chart is Control
         verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*0.75)
         chartArea:SetSize(GetWidth()*0.75, GetHeight()*0.75)
         integer relativeFont = cast(integer, (GetWidth() + GetHeight()/2) * 0.02)
-        if GetFontSize() not= relativeFont
-            if relativeFont < 50
-                SetFontSize(relativeFont)
-                GetLegend():SetFontSize(relativeFont - 5)
-            end
-        end
+//        if GetFontSize() not= relativeFont
+//            if relativeFont < 50
+//                SetFontSize(relativeFont)
+//                GetLegend():SetFontSize(relativeFont - 5)
+//            end
+//        end
         
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         

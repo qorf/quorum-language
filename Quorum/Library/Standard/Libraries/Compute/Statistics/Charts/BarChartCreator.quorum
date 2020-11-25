@@ -25,29 +25,24 @@ use Libraries.Containers.HashTable
 
     //Create a Bar Chart and set some properties
     BarChartCreator creator
-    creator:SetNameColumn("Group")
-    creator:SetValueColumn("DT")
-    creator:SetNumberOfSteps(4)
+    creator:SetXColumn("Group")
+    creator:SetYColumn("DT")
+    creator:SetYSteps(4)
     creator:GroupByName(true)
 
     Chart chart = frame:CreateChart(creator)
 */
 class BarChartCreator is DataFrameChartCreator
-    private text chartTitle = undefined
-    private text xTitle = undefined
-    private text yTitle = undefined
     private number maxScale = maxScale:GetMinimumValue()
-    private integer scaleSteps = -1
+    private integer xSteps = 5
+    private integer ySteps = 5
     private boolean groupByName = false
     
-    private text nameColumn = undefined
-    private text valueColumn = undefined
+    private integer nameColumn = -1
+    private integer valueColumn = -1
 
     action Create(DataFrame frame) returns Chart
         BarChart chart
-        if nameColumn = undefined or valueColumn = undefined
-            alert("Cannot conduct calculation on undefined columns.")
-        end
 
         //error checking
         DataFrameColumn names = frame:GetColumn(nameColumn)
@@ -77,7 +72,7 @@ class BarChartCreator is DataFrameChartCreator
         valuesArray = getValues:GetItems()
 
 
-        //group items that have name 
+        //group items that have the same name 
         if groupByName
             Array<text> newNames
             Array<number> newValues
@@ -128,61 +123,63 @@ class BarChartCreator is DataFrameChartCreator
         i = i + 1
         end
 
+        integer stepCounter = 0
+        
         //make chart
         i = 0
         repeat while i < namesArray:GetSize()
-            chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
+            if xSteps = -1
+                chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
+            else
+                integer stepDistance = namesArray:GetSize() / xSteps
+                if stepCounter = 0
+                    chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
+                else
+                    chart:AddBar("", valuesArray:Get(i))
+                    
+                end
+                stepCounter = stepCounter + 1
+                if stepCounter > stepDistance
+                    stepCounter = 0
+                end
+            end
             i = i + 1
-        end
-        if chartTitle not= undefined
-            chart:SetTitle(chartTitle)
-        else
-            chart:SetTitle(valueColumn)
-        end
-        if xTitle not= undefined
-            chart:SetXAxisTitle(xTitle)
-        else
-            chart:SetXAxisTitle(nameColumn)
-        end
-        if yTitle not= undefined
-            chart:SetYAxisTitle(yTitle)
         end
         if maxScale not= maxScale:GetMinimumValue()
             chart:SetScaleMax(maxScale)
         else
             chart:SetScaleMax(max)
         end
-        if scaleSteps not= -1
-            chart:SetNumberOfSteps(scaleSteps)
+        if ySteps not= -1
+            chart:SetNumberOfSteps(ySteps)
         end
-        chart:Resize()
         return chart
     end
     /*
         Returns the name of the name column specified.
     */
-    action GetNameColumn returns text
+    action GetXColumn returns integer
         return nameColumn
     end
 
     /*
         Returns the name of the value column specified.
     */
-    action GetValueColumn returns text
+    action GetYColumn returns integer
         return valueColumn
     end
 
     /*
         Sets the name of the name column specified.
     */
-    action SetNameColumn(text column)
+    action SetXColumn(integer column)
         me:nameColumn = column
     end
 
     /*
         Sets the name of the name column specified.
     */
-    action SetValueColumn(text column)
+    action SetYColumn(integer column)
         me:valueColumn = column
     end
 
@@ -194,34 +191,29 @@ class BarChartCreator is DataFrameChartCreator
     action GroupByName(boolean group)
         me:groupByName = group
     end
-    /*
-        Set the Title of the Bar Chart.
-    */
-    action SetTitle(text name)
-        chartTitle = name
+    
+    action GetYSteps returns integer
+        return ySteps
     end
 
-    /*
-        Set the title for the X-Axis(Categories) of the Bar Chart.
-    */
-    action SetXAxisTitle(text name)
-        xTitle = name
-    end
-
-    /*
-        Set the title for the Y-Axis(Scale) of the Bar Chart.
-    */
-    action SetYAxisTitle(text name)
-        yTitle = name
+    action GetXSteps returns integer
+        return xSteps
     end
 
     /*
         Sets the number of steps in the scale. 
     */
-    action SetNumberOfSteps(integer steps)
-        scaleSteps = steps
+    action SetYSteps(integer steps)
+        ySteps = steps
+    end
+    /*
+        Sets the number of steps in the scale. 
+    */
+    action SetXSteps(integer steps)
+        xSteps = steps
     end
 
+    
     /*
         Sets the maxiumum value that will appear at the top of the scale. Note 
         that the other values of the scale will be affected by the maximum.

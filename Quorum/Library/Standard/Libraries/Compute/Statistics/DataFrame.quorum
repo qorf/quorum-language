@@ -27,6 +27,8 @@ use Libraries.Compute.Statistics.Calculations.Skew
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Statistics.Charts.HistogramCreator
 use Libraries.Interface.Controls.Charts.Histogram
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Compute.Statistics.Charts.BarChartCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -1499,6 +1501,19 @@ class DataFrame
         return false
     end
 
+    /* Detects if more than one columns is selected. */
+    private action IsMultiColumnSelection(integer columns) returns boolean
+        if IsInvalidSelection()
+            return false
+        end
+
+        if selection:GetColumnSize() > 1 and selection:GetColumnSize() = columns
+            return true
+        end
+
+        return false
+    end
+
     /*
         This action calculates the mean of the selected column.
 
@@ -1992,6 +2007,36 @@ class DataFrame
         return cast(Histogram, CreateChart(creator))
     end
 
+    /*
+        This action creates a BarChart from the current column selection in the DataFrame.
+        By default, it uses the first column in the selection as the x-axis and the second 
+        column as the y-axis. This can be reversed by changing the selection order.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action BarChart returns BarChart
+        if not IsMultiColumnSelection(2)
+            alert("Can only conduct this calculation on 2 columns")
+        end
+
+        BarChartCreator creator
+        creator:SetXColumn(selection:GetColumn(0))
+        creator:SetYColumn(selection:GetColumn(1))
+        
+        return cast(BarChart, CreateChart(creator))
+    end
     /*
         This action returns a text based representation of the data frame.
 
