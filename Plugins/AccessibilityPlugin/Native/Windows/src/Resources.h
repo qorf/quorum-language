@@ -65,6 +65,8 @@ struct JClass_AccessibilityManager
 	jmethodID GetFrameCount;
 	jmethodID GetSubframeCount;
 	jmethodID IsPollingEvents;
+
+	jmethodID GetWorkingDirectory;
 };
 struct JClass_TextBox
 {

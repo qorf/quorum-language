@@ -99,6 +99,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetFrameCount = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetFrameCount", "()I");
 	JavaClass_AccessibilityManager.GetSubframeCount = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSubframeCount", "()I");
 	JavaClass_AccessibilityManager.IsPollingEvents = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsPollingEvents", "()Z");
+	std::wcout << "Loaded GetWorkingDirectory JNI call." << std::endl;
+	JavaClass_AccessibilityManager.GetWorkingDirectory = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetWorkingDirectory", "()Ljava/lang/String;");
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
@@ -414,9 +416,10 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	WCHAR* wName = CreateWideStringFromUTF8Win32(env->GetStringUTFChars(name, 0));
 
+	env->GetJavaVM(&jvm);
+
 	g_mainWindowRoot = new WindowRoot(GLFWParentWindow, wName);
 	
-	env->GetJavaVM(&jvm);
 	#if LOG
 		log("Java_plugins_quorum_Libraries_Interface_AccessibilityManager_InitializeAccessibility End");
 	#endif

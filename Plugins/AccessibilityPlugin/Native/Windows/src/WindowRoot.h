@@ -27,13 +27,12 @@ private:
 	bool m_isWindowFocused;
 	bool m_isDisconnecting = false;
 
+	// Function for getting path to working directory.
+	std::wstring GetWorkingDirectory();
+
 	// Variables used to log information about events.
 	std::map<UINT, int> log_messages;
 	std::map<UINT, int> log_messagesSnapshot;
-
-	// An absolute path to a location on your machine.
-	// Logging info for each session will be put into a new folder that is placed in this location.
-	std::wstring log_baseDirectory = L"C:/Users/alleew/Desktop/Logging";
 
 	// The folder containing the current session's logging info.
 	std::wstring log_currentDirectory;

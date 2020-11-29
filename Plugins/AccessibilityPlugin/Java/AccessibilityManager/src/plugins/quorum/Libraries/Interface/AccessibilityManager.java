@@ -1396,4 +1396,10 @@ public class AccessibilityManager
     {
         return DesktopDisplay.pollingEvents;
     }
+    
+    public static String GetWorkingDirectory()
+    {
+        quorum.Libraries.System.File file = new quorum.Libraries.System.File();
+        return file.GetWorkingDirectory();
+    }
 }

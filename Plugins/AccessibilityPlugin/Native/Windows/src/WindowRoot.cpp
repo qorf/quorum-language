@@ -40,7 +40,7 @@ WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 	std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	std::wstringstream stream;
 	stream << std::put_time(std::localtime(&currentTime), L"%m-%d-%Y %H-%M-%S");
-	std::wstring result = log_baseDirectory + L"/" + stream.str();
+	std::wstring result = GetWorkingDirectory() + L"\\Logs\\" + stream.str();
 
 	if (CreateDirectory(result.c_str(), NULL))
 	{
@@ -62,6 +62,19 @@ WindowRoot::WindowRoot(HWND hwnd, WCHAR* name)
 		else
 			std::wcout << L"UNKNOWN ERROR: " << error << std::endl;
 	}
+}
+
+std::wstring WindowRoot::GetWorkingDirectory()
+{
+	JNIEnv* env = GetJNIEnv();
+
+	jstring jText = reinterpret_cast<jstring>(env->CallStaticObjectMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.GetWorkingDirectory));
+	const char* nativeText = env->GetStringUTFChars(jText, 0);
+	std::wstring wText = CreateWideStringFromUTF8Win32(nativeText);
+
+	env->ReleaseStringUTFChars(jText, nativeText);
+
+	return wText;
 }
 
 WindowRoot::~WindowRoot()
