@@ -19,6 +19,7 @@ use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.ChartDisplay
+use Libraries.System.File
 
 /*
 
@@ -773,6 +774,42 @@ class Chart is Control
 
     action SetBackground(Drawable backgroundD)
         me:backgroundD = backgroundD
+    end
+
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        return ""
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            text value = ConvertToScalableVectorGraphics()
+            file:Write(value)
+        end
+    end
+
+    /*
+        This is a helper action for saving that saves at the path relative to the current working directory.
+
+        Attribute: Parameter path the path relative to the working directory.
+    */
+    action Save(text path)
+        File file
+        file:SetPath(path)
+        Save(file)
     end
 
     /*  This action creates a default Game object for displaying charts and sets this chart
