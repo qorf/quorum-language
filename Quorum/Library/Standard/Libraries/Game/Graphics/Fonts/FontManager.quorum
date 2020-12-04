@@ -10,7 +10,9 @@ use Libraries.Game.Graphics.Texture
 use Libraries.System.File
 use Libraries.System.Properties
 
+
 class FontManager 
+    
     
     /*
     The goal of the design is to make each Font object nothing more than a
@@ -29,8 +31,7 @@ class FontManager
     Style <TBD>
     SubFont <TBD>
     Color (Not used here, set locally by Font when returning a glyph)
-    */
-
+*/
     // A prefix used to indicate a system font.
     public constant text SYSTEM_PREFIX = "SYSTEM"
 
@@ -47,6 +48,7 @@ class FontManager
     GameStateManager gameStateManager
     text lastRequestedKey = ""
     FontStrategy typicallyRequestedStrategy = undefined
+    text overrideFontLocation = undefined
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
@@ -104,17 +106,16 @@ class FontManager
     private action IsMacCatalinaOrGreater returns boolean
         Properties properties
         text version = properties:GetOperatingSystemVersion()
-
         //mac uses numbers like 10.15 or 10.16. Split it up and
         //Choose the other directory if 15 or higher. For whatever reason
         //OS 11 shows up as 10.16
         check
             Array<text> split = version:Split("\.")
             if split not= undefined and split:GetSize() = 2
-                and split:Get(0) = "10"
+                integer left = cast(integer, split:Get(0))
 
                 integer right = cast(integer, split:Get(1))
-                if right >= 15
+                if left >= 10 and right >= 15
                     return true
                 else
                     return false
@@ -127,6 +128,65 @@ class FontManager
         end
 
         return false
+    end
+
+    /*
+        This action allows us to override the location fonts are loaded from. This should not be used
+        unless you know what you are doing. This path must be an absolute path to the directory
+        where fonts are loaded.
+    */
+    action OverrideFontLocation(text value)
+        me:overrideFontLocation = value
+    end
+
+    /*
+        This action allows us to override the location fonts are loaded from. This should not be used
+        unless you know what you are doing. This path must be an absolute path to the directory
+        where fonts are loaded.
+    */
+    action OverrideFontLocation(File file)
+        me:overrideFontLocation = file:GetAbsolutePath()
+    end
+
+    /*
+        This action provides a single source of truth for where the fonts live on a particular
+        operating system. 
+
+        Attribute: Returns the folder where fonts live on the currently running operating system.
+    */
+    action GetFontLocation returns text
+        if overrideFontLocation not= undefined
+            return overrideFontLocation
+        end
+
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+
+        if os:Contains("Windows")
+            return "C:\Windows\Fonts"
+        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
+            return ""
+        elseif os:Contains("Mac OS X")
+            if IsMacCatalinaOrGreater() //catalina changed the default
+                return "/System/Library/Fonts/Supplemental"
+            else
+                return "/Library/Fonts"
+            end
+        elseif os:Contains("iOS Simulator")
+            if IsMacCatalinaOrGreater() //catalina changed the default
+                return "/System/Library/Fonts/Supplemental"
+            else
+                return "/Library/Fonts"
+            end
+        elseif os:Contains("iOS Device")
+            File file
+            file:SetPath("media")
+            return file:GetAbsolutePath()
+        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
+            return "/system/fonts"
+        else 
+            return "/usr/share/fonts"
+        end
     end
 
     /*
@@ -157,28 +217,12 @@ class FontManager
         end
     */
     action IsFontAvailable(text fontName) returns boolean
-        File fontFile
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
-            // Temporary value for debugging. REMOVE ALL INSTANCES OF THIS (appears multiple times in file)
+        if gameStateManager:GetOperatingSystem() = "Web Browser"
             return true
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalinaOrGreater() //catalina changed the default
-                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontFile:SetWorkingDirectory("/Library/Fonts")
-            end
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
-            fontFile:SetWorkingDirectory("/system/fonts")
-        else 
-            fontFile:SetWorkingDirectory("/usr/share/fonts")
         end
+        File fontFile
+        text location = GetFontLocation()
+        fontFile:SetWorkingDirectory(location)
 
         fontFile:SetPath(fontName + ".ttf")
         if fontFile:Exists()
@@ -237,43 +281,15 @@ class FontManager
         end
     */
     action GetAvailableFonts returns Array<File>
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-
-        Array<File> fontFiles = undefined
-        File fontDirectory
-
-        if os:Contains("Windows")
-            fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
-            // Temporary value for debugging. REMOVE ALL INSTANCES OF THIS (appears multiple times in file)
-            return fontFiles
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalinaOrGreater() //catalina changed the default
-                fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontDirectory:SetWorkingDirectory("/Library/Fonts")
-            end
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("iOS Device")
-            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
-            fontDirectory:SetWorkingDirectory("/system/fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        else
-            // Find fonts for a linux system.
-            fontDirectory:SetWorkingDirectory("/usr/share/fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
+        if gameStateManager:GetOperatingSystem() = "Web Browser"
+            return undefined
         end
 
-        return fontFiles
+        File fontDirectory
+        text location = GetFontLocation()
+        fontDirectory:SetWorkingDirectory(location)
+        fontDirectory:SetPath("")
+        return fontDirectory:GetDirectoryListing()
     end
 
     private action GetFontStrategy(text key) returns FontStrategy
@@ -345,8 +361,8 @@ class FontManager
             QuorumStrategy quorumStrategy
             strategy = quorumStrategy
         else    // Linux and Android
-            QuorumStrategy quorumStrategy
-            strategy = quorumStrategy
+            FreeTypeStrategy freeStrategy
+            strategy = freeStrategy
         end
         Color color
         color = color:White()

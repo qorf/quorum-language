@@ -11,6 +11,8 @@ use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.all
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Fonts.FontManager
 
 /*
 The FreeTypeStrategy class is used to load fonts on the system using the FreeType
@@ -54,6 +56,8 @@ class FreeTypeStrategy is FontStrategy
 
     private FontImageSheet imageSheet = undefined
     private boolean loadedImageSheet = false
+    GameStateManager gameStateManager
+    FontManager fontManager = undefined
 
     private text style = ""
 
@@ -61,6 +65,7 @@ class FreeTypeStrategy is FontStrategy
         Color color
         color = color:Black()
         SetColor(color)
+        fontManager = gameStateManager:GetFontManager()
     end
     
     /*
@@ -183,26 +188,9 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action LoadFont(text fontName)
-
+        text location = fontManager:GetFontLocation()
         File fontFile
-        text os = GetOS()
-
-        Properties properties
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalinaOrGreater() //catalina changed the default
-                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontFile:SetWorkingDirectory("/Library/Fonts")
-            end
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
-            fontFile:SetWorkingDirectory("/system/fonts")
-        else 
-            fontFile:SetWorkingDirectory("/usr/share/fonts")
-        end
+        fontFile:SetWorkingDirectory(location)
 
         text fontPath = FindFontExtension(fontName)
         if fontPath = ""
@@ -215,53 +203,10 @@ class FreeTypeStrategy is FontStrategy
 
     private system action LoadFontNative(text fontFile)
 
-    private action IsMacCatalinaOrGreater returns boolean
-        Properties properties
-        text version = properties:GetOperatingSystemVersion()
-
-        //mac uses numbers like 10.15 or 10.16. Split it up and
-        //Choose the other directory if 15 or higher. For whatever reason
-        //OS 11 shows up as 10.16
-        check
-            Array<text> split = version:Split("\.")
-            if split not= undefined and split:GetSize() = 2
-                and split:Get(0) = "10"
-
-                integer right = cast(integer, split:Get(1))
-                if right >= 15
-                    return true
-                else
-                    return false
-                end
-            else
-                return false
-            end
-        detect e
-            return false
-        end
-
-        return false
-    end
-
     private action FindFontExtension(text fontName) returns text
+        text location = fontManager:GetFontLocation()
         File fontFile
-        text os = GetOS()
-        Properties properties
-        if os:Contains("Windows")
-            fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            if IsMacCatalinaOrGreater() //catalina changed the default
-                fontFile:SetWorkingDirectory("/System/Library/Fonts/Supplemental")
-            else
-                fontFile:SetWorkingDirectory("/Library/Fonts")
-            end
-        elseif os:Contains("iOS Device")
-            fontFile:SetWorkingDirectory("/System/Library/Fonts/Core")
-        elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
-            fontFile:SetWorkingDirectory("/system/fonts")
-        else 
-            fontFile:SetWorkingDirectory("/usr/share/fonts")
-        end
+        fontFile:SetWorkingDirectory(location)
 
         boolean success = false
         fontFile:SetPath(fontName + ".ttf")
@@ -754,29 +699,11 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action GetAvailableFonts returns Array<File>
-
-        text os = GetOS()
-
-        Array<File> fontFiles = undefined
+        text location = fontManager:GetFontLocation()
         File fontDirectory
-
-        if os:Contains("Windows")
-            fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
-            fontDirectory:SetWorkingDirectory("/Library/Fonts")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("iOS Device")
-            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Core")
-            fontDirectory:SetPath("")
-            fontFiles = fontDirectory:GetDirectoryListing()
-        else
-            // Find fonts for a linux system.
-        end
-
-        return fontFiles
+        fontDirectory:SetWorkingDirectory(location)
+        fontDirectory:SetPath("")
+        return fontDirectory:GetDirectoryListing()
     end
     
     // Used to determine where to look for available fonts.
