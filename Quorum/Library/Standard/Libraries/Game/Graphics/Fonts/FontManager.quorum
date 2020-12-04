@@ -111,7 +111,7 @@ class FontManager
         //OS 11 shows up as 10.16
         check
             Array<text> split = version:Split("\.")
-            if split not= undefined and split:GetSize() = 2
+            if split not= undefined and split:GetSize() >= 2
                 integer left = cast(integer, split:Get(0))
 
                 integer right = cast(integer, split:Get(1))
