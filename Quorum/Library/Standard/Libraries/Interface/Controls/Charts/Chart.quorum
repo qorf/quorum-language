@@ -84,9 +84,8 @@ class Chart is Control
     Array<Drawable> xTicks
     Array<ControlLabel> xLabels
 
-    integer titleSizeOffset = 10
-    integer xAxisSizeOffset = 5
-    integer yAxisSizeOffset = 5
+    number xAxisSizeOffset = 0.75
+    number yAxisSizeOffset = 0.75
 
     on create
         horizontalPanel:SetName("Horizontal")
@@ -408,45 +407,31 @@ class Chart is Control
         GetHorizontalPanel():Empty()
     end
 
-    /*  Returns the relative size difference in the title label for the chart. 
-        Attribute: Returns the size difference compared to the base font size
-    */
-    action GetTitleFontSizeOffset returns integer
-        return titleSizeOffset
-    end
-
-    /*  Sets the relative size difference in the title label for the chart. 
-        Attribute: Parameter value the size difference compared to the base font size
-    */
-    action SetTitleFontSizeOffset(integer value)
-        me:titleSizeOffset = value
-    end
-
     /*  Returns the relative size difference in the x axis label for the chart. 
         Attribute: Returns the size difference compared to the base font size
     */
-    action GetXAxisFontSizeOffset returns integer
+    action GetXAxisFontSizeOffset returns number
         return xAxisSizeOffset
     end
 
     /*  Sets the relative size difference in the x axis label for the chart. 
         Attribute: Parameter value the size difference compared to the base font size
     */
-    action SetXAxisFontSizeOffset(integer value)
+    action SetXAxisFontSizeOffset(number value)
         me:xAxisSizeOffset = value
     end
 
     /*  Returns the relative size difference in the y axis label for the chart. 
         Attribute: Returns the size difference compared to the base font size
     */
-    action GetYAxisFontSizeOffset returns integer
+    action GetYAxisFontSizeOffset returns number
         return yAxisSizeOffset
     end
 
     /*  Sets the relative size difference in the y axis label for the chart. 
         Attribute: Parameter value the size difference compared to the base font size
     */
-    action SetYAxisFontSizeOffset(integer value)
+    action SetYAxisFontSizeOffset(number value)
         me:yAxisSizeOffset = value
     end
 
@@ -471,6 +456,7 @@ class Chart is Control
         if GetWidth() = 0 or GetHeight() = 0
             SetSize(500,500)//this is for a default size
         end
+
         if GetBackground() = undefined
             Drawable rect
             rect:LoadFilledRectangle(cast(integer, GetWidth()) ,cast(integer, GetHeight()), color:White())
@@ -505,7 +491,7 @@ class Chart is Control
             Label newLabel
             SetTitleLabel(newLabel)
             newLabel:SetFont(font)
-            newLabel:SetSize(GetFontSize()+titleSizeOffset)
+            newLabel:SetSize(GetFontSize())
             newLabel:SetText(labelText)
             Add(newLabel)
         end
@@ -513,7 +499,8 @@ class Chart is Control
         if GetXLabel() = undefined
             ControlLabel newLabel
             SetXLabel(newLabel)
-            newLabel:SetSize(GetFontSize()+xAxisSizeOffset)
+            newLabel:SetFont(font:Copy())
+            newLabel:SetSize(cast(integer, GetFontSize()*xAxisSizeOffset))
             newLabel:SetText(GetXAxisTitle())
             newLabel:SetName(GetXAxisTitle())
             newLabel:SetDescription("Horizontal axis")
@@ -526,7 +513,8 @@ class Chart is Control
 
             ControlLabel newLabel
             SetYLabel(newLabel)
-            newLabel:SetSize(GetFontSize()+yAxisSizeOffset)
+            newLabel:SetFont(font:Copy())
+            newLabel:SetSize(cast(integer, GetFontSize()*yAxisSizeOffset))
             newLabel:SetText(GetYAxisTitle())
             newLabel:SetName(GetYAxisTitle())
             newLabel:SetDescription("Vertical axis")

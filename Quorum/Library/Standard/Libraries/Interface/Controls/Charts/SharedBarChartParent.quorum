@@ -424,7 +424,8 @@ class SharedBarChartParent is Chart
                 text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
                 ControlLabel tempLabel
                 tempLabel:SetText(scaleText)
-                tempLabel:SetFontSize(GetFontSize() - GetYAxisFontSizeOffset())
+                tempLabel:SetFont(GetFont():Copy())
+                tempLabel:SetFontSize(cast(integer, GetFontSize() * GetYAxisFontSizeOffset()))
                 tempLabel:SetName(scaleText + " " + (i + 1) + " of " + scaleDensity)
                 tempLabel:SetFocusable(true)
                 tempLabel:SetAccessibilityCode(parent:Item:ITEM)
@@ -463,7 +464,8 @@ class SharedBarChartParent is Chart
                 tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + numberOfBars)
                 tempLabel:SetFocusable(true)
                 tempLabel:SetAccessibilityCode(parent:Item:ITEM)
-                tempLabel:SetFontSize(GetFontSize())
+                tempLabel:SetFont(GetFont():Copy())
+                tempLabel:SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
                 barLabels:Set(i, tempLabel)
                 horizontalPanel:Add(barLabels:Get(i))
 
