@@ -1,0 +1,104 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Controls.Charts.ChartPoint
+use Libraries.Game.Graphics.Color
+
+/*
+    This object class is used to contain the points and lines for each line object in the line chart. It should
+    not be used without Line Chart.
+
+    Attribute: Author Cody Molisee
+*/
+class ChartLine is Drawable
+    private text name = ""
+    Array<ChartPoint> points
+    Array<Drawable> lines
+    private boolean showPoints = true
+    private Color lineColor
+
+    on create
+        lineColor:SetColor(0, 0, 1, 1)
+    end
+
+    /*
+    Returns the name of this line.
+    */
+    action GetName() returns text
+        return name
+    end
+
+    /*
+    Sets/Changes the name of this line.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+    Returns an array of ChartPoints for this line.
+    */
+    action GetPoints() returns Array<ChartPoint>
+        return points
+    end
+
+    /*
+    Returns an array of Drawables for this line.
+    */
+    action GetLines() returns Array<Drawable>
+        return lines
+    end
+
+    /*
+    Sets the showPoints flag to false.
+    flag is true by default.
+    */
+    action HidePoints()
+        showPoints = false
+    end
+
+    /*
+    Sets the showPoints flag to true.
+    flag is true by default.
+    */
+    action ShowPoints()
+        showPoints = true
+    end
+
+    /*
+    Returns the value of the showPoints flag.
+    */
+    action GetPointsFlag() returns boolean
+        return showPoints
+    end
+
+    /*
+    Returns the color for this line.
+    */
+    action GetColor() returns Color
+        return lineColor
+    end
+
+    /*
+    Sets/changes the color for this line.
+    */
+    action SetColor(Color lineColor)
+        me:lineColor = lineColor
+    end
+    
+    /*
+    Adds a ChartPoint to this lines array of ChartPoints.
+    If points:GetSize() > 1, add a line Drawable to this lines line array.
+    */
+    action Add(ChartPoint point)
+        points:Add(point)
+
+        if points:GetSize() > 1
+            Drawable line
+            line:SetFocusable(true)
+            line:SetAccessibilityCode(parent:Item:CUSTOM)
+            lines:Add(line)
+        end
+    end
+end

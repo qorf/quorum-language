@@ -1,0 +1,238 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Controls.Charts.ChartPoint
+use Libraries.Compute.Vector
+use Libraries.Interface.Layouts.ViolinChartLayout
+
+
+class ViolinChartWriter
+    private number axisPointX = 15
+    private number axisPointY = 85
+    private number axisLength = 75
+
+    action WriteOutChart(ViolinChart chart) returns text
+
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(700,600)
+
+        Label chartTitle
+        Label xAxisLabel
+        Label yAxisLabel
+
+        //start setting stuff
+        AddBackground(chartCanvas)
+        AddAxes(chartCanvas)
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("middle")
+        chartTitle:SetPosition(50, 5, "%")
+        chartTitle:SetFontSize("18pt")
+        chartCanvas:Add(chartTitle)
+
+        xAxisLabel:SetText(chart:GetXAxisTitle())
+        xAxisLabel:SetTextAnchor("middle")
+        xAxisLabel:SetPosition(50, 95, "%")
+        xAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(xAxisLabel)
+
+        yAxisLabel:SetText(chart:GetYAxisTitle())
+        yAxisLabel:SetTextAnchor("middle")
+        yAxisLabel:SetPosition(5, 50, "%")
+        yAxisLabel:SetTransform("rotate(270, 40,300)")
+        yAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(yAxisLabel)
+
+
+        AddViolins(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+
+        return chartCanvas:ToText()
+    end
+
+    private action AddBackground(ScalableVectorGraphics canvas)
+        Rectangle background
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        canvas:Add(background)
+    end
+
+    private action AddAxes(ScalableVectorGraphics canvas)
+        Line xAxis
+        Line yAxis
+        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
+        xAxis:SetStroke("black")
+        xAxis:SetTabIndex(-1)
+        xAxis:SetStrokeWidth(0.4,"%")
+        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
+        yAxis:SetStroke("black")
+        yAxis:SetTabIndex(-1)
+        yAxis:SetStrokeWidth(0.4,"%")
+
+        canvas:Add(xAxis)
+        canvas:Add(yAxis)
+    end
+
+    private action AddViolins(ScalableVectorGraphics canvas, ViolinChart chart)
+        //this is needed for calculations so this will probably change if stuff is moved around 
+        ViolinChartLayout layout
+        Array<Array<number>> boxWhiskerInfos = chart:GetChartInfos()
+        //Array<Array<Drawable>> boxWhiskerItems = chart:GetChartItems()
+        Array<Vector> dataSets = chart:GetData()
+        integer total = boxWhiskerInfos:GetSize()
+        number width = axisLength/total
+        number height = axisLength
+        number lineW = axisLength*0.01
+        number lineH = axisLength*0.005
+        number dataScale = chart:GetYMax()/height
+        integer i = 0
+        repeat while i < boxWhiskerInfos:GetSize()
+            Array<number> info = boxWhiskerInfos:Get(i)
+            number median = info:Get(0)
+            number lowwerQuartile = info:Get(1)
+            number upperQuartile = info:Get(2)
+            number smallest = info:Get(3)
+            number largest = info:Get(4)
+            number startW = width*i
+          //even though lines could be used here rectangles are used for translation purposes
+//            items:Get(0):LoadFilledRectangle(lineW,cast(integer,(upperQuartile-lowwerQuartile)/dataScale))
+//            items:Get(0):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)
+            Rectangle first
+            first:SetSize(lineW, (upperQuartile-lowwerQuartile)/dataScale, "%")
+            first:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - upperQuartile/dataScale, "%")
+//            items:Get(1):LoadFilledRectangle(lineH,cast(integer,(largest-smallest)/dataScale))
+//            items:Get(1):SetPosition(startW+(width-lineH)/2,smallest/dataScale)
+            Rectangle second
+            second:SetSize(lineH, (largest-smallest)/dataScale, "%")
+            second:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - largest/dataScale, "%")
+//            items:Get(2):LoadFilledRectangle(lineW*4,lineH)
+//            items:Get(2):SetPosition(startW+(width-lineW*4)/2,smallest/dataScale)
+            Rectangle third
+            third:SetSize(lineW*4, lineH, "%")
+            third:SetPosition(axisPointX + startW+(width-lineW*4)/2,axisPointY - largest/dataScale, "%")
+//            items:Get(3):LoadFilledRectangle(lineW,lineH)
+//            items:Get(3):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)
+            Rectangle fourth
+            fourth:SetSize(lineW, lineH, "%")
+            fourth:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - upperQuartile/dataScale, "%")
+//            items:Get(4):LoadFilledCircle(lineW/2,white)
+//            items:Get(4):SetPosition(startW+(width-lineW)/2,median/dataScale)
+            Circle dot
+            dot:SetRadius(lineW/2, "%")
+            dot:SetFill("white")
+            dot:SetPosition(axisPointX + startW+(width-lineW)/2 + lineW/2,axisPointY - median/dataScale, "%")
+//            items:Get(5):LoadFilledRectangle(lineW,lineH)
+//            items:Get(5):SetPosition(startW+(width-lineW)/2,upperQuartile/dataScale-lineH)
+            Rectangle fifth
+            fifth:SetSize(lineW, lineH, "%")
+            fifth:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - lowwerQuartile/dataScale - lineH, "%")
+//            items:Get(6):LoadFilledRectangle(lineW*4,lineH)
+//            items:Get(6):SetPosition(startW+(width-lineW*4)/2,largest/dataScale-lineH)
+            Rectangle sixth
+            sixth:SetSize(lineW*4, lineH, "%")
+            sixth:SetPosition(axisPointX + startW+(width-lineW*4)/2,axisPointY - smallest/dataScale - lineH, "%")
+//            items:Get(7):LoadRectangle(width,height,invis)
+//            items:Get(7):SetPosition(startW,0)
+
+            //Format formate
+            //PixelMap pixelMap
+            //pixelMap:CreatePixelMap(width,height,formate)
+            
+            //bandWidth will be auto set to a value according the height of the chart
+            integer bandWidth = chart:GetBandWidth()
+            if bandWidth = 0
+                bandWidth = cast(integer, chart:GetYMax()*0.015)
+            end
+            Array<number> estimates = layout:KDEcalculation(bandWidth,dataScale,dataSets:Get(i),chart:GetFunction())
+            integer nextPixel = cast(integer, smallest/dataScale)+1
+            number maxEstimate = estimates:Get(estimates:GetSize()-1)
+            number estimateScale = maxEstimate/(width/2)
+            integer index = 0
+            repeat while index < estimates:GetSize()-1
+                number estimate = estimates:Get(index)
+                number pixW = (estimate/estimateScale)*0.6
+                number pixH = height - nextPixel
+//                pixelMap:DrawLine(width/2-pixW,pixH,width/2+pixW, pixH,blue)
+                Line tempLine
+                tempLine:SetPoints(axisPointX + startW + width/2-pixW,axisPointY - axisLength + pixH,axisPointX + startW + width/2+pixW, axisPointY - axisLength + pixH, "%")
+                tempLine:SetStroke("blue")
+                tempLine:SetStrokeWidth(6)
+                canvas:Add(tempLine)
+                nextPixel = nextPixel + 1
+                index = index + 1
+            end
+            //Texture texture
+            //texture:LoadFromPixelMap(pixelMap)
+            //items:Get(8):SetPosition(startW,0)
+            //items:Get(8):Load(texture)
+            canvas:Add(first)
+            canvas:Add(second)
+            canvas:Add(third)
+            canvas:Add(fourth)
+            canvas:Add(dot)
+            canvas:Add(fifth)
+            canvas:Add(sixth)
+            i = i+1
+        end
+    end
+
+    private action AddXLabels(ScalableVectorGraphics canvas, ViolinChart chart)
+        integer i = 0
+        Array<Array<number>> boxWhiskerInfos = chart:GetChartInfos()
+        Array<text> xLabelText = chart:GetXAxisLabels()
+        integer total = boxWhiskerInfos:GetSize()
+        number space = axisLength/(total)
+        repeat while i < total
+            Label tempLabel
+
+            tempLabel:SetText(chart:GetXAxisLabels():Get(i))
+            tempLabel:SetTextAnchor("middle")
+            tempLabel:SetPosition(axisPointX + (i) * space + space/2, axisPointY + 4, "%")
+            canvas:Add(tempLabel)
+            i = i + 1
+        end
+    end
+
+    private action AddYLabels(ScalableVectorGraphics canvas, ViolinChart chart)
+        number scaleNum = 0//chart:GetYAxisMinimum()
+        
+        number scaleWidth = (chart:GetYMax()) / (chart:GetYTickCount()- 1)
+        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
+        // scale
+        Math math
+        i = 0
+        //output chart:GetYMax()
+        repeat while i < chart:GetYTickCount()
+            Label scaleLabel
+            Line scaleTick
+            
+            scaleLabel:SetTextAnchor("end")
+            scaleLabel:SetText("" + math:Round(scaleNum, 1))
+            scaleLabel:SetFontSize("8pt")
+            scaleNum = scaleNum + scaleWidth
+
+            scaleTick:SetTabIndex(-1)
+            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetStroke("black")
+            scaleTick:SetStrokeWidth(0.4,"%")
+            
+            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
+
+            canvas:Add(scaleLabel)
+            canvas:Add(scaleTick)
+        i = i+1
+        end
+    end
+
+end
