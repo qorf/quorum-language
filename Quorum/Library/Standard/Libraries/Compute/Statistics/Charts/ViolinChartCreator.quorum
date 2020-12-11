@@ -1,0 +1,249 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Compute.Math
+use Libraries.Compute.Vector
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Containers.Array
+
+/*
+    This class is used to create a Violin Chart from columns(at most 3) of data in a DataFrame.
+    It combines a box and whisker graph and a normal distribution graph. The max value on 
+    y-axis is based on the max value of all columns. X-axis is devided equally to holds at most 3 
+    violin chart with labels of each column.
+
+    Attribute: Author Silafu Yiliyaer
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.ViolinChartCreator
+
+    //Create a ViolinChart and set some properties
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    ViolinChartCreator creator
+    creator:SetXColumn(1)
+    creator:SetXColumn(2)
+    creator:SetXColumn(3)
+
+    ViolinChart chart = frame:CreateChart(creator)
+    chart:SetTitle("Violin Chart")
+    chart:SetYAxisTitle("Y-values")
+    chart:SetXAxisTitle("X-Values")
+    chart:SetBandWidth(10)
+*/
+
+class ViolinChartCreator is DataFrameChartCreator
+    //holds all colums number
+    private Array<integer> columns 
+    //setting the interval number 
+    private integer bandWidth = 0
+    //kernel function
+    private text kernel = "Gaussian"
+    //y axis tick number, by defalut is 5
+    private integer yTicks = 5
+
+    action Create(DataFrame frame) returns Chart
+        //only 3 violin graph in one chart
+        ViolinChart chart
+        if columns:GetSize() = 0
+            alert("Cannot create chart without defining any column.")
+        elseif columns:GetSize() > 3
+            alert("Can only graph 3 data column at a time")
+        end
+
+        //initial datasets for graphing
+        //1.find the largest number from these dataframes
+        //2.Calculate the needed values for box and whiksers from each dataframe
+        //3.Store all name from each dataframe
+        //4.Store all data
+        Array<text> colNames
+        Array<Array<number>> infos
+        Array<Vector> dataSets
+        number largest = 0 
+        integer i = 0
+        repeat while i < columns:GetSize()
+            DataFrameColumn dataFrame = frame:GetColumn(columns:Get(i))
+            if dataFrame = undefined and dataFrame:CanConvertToVector()
+                alert("Could not find a column number " + columns:Get(i))
+            end
+            if dataFrame:CanConvertToVector() = false
+                alert("Could not convert valuse a column number " + columns:Get(i) + "to a vector")
+            end
+            //1
+            Summarize sum
+            sum:Calculate(dataFrame)
+            if largest < sum:GetMaximum()
+                largest = sum:GetMaximum()
+            end
+            //2
+            Vector dataset = dataFrame:ConvertToVector()
+            dataset:Sort()
+            infos:Add(Calculations(dataset))
+            //3
+            colNames:Add(dataFrame:GetHeader())
+            //4
+            dataSets:Add(dataset)
+            i = i + 1
+        end
+
+        chart:SetChartInfos(infos)
+        chart:SetXAxisLabels(colNames)
+        chart:SetFunction(kernel)
+        chart:SetBandWidth(bandWidth)
+        chart:SetData(dataSets)
+        chart:SetYTickCount(yTicks)
+        chart:SetYMax(largest)
+        return chart
+    end
+
+    /*
+    This action returns all of the columns that is used from a DataFrame. 
+
+    Attribute: Returns The name of the columns in a array of the columns variable on the ViolinChart.
+    */
+    action GetXColumns returns Array<integer>
+       return columns
+    end
+
+    /*
+    This action is used to select a column from a DataFrame by number. The named column will
+    be used as the X value of each violin graph in ViolinChart.
+
+    Attribute: Parameter column The number of the column to use for the X axis on the ViolinChart.
+    */
+    action SetXColumn(integer column)
+        me:columns:Add(column)
+    end
+
+    /*
+    This action returns how many scale columns should be used along the X axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the X axis of the LineChart.
+    */
+    action GetXColumnsCount returns integer
+        return columns:GetSize()
+    end
+
+
+    /*
+    This action returns how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the Y axis of the LineChart.
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
+    */
+    action SetYTickCount(integer yTicks)
+        me:yTicks = yTicks
+    end
+    
+    //interval number
+    action SetBandWidth(integer num)
+        bandWidth = num
+    end
+
+    //set whitch kernel function to use
+    action SetKernel(text txt)
+        kernel = txt
+    end
+
+    /*   This action calculates the median, lower quartile, upper quartile, largest and smallest
+    values to form a box and whisker graph. 
+
+    It then returns an Array that stores all the informations listed above
+    */
+    action Calculations(Vector dataset) returns Array<number>                
+        number median = 0
+        number lowerMedian = 0
+        number upperMedian = 0
+        number smallest = 0
+        number largest = 0
+        integer lowerIndex = 0
+        integer upperIndex = 0
+        Array<number> info
+        
+        //Get median of the full dataset
+        info = GetMedian(dataset:GetSize()-1,0,0,dataset)
+        median = info:Get(0)
+        lowerIndex = cast(integer,info:Get(1))
+        upperIndex = cast(integer,info:Get(2))
+        //Get median from the lower half
+        info = GetMedian(lowerIndex,0,0,dataset)
+        lowerMedian = info:Get(0)
+        //Get median from the upper half
+        info = GetMedian(dataset:GetSize()-1,upperIndex,upperIndex,dataset)
+        upperMedian = info:Get(0)
+        //Find outliers and exclude them
+        number iqr = upperMedian-lowerMedian
+        number lowerRange = lowerMedian - iqr*1.5
+        number upperRange = upperMedian + iqr*1.5
+        boolean find = false
+        integer index = 0
+        repeat while find = false
+            if dataset:Get(index)>lowerRange
+                smallest = dataset:Get(index)
+                find = true
+            end
+            if index = lowerIndex
+                find = true
+            end
+            index = index+1
+        end
+        find = false
+        index = dataset:GetSize()-1
+        repeat while find = false
+            if dataset:Get(index)<upperRange
+                largest = dataset:Get(index)
+                find = true
+            end
+            if index = upperIndex
+                find = true
+            end
+            index = index-1
+        end
+        Array<number> myData
+        myData:Add(median)
+        myData:Add(lowerMedian)
+        myData:Add(upperMedian)
+        myData:Add(smallest)
+        myData:Add(largest)
+        return myData
+    end
+
+    action GetMedian(integer upperIndex, integer lowerIndex, integer span,Vector dataset) returns Array<number>
+        Array<number> info
+        integer count = upperIndex-lowerIndex+1
+        integer medianIndex = 0
+        number median = 0
+        if count mod 2 >0
+            medianIndex = (count+1)/2-1+span
+            median = dataset:Get(medianIndex)
+            lowerIndex = medianIndex-1
+            upperIndex = medianIndex+1
+        else
+            medianIndex = count/2-1+span
+            median = (dataset:Get(medianIndex)+dataset:Get(medianIndex+1))/2
+            lowerIndex = medianIndex
+            upperIndex = medianIndex+1
+        end
+        info:Add(median)
+        info:Add(lowerIndex)
+        info:Add(upperIndex)
+        return info
+    end
+
+end
