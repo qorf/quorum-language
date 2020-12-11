@@ -7,14 +7,22 @@ use Libraries.Interface.Controls.Charts.BarChart
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Charts.ColumnToTextArray
+use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Containers.Support.Comparison
 
 /*
     This class is used to create a Bar Chart from columns of data in a DataFrame.
-    This creator is also capable of grouping data points together into one bar by
-    averaging their values. Setting the name column and value column will 
-    generate a Bar Chart that can be rendered in the Game Engine. 
+    This creator is also capable of using columns and factors. If only one column is given, 
+    the system counts the number of items for each point. If a factor and a column are given,
+    the factor is the X-axis and the column is the Y-axis.
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Andreas Stefik and Gabriel Contreras
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -25,173 +33,192 @@ use Libraries.Containers.HashTable
 
     //Create a Bar Chart and set some properties
     BarChartCreator creator
-    creator:SetXColumn("Group")
-    creator:SetYColumn("DT")
-    creator:SetYSteps(4)
-    creator:GroupByName(true)
+    creator:AddColumn(4)
+    creator:AddFactor(0)
+    creator:SetXSteps(4)
 
     Chart chart = frame:CreateChart(creator)
+    chart:Display(2000,1000)
 */
-class BarChartCreator is DataFrameChartCreator
-    private number maxScale = maxScale:GetMinimumValue()
-    private integer xSteps = 5
-    private integer ySteps = 5
-    private boolean groupByName = false
-    
-    private integer nameColumn = -1
-    private integer valueColumn = -1
+class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
+    number maxScale = maxScale:GetMinimumValue()
+    number minScale = maxScale:GetMaximumValue()
+    integer xSteps = -1
+    integer ySteps = 5
+    Comparison comparison = undefined
+    integer hashMax = 0
+    integer hashMin = 0
 
-    action Create(DataFrame frame) returns Chart
-        BarChart chart
-
-        //error checking
-        DataFrameColumn names = frame:GetColumn(nameColumn)
-        DataFrameColumn values = frame:GetColumn(valueColumn)
-
-        if names = undefined
-            alert("Could not find a column named " + nameColumn)
-        end
-        if values = undefined
-            alert("Could not find a column named " + valueColumn)
-        end
-
-        integer size = names:GetSize()
-        if size not= values:GetSize()
-            alert("Column size mismatch")
-        end
-
-        //get usable arrays
-        Array<text> namesArray
-        Array<number> valuesArray
-
-        ColumnToTextArray getNames
-        names:Calculate(getNames)
-        namesArray = getNames:GetItems()
-        ColumnToNumberArray getValues
-        values:Calculate(getValues)
-        valuesArray = getValues:GetItems()
-
-
-        //group items that have the same name 
-        if groupByName
-            Array<text> newNames
-            Array<number> newValues
-            integer groupCount = 0
-            HashTable<text, number> nameHash
-            i = 0
-            repeat while i < size
-                text name = namesArray:Get(i)
-                number val = valuesArray:Get(i)
-                if nameHash:HasKey(name)
-                    nameHash:Set(name, nameHash:GetValue(name)+ 1)
-                    integer location = newNames:GetFirstLocation(name)
-                    newValues:Set(location, newValues:Get(location) + val)
-                else
-                    nameHash:Add(name, 1)
-                    newNames:AddToEnd(name)
-                    newValues:AddToEnd(val)
-                    groupCount = groupCount + 1
-                end
-            i = i + 1
-            end
-            i = 0
-            repeat while i < groupCount
-                newValues:Set(i, newValues:Get(i) / nameHash:GetValue(newNames:Get(i)) )
-            i = i + 1
-            end
-            namesArray = newNames
-            valuesArray = newValues
-            size = groupCount
-        end
-
-        //adjust values to percentage
-        number max = getValues:GetItems():Get(0)
-        if maxScale = max:GetMinimumValue()
-            integer i = 1
-            repeat while i < size
-                if valuesArray:Get(i) > max
-                    max = valuesArray:Get(i)
-                end
-            i = i + 1
-            end
-        else
-            max = maxScale
-        end
+    private action CalculateItemCounts(DataFrameColumn column) returns HashTable<text, integer>
+        HashTable<text, integer> result
+        integer groupCount = 0
+        integer size = column:GetSize()
+        integer undefinedCount = 0
         i = 0
         repeat while i < size
-            valuesArray:Set(i, valuesArray:Get(i)/max)
+            //just keep track of the fact that we have undefined values
+            if column:IsUndefined(i)
+                undefinedCount = undefinedCount + 1
+            else
+                text name = column:GetAsText(i)
+                if not result:HasKey(name)
+                    result:Add(name, 1)
+                else
+                    result:Add(name, result:GetValue(name) + 1)
+                end
+            end
+            
+            i = i + 1
+        end
+        result:Add(undefined, undefinedCount)
+        return result
+    end
+
+    
+    private action CalculateMinMaxCount(HashTable<text, integer> hash)
+        Iterator<integer> iterator = hash:GetValueIterator()
+        //adjust values to percentage
+        integer max = 0
+        integer min = 0
+        max = max:GetMinimumValue()
+        min = min:GetMaximumValue()
+        integer i = 1
+        repeat while iterator:HasNext()
+            integer value = iterator:Next()
+            if value > max
+                max = value
+            end
+
+            if value < min
+                min = value
+            end
         i = i + 1
         end
+        hashMax = max
+        hashMin = min
+    end
 
+    private action BuildCountChart(HashTable<text, integer> hash) returns BarChart
+        BarChart chart
+
+        Array<text> namesArray = hash:CopyToKeyArray()
+        if comparison = undefined
+            namesArray:Sort()
+        else
+            namesArray:Sort(comparison)
+        end
+
+        CalculateMinMaxCount(hash)
+        integer max = hashMax
+        integer min = hashMin
         integer stepCounter = 0
-        
+
         //make chart
         i = 0
         repeat while i < namesArray:GetSize()
-            if xSteps = -1
-                chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
-            else
-                integer stepDistance = namesArray:GetSize() / xSteps
-                if stepCounter = 0
-                    chart:AddBar(namesArray:Get(i), valuesArray:Get(i))
-                else
-                    chart:AddBar("", valuesArray:Get(i))
-                    
-                end
-                stepCounter = stepCounter + 1
-                if stepCounter > stepDistance
-                    stepCounter = 0
-                end
-            end
+            number valueForName = hash:GetValue(namesArray:Get(i))
+            number percent = valueForName / max
+            chart:AddBar(namesArray:Get(i), percent)
             i = i + 1
-        end
-        if maxScale not= maxScale:GetMinimumValue()
-            chart:SetScaleMax(maxScale)
-        else
-            chart:SetScaleMax(max)
-        end
-        if ySteps not= -1
-            chart:SetNumberOfSteps(ySteps)
-        end
+        end 
+        SetTicks(chart)
+        SetScale(chart, min, max)
+
+        
         return chart
     end
-    /*
-        Returns the name of the name column specified.
-    */
-    action GetXColumn returns integer
-        return nameColumn
+
+    private action SetScale(BarChart chart, number min, number max)
+        if max not= maxScale:GetMinimumValue()
+            chart:SetScaleMaximum(max)
+        else
+            chart:SetScaleMaximum(max)
+        end
+
+        if min not= maxScale:GetMaximumValue()
+            chart:SetScaleMinimum(min)
+        else
+            chart:SetScaleMaximum(min)
+        end
     end
 
-    /*
-        Returns the name of the value column specified.
-    */
-    action GetYColumn returns integer
-        return valueColumn
+    private action SetTicks(BarChart chart)
+        if xSteps not= -1
+            chart:SetXTickSteps(xSteps)
+        end
+
+        if ySteps not= -1
+            chart:SetYTickSteps(ySteps)
+        end
     end
 
-    /*
-        Sets the name of the name column specified.
-    */
-    action SetXColumn(integer column)
-        me:nameColumn = column
+    private action CreateChart(DataFrameColumn factor, DataFrameColumn column) returns BarChart
+        BarChart chart
+
+        Summarize summary
+        column:Calculate(summary)
+        number max = summary:GetMaximum()
+        number min = summary:GetMinimum()
+            
+        i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i) and not factor:IsUndefined(i)
+                number valueForName = column:GetAsNumber(i)
+                number percent = valueForName / max
+                
+                chart:AddBar(factor:GetAsText(i), percent)
+            end
+            
+            i = i + 1
+        end
+        SetTicks(chart)
+        SetScale(chart, min, max)
+        return chart
     end
 
-    /*
-        Sets the name of the name column specified.
-    */
-    action SetYColumn(integer column)
-        me:valueColumn = column
+    action Create(DataFrame frame) returns Chart
+        //there are no factors to map to, so just count the number of items
+        //in each bucket and toss them on the X-axis by default
+        if GetColumnSize() = 1 and GetFactorSize() = 0
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            HashTable<text, integer> hash = CalculateItemCounts(column)
+            Chart chart = BuildCountChart(hash)
+            chart:SetXAxisTitle(column:GetHeader())
+            chart:SetYAxisTitle("Count")
+            return chart
+        elseif GetColumnSize() = 1 and GetFactorSize() = 1
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            return CreateChart(factor, column)
+        end
+
+        return undefined
     end
 
-    /*
-        If true the creator will combine rows of the data together if they share
-        the same name and the resulting value will the mean of all entries with 
-        that same name.
-    */
-    action GroupByName(boolean group)
-        me:groupByName = group
+    action CalculateValueSet(DataFrameColumn column) returns Array<text>
+        Array<text> values
+        integer groupCount = 0
+        HashTable<text, text> nameHash
+        integer size = column:GetSize()
+        boolean hasUndefined = false
+        i = 0
+        repeat while i < size
+            //just keep track of the fact that we have undefined values
+            if column:IsUndefined(i)
+                hasUndefined = true
+            else
+                text name = column:GetAsText(i)
+                if not nameHash:HasKey(name)
+                    nameHash:Add(name, name)
+                end
+            end
+            
+            i = i + 1
+        end
+          
+        return values
     end
-    
+
     action GetYSteps returns integer
         return ySteps
     end
@@ -218,7 +245,23 @@ class BarChartCreator is DataFrameChartCreator
         Sets the maxiumum value that will appear at the top of the scale. Note 
         that the other values of the scale will be affected by the maximum.
     */
-    action SetScaleMax(number max)
+    action SetScaleMaximum(number max)
         maxScale = max
+    end
+
+    /*
+        Sets the maxiumum value that will appear at the top of the scale. Note 
+        that the other values of the scale will be affected by the maximum.
+    */
+    action SetScaleMinimum(number min)
+        minScale = min
+    end
+
+    action GetComparison returns Comparison
+        return comparison
+    end
+
+    action SetComparison(Comparison comparison)
+        me:comparison = comparison
     end
 end

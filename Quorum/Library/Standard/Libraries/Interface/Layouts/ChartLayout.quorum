@@ -151,9 +151,9 @@ class ChartLayout is Layout
                 axis:SetPosition(originPointX, originPointY)
     
                 //Layout the horizontal panel
+                LayoutChartContent(chart, chartAreaContainer)
                 LayoutHorizontalAxis(chart, horizContainer)
                 LayoutVerticalAxis(chart, vertContainer)
-                LayoutChartContent(chart, chartAreaContainer)
                 LayoutLegend(chart, containerWidth, containerHeight)
                 
             end

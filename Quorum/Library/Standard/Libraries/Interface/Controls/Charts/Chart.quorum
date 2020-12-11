@@ -92,10 +92,10 @@ class Chart is Control
         verticalPanel:SetName("Vertical")
         chartArea:SetName("Chart Area")
 
-        ManualLayout panelLayout
-        horizontalPanel:SetLayout(panelLayout)
-        verticalPanel:SetLayout(panelLayout)
-        chartArea:SetLayout(panelLayout)
+        //ManualLayout panelLayout
+        //horizontalPanel:SetLayout(panelLayout)
+        //verticalPanel:SetLayout(panelLayout)
+        //chartArea:SetLayout(panelLayout)
 
         horizontalPanel:SetFocusable(true)
         verticalPanel:SetFocusable(true)
@@ -112,6 +112,22 @@ class Chart is Control
 
     blueprint action GenerateSummary returns text
     private blueprint action GenerateInfoTree
+
+    action GetChartAreaWidthPercent returns number
+        return xAxisSizeOffset
+    end
+
+    action GetChartAreaHeightPercent returns number
+        return yAxisSizeOffset
+    end
+
+    action SetChartAreaWidthPercent(number value)
+        me:xAxisSizeOffset = value
+    end
+
+    action SetChartAreaHeightPercent(number value)
+        me:yAxisSizeOffset = value
+    end
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -544,16 +560,10 @@ class Chart is Control
         Control chartArea = GetChartArea()
         Array<Drawable> scaleTicks = GetScaleTicks()
 
-        horizontalPanel:SetSize(GetWidth()*0.75, GetHeight()*0.15)
-        verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*0.75)
-        chartArea:SetSize(GetWidth()*0.75, GetHeight()*0.75)
+        horizontalPanel:SetSize(GetWidth()*xAxisSizeOffset, GetHeight()*0.15)
+        verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*yAxisSizeOffset)
+        chartArea:SetSize(GetWidth()*xAxisSizeOffset, GetHeight()*yAxisSizeOffset)
         integer relativeFont = cast(integer, (GetWidth() + GetHeight()/2) * 0.02)
-//        if GetFontSize() not= relativeFont
-//            if relativeFont < 50
-//                SetFontSize(relativeFont)
-//                GetLegend():SetFontSize(relativeFont - 5)
-//            end
-//        end
         
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         

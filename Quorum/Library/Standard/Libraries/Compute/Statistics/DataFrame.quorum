@@ -134,6 +134,10 @@ class DataFrame
                 CommaSeparatedLoader loader
                 Load(file, loader)
             end
+        elseif file = undefined
+            alert("I cannot load an undefined file.")
+        elseif not file:Exists()
+            alert("I could not locate the file at " + file:GetAbsolutePath() + ". Did you spell it correctly?")
         end
         EmptyColumnsOnLoad()
     end
@@ -2040,14 +2044,10 @@ class DataFrame
         chart:Display()
     */
     action BarChart returns BarChart
-        if not IsMultiColumnSelection(2)
-            alert("Can only conduct this calculation on 2 columns")
-        end
-
         BarChartCreator creator
-        creator:SetXColumn(selection:GetColumn(0))
-        creator:SetYColumn(selection:GetColumn(1))
-        
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
         return cast(BarChart, CreateChart(creator))
     end
     /*
