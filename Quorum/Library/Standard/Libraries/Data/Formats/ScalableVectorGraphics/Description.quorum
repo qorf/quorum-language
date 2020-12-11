@@ -1,0 +1,28 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+
+/*
+    The Description class implements the description functionality in SVG. This class does
+    not need to be used directly as the tag is generated for other ScalableVectorGraphicsObjects
+    if they are given a description using SetDescription().
+
+    Attribute: Author Gabriel Contreras
+
+*/
+class Description is ScalableVectorGraphicsObject
+    constant text objectName = "desc"
+
+    on create
+        SetIsContainer(true)
+    end
+
+    /*
+        This action is called internally when a ScalableVectorGraphicsObject has a description.
+    */
+    action ToText returns text
+        result = ""
+        newLine = result:GetLineFeed()
+        result = "<" + objectName + ">" + GetDescription() + GetCloseTag(objectName, IsContainer())
+        return result
+    end
+
+end

@@ -1,0 +1,89 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+
+class Line is ScalableVectorGraphicsObject
+    constant text objectName = "line"
+    private text x1 = ""
+    private text y1 = ""
+    private text x2 = ""
+    private text y2 = ""
+
+    action ToText returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        result = "<" + objectName 
+        result = result +" x1=" +dq+ x1 +dq+" y1=" +dq+ y1 +dq
+        result = result +" x2=" +dq+ x2 +dq+" y2=" +dq+ y2 +dq
+        result = result + GlobalAttributesToText()
+        if GetTitle() not= "" or GetDescription() not= ""
+            result = result + ">" + newLine
+            if GetTitle() not= ""
+                Title title
+                title:SetTitle(GetTitle())
+                result = result + tab + tab + title:ToText() + newLine
+            end
+            if GetDescription() not= ""
+                Description desc
+                desc:SetDescription(GetDescription())
+                result = result + tab + tab + desc:ToText() + newLine
+            end
+            result = result + tab
+        end
+
+        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        return result
+    end
+
+    action SetPoints(number x1, number y1, number x2, number y2)
+        me:x1 = ""+x1
+        me:y1 = ""+y1
+        me:x2 = ""+x2
+        me:y2 = ""+y2
+    end
+
+    action SetPoints(number x1, number y1, number x2, number y2, text unit)
+        me:x1 = ""+x1 + unit
+        me:y1 = ""+y1 + unit
+        me:x2 = ""+x2 + unit
+        me:y2 = ""+y2 + unit
+    end
+
+    action SetFirstPoint(number x1, number y1)
+        me:x1 = ""+x1
+        me:y1 = ""+y1
+    end
+
+    action SetSecondPoint(number x2, number y2)
+        me:x2 = ""+x2
+        me:y2 = ""+y2
+    end
+
+    action SetFirstPoint(number x1, number y1, text unit)
+        me:x1 = ""+x1 + unit
+        me:y1 = ""+y1 + unit
+    end
+
+    action SetSecondPoint(number x2, number y2, text unit)
+        me:x2 = ""+x2 + unit
+        me:y2 = ""+y2 + unit
+    end
+
+    action GetX1 returns text
+        return x1
+    end
+
+    action GetY1 returns text
+        return y1
+    end
+
+    action GetX2 returns text
+        return x2
+    end
+
+    action GetY2 returns text
+        return y2
+    end
+
+end
