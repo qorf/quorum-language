@@ -1,0 +1,262 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Texture
+use Libraries.Compute.Vector
+use Libraries.Compute.Math
+
+/*
+    This is the layout class for Violin Chart. This class is responsible for 
+    positioning all chart area components of the Violin chart.
+
+    Attribute: Author Silafu Yiliyaer & Manuel Martinez
+*/
+
+class ViolinChartLayout is ChartLayout
+    private Math math
+
+    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
+        integer width = cast(integer, horizontalContainer:GetWidth())
+        integer height = cast(integer, horizontalContainer:GetHeight())
+        
+        Array<ControlLabel> labels = chart:GetXLabels()
+        integer space = cast(integer, width/labels:GetSize())
+        integer labelY = height - cast(integer, labels:Get(0):GetHeight())
+        integer i = 0
+        repeat while i < labels:GetSize()
+            Label currentLabel = labels:Get(i)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+            integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
+            currentLabel:SetPosition(labelX, labelY)
+            i = i + 1
+        end
+        ControlLabel axisLabel = chart:GetXLabel()
+        axisLabel:SetPositionOnBaseLine(true)
+        axisLabel:SetX(cast(integer, width / 2 - axisLabel:GetWidth() / 2))
+        axisLabel:SetY(cast(integer, height / 2 - axisLabel:GetHeight()))
+    end
+
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        ViolinChart chart = cast(ViolinChart, control)
+        Array<Array<number>> boxWhiskerInfos = chart:GetChartInfos()
+        Array<Array<Drawable>> boxWhiskerItems = chart:GetChartItems()
+        Array<Vector> dataSets = chart:GetData()
+        Control chartArea = chart:GetChartArea()
+        Color white
+        white:SetColor(1,1,1,1)
+        Color blue
+        blue:SetColor(0,0,1,1)
+        Color invis
+        invis:SetColor(0,0,0,0)
+        
+        integer total = boxWhiskerInfos:GetSize()
+        integer width = cast(integer,chartArea:GetWidth())/total
+        integer height = cast(integer,chartArea:GetHeight())
+        integer lineW = cast(integer,chartArea:GetWidth()*0.01)
+        integer lineH = cast(integer,chartArea:GetHeight()*0.005)
+        number dataScale = chart:GetYMax()/height
+        integer i = 0
+        repeat while i < boxWhiskerInfos:GetSize()
+            Array<number> info = boxWhiskerInfos:Get(i)
+            number median = info:Get(0)
+            number lowwerQuartile = info:Get(1)
+            number upperQuartile = info:Get(2)
+            number smallest = info:Get(3)
+            number largest = info:Get(4)
+            integer startW = width*i
+            Array<Drawable> items = boxWhiskerItems:Get(i)
+            items:Get(0):LoadFilledRectangle(lineW,cast(integer,(upperQuartile-lowwerQuartile)/dataScale))
+            items:Get(0):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)
+            items:Get(1):LoadFilledRectangle(lineH,cast(integer,(largest-smallest)/dataScale))
+            items:Get(1):SetPosition(startW+(width-lineH)/2,smallest/dataScale)
+            items:Get(2):LoadFilledRectangle(lineW*4,lineH)
+            items:Get(2):SetPosition(startW+(width-lineW*4)/2,smallest/dataScale) 
+            items:Get(3):LoadFilledRectangle(lineW,lineH)
+            items:Get(3):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)   
+            items:Get(4):LoadFilledCircle(lineW/2,white)
+            items:Get(4):SetPosition(startW+(width-lineW)/2,median/dataScale)    
+            items:Get(5):LoadFilledRectangle(lineW,lineH)
+            items:Get(5):SetPosition(startW+(width-lineW)/2,upperQuartile/dataScale-lineH)
+            items:Get(6):LoadFilledRectangle(lineW*4,lineH)
+            items:Get(6):SetPosition(startW+(width-lineW*4)/2,largest/dataScale-lineH)
+            items:Get(7):LoadRectangle(width,height,invis)
+            items:Get(7):SetPosition(startW,0)
+
+            Format formate
+            PixelMap pixelMap
+            pixelMap:CreatePixelMap(width,height,formate)
+            
+            //bandWidth will be auto set to a value according the height of the chart
+            integer bandWidth = chart:GetBandWidth()
+            if bandWidth = 0
+                bandWidth = cast(integer, chart:GetYMax()*0.015)
+            end
+            Array<number> estimates = KDEcalculation(bandWidth,dataScale,dataSets:Get(i),chart:GetFunction())
+            integer nextPixel = cast(integer, smallest/dataScale)+1
+            number maxEstimate = estimates:Get(estimates:GetSize()-1)
+            number estimateScale = maxEstimate/(width/2)
+            integer index = 0
+            repeat while index < estimates:GetSize()-1
+                number estimate = estimates:Get(index)
+                integer pixW = cast(integer,(estimate/estimateScale)*0.6)
+                integer pixH = height - nextPixel
+                pixelMap:DrawLine(width/2-pixW,pixH,width/2+pixW, pixH,blue)
+                nextPixel = nextPixel + 1
+                index = index + 1
+            end
+            Texture texture
+            texture:LoadFromPixelMap(pixelMap)
+            items:Get(8):SetPosition(startW,0)
+            items:Get(8):Load(texture)
+
+            i = i+1
+        end
+    end
+
+    /*    
+    KDE: Kernel density esstimation
+    It is a method that finds out the normal distribution of a give set of data
+    It use kernel functions to calculate the probability of every single data point
+    We have: simplest kernel,Gaussian kernel,triangular kernel,parabolic(Epanechnikov) kernel,triweight kernel,
+             tricube kernel,cosine kernel,logistic kernel,sigmoid kernel,silverman kernel
+    By default, it uses Gaussian kernel which is smother than other kernel functions
+    We put this functions here because the distributions at each value is scaled based on the pixel height of the chart
+
+    Parameters: bandWidth is a number that represent the interval, the bigger the number, the flatter the graph will be
+                dataScale indicates how data grow from min to max base on pixel height
+                kernalFunction indicates what kernel function to use
+    */         
+      
+    action KDEcalculation(number bandWidth,number dataScale,Vector dataset,text kernalFunction) returns Array<number>
+        number min = cast(integer,dataset:Get(0))
+        number max = cast(integer,dataset:Get(dataset:GetSize()-1))
+        number largest = 0.00000001
+        Array<number> estimates
+        repeat while min <= max
+            integer index = 0
+            number sum = 0
+            repeat while index < dataset:GetSize()
+                number cal = (min - dataset:Get(index))/bandWidth
+                if kernalFunction = "Simple"
+                    sum = sum + KDEtwo(cal)
+                elseif kernalFunction = "Gaussian"
+                    sum = sum + GaussianKernel(cal)
+                elseif kernalFunction = "Triangular"
+                    sum = sum + TriangularKernel(cal)
+                elseif kernalFunction = "Parabolic"
+                    sum = sum + ParabolicKernel(cal)
+                elseif kernalFunction = "Triweight"
+                    sum = sum + TriweightKernel(cal)
+                elseif kernalFunction = "Tricube"
+                    sum = sum + TricubeKernel(cal)
+                elseif kernalFunction = "Cosine"
+                    sum = sum + CosineKernel(cal)
+                elseif kernalFunction = "Logistic"
+                    sum = sum + LogisticKernel(cal)
+                elseif kernalFunction = "Sigmoid"
+                    sum = sum + SigmoidKernel(cal)
+                elseif kernalFunction = "Silverman"
+                    sum = sum + SilvermanKernel(cal)
+                end
+                index = index+1
+            end
+            number estimate = sum/(dataset:GetSize()*bandWidth)
+            if largest < estimate
+                largest = estimate
+            end 
+            estimates:Add(estimate)
+            min = min + dataScale  
+        end 
+        estimates:Add(largest)
+        return estimates
+    end
+
+    //Simple kernel
+    action KDEtwo(number x) returns number
+        number val = 1/((math:RaiseToPower(2*math:pi*math:RaiseToPower(math:e,x*x),0.5)))
+        return val
+    end
+
+    //Gaussian kernel
+    action GaussianKernel(number x) returns number
+        number firstpart = 1/math:RaiseToPower(2*math:pi,0.5)
+        number lastpart = -math:RaiseToPower(x,2)/2
+        number kernel = firstpart*math:RaiseToPower(math:e,lastpart)
+//        output kernel
+        return kernel
+    end
+
+    //triangular kernel function, only for |x| <= 1
+    action TriangularKernel(number x) returns number
+        number kernel = 1 - math:AbsoluteValue(x)
+        return kernel
+    end
+
+    //parabolic(Epanechnikov) kernel function, only for |x| <= 1
+    action ParabolicKernel(number x) returns number
+        number kernel = (0.75) * (1 - math:RaiseToPower(x, 2))
+        return kernel
+    end
+    
+
+    //triweight kernel function, only for |x| <= 1
+    action TriweightKernel(number x) returns number
+        number fraction = 35 / 32
+        number innerpart = 1 - math:RaiseToPower(x, 2)
+        number kernel = fraction * math:RaiseToPower(innerpart, 3)
+        return kernel
+    end
+
+    //tricube kernel function, only for |x| <= 1
+    action TricubeKernel(number x) returns number
+        number fraction = 70 / 81
+        number innerpart = 1 - math:RaiseToPower(math:AbsoluteValue(x), 3)
+        number kernel = fraction * math:RaiseToPower(innerpart, 3)
+        return kernel
+    end
+
+    //cosine kernel function, only for |x| <= 1
+    action CosineKernel(number x) returns number
+        number fraction1 = math:pi / 4
+        number fraction2 = math:pi / 2
+        number kernel = fraction1 * math:Cosine(fraction2 * x)
+        return kernel
+    end
+
+    //logistic kernel function
+    action LogisticKernel(number x) returns number
+        number firstexpo = math:RaiseToPower(math:e, x)
+        number secexpo = math:RaiseToPower(math:e, -x)
+        number kernel = 1 / (firstexpo + 2 + secexpo)
+        return kernel
+    end
+
+    //sigmoid kernel function
+    action SigmoidKernel(number x) returns number
+        number fraction = 2 / math:pi
+        number bottom = math:RaiseToPower(math:e, x) + math:RaiseToPower(math:e, -x)
+        number kernel = fraction * (1 / bottom)
+        return kernel
+    end
+
+    //silverman kernel function
+    action SilvermanKernel(number x) returns number
+        number expo = (math:AbsoluteValue(x) / math:RaiseToPower(2, 0.5))
+        number innerpart = expo + (math:pi / 4)
+        number firsthalf = 0.5 * math:RaiseToPower(math:e, -expo)
+        number kernel = firsthalf * math:Sine(innerpart)
+        return kernel
+    end
+end

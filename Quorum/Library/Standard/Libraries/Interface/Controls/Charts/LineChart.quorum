@@ -494,7 +494,33 @@ class LineChart is TwoVariableChart
 
     action Resize
         parent:Chart:Resize()
-    end     
+        integer i = 0
+        repeat while i < lines:GetSize()
+            integer j = 0
+            repeat while j < lines:Get(i):GetLines():GetSize()
+                Drawable line = lines:Get(i):GetLines():Get(j)
+                ChartPoint a = lines:Get(i):GetPoints():Get(j)
+                ChartPoint b = lines:Get(i):GetPoints():Get(j + 1)
+                Math math
+
+                integer x1 = cast(integer, a:GetX())
+                integer y1 = cast(integer, a:GetY())
+                integer x2 = cast(integer, b:GetX())
+                integer y2 = cast(integer, b:GetY())
+    
+                if y1 < y2
+                    line:SetPosition(x1 + 2, y1 + 2)
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), lines:Get(i):GetColor())
+                    line:FlipY()
+                else
+                    line:SetPosition(x1 + 2, y2 + 2)
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), lines:Get(i):GetColor())
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end      
 
     /*
     Flag used to display the points of all lines.
