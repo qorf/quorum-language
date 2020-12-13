@@ -13,12 +13,56 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Controls.Charts.ChartPoint
 
+/*
+    The ScatterPlotWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
 
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    use Libraries.Interface.Controls.Charts.ScatterPlotWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    ScatterPlotWriter writer
+    output writer:WriteOutChart(chart)
+*/
 class ScatterPlotWriter
     private number axisPointX = 15
     private number axisPointY = 85
     private number axisLength = 75
 
+/*
+    This action writes out the ScatterPlot by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    use Libraries.Interface.Controls.Charts.ScatterPlotWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:Display()
+
+    ScatterPlotWriter writer
+    output writer:WriteOutChart(chart)
+*/
     action WriteOutChart(ScatterPlot chart) returns text
 
         ScalableVectorGraphics chartCanvas
@@ -58,6 +102,9 @@ class ScatterPlotWriter
         return chartCanvas:ToText()
     end
 
+    /*
+        This action adds a white background to the canvas
+    */
     private action AddBackground(ScalableVectorGraphics canvas)
         Rectangle background
         background:SetFill("white")
@@ -65,6 +112,9 @@ class ScatterPlotWriter
         canvas:Add(background)
     end
 
+    /*
+        This action adds the two lines for the x and y axis
+    */
     private action AddAxes(ScalableVectorGraphics canvas)
         Line xAxis
         Line yAxis
@@ -81,6 +131,9 @@ class ScatterPlotWriter
         canvas:Add(yAxis)
     end
 
+    /*
+        This action adds the content of the ScatterPlot
+    */
     private action AddPoints(ScalableVectorGraphics canvas, ScatterPlot chart)
         Array<ChartPoint> points = chart:GetChartPoints()
         if points = undefined
@@ -101,6 +154,9 @@ class ScatterPlotWriter
         end
     end
 
+    /*
+        This action the labels on the x axis
+    */
     private action AddXLabels(ScalableVectorGraphics canvas, ScatterPlot chart)
         Math math
         number scaleNum = chart:GetXAxisMinimum()
@@ -129,6 +185,9 @@ class ScatterPlotWriter
         end
     end
 
+    /*
+        This action the labels on the y axis
+    */
     private action AddYLabels(ScalableVectorGraphics canvas, ScatterPlot chart)
         number scaleNum = chart:GetYAxisMinimum()
         

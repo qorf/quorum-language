@@ -11,6 +11,30 @@ use Libraries.System.FileWriter
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 
+/*
+    The BarChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    use Libraries.Interface.Controls.Charts.BarChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    BarChart chart = frame:BarChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    BarChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
 
 class BarChartWriter
     private number axisPointX = 15
@@ -20,6 +44,27 @@ class BarChartWriter
     private number barWidth = 0//barDivWidth * 0.7
     private number barOffset = 0//(barDivWidth / axisLength) / 2
 
+/*
+    This action writes out the BarChart by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    use Libraries.Interface.Controls.Charts.BarChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    BarChart chart = frame:BarChart()
+    chart:Display()
+
+    BarChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
     action WriteOutChart(BarChart chart) returns text
 
         ScalableVectorGraphics chartCanvas
@@ -62,6 +107,9 @@ class BarChartWriter
         return chartCanvas:ToText()
     end
 
+    /*
+        This action adds a white background to the canvas
+    */
     private action AddBackground(ScalableVectorGraphics canvas)
         Rectangle background
         background:SetFill("white")
@@ -69,6 +117,9 @@ class BarChartWriter
         canvas:Add(background)
     end
 
+    /*
+        This action adds the two lines for the x and y axis
+    */
     private action AddAxes(ScalableVectorGraphics canvas)
         Line xAxis
         Line yAxis
@@ -85,6 +136,9 @@ class BarChartWriter
         canvas:Add(yAxis)
     end
 
+    /*
+        This action adds the content of the BarChart
+    */
     private action AddBars(ScalableVectorGraphics canvas, BarChart chart)
         integer i = 0
         repeat while i < chart:GetNumberOfBars()
@@ -102,6 +156,9 @@ class BarChartWriter
         end
     end
 
+    /*
+        This action the labels on the x axis
+    */
     private action AddXLabels(ScalableVectorGraphics canvas, BarChart chart)
         integer i = 0
         repeat while i < chart:GetNumberOfBars()
@@ -124,6 +181,9 @@ class BarChartWriter
         end
     end
 
+    /*
+        This action the labels on the y axis
+    */
     private action AddYLabels(ScalableVectorGraphics canvas, BarChart chart)
         number scaleNum = chart:GetMinimumTick()
         

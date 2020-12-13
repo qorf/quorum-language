@@ -14,12 +14,56 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Controls.Charts.ChartPoint
 use Libraries.Game.Graphics.Color
 
+/*
+    The LineChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
 
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.LineChart
+    use Libraries.Interface.Controls.Charts.LineChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    LineChart chart = frame:LineChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    LineChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
 class LineChartWriter
     private number axisPointX = 15
     private number axisPointY = 85
     private number axisLength = 75
 
+/*
+    This action writes out the LineChart by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.LineChart
+    use Libraries.Interface.Controls.Charts.LineChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    LineChart chart = frame:LineChart()
+    chart:Display()
+
+    LineChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
     action WriteOutChart(LineChart chart) returns text
 
         ScalableVectorGraphics chartCanvas
@@ -59,6 +103,9 @@ class LineChartWriter
         return chartCanvas:ToText()
     end
 
+    /*
+        This action adds a white background to the canvas
+    */
     private action AddBackground(ScalableVectorGraphics canvas)
         Rectangle background
         background:SetFill("white")
@@ -66,6 +113,9 @@ class LineChartWriter
         canvas:Add(background)
     end
 
+    /*
+        This action adds the two lines for the x and y axis
+    */
     private action AddAxes(ScalableVectorGraphics canvas)
         Line xAxis
         Line yAxis
@@ -82,6 +132,9 @@ class LineChartWriter
         canvas:Add(yAxis)
     end
 
+    /*
+        This action adds the content of the LineChart
+    */
     private action AddPointsAndLines(ScalableVectorGraphics canvas, LineChart chart)
         integer i = 0
         repeat while i < chart:GetAllLines():GetSize()
@@ -117,6 +170,9 @@ class LineChartWriter
         end
     end
 
+    /*
+        This action is used internally to get the proper color attribute from a Quorum Color
+    */
     private action GetRGBFromColor(Color color) returns text
         integer R = cast(integer, 255*color:GetRed())
         integer G = cast(integer, 255*color:GetBlue())
@@ -124,6 +180,9 @@ class LineChartWriter
         return "rgb("+R+","+G+","+B+")" 
     end
 
+    /*
+        This action the labels on the x axis
+    */
     private action AddXLabels(ScalableVectorGraphics canvas, LineChart chart)
         Math math
         number scaleNum = chart:GetXAxisMinimum()
@@ -152,6 +211,9 @@ class LineChartWriter
         end
     end
 
+    /*
+        This action the labels on the y axis
+    */
     private action AddYLabels(ScalableVectorGraphics canvas, LineChart chart)
         number scaleNum = chart:GetYAxisMinimum()
         

@@ -15,12 +15,56 @@ use Libraries.Controls.Charts.ChartPoint
 use Libraries.Compute.Vector
 use Libraries.Interface.Layouts.ViolinChartLayout
 
+/*
+    The ViolinChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
 
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinChart
+    use Libraries.Interface.Controls.Charts.ViolinChartWriter
+
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ViolinChart chart = frame:ViolinChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    ViolinChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
 class ViolinChartWriter
     private number axisPointX = 15
     private number axisPointY = 85
     private number axisLength = 75
 
+/*
+    This action writes out the ViolinChart by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinChart
+    use Libraries.Interface.Controls.Charts.ViolinChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ViolinChart chart = frame:ViolinChart()
+    chart:Display()
+
+    ViolinChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
     action WriteOutChart(ViolinChart chart) returns text
 
         ScalableVectorGraphics chartCanvas
@@ -60,6 +104,9 @@ class ViolinChartWriter
         return chartCanvas:ToText()
     end
 
+    /*
+        This action adds a white background to the canvas
+    */
     private action AddBackground(ScalableVectorGraphics canvas)
         Rectangle background
         background:SetFill("white")
@@ -67,6 +114,9 @@ class ViolinChartWriter
         canvas:Add(background)
     end
 
+    /*
+        This action adds the two lines for the x and y axis
+    */
     private action AddAxes(ScalableVectorGraphics canvas)
         Line xAxis
         Line yAxis
@@ -83,11 +133,13 @@ class ViolinChartWriter
         canvas:Add(yAxis)
     end
 
+    /*
+        This action adds the content of the BarChart
+    */
     private action AddViolins(ScalableVectorGraphics canvas, ViolinChart chart)
         //this is needed for calculations so this will probably change if stuff is moved around 
         ViolinChartLayout layout
         Array<Array<number>> boxWhiskerInfos = chart:GetChartInfos()
-        //Array<Array<Drawable>> boxWhiskerItems = chart:GetChartItems()
         Array<Vector> dataSets = chart:GetData()
         integer total = boxWhiskerInfos:GetSize()
         number width = axisLength/total
@@ -104,49 +156,29 @@ class ViolinChartWriter
             number smallest = info:Get(3)
             number largest = info:Get(4)
             number startW = width*i
-          //even though lines could be used here rectangles are used for translation purposes
-//            items:Get(0):LoadFilledRectangle(lineW,cast(integer,(upperQuartile-lowwerQuartile)/dataScale))
-//            items:Get(0):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)
+            //even though lines could be used here rectangles are used for translation purposes
             Rectangle first
             first:SetSize(lineW, (upperQuartile-lowwerQuartile)/dataScale, "%")
             first:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - upperQuartile/dataScale, "%")
-//            items:Get(1):LoadFilledRectangle(lineH,cast(integer,(largest-smallest)/dataScale))
-//            items:Get(1):SetPosition(startW+(width-lineH)/2,smallest/dataScale)
             Rectangle second
             second:SetSize(lineH, (largest-smallest)/dataScale, "%")
             second:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - largest/dataScale, "%")
-//            items:Get(2):LoadFilledRectangle(lineW*4,lineH)
-//            items:Get(2):SetPosition(startW+(width-lineW*4)/2,smallest/dataScale)
             Rectangle third
             third:SetSize(lineW*4, lineH, "%")
             third:SetPosition(axisPointX + startW+(width-lineW*4)/2,axisPointY - largest/dataScale, "%")
-//            items:Get(3):LoadFilledRectangle(lineW,lineH)
-//            items:Get(3):SetPosition(startW+(width-lineW)/2,lowwerQuartile/dataScale)
             Rectangle fourth
             fourth:SetSize(lineW, lineH, "%")
             fourth:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - upperQuartile/dataScale, "%")
-//            items:Get(4):LoadFilledCircle(lineW/2,white)
-//            items:Get(4):SetPosition(startW+(width-lineW)/2,median/dataScale)
             Circle dot
             dot:SetRadius(lineW/2, "%")
             dot:SetFill("white")
             dot:SetPosition(axisPointX + startW+(width-lineW)/2 + lineW/2,axisPointY - median/dataScale, "%")
-//            items:Get(5):LoadFilledRectangle(lineW,lineH)
-//            items:Get(5):SetPosition(startW+(width-lineW)/2,upperQuartile/dataScale-lineH)
             Rectangle fifth
             fifth:SetSize(lineW, lineH, "%")
             fifth:SetPosition(axisPointX + startW+(width-lineW)/2,axisPointY - lowwerQuartile/dataScale - lineH, "%")
-//            items:Get(6):LoadFilledRectangle(lineW*4,lineH)
-//            items:Get(6):SetPosition(startW+(width-lineW*4)/2,largest/dataScale-lineH)
             Rectangle sixth
             sixth:SetSize(lineW*4, lineH, "%")
             sixth:SetPosition(axisPointX + startW+(width-lineW*4)/2,axisPointY - smallest/dataScale - lineH, "%")
-//            items:Get(7):LoadRectangle(width,height,invis)
-//            items:Get(7):SetPosition(startW,0)
-
-            //Format formate
-            //PixelMap pixelMap
-            //pixelMap:CreatePixelMap(width,height,formate)
             
             //bandWidth will be auto set to a value according the height of the chart
             integer bandWidth = chart:GetBandWidth()
@@ -162,7 +194,6 @@ class ViolinChartWriter
                 number estimate = estimates:Get(index)
                 number pixW = (estimate/estimateScale)*0.6
                 number pixH = height - nextPixel
-//                pixelMap:DrawLine(width/2-pixW,pixH,width/2+pixW, pixH,blue)
                 Line tempLine
                 tempLine:SetPoints(axisPointX + startW + width/2-pixW,axisPointY - axisLength + pixH,axisPointX + startW + width/2+pixW, axisPointY - axisLength + pixH, "%")
                 tempLine:SetStroke("blue")
@@ -171,10 +202,6 @@ class ViolinChartWriter
                 nextPixel = nextPixel + 1
                 index = index + 1
             end
-            //Texture texture
-            //texture:LoadFromPixelMap(pixelMap)
-            //items:Get(8):SetPosition(startW,0)
-            //items:Get(8):Load(texture)
             canvas:Add(first)
             canvas:Add(second)
             canvas:Add(third)
@@ -186,6 +213,9 @@ class ViolinChartWriter
         end
     end
 
+    /*
+        This action the labels on the x axis
+    */
     private action AddXLabels(ScalableVectorGraphics canvas, ViolinChart chart)
         integer i = 0
         Array<Array<number>> boxWhiskerInfos = chart:GetChartInfos()
@@ -203,6 +233,9 @@ class ViolinChartWriter
         end
     end
 
+    /*
+        This action the labels on the y axis
+    */
     private action AddYLabels(ScalableVectorGraphics canvas, ViolinChart chart)
         number scaleNum = 0//chart:GetYAxisMinimum()
         

@@ -1,5 +1,24 @@
 package Libraries.Data.Formats.ScalableVectorGraphics
 
+/*
+    The Line class is an implementation of the line shape in the SVG standard. Like other
+    ScalableVectorGraphicsObjects the line class inherits global attributes but it also has
+    its own attributes the two points that make up the line.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.SVG.all
+
+    // make an svg line
+    Line line
+
+    line:SetPoints(50, 50, 75, 75)
+    line:SetStrokeWidth(5)
+    line:SetStroke("black")
+
+*/
 class Line is ScalableVectorGraphicsObject
     constant text objectName = "line"
     private text x1 = ""
@@ -7,6 +26,14 @@ class Line is ScalableVectorGraphicsObject
     private text x2 = ""
     private text y2 = ""
 
+    /*
+        This action writes out all of the necessary tags and attributes that make up this
+        line. This action will be called automatically by the parent ScalableVectorGraphics,
+        as such this action does not need to be used directly by the user.
+
+        Attribute: Returns the formatted string of all tags and attributes for this shape
+
+    */
     action ToText returns text
         text result = ""
         text newLine = result:GetLineFeed()
@@ -36,6 +63,21 @@ class Line is ScalableVectorGraphicsObject
         return result
     end
 
+    /*
+        This action sets the coordinates of both points of the line.
+
+        Attribute: Parameter x1 The x position of the first point of the line. 
+        Attribute: Parameter y1 The y position of the first point of the line.
+        Attribute: Parameter x2 The x position of the second point of the line.
+        Attribute: Parameter y2 The y position of the second point of the line.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetPoints(50,50,75,75)
+    */
     action SetPoints(number x1, number y1, number x2, number y2)
         me:x1 = ""+x1
         me:y1 = ""+y1
@@ -43,6 +85,22 @@ class Line is ScalableVectorGraphicsObject
         me:y2 = ""+y2
     end
 
+    /*
+        This action sets the coordinates of both points of the line along with a unit.
+
+        Attribute: Parameter x1 The x position of the first point of the line. 
+        Attribute: Parameter y1 The y position of the first point of the line.
+        Attribute: Parameter x2 The x position of the second point of the line.
+        Attribute: Parameter y2 The y position of the second point of the line. 
+        Attribute: Parameter unit The unit of the length given.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetPoints(50,50,75,75, "%")
+    */
     action SetPoints(number x1, number y1, number x2, number y2, text unit)
         me:x1 = ""+x1 + unit
         me:y1 = ""+y1 + unit
@@ -50,38 +108,140 @@ class Line is ScalableVectorGraphicsObject
         me:y2 = ""+y2 + unit
     end
 
+    /*
+        This action sets the coordinates of the first point of the line.
+
+        Attribute: Parameter x1 The x position of the first point of the line. 
+        Attribute: Parameter y1 The y position of the first point of the line.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetFirstPoint(50,50)
+    */
     action SetFirstPoint(number x1, number y1)
         me:x1 = ""+x1
         me:y1 = ""+y1
     end
 
+    /*
+        This action sets the coordinates of the second point.
+
+        Attribute: Parameter x2 The x position of the second point of the line. 
+        Attribute: Parameter y2 The y position of the second point of the line.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetSecondPoint(75,75)
+    */
     action SetSecondPoint(number x2, number y2)
         me:x2 = ""+x2
         me:y2 = ""+y2
     end
 
+    /*
+        This action sets the coordinates of the first point of the line along with a unit.
+
+        Attribute: Parameter x2 The x position of the first point of the line. 
+        Attribute: Parameter y2 The y position of the first point of the line.
+        Attribute: Parameter unit The unit of the length given.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetFirstPoint(50,50,"%")
+    */
     action SetFirstPoint(number x1, number y1, text unit)
         me:x1 = ""+x1 + unit
         me:y1 = ""+y1 + unit
     end
 
+    /*
+        This action sets the coordinates of the second point of the line along with a unit.
+
+        Attribute: Parameter x2 The x position of the second point of the line. 
+        Attribute: Parameter y2 The y position of the second point of the line.
+        Attribute: Parameter unit The unit of the length given.
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        line:SetSecondPoint(75,75, "%")
+    */
     action SetSecondPoint(number x2, number y2, text unit)
         me:x2 = ""+x2 + unit
         me:y2 = ""+y2 + unit
     end
 
+    /*
+        This action returns the x position of the first point with the unit appended. 
+
+        Attribute: Returns the x position of the first point. 
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        output line:GetX1()
+    */
     action GetX1 returns text
         return x1
     end
 
+    /*
+        This action returns the y position of the first point with the unit appended. 
+
+        Attribute: Returns the y position of the first point. 
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        output line:GetY1()
+    */
     action GetY1 returns text
         return y1
     end
 
+    /*
+        This action returns the x position of the second point with the unit appended. 
+
+        Attribute: Returns the x position of the second point. 
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        output line:GetX2()
+    */
     action GetX2 returns text
         return x2
     end
 
+    /*
+        This action returns the y position of the second point with the unit appended. 
+
+        Attribute: Returns the y position of the second point. 
+
+        Attribute: Example
+
+        use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Line line
+        output line:GetY2()
+    */
     action GetY2 returns text
         return y2
     end
