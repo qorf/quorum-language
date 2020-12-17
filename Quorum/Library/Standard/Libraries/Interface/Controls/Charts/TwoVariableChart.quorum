@@ -136,7 +136,14 @@ class TwoVariableChart is Chart
                 if xLabelsOverride = undefined
                     label:SetText(scaleText)
                 else
-                    label:SetText(xLabelsOverride:Get(i))
+                    //now get the location of the text value to put in
+                    if i = xTicks - 1
+                        label:SetText(xLabelsOverride:Get(xLabelsOverride:GetSize() - 1))
+                    else
+                        number percent = (i * 1.0) / ((xTicks - 1) * 1.0)
+                        integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
+                        label:SetText(xLabelsOverride:Get(index))
+                    end
                 end
                 label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
                 scaleNum = scaleNum + scaleWidth
@@ -185,7 +192,14 @@ class TwoVariableChart is Chart
                 if yLabelsOverride = undefined
                     label:SetText(scaleText)
                 else
-                    label:SetText(yLabelsOverride:Get(i))
+                    //now get the location of the text value to put in
+                    if i = yTicks - 1
+                        label:SetText(yLabelsOverride:Get(yLabelsOverride:GetSize() - 1))
+                    else
+                        number percent = (i * 1.0) / ((yTicks - 1) * 1.0)
+                        integer index = cast(integer, math:Round(percent * yLabelsOverride:GetSize()))
+                        label:SetText(yLabelsOverride:Get(index))
+                    end
                 end
                 label:SetName(scaleText + " " + (i + 1) + " of " + yTicks)
                 scaleNum = scaleNum + scaleWidth

@@ -51,8 +51,8 @@ class DataFrameSelection is ColumnInput, FactorInput
     action CopyTo(FactorInput col)
         col:EmptyFactors()
         integer i = 0
-        repeat while i < GetColumnSize()
-            integer value = GetColumn(i)
+        repeat while i < GetFactorSize()
+            integer value = GetFactor(i)
             col:AddFactor(value)
             i = i + 1
         end

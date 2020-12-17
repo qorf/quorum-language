@@ -29,6 +29,8 @@ use Libraries.Compute.Statistics.Charts.HistogramCreator
 use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Interface.Controls.Charts.BarChart
 use Libraries.Compute.Statistics.Charts.BarChartCreator
+use Libraries.Compute.Statistics.Charts.LineChartCreator
+use Libraries.Interface.Controls.Charts.LineChart
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2050,6 +2052,36 @@ class DataFrame
 
         return cast(BarChart, CreateChart(creator))
     end
+
+    /*
+        This action creates a LineChart from the current column selection in the DataFrame.
+        By default, it uses all columns as separate lines in the selection as the chart area. 
+        Only one factor is allowed and this factor controls the y-axis for all of the lines. The scale
+        can be set manually by using the LineChart
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.LineChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedFactor(0)
+        LineChart chart = frame:BarChart()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action LineChart returns LineChart
+        LineChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(LineChart, CreateChart(creator))
+    end
+    
     /*
         This action returns a text based representation of the data frame.
 
