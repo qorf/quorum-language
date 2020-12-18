@@ -12,25 +12,26 @@ use Libraries.Interface.Controls.ControlLabel
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Compute.Vector
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Statistics.WindowingActions.NormalDistributionAction
+use Libraries.Interface.Controls.Charts.ViolinChartWriter
+use Libraries.Interface.Layouts.ViolinChartLayout
 
 /*
     Attribute: Author Silafu Yiliyaer
     Attribute: Example
 
-    //Create a ViolinChart and set some properties
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinChart
+    
     DataFrame frame
-    frame:Load("Data/Data.csv")
-
-    ViolinChartCreator creator
-    creator:SetXColumn(1)
-    creator:SetXColumn(2)
-    creator:SetXColumn(3)
-
-    ViolinChart chart = frame:CreateChart(creator)
-    chart:SetTitle("Violin Chart")
-    chart:SetYAxisTitle("Y-values")
-    chart:SetXAxisTitle("X-Values")
-    chart:SetBandWidth(10)
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ViolinChart chart = frame:ViolinChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
 */
 
 class ViolinChart is Chart
@@ -57,9 +58,11 @@ class ViolinChart is Chart
     //this stores all the drawables for each violin graph
     private Array<Array<Drawable>> chartItems
 
-    //this stores all data that need to be trasfer to the layout file (yeah, we need to transfer)
+    //this stores all data that need to be trasfer to the layout file
     private Array<Vector> dataSets
     private text kernel = ""
+
+    UnivariateAction windowingAction = undefined
 
     on create
         ViolinChartLayout lay
@@ -74,11 +77,13 @@ class ViolinChart is Chart
         properties:SetFontSize(GetDefaultFontSize())
 
         SetTitle("ViolinChart")
-        SetDescription("ViolinChart Creation complete")
+        SetDescription("ViolinChart")
         SetInputGroup("Chart")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
-        Focus()
+
+        NormalDistributionAction window
+        windowingAction = window
     end
 
     action DisposeDrawables
@@ -495,22 +500,22 @@ class ViolinChart is Chart
     /*
     This sets what kind of kernel function to use to calculate the normal distributions
     */
-    action SetFunction(text txt)
-        kernel = txt
+    action SetWindowingAction(UnivariateAction act)
+        me:windowingAction = act
     end
 
     /*
     This gets what kind of kernel function that is used to calculate the normal distributions
     */
-    action GetFunction returns text
-        return kernel
+    action GetWindowingAction returns UnivariateAction
+        return me:windowingAction
     end
 
     /*
     This sets the inteval size to calculate the normal distributions
     */
-    action SetBandWidth(integer txt)
-        bandWidth = txt
+    action SetBandWidth(integer value)
+        bandWidth = value
     end
 
     /*

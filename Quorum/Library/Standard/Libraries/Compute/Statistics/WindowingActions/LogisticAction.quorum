@@ -1,0 +1,18 @@
+package Libraries.Compute.Statistics.WindowingActions
+
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Math
+
+/*
+    This is a helper class for a windowing action based on a windowing action (Kernel). More information
+    can be found regarding various kernels on wikipedia: https://en.wikipedia.org/wiki/Kernel_(statistics)
+*/
+class LogisticAction is UnivariateAction
+    action Calculate(number x) returns number
+        Math math
+        number firstexpo = math:RaiseToPower(math:e, x)
+        number secexpo = math:RaiseToPower(math:e, -x)
+        number kernel = 1.0 / (firstexpo + 2.0 + secexpo)
+        return kernel
+    end
+end

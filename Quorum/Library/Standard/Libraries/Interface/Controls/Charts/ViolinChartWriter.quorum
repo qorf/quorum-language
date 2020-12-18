@@ -185,7 +185,7 @@ class ViolinChartWriter
             if bandWidth = 0
                 bandWidth = cast(integer, chart:GetYMax()*0.015)
             end
-            Array<number> estimates = layout:KDEcalculation(bandWidth,dataScale,dataSets:Get(i),chart:GetFunction())
+            Array<number> estimates = layout:EstimateDensity(bandWidth,dataScale,dataSets:Get(i),chart:GetWindowingAction())
             integer nextPixel = cast(integer, smallest/dataScale)+1
             number maxEstimate = estimates:Get(estimates:GetSize()-1)
             number estimateScale = maxEstimate/(width/2)

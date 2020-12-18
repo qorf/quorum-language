@@ -1,0 +1,18 @@
+package Libraries.Compute.Statistics.WindowingActions
+
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Math
+
+/*
+    This is a helper class for a windowing action based on a windowing action (Kernel). More information
+    can be found regarding various kernels on wikipedia: https://en.wikipedia.org/wiki/Kernel_(statistics)
+*/
+class CosineAction is UnivariateAction
+    action Calculate(number x) returns number
+        Math math
+        number fraction1 = math:pi / 4
+        number fraction2 = math:pi / 2
+        number kernel = fraction1 * math:Cosine(fraction2 * x)
+        return kernel
+    end
+end
