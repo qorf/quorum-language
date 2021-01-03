@@ -1,4 +1,10 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class UndefinedContext is ParseContext
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterUndefined(me)
+        listener:ExitUndefined(me)
+    end
 end

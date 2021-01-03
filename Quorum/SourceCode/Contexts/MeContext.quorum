@@ -1,4 +1,10 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class MeContext is ParseContext
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterMe(me)
+        listener:ExitMe(me)
+    end
 end

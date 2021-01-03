@@ -1,8 +1,19 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class InequalityContext is ParseContext
     public boolean isGreaterEquals = false
     public boolean isGreater = false
     public boolean isLessEquals = false
     public boolean isLess = false
+
+    public ParseContext left = undefined
+    public ParseContext right = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterInequality(me)
+        left:Traverse(listener)
+        right:Traverse(listener)
+        listener:ExitInequality(me)
+    end
 end

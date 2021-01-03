@@ -1,4 +1,13 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class UnaryMinusContext is ParseContext
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterMinus(me)
+        expression:Traverse(listener)
+        listener:ExitMinus(me)
+    end
 end

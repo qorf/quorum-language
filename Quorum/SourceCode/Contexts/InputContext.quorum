@@ -1,4 +1,15 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class InputContext is ParseContext
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterInput(me)
+        if expression not= undefined
+            expression:Traverse(listener)
+        end
+        listener:ExitInput(me)
+    end
 end

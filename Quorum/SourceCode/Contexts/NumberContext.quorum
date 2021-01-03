@@ -1,5 +1,11 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class NumberContext is ParseContext
     public number value = 0
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterNumber(me)
+        listener:ExitNumber(me)
+    end
 end

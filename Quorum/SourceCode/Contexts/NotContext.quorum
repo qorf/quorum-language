@@ -1,4 +1,13 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class NotContext is ParseContext
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterNot(me)
+        expression:Traverse(listener)
+        listener:ExitNot(me)
+    end
 end

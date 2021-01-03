@@ -1,4 +1,5 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class AdditionContext is ParseContext
     /*
@@ -6,4 +7,14 @@ class AdditionContext is ParseContext
         subtraction.
     */
     public boolean isPlus = false
+
+    public ParseContext left = undefined
+    public ParseContext right = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterAddition(me)
+        left:Traverse(listener)
+        right:Traverse(listener)
+        listener:ExitAddition(me)
+    end
 end

@@ -1,5 +1,26 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class AndOrContext is ParseContext
     public boolean isAnd = false
+
+    public ParseContext left = undefined
+    public ParseContext right = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        if isAnd
+            listener:EnterAnd(me)
+        else
+            listener:EnterOr(me)
+        end
+
+        left:Traverse(listener)
+        right:Traverse(listener)
+
+        if isAnd
+            listener:ExitAnd(me)
+        else
+            listener:ExitOr(me)
+        end
+    end
 end

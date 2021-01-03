@@ -1,9 +1,24 @@
 package Libraries.Language.Compile.Context
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ActionCallContext is ParseContext
     public boolean isSolo = false
     public text name = ""
     public boolean isActionCall = false
     public Location nameLocation
+
+    Array<ParseContext> parameterExpressions = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterActionCall(me)
+        i = 0
+        repeat while i < parameterExpressions:GetSize()
+            ParseContext context = parameterExpressions:Get(i)
+            context:Traverse(listener)
+            i = i + 1
+        end
+        listener:ExitActionCall(me)
+    end
 end

@@ -1,6 +1,17 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class EqualsContext is ParseContext
     //if this is true, we are doing an equality test. If not, it is a not equals
     public boolean equalsTo = true
+
+    public ParseContext left = undefined
+    public ParseContext right = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterEquals(me)
+        left:Traverse(listener)
+        right:Traverse(listener)
+        listener:ExitEquals(me)
+    end
 end

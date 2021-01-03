@@ -1,5 +1,6 @@
 package Libraries.Language.Compile.Context
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ParseContext 
     Location location
@@ -10,5 +11,9 @@ class ParseContext
 
     action SetLocation(Location loc)
         location = loc
+    end
+
+    action Traverse(QuorumSourceListener listener)
+
     end
 end

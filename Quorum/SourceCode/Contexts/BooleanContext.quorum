@@ -1,5 +1,11 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class BooleanContext is ParseContext
     public boolean value = false
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterBoolean(me)
+        listener:ExitBoolean(me)
+    end
 end

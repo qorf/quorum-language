@@ -1,7 +1,13 @@
 package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.QuorumSourceListener
 
 class UseContext is ParseContext
     public QualifiedName name
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterUse(me)
+        listener:ExitUse(me)
+    end
 end

@@ -1,5 +1,24 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.Array
 
 class StartContext is ParseContext
-    
+    public PackageContext packageContext = undefined
+    public Array<UseContext> uses = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterStart(me)
+        if packageContext not= undefined
+            packageContext:Traverse(listener)
+        end
+
+        if uses not= undefined
+            i = 0
+            repeat while i < uses:GetSize()
+                uses:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitStart(me)
+    end
 end

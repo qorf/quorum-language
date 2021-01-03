@@ -1,7 +1,18 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class MultiplicationContext is ParseContext
     public boolean isMultiply = false
     public boolean isDivide = false
     public boolean isModulus = false
+
+    public ParseContext left = undefined
+    public ParseContext right = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterMultiplication(me)
+        left:Traverse(listener)
+        right:Traverse(listener)
+        listener:ExitMultiplication(me)
+    end
 end

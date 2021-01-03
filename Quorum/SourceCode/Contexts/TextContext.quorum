@@ -1,5 +1,11 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class TextContext is ParseContext
     public text value = ""
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterText(me)
+        listener:ExitText(me)
+    end
 end

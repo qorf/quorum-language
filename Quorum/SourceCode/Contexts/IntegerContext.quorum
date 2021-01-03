@@ -1,5 +1,11 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class IntegerContext is ParseContext
     public integer value = 0
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterInteger(me)
+        listener:ExitInteger(me)
+    end
 end

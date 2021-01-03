@@ -1,4 +1,13 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ParenthesisContext is ParseContext
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterParenthesisExpression(me)
+        expression:Traverse(listener)
+        listener:ExitParenthesisExpression(me)
+    end
 end
