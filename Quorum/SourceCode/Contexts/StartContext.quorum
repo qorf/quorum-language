@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 class StartContext is ParseContext
     public PackageContext packageContext = undefined
     public Array<UseContext> uses = undefined
+    public ParseContext classDeclaration = undefined
 
     action Traverse(QuorumSourceListener listener)
         listener:EnterStart(me)
@@ -18,6 +19,10 @@ class StartContext is ParseContext
                 uses:Get(i):Traverse(listener)
                 i = i + 1
             end
+        end
+
+        if classDeclaration not= undefined
+            classDeclaration:Traverse(listener)
         end
         listener:ExitStart(me)
     end
