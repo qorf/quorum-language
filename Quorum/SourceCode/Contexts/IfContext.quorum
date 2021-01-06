@@ -1,4 +1,29 @@
 package Libraries.Language.Compile.Context
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class IfContext is ParseContext
+    public BlockContext ifBlock = undefined
+    public ParseContext ifExpression = undefined
+    public Array<BlockContext> elseIfBlocks = undefined
+    public Array<ParseContext> elseIfExpressions = undefined
+    public BlockContext elseBlock = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterIfStatement(me)
+        ifExpression:Traverse(listener)
+        ifBlock:Traverse(listener)
+        
+        if elseIfExpressions not= undefined and elseIfBlocks not= undefined
+            i = 0
+            repeat while i < elseIfBlocks:GetSize()
+                elseIfExpressions:Get(i):Traverse(listener)
+                elseIfBlocks:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+
+        if elseBlock not= undefined elseBlock:Traverse(listener) end
+        listener:ExitIfStatement(me)
+    end
 end
