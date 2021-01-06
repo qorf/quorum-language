@@ -1,4 +1,15 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.Array
 
+/*
+    Note: The name here is extremely misleading. This class represents a single Class Statement, not multiple.
+*/
 class ClassStatementsContext is ParseContext
+    public ParseContext statement = undefined
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterClassStatements(me)
+        statement:Traverse(listener) //this has to be defined
+        listener:ExitClassStatements(me)
+    end
 end

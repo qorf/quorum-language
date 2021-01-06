@@ -6,8 +6,13 @@ use Libraries.Language.Compile.QuorumSourceListener
 class PackageContext is ParseContext
     public QualifiedName name
 
+    public QualifiedNameContext nameContext = undefined
+
     action Traverse(QuorumSourceListener listener)
         listener:EnterPackageRule(me)
+        if nameContext not= undefined
+            nameContext:Traverse(listener)
+        end
         listener:ExitPackageRule(me)
     end
 end

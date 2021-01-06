@@ -5,9 +5,13 @@ use Libraries.Language.Compile.QuorumSourceListener
 
 class UseContext is ParseContext
     public QualifiedName name
+    public QualifiedNameContext nameContext = undefined
 
     action Traverse(QuorumSourceListener listener)
-        listener:EnterUse(me)
+        listener:EnterUse(me)   
+        if nameContext not= undefined
+            nameContext:Traverse(listener)
+        end
         listener:ExitUse(me)
     end
 end

@@ -5,6 +5,8 @@ use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.Array
 
 class ActionContext is ParseContext
     public List<Variable> parameters
@@ -14,6 +16,12 @@ class ActionContext is ParseContext
     public Type returnType = undefined
     public boolean isPublic = true
     public boolean isPrivate = false
+
+    public boolean isBlueprint = false
+    public boolean isSystem = false
+
+    Array<FormalParameterContext> parameterContexts = undefined
+    AssignmentDeclaractionContext returnsStatement = undefined
 
     action GetStaticKey returns text
         text key = ""
@@ -30,5 +38,18 @@ class ActionContext is ParseContext
 
     action GetParameters returns Iterator<Variable>
         return parameters:GetIterator()
+    end
+
+    action Traverse(QuorumSourceListener listener)
+        if isBlueprint
+            listener:EnterBlueprintAction(me)
+            listener:ExitBlueprintAction(me)
+        elseif isSystem
+            listener:EnterSystemAction(me)
+            listener:ExitSystemAction(me)
+        else
+            listener:EnterAction(me)
+            listener:ExitAction(me)
+        end
     end
 end

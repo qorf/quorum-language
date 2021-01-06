@@ -1,4 +1,21 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Symbol.Type
 
 class GenericContext is ParseContext
+    public Array<Type> generics = undefined
+    public Array<AssignmentDeclaractionContext> genericContexts = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterGenericStatement(me)
+        if genericContexts not= undefined
+            i = 0
+            repeat while i < genericContexts:GetSize()
+                genericContexts:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitGenericStatement(me)
+    end
 end

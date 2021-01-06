@@ -2,10 +2,31 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class FullClassDeclarationContext is ParseContext
     public text className = ""
     public boolean staticClass = false
     public QualifiedName name = undefined
     public Location classNameLocation
+
+    GenericDeclarationContext generic = undefined
+    InheritStatementsContext inherit = undefined
+    Array<ClassStatementsContext> statements = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterFullClassDeclaration(me)
+        if generic not= undefined generic:Traverse(listener) end
+        if inherit not= undefined inherit:Traverse(listener) end
+
+        if statements not= undefined
+            i = 0
+            repeat while i < statements:GetSize()
+                statements:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitFullClassDeclaration(me)
+    end
 end

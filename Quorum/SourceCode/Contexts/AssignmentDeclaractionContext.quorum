@@ -1,7 +1,15 @@
 package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.QuorumSourceListener
 
 class AssignmentDeclaractionContext is ParseContext
-    Type type = undefined
+    public Type type = undefined
+    public ParseContext typeContext = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterAssignmentDeclaration(me)
+        typeContext:Traverse(listener) //this cannot be undefined. If it is, we should crash so the error goes to us
+        listener:ExitAssignmentDeclaration(me)
+    end
 end
