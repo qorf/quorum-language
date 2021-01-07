@@ -1,6 +1,8 @@
 package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ParentVariableFunctionCallContext is ParseContext
     public boolean hasMe = false
@@ -8,4 +10,20 @@ class ParentVariableFunctionCallContext is ParseContext
     public QualifiedName parentName = undefined
     public text actionName = ""
     public boolean pop = false
+
+    public QualifiedNameContext parentNameContext = undefined
+    Array<ActionCallContext> calls = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterParentVariableFunctionCall(me)
+        parentNameContext:Traverse(listener)
+        if calls not= undefined
+            i = 0
+            repeat while i < calls:GetSize()
+                calls:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitParentVariableFunctionCall(me)
+    end
 end
