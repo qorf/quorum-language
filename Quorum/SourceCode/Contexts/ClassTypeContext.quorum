@@ -1,4 +1,14 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ClassTypeContext is ParseContext
+    public QualifiedNameContext nameContext = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterClassType(me)
+        if nameContext not= undefined
+            nameContext:Traverse(listener)
+        end
+        listener:ExitClassType(me)
+    end
 end

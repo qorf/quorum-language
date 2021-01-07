@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.QuorumSourceListener
 
 class NoTypeAssignmentContext is ParseContext
     public boolean isField = false
@@ -18,4 +19,12 @@ class NoTypeAssignmentContext is ParseContext
     */ 
     public boolean hasMe = false
     public Location variableLocation
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterNoTypeAssignment(me)
+        expression:Traverse(listener)
+        listener:ExitNoTypeAssignment(me)
+    end
 end

@@ -11,11 +11,16 @@ class ParentVariableFunctionCallContext is ParseContext
     public text actionName = ""
     public boolean pop = false
 
+    public boolean isSolo = false
     public QualifiedNameContext parentNameContext = undefined
     Array<ActionCallContext> calls = undefined
 
     action Traverse(QuorumSourceListener listener)
-        listener:EnterParentVariableFunctionCall(me)
+        if isSolo
+            listener:EnterParentVariableSoloFunctionCall(me)
+        else
+            listener:EnterParentVariableFunctionCall(me)
+        end
         parentNameContext:Traverse(listener)
         if calls not= undefined
             i = 0
@@ -24,6 +29,10 @@ class ParentVariableFunctionCallContext is ParseContext
                 i = i + 1
             end
         end
-        listener:ExitParentVariableFunctionCall(me)
+        if isSolo
+            listener:ExitParentVariableSoloFunctionCall(me)
+        else
+            listener:ExitParentVariableFunctionCall(me)
+        end
     end
 end

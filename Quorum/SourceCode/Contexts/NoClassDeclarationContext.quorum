@@ -1,4 +1,30 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.Array
 
 class NoClassDeclarationContext is ParseContext
+    public Array<ParseContext> statements = undefined
+    public Array<ParseContext> actions = undefined
+    
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterNoClassDeclaration(me)
+        if statements not= undefined
+            i = 0
+            repeat while i < statements:GetSize()
+                ParseContext statement = statements:Get(i)
+                statement:Traverse(listener)
+                i = i + 1
+            end
+        end
+
+        if actions not= undefined
+            i = 0
+            repeat while i < actions:GetSize()
+                ParseContext behavior = actions:Get(i)
+                behavior:Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitNoClassDeclaration(me)
+    end
 end

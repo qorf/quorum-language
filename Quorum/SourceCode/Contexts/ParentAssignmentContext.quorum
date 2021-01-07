@@ -2,10 +2,21 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ParentAssignmentContext is ParseContext
     public boolean isField = false
     public QualifiedName parentName = undefined
     public text name = ""
     public Type rightHandSide = undefined
+
+    public QualifiedNameContext parentContext = undefined
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterParentAssignment(me)
+        parentContext:Traverse(listener)
+        expression:Traverse(listener)
+        listener:ExitParentAssignment(me)
+    end
 end

@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.QuorumSourceListener
 
 class NormalAssignmentContext is ParseContext
     public boolean isField = false
@@ -18,4 +19,16 @@ class NormalAssignmentContext is ParseContext
     public boolean hasRightHandSide = true
     public Location variableLocation
     public Location typeLocation
+
+    public AccessModifierContext accessModifier = undefined
+    public AssignmentDeclaractionContext declaration = undefined
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterNormalAssignment(me)
+        if accessModifier not= undefined accessModifier:Traverse(listener) end
+        declaration:Traverse(listener) //can't be undefined
+        if expression not= undefined expression:Traverse(listener) end
+        listener:ExitNormalAssignment(me)
+    end
 end
