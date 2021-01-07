@@ -1,5 +1,20 @@
 package Libraries.Language.Compile.Context
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ActionExpressionListContext is ParseContext
     public integer size = 0
+    public Array<ParseContext> contexts = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterActionExpressionList(me)
+        if contexts not= undefined
+            i = 0
+            repeat while i < contexts:GetSize()
+                contexts:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitActionExpressionList(me)
+    end
 end

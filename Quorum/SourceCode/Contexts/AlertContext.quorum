@@ -1,4 +1,12 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class AlertContext is ParseContext
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterAlertStatement(me)
+        expression:Traverse(listener)
+        listener:ExitAlertStatement(me)
+    end
 end

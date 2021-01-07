@@ -1,5 +1,7 @@
 package Libraries.Language.Compile.Context
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class VariableFunctionCallContext is ParseContext
     public text name = ""
@@ -9,4 +11,18 @@ class VariableFunctionCallContext is ParseContext
     public boolean isParentCall = false
     public boolean isSoloCall = false
     public Location objectLocation
+
+    Array<ActionCallContext> calls = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterVariableFunctionCall(me)
+        if calls not= undefined
+            i = 0
+            repeat while i < calls:GetSize()
+                calls:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+        listener:ExitVariableFunctionCall(me)
+    end
 end

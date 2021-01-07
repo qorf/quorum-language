@@ -1,5 +1,14 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class ReturnContext is ParseContext
     public boolean isReturnNow = false
+
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterReturnStatement(me)
+        if expression not= undefined expression:Traverse(listener) end
+        listener:ExitReturnStatement(me)
+    end
 end

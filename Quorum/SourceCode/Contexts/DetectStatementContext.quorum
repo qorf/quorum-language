@@ -2,8 +2,27 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Containers.List
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QuorumSourceListener
 
 class DetectStatementContext is ParseContext
     public List<QualifiedName> parents
     public text name = ""
+
+    public Array<QualifiedNameContext> qualifiedNameContexts = undefined
+    public BlockContext block = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterDetectStatement(me)   
+        if qualifiedNameContexts not= undefined
+            i = 0
+            repeat while i < qualifiedNameContexts:GetSize()
+                qualifiedNameContexts:Get(i):Traverse(listener)
+                i = i + 1
+            end
+        end
+
+        block:Traverse(listener)
+        listener:ExitDetectStatement(me)
+    end
 end

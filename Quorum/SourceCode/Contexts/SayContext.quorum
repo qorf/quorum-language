@@ -1,4 +1,12 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class SayContext is ParseContext
+    public ParseContext expression = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterSayStatement(me)
+        expression:Traverse(listener)
+        listener:ExitSayStatement(me)
+    end
 end

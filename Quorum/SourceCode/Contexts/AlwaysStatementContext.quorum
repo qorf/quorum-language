@@ -1,4 +1,12 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class AlwaysStatementContext is ParseContext
+    public BlockContext block = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterAlwaysStatement(me)
+        block:Traverse(listener)
+        listener:ExitAlwaysStatement(me)
+    end
 end
