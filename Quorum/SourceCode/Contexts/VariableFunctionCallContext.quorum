@@ -12,7 +12,7 @@ class VariableFunctionCallContext is ParseContext
     public boolean isSoloCall = false
     public Location objectLocation
 
-    Array<ActionCallContext> calls = undefined
+    public Array<ActionCallContext> calls = undefined
 
     action Traverse(QuorumSourceListener listener)
         listener:EnterVariableFunctionCall(me)

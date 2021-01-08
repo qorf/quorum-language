@@ -11,7 +11,7 @@ class ActionCallContext is ParseContext
 
     public boolean traverseAsInitialParent = false
 
-    Array<ParseContext> parameterExpressions = undefined
+    public Array<ParseContext> parameterExpressions = undefined
 
     action Traverse(QuorumSourceListener listener)
         if traverseAsInitialParent
@@ -19,11 +19,13 @@ class ActionCallContext is ParseContext
         else
             listener:EnterActionCall(me)
         end
-        i = 0
-        repeat while i < parameterExpressions:GetSize()
-            ParseContext context = parameterExpressions:Get(i)
-            context:Traverse(listener)
-            i = i + 1
+        if parameterExpressions not= undefined
+            i = 0
+            repeat while i < parameterExpressions:GetSize()
+                ParseContext context = parameterExpressions:Get(i)
+                context:Traverse(listener)
+                i = i + 1
+            end
         end
         if traverseAsInitialParent
             listener:ExitInitialParentActionCall(me)
