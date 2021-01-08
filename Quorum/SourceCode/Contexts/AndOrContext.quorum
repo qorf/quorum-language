@@ -15,7 +15,7 @@ class AndOrContext is ParseContext
         end
 
         left:Traverse(listener)
-        right:Traverse(listener)
+        if right not= undefined right:Traverse(listener) end
 
         if isAnd
             listener:ExitAnd(me)

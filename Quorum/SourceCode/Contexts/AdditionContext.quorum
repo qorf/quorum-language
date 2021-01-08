@@ -14,7 +14,7 @@ class AdditionContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         listener:EnterAddition(me)
         left:Traverse(listener)
-        right:Traverse(listener)
+        if right not= undefined right:Traverse(listener) end
         listener:ExitAddition(me)
     end
 end

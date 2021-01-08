@@ -1,4 +1,12 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class StatementContext is ParseContext
+    public ParseContext statement = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterStatement(me)
+        statement:Traverse(listener)
+        listener:ExitStatement(me)
+    end
 end

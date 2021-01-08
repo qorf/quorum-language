@@ -13,7 +13,7 @@ class InequalityContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         listener:EnterInequality(me)
         left:Traverse(listener)
-        right:Traverse(listener)
+        if right not= undefined right:Traverse(listener) end
         listener:ExitInequality(me)
     end
 end

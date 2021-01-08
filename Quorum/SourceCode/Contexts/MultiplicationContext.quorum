@@ -12,7 +12,7 @@ class MultiplicationContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         listener:EnterMultiplication(me)
         left:Traverse(listener)
-        right:Traverse(listener)
+        if right not= undefined right:Traverse(listener) end
         listener:ExitMultiplication(me)
     end
 end
