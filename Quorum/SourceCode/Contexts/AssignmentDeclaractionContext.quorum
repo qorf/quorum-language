@@ -5,11 +5,11 @@ use Libraries.Language.Compile.QuorumSourceListener
 
 class AssignmentDeclaractionContext is ParseContext
     public Type type = undefined
-    //public ParseContext typeContext = undefined
+    public QualifiedNameContext nameContext = undefined
 
     action Traverse(QuorumSourceListener listener)
-        listener:EnterAssignmentDeclaration(me)
-        //typeContext:Traverse(listener) //this cannot be undefined. If it is, we should crash so the error goes to us
-        listener:ExitAssignmentDeclaration(me)
+        //listener:EnterAssignmentDeclaration(me)
+        if nameContext not= undefined nameContext:Traverse(listener) end
+        //listener:ExitAssignmentDeclaration(me)
     end
 end

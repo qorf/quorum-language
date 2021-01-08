@@ -15,7 +15,11 @@ class VariableFunctionCallContext is ParseContext
     public Array<ActionCallContext> calls = undefined
 
     action Traverse(QuorumSourceListener listener)
-        listener:EnterVariableFunctionCall(me)
+        if isSoloCall
+            listener:EnterVariableSoloFunctionCall(me)
+        else
+            listener:EnterVariableFunctionCall(me)
+        end
         if calls not= undefined
             i = 0
             repeat while i < calls:GetSize()
@@ -23,6 +27,10 @@ class VariableFunctionCallContext is ParseContext
                 i = i + 1
             end
         end
-        listener:ExitVariableFunctionCall(me)
+        if isSoloCall
+            listener:ExitVariableSoloFunctionCall(me)
+        else
+            listener:ExitVariableFunctionCall(me)
+        end
     end
 end

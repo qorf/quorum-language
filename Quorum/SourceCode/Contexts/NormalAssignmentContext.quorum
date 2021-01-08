@@ -27,7 +27,7 @@ class NormalAssignmentContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         listener:EnterNormalAssignment(me)
         if accessModifier not= undefined accessModifier:Traverse(listener) end
-        //declaration:Traverse(listener) //Does Antlr ignore this?
+        declaration:Traverse(listener) //Does Antlr ignore this?
         if expression not= undefined expression:Traverse(listener) end
         listener:ExitNormalAssignment(me)
     end
