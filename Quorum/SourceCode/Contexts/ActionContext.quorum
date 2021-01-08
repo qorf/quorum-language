@@ -20,8 +20,9 @@ class ActionContext is ParseContext
     public boolean isBlueprint = false
     public boolean isSystem = false
 
-    Array<FormalParameterContext> parameterContexts = undefined
-    AssignmentDeclaractionContext returnsStatement = undefined
+    public Array<FormalParameterContext> parameterContexts = undefined
+    public AssignmentDeclaractionContext returnsStatement = undefined
+    public BlockContext block = undefined
 
     action GetStaticKey returns text
         text key = ""
@@ -43,12 +44,19 @@ class ActionContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         if isBlueprint
             listener:EnterBlueprintAction(me)
+            listener:EnterActionHeader(me)
+            listener:ExitActionHeader(me)
             listener:ExitBlueprintAction(me)
         elseif isSystem
             listener:EnterSystemAction(me)
+            listener:EnterActionHeader(me)
+            listener:ExitActionHeader(me)
             listener:ExitSystemAction(me)
         else
             listener:EnterAction(me)
+            listener:EnterActionHeader(me)
+            listener:ExitActionHeader(me)
+            block:Traverse(listener)
             listener:ExitAction(me)
         end
     end
