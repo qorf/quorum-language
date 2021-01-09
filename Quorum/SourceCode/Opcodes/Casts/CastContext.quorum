@@ -1,7 +1,19 @@
 package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.QuorumSourceListener
 
 class CastContext is ParseContext
     public Type type = undefined
+    public ParseContext expression = undefined
+    public AssignmentDeclaractionContext assignment = undefined
+
+    action Traverse(QuorumSourceListener listener)
+        listener:EnterCast(me)
+        assignment:Traverse(listener)
+        if expression not= undefined
+            expression:Traverse(listener)
+        end
+        listener:ExitCast(me)
+    end
 end
