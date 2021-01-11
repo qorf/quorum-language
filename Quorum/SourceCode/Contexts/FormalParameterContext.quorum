@@ -11,8 +11,10 @@ class FormalParameterContext is ParseContext
     public AssignmentDeclaractionContext declaration = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterFormalParameter(me)
         if declaration not= undefined declaration:Traverse(listener) end
+        ExitDocumentation(listener)
         listener:ExitFormalParameter(me)
     end
 end

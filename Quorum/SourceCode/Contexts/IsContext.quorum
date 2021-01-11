@@ -9,11 +9,13 @@ class IsContext is ParseContext
 
     public ParseContext left = undefined
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterIs(me)
         left:Traverse(listener)
         if classType not= undefined
             classType:Traverse(listener)
         end
+        ExitDocumentation(listener)
         listener:ExitIs(me)
     end
 end

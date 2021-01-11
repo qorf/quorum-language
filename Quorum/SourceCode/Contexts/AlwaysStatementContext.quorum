@@ -5,8 +5,10 @@ class AlwaysStatementContext is ParseContext
     public BlockContext block = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterAlwaysStatement(me)
         block:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitAlwaysStatement(me)
     end
 end

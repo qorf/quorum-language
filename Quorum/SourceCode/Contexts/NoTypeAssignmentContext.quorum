@@ -23,8 +23,10 @@ class NoTypeAssignmentContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterNoTypeAssignment(me)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitNoTypeAssignment(me)
     end
 end

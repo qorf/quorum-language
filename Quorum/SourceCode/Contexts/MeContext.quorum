@@ -4,7 +4,9 @@ use Libraries.Language.Compile.QuorumSourceListener
 class MeContext is ParseContext
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterMe(me)
+        ExitDocumentation(listener)
         listener:ExitMe(me)
     end
 end

@@ -16,6 +16,7 @@ class ParentVariableFunctionCallContext is ParseContext
     Array<ActionCallContext> calls = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         if isSolo
             listener:EnterParentVariableSoloFunctionCall(me)
         else
@@ -29,6 +30,7 @@ class ParentVariableFunctionCallContext is ParseContext
                 i = i + 1
             end
         end
+        ExitDocumentation(listener)
         if isSolo
             listener:ExitParentVariableSoloFunctionCall(me)
         else

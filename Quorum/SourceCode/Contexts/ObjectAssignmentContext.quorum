@@ -19,9 +19,11 @@ class ObjectAssignmentContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterObjectAssignment(me)
         parentContext:Traverse(listener)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitObjectAssignment(me)
     end
 end

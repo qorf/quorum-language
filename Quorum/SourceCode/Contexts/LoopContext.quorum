@@ -10,9 +10,11 @@ class LoopContext is ParseContext
     public BlockContext block = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterLoopStatement(me)
         expression:Traverse(listener)
         block:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitLoopStatement(me)
     end
 end

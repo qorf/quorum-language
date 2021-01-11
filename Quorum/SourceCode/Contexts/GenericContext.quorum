@@ -8,6 +8,7 @@ class GenericContext is ParseContext
     public Array<AssignmentDeclaractionContext> genericContexts = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterGenericStatement(me)
         if genericContexts not= undefined
             i = 0
@@ -16,6 +17,7 @@ class GenericContext is ParseContext
                 i = i + 1
             end
         end
+        ExitDocumentation(listener)
         listener:ExitGenericStatement(me)
     end
 end

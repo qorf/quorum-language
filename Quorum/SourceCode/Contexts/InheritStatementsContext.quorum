@@ -6,6 +6,7 @@ class InheritStatementsContext is ParseContext
     Array<InheritStatementContext> statements = undefined
     
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterInheritStatements(me)
         if statements not= undefined
             i = 0
@@ -14,6 +15,7 @@ class InheritStatementsContext is ParseContext
                 i = i + 1
             end
         end
+        ExitDocumentation(listener)
         listener:ExitInheritStatements(me)
     end
 end

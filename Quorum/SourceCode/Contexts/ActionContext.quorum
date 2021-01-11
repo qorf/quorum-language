@@ -43,20 +43,26 @@ class ActionContext is ParseContext
 
     action Traverse(QuorumSourceListener listener)
         if isBlueprint
+            EnterDocumentation(listener)
             listener:EnterBlueprintAction(me)
             listener:EnterActionHeader(me)
             listener:ExitActionHeader(me)
+            ExitDocumentation(listener)
             listener:ExitBlueprintAction(me)
         elseif isSystem
+            EnterDocumentation(listener)
             listener:EnterSystemAction(me)
             listener:EnterActionHeader(me)
             listener:ExitActionHeader(me)
+            ExitDocumentation(listener)
             listener:ExitSystemAction(me)
         else
+            EnterDocumentation(listener)
             listener:EnterAction(me)
             listener:EnterActionHeader(me)
             listener:ExitActionHeader(me)
             block:Traverse(listener)
+            ExitDocumentation(listener)
             listener:ExitAction(me)
         end
     end

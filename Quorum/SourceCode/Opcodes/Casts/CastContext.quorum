@@ -9,11 +9,13 @@ class CastContext is ParseContext
     public AssignmentDeclaractionContext assignment = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterCast(me)
         assignment:Traverse(listener)
         if expression not= undefined
             expression:Traverse(listener)
         end
+        ExitDocumentation(listener)
         listener:ExitCast(me)
     end
 end

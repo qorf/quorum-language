@@ -12,6 +12,7 @@ class InheritStatementContext is ParseContext
     public QualifiedNameContext nameContext = undefined
     
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterInheritStatement(me)
         if nameContext not= undefined
             nameContext:Traverse(listener)
@@ -19,6 +20,7 @@ class InheritStatementContext is ParseContext
         if generic not= undefined
             generic:Traverse(listener)
         end
+        ExitDocumentation(listener)
         listener:ExitInheritStatement(me)
     end
 end

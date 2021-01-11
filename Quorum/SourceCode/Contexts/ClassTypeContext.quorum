@@ -5,10 +5,12 @@ class ClassTypeContext is ParseContext
     public QualifiedNameContext nameContext = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterClassType(me)
         if nameContext not= undefined
             nameContext:Traverse(listener)
         end
+        ExitDocumentation(listener)
         listener:ExitClassType(me)
     end
 end

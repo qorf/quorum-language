@@ -4,10 +4,17 @@ use Libraries.Language.Compile.QuorumSourceListener
 
 class QualifiedNameContext is ParseContext
     public QualifiedName name = undefined
+    public GenericContext generics = undefined
     
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterQualifiedName(me)
 
+        ExitDocumentation(listener)
         listener:ExitQualifiedName(me)
+
+        if generics not= undefined
+            generics:Traverse(listener)
+        end
     end
 end

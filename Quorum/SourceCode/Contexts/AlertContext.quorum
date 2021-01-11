@@ -5,8 +5,10 @@ class AlertContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterAlertStatement(me)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitAlertStatement(me)
     end
 end

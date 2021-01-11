@@ -16,6 +16,7 @@ class FullClassDeclarationContext is ParseContext
     Array<ClassStatementsContext> statements = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterFullClassDeclaration(me)
         if generic not= undefined generic:Traverse(listener) end
         if inherit not= undefined inherit:Traverse(listener) end
@@ -27,6 +28,7 @@ class FullClassDeclarationContext is ParseContext
                 i = i + 1
             end
         end
+        ExitDocumentation(listener)
         listener:ExitFullClassDeclaration(me)
     end
 end

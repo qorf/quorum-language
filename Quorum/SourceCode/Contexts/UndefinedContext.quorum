@@ -4,7 +4,9 @@ use Libraries.Language.Compile.QuorumSourceListener
 class UndefinedContext is ParseContext
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterUndefined(me)
+        ExitDocumentation(listener)
         listener:ExitUndefined(me)
     end
 end

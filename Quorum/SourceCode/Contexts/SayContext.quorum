@@ -5,8 +5,10 @@ class SayContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterSayStatement(me)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitSayStatement(me)
     end
 end

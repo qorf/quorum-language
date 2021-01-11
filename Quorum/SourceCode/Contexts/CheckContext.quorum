@@ -1,4 +1,12 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.QuorumSourceListener
 
 class CheckContext is ParseContext
+
+    action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
+        listener:EnterCheckStatement(me)
+        ExitDocumentation(listener)
+        listener:ExitCheckStatement(me)
+    end
 end

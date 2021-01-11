@@ -5,8 +5,10 @@ use Libraries.Containers.Array
 class NoClassDeclarationContext is ParseContext
     public ParseContext statements = undefined
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterNoClassDeclaration(me)
         statements:Traverse(listener) //can't be undefined. We want this to crash if it ever is
+        ExitDocumentation(listener)
         listener:ExitNoClassDeclaration(me)
     end
 end

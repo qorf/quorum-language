@@ -14,9 +14,11 @@ class ParentAssignmentContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterParentAssignment(me)
         parentContext:Traverse(listener)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitParentAssignment(me)
     end
 end

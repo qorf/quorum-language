@@ -7,8 +7,10 @@ class ReturnContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterReturnStatement(me)
         if expression not= undefined expression:Traverse(listener) end
+        ExitDocumentation(listener)
         listener:ExitReturnStatement(me)
     end
 end

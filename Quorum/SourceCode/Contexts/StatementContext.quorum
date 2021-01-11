@@ -5,8 +5,10 @@ class StatementContext is ParseContext
     public ParseContext statement = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterStatement(me)
         statement:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitStatement(me)
     end
 end

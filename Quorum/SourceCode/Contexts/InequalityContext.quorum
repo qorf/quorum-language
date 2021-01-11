@@ -11,9 +11,11 @@ class InequalityContext is ParseContext
     public ParseContext right = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterInequality(me)
         left:Traverse(listener)
         if right not= undefined right:Traverse(listener) end
+        ExitDocumentation(listener)
         listener:ExitInequality(me)
     end
 end

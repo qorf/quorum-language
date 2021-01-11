@@ -13,6 +13,7 @@ class DetectStatementContext is ParseContext
     public BlockContext block = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterDetectStatement(me)   
         if qualifiedNameContexts not= undefined
             i = 0
@@ -23,6 +24,7 @@ class DetectStatementContext is ParseContext
         end
 
         block:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitDetectStatement(me)
     end
 end

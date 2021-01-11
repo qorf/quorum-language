@@ -8,8 +8,10 @@ use Libraries.Containers.Array
 class ClassStatementsContext is ParseContext
     public ParseContext statement = undefined
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterClassStatements(me)
         statement:Traverse(listener) //this has to be defined
+        ExitDocumentation(listener)
         listener:ExitClassStatements(me)
     end
 end

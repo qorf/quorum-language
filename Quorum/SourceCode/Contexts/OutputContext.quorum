@@ -5,8 +5,10 @@ class OutputContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterOutputStatement(me)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitOutputStatement(me)
     end
 end

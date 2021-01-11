@@ -6,6 +6,7 @@ class NoActionsNoClassContext is ParseContext
     public Array<ParseContext> statements = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterNoActionsNoClass(me)
         if statements not= undefined
             i = 0
@@ -15,6 +16,7 @@ class NoActionsNoClassContext is ParseContext
                 i = i + 1
             end
         end
+        ExitDocumentation(listener)
         listener:ExitNoActionsNoClass(me)
     end
 end

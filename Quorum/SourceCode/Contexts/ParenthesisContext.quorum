@@ -6,8 +6,10 @@ class ParenthesisContext is ParseContext
     public ParseContext expression = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterParenthesisExpression(me)
         expression:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitParenthesisExpression(me)
     end
 end

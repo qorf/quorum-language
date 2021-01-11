@@ -5,7 +5,9 @@ class NumberContext is ParseContext
     public number value = 0
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterNumber(me)
+        ExitDocumentation(listener)
         listener:ExitNumber(me)
     end
 end

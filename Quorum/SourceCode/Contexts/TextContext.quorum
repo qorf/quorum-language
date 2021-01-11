@@ -5,7 +5,9 @@ class TextContext is ParseContext
     public text value = ""
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterText(me)
+        ExitDocumentation(listener)
         listener:ExitText(me)
     end
 end

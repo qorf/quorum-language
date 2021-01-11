@@ -9,9 +9,11 @@ class EqualsContext is ParseContext
     public ParseContext right = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         listener:EnterEquals(me)
         left:Traverse(listener)
         right:Traverse(listener)
+        ExitDocumentation(listener)
         listener:ExitEquals(me)
     end
 end

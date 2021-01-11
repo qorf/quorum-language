@@ -8,6 +8,7 @@ class AndOrContext is ParseContext
     public ParseContext right = undefined
 
     action Traverse(QuorumSourceListener listener)
+        EnterDocumentation(listener)
         if isAnd
             listener:EnterAnd(me)
         else
@@ -17,6 +18,7 @@ class AndOrContext is ParseContext
         left:Traverse(listener)
         if right not= undefined right:Traverse(listener) end
 
+        ExitDocumentation(listener)
         if isAnd
             listener:ExitAnd(me)
         else
