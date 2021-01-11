@@ -14,9 +14,18 @@ class FullClassDeclarationContext is ParseContext
     GenericDeclarationContext generic = undefined
     InheritStatementsContext inherit = undefined
     Array<ClassStatementsContext> statements = undefined
+    /*
+        In the Antlr parser, there is a bug related to documentation where it only fires
+        under certain conditions. This can be used to mimic the bug, but should be removed
+        once the hand parser replaces the antlr one.
+    */
+    public boolean fireDocumentation = true
 
     action Traverse(QuorumSourceListener listener)
-        EnterDocumentation(listener)
+        //I think we want these. This might be a flaw in the antlr parser
+        if fireDocumentation
+            EnterDocumentation(listener)
+        end
         listener:EnterFullClassDeclaration(me)
         if generic not= undefined generic:Traverse(listener) end
         if inherit not= undefined inherit:Traverse(listener) end
@@ -28,7 +37,9 @@ class FullClassDeclarationContext is ParseContext
                 i = i + 1
             end
         end
-        ExitDocumentation(listener)
+        if fireDocumentation
+            ExitDocumentation(listener)
+        end
         listener:ExitFullClassDeclaration(me)
     end
 end

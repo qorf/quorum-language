@@ -18,13 +18,19 @@ class IfContext is ParseContext
         if elseIfExpressions not= undefined and elseIfBlocks not= undefined
             i = 0
             repeat while i < elseIfBlocks:GetSize()
+                listener:EnterElseIfStatement(me)
                 elseIfExpressions:Get(i):Traverse(listener)
                 elseIfBlocks:Get(i):Traverse(listener)
+                listener:ExitElseIfStatement(me)
                 i = i + 1
             end
         end
 
-        if elseBlock not= undefined elseBlock:Traverse(listener) end
+        if elseBlock not= undefined 
+            listener:EnterElseStatement(me)
+            elseBlock:Traverse(listener) 
+            listener:ExitElseStatement(me)
+        end
         //ExitDocumentation(listener)
         listener:ExitIfStatement(me)
     end
