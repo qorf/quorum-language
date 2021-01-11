@@ -10,7 +10,7 @@ class IfContext is ParseContext
     public BlockContext elseBlock = undefined
 
     action Traverse(QuorumSourceListener listener)
-        EnterDocumentation(listener)
+        //EnterDocumentation(listener)
         listener:EnterIfStatement(me)
         ifExpression:Traverse(listener)
         ifBlock:Traverse(listener)
@@ -25,7 +25,7 @@ class IfContext is ParseContext
         end
 
         if elseBlock not= undefined elseBlock:Traverse(listener) end
-        ExitDocumentation(listener)
+        //ExitDocumentation(listener)
         listener:ExitIfStatement(me)
     end
 end

@@ -41,11 +41,23 @@ class ActionContext is ParseContext
         return parameters:GetIterator()
     end
 
+    private action TraverseParameters(QuorumSourceListener listener)
+        if parameterContexts not= undefined
+            i = 0
+            repeat while i < parameterContexts:GetSize()
+                FormalParameterContext context = parameterContexts:Get(i)
+                context:Traverse(listener)
+                i = i + 1
+            end
+        end
+    end
+
     action Traverse(QuorumSourceListener listener)
         if isBlueprint
             EnterDocumentation(listener)
             listener:EnterBlueprintAction(me)
             listener:EnterActionHeader(me)
+            TraverseParameters(listener)
             listener:ExitActionHeader(me)
             ExitDocumentation(listener)
             listener:ExitBlueprintAction(me)
@@ -53,6 +65,7 @@ class ActionContext is ParseContext
             EnterDocumentation(listener)
             listener:EnterSystemAction(me)
             listener:EnterActionHeader(me)
+            TraverseParameters(listener)
             listener:ExitActionHeader(me)
             ExitDocumentation(listener)
             listener:ExitSystemAction(me)
@@ -60,6 +73,7 @@ class ActionContext is ParseContext
             EnterDocumentation(listener)
             listener:EnterAction(me)
             listener:EnterActionHeader(me)
+            TraverseParameters(listener)
             listener:ExitActionHeader(me)
             block:Traverse(listener)
             ExitDocumentation(listener)
