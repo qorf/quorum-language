@@ -22,6 +22,7 @@ class ActionContext is ParseContext
 
     public Array<FormalParameterContext> parameterContexts = undefined
     public AssignmentDeclaractionContext returnsStatement = undefined
+    public AccessModifierContext access = undefined
     public BlockContext block = undefined
 
     action GetStaticKey returns text
@@ -42,6 +43,7 @@ class ActionContext is ParseContext
     end
 
     private action TraverseHeader(QuorumSourceListener listener)
+        
         if parameterContexts not= undefined
             i = 0
             repeat while i < parameterContexts:GetSize()
@@ -57,6 +59,9 @@ class ActionContext is ParseContext
         if isBlueprint
             EnterDocumentation(listener)
             listener:EnterBlueprintAction(me)
+            if access not= undefined
+                access:Traverse(listener)
+            end
             listener:EnterActionHeader(me)
             TraverseHeader(listener)
             listener:ExitActionHeader(me)
@@ -65,6 +70,9 @@ class ActionContext is ParseContext
         elseif isSystem
             EnterDocumentation(listener)
             listener:EnterSystemAction(me)
+            if access not= undefined
+                access:Traverse(listener)
+            end
             listener:EnterActionHeader(me)
             TraverseHeader(listener)
             listener:ExitActionHeader(me)
@@ -73,6 +81,9 @@ class ActionContext is ParseContext
         else
             EnterDocumentation(listener)
             listener:EnterAction(me)
+            if access not= undefined
+                access:Traverse(listener)
+            end
             listener:EnterActionHeader(me)
             TraverseHeader(listener)
             listener:ExitActionHeader(me)

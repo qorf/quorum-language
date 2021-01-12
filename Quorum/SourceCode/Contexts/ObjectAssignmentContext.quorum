@@ -21,7 +21,11 @@ class ObjectAssignmentContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)
         listener:EnterObjectAssignment(me)
-        parentContext:Traverse(listener)
+
+        //this is only defined if it is a parent call.
+        if parentContext not= undefined parentContext:Traverse(listener) end
+
+        //The expression has to have a right hand side, which is this
         expression:Traverse(listener)
         ExitDocumentation(listener)
         listener:ExitObjectAssignment(me)

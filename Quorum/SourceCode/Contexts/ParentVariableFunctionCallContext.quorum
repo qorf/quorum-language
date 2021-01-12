@@ -13,7 +13,7 @@ class ParentVariableFunctionCallContext is ParseContext
 
     public boolean isSolo = false
     public QualifiedNameContext parentNameContext = undefined
-    Array<ActionCallContext> calls = undefined
+    public Array<ActionCallContext> calls = undefined
 
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)

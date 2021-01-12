@@ -3,7 +3,7 @@ use Libraries.Containers.Array
 use Libraries.Language.Compile.QuorumSourceListener
 
 class InheritStatementsContext is ParseContext
-    Array<InheritStatementContext> statements = undefined
+    public Array<InheritStatementContext> statements = undefined
     
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)
