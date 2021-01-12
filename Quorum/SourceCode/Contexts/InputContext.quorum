@@ -7,11 +7,16 @@ class InputContext is ParseContext
 
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)
-        listener:EnterInput(me)
+        
         if expression not= undefined
+            listener:EnterInput(me)
             expression:Traverse(listener)
+            listener:ExitInput(me)
+        else
+            listener:EnterInputNoParameters(me)
+            listener:ExitInputNoParameters(me)
         end
+        
         ExitDocumentation(listener)
-        listener:ExitInput(me)
     end
 end

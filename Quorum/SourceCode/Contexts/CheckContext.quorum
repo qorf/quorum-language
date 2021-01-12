@@ -10,7 +10,7 @@ class CheckContext is ParseContext
     public AlwaysStatementContext alwaysContext = undefined
 
     action Traverse(QuorumSourceListener listener)
-        EnterDocumentation(listener)
+        //EnterDocumentation(listener)
         listener:EnterCheckStatement(me)
         if blockContext not= undefined blockContext:Traverse(listener) end
         if detectStatements not= undefined
@@ -21,7 +21,7 @@ class CheckContext is ParseContext
             end
         end
         if alwaysContext not= undefined alwaysContext:Traverse(listener) end
-        ExitDocumentation(listener)
+        //ExitDocumentation(listener)
         listener:ExitCheckStatement(me)
     end
 end
