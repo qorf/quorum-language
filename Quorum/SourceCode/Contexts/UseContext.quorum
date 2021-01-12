@@ -8,12 +8,12 @@ class UseContext is ParseContext
     public QualifiedNameContext nameContext = undefined
 
     action Traverse(QuorumSourceListener listener)
-        EnterDocumentation(listener)
+        //EnterDocumentation(listener)
         listener:EnterUse(me)   
         if nameContext not= undefined
             nameContext:Traverse(listener)
         end
-        ExitDocumentation(listener)
+        //ExitDocumentation(listener)
         listener:ExitUse(me)
     end
 end

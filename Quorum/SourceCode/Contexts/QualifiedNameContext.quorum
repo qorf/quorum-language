@@ -7,10 +7,10 @@ class QualifiedNameContext is ParseContext
     public GenericContext generics = undefined
     
     action Traverse(QuorumSourceListener listener)
-        EnterDocumentation(listener)
+        //EnterDocumentation(listener)
         listener:EnterQualifiedName(me)
 
-        ExitDocumentation(listener)
+        //ExitDocumentation(listener)
         listener:ExitQualifiedName(me)
 
         if generics not= undefined
