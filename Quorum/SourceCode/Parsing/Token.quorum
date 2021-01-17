@@ -1,0 +1,67 @@
+package Libraries.Language.Interpreter
+
+/*
+    This class represents a token in a lexical stream. 
+
+    Attribute: Author Andreas Stefik
+*/
+class Token
+    public text value = ""
+    public integer startLine = 0
+    public integer endLine = 0
+    public integer startColumn = 0
+    public integer endColumn = 0
+    public integer startIndex = 0
+    public integer endIndex = 0
+    public integer category = -1
+    public integer channel = 0
+
+    /* Returns the value of the token and the category by default */
+    action ToText returns text
+        text string = ""
+        string = value + ": " + category
+        return string
+    end
+
+    /* Sets the token to a channel indicating that it is reading source code. */
+    action IsNormalChannel returns boolean
+        if channel = 0
+            return true
+        end
+
+        return false
+    end 
+
+    /* Determines whether the token is on a channel indicating that it is reading a comment. */
+    action IsCommentChannel returns boolean
+        if channel = 1
+            return true
+        end
+
+        return false
+    end
+
+    /* Determines whether the token is on a channel indicating that it is reading white space. */
+    action IsWhiteSpaceChannel returns boolean
+        if channel = 2
+            return true
+        end
+
+        return false
+    end
+
+    /* Sets the token to a channel indicating that it is reading source code. */
+    action SetToNormalChannel
+        channel = 0
+    end
+
+    /* Sets the token to a channel indicating that it is reading comments. */
+    action SetToCommentChannel
+        channel = 1
+    end
+
+    /* Sets the token to a channel indicating that it is reading white space. */
+    action SetToWhiteSpaceChannel
+        channel = 2
+    end
+end

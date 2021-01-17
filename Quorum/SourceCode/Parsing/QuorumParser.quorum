@@ -1,0 +1,3129 @@
+package Libraries.Language.Interpreter
+
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Context.IntegerContext
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Language.Compile.Context.AdditionContext
+use Libraries.Language.Compile.Context.NumberContext
+use Libraries.Language.Compile.Context.AndOrContext
+use Libraries.Language.Compile.Context.EqualsContext
+use Libraries.Language.Compile.Context.InequalityContext
+use Libraries.Language.Compile.Context.MultiplicationContext
+use Libraries.Language.Compile.Context.BooleanContext
+use Libraries.Language.Compile.Context.TextContext
+use Libraries.Language.Compile.Context.UndefinedContext
+use Libraries.Language.Compile.Context.ParenthesisContext
+use Libraries.Language.Compile.Context.MeContext
+use Libraries.Language.Compile.Context.NotContext
+use Libraries.Language.Compile.Context.UnaryMinusContext
+use Libraries.Language.Compile.Context.InputContext
+use Libraries.Language.Compile.Context.ActionCallContext
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
+use Libraries.Language.Compile.Context.ParentVariableFunctionCallContext
+use Libraries.Language.Compile.Context.OutputContext
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.Context.PackageContext
+use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.Context.UseContext
+use Libraries.Language.Compile.Context.FullClassDeclarationContext
+use Libraries.Language.Compile.Context.NoClassDeclarationContext
+use Libraries.Language.Compile.Context.GenericDeclarationContext
+use Libraries.Language.Compile.Context.InheritStatementsContext
+use Libraries.Language.Compile.Context.InheritStatementContext
+use Libraries.Language.Compile.Context.GenericContext
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Context.AssignmentDeclaractionContext
+use Libraries.Language.Compile.Context.QualifiedNameContext
+use Libraries.Language.Compile.Context.ClassStatementsContext
+use Libraries.Language.Compile.Context.ActionContext
+use Libraries.Language.Compile.Context.ConstructorContext
+use Libraries.Language.Compile.Context.BlockContext
+use Libraries.Language.Compile.Context.FormalParameterContext
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Containers.List
+use Libraries.Language.Compile.Context.IfContext
+use Libraries.Language.Compile.Context.LoopContext
+use Libraries.Language.Compile.Context.ReturnContext
+use Libraries.Language.Compile.Context.SayContext
+use Libraries.Language.Compile.Context.AlertContext
+use Libraries.Language.Compile.Context.CheckContext
+use Libraries.Language.Compile.Context.DetectStatementContext
+use Libraries.Language.Compile.Context.AlwaysStatementContext
+use Libraries.Language.Compile.Context.ActionExpressionListContext
+use Libraries.Language.Compile.Context.NoTypeAssignmentContext
+use Libraries.Language.Compile.Context.ParentAssignmentContext
+use Libraries.Language.Compile.Context.ObjectAssignmentContext
+use Libraries.Language.Compile.Context.NormalAssignmentContext
+use Libraries.Language.Compile.Context.AccessModifierContext
+use Libraries.Language.Compile.Context.IsContext
+use Libraries.Language.Compile.Context.ClassTypeContext
+use Libraries.Language.Compile.Context.StatementContext
+use Libraries.Language.Compile.Context.NoActionsNoClassContext
+use Libraries.Language.Compile.Context.ActionsNoClassContext
+use Libraries.Language.Compile.Context.CastContext
+use Libraries.Language.Compile.Context.DocumentationContext
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Hints.Hint
+
+/*
+    This class defines the parser for the Quorum programming language. Individual actions
+    make their own assumptions about where in the token stream they are. For example, 
+    while the Start action assumes a full Quorum program, Expression assumes we are parsing 
+    only an expression. This provides us considerable flexibility in how we manage and parse
+    programs in Quorum.
+*/
+class QuorumParser
+    QuorumLexer lexer = undefined
+    QuorumLexerConstants constants
+    TokenIterator<Token> tokenIterator = undefined
+    CompilerErrorManager compilerErrorManager = undefined
+    CompilerErrorType typeConstants
+
+    //These constants are for detecting 
+    constant integer NONE = 0
+    constant integer VARIABLE_SOLO_ACTION_CALL = 1
+    constant integer PARENT_VARIABLE_SOLO_ACTION_CALL = 2
+    constant integer NO_TYPE_ASSIGNMENT = 3
+    constant integer PARENT_ASSIGNMENT = 4
+    constant integer OBJECT_ASSIGNMENT = 5
+    constant integer NORMAL_ASSIGNMENT = 6
+
+    text identifierMessage = "An identifier is a name that starts with a letter" +
+                    " and then containing any number of letters, digits, or underscores. Quorum does" +
+                    " not allow an underscore for the last character in an identifier."
+
+    text textEndedError = "The text ended when trying to process"
+    text qualifiedNameExample = "A qualified name is an "
+            + "identifier, followed by period identifier pairs. " + identifierMessage
+            + "Overall, we can think of a qualified name as a web address. "
+            + "By convention, we normally use only letters in qualified names as CamelCase values. An example might be "
+            + "'Libraries.Containers.Array' All legal qualified names in the standard library "
+            + "are available at the Quorum libraries page, https://quorumlanguage.com/libraries.html"
+
+    text moreInformationIdentifier = identifierMessage
+
+    text moreInformationClasses = "More information "
+            + "about how to define classes at " +
+            "https://quorumlanguage.com/tutorials/language/classes.html"
+
+    text moreInformationActions = "More information "
+            + "about how to define actions at " +
+            "https://quorumlanguage.com/tutorials/language/actions.html"
+
+    text moreInformationGenerics = "Generics are defined as a type, surrounded by less than and greater than signs "
+            + "An example might be Array<integer> myArray." 
+            + "More information can be found about generics at https://quorumlanguage.com/tutorials/language/generics.html"
+
+    text moreInformationStatement = "Statements represent the core of what we want our program to do. They might include output,"
+        + "repetition using repeat, or asking the computer to make a decision using if, amongst others. For more information on " 
+        + "statements, see the Introduction to Quorum section of the reference page at https://quorumlanguage.com/reference.html"
+
+    text moreInformationMe = "This looks like a statement, containing the phrase me, "
+                + "but if me, a reference to the current class being processed in memory, is used, then "
+                + "it must be followed by a colon. An example might be me:someVariable = true " 
+                + "me:SomeActionCall(). More information can be found about me at the class documentation " 
+                + "page, https://quorumlanguage.com/tutorials/language/classes.html"
+
+    text moreInformationParent = "This looks like a statement, containing a reference to a parent, "
+                + "but if parent is used, we are asking the computer to reference a parent class, so "
+                + "we have to tell it which one. This means we need a colon, then the name of the parent, and "
+                + "then another colon, followed by what we want to do on that parent. Valid things might be "
+                + "referencing a variable or calling an action. "
+                + "An example might be parent:SomeClass:someVariable = true " 
+                + ". More information can be found about inheritance and parents on the inheritance documentation " 
+                + "page, https://quorumlanguage.com/tutorials/language/inheritance.html"
+
+    text moreInformationParentCall = "This looks like an action call on a parent class. This means we need to declare the parent call, "
+        + "followed by a colon and then the action call itself, which must be a valid name and parameters for the action."
+        + "More information "
+            + "about how to define actions at " +
+            "https://quorumlanguage.com/tutorials/language/actions.html"
+
+    text moreInformationAssignment = "Assigning values to variables can take several forms. We can use me: to indicate the "
+            + "variable is a field. We can assign to a parent, and we can also use an = (equals sign) to assign to an existing or new "
+            + "variable. We can learn more about assignments at the types and variables tutorial, " 
+            + "https://quorumlanguage.com/tutorials/language/types.html"
+
+    text moreInformationActionCall = "A call to an action is typically an idenfifier followed by ( (left paren), expressions "
+            + "as arguments to the action, then ) (right paren). More information about actions can be found at "
+            + " https://quorumlanguage.com/tutorials/language/actions.html"
+
+    text moreInformationReturn = "A return statement tells an action to end and to immediately go back to whatever action called it. If "
+            + "the action has no return type, return now ends the action. If it has a return type, it must return an appropriate value. For "
+            + "example, if we had action MyAction returns integer, then return 5 would be valid. More information about actions can be found at "
+            + "https://quorumlanguage.com/tutorials/language/actions.html."
+
+    text moreInformationRepeat = "Repeat is a way to tell the computer to do something over and over again. "
+        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/repeat.html" 
+
+    text moreInformationIf = "If statements allow a computer to make decisions. If an expression evaluates to true, that block is executed."
+        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/if.html" 
+    text moreInformationCheck = "Check and detect blocks are used to detect errors in programming that happen while an application is running."
+        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/errors.html" 
+    text moreInformationSay = "The say command talks out of a computer's speaker. An example like say 5 would say the number 5 out loud."
+    text moreInformationInput = "The input command gets text from the user via the console. An example like input() would return text."
+    text moreInformationOutput = "The output command puts information into the console. An example like output 5 would put the number on the screen."
+    text moreInformationAlert= "The alert command forces the program to throw an error. This error may be caught with a check detect block or " +
+        "may intentionally crash a program. More information can be found at https://quorumlanguage.com/tutorials/language/errors.html"
+
+    text moreInformationCast = "A cast statement allows us to attempt to convert one type to another, which may alter it in the process." +
+        "More information can be found at https://quorumlanguage.com/tutorials/language/casting.html"
+
+    CompilerError statementError = undefined
+
+    action GetLexer returns QuorumLexer
+        return lexer
+    end
+
+    action SetLexer(QuorumLexer lexer)
+        me:lexer = lexer
+        tokenIterator = lexer:GetIterator()
+    end
+
+    private action CreateCompilerError(integer type) returns CompilerError
+        CompilerError error
+        CompilerErrorType errorType
+        errorType:SetCurrentType(type)
+        error:SetCompilerErrorType(errorType)
+        return error
+    end
+
+    private action CreateCompilerError(text message) returns CompilerError
+        CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+        SetCompilerErrorLocation(error)
+        error:SetErrorMessage(message)
+        return error
+    end
+
+    /*
+        This action sends a default error, using the previous token as the location. All of these
+        have the type of PARSER_NO_VIABLE_ALTERNATIVE
+    */
+    private action SendDefaultError(text message)
+        CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+        SetCompilerErrorLocation(error)
+        error:SetErrorMessage(message)
+        SendToCompilerErrorManager(error)
+    end
+
+    /*
+        This action sends a default error, using the previous token as the location. All of these
+        have the type specified by the user.
+    */
+    private action SendDefaultError(integer type, text message)
+        CompilerError error = CreateCompilerError(type)
+        SetCompilerErrorLocation(error)
+        error:SetErrorMessage(message)
+        SendToCompilerErrorManager(error)
+    end
+
+    private action SendToCompilerErrorManager(CompilerError error)
+        if compilerErrorManager not= undefined
+            compilerErrorManager:Add(error)
+        end
+    end
+
+    private action SendToCompilerErrorManager(Hint hint)
+        if compilerErrorManager not= undefined
+            compilerErrorManager:Add(hint)
+        end
+    end
+
+    private action SetCompilerErrorLocation(CompilerError error, Token start, Token done)
+        if start = undefined and done = undefined
+            error:SetLineNumber(0)
+            error:SetLineNumberEnd(0)
+            error:SetColumnNumber(0)
+            error:SetColumnNumberEnd(0)
+            error:SetIndex(0)
+            error:SetIndexEnd(0)
+            error:SetFile(lexer:GetCurrentFile())
+        elseif start not= undefined and done = undefined
+            error:SetLineNumber(start:startLine)
+            error:SetLineNumberEnd(start:endLine)
+            error:SetColumnNumber(start:startColumn)
+            error:SetColumnNumberEnd(start:endColumn)
+            error:SetIndex(start:startIndex)
+            error:SetIndexEnd(start:endIndex)
+            error:SetFile(lexer:GetCurrentFile())
+        else
+            error:SetLineNumber(start:startLine)
+            error:SetLineNumberEnd(done:endLine)
+            error:SetColumnNumber(start:startColumn)
+            error:SetColumnNumberEnd(done:endColumn)
+            error:SetIndex(start:startIndex)
+            error:SetIndexEnd(done:endIndex)
+            error:SetFile(lexer:GetCurrentFile())
+        end
+    end
+
+    private action SetCompilerErrorLocation(CompilerError error)
+        if tokenIterator:IsValid() 
+            Token token = tokenIterator:GetCurrent()
+            error:SetLineNumber(token:startLine)
+            error:SetLineNumberEnd(token:endLine)
+            error:SetColumnNumber(token:startColumn)
+            error:SetColumnNumberEnd(token:endColumn)
+            error:SetIndex(token:startIndex)
+            error:SetIndexEnd(token:endIndex)
+            error:SetFile(lexer:GetCurrentFile())
+        else
+            Token token = tokenIterator:Look(-1)
+            if token = undefined
+                error:SetLineNumber(0)
+                error:SetLineNumberEnd(0)
+                error:SetColumnNumber(0)
+                error:SetColumnNumberEnd(0)
+                error:SetIndex(0)
+                error:SetIndexEnd(0)
+                error:SetFile(lexer:GetCurrentFile())
+            else
+                error:SetLineNumber(token:startLine)
+                error:SetLineNumberEnd(token:endLine)
+                error:SetColumnNumber(token:startColumn)
+                error:SetColumnNumberEnd(token:endColumn)
+                error:SetIndex(token:startIndex)
+                error:SetIndexEnd(token:endIndex)
+                error:SetFile(lexer:GetCurrentFile())
+            end
+        end
+    end
+
+    /*
+        This action returns that the stream is valid if there are no errors in the error manager
+        and if the current token is a valid token. An error manager must be defined, otherwise
+        the parser cannot track its issues and therefore always throws an error.
+    */
+    action IsValid returns boolean
+        if tokenIterator:IsValid()
+            //having one isn't required, but if there is one, see if we've found an error so far
+            if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
+                return true //if it's not, return false
+            end
+            return true
+        end
+
+        return false
+    end
+
+    action HasNext returns boolean
+        if tokenIterator:HasNext()
+            //having one isn't required, but if there is one, see if we've found an error so far
+            if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
+                return true //if it's not, return false
+            end
+            return true
+        end
+
+        return false
+    end
+    /*
+        This action obtains a parse from a token stream assuming a complete Quorum program. A valid lexer
+        must have been sent to the parser before calling this action. 
+    */
+    action Start returns StartContext
+        StartContext context
+        //There's no tokens at all. 
+        if not IsValid() 
+            SendDefaultError("The text being compiled is empty. "
+            + "An empty program would do nothing and is an error.")
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:PACKAGE_NAME
+            PackageContext pack = Package()
+            context:packageContext = pack
+
+            if pack = undefined or not IsValid() return undefined end
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:USE //this is not an error if not. It's optional
+                Array<UseContext> uses = Uses()
+                context:uses = uses
+
+                //this however is an error. A use statement was declared, but something
+                //went wrong
+                if uses = undefined 
+                    return undefined
+                end
+            end
+            
+        elseif next:category = constants:USE
+            Array<UseContext> uses = Uses()
+            context:uses = uses
+
+            if not tokenIterator:IsValid() return context end
+            next = tokenIterator:GetCurrent()
+
+            //If this is declared, but returns undefined
+            //this is an error. Otherwise, we can ignore it
+            if next:category = constants:PACKAGE_NAME
+                PackageContext pack = Package()
+                context:packageContext = pack
+                if pack = undefined //package declared, but then had an error
+                    return undefined
+                end
+            end
+        end
+
+        //Now process the class itself
+        //if this is undefined, just return, as sub-rules will issue their errors as they see fit.
+        context:classDeclaration = Class()
+        if context:classDeclaration = undefined
+            return undefined
+        else
+            return context
+        end
+    end
+
+    action Class returns ParseContext
+        ParseContext context = undefined
+
+        //first check if we've declared a static class or just a class
+        //if it's either of these, then it's a full class, otherwise it's just statements
+        //the individual rules will file their errors.
+        if not IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:STATIC or next:category = constants:CLASS
+            context = FullClass()
+        else
+            context = NoClass()
+        end
+
+        return context
+    end
+
+    action CheckForDocumentation returns DocumentationContext
+        Token token = tokenIterator:FindRecentDocumentation()
+        if token = undefined
+            return undefined
+        else
+            DocumentationContext context
+            context:document = token:value
+            return context
+        end
+    end
+
+    private action DetectCrazyAntlrParserBug returns boolean
+        return tokenIterator:IsRecentDocumentationFirstTokenOnly()
+    end
+
+    action FullClass returns FullClassDeclarationContext
+        FullClassDeclarationContext context
+        //this is an intentional bug to make it match Antlr output exactly. 
+        //It should be removed once the hand parser is integrated.
+        if DetectCrazyAntlrParserBug() context:fireDocumentation = false end
+        context:SetDocumentation(CheckForDocumentation())
+
+        //A class was requested, but there is no input.
+        if not IsValid() 
+            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        //this often won't exist, so it is not an error if it is not there
+        if next:category = constants:STATIC
+            context:staticClass = true
+            tokenIterator:Next()
+        end
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:CLASS
+            tokenIterator:Next()
+
+            if not IsValid() 
+                SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+
+            if next:category = constants:ID
+                context:className = next:value
+            else //this is an error. We expected an ID.
+                SendDefaultError("An identifier was expected, but the token received was "
+                + next:value + ". " + identifierMessage + " " + moreInformationClasses)
+                return undefined
+            end
+
+            tokenIterator:Next()
+            context:generic = GenericDeclaration()
+            context:inherit = IneritanceDeclaration()
+
+            //this is not an error if it doesn't exist. You can declare a class with nothing
+            //in it. It's useless, but a valid class because it can be useful as a temporary stub.
+            Array<ClassStatementsContext> statements = undefined
+            if IsClassStatement()
+                Array<ClassStatementsContext> statements2
+                statements = statements2
+            end
+
+            repeat while IsClassStatement()
+                ClassStatementsContext statement = ClassStatement()
+                statements:Add(statement)
+            end
+            context:statements = statements
+
+            if not IsValid() 
+                SendDefaultError(textEndedError + " the end of a class declaration. " + moreInformationClasses)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+
+            //set the end tokens
+            if next:category = constants:END
+                tokenIterator:Next()
+            else //ironically, this would be an error, but if a user missed this, is it really a big deal?
+                SendDefaultError("Class declarations must be completed with the word 'end,' " 
+                + "but the token received was " 
+                + next:value + ". " + moreInformationClasses)
+                return undefined 
+            end
+            //process any generics, inheritance, and statements, if there are any
+        else //this is an error
+
+        end
+        return context
+    end
+
+    action GenericDeclaration returns GenericDeclarationContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to create a generic. " 
+            + moreInformationGenerics)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+
+        if next:category = constants:LESS
+            GenericDeclarationContext context
+            context:SetDocumentation(CheckForDocumentation())
+            Array<text> tokens = context:tokens
+    
+            next = tokenIterator:Next()
+            if next:category = constants:ID //has to have at least one ID
+                tokens:Add(next:value)
+                next = tokenIterator:Next()
+            end
+
+            boolean done = false
+            repeat while tokenIterator:HasNext() and not done
+                next = tokenIterator:GetCurrent()
+                if next:category = constants:COMMA
+                    if tokenIterator:HasNext()
+                        next = tokenIterator:Next()
+                        if next:category = constants:ID //has to have at least one ID
+                            tokens:Add(next:value)
+                            next = tokenIterator:Next()
+                        else //this is a syntax error
+                            SendDefaultError("Expected an identifier. " + moreInformationGenerics)
+                            return undefined
+                        end
+                    end
+                elseif next:category = constants:GREATER
+                    done = true
+                    tokenIterator:Next()
+                else //This is a syntax error
+                    SendDefaultError("Expected > (greater than). " + moreInformationGenerics)
+                    done = true
+                    return undefined
+                end
+            end
+            return context
+        end
+
+        return undefined
+    end
+
+    action IneritanceDeclaration returns InheritStatementsContext
+        text moreInformationInheritance = "Inheritance is a way for us to extend the capabilities of a class. "
+            + "An example might be to say class MyClass is AnotherClass" 
+            + "More information can be found about generics at https://quorumlanguage.com/tutorials/language/inheritance.html"
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to create a sub-class using inheritance. " 
+            + moreInformationInheritance)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        //if there is an inheritance here, return it
+        //if there isn't, it is not an error. Using inheritance is not required.
+        if next:category = constants:INHERITS
+            InheritStatementsContext context
+            context:SetDocumentation(CheckForDocumentation())
+            Array<InheritStatementContext> statements
+
+            tokenIterator:Next()
+            InheritStatementContext inherit = InheritanceStatement()
+            statements:Add(inherit)
+
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while expecting either a comma or the end of a class. " 
+                + moreInformationInheritance)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+            //if it's a comma, proceed, otherwise we're done
+            repeat while next:category = constants:COMMA
+                next = tokenIterator:Next()
+                inherit = InheritanceStatement()
+                if inherit not= undefined
+                    statements:Add(inherit)
+                else
+                    return undefined //we have an error, which was created by the other action
+                end
+
+                if not IsValid() 
+                    SendDefaultError(textEndedError + " while expecting either a comma or the end of a class. " 
+                    + moreInformationInheritance)
+                    return undefined 
+                end
+                next = tokenIterator:GetCurrent()
+            end
+
+            context:statements = statements
+            return context
+        end
+        return undefined
+    end
+
+    action InheritanceStatement returns InheritStatementContext
+        //Token next = tokenIterator:GetCurrent()
+        InheritStatementContext context
+        context:SetDocumentation(CheckForDocumentation())
+        QualifiedNameContext name = QualifiedName() //cannot be undefined
+        if name = undefined //this is an error
+            SendDefaultError("Expected a qualified name." + qualifiedNameExample)
+            return undefined
+        end
+        GenericContext generic = GenericStatement() //undefined if it doesn't exist, without advancing token
+        
+        context:name = name:name
+        context:nameContext = name
+        context:generic = generic //this might be undefined and that is ok
+        return context
+    end
+
+    action GenericStatement returns GenericContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to create a generic statement. " 
+            + moreInformationGenerics)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:LESS
+            GenericContext context
+            context:SetDocumentation(CheckForDocumentation())
+            next = tokenIterator:Next()
+            
+            Array<Type> types
+            Array<AssignmentDeclaractionContext> contexts
+            //we need at least one type
+            AssignmentDeclaractionContext decl = AssignmentDeclaration()
+            contexts:Add(decl)
+            types:Add(decl:type)
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while trying to create a generic statement, after processing < (less than). " 
+                + moreInformationGenerics)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+            //if it's a comma, proceed, otherwise we're done
+            repeat while next:category = constants:COMMA
+                next = tokenIterator:Next()
+                decl = AssignmentDeclaration()
+                if decl not= undefined
+                    contexts:Add(decl)
+                    types:Add(decl:type)
+                    next = tokenIterator:GetCurrent()
+                else
+                    SendDefaultError("Expected an assignment declaration. " + moreInformationGenerics)
+                    return undefined
+                end
+            end
+
+            context:generics = types
+            context:genericContexts = contexts
+            if not tokenIterator:IsValid() return undefined end
+            next = tokenIterator:GetCurrent()
+            if next:category not= constants:GREATER
+                SendDefaultError(" Expecting > (greater than). " 
+                + moreInformationGenerics)
+                return undefined 
+            end
+            tokenIterator:Next() //skip the token
+            return context
+        else  //generics are optional
+            
+            return undefined 
+        end
+
+        return undefined
+    end
+
+    action AssignmentDeclaration returns AssignmentDeclaractionContext
+        if not IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        AssignmentDeclaractionContext context
+        context:SetDocumentation(CheckForDocumentation())
+        Type type
+        context:type = type
+        if next:category = constants:INTEGER_KEYWORD
+            type:SetToInteger()
+            tokenIterator:Next()
+        elseif next:category = constants:NUMBER_KEYWORD
+            type:SetToNumber()
+            tokenIterator:Next()
+        elseif next:category = constants:TEXT
+            type:SetToText()
+            tokenIterator:Next()
+        elseif next:category = constants:BOOLEAN_KEYWORD
+            type:SetToBoolean()
+            tokenIterator:Next()
+        else //it isn't one of these, so it has to be a qualified name
+            QualifiedNameContext nameContext = QualifiedName() //cannot be undefined
+            if nameContext = undefined //this is an error
+                SendDefaultError("Expected a qualified name." + qualifiedNameExample)
+                return undefined
+            end
+            QualifiedName name = nameContext:name
+
+            //not an error if it is not defined. Statements do not have to have generics.
+            GenericContext generic = GenericStatement() //null if it doesn't exist, without advancing token
+            type:SetToObject(name)
+
+            if generic not= undefined
+                Array<Type> generics = generic:generics
+                i = 0
+                repeat while i < generics:GetSize()
+                    type:AddGeneric(generics:Get(i))
+                    i = i + 1
+                end
+            end
+            context:nameContext = nameContext
+            nameContext:generics = generic
+        end
+        context:type = type
+        return context
+    end
+
+    action ClassStatement returns ClassStatementsContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to process statements in a class. " 
+            + moreInformationClasses)
+            return undefined 
+        end
+
+        Token next = tokenIterator:GetCurrent()        
+        if IsActionDeclaration()
+            ClassStatementsContext context
+            context:SetDocumentation(CheckForDocumentation())
+            context:statement = ActionDeclaration()
+            return context
+        elseif IsAssignmentStatement()
+            ClassStatementsContext context
+            context:SetDocumentation(CheckForDocumentation())
+            context:statement = AssignmentStatement()
+            return context
+        else //this is an error
+            SendDefaultError(" Expecting either an action or a statement. This might include a Main action, statements like output or repeat, "
+            + "or others. " + moreInformationClasses)
+            return undefined 
+        end
+
+        return undefined
+    end
+
+    action ActionDeclaration returns ParseContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to create an action. " 
+            + moreInformationActions)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        Token accessToken = undefined
+        Token categoryToken = undefined
+        AccessModifierContext accessModifierContext = undefined
+
+        if next:category = constants:ON
+            ConstructorContext context
+            context:SetDocumentation(CheckForDocumentation())
+
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while trying to create an action. " 
+                + moreInformationActions)
+                return undefined 
+            end
+            next = tokenIterator:Next()
+            if next:category = constants:CREATE
+                next = tokenIterator:Next() //skip it
+            else //this is an error
+                SendDefaultError("Expected create. To create a constructor, we need to say on create, followed by any number of statements " 
+                + "and then the word end.")
+                return undefined 
+            end
+
+            BlockContext block = Block()
+
+            context:block = block
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while trying to end an action. " 
+                + moreInformationActions)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:END //advance the token
+                tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected end at the end of a constructor. " + CalculateMatchedBracesMessage())
+                return undefined 
+            end
+            return context
+        end
+
+        if IsAccessModifier(next) //if it's an access modifier, record it and advance the token
+            accessToken = next
+            next = tokenIterator:Next()
+
+            AccessModifierContext m
+            accessModifierContext = m
+            if accessToken:category = constants:PUBLIC
+                accessModifierContext:isPublic = true
+            elseif accessToken:category = constants:PRIVATE
+                accessModifierContext:isPrivate = true
+            end
+        end
+
+        if next:category = constants:BLUEPRINT
+            categoryToken = next
+            next = tokenIterator:Next()
+        elseif next:category = constants:NATIVE
+            categoryToken = next
+            next = tokenIterator:Next()
+        end
+
+        ActionContext context = ActionShared()
+        if context = undefined //this was an error, processed by the action
+            return undefined
+        end
+        context:access = accessModifierContext
+        if categoryToken not= undefined and categoryToken:category = constants:BLUEPRINT
+            context:isBlueprint = true
+        elseif categoryToken not= undefined and categoryToken:category = constants:NATIVE
+            context:isSystem = true
+        end
+
+        //process a block and an end if not a system action or a blueprint
+        if context:isBlueprint = false and context:isSystem = false
+            BlockContext block = Block()
+            context:block = block
+            
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while trying to create an action. " 
+                + moreInformationActions)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:END //advance the token
+                tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected end at the end of an action. " + CalculateMatchedBracesMessage())
+                return undefined 
+            end
+        end
+        return context
+    end
+
+    action Block returns BlockContext
+        //blocks can be empty and that's ok.
+        BlockContext context        
+        Array<ParseContext> statements = undefined
+        if IsStatement()
+            Array<ParseContext> statements2
+            statements = statements2
+            context:statements = statements
+        end
+
+        repeat while IsStatement()
+            ParseContext parse = Statement()
+            statements:Add(parse)
+        end
+        
+        return context
+    end
+
+    private action CalculateMatchedBracesMessage returns text
+        return "" //not sure what this should do yet, but there's opportunities for something.
+    end
+
+    action IsStatement returns boolean
+        if not IsValid() return false end
+        Token next = tokenIterator:GetCurrent()
+
+        if  next:category = constants:IF or 
+            next:category = constants:REPEAT or
+            next:category = constants:RETURN or
+            next:category = constants:REPEAT or
+            next:category = constants:OUTPUT or
+            next:category = constants:SAY or
+            next:category = constants:CHECK or
+            next:category = constants:ALERT
+            return true
+        else
+            integer type = GetStatementType()
+            if type = NONE //this is an error. A statement has been requested and it doesn't match anything
+                return false
+            elseif type = VARIABLE_SOLO_ACTION_CALL
+                return true
+            elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
+                return true
+            elseif type = NO_TYPE_ASSIGNMENT
+                return true
+            elseif type = PARENT_ASSIGNMENT
+                return true
+            elseif type = OBJECT_ASSIGNMENT
+                return true
+            elseif type = NORMAL_ASSIGNMENT
+                return true
+            else
+                return false
+            end
+        end
+        return false
+    end
+
+
+    action Statement returns StatementContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while trying to create a statement. " 
+                + moreInformationStatement)
+            return undefined 
+        end
+        StatementContext context
+        
+        ParseContext statement = undefined
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:IF
+            statement = IfStatement()
+        elseif next:category = constants:OUTPUT
+            statement = OutputStatement()
+        elseif next:category = constants:SAY
+            statement = SayStatement()
+        elseif next:category = constants:REPEAT
+            statement = RepeatStatement()
+        elseif next:category = constants:RETURN
+            statement = ReturnStatement()
+        elseif next:category = constants:CHECK
+            statement = CheckStatement()
+        elseif next:category = constants:ALERT
+            statement = AlertStatement()
+        else //if it isn't any of these, let's see if it's a particular assignment or action call
+            text unknownStatement = "A statement was expected, but the token received was "
+                    + next:value + ". What type of statement was written cannot be determined. "
+            integer type = GetStatementType()
+            if type = NONE //this is an error. A statement has been requested and it doesn't match anything
+                SendDefaultError(unknownStatement + moreInformationStatement)
+                return undefined
+            elseif type = VARIABLE_SOLO_ACTION_CALL
+                statement = VariableSoloActionCall()
+            elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
+                statement = ParentVariableSoloActionCall()
+            elseif type = NO_TYPE_ASSIGNMENT
+                statement = NoTypeAssignment()
+            elseif type = PARENT_ASSIGNMENT
+                statement = ParentAssignment()
+            elseif type = OBJECT_ASSIGNMENT
+                statement = ObjectAssignment()
+            elseif type = NORMAL_ASSIGNMENT
+                statement = NormalAssignment()
+            else
+                SendDefaultError(unknownStatement + moreInformationStatement)
+                return undefined
+            end
+        end
+
+        context:statement = statement
+        return context
+    end
+
+    private action SkipMe returns boolean
+        if not IsValid() return false end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:ME
+            next = tokenIterator:Next()
+            if next:category = constants:COLON
+                next = tokenIterator:Next()
+                return true
+            else //this is an error
+                SendDefaultError("Expected colon after me. " + moreInformationMe)
+            end
+        end
+        return false
+    end
+
+    private action SkipParent returns boolean
+        if not tokenIterator:IsValid() return false end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:PARENT
+            next = tokenIterator:Next()
+            if next:category = constants:COLON
+                next = tokenIterator:Next()
+                return true
+            else //this is an error
+                SendDefaultError("Expected colon after parent. " + moreInformationParent)
+            end
+        end
+        return false
+    end
+
+    private action AccessModifier returns AccessModifierContext
+        //this is not an error if it isn't there. It can safely return undefined
+        if not IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:PUBLIC
+            AccessModifierContext context
+            context:SetDocumentation(CheckForDocumentation())
+            context:isPublic = true
+            tokenIterator:Next()
+            return context
+        elseif next:category = constants:PRIVATE
+            AccessModifierContext context
+            context:SetDocumentation(CheckForDocumentation())
+            context:isPublic = false
+            tokenIterator:Next()
+            return context
+        end
+
+        return undefined
+    end
+
+    action NoTypeAssignment returns NoTypeAssignmentContext
+        NoTypeAssignmentContext context
+        context:SetDocumentation(CheckForDocumentation())
+        boolean hasMe = SkipMe()
+        context:hasMe = hasMe
+        context:isField = hasMe
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:ID
+            context:name = next:value
+            next = tokenIterator:Next()
+        else //this is an error
+
+        end
+        
+        if next:category = constants:EQUALITY
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected = (equals sign). " + moreInformationAssignment)
+            return undefined
+        end
+
+        ParseContext expression = Expression()
+        if expression = undefined
+            return undefined //the expression will handle the error, but we need to return undefined for consistency
+        end
+        context:expression = expression
+        return context
+    end
+
+    action ParentAssignment returns ParentAssignmentContext
+        ParentAssignmentContext context
+        context:SetDocumentation(CheckForDocumentation())
+        boolean hasParent = SkipParent() //error if false
+        if not hasParent //this is an error
+            SendDefaultError("Expected parent: (parent then a colon). " + moreInformationParent)
+        end
+
+        QualifiedNameContext nameContext = QualifiedName()
+        context:parentContext = nameContext
+        context:parentName = nameContext:name
+
+        if not tokenIterator:IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:COLON
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("expected : (colon). " + moreInformationParent)
+        end
+
+        if next:category = constants:ID
+            context:name = next:value
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+        end
+        
+        if next:category = constants:EQUALITY
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("expected = (equals sign). " + moreInformationParent)
+        end
+
+        ParseContext expression = Expression()
+        if expression = undefined
+            return undefined
+        end
+        context:expression = expression
+        return context
+    end
+
+    //object=ID (COLON PARENT COLON parent=qualified_name)? COLON name = ID EQUALITY rhs = expression #ObjectAssignment
+    action ObjectAssignment returns ObjectAssignmentContext
+        ObjectAssignmentContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if not IsValid() //this is an error
+            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment)
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:ID
+            context:name = next:value
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+            return undefined
+        end
+        
+        if next:category = constants:COLON //skip it, but it has to be there.
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected : (colon). " + moreInformationAssignment)
+            return undefined
+        end
+
+        QualifiedNameContext parentContext = undefined
+        boolean hasParent = SkipParent() //error if false
+        if hasParent
+            parentContext = QualifiedName()
+            context:parentContext = parentContext
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:COLON //skip it, but it has to be there.
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected : (colon). " + moreInformationParent)
+                return undefined
+            end
+        end
+
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:ID
+            context:name = next:value
+            
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+            return undefined
+        end
+        
+        if next:category = constants:EQUALITY
+            next = tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected = (equals sign). " + moreInformationIdentifier)
+            return undefined
+        end
+
+        ParseContext expression = Expression()
+        if expression = undefined
+            return undefined
+        end
+        context:expression = expression
+        return context
+    end
+
+    //modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY rhs = expression)? #NormalAssignment
+    action NormalAssignment returns NormalAssignmentContext
+        NormalAssignmentContext context
+        context:SetDocumentation(CheckForDocumentation())
+        AccessModifierContext access = AccessModifier()
+        if access not= undefined
+            context:hasModifier = true
+            context:accessModifier = access
+        end
+
+        if not IsValid() //this is an error
+            SendDefaultError(textEndedError + " while creating an assignment. " + moreInformationAssignment)
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:CONSTANT
+            context:isConstant = true
+            next = tokenIterator:Next()
+        end
+
+        AssignmentDeclaractionContext declaration = AssignmentDeclaration()
+        if declaration = undefined
+            return undefined //the declaration handled the error
+        end
+        context:declaration = declaration
+        if not IsValid() //this is an error
+            SendDefaultError(textEndedError + " while expecting an identifier. " + moreInformationAssignment)
+            return undefined
+        end
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:ID
+            context:name = next:value
+            next = tokenIterator:Next()
+        else //error
+            CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+            if declaration:type not= undefined
+                text key = declaration:type:GetStaticKey()
+                error:SetErrorMessage("A declaration of type '" + key + 
+                    "' was written followed by '" + next:value + ".' The value following '" +
+                    key + "' must be an identifier." + identifierMessage + " A correct example might " +
+                    " be '" + key + " myVariableName' .")
+            else
+                error:SetErrorMessage("An assignment declaration was detected, followed by " +
+                    next:value + ". The value following a declaration must be an identifier. "
+                    + identifierMessage + ". A correct example might " +
+                    " be 'integer myVariableName' .")
+            end
+            SendToCompilerErrorManager(error)
+        end
+
+        if next:category = constants:EQUALITY
+            context:hasRightHandSide = true
+            next = tokenIterator:Next()
+        else //this is not an error. The equals sign is optional and as such we should bail here.
+            return context
+        end
+
+        ParseContext expression = Expression()
+        if expression = undefined
+            return undefined
+        end
+        context:expression = expression
+        return context
+    end
+
+    action ParentVariableSoloActionCall returns ParentVariableFunctionCallContext
+        if not IsValid() //this is an error
+            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationParentCall)
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+        ParentVariableFunctionCallContext context
+        context:SetDocumentation(CheckForDocumentation())
+        context:isSolo = true
+        if next:category = constants:ME
+            context:hasMe = true
+            next = tokenIterator:Next()
+            if next:category = constants:COLON
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                return undefined
+            end
+        end
+
+        //if we've got an ID and a colon, it's an object call before the parent
+        if next:category = constants:ID
+            context:variableName = next:value
+            next = tokenIterator:Next()
+            if next:category = constants:COLON //this is an object call
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+                return undefined
+            end
+        end
+
+        if next:category = constants:PARENT
+            context:variableName = next:value
+            next = tokenIterator:Next()
+            if next:category = constants:COLON //this is an object call
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                return undefined
+            end
+
+            QualifiedNameContext qnContext = QualifiedName()
+            if qnContext = undefined
+                return undefined //action handled the error
+            end
+            context:parentNameContext = qnContext
+            context:parentName = qnContext:name
+
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:COLON //this is an object call
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                return undefined
+            end
+        else //this is an error
+            SendDefaultError("Expected parent: (parent followed by a colon). " + moreInformationParentCall)
+            return undefined
+        end
+        Array<ActionCallContext> calls
+        ActionCallContext call = ActionCall()
+        call:traverseAsInitialParent = true //say it's a parent call.
+        calls:Add(call)
+        context:calls = calls
+        next = tokenIterator:GetCurrent()
+        //if it's a colon, keep processing actions.
+        repeat while next:category = constants:COLON 
+            next = tokenIterator:Next()
+            call = ActionCall()
+            calls:Add(call)
+
+            if not IsValid() //this is an error
+                SendDefaultError(textEndedError + " while expecting a : (colon) in a parent call. " + moreInformationParentCall)
+                return undefined
+            end
+            next = tokenIterator:GetCurrent()
+        end
+        return context
+    end
+
+    action VariableSoloActionCall returns VariableFunctionCallContext
+        if not IsValid() //this is an error
+            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationActionCall)
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+        VariableFunctionCallContext context
+        context:SetDocumentation(CheckForDocumentation())
+        context:isSoloCall = true
+        if next:category = constants:ME
+            context:hasMe = true
+            next = tokenIterator:Next()
+            if next:category = constants:COLON
+                next = tokenIterator:Next()
+            else //this is an error
+                SendDefaultError("Expected : (colon). " + moreInformationActionCall)
+                return undefined
+            end
+        end
+
+        //if we've got an ID and a colon, it's an object call
+        if next:category = constants:ID
+            Token look = tokenIterator:LookAhead(1)
+            if look:category = constants:COLON //this is an object call
+                context:objectName = next:value
+                tokenIterator:Next()
+
+                if not IsValid() //this is an error
+                    SendDefaultError(textEndedError + " while calling an action. " + moreInformationActionCall)
+                    return undefined
+                end
+                tokenIterator:Next()
+            end
+
+            //Now not we go into a loop of action calls, followed by colons
+            Array<ActionCallContext> calls
+            ActionCallContext call = ActionCall()
+            if call not= undefined
+                calls:Add(call)
+            else
+                return undefined //must be at least one, otherwise it error'd out.
+            end
+
+            if not IsValid() //this is an error
+                if not calls:IsEmpty()
+                    ActionCallContext last = calls:Get(calls:GetSize() - 1)
+                    context:calls = calls
+                end
+                return context
+            end
+            next = tokenIterator:GetCurrent()
+            //if it's a colon, keep processing actions.
+            repeat while next:category = constants:COLON 
+                next = tokenIterator:Next()
+                call = ActionCall()
+                calls:Add(call)
+                next = tokenIterator:GetCurrent()
+            end
+
+            //check the last one. It has to be an action call, otherwise we have an error
+            //The error will already exist from the ActionCall
+            if not calls:IsEmpty()
+                ActionCallContext last = calls:Get(calls:GetSize() - 1)
+                context:calls = calls
+            end
+        end
+
+        return context
+    end
+
+    action ReturnStatement returns ReturnContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a return statement. " 
+            + moreInformationReturn)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        ReturnContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:RETURN
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected return. " + moreInformationReturn)
+            return undefined
+        end
+
+        if next:category = constants:NOW
+            context:isReturnNow = true
+            next = tokenIterator:Next()
+            return context
+        end
+
+        context:expression = Expression()
+        if context:expression = undefined
+            return undefined
+        end
+        return context
+    end
+
+    action RepeatStatement returns LoopContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a repeat statement. " 
+            + moreInformationRepeat)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        LoopContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:REPEAT
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected repeat. " + moreInformationRepeat)
+            return undefined
+        end
+
+        if next:category = constants:WHILE
+            next = tokenIterator:Next()
+            context:isWhile = true
+        elseif next:category = constants:UNTIL
+            next = tokenIterator:Next()
+            context:isUntil = true
+        end
+
+        context:expression = Expression()
+        if context:expression = undefined
+            return undefined
+        end
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:TIMES
+            next = tokenIterator:Next()
+            context:isTimes = true
+        end
+
+        if not context:isWhile and not context:isUntil and not context:isTimes
+            SendDefaultError("Repeat statements must either use while, until, or times, as opposed to " 
+                + next:value + moreInformationRepeat)
+            return undefined
+        end
+
+        context:block = Block()
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while ending a repeat statement. " 
+            + moreInformationRepeat)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+
+        if next:category = constants:END
+            tokenIterator:Next()
+        else //otherwise this is an error
+            SendDefaultError("Expected end at the end of a repeat. " + CalculateMatchedBracesMessage())
+                return undefined 
+        end
+        return context
+    end
+
+    action CheckStatement returns CheckContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a check statement. " 
+            + moreInformationCheck)
+            return undefined 
+        end
+        if not tokenIterator:IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        CheckContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:CHECK
+            next = tokenIterator:Next()
+        else //an error
+        end
+
+        BlockContext checkBlock = Block()
+        if not tokenIterator:IsValid() return undefined end
+        next = tokenIterator:GetCurrent()
+
+        context:blockContext = checkBlock
+        Array<DetectStatementContext> detectContexts
+        AlwaysStatementContext alwaysContext = undefined
+        if next:category = constants:DETECT //at least one detect block
+
+            repeat while next:category = constants:DETECT
+                DetectStatementContext detectStatement = DetectStatement()
+                detectContexts:Add(detectStatement)
+                if not tokenIterator:IsValid() 
+                    return undefined 
+                else
+                    next = tokenIterator:GetCurrent()
+                end
+            end
+
+            if not tokenIterator:IsValid() return undefined end
+            next = tokenIterator:GetCurrent()
+            if next:category = constants:ALWAYS
+                alwaysContext = AlwaysStatement()
+            end
+        elseif next:category = constants:ALWAYS //there are no detect blocks
+            alwaysContext = AlwaysStatement()
+        else //this is an error. You have to have one or the other
+            SendDefaultError("Expected either a detect or an always block. Check statements must have one or the other. " + moreInformationCheck)
+            return undefined 
+        end
+
+        context:detectStatements = detectContexts
+        context:alwaysContext = alwaysContext
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while ending a check statement. " 
+            + moreInformationCheck)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+
+        if next:category = constants:END
+            tokenIterator:Next()
+        else
+            SendDefaultError("Expected end at the end of a check. " + CalculateMatchedBracesMessage())
+            return undefined 
+        end
+        return context
+    end
+
+    action DetectStatement returns DetectStatementContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a check-detect statement. " 
+            + moreInformationCheck)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        DetectStatementContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:DETECT
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected detect. " + moreInformationCheck)
+            return undefined 
+        end
+
+        if next:category = constants:ID
+            context:name = next:value
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected detect. " + moreInformationIdentifier)
+            return undefined 
+        end
+        
+        //This is optional
+        if next:category = constants:INHERITS
+            Array<QualifiedNameContext> qnContexts
+            next = tokenIterator:Next()
+            QualifiedNameContext name = QualifiedName()
+            context:parents:Add(name:name)
+            qnContexts:Add(name)
+            next = tokenIterator:GetCurrent()
+            repeat while  next:category = constants:OR
+                next = tokenIterator:Next()
+                name = QualifiedName()
+                context:parents:Add(name:name)
+                qnContexts:Add(name)
+                next = tokenIterator:GetCurrent()
+            end
+            context:qualifiedNameContexts = qnContexts
+        end
+
+        //There has to be a block
+        context:block = Block()
+        if context:block = undefined //it issues the error
+            return undefined
+        end
+        return context
+    end
+
+    action AlwaysStatement returns AlwaysStatementContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a check statement containing an always block. " 
+            + moreInformationCheck)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        AlwaysStatementContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:ALWAYS
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected always " + moreInformationCheck)
+            return undefined 
+        end
+        //There has to be a block
+        context:block = Block()
+        if context:block = undefined //it issues the error
+            return undefined
+        end
+        return context
+    end
+
+    action IfStatement returns IfContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an if statement. " 
+            + moreInformationIf)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        IfContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:IF
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected if, not " + next:value + "." + moreInformationIf)
+            return undefined 
+        end
+
+        Array<BlockContext> elseIfBlocks
+        Array<ParseContext> elseIfExpressions
+        ParseContext ifExpression = Expression()
+        BlockContext ifBlock = Block()
+        
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an if statement. " 
+            + moreInformationIf)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+
+        context:ifExpression = ifExpression
+        context:ifBlock = ifBlock
+        BlockContext elseBlock = undefined
+        repeat while next:category = constants:ELSE_IF
+            next = tokenIterator:Next()
+            ParseContext expression = Expression()
+            BlockContext block = Block()
+            elseIfExpressions:Add(expression)
+            elseIfBlocks:Add(block)
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while creating an elseif statement. " 
+                + moreInformationIf)
+                return undefined 
+            end
+            next = tokenIterator:GetCurrent()
+        end
+
+        context:elseIfExpressions = elseIfExpressions
+        context:elseIfBlocks = elseIfBlocks
+        
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an else statement. " 
+            + moreInformationIf)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:ELSE
+            next = tokenIterator:Next()
+            BlockContext block = Block()
+            elseBlock = block
+            context:elseBlock = elseBlock
+        end
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while ending an if statement. " 
+            + moreInformationIf)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+        if next:category = constants:END
+            next = tokenIterator:Next()
+        else //otherwise this is an error
+            SendDefaultError("Expected end at the end of an if statement. " + CalculateMatchedBracesMessage())
+            return undefined 
+        end
+        return context
+    end
+
+    action OutputStatement returns OutputContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an output statement. " 
+            + moreInformationOutput)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        
+        if next:category = constants:OUTPUT
+            OutputContext context
+            context:SetDocumentation(CheckForDocumentation())
+            next = tokenIterator:Next() //skip the output token
+            
+            context:expression = Expression()
+            if context:expression = undefined
+                return undefined
+            end
+            return context
+        else 
+            SendDefaultError("Expected output, received " + next:value + "." + moreInformationOutput)
+            return undefined 
+        end
+        return undefined
+    end
+
+    action SayStatement returns SayContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a say statement. " 
+            + moreInformationSay)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:SAY
+            SayContext context
+            context:SetDocumentation(CheckForDocumentation())
+            tokenIterator:Next() //skip the output token
+            
+            context:expression = Expression()
+            if context:expression = undefined
+                return undefined
+            end
+            return context
+        else
+            SendDefaultError("Expected say, received " + next:value + "." + moreInformationSay)
+            return undefined 
+        end
+        return undefined
+    end
+    
+    action AlertStatement returns AlertContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an alert statement. " 
+            + moreInformationAlert)
+            return undefined 
+        end
+        Token current = tokenIterator:GetCurrent()
+        
+        if current:category = constants:ALERT
+            AlertContext context
+            context:SetDocumentation(CheckForDocumentation())
+            current = tokenIterator:Next() //skip the output token
+            
+            //check if it's left and right paren or if it has an expression
+            if current:category = constants:LEFT_PAREN
+                Token next = tokenIterator:LookAhead(1) //if this is a right paren, there is no expression
+                if next not= undefined and next:category = constants:RIGHT_PAREN
+                    tokenIterator:Next()
+                    return context
+                else //it's not a right paren, so try and parse an expression, then check for the right paren
+                    next = tokenIterator:Next()
+                    ParseContext expression = Expression()
+                    context:expression = expression
+                    if context:expression = undefined
+                        return undefined
+                    end
+    
+                    if not IsValid() 
+                        SendDefaultError(textEndedError + " while creating an alert statement. " 
+                        + moreInformationAlert)
+                        return undefined 
+                    end
+                    next = tokenIterator:GetCurrent()
+                    if next not= undefined and next:category = constants:RIGHT_PAREN
+                        tokenIterator:Next()
+                        return context
+                    else //this is an error. There needs to be a paren at the end of the expression
+                        SendDefaultError("Expected ) (right paren) " + current:value + "." + moreInformationAlert)
+                        return undefined
+                    end
+                end
+            else //this is an error
+                SendDefaultError("Expected ( (left paren), received " + current:value + "." + moreInformationAlert)
+                return undefined 
+            end
+        end
+        return undefined
+    end
+    
+
+    action ActionShared returns ActionContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating an action declaration. " 
+            + moreInformationActions)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        ActionContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if next:category = constants:ACTION
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected action, received " + next:value + "." + moreInformationActions)
+            return undefined 
+        end
+
+        if next:category = constants:ID
+            context:actionName = next:value
+            next = tokenIterator:Next()
+        else //an error
+            SendDefaultError("Expected action, received " + next:value + "." + moreInformationIdentifier)
+            return undefined 
+        end
+
+        //now process any parameters, if there are any
+        if next:category = constants:LEFT_PAREN
+            next = tokenIterator:Next()
+            //they are just using parens even though they aren't necessary
+            if next:category = constants:RIGHT_PAREN
+                next = tokenIterator:Next()
+            else //if it's not a paren, it has to be a formal parameter. 
+                List<Variable> variables = context:parameters
+                Array<FormalParameterContext> parameters
+                context:parameterContexts = parameters
+                FormalParameterContext param = FormalParameter()
+                if param = undefined
+                    return undefined
+                end
+                parameters:Add(param)
+
+                
+                Variable variable
+                variable:SetIsParameter(true)
+                variable:SetType(param:type)
+                variable:SetName(param:name)
+                variables:Add(variable)
+
+                next = tokenIterator:GetCurrent()
+                //if it's a comma, proceed, otherwise we're done
+                repeat while next:category = constants:COMMA
+                    next = tokenIterator:Next()
+                    param = FormalParameter()
+                    parameters:Add(param)
+
+                    Variable variable2
+                    variable2:SetIsParameter(true)
+                    variable2:SetType(param:type)
+                    variable2:SetName(param:name)
+                    variables:Add(variable2)
+                    next = tokenIterator:GetCurrent()
+                end
+
+                if next:category = constants:RIGHT_PAREN
+                    next = tokenIterator:Next()
+                else //this is an error
+                    SendDefaultError("Expected ) (right paren), received " + next:value + "." + moreInformationActions)
+                    return undefined 
+                end
+            end
+        end
+
+        //now process a return type, if there is one
+        if next:category = constants:RETURNS
+            next = tokenIterator:Next()
+            AssignmentDeclaractionContext theReturn = AssignmentDeclaration()
+            context:returnsStatement = theReturn
+            context:returnType = theReturn:type
+            if theReturn = undefined
+                return undefined
+            end
+        end
+        return context
+    end
+
+    action FormalParameter returns FormalParameterContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a parameter for an action. " 
+            + moreInformationActions)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+        
+        FormalParameterContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        AssignmentDeclaractionContext value = AssignmentDeclaration()
+        context:declaration = value
+
+        if value not= undefined
+            context:type = value:type
+        else //this is an error
+            return undefined //taken care of by the action
+        end
+
+        if not IsValid() 
+            SendDefaultError(textEndedError + " while creating a parameter name for an action. " 
+            + moreInformationActions)
+            return undefined 
+        end
+        next = tokenIterator:GetCurrent()
+
+        if next:category = constants:ID
+            context:name = next:value
+            tokenIterator:Next()
+        else //this is an error
+            SendDefaultError("Expected identifier, received " + next:value + "." + moreInformationIdentifier)
+            return undefined 
+        end
+        return context
+    end
+
+    action AssignmentStatement returns ParseContext
+        ParseContext statement = undefined
+        integer type = GetStatementType()
+        if type = NONE //this is an error. A statement has been requested and it doesn't match anything
+            if statementError = undefined
+                Token token = tokenIterator:GetCurrent()
+                if token not= undefined
+                    SendDefaultError("An assignment statement was expected, but " + token:value
+                        + "does not start a valid assignment" )
+                else
+                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                end
+            else
+                compilerErrorManager:Add(statementError)
+                statementError = undefined
+            end
+        elseif type = VARIABLE_SOLO_ACTION_CALL
+            statement = VariableSoloActionCall()
+        elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
+            statement = ParentVariableSoloActionCall()
+        elseif type = NO_TYPE_ASSIGNMENT
+            statement = NoTypeAssignment()
+        elseif type = PARENT_ASSIGNMENT
+            statement = ParentAssignment()
+        elseif type = OBJECT_ASSIGNMENT
+            statement = ObjectAssignment()
+        elseif type = NORMAL_ASSIGNMENT
+            statement = NormalAssignment()
+        else //this also an error, but is weird because this value should never be returned.
+            if statementError = undefined
+                Token token = tokenIterator:GetCurrent()
+                if token not= undefined
+                    SendDefaultError("An assignment statement was expected, but " + token:value
+                        + "does not start a valid assignment" )
+                else
+                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                end
+            else
+                compilerErrorManager:Add(statementError)
+                statementError = undefined
+            end
+        end
+        return statement
+    end
+
+    private action IsClassStatement returns boolean
+        if IsActionDeclaration()
+            return true
+        elseif IsAssignmentStatement()
+            return true
+        else
+            return false
+        end
+    end
+
+   /*
+        Returns what kind of statement we must have. If this action determines that it is not
+        a statement type, it attempts to generate a compiler error, and place it in the 
+        statementError variable, on what the error is. The calling class is responsible for managing
+        this variable after a call. This is necessary because other parts of the system must 
+        know whether something is a statement or not in order to calculate the correct path for the parse.
+
+        0 = Does not match a solo action call or an assignment statement
+        1 = VariableSoloFunctionCall
+        2 = ParentVariableSoloFunctionCall
+        3 = NoTypeAssignment
+        4 = ParentAssignment
+        5 = ObjectAssignment
+        6 = NormalAssignment
+    */
+    private action GetStatementType returns integer
+        //first lets copy the iterator
+        TokenIterator<Token> copy = tokenIterator:Copy()
+        if not copy:IsValid() 
+            statementError = CreateCompilerError(textEndedError + " a statement.")
+            SetCompilerErrorLocation(statementError, copy:Look(-1), undefined)
+            return NONE 
+        end
+        Token next = copy:GetCurrent()
+        
+        boolean hasMe = false
+        //if it's the ME token, skip it and the colon. It gives us no information.
+        if next:category = constants:ME
+            hasMe = true
+            next = copy:Next()
+            if next:category not= constants:COLON
+                statementError = CreateCompilerError("Expected colon after me. " + moreInformationMe)
+                SetCompilerErrorLocation(statementError, next, undefined)
+                return NONE
+            else 
+                next = copy:Next()
+            end
+        end
+
+        //if it's an access modifier, constant, or one of the left hand side indicators
+        //then we know for sure it's a normal assignment
+        if  IsAccessModifier(next) or 
+            next:category = constants:CONSTANT or
+            next:category = constants:INTEGER_KEYWORD or
+            next:category = constants:NUMBER_KEYWORD or
+            next:category = constants:TEXT or
+            next:category = constants:BOOLEAN_KEYWORD
+            return NORMAL_ASSIGNMENT
+
+        //if the first token is a parent token, it is either a parent assignment or 
+        //a parent variable action call
+        elseif next:category = constants:PARENT 
+            
+            next = copy:Next()
+            if next:category not= constants:COLON
+                statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
+                SetCompilerErrorLocation(statementError, next, undefined)
+                return NONE
+            else 
+                next = copy:Next()
+            end
+
+            if ProcessQualifiedName(copy)
+                next = copy:GetCurrent()
+                if next:category not= constants:COLON
+                    statementError = CreateCompilerError("Expected colon after qualified name. " + moreInformationParent)
+                    SetCompilerErrorLocation(statementError, next, undefined)
+                    return NONE
+                else 
+                    next = copy:Next()
+                    //if this is an ID and then an equals sign, it's a parent assignment. Otherwise
+                    //we have ruled out anything but ParentVariableSoloFunctionCall
+                    //so we return that and let the system attempt to process that. It does not 
+                    //guarantee that this will parse, but it does mean all other options are off the table
+                    if next:category = constants:ID
+                        next = copy:Next()
+                        if next:category = constants:EQUALITY
+                            return PARENT_ASSIGNMENT
+                        else
+                            return PARENT_VARIABLE_SOLO_ACTION_CALL
+                        end
+                    else 
+                        statementError = CreateCompilerError("Expected identifier after parent name. " + moreInformationParent)
+                        SetCompilerErrorLocation(statementError, next, undefined)
+                        return NONE
+                    end
+                end
+            else //this is an error. You have to have a qualified name after the colon in a parent
+                //we can just return. The action call handles getting the error.
+                return NONE
+            end
+
+        //if the first token is an ID, it can be one of several things
+        elseif next:category = constants:ID
+            Token idToken = next
+            next = copy:Next()
+
+            if next = undefined
+                statementError = CreateCompilerError(textEndedError + " an identifier. "
+                    + "You could try calling an action with parens (), setting it to a value with = (equals) "
+                    + "or other options." )
+                return NONE
+            end
+            //If this is a . or another ID, it must be the object case (e.g., Type name)
+            //This isn't allowed in any other case, so we can ignore the equals sign here. 
+            //Because we just need to know what branch to go down, not to process the whole thing
+            if next:category = constants:PERIOD or
+               next:category = constants:ID or
+               next:category = constants:LESS //generic declaration
+                return NORMAL_ASSIGNMENT
+            elseif next:category = constants:EQUALITY //it's an ID =, so a no type assignment
+                return NO_TYPE_ASSIGNMENT
+            elseif next:category = constants:LEFT_PAREN
+                return VARIABLE_SOLO_ACTION_CALL
+            //If it's a colon, it is either the Object Assignment or an action call
+            elseif next:category = constants:COLON
+                next = copy:Next()
+
+                boolean parentInObjectCall = false
+                //if we made it here, this is either an object call, or one of the action calls
+                //if this is a parent, process it and then check if we've got an assignment or an action call
+                if next:category = constants:PARENT
+                    parentInObjectCall = true
+                    //we don't care about the values here, so process them out
+                    next = copy:Next()
+                    //get rid of the colon, if it exists
+                    if next:category not= constants:COLON
+                        statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
+                        SetCompilerErrorLocation(statementError, next, undefined)
+                        return NONE
+                    else
+                        next = copy:Next()
+                    end
+
+                    if not ProcessQualifiedName(copy)
+                        //Don't need to manage the error here, as the action handled it
+                        return NONE
+                    else
+                        return OBJECT_ASSIGNMENT
+                    end
+                end
+
+                if next:category = constants:ID
+                    next = copy:Next()
+                    if next:category = constants:EQUALITY
+                        return OBJECT_ASSIGNMENT
+                    else
+                        if parentInObjectCall
+                            return PARENT_VARIABLE_SOLO_ACTION_CALL
+                        else
+                            return VARIABLE_SOLO_ACTION_CALL
+                        end
+                    end
+                end
+            else
+                if IsOutputMisspelling(idToken)
+                    statementError = CreateCompilerError("Possible spelling error in output. Did you mean "
+                        + "'" + constants:OUTPUT_TEXT + " " + GetDisplay(next) + "'"
+                        + " instead of '" + GetDisplay(idToken) + " " + GetDisplay(next) + "'?")
+                elseif IsSayMisspelling(idToken)
+                    statementError = CreateCompilerError("Possible spelling error in say. Did you mean "
+                        + "'" + constants:SAY_TEXT + " " + GetDisplay(next) + "'"
+                        + " instead of '" + GetDisplay(idToken) + " " + GetDisplay(next) + "'?")
+                else
+                    statementError = CreateCompilerError("An identifier was observed, but it is not clear " 
+                        + "what statement is being requested. If an action call is desired, the identifier should "
+                        + "be followed by a left paren (, whereas an assignment might include next the equals sign "
+                        + "=. More information about statements can be found on the Introduction to Quorum section "
+                        + "of the Quorum reference page.")
+                end
+
+                SetCompilerErrorLocation(statementError, idToken, next)
+                return NONE
+            end
+        //The only way you can have a me value and a parent is if it's a parent variable solo call
+        elseif next:category = constants:PARENT and hasMe
+            return PARENT_VARIABLE_SOLO_ACTION_CALL
+        end
+        
+        //This action was unable to determine what was wrong. Issue a generic statement error instead. 
+        //This is done by NOT setting the statement error.       
+        return NONE
+    end
+
+    action IsOutputMisspelling(Token token) returns boolean
+        text value = token:value
+        text lower = value:ToLowerCase()
+        //more than likely we'll want to pull more cases from the data
+        if lower = constants:OUTPUT_TEXT
+            return true
+        end
+
+        return false
+    end
+
+    action IsSayMisspelling(Token token) returns boolean
+        text value = token:value
+        text lower = value:ToLowerCase()
+        //more than likely we'll want to pull more cases from the data
+        if lower = constants:SAY_TEXT
+            return true
+        end
+
+        return false
+    end
+
+    /*
+        This processes a qualified name on an iterator, returning false if it isn't one.
+    */
+    private action ProcessQualifiedName(TokenIterator<Token> tokens) returns boolean
+        Token next = tokens:GetCurrent()
+        text qualifiedName = "Expected qualified name. " + qualifiedNameExample
+
+        if next:category not= constants:ID
+            statementError = CreateCompilerError("Expected identifier. " + qualifiedNameExample)
+            return false
+        end
+
+        if not tokens:HasNext() return true end
+        next = tokens:Next()
+        repeat while next not= undefined and next:category = constants:PERIOD
+            next = tokens:Next()
+            if next:category not= constants:ID
+                return false
+            else
+                statementError = CreateCompilerError("Expected identifier. " + qualifiedNameExample)
+            end
+            if not tokens:HasNext() return true end
+            next = tokens:Next()
+            
+        end
+        return true
+    end
+
+    private action IsAssignmentStatement returns boolean
+        integer type = GetStatementType()
+        if type = NONE //this is an error. A statement has been requested and it doesn't match anything
+            return false
+        elseif type = VARIABLE_SOLO_ACTION_CALL
+            return true
+        elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
+            return true
+        elseif type = NO_TYPE_ASSIGNMENT
+            return true
+        elseif type = PARENT_ASSIGNMENT
+            return true
+        elseif type = OBJECT_ASSIGNMENT
+            return true
+        elseif type = NORMAL_ASSIGNMENT
+            return true
+        else
+            return false
+        end
+    end
+
+    action IsAssignmentToken(Token next) returns boolean
+        if next:category = constants:ID
+            return true
+        elseif next:category = constants:ME
+            return true
+        elseif next:category = constants:PARENT
+            return true
+        elseif next:category = constants:CONSTANT
+            return true
+        elseif next:category = constants:ME
+            return true
+        elseif next:category = constants:INTEGER_KEYWORD
+            return true
+        elseif next:category = constants:BOOLEAN_KEYWORD
+            return true
+        elseif next:category = constants:NUMBER_KEYWORD
+            return true
+        elseif next:category = constants:TEXT
+            return true
+        else
+            return false
+        end
+    end
+
+    private action IsActionDeclaration returns boolean
+        if not IsValid() return false end
+        Token next = tokenIterator:GetCurrent()
+        if IsActionToken(next)
+            return true
+        elseif IsAccessModifier(next) //we need to do lookahead here to determine 
+            Token look = tokenIterator:LookAhead(1)
+            if look not= undefined // error if it is, but let the parent manage it
+                return IsActionToken(look)
+            else 
+                return false
+            end
+        end
+
+        return false
+    end
+
+    private action IsActionToken(Token next) returns boolean
+        if next:category = constants:ACTION
+            return true
+        elseif next:category = constants:BLUEPRINT
+            return true
+        elseif next:category = constants:NATIVE
+            return true
+        elseif next:category = constants:ON
+            return true
+        end
+
+        return false
+    end
+
+    private action IsAccessModifier(Token next) returns boolean
+        if next:category = constants:PUBLIC
+            return true
+        elseif next:category = constants:PRIVATE
+            return true
+        end
+
+        return false
+    end
+
+    action NoClass returns NoClassDeclarationContext
+        NoClassDeclarationContext context
+        if not IsValid() 
+            SendDefaultError(textEndedError + " the end of a class declaration. " + moreInformationClasses)
+            return undefined 
+        end
+        Token next = tokenIterator:GetCurrent()
+
+        Array<ParseContext> statements
+        
+        if IsStatement()
+            NoActionsNoClassContext noActions
+            context:SetDocumentation(CheckForDocumentation())
+            repeat while next not= undefined
+                if IsStatement()
+                    ParseContext statement = Statement()
+
+                    //If this is undefined, then an error has happened.
+                    //the parent statement does not issue an additional error.
+                    if statement not= undefined
+                        statements:Add(statement)
+                    end
+
+                    //this is not necessarily a compiler error, so just 
+                    //terminate the loop
+                    if not IsValid()
+                        next = undefined
+                    else
+                        next = tokenIterator:GetCurrent()
+                    end
+                else 
+                    //this is an error. Only statements can be issued in this case.
+                    //subrules are responsible for providing their own error messages
+                    //However, we don't need to trigger an error here because it will be handled
+                    //by the case below
+                    return undefined
+                end
+            end
+            noActions:statements = statements
+            context:statements = noActions
+        else
+            ActionsNoClassContext actionsNoClass
+            context:SetDocumentation(CheckForDocumentation())
+            Array<ParseContext> actions
+            repeat while next not= undefined
+                if IsActionDeclaration()
+                    ParseContext behavior = ActionDeclaration()
+                    actions:Add(behavior)
+                elseif IsStatement()
+                    ParseContext statement = Statement()
+                    statements:Add(statement)
+                else //this is an error
+                    if statementError = undefined
+                        SendDefaultError("A statement or action was expected to be declared, but the token "
+                        + next:value + " was found instead. Valid statements might start with words like output, "
+                        + "to put information on the screen, or repeat, to start a loop, or if, to ask the computer "
+                        + "to make a decision. More information about statements can be found in the Introduction " 
+                        + "to Quorum section of the reference page at https://quorumlanguage.com/reference.html")
+                    else
+                        compilerErrorManager:Add(statementError)
+                        statementError = undefined
+                    end
+                    return undefined
+                end
+
+                if not IsValid()
+                    next = undefined
+                else
+                    next = tokenIterator:GetCurrent()
+                end
+            end
+
+            actionsNoClass:statements = statements
+            actionsNoClass:actions = actions
+            context:statements = actionsNoClass
+        end
+        return context
+    end
+    
+
+    action Uses returns Array<UseContext>
+        if not tokenIterator:IsValid() return undefined end
+        Array<UseContext> uses
+        Token next = tokenIterator:GetCurrent()
+
+        //If Uses is called, we are expecting at least one use statement.
+        if next:category not= constants:USE
+            CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+            SetCompilerErrorLocation(error)
+            error:SetErrorMessage("A use statement was expected, but the token received was "
+            + next:value)
+            SendToCompilerErrorManager(error)
+            return undefined 
+        end
+
+        repeat while next:category = constants:USE
+            UseContext useStatement = Use()
+            if useStatement not= undefined
+                uses:Add(useStatement)
+
+                //this is actually ok and not an error. 
+                if not IsValid() return uses end
+                next = tokenIterator:GetCurrent()
+            //This should only return undefined if there was an error
+            //however, the use will issue the error, not the parent
+            else
+                return undefined
+            end
+        end
+        return uses
+    end
+
+    action Package returns PackageContext
+        PackageContext context
+        context:SetDocumentation(CheckForDocumentation())
+
+        if not IsValid()
+            SendDefaultError(textEndedError + " a package statement. The next token needs to look like " +
+            "a web address. For example, the line of code might be package Libraries.Containers.")
+            return undefined
+        end
+
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:PACKAGE_NAME
+            tokenIterator:Next()
+            QualifiedNameContext qn = QualifiedName()
+            if qn not= undefined
+                context:name = qn:name
+                context:nameContext = qn
+            else //don't issue an extra error message here, as qualified name will handle its own errors
+                return undefined
+            end
+        else
+            SendDefaultError("A package statement was expected, but the token received was "
+            + next:value)
+            return undefined
+        end
+        return context
+    end
+
+    action Use returns UseContext
+        if not IsValid() return undefined end
+        UseContext context
+        context:SetDocumentation(CheckForDocumentation())
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:USE
+            tokenIterator:Next()
+            QualifiedNameContext name = QualifiedName()
+
+            //If qualified name is undefined, we return undefined, but don't propogate an 
+            //additional error.
+            if name = undefined
+                return undefined
+            else
+                context:name = name:name
+                context:nameContext = name
+            end
+        else
+            SendDefaultError("A use statement was expected, but the token received was "
+            + next:value)
+            return undefined
+        end
+        return context
+    end
+
+    action QualifiedName returns QualifiedNameContext
+        if not IsValid() 
+            SendDefaultError(textEndedError + " a qualified name. " + qualifiedNameExample)
+            return undefined
+        end
+        Token next = tokenIterator:GetCurrent()
+
+        QualifiedNameContext context
+        context:SetDocumentation(CheckForDocumentation())
+        QualifiedName name
+        context:name = name
+        if next:category = constants:ID
+            name:Add(next:value)
+            next = tokenIterator:Next()
+            repeat while IsValid() and next:category = constants:PERIOD
+                next = tokenIterator:Next()
+
+                if IsValid() and next:category = constants:ID
+                    name:Add(next:value)
+                else //this is an error
+                    text intro = "A qualified name was started and then there was a period. "
+                        + " After the period another identifier is needed"
+                    if IsValid()
+                        SendDefaultError(intro + ", but the token received was "
+                        + next:value + ". " + qualifiedNameExample)
+                    else
+                        SendDefaultError(intro + ", but the text ended. "
+                        + qualifiedNameExample)
+                    end
+                    return undefined
+                end
+                next = tokenIterator:Next()
+            end
+        else 
+            SendDefaultError("A qualified name was expected, but the token received was "
+            + next:value + ". " + qualifiedNameExample)
+            return undefined 
+        end
+        return context
+    end
+
+    action Expression returns ParseContext
+        DocumentationContext document = CheckForDocumentation()
+        ParseContext context =  Or()
+        if context = undefined
+            return undefined
+        end
+        context:SetDocumentation(document)
+        return context
+    end
+
+    action Or returns ParseContext
+        ParseContext left = And()
+        if left = undefined return undefined end
+
+        AndOrContext context = undefined
+        if not IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+
+        repeat while next:category = constants:OR
+            if not tokenIterator:HasNext() return left end
+            tokenIterator:Next()
+            
+            AndOrContext context2
+            context = context2
+
+            context:left = left
+            ParseContext right = And()
+            context:right = right
+
+            left = context
+            if not tokenIterator:HasNext() return left end
+            next = tokenIterator:GetCurrent()
+        end
+
+        return left
+    end
+
+    action And returns ParseContext
+        ParseContext left = Equals()
+        if left = undefined return undefined end
+
+        AndOrContext context = undefined
+        if not tokenIterator:IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+
+        repeat while next:category = constants:AND
+            if not tokenIterator:HasNext() return left end
+            tokenIterator:Next()
+            
+            AndOrContext context2
+            context = context2
+
+            context:isAnd = true
+            context:left = left
+            ParseContext right = Equals()
+            context:right = right
+
+            left = context
+            if not IsValid() return left end
+            next = tokenIterator:GetCurrent()
+        end
+
+        return left
+    end
+
+    action Equals returns ParseContext
+        ParseContext left = Inherits()
+        if left = undefined return undefined end
+
+        EqualsContext context = undefined
+        if not IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:EQUALITY
+            EqualsContext context2
+            context = context2
+            context:left = left
+        elseif next:category = constants:NOT_EQUALS
+            EqualsContext context2
+            context2:equalsTo = false
+            context = context2
+        else 
+            return left
+        end
+
+        context:left = left
+        if HasNext()
+            tokenIterator:Next()
+            ParseContext right = Inherits()
+            context:right = right
+            return context
+        else 
+            return left
+        end
+    end
+
+    action ClassType returns ClassTypeContext
+        ClassTypeContext context
+        QualifiedNameContext nameContext = QualifiedName()
+        if nameContext = undefined
+            return undefined
+        else
+            context:nameContext = nameContext
+            return context
+        end
+    end
+
+    action Inherits returns ParseContext
+        ParseContext left = Greater()
+        if left = undefined return undefined end
+
+        IsContext context = undefined
+        if not IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+        if next:category = constants:INHERITS
+            IsContext context2
+            context2:left = left
+            tokenIterator:Next()
+            ClassTypeContext type = ClassType()
+            if type = undefined
+                return undefined
+            else
+                context2:classType = type
+                QualifiedNameContext nameContext = type:nameContext
+                context2:name = nameContext:name
+                context = context2
+            end
+        else 
+            return left
+        end
+        context:left = left
+
+        return context
+    end
+
+    action Greater returns ParseContext
+        ParseContext left = Addition()
+        if left = undefined return undefined end
+
+        InequalityContext context = undefined
+        if not IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+        
+        repeat while next:category = constants:GREATER or 
+                     next:category = constants:GREATER_EQUAL or
+                     next:category = constants:LESS or 
+                     next:category = constants:LESS_EQUAL 
+            if next:category = constants:GREATER
+                InequalityContext context2
+                context2:isGreater = true
+                context = context2
+            elseif next:category = constants:GREATER_EQUAL
+                InequalityContext context2
+                context2:isGreaterEquals = true
+                context = context2
+            elseif next:category = constants:LESS
+                InequalityContext context2
+                context2:isLess = true
+                context = context2
+            elseif next:category = constants:LESS_EQUAL
+                InequalityContext context2
+                context2:isLessEquals = true
+                context = context2
+            else 
+                return left
+            end
+    
+            context:left = left
+            tokenIterator:Next()
+            
+            ParseContext right = Addition()
+            if right = undefined
+                return undefined
+            end 
+            context:right = right
+
+            left = context
+            if not tokenIterator:IsValid() return left end
+            next = tokenIterator:GetCurrent()
+        end
+        return left
+    end
+
+    action Addition returns ParseContext
+        ParseContext left = Multiplication()
+        if left = undefined return undefined end
+
+        AdditionContext context = undefined
+        if not tokenIterator:IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+        repeat while next:category = constants:PLUS or 
+                     next:category = constants:MINUS 
+            if next:category = constants:PLUS
+                AdditionContext context2
+                context = context2
+            elseif next:category = constants:MINUS
+                AdditionContext context2
+                context2:isPlus = false
+                context = context2
+            else 
+                return left
+            end
+    
+            context:left = left
+            tokenIterator:Next()
+            
+            ParseContext right = Multiplication()
+            context:right = right
+
+            if right = undefined
+                return undefined
+            end
+
+            left = context
+            if not IsValid() return left end
+            next = tokenIterator:GetCurrent()
+        end
+        return left
+    end
+
+    action Multiplication returns ParseContext
+        ParseContext left = UnaryOperator()
+        if left = undefined return undefined end
+
+        MultiplicationContext context = undefined
+        if not IsValid() return left end
+        Token next = tokenIterator:GetCurrent()
+
+        repeat while next:category = constants:MULTIPLY or 
+                     next:category = constants:DIVIDE or
+                     next:category = constants:MODULO
+            if next:category = constants:MULTIPLY
+                MultiplicationContext context2
+                context2:isMultiply = true
+                context = context2
+            elseif next:category = constants:DIVIDE
+                MultiplicationContext context2
+                context2:isDivide = true
+                context = context2
+            elseif next:category = constants:MODULO
+                MultiplicationContext context2
+                context2:isModulus = true
+                context = context2
+            else 
+                return left
+            end
+    
+            context:left = left
+            tokenIterator:Next()
+            
+            ParseContext right = UnaryOperator()
+            context:right = right
+            if right = undefined
+                return undefined
+            end
+            
+            left = context
+            if not IsValid() return left end
+            next = tokenIterator:GetCurrent()
+        end
+
+        return left
+    end
+
+    
+
+    action Input returns InputContext
+        InputContext context
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+
+        if current:category = constants:INPUT
+            current = tokenIterator:Next()
+        end
+
+        //check if it's left and right paren or if it has an expression
+        if current:category = constants:LEFT_PAREN
+            Token next = tokenIterator:Next() //if this is a right paren, there is no expression
+            if next not= undefined and next:category = constants:RIGHT_PAREN
+                tokenIterator:Next()
+                return context
+            else //it's not a right paren, so try and parse an expression, then check for the right paren
+                ParseContext expression = Expression()
+                context:expression = expression
+
+                if not tokenIterator:IsValid() return undefined end
+                next = tokenIterator:GetCurrent()
+                if next not= undefined and next:category = constants:RIGHT_PAREN
+                    tokenIterator:Next()
+                    return context
+                else //this is an error. There needs to be a paren at the end of the expression
+                    SendDefaultError("Expected ) (right paren) " + moreInformationInput)
+                    return undefined 
+                end
+            end
+        else //this is an error
+            SendDefaultError("Expected ( (left paren) " + moreInformationInput)
+            return undefined 
+        end
+
+        return context
+    end
+
+    action Cast returns CastContext
+        CastContext context
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        if current:category = constants:CAST
+            current = tokenIterator:Next()
+        else
+            SendDefaultError("Expected cast " + moreInformationCast)
+            return undefined 
+        end
+
+        //check if it's left and right paren or if it has an expression
+        if current:category = constants:LEFT_PAREN
+            Token next = tokenIterator:Next()
+
+            AssignmentDeclaractionContext assignment = AssignmentDeclaration()
+            context:assignment = assignment
+
+            current = tokenIterator:GetCurrent()
+            if current:category = constants:COMMA
+                current = tokenIterator:Next()
+            else
+                SendDefaultError("Expected , (comma) " + moreInformationCast)
+                return undefined 
+            end
+
+            ParseContext expression = Expression()
+            if expression = undefined //the expression will handle the error
+                return undefined 
+            end
+            context:expression = expression
+    
+            next = tokenIterator:GetCurrent()
+            if next not= undefined and next:category = constants:RIGHT_PAREN
+                tokenIterator:Next()
+                return context
+            else //it's not a right paren, it's an error, Jim
+                SendDefaultError("Expected ) (right paren) " + moreInformationCast)
+                return undefined 
+            end
+        else //this is an error
+            SendDefaultError("Expected ( (left paren) " + moreInformationCast)
+            return undefined 
+        end
+
+        return context
+    end
+
+    action Integer returns IntegerContext
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        IntegerContext context
+        text val = current:value
+        check
+            context:value = cast(integer, val)
+        detect e
+            SendDefaultError("Integer value of " + val + " is not valid")
+        end
+        tokenIterator:Next()
+        return context
+    end
+
+    action Number returns NumberContext
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        NumberContext context
+        text val = current:value
+        check
+            context:value = cast(number, val)
+        detect e
+            SendDefaultError("Number value of " + val + " is not valid")
+        end
+        tokenIterator:Next()
+        return context
+    end
+
+    action Boolean returns BooleanContext
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        BooleanContext context
+        text val = current:value
+        context:value = cast(boolean, val)
+        current = tokenIterator:Next()
+        return context
+    end
+
+    action Text returns TextContext
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        TextContext context
+        context:value = current:value
+        tokenIterator:Next()
+        return context
+    end
+
+    action Undefined returns UndefinedContext
+        UndefinedContext context
+        tokenIterator:Next()
+        return context
+    end
+
+
+    action Parenthesis returns ParenthesisContext
+        ParenthesisContext context
+        tokenIterator:Next()
+        ParseContext expression = Expression()
+        if expression = undefined //the expression will handle the error
+            return undefined
+        end
+        context:expression = expression
+        
+        if not IsValid() return undefined end
+        Token next = tokenIterator:GetCurrent()
+        if next:category not= constants:RIGHT_PAREN //this is an error
+            SendDefaultError("Expected ) (right paren) ")
+            return undefined 
+        end
+        tokenIterator:Next()
+        return context
+    end
+
+    action Me returns MeContext
+        MeContext context
+        tokenIterator:Next()
+        return context
+    end
+
+    action ActionCall returns ActionCallContext
+        ActionCallContext context
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        if current:category = constants:ID
+            context:name = current:value
+            //if there's a parenthesis, this is an action call. If it's not, it's an ID.
+            Token next = tokenIterator:Next()
+            if next = undefined //Just an ID, so return it
+                return context
+            end
+
+            //this is an action call
+            if next:category = constants:LEFT_PAREN
+                context:isActionCall = true
+                next = tokenIterator:Next() //get rid of the paren
+                //if this is a right paren, there's no expression list to parse, so just end it
+                if next:category = constants:RIGHT_PAREN
+                    //we need the object, but it does nothing except trigger events
+                    ActionExpressionListContext c
+                    context:expressionList = c
+                    tokenIterator:Next()
+                    return context
+                else //this isn't a right paren, do a function expression list
+                    ActionExpressionListContext c = ActionExpressionList()
+                    context:expressionList = c
+                    //I think this is an error if this is undefined, but we'll need to verify
+                    if c = undefined
+                        return undefined
+                    end
+                end
+
+                if not tokenIterator:IsValid() return undefined end
+                Token last = tokenIterator:GetCurrent()
+
+                //If this isn't the case, it's an error.
+                if last:category = constants:RIGHT_PAREN
+                    tokenIterator:Next()
+                else
+                    SendDefaultError("Expected ) (right paren) " + moreInformationActionCall)
+                    return undefined 
+                end
+            else //this ID is followed by something not allowed in ActionCall
+                 //attempt to let the rest of the system calculate this
+                return context
+            end
+        end
+
+        return context
+    end
+
+    action ActionExpressionList returns ActionExpressionListContext
+        ActionExpressionListContext context
+        Array<ParseContext> contexts
+        ParseContext first = Expression()
+        contexts:Add(first)
+
+        boolean done = false
+        repeat while not done
+            if not IsValid() return context end
+            Token next = tokenIterator:GetCurrent()
+            if next:category = constants:COMMA
+                next = tokenIterator:Next()
+                ParseContext expression = Expression()
+                contexts:Add(expression)
+                next = tokenIterator:GetCurrent()
+            else
+                done = true
+            end
+    
+        end
+        context:contexts = contexts
+        return context
+    end
+
+    action VariableFunctionCall returns VariableFunctionCallContext
+        VariableFunctionCallContext context
+        Array<ActionCallContext> actions
+        ActionCallContext act = ActionCall()
+        actions:Add(act)
+        context:calls = actions
+
+        //if there's no more tokens, return now
+        if not tokenIterator:IsValid() return context end
+        Token current = tokenIterator:GetCurrent()
+        boolean done = false
+        repeat while not done and current not= undefined and current:category = constants:COLON
+            tokenIterator:Next()
+            act = ActionCall()
+            actions:Add(act)
+            if not IsValid() 
+                done = true
+            else 
+                current = tokenIterator:GetCurrent()
+            end
+        end
+        
+        return context
+    end
+
+    action ParentVariableActionCall returns ParentVariableFunctionCallContext
+        ParentVariableFunctionCallContext context = ParentVariableSoloActionCall()
+        context:isSolo = false
+        return context
+    end
+
+    action ActionOrParentActionCall returns ParseContext
+        if not tokenIterator:IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+
+        boolean hasMe = false
+        if current:category = constants:ME
+            current = tokenIterator:Next()
+
+            if current:category = constants:COLON
+                current = tokenIterator:Next()
+                hasMe = true
+            else //otherwise it's an error
+
+            end
+        end
+
+        if current:category = constants:ID //if it's not, it's an error
+            Token next = tokenIterator:LookAhead(1)
+            if next = undefined //return this value only
+                return VariableFunctionCall()
+            end
+            //This is an action call
+            if next:category = constants:LEFT_PAREN
+                return VariableFunctionCall()
+            //((ME COLON)? (fieldName=ID COLON))? 
+            elseif next:category = constants:COLON
+                Token nextNext = tokenIterator:LookAhead(2)
+                if nextNext = undefined //if there isn't a token past the colon, it's an error
+                    SendDefaultError("Unexpected end of text in action or parent call")
+                    return undefined 
+                end
+
+                if nextNext:category = constants:PARENT
+                    return ParentVariableActionCall()
+                else
+                    return VariableFunctionCall()
+                end
+            //PARENT COLON parent=qualified_name COLON initial_parent_action_call (COLON (action_call))*
+            elseif next:category = constants:PARENT
+                return ParentVariableActionCall()
+            else //it's an ID with nothing recognizable after it. Let the action processor attempt it
+                return VariableFunctionCall()
+            end
+        elseif current:category = constants:PARENT
+             return ParentVariableActionCall()
+        end
+        return undefined
+    end
+
+    action UnaryOperator returns ParseContext
+        if not IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+
+        if current:category = constants:MINUS
+            UnaryMinusContext context
+            tokenIterator:Next()
+            ParseContext expression = Literal()
+            if expression = undefined return undefined end
+            context:expression = expression
+            return context
+        elseif current:category = constants:NOT
+            NotContext context
+            tokenIterator:Next()
+            ParseContext expression = Literal()
+            if expression = undefined return undefined end
+            context:expression = expression
+            return context
+        else
+            return Literal()
+        end
+    end
+
+    action Literal returns ParseContext
+        //this is definitely an error. 
+        if not tokenIterator:IsValid() return undefined end
+        Token current = tokenIterator:GetCurrent()
+        ParseContext literal = undefined
+        if current:category = constants:INPUT
+            literal = Input()
+        elseif current:category = constants:CAST
+            literal = Cast()
+        elseif current:category = constants:INT
+            literal = Integer()
+        elseif current:category = constants:DECIMAL
+            literal = Number()
+        elseif current:category = constants:BOOLEAN
+            literal = Boolean()
+        elseif current:category = constants:STRING
+            literal = Text()
+        elseif current:category = constants:NULL            
+            literal = Undefined()
+        elseif current:category = constants:PARENT
+            literal = ParentVariableActionCall()
+        elseif current:category = constants:ID
+            literal = ActionOrParentActionCall()
+        elseif current:category = constants:ME
+
+            Token next = tokenIterator:LookAhead(1)
+            if next not= undefined and next:category = constants:COLON
+                literal = ActionOrParentActionCall()
+            else
+                literal = Me()
+            end
+        elseif current:category = constants:LEFT_PAREN
+            literal = Parenthesis()
+        end
+        return literal
+    end
+    action GetCompilerErrorManager returns CompilerErrorManager
+        return compilerErrorManager
+    end
+
+    action SetCompilerErrorManager(CompilerErrorManager compilerErrorManager)
+        me:compilerErrorManager = compilerErrorManager
+    end
+
+    action GetDisplay(Token token) returns text
+        QuorumLexerConstants constants
+        if token:category = constants:STRING
+            text dq = ""
+            dq = dq:GetDoubleQuote()
+            return dq + token:value + dq
+        else
+            return token:value
+        end
+    end
+end
