@@ -11,6 +11,9 @@ use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
+use Libraries.Language.Interpreter.QuorumLexer
+use Libraries.Language.Interpreter.QuorumParser
+use Libraries.Language.Compile.Context.StartContext
 
 class Compiler
     public constant number VERSION = 8.0
@@ -130,9 +133,9 @@ class Compiler
 
         if not (source = undefined)
             listener:SetSource(source)
-            ParseNative(source, listener)
+            Parse(source, listener)
         else 
-            ParseNative(loc, listener)
+            Parse(loc, listener)
         end
         
     end
@@ -1553,6 +1556,32 @@ There are many ways to load canvases and this is provided only as an exemplar.
         end
         
         return undefined
+    end
+
+    action Parse(File file, QuorumSourceListener listener) 
+        QuorumLexer lexer
+        lexer:Read(file)
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(listener:GetCompilerErrorManager())
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if start not= undefined
+            start:Traverse(listener)
+        end
+    end
+
+    action Parse(text source, QuorumSourceListener listener)
+        QuorumLexer lexer
+        lexer:Read(source)
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(listener:GetCompilerErrorManager())
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if start not= undefined
+            start:Traverse(listener)
+        end
     end
 
     system action ParseNative(File file, QuorumSourceListener listener)

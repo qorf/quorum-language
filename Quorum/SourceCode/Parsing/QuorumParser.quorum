@@ -445,6 +445,9 @@ class QuorumParser
             next = tokenIterator:GetCurrent()
 
             if next:category = constants:ID
+                QualifiedName name
+                name:Add(next:value)
+                context:name = name
                 context:className = next:value
             else //this is an error. We expected an ID.
                 SendDefaultError("An identifier was expected, but the token received was "
@@ -1165,6 +1168,7 @@ class QuorumParser
             return undefined //the declaration handled the error
         end
         context:declaration = declaration
+        context:leftHandSide = declaration:type
         if not IsValid() //this is an error
             SendDefaultError(textEndedError + " while expecting an identifier. " + moreInformationAssignment)
             return undefined
@@ -1602,12 +1606,14 @@ class QuorumParser
             SendDefaultError("Expected if, not " + next:value + "." + moreInformationIf)
             return undefined 
         end
-
+        
         Array<BlockContext> elseIfBlocks
         Array<ParseContext> elseIfExpressions
         ParseContext ifExpression = Expression()
         BlockContext ifBlock = Block()
-        
+        context:ifExpression = ifExpression
+        context:ifBlock = ifBlock
+
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an if statement. " 
             + moreInformationIf)
@@ -1615,8 +1621,7 @@ class QuorumParser
         end
         next = tokenIterator:GetCurrent()
 
-        context:ifExpression = ifExpression
-        context:ifBlock = ifBlock
+        
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
             next = tokenIterator:Next()
@@ -1843,6 +1848,10 @@ class QuorumParser
             if theReturn = undefined
                 return undefined
             end
+        else
+            Type type
+            type:SetToVoid()
+            context:returnType = type
         end
         return context
     end
@@ -2996,6 +3005,9 @@ class QuorumParser
 
     action ParentVariableActionCall returns ParentVariableFunctionCallContext
         ParentVariableFunctionCallContext context = ParentVariableSoloActionCall()
+        if context = undefined
+            return context
+        end
         context:isSolo = false
         return context
     end
@@ -3038,8 +3050,6 @@ class QuorumParser
                     return VariableFunctionCall()
                 end
             //PARENT COLON parent=qualified_name COLON initial_parent_action_call (COLON (action_call))*
-            elseif next:category = constants:PARENT
-                return ParentVariableActionCall()
             else //it's an ID with nothing recognizable after it. Let the action processor attempt it
                 return VariableFunctionCall()
             end
