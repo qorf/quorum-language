@@ -6,10 +6,11 @@ class StartContext is ParseContext
     public PackageContext packageContext = undefined
     public Array<UseContext> uses = undefined
     public ParseContext classDeclaration = undefined
+    public boolean useFirst = false
 
     action Traverse(QuorumSourceListener listener)
         listener:EnterStart(me)
-        if packageContext not= undefined
+        if packageContext not= undefined and not useFirst
             packageContext:Traverse(listener)
         end
 
@@ -19,6 +20,10 @@ class StartContext is ParseContext
                 uses:Get(i):Traverse(listener)
                 i = i + 1
             end
+        end
+
+        if packageContext not= undefined and useFirst
+            packageContext:Traverse(listener)
         end
 
         if classDeclaration not= undefined

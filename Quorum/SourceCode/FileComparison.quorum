@@ -1,0 +1,10 @@
+use Libraries.Containers.Support.Comparison
+use Libraries.System.File
+
+class FileComparison is Comparison
+    action Compare(Object a, Object b) returns integer
+        File fa = cast(File, a)
+        File fb = cast(File, b)
+        return fa:GetFileName():Compare(fb:GetFileName())
+    end
+end

@@ -133,9 +133,9 @@ class Compiler
 
         if not (source = undefined)
             listener:SetSource(source)
-            Parse(source, listener)
+            ParseNative(source, listener)
         else 
-            Parse(loc, listener)
+            ParseNative(loc, listener)
         end
         
     end

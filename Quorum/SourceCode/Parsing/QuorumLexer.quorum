@@ -218,10 +218,10 @@ class QuorumLexer is Lexer
 
     private action IsWhiteSpace returns boolean
         if charCode = 10 or//linefeed
-           charCode = 11 or//tab
+           charCode = 11 or//vertical tab
            charCode = 13 or //carriage return
            charCode = 32 or //space
-           charCode = 10 //linefeed
+           charCode = 9 //horizontal tab
             return true
         end
         return false
@@ -599,10 +599,11 @@ class QuorumLexer is Lexer
                 token:value = string
                 string = ""
                 done = true
-            elseif char2 = "\" and j + 1 < currentValue:GetSize() and currentValue:GetCharacter(j + 1) = quote
-                string = string + quote
-                j = j + 1 //add an extra value
-                currentColumn = currentColumn + 1
+            //temporarily remove this new change.
+            //elseif char2 = "\" and j + 1 < currentValue:GetSize() and currentValue:GetCharacter(j + 1) = quote
+            //    string = string + quote
+            //    j = j + 1 //add an extra value
+            //    currentColumn = currentColumn + 1
             else 
                 string = string + char2
             end

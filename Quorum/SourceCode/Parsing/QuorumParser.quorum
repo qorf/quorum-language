@@ -352,6 +352,7 @@ class QuorumParser
             end
             
         elseif next:category = constants:USE
+            context:useFirst = true
             Array<UseContext> uses = Uses()
             context:uses = uses
 
@@ -456,7 +457,17 @@ class QuorumParser
             end
 
             tokenIterator:Next()
-            context:generic = GenericDeclaration()
+            GenericDeclarationContext generics = GenericDeclaration()
+            if generics not= undefined and generics:tokens not= undefined
+                Array<text> gen = generics:tokens
+                i = 0
+                repeat while i < gen:GetSize()
+                    context:name:AddGeneric(gen:Get(i))
+                    i = i + 1
+                end
+            end
+
+            context:generic = generics
             context:inherit = IneritanceDeclaration()
 
             //this is not an error if it doesn't exist. You can declare a class with nothing
@@ -1242,7 +1253,6 @@ class QuorumParser
         end
 
         if next:category = constants:PARENT
-            context:variableName = next:value
             next = tokenIterator:Next()
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
@@ -1281,9 +1291,8 @@ class QuorumParser
             call = ActionCall()
             calls:Add(call)
 
-            if not IsValid() //this is an error
-                SendDefaultError(textEndedError + " while expecting a : (colon) in a parent call. " + moreInformationParentCall)
-                return undefined
+            if not IsValid() //this is not an error. You can end after an action call, depending on context
+                return context
             end
             next = tokenIterator:GetCurrent()
         end
@@ -2086,7 +2095,7 @@ class QuorumParser
                         //Don't need to manage the error here, as the action handled it
                         return NONE
                     else
-                        return OBJECT_ASSIGNMENT
+                        next = copy:Next()
                     end
                 end
 
