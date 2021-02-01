@@ -68,6 +68,7 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Hints.Hint
+use Libraries.Language.Compile.Location
 
 /*
     This class defines the parser for the Quorum programming language. Individual actions
@@ -230,6 +231,35 @@ class QuorumParser
     private action SendToCompilerErrorManager(Hint hint)
         if compilerErrorManager not= undefined
             compilerErrorManager:Add(hint)
+        end
+    end
+
+    private action SetLocation(ParseContext context, Token start, Token done)
+        Location location = context:GetLocation()
+        if start = undefined and done = undefined
+            location:SetLineNumber(0)
+            location:SetLineNumberEnd(0)
+            location:SetColumnNumber(0)
+            location:SetColumnNumberEnd(0)
+            location:SetIndex(0)
+            location:SetIndexEnd(0)
+            location:SetFile(lexer:GetCurrentFile())
+        elseif start not= undefined and done = undefined
+            location:SetLineNumber(start:startLine)
+            location:SetLineNumberEnd(start:endLine)
+            location:SetColumnNumber(start:startColumn)
+            location:SetColumnNumberEnd(start:endColumn)
+            location:SetIndex(start:startIndex)
+            location:SetIndexEnd(start:endIndex)
+            location:SetFile(lexer:GetCurrentFile())
+        else
+            location:SetLineNumber(start:startLine)
+            location:SetLineNumberEnd(done:endLine)
+            location:SetColumnNumber(start:startColumn)
+            location:SetColumnNumberEnd(done:endColumn)
+            location:SetIndex(start:startIndex)
+            location:SetIndexEnd(done:endIndex)
+            location:SetFile(lexer:GetCurrentFile())
         end
     end
 
@@ -1114,7 +1144,7 @@ class QuorumParser
         end
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:ID
-            context:name = next:value
+            context:object = next:value
             next = tokenIterator:Next()
         else //this is an error
             SendDefaultError("Expected identifier. " + moreInformationIdentifier)
@@ -1175,6 +1205,13 @@ class QuorumParser
         if access not= undefined
             context:hasModifier = true
             context:accessModifier = access
+            if access:isPublic
+                context:isPublic = true
+                context:isPrivate = false
+            elseif access:isPrivate
+                context:isPublic = false
+                context:isPrivate = true
+            end
         end
 
         if not IsValid() //this is an error
@@ -1222,6 +1259,7 @@ class QuorumParser
             context:hasRightHandSide = true
             next = tokenIterator:Next()
         else //this is not an error. The equals sign is optional and as such we should bail here.
+            context:hasRightHandSide = false
             return context
         end
 
@@ -2815,6 +2853,7 @@ class QuorumParser
 
             AssignmentDeclaractionContext assignment = AssignmentDeclaration()
             context:assignment = assignment
+            context:type = assignment:type
 
             current = tokenIterator:GetCurrent()
             if current:category = constants:COMMA
@@ -2931,6 +2970,7 @@ class QuorumParser
         Token current = tokenIterator:GetCurrent()
         if current:category = constants:ID
             context:name = current:value
+            context:SetFirstToken(current)
             //if there's a parenthesis, this is an action call. If it's not, it's an ID.
             Token next = tokenIterator:Next()
             if next = undefined //Just an ID, so return it
@@ -2946,6 +2986,9 @@ class QuorumParser
                     //we need the object, but it does nothing except trigger events
                     ActionExpressionListContext c
                     context:expressionList = c
+
+                    context:SetLastToken(next)
+                    SetLocation(context, context:GetFirstToken(), context:GetLastToken())
                     tokenIterator:Next()
                     return context
                 else //this isn't a right paren, do a function expression list
@@ -2962,6 +3005,8 @@ class QuorumParser
 
                 //If this isn't the case, it's an error.
                 if last:category = constants:RIGHT_PAREN
+                    context:SetLastToken(last)
+                    SetLocation(context, context:GetFirstToken(), context:GetLastToken())
                     tokenIterator:Next()
                 else
                     SendDefaultError("Expected ) (right paren) " + moreInformationActionCall)
@@ -2996,6 +3041,7 @@ class QuorumParser
             end
     
         end
+        context:size = contexts:GetSize()
         context:contexts = contexts
         return context
     end

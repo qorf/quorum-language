@@ -216,6 +216,7 @@ class ParseTestMain
         boolean allMatch = true
         integer matchedRows = 0
 
+        text printed = ""
         i = 0
         repeat while antlrator:HasNext()
             text value = antlrator:Next()
@@ -224,21 +225,31 @@ class ParseTestMain
                 if value = value1
                     matchedRows = matchedRows + 1
                     if print
-                        output "" + i + ": Antlr '" + value + "', Ours '" + value1  + "'"
+                        printed = printed + "" + i + ": Antlr '" + value + "', Ours '" + value1  + "'
+"
                     end
                 else
                     allMatch = false
                     if print
-                        output i + ": Antlr '" + value + "', Ours '" + value1  + "' --- WRONG ---"
+                        printed = printed + i + ": Antlr '" + value + "', Ours '" + value1  + "' --- WRONG ---
+"
                     end
                 end
                 
             else
                 if print
-                    output "Missing " + i + ": Antlr is '" + value + "'"
+                    printed = printed + "Missing " + i + ": Antlr is '" + value + "'
+"
                 end
             end
             i = i + 1
+        end
+
+        if print
+            File file 
+            file:SetPath("Result.txt")
+            output file:GetAbsolutePath()
+            file:Write(printed)
         end
         return allMatch
     end
@@ -336,7 +347,7 @@ class ParseTestMain
         file:SetPath("files/expression.quorum")
         Parse(file)
         //parse the standard library.
-//        RunStandardLibrary()
+        //RunStandardLibrary()
 //        file:SetPath("Library/Tests/Actions/Pass")
 //        Parse(file)
 //        file:SetPath("Library/Tests/Array/Pass")

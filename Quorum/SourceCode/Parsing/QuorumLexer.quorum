@@ -39,6 +39,7 @@ class QuorumLexer is Lexer
     CompilerErrorManager compilerErrorManager = undefined
     CompilerErrorType typeConstants
     File currentFile = undefined
+    constant integer LINE_FEED = 10
 
     text quote = ""
     HashTable<text, integer> keywords
@@ -138,7 +139,7 @@ class QuorumLexer is Lexer
             charCode = currentChar:GetUnicodeInteger(0)
             
             token = undefined
-            if currentChar = value:GetLineFeed()
+            if charCode = LINE_FEED //linefeed
                 currentLine = currentLine + 1
                 currentColumn = -1
             end
@@ -217,7 +218,7 @@ class QuorumLexer is Lexer
     end
 
     private action IsWhiteSpace returns boolean
-        if charCode = 10 or//linefeed
+        if charCode = LINE_FEED or//linefeed
            charCode = 11 or//vertical tab
            charCode = 13 or //carriage return
            charCode = 32 or //space
@@ -272,8 +273,6 @@ class QuorumLexer is Lexer
         text linefeed = ""
         linefeed = linefeed:GetLineFeed()
         ProcessGreedy(token, linefeed)
-        currentLine = currentLine + 1
-        currentColumn = -1
         token:SetToCommentChannel()
     end
 
@@ -283,13 +282,22 @@ class QuorumLexer is Lexer
         boolean done = false
         repeat while j < currentValue:GetSize() and not done
             char2 = currentValue:GetCharacter(j)
+            integer code = char2:GetUnicodeInteger(0)
+            
             if MatchesFromIndex(ending, j)
                 j = j + CalculateIndexChange(ending)
                 done = true
             else 
                 string = string + char2
             end
-            currentColumn = currentColumn + 1
+
+            if code = LINE_FEED
+                currentLine = currentLine + 1
+                currentColumn = -1
+            else
+                currentColumn = currentColumn + 1
+            end
+            
             j = j + 1
         end
         token:category = constants:COMMENTS
@@ -594,6 +602,7 @@ class QuorumLexer is Lexer
         boolean done = false
         repeat while j < currentValue:GetSize() and not done
             char2 = currentValue:GetCharacter(j)
+            integer code = char2:GetUnicodeInteger(0)
             if char2 = quote
                 token:category = constants:STRING
                 token:value = string
@@ -607,7 +616,13 @@ class QuorumLexer is Lexer
             else 
                 string = string + char2
             end
-            currentColumn = currentColumn + 1
+            
+            if code = LINE_FEED
+                currentLine = currentLine + 1
+                currentColumn = -1
+            else
+                currentColumn = currentColumn + 1
+            end
             j = j + 1
         end
         index = j - 1

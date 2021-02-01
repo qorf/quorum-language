@@ -24,7 +24,9 @@ class ActionCallContext is ParseContext
         if name = "Get"
             a = 5
         end
-        if expressionList not= undefined expressionList:Traverse(listener) end
+        if expressionList not= undefined 
+            expressionList:Traverse(listener) 
+        end
 
         ExitDocumentation(listener)
         if traverseAsInitialParent

@@ -1,10 +1,13 @@
 package Libraries.Language.Compile.Context
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Interpreter.Token
 
 class ParseContext 
     Location location
     DocumentationContext documentation = undefined
+    Token firstToken = undefined
+    Token lastToken = undefined
 
     action GetLocation returns Location
         return location
@@ -36,5 +39,21 @@ class ParseContext
 
     action SetDocumentation(DocumentationContext documentation)
         me:documentation = documentation
+    end
+
+    action GetLastToken returns Token
+        return lastToken
+    end
+
+    action SetLastToken(Token lastToken)
+        me:lastToken = lastToken
+    end
+
+    action GetFirstToken returns Token
+        return firstToken
+    end
+
+    action SetFirstToken(Token firstToken)
+        me:firstToken = firstToken
     end
 end

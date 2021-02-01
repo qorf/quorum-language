@@ -28,8 +28,20 @@ class LogListener is QuorumSourceListener
     action EnterParenthesisExpression(ParenthesisContext context) LogRule("EnterParenthesisExpression") end
     action ExitParenthesisExpression(ParenthesisContext context) LogRule("ExitParenthesisExpression") end
 
-    action EnterCast(CastContext context) LogRule("EnterCast") end
-    action ExitCast(CastContext context) LogRule("ExitCast") end
+    action EnterCast(CastContext context) 
+        text value = ""
+        if context:type not= undefined
+            value = context:type:GetStaticKey()
+        end
+        LogRule("EnterCast ")// + value) 
+    end
+    action ExitCast(CastContext context) 
+        text value = ""
+        if context:type not= undefined
+            value = context:type:GetStaticKey()
+        end
+        LogRule("ExitCast " + value) 
+    end
 
     action EnterSayStatement(SayContext context) LogRule("EnterSayStatement") end
     action ExitSayStatement(SayContext context) LogRule("ExitSayStatement") end
@@ -55,8 +67,13 @@ class LogListener is QuorumSourceListener
     action EnterMe(MeContext context) LogRule("EnterMe") end
     action ExitMe(MeContext context) LogRule("ExitMe") end
 
-    action EnterActionExpressionList(ActionExpressionListContext context) LogRule("EnterActionExpressionList") end
-    action ExitActionExpressionList(ActionExpressionListContext context) LogRule("ExitActionExpressionList") end
+    action EnterActionExpressionList(ActionExpressionListContext context) 
+        
+        LogRule("EnterActionExpressionList " + context:size) 
+    end
+    action ExitActionExpressionList(ActionExpressionListContext context) 
+        LogRule("ExitActionExpressionList " + context:size) 
+    end
 
     action EnterStart(StartContext context) LogRule("EnterStart") end
     action ExitStart(StartContext context) LogRule("ExitStart") end
@@ -204,8 +221,13 @@ class LogListener is QuorumSourceListener
     action EnterParentAssignment(ParentAssignmentContext context) LogRule("EnterParentAssignment") end
     action ExitParentAssignment(ParentAssignmentContext context) LogRule("ExitParentAssignment") end
 
-    action EnterObjectAssignment(ObjectAssignmentContext context) LogRule("EnterObjectAssignment") end
-    action ExitObjectAssignment(ObjectAssignmentContext context) LogRule("ExitObjectAssignment") end
+    action EnterObjectAssignment(ObjectAssignmentContext context)
+        
+        LogRule("EnterObjectAssignment " + context:object + " " + context:name) 
+    end
+    action ExitObjectAssignment(ObjectAssignmentContext context) 
+        LogRule("ExitObjectAssignment " + context:object + " " + context:name) 
+    end
 
     action EnterNoTypeAssignment(NoTypeAssignmentContext context) LogRule("EnterNoTypeAssignment") end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) LogRule("ExitNoTypeAssignment") end
@@ -222,15 +244,33 @@ class LogListener is QuorumSourceListener
     action EnterInitialParentActionCall(ActionCallContext ctx) LogRule("EnterInitialParentActionCall") end
     action ExitInitialParentActionCall(ActionCallContext ctx) LogRule("ExitInitialParentActionCall") end
 
-    action EnterVariableFunctionCall(VariableFunctionCallContext context) LogRule("EnterVariableFunctionCall") end
-    action ExitVariableFunctionCall(VariableFunctionCallContext context) LogRule("ExitVariableFunctionCall") end
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) 
+        text value = ""
+        if context:objectName not= undefined
+            value = context:objectName
+        end
+        LogRule("EnterVariableFunctionCall " + value) 
+    end
 
-    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) LogRule("EnterParentVariableFunctionCall") end
-    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context) LogRule("ExitParentVariableFunctionCall") end
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) 
+        text value = ""
+        if context:objectName not= undefined
+            value = context:objectName
+        end
+        LogRule("ExitVariableFunctionCall " + value) 
+    end
+
+    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) 
+        LogRule("EnterParentVariableFunctionCall") 
+    end
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context) 
+        LogRule("ExitParentVariableFunctionCall") 
+    end
 
     action EnterActionCall(ActionCallContext ctx) 
         LogRule("EnterActionCall " + " Is Solo: " + ctx:isSolo) 
     end
+
     action ExitActionCall(ActionCallContext ctx) 
         LogRule("ExitActionCall " + ctx:name + " Is Solo: " + ctx:isSolo) 
     end
