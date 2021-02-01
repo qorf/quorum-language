@@ -615,7 +615,20 @@ class QuorumParser
             return undefined
         end
         GenericContext generic = GenericStatement() //undefined if it doesn't exist, without advancing token
-        
+        if generic not= undefined and generic:genericContexts not= undefined
+            Array<AssignmentDeclaractionContext> gen = generic:genericContexts
+            i = 0
+            repeat while i < gen:GetSize()
+                AssignmentDeclaractionContext assign = gen:Get(i)
+                
+                context:generics:Add(assign:type)
+                QualifiedName n = name:name
+                text key = assign:type:GetStaticKey()
+                n:AddGeneric(key)
+                i = i + 1
+            end
+        end
+
         context:name = name:name
         context:nameContext = name
         context:generic = generic //this might be undefined and that is ok

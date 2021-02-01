@@ -304,6 +304,9 @@ class Class is Symbol
                         //if it exists. If it doesn't, ignore this
                         Array<Type> values = GetParentGenerics(mom:GetStaticKey())
                         if values not= undefined //sizing is already checked
+                            if index >= values:GetSize() or index < 0
+                                a = 5
+                            end
                             Type actualType = values:Get(index)
                             //if it's not a generic, set the return type value
                             //to the declared value and see if it matches
