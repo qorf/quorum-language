@@ -1351,6 +1351,7 @@ class QuorumParser
         end
         Token next = tokenIterator:GetCurrent()
         ParentVariableFunctionCallContext context
+        context:SetFirstToken(next)
         context:SetDocumentation(CheckForDocumentation())
         context:isSolo = true
         if next:category = constants:ME
@@ -1420,6 +1421,8 @@ class QuorumParser
             end
             next = tokenIterator:GetCurrent()
         end
+        context:SetLastToken(next)
+        SetLocation(context)
         return context
     end
 
@@ -1430,6 +1433,7 @@ class QuorumParser
         end
         Token next = tokenIterator:GetCurrent()
         VariableFunctionCallContext context
+        context:SetFirstToken(next)
         context:SetDocumentation(CheckForDocumentation())
         context:isSoloCall = true
         if next:category = constants:ME
@@ -1462,6 +1466,7 @@ class QuorumParser
             ActionCallContext call = ActionCall()
             if call not= undefined
                 calls:Add(call)
+                context:SetLastToken(call:GetLastToken())
             else
                 return undefined //must be at least one, otherwise it error'd out.
             end
@@ -1469,6 +1474,7 @@ class QuorumParser
             if not IsValid() //this is an error
                 if not calls:IsEmpty()
                     ActionCallContext last = calls:Get(calls:GetSize() - 1)
+                    context:SetLastToken(last:GetLastToken())
                     context:calls = calls
                 end
                 return context
@@ -1486,10 +1492,12 @@ class QuorumParser
             //The error will already exist from the ActionCall
             if not calls:IsEmpty()
                 ActionCallContext last = calls:Get(calls:GetSize() - 1)
+                context:SetLastToken(last:GetLastToken())
                 context:calls = calls
             end
         end
 
+        SetLocation(context)
         return context
     end
 
@@ -1504,6 +1512,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:RETURN
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected return. " + moreInformationReturn)
@@ -1513,12 +1522,17 @@ class QuorumParser
         if next:category = constants:NOW
             context:isReturnNow = true
             next = tokenIterator:Next()
+            context:SetLastToken(next)
+            SetLocation(context)
             return context
         end
 
         context:expression = Expression()
         if context:expression = undefined
             return undefined
+        else
+            context:SetLastToken(context:expression:GetLastToken())
+            SetLocation(context)
         end
         return context
     end
@@ -1534,6 +1548,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:REPEAT
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected repeat. " + moreInformationRepeat)
@@ -1574,7 +1589,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
 
         if next:category = constants:END
-            tokenIterator:Next()
+            context:SetLastToken(tokenIterator:Next())
+            SetLocation(context)
         else //otherwise this is an error
             SendDefaultError("Expected end at the end of a repeat. " + CalculateMatchedBracesMessage())
                 return undefined 
@@ -1594,6 +1610,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:CHECK
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
         end
@@ -1606,7 +1623,6 @@ class QuorumParser
         Array<DetectStatementContext> detectContexts
         AlwaysStatementContext alwaysContext = undefined
         if next:category = constants:DETECT //at least one detect block
-
             repeat while next:category = constants:DETECT
                 DetectStatementContext detectStatement = DetectStatement()
                 detectContexts:Add(detectStatement)
@@ -1640,7 +1656,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
 
         if next:category = constants:END
-            tokenIterator:Next()
+            context:SetLastToken(tokenIterator:Next())
+            SetLocation(context)
         else
             SendDefaultError("Expected end at the end of a check. " + CalculateMatchedBracesMessage())
             return undefined 
@@ -1659,6 +1676,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:DETECT
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected detect. " + moreInformationCheck)
@@ -1695,6 +1713,10 @@ class QuorumParser
         context:block = Block()
         if context:block = undefined //it issues the error
             return undefined
+        else
+           Token last = context:block:GetLastToken()
+           context:SetLastToken(last)
+           SetLocation(context)
         end
         return context
     end
@@ -1710,6 +1732,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:ALWAYS
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected always " + moreInformationCheck)
@@ -1719,6 +1742,9 @@ class QuorumParser
         context:block = Block()
         if context:block = undefined //it issues the error
             return undefined
+        else
+            context:SetLastToken(context:block:GetLastToken())
+            SetLocation(context)
         end
         return context
     end
@@ -1734,6 +1760,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:IF
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected if, not " + next:value + "." + moreInformationIf)
@@ -1753,7 +1780,6 @@ class QuorumParser
             return undefined 
         end
         next = tokenIterator:GetCurrent()
-
         
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
@@ -1793,6 +1819,8 @@ class QuorumParser
         end
         next = tokenIterator:GetCurrent()
         if next:category = constants:END
+            context:SetLastToken(next)
+            SetLocation(context)
             next = tokenIterator:Next()
         else //otherwise this is an error
             SendDefaultError("Expected end at the end of an if statement. " + CalculateMatchedBracesMessage())
@@ -1811,12 +1839,16 @@ class QuorumParser
         
         if next:category = constants:OUTPUT
             OutputContext context
+            context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
             next = tokenIterator:Next() //skip the output token
             
             context:expression = Expression()
             if context:expression = undefined
                 return undefined
+            else
+                context:SetLastToken(context:expression:GetLastToken())
+                SetLocation(context)
             end
             return context
         else 
@@ -1835,12 +1867,16 @@ class QuorumParser
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:SAY
             SayContext context
+            context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
             tokenIterator:Next() //skip the output token
             
             context:expression = Expression()
             if context:expression = undefined
                 return undefined
+            else
+                context:SetLastToken(context:expression:GetLastToken())
+                SetLocation(context)
             end
             return context
         else
@@ -1860,6 +1896,7 @@ class QuorumParser
         
         if current:category = constants:ALERT
             AlertContext context
+            context:SetFirstToken(current)
             context:SetDocumentation(CheckForDocumentation())
             current = tokenIterator:Next() //skip the output token
             
@@ -1884,6 +1921,8 @@ class QuorumParser
                     end
                     next = tokenIterator:GetCurrent()
                     if next not= undefined and next:category = constants:RIGHT_PAREN
+                        context:SetLastToken(next)
+                        SetLocation(context)
                         tokenIterator:Next()
                         return context
                     else //this is an error. There needs to be a paren at the end of the expression
@@ -1911,6 +1950,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if next:category = constants:ACTION
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected action, received " + next:value + "." + moreInformationActions)
@@ -1919,6 +1959,7 @@ class QuorumParser
 
         if next:category = constants:ID
             context:actionName = next:value
+            context:SetLastToken(next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected action, received " + next:value + "." + moreInformationIdentifier)
@@ -1930,6 +1971,7 @@ class QuorumParser
             next = tokenIterator:Next()
             //they are just using parens even though they aren't necessary
             if next:category = constants:RIGHT_PAREN
+                context:SetLastToken(next)
                 next = tokenIterator:Next()
             else //if it's not a paren, it has to be a formal parameter. 
                 List<Variable> variables = context:parameters
@@ -1964,6 +2006,7 @@ class QuorumParser
                 end
 
                 if next:category = constants:RIGHT_PAREN
+                    context:SetLastToken(next)
                     next = tokenIterator:Next()
                 else //this is an error
                     SendDefaultError("Expected ) (right paren), received " + next:value + "." + moreInformationActions)
@@ -1980,12 +2023,15 @@ class QuorumParser
             context:returnType = theReturn:type
             if theReturn = undefined
                 return undefined
+            else
+                context:SetLastToken(theReturn:GetLastToken())
             end
         else
             Type type
             type:SetToVoid()
             context:returnType = type
         end
+        SetLocation(context)
         return context
     end
 
@@ -1999,7 +2045,7 @@ class QuorumParser
         
         FormalParameterContext context
         context:SetDocumentation(CheckForDocumentation())
-
+        context:SetFirstToken(next)
         AssignmentDeclaractionContext value = AssignmentDeclaration()
         context:declaration = value
 
@@ -2018,6 +2064,8 @@ class QuorumParser
 
         if next:category = constants:ID
             context:name = next:value
+            context:SetLastToken(next)
+            SetLocation(context)
             tokenIterator:Next()
         else //this is an error
             SendDefaultError("Expected identifier, received " + next:value + "." + moreInformationIdentifier)
@@ -2408,6 +2456,7 @@ class QuorumParser
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
+        context:SetFirstToken(next)
 
         Array<ParseContext> statements
         
@@ -2473,6 +2522,12 @@ class QuorumParser
                 end
             end
 
+            if statements not= undefined and not statements:IsEmpty()
+                ParseContext statement = statements:Get(statements:GetSize() - 1)
+                context:SetLastToken(statement:GetLastToken())
+                SetLocation(context)
+            end
+
             actionsNoClass:statements = statements
             actionsNoClass:actions = actions
             context:statements = actionsNoClass
@@ -2525,11 +2580,14 @@ class QuorumParser
 
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:PACKAGE_NAME
+            context:SetFirstToken(next)
             tokenIterator:Next()
             QualifiedNameContext qn = QualifiedName()
             if qn not= undefined
                 context:name = qn:name
                 context:nameContext = qn
+                context:SetLastToken(qn:GetLastToken())
+                SetLocation(context)
             else //don't issue an extra error message here, as qualified name will handle its own errors
                 return undefined
             end
@@ -2547,6 +2605,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:USE
+            context:SetFirstToken(next)
             tokenIterator:Next()
             QualifiedNameContext name = QualifiedName()
 
@@ -2557,6 +2616,8 @@ class QuorumParser
             else
                 context:name = name:name
                 context:nameContext = name
+                context:SetLastToken(name:GetLastToken())
+                SetLocation(context)
             end
         else
             SendDefaultError("A use statement was expected, but the token received was "
@@ -2579,12 +2640,14 @@ class QuorumParser
         context:name = name
         if next:category = constants:ID
             name:Add(next:value)
+            context:SetFirstToken(next)
             next = tokenIterator:Next()
             repeat while IsValid() and next:category = constants:PERIOD
                 next = tokenIterator:Next()
 
                 if IsValid() and next:category = constants:ID
                     name:Add(next:value)
+                    context:SetLastToken(next)
                 else //this is an error
                     text intro = "A qualified name was started and then there was a period. "
                         + " After the period another identifier is needed"
@@ -2604,6 +2667,7 @@ class QuorumParser
             + next:value + ". " + qualifiedNameExample)
             return undefined 
         end
+        SetLocation(context)
         return context
     end
 
