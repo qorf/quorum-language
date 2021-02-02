@@ -235,8 +235,12 @@ class LogListener is QuorumSourceListener
     action EnterMeVariableAccess(MeVariableAccessContext context) LogRule("EnterMeVariableAccess") end
     action ExitMeVariableAccess(MeVariableAccessContext context) LogRule("ExitMeVariableAccess") end
 
-    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) LogRule("EnterVariableSoloFunctionCall") end
-    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) LogRule("ExitVariableSoloFunctionCall") end
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) 
+        LogRule("EnterVariableSoloFunctionCall") 
+    end
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) 
+        LogRule("ExitVariableSoloFunctionCall") 
+    end
 
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) LogRule("EnterParentVariableSoloFunctionCall") end
     action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) LogRule("ExitParentVariableSoloFunctionCall") end
