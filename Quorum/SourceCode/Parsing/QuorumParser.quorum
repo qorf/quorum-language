@@ -2700,6 +2700,9 @@ class QuorumParser
             ParseContext right = And()
             context:right = right
 
+            context2:SetFirstToken(left:GetFirstToken())
+            context2:SetLastToken(right:GetLastToken())
+            SetLocation(context2)
             left = context
             if not tokenIterator:HasNext() return left end
             next = tokenIterator:GetCurrent()
@@ -2728,6 +2731,9 @@ class QuorumParser
             ParseContext right = Equals()
             context:right = right
 
+            context2:SetFirstToken(left:GetFirstToken())
+            context2:SetLastToken(right:GetLastToken())
+            SetLocation(context2)
             left = context
             if not IsValid() return left end
             next = tokenIterator:GetCurrent()
@@ -2745,10 +2751,12 @@ class QuorumParser
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:EQUALITY
             EqualsContext context2
+            context2:SetFirstToken(left:GetFirstToken())
             context = context2
             context:left = left
         elseif next:category = constants:NOT_EQUALS
             EqualsContext context2
+            context2:SetFirstToken(left:GetFirstToken())
             context2:equalsTo = false
             context = context2
         else 
@@ -2759,9 +2767,13 @@ class QuorumParser
         if HasNext()
             tokenIterator:Next()
             ParseContext right = Inherits()
+            context:SetLastToken(right:GetLastToken())
+            SetLocation(context)
             context:right = right
             return context
         else 
+            context:SetLastToken(next)
+            SetLocation(context)
             return left
         end
     end
@@ -2772,6 +2784,9 @@ class QuorumParser
         if nameContext = undefined
             return undefined
         else
+            context:SetFirstToken(nameContext:GetFirstToken())
+            context:SetLastToken(nameContext:GetLastToken())
+            SetLocation(context)
             context:nameContext = nameContext
             return context
         end
@@ -2796,6 +2811,9 @@ class QuorumParser
                 QualifiedNameContext nameContext = type:nameContext
                 context2:name = nameContext:name
                 context = context2
+                context2:SetFirstToken(left:GetFirstToken())
+                context2:SetLastToken(nameContext:GetLastToken())
+                SetLocation(context2)
             end
         else 
             return left
@@ -2845,6 +2863,9 @@ class QuorumParser
                 return undefined
             end 
             context:right = right
+            context:SetFirstToken(left:GetFirstToken())
+            context:SetLastToken(right:GetLastToken())
+            SetLocation(context)
 
             left = context
             if not tokenIterator:IsValid() return left end
@@ -2883,6 +2904,9 @@ class QuorumParser
                 return undefined
             end
 
+            context:SetFirstToken(left:GetFirstToken())
+            context:SetLastToken(right:GetLastToken())
+            SetLocation(context)
             left = context
             if not IsValid() return left end
             next = tokenIterator:GetCurrent()
@@ -2926,6 +2950,9 @@ class QuorumParser
                 return undefined
             end
             
+            context:SetFirstToken(left:GetFirstToken())
+            context:SetLastToken(right:GetLastToken())
+            SetLocation(context)
             left = context
             if not IsValid() return left end
             next = tokenIterator:GetCurrent()
@@ -2943,6 +2970,7 @@ class QuorumParser
 
         if current:category = constants:INPUT
             current = tokenIterator:Next()
+            context:SetFirstToken(current)
         end
 
         //check if it's left and right paren or if it has an expression
@@ -2958,7 +2986,8 @@ class QuorumParser
                 if not tokenIterator:IsValid() return undefined end
                 next = tokenIterator:GetCurrent()
                 if next not= undefined and next:category = constants:RIGHT_PAREN
-                    tokenIterator:Next()
+                    context:SetLastToken(tokenIterator:Next())
+                    SetLocation(context)
                     return context
                 else //this is an error. There needs to be a paren at the end of the expression
                     SendDefaultError("Expected ) (right paren) " + moreInformationInput)
@@ -2978,6 +3007,7 @@ class QuorumParser
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
         if current:category = constants:CAST
+            context:SetFirstToken(current)
             current = tokenIterator:Next()
         else
             SendDefaultError("Expected cast " + moreInformationCast)
@@ -3012,6 +3042,8 @@ class QuorumParser
     
             next = tokenIterator:GetCurrent()
             if next not= undefined and next:category = constants:RIGHT_PAREN
+                context:SetLastToken(next)
+                SetLocation(context)
                 tokenIterator:Next()
                 return context
             else //it's not a right paren, it's an error, Jim
@@ -3030,6 +3062,9 @@ class QuorumParser
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
         IntegerContext context
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         text val = current:value
         check
             context:value = cast(integer, val)
@@ -3044,6 +3079,9 @@ class QuorumParser
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
         NumberContext context
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         text val = current:value
         check
             context:value = cast(number, val)
@@ -3058,6 +3096,9 @@ class QuorumParser
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
         BooleanContext context
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         text val = current:value
         context:value = cast(boolean, val)
         current = tokenIterator:Next()
@@ -3068,6 +3109,9 @@ class QuorumParser
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
         TextContext context
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         context:value = current:value
         tokenIterator:Next()
         return context
@@ -3075,14 +3119,19 @@ class QuorumParser
 
     action Undefined returns UndefinedContext
         UndefinedContext context
-        tokenIterator:Next()
+        Token current = tokenIterator:Next()
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         return context
     end
 
 
     action Parenthesis returns ParenthesisContext
         ParenthesisContext context
-        tokenIterator:Next()
+        Token current = tokenIterator:Next()
+        context:SetFirstToken(current)
+        
         ParseContext expression = Expression()
         if expression = undefined //the expression will handle the error
             return undefined
@@ -3094,6 +3143,9 @@ class QuorumParser
         if next:category not= constants:RIGHT_PAREN //this is an error
             SendDefaultError("Expected ) (right paren) ")
             return undefined 
+        else
+            context:SetLastToken(next)
+            SetLocation(context)
         end
         tokenIterator:Next()
         return context
@@ -3101,7 +3153,10 @@ class QuorumParser
 
     action Me returns MeContext
         MeContext context
-        tokenIterator:Next()
+        Token current = tokenIterator:Next()
+        context:SetFirstToken(current)
+        context:SetLastToken(current)
+        SetLocation(context)
         return context
     end
 
@@ -3182,6 +3237,11 @@ class QuorumParser
             end
     
         end
+        if contexts not= undefined and not contexts:IsEmpty()
+            context:SetFirstToken(contexts:Get(0):GetFirstToken())
+            context:SetLastToken(contexts:Get(contexts:GetSize() - 1):GetLastToken())
+            SetLocation(context)
+        end
         context:size = contexts:GetSize()
         context:contexts = contexts
         return context
@@ -3209,6 +3269,11 @@ class QuorumParser
             end
         end
         
+        if actions not= undefined and not actions:IsEmpty()
+            context:SetFirstToken(actions:Get(0):GetFirstToken())
+            context:SetLastToken(actions:Get(actions:GetSize() - 1):GetLastToken())
+            SetLocation(context)
+        end
         return context
     end
 
@@ -3274,17 +3339,23 @@ class QuorumParser
 
         if current:category = constants:MINUS
             UnaryMinusContext context
+            context:SetFirstToken(current)
             tokenIterator:Next()
             ParseContext expression = Literal()
             if expression = undefined return undefined end
             context:expression = expression
+            context:SetLastToken(expression:GetLastToken())
+            SetLocation(context)
             return context
         elseif current:category = constants:NOT
             NotContext context
+            context:SetFirstToken(current)
             tokenIterator:Next()
             ParseContext expression = Literal()
             if expression = undefined return undefined end
             context:expression = expression
+            context:SetLastToken(expression:GetLastToken())
+            SetLocation(context)
             return context
         else
             return Literal()
