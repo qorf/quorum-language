@@ -345,7 +345,7 @@ class QuorumParser
         return false
     end
 
-    action HasNext returns boolean
+    private action HasNext returns boolean
         if tokenIterator:HasNext()
             //having one isn't required, but if there is one, see if we've found an error so far
             if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
@@ -357,8 +357,8 @@ class QuorumParser
         return false
     end
     /*
-        This action obtains a parse from a token stream assuming a complete Quorum program. A valid lexer
-        must have been sent to the parser before calling this action. 
+        This action obtains a parse from a token stream assuming a complete Quorum program. 
+        A valid lexer must have been sent to the parser before calling this action. 
     */
     action Start returns StartContext
         StartContext context
@@ -418,6 +418,9 @@ class QuorumParser
         end
     end
 
+    /*
+        This action parses a class definition.
+    */
     action Class returns ParseContext
         ParseContext context = undefined
 
@@ -435,7 +438,7 @@ class QuorumParser
         return context
     end
 
-    action CheckForDocumentation returns DocumentationContext
+    private action CheckForDocumentation returns DocumentationContext
         Token token = tokenIterator:FindRecentDocumentation()
         if token = undefined
             return undefined
@@ -450,11 +453,17 @@ class QuorumParser
         return tokenIterator:IsRecentDocumentationFirstTokenOnly()
     end
 
+    /*
+        Parse a class definition that is explicit, meaning that the user
+        typed class, a name, etc. 
+    */
     action FullClass returns FullClassDeclarationContext
         FullClassDeclarationContext context
         //this is an intentional bug to make it match Antlr output exactly. 
         //It should be removed once the hand parser is integrated.
-        if DetectCrazyAntlrParserBug() context:fireDocumentation = false end
+        //Kept this in as a private debugging idea to remind myself
+        //what Antlr was doing in my implementation of its listener.
+        //if DetectCrazyAntlrParserBug() context:fireDocumentation = false end
         context:SetDocumentation(CheckForDocumentation())
 
         //A class was requested, but there is no input.
@@ -546,6 +555,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes generics.
+    */
     action GenericDeclaration returns GenericDeclarationContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to create a generic. " 
@@ -596,6 +608,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        Process inheritance
+    */
     action IneritanceDeclaration returns InheritStatementsContext
         text moreInformationInheritance = "Inheritance is a way for us to extend the capabilities of a class. "
             + "An example might be to say class MyClass is AnotherClass" 
@@ -650,6 +665,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        Process an individual statement related to inheritance.
+    */
     action InheritanceStatement returns InheritStatementContext
         InheritStatementContext context
         context:SetDocumentation(CheckForDocumentation())
@@ -685,6 +703,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Process a single generic statement.
+    */
     action GenericStatement returns GenericContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to create a generic statement. " 
@@ -745,6 +766,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        Process one statement assumed to be an assignment statement.
+    */
     action AssignmentDeclaration returns AssignmentDeclaractionContext
         if not IsValid() return undefined end
         Token next = tokenIterator:GetCurrent()
@@ -796,6 +820,10 @@ class QuorumParser
         return context
     end
 
+    /*
+        Process one statement issued inside of a class, either an action
+        declaration or an assignment statement.
+    */
     action ClassStatement returns ClassStatementsContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to process statements in a class. " 
@@ -823,6 +851,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        Process just the declaration of an action, including its block if it has one.
+    */
     action ActionDeclaration returns ParseContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to create an action. " 
@@ -937,6 +968,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Process a block.
+    */
     action Block returns BlockContext
         //blocks can be empty and that's ok.
         BlockContext context        
@@ -966,7 +1000,7 @@ class QuorumParser
         return "" //not sure what this should do yet, but there's opportunities for something.
     end
 
-    action IsStatement returns boolean
+    private action IsStatement returns boolean
         if not IsValid() return false end
         Token next = tokenIterator:GetCurrent()
 
@@ -1002,7 +1036,9 @@ class QuorumParser
         return false
     end
 
-
+    /*
+        Process a single generic statement.
+    */
     action Statement returns StatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to create a statement. " 
@@ -1113,6 +1149,9 @@ class QuorumParser
         return undefined
     end
 
+    /* 
+        Process an assignment statement if no type is provided.
+    */
     action NoTypeAssignment returns NoTypeAssignmentContext
         NoTypeAssignmentContext context
         context:SetDocumentation(CheckForDocumentation())
@@ -1155,6 +1194,9 @@ class QuorumParser
         return context
     end
 
+    /* 
+        Process an assignment statement if we are assigning to a parent.
+    */
     action ParentAssignment returns ParentAssignmentContext
         ParentAssignmentContext context
         if not IsValid() return undefined end
@@ -1202,7 +1244,10 @@ class QuorumParser
         return context
     end
 
-    //object=ID (COLON PARENT COLON parent=qualified_name)? COLON name = ID EQUALITY rhs = expression #ObjectAssignment
+    /* 
+        Process an assignment statement if no type is provided.
+        object=ID (COLON PARENT COLON parent=qualified_name)? COLON name = ID EQUALITY rhs = expression #ObjectAssignment
+    */
     action ObjectAssignment returns ObjectAssignmentContext
         ObjectAssignmentContext context
         context:SetDocumentation(CheckForDocumentation())
@@ -1274,7 +1319,10 @@ class QuorumParser
         return context
     end
 
-    //modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY rhs = expression)? #NormalAssignment
+    /*
+        Processes a full assignment statement.
+        modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY rhs = expression)? #NormalAssignment
+    */
     action NormalAssignment returns NormalAssignmentContext
         NormalAssignmentContext context
         context:SetDocumentation(CheckForDocumentation())
@@ -1356,7 +1404,9 @@ class QuorumParser
         return context
     end
 
-    //Start here for line number changes
+    /*
+        An action call involving a parent.
+    */
     action ParentVariableSoloActionCall returns ParentVariableFunctionCallContext
         if not IsValid() //this is an error
             SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationParentCall)
@@ -1439,6 +1489,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Statement of an action call on a line. 
+    */
     action VariableSoloActionCall returns VariableFunctionCallContext
         if not IsValid() //this is an error
             SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationActionCall)
@@ -1514,6 +1567,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes only a return statement.
+    */
     action ReturnStatement returns ReturnContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a return statement. " 
@@ -1550,6 +1606,10 @@ class QuorumParser
         return context
     end
 
+    /*
+
+        This processes just a repeat statement.
+    */
     action RepeatStatement returns LoopContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a repeat statement. " 
@@ -1611,6 +1671,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a check statement.
+    */
     action CheckStatement returns CheckContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check statement. " 
@@ -1678,6 +1741,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a detect statement.
+    */
     action DetectStatement returns DetectStatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check-detect statement. " 
@@ -1734,6 +1800,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a always statement.
+    */
     action AlwaysStatement returns AlwaysStatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check statement containing an always block. " 
@@ -1762,6 +1831,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a if statement.
+    */
     action IfStatement returns IfContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an if statement. " 
@@ -1842,6 +1914,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a output statement.
+    */
     action OutputStatement returns OutputContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an output statement. " 
@@ -1871,6 +1946,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        This processes a say statement.
+    */
     action SayStatement returns SayContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a say statement. " 
@@ -1899,6 +1977,9 @@ class QuorumParser
         return undefined
     end
     
+    /*
+        This processes an alert statement.
+    */
     action AlertStatement returns AlertContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an alert statement. " 
@@ -1951,7 +2032,9 @@ class QuorumParser
         return undefined
     end
     
-
+    /*
+        This processes the header of an action declaration.
+    */
     action ActionShared returns ActionContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an action declaration. " 
@@ -2048,6 +2131,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a single parameter.
+    */
     action FormalParameter returns FormalParameterContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a parameter for an action. " 
@@ -2087,6 +2173,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        This processes a generic assignment statement of any legal kind.
+    */
     action AssignmentStatement returns ParseContext
         ParseContext statement = undefined
         integer type = GetStatementType()
@@ -2326,6 +2415,10 @@ class QuorumParser
         return NONE
     end
 
+    /*
+        This action determines if the token is likely to be a misspelling of the word
+        output.
+    */
     action IsOutputMisspelling(Token token) returns boolean
         text value = token:value
         text lower = value:ToLowerCase()
@@ -2337,6 +2430,10 @@ class QuorumParser
         return false
     end
 
+    /*
+        This action determines if the token is likely to be a misspelling of the word
+        say.
+    */
     action IsSayMisspelling(Token token) returns boolean
         text value = token:value
         text lower = value:ToLowerCase()
@@ -2397,7 +2494,7 @@ class QuorumParser
         end
     end
 
-    action IsAssignmentToken(Token next) returns boolean
+    private action IsAssignmentToken(Token next) returns boolean
         if next:category = constants:ID
             return true
         elseif next:category = constants:ME
@@ -2462,6 +2559,10 @@ class QuorumParser
         return false
     end
 
+    /*
+        This action processes an implicit class statement, where the user
+        did not write out a class and classname.
+    */
     action NoClass returns NoClassDeclarationContext
         NoClassDeclarationContext context
         if not IsValid() 
@@ -2548,7 +2649,9 @@ class QuorumParser
         return context
     end
     
-
+    /*
+        Processes all use statements and places them in an array.
+    */
     action Uses returns Array<UseContext>
         if not tokenIterator:IsValid() return undefined end
         Array<UseContext> uses
@@ -2581,6 +2684,9 @@ class QuorumParser
         return uses
     end
 
+    /*
+        Process one package statement.
+    */
     action Package returns PackageContext
         PackageContext context
         context:SetDocumentation(CheckForDocumentation())
@@ -2612,6 +2718,9 @@ class QuorumParser
         return context
     end
 
+    /* 
+        Process one use statement
+    */
     action Use returns UseContext
         if not IsValid() return undefined end
         UseContext context
@@ -2640,6 +2749,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Process a qualified name.
+    */
     action QualifiedName returns QualifiedNameContext
         if not IsValid() 
             SendDefaultError(textEndedError + " a qualified name. " + qualifiedNameExample)
@@ -2684,6 +2796,9 @@ class QuorumParser
         return context
     end
 
+    /* 
+        Process an expression.
+    */
     action Expression returns ParseContext
         DocumentationContext document = CheckForDocumentation()
         ParseContext context =  Or()
@@ -2724,6 +2839,9 @@ class QuorumParser
         return left
     end
 
+    /*
+        Processes and And Expression
+    */
     action And returns ParseContext
         ParseContext left = Equals()
         if left = undefined return undefined end
@@ -2755,6 +2873,9 @@ class QuorumParser
         return left
     end
 
+    /*
+        Processes and = or not= Expression
+    */
     action Equals returns ParseContext
         ParseContext left = Inherits()
         if left = undefined return undefined end
@@ -2791,6 +2912,9 @@ class QuorumParser
         end
     end
 
+    /*
+        Processes and class type value, which is just a qualified name
+    */
     action ClassType returns ClassTypeContext
         ClassTypeContext context
         QualifiedNameContext nameContext = QualifiedName()
@@ -2805,6 +2929,9 @@ class QuorumParser
         end
     end
 
+    /*
+        Processes an is expression
+    */
     action Inherits returns ParseContext
         ParseContext left = Greater()
         if left = undefined return undefined end
@@ -2836,6 +2963,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes a > Expression
+    */
     action Greater returns ParseContext
         ParseContext left = Addition()
         if left = undefined return undefined end
@@ -2887,6 +3017,9 @@ class QuorumParser
         return left
     end
 
+    /*
+        Processes a +/- Expression
+    */
     action Addition returns ParseContext
         ParseContext left = Multiplication()
         if left = undefined return undefined end
@@ -2928,6 +3061,9 @@ class QuorumParser
         return left
     end
 
+    /*
+        Processes a * or / Expression
+    */
     action Multiplication returns ParseContext
         ParseContext left = UnaryOperator()
         if left = undefined return undefined end
@@ -2974,9 +3110,10 @@ class QuorumParser
 
         return left
     end
-
     
-
+    /*
+        Processes an input Expression
+    */
     action Input returns InputContext
         InputContext context
         if not IsValid() return undefined end
@@ -3016,6 +3153,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes a cast Expression
+    */
     action Cast returns CastContext
         CastContext context
         if not IsValid() return undefined end
@@ -3072,6 +3212,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an integer Expression
+    */
     action Integer returns IntegerContext
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3089,6 +3232,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes a number Expression
+    */
     action Number returns NumberContext
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3106,6 +3252,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes a boolean Expression
+    */
     action Boolean returns BooleanContext
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3119,6 +3268,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes a text Expression
+    */
     action Text returns TextContext
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3140,7 +3292,9 @@ class QuorumParser
         return context
     end
 
-
+    /*
+        Processes a paren () Expression
+    */
     action Parenthesis returns ParenthesisContext
         ParenthesisContext context
         Token current = tokenIterator:Next()
@@ -3165,6 +3319,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes the me variable Expression
+    */
     action Me returns MeContext
         MeContext context
         Token current = tokenIterator:Next()
@@ -3174,6 +3331,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an action call Expression
+    */
     action ActionCall returns ActionCallContext
         ActionCallContext context
         if not IsValid() return undefined end
@@ -3231,6 +3391,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an expression list inside of another Expression
+    */
     action ActionExpressionList returns ActionExpressionListContext
         ActionExpressionListContext context
         Array<ParseContext> contexts
@@ -3261,6 +3424,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an action call, from a variable, Expression
+    */
     action VariableFunctionCall returns VariableFunctionCallContext
         VariableFunctionCallContext context
         Array<ActionCallContext> actions
@@ -3291,6 +3457,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an action call from a parent Expression
+    */
     action ParentVariableActionCall returns ParentVariableFunctionCallContext
         ParentVariableFunctionCallContext context = ParentVariableSoloActionCall()
         if context = undefined
@@ -3300,6 +3469,9 @@ class QuorumParser
         return context
     end
 
+    /*
+        Processes an action call that is either a normal or a parent one
+    */
     action ActionOrParentActionCall returns ParseContext
         if not tokenIterator:IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3355,6 +3527,9 @@ class QuorumParser
         return undefined
     end
 
+    /*
+        Processes a unary operator Expression
+    */
     action UnaryOperator returns ParseContext
         if not IsValid() return undefined end
         Token current = tokenIterator:GetCurrent()
@@ -3384,6 +3559,9 @@ class QuorumParser
         end
     end
 
+    /*
+        Processes an literal Expression
+    */
     action Literal returns ParseContext
         //this is definitely an error. 
         if not tokenIterator:IsValid() return undefined end
@@ -3420,15 +3598,22 @@ class QuorumParser
         end
         return literal
     end
+
+    /*
+        Returns the compiler error manager used in this parser.
+    */
     action GetCompilerErrorManager returns CompilerErrorManager
         return compilerErrorManager
     end
 
+    /*
+        Sets the compiler error manager used in this parser.
+    */
     action SetCompilerErrorManager(CompilerErrorManager compilerErrorManager)
         me:compilerErrorManager = compilerErrorManager
     end
 
-    action GetDisplay(Token token) returns text
+    private action GetDisplay(Token token) returns text
         QuorumLexerConstants constants
         if token:category = constants:STRING
             text dq = ""

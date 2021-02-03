@@ -305,7 +305,7 @@ class QuorumLexer is Lexer
         index = j - 1
     end
 
-    action CheckSymbols() returns boolean
+    private action CheckSymbols returns boolean
         //first handle symbols that actually take two or more positions
         if MatchesFromIndex(constants:GREATER_EQUAL_TEXT)
             token = CreateToken()
