@@ -21,9 +21,6 @@ class ActionCallContext is ParseContext
             listener:EnterActionCall(me)
         end
 
-        if name = "Get"
-            a = 5
-        end
         if expressionList not= undefined 
             expressionList:Traverse(listener) 
         end

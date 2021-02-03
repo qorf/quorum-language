@@ -364,7 +364,7 @@ class Compiler
         
         if errors:IsCompilationErrorFree()
             i = 0
-            repeat while i < files:GetSize()
+            repeat while i < files:GetSize() and errors:IsCompilationErrorFree()
                 File file = files:Get(i)
                 QuorumBytecodeListener listener
 
@@ -374,16 +374,20 @@ class Compiler
                         containsSpeechCommandInCompile = true
                     end
                     ClassOpcode op = listener:GetClassOpcode()
-                    op:SetBuild(buildFolder)
-                    theOpcodes:Add(op:GetStaticKey(), op)
+                    if op not= undefined
+                        op:SetBuild(buildFolder)
+                        theOpcodes:Add(op:GetStaticKey(), op)
+                    end
                 elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
                     ParseSandbox(undefined, listener, table, errors, checker, file)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true
                     end
                     ClassOpcode op = listener:GetClassOpcode()
-                    op:SetBuild(buildFolder)
-                    theOpcodes:Add(op:GetStaticKey(), op)
+                    if op not= undefined
+                        op:SetBuild(buildFolder)
+                        theOpcodes:Add(op:GetStaticKey(), op)
+                    end
                 end
                 i = i + 1
             end
@@ -1559,27 +1563,25 @@ There are many ways to load canvases and this is provided only as an exemplar.
     end
 
     action Parse(File file, QuorumSourceListener listener) 
-        QuorumLexer lexer
-        lexer:Read(file)
-
-        QuorumParser parser
-        parser:SetCompilerErrorManager(listener:GetCompilerErrorManager())
-        parser:SetLexer(lexer)
-        StartContext start = parser:Start()
-        if start not= undefined
-            start:Traverse(listener)
-        end
+        text source = file:Read()
+        Parse(source, listener)
     end
 
     action Parse(text source, QuorumSourceListener listener)
+        CompilerErrorManager errors = listener:GetCompilerErrorManager()
         QuorumLexer lexer
+        lexer:SetCompilerErrorManager(errors)
         lexer:Read(source)
 
+        if not errors:IsCompilationErrorFree()
+            return now
+        end
+
         QuorumParser parser
-        parser:SetCompilerErrorManager(listener:GetCompilerErrorManager())
+        parser:SetCompilerErrorManager(errors)
         parser:SetLexer(lexer)
         StartContext start = parser:Start()
-        if start not= undefined
+        if start not= undefined and errors:IsCompilationErrorFree()
             start:Traverse(listener)
         end
     end

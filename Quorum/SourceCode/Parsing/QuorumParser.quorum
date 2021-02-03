@@ -900,6 +900,15 @@ class QuorumParser
             return undefined
         end
         context:access = accessModifierContext
+        if accessModifierContext not= undefined
+            if accessModifierContext:isPrivate
+                context:isPrivate = true
+                context:isPublic = false
+            elseif accessModifierContext:isPublic
+                context:isPrivate = false
+                context:isPublic = true
+            end
+        end
         if categoryToken not= undefined and categoryToken:category = constants:BLUEPRINT
             context:isBlueprint = true
         elseif categoryToken not= undefined and categoryToken:category = constants:NATIVE
@@ -1224,6 +1233,10 @@ class QuorumParser
         if hasParent
             parentContext = QualifiedName()
             context:parentContext = parentContext
+            //an error would be issued, but check for it.
+            if parentContext not= undefined
+                context:parentName = parentContext:name
+            end
             next = tokenIterator:GetCurrent()
             if next:category = constants:COLON //skip it, but it has to be there.
                 next = tokenIterator:Next()
@@ -1324,7 +1337,7 @@ class QuorumParser
             SendToCompilerErrorManager(error)
         end
 
-        if next:category = constants:EQUALITY
+        if next not= undefined and next:category = constants:EQUALITY
             context:hasRightHandSide = true
             next = tokenIterator:Next()
         else //this is not an error. The equals sign is optional and as such we should bail here.
@@ -2885,6 +2898,7 @@ class QuorumParser
                      next:category = constants:MINUS 
             if next:category = constants:PLUS
                 AdditionContext context2
+                context2:isPlus = true
                 context = context2
             elseif next:category = constants:MINUS
                 AdditionContext context2
@@ -3305,12 +3319,13 @@ class QuorumParser
         if current:category = constants:ID //if it's not, it's an error
             Token next = tokenIterator:LookAhead(1)
             if next = undefined //return this value only
-                return VariableFunctionCall()
+                VariableFunctionCallContext call = VariableFunctionCall()
+                call:hasMe = hasMe
+                return call
             end
             //This is an action call
             if next:category = constants:LEFT_PAREN
                 return VariableFunctionCall()
-            //((ME COLON)? (fieldName=ID COLON))? 
             elseif next:category = constants:COLON
                 Token nextNext = tokenIterator:LookAhead(2)
                 if nextNext = undefined //if there isn't a token past the colon, it's an error
@@ -3319,16 +3334,23 @@ class QuorumParser
                 end
 
                 if nextNext:category = constants:PARENT
-                    return ParentVariableActionCall()
+                    ParentVariableFunctionCallContext call = ParentVariableActionCall()
+                    call:hasMe = hasMe
+                    return call
                 else
-                    return VariableFunctionCall()
+                    VariableFunctionCallContext call = VariableFunctionCall()
+                    call:hasMe = hasMe
+                    return call
                 end
-            //PARENT COLON parent=qualified_name COLON initial_parent_action_call (COLON (action_call))*
             else //it's an ID with nothing recognizable after it. Let the action processor attempt it
-                return VariableFunctionCall()
+                VariableFunctionCallContext call = VariableFunctionCall()
+                call:hasMe = hasMe
+                return call
             end
         elseif current:category = constants:PARENT
-             return ParentVariableActionCall()
+            ParentVariableFunctionCallContext call = ParentVariableActionCall()
+            call:hasMe = hasMe
+            return call
         end
         return undefined
     end

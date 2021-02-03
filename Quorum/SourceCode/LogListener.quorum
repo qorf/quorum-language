@@ -158,8 +158,12 @@ class LogListener is QuorumSourceListener
     action EnterAlwaysStatement(AlwaysStatementContext context) LogRule("EnterAlwaysStatement") end
     action ExitAlwaysStatement(AlwaysStatementContext context) LogRule("ExitAlwaysStatement") end
 
-    action EnterAddition(AdditionContext addition) LogRule("EnterAddition") end
-    action ExitAddition(AdditionContext addition) LogRule("ExitAddition") end
+    action EnterAddition(AdditionContext addition) 
+        LogRule("EnterAddition " + addition:isPlus) 
+    end
+    action ExitAddition(AdditionContext addition) 
+        LogRule("ExitAddition " + addition:isPlus) 
+    end
 
     action EnterReturnStatement(ReturnContext context) LogRule("EnterReturnStatement") end
     action ExitReturnStatement(ReturnContext context) LogRule("ExitReturnStatement") end
@@ -218,8 +222,21 @@ class LogListener is QuorumSourceListener
         LogRule("ExitNormalAssignment " + context:name) 
     end
 
-    action EnterParentAssignment(ParentAssignmentContext context) LogRule("EnterParentAssignment") end
-    action ExitParentAssignment(ParentAssignmentContext context) LogRule("ExitParentAssignment") end
+    action EnterParentAssignment(ParentAssignmentContext context)
+        text value = ""
+        if context:parentName not= undefined
+            value = context:parentName:GetStaticKey()
+        end
+        LogRule("EnterParentAssignment " + value + " " + context:isField) 
+    end
+
+    action ExitParentAssignment(ParentAssignmentContext context) 
+        text value = ""
+        if context:parentName not= undefined
+            value = context:parentName:GetStaticKey()
+        end
+        LogRule("ExitParentAssignment " + value + " " + context:isField) 
+    end
 
     action EnterObjectAssignment(ObjectAssignmentContext context)
         
@@ -253,7 +270,7 @@ class LogListener is QuorumSourceListener
         if context:objectName not= undefined
             value = context:objectName
         end
-        LogRule("EnterVariableFunctionCall " + value) 
+        LogRule("EnterVariableFunctionCall " + value + "Me " + context:hasMe) 
     end
 
     action ExitVariableFunctionCall(VariableFunctionCallContext context) 
@@ -261,7 +278,7 @@ class LogListener is QuorumSourceListener
         if context:objectName not= undefined
             value = context:objectName
         end
-        LogRule("ExitVariableFunctionCall " + value) 
+        LogRule("ExitVariableFunctionCall " + value + "Me " + context:hasMe) 
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) 
