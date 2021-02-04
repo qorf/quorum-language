@@ -20,9 +20,15 @@ class DataFrame2 is DataFrame
         parser:SetLexer(luthor)
 
         ParseContext expression = parser:Expression()
+
+        if expression = undefined or not errors:IsCompilationErrorFree()
+            alert("Problem")
+        end
+
+        
     end
 
     action Main
-
+        
     end
 end
