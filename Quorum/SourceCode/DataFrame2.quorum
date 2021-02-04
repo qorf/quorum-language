@@ -8,6 +8,9 @@ use Libraries.Language.Interpreter.Runtime
 use Libraries.Containers.Array
 use Libraries.Containers.Stack
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Interpreter.Result
+use Libraries.Compute.Statistics.DataFrameColumn
 
 class DataFrame2 is DataFrame
     action Filter(text source)
@@ -17,7 +20,7 @@ class DataFrame2 is DataFrame
         luthor:Read(source)
 
         if not errors:IsCompilationErrorFree()
-            alert("Problem")
+            alert(errors:GetCompilerErrorsAsText())
         end
 
         QuorumParser parser
@@ -27,7 +30,7 @@ class DataFrame2 is DataFrame
         ParseContext expression = parser:Expression()
 
         if expression = undefined or not errors:IsCompilationErrorFree()
-            alert("Problem")
+            alert(errors:GetCompilerErrorsAsText())
         end
     
         //Now do semantic analysis on the thing and get it setup for runtime processing
@@ -35,29 +38,107 @@ class DataFrame2 is DataFrame
         expression:Traverse(listener)
         
         if not errors:IsCompilationErrorFree()
-            alert("Problem")
+            alert(errors:GetCompilerErrorsAsText())
         end
 
         //the top-most item on the stack is the final expression
         Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
 
         if stack:IsEmpty()
-            alert("Problem")
+            alert("The expression would evauate to having no value, which means it is not valid.")
         end
         QuorumOpcode op = stack:Pop()
+
+        Type result = op:GetType()
+        if not result:IsBoolean()
+            alert("The expression passed must evaluate to a boolean, which will be evaluated in each row")
+        end
+
         Array<text> variables
+
+        boolean ignoreFirst = true
+        integer row = 0
+        if ignoreFirst
+            row = 1
+        end
+
+        Array<integer> sizes
+        integer change = 0
+        repeat while change < me:GetSize()
+            sizes:Add(row)
+            change = change + 1
+        end
 
         //if we still look good, then create a runtime context
         //and check it against every row, changing the value for every column
         Runtime runtime
-        integer row = 0
+        row = 0
+        integer skip = 0
         boolean done = false
         repeat while not done
             //first check that all the variables in the list are there
             //if there are zero variables, then just process the expression for now, even though technically it's a constant
             op:Evaluate(runtime)
-            
+
+            boolean markForRemoval = false
+            Result value = runtime:PopFromStack()
+            if value = undefined or not value:booleanValue //get rid of the row
+                markForRemoval = true
+                skip = skip + 1
+            end
+
+            //now move the row if necessary, possibly skipping along
+            MoveRow(me, row, skip, sizes, markForRemoval)
+
+            done = not HasAnotherRow(me, row)
             row = row + 1
+        end
+
+        i = 0
+        repeat while i < sizes:GetSize()
+            integer size = sizes:Get(i) + 1
+            DataFrameColumn col = me:GetColumn(i)
+            col:SetSize(size)
+            i = i + 1
+        end
+    end
+
+    private action HasAnotherRow(DataFrame frame, integer row) returns boolean
+        integer column = 0
+        //get the row for each column
+        repeat while column < frame:GetSize()
+            DataFrameColumn dc = frame:GetColumn(column)
+            if row < dc:GetSize()
+                return true
+            end
+            column = column + 1
+        end
+        return false
+    end
+
+    private action MoveRow(DataFrame frame, integer row, integer skip, Array<integer> sizes, boolean markForRemoval)
+        if skip = 0
+            i = 0
+            repeat while i < sizes:GetSize()
+                sizes:Set(i, sizes:Get(i) + 1)
+                i = i + 1
+            end
+            return now
+        end
+
+        integer column = 0
+        integer i = row
+        repeat while column < frame:GetSize()
+            DataFrameColumn col = frame:GetColumn(column)
+
+            //make sure there are actually rows here
+            if i + 1 < col:GetSize()
+                col:Move(i+1, i + 1 - skip)
+                if not markForRemoval
+                    sizes:Set(column, sizes:Get(column) + 1)
+                end
+            end
+            column = column + 1
         end
     end
 
@@ -66,5 +147,6 @@ class DataFrame2 is DataFrame
 
         //this is always true, so every row should be allowed
         Filter("5 = 5")
+        a = 5
     end
 end

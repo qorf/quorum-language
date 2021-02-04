@@ -1,5 +1,22 @@
 package Libraries.Language.Interpreter
+use Libraries.Containers.Stack
 
 class Runtime
+    Stack<Result> stack
 
+    action PushToStack(Result result)
+        stack:Push(result)
+    end
+
+    action PopFromStack returns Result
+        return stack:Pop()
+    end
+
+    action GetStackSize returns integer
+        return stack:GetSize()
+    end
+
+    action Empty 
+        stack:Empty()
+    end
 end

@@ -16,6 +16,11 @@ use Libraries.Language.Compile.Translate.ComparisonOpcode
 
 class DataFrameExpressionListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
+    
+    on create
+        TypeChecker checker
+        SetTypeChecker(checker)
+    end
 
     action EnterInteger(IntegerContext context) 
     end

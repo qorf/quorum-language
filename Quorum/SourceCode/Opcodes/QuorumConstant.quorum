@@ -1,6 +1,8 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Interpreter.Result
 
 class QuorumConstant is QuorumOpcode
     public integer integerValue = 0
@@ -10,6 +12,24 @@ class QuorumConstant is QuorumOpcode
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
+    end
+
+    action Evaluate(Runtime runtime)
+        Result result
+        result:type = GetType()
+        Type type = GetType()
+        if type:IsInteger()
+            result:integerValue = type:GetIntegerConstant()
+        elseif type:IsNumber()
+            result:numberValue = type:GetNumberConstant()
+        elseif type:IsBoolean()
+            result:booleanValue = type:GetBooleanConstant()
+        elseif type:IsText()
+            result:textValue = type:GetTextConstant() 
+        elseif type:IsUndefined()
+            result:objectValue = undefined
+        end
+        runtime:PushToStack(result)
     end
 
     action WriteJavaScript returns text

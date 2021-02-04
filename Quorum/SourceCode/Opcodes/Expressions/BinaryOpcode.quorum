@@ -2,6 +2,8 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.Operation
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Interpreter.Result
 
 class BinaryOpcode is QuorumOpcode
     QuorumOpcode left = undefined
@@ -41,6 +43,63 @@ class BinaryOpcode is QuorumOpcode
         if right not= undefined
             right:SetMethodWriterToAllChildren(writer)
         end
+    end
+
+    action Evaluate(Runtime runtime)
+        me:left:Evaluate(runtime)
+        me:right:Evaluate(runtime)
+        Result right = runtime:PopFromStack()
+        Result left = runtime:PopFromStack()
+
+        Result result
+        Type type
+        
+        result:type = type
+
+        //for now assume they are integers and go for it
+        integer current = op:GetOperation()
+        if current = op:PLUS
+            result:integerValue = left:integerValue + right:integerValue
+            type:SetToInteger()
+        elseif current = op:MINUS
+            result:integerValue = left:integerValue - right:integerValue
+            type:SetToInteger()
+        elseif current = op:TIMES
+            result:integerValue = left:integerValue * right:integerValue
+            type:SetToInteger()
+        elseif current = op:DIVIDE
+            result:integerValue = left:integerValue / right:integerValue
+            type:SetToInteger()
+        elseif current = op:MODULUS
+            result:integerValue = left:integerValue mod right:integerValue
+            type:SetToInteger()
+        elseif current = op:AND
+            //result:integerValue = left:integerValue and right:integerValue
+        elseif current = op:OR
+            //operator =  "||"
+        elseif current = op:EQUALS
+            result:booleanValue = left:integerValue = right:integerValue
+            type:SetToBoolean()
+        elseif current = op:NOT_EQUALS
+            result:booleanValue = left:integerValue not= right:integerValue
+            type:SetToBoolean()
+        elseif current = op:GREATER_EQUALS
+            result:booleanValue = left:integerValue >= right:integerValue
+            type:SetToBoolean()
+        elseif current = op:GREATER
+            result:booleanValue = left:integerValue > right:integerValue
+            type:SetToBoolean()
+        elseif current = op:LESS_EQUALS
+            result:booleanValue = left:integerValue <= right:integerValue
+            type:SetToBoolean()
+        elseif current = op:LESS
+            result:booleanValue = left:integerValue < right:integerValue
+            type:SetToBoolean()
+        elseif current = op:NOT
+            
+        end
+
+        runtime:PushToStack(result)
     end
 
     action WriteJavaScript returns text
