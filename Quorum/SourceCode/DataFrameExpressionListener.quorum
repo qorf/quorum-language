@@ -1,0 +1,69 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Context.IntegerContext
+use Libraries.Language.Compile.Context.EqualsContext
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Translate.QuorumConstant
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Symbol.TypeChecker
+use Libraries.Language.Compile.Symbol.Operation
+use Libraries.Language.Compile.Symbol.TypeCheckResult
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Translate.ComparisonOpcode
+
+class DataFrameExpressionListener is QuorumSourceListener
+    Stack<QuorumOpcode> opcodeStack
+
+    action EnterInteger(IntegerContext context) 
+    end
+
+    action ExitInteger(IntegerContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetIntegerConstant(context:value)
+
+        QuorumConstant const
+        const:SetLocation(context:GetLocation())
+        const:SetType(type)
+        const:integerValue = context:value
+        opcodeStack:Push(const)
+    end
+
+    action EnterEquals(EqualsContext context) 
+    end
+
+    action ExitEquals(EqualsContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation add
+        if context:equalsTo
+            add:SetOperation(add:EQUALS)
+        else
+            add:SetOperation(add:NOT_EQUALS)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+        
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:SetLocation(context:GetLocation())
+        compare:SetType(value)
+        compare:SetLeftOpcode(left)
+        compare:SetRightOpcode(right)
+        opcodeStack:Push(compare)
+    end
+end

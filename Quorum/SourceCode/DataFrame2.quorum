@@ -1,0 +1,28 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Language.Interpreter.QuorumLexer
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Interpreter.QuorumParser
+use Libraries.Language.Compile.Context.ParseContext
+
+class DataFrame2 is DataFrame
+    action Filter(text source)
+        QuorumLexer luthor
+        CompilerErrorManager errors
+        luthor:SetCompilerErrorManager(errors)
+        luthor:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            alert("Problem")
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+    end
+
+    action Main
+
+    end
+end
