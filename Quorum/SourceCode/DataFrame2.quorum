@@ -3,6 +3,11 @@ use Libraries.Language.Interpreter.QuorumLexer
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Interpreter.QuorumParser
 use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Compute.Statistics.Transforms.DataFrameExpressionListener
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Containers.Array
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Translate.QuorumOpcode
 
 class DataFrame2 is DataFrame
     action Filter(text source)
@@ -24,11 +29,42 @@ class DataFrame2 is DataFrame
         if expression = undefined or not errors:IsCompilationErrorFree()
             alert("Problem")
         end
-
+    
+        //Now do semantic analysis on the thing and get it setup for runtime processing
+        DataFrameExpressionListener listener
+        expression:Traverse(listener)
         
+        if not errors:IsCompilationErrorFree()
+            alert("Problem")
+        end
+
+        //the top-most item on the stack is the final expression
+        Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
+
+        if stack:IsEmpty()
+            alert("Problem")
+        end
+        QuorumOpcode op = stack:Pop()
+        Array<text> variables
+
+        //if we still look good, then create a runtime context
+        //and check it against every row, changing the value for every column
+        Runtime runtime
+        integer row = 0
+        boolean done = false
+        repeat while not done
+            //first check that all the variables in the list are there
+            //if there are zero variables, then just process the expression for now, even though technically it's a constant
+            op:Evaluate(runtime)
+            
+            row = row + 1
+        end
     end
 
     action Main
-        
+        Load("files/Data.csv")
+
+        //this is always true, so every row should be allowed
+        Filter("5 = 5")
     end
 end

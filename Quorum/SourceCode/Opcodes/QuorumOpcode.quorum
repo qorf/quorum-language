@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Interpreter.Runtime
 
 class QuorumOpcode 
     Type type = undefined
@@ -27,6 +28,13 @@ class QuorumOpcode
         else
             return 0
         end
+    end
+
+    /*
+        Some opcodes can be evaluated in the context of a runtime environment
+    */
+    action Evaluate(Runtime runtime)
+
     end
 
     blueprint action Write
