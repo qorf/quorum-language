@@ -18,6 +18,11 @@ use Libraries.Language.Compile.Translate.ActionCallOpcode
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.Context.NumberContext
+use Libraries.Language.Compile.Translate.BinaryOpcode
+use Libraries.Language.Compile.Context.AdditionContext
+use Libraries.Language.Compile.Context.InequalityContext
 
 class DataFrameExpressionListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
@@ -28,6 +33,18 @@ class DataFrameExpressionListener is QuorumSourceListener
     end
 
     action EnterInteger(IntegerContext context) 
+    end
+
+    action ExitNumber(NumberContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetNumberConstant(context:value)
+
+        QuorumConstant const
+        const:SetLocation(context:GetLocation())
+        const:SetType(type)
+        const:numberValue = context:value
+        opcodeStack:Push(const)
     end
 
     action ExitInteger(IntegerContext context) 
@@ -57,6 +74,38 @@ class DataFrameExpressionListener is QuorumSourceListener
         return type
     end
 
+    action ExitAddition(AdditionContext addition) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation add
+        if addition:isPlus
+            add:SetOperation(add:PLUS)
+        else
+            add:SetOperation(add:MINUS)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
+        CompilerError error = result:GetCompilerError(addition:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(addition:GetLocation())
+        binary:SetType(value)
+        binary:SetLeftOpcode(left)
+        binary:SetRightOpcode(right)
+        opcodeStack:Push(binary)
+    end
+
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
             ActionCallOpcode actionCall
@@ -67,7 +116,15 @@ class DataFrameExpressionListener is QuorumSourceListener
             DataFrameColumn column = dataFrame:GetColumn(name)
 
             if column = undefined //throw an error
-                
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                error:SetErrorMessage("Cannot find the column '" + name + "' in the " +
+                "DataFrame.")
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_VARIABLE)
+                error:SetCompilerErrorType(t)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
                 return now
             end
 
@@ -80,10 +137,56 @@ class DataFrameExpressionListener is QuorumSourceListener
             variable:SetName(name)
             actionCall:SetField(variable)
             opcodeStack:Push(actionCall)
+        else
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            error:SetErrorMessage("Cannot call actions from a DataFrame.")
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_METHOD)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
         end
     end
 
     action EnterEquals(EqualsContext context) 
+    end
+
+    action ExitInequality(InequalityContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation add
+        if context:isGreater
+            add:SetOperation(add:GREATER)
+        elseif context:isGreaterEquals
+            add:SetOperation(add:GREATER_EQUALS)
+        elseif context:isLess
+            add:SetOperation(add:LESS)
+        elseif context:isLessEquals
+            add:SetOperation(add:LESS_EQUALS)
+        end
+
+        if left = undefined or right = undefined
+            return now
+        end
+        
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:SetLocation(context:GetLocation())
+        compare:SetType(value)
+        compare:SetLeftOpcode(left)
+        compare:SetRightOpcode(right)
+        opcodeStack:Push(compare)
     end
 
     action ExitEquals(EqualsContext context) 

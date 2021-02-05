@@ -22,7 +22,7 @@ class DataFrame2 is DataFrame
         luthor:Read(source)
 
         if not errors:IsCompilationErrorFree()
-            alert(errors:GetCompilerErrorsAsText())
+            alert(errors:GetFirstMessageAsText())
         end
 
         QuorumParser parser
@@ -32,50 +32,46 @@ class DataFrame2 is DataFrame
         ParseContext expression = parser:Expression()
 
         if expression = undefined or not errors:IsCompilationErrorFree()
-            alert(errors:GetCompilerErrorsAsText())
+            alert(errors:GetFirstMessageAsText())
         end
     
         //Now do semantic analysis on the thing and get it setup for runtime processing
         DataFrameExpressionListener listener
+        listener:SetCompilerErrorManager(errors)
         listener:SetDataFrame(me)
         expression:Traverse(listener)
         
         if not errors:IsCompilationErrorFree()
-            alert(errors:GetCompilerErrorsAsText())
+            alert(errors:GetFirstMessageAsText())
         end
 
         //the top-most item on the stack is the final expression
         Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
 
         if stack:IsEmpty()
-            alert("The expression would evauate to having no value, which means it is not valid.")
+            alert("The expression contained an unidentified error and could not be evaluated.")
         end
         QuorumOpcode op = stack:Pop()
 
         Type result = op:GetType()
         if not result:IsBoolean()
-            alert("The expression passed must evaluate to a boolean, which will be evaluated in each row")
+            alert("The expression passed must evaluate to a boolean, but evaluated to a " + result:GetStaticKey() + ".")
         end
 
         Array<text> variables
-
-        boolean ignoreFirst = true
-        integer row = 0
-        if ignoreFirst
-            row = 1
-        end
+        integer startingPosition = 0
 
         Array<integer> sizes
         integer change = 0
         repeat while change < me:GetSize()
-            sizes:Add(row)
+            sizes:Add(startingPosition)
             change = change + 1
         end
 
         //if we still look good, then create a runtime context
         //and check it against every row, changing the value for every column
         Runtime runtime
-        row = 0
+        row = startingPosition
         integer skip = 0
         boolean done = false
         repeat while not done
@@ -86,6 +82,7 @@ class DataFrame2 is DataFrame
 
             boolean markForRemoval = false
             Result value = runtime:PopFromStack()
+            output value:booleanValue
             if value = undefined or not value:booleanValue //get rid of the row
                 markForRemoval = true
                 skip = skip + 1
@@ -201,6 +198,11 @@ class DataFrame2 is DataFrame
                 if not markForRemoval
                     sizes:Set(column, sizes:Get(column) + 1)
                 end
+            elseif i = col:GetSize() - 1 //only move this if it's not removed
+                if not markForRemoval
+                    col:Move(i, i - skip)
+                    sizes:Set(column, sizes:Get(column) + 1)
+                end
             end
             column = column + 1
         end
@@ -214,7 +216,7 @@ class DataFrame2 is DataFrame
         Load("files/Data.csv")
 
         //this is always true, so every row should be allowed
-        Filter("Group = 1")
+        Filter("13 + 2.0 > Result")
         a = 5
     end
 end

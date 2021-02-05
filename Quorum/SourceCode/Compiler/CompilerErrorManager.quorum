@@ -247,6 +247,18 @@ class CompilerErrorManager
         return result
     end
 
+    action GetFirstMessageAsText returns text
+        text result =  ""
+        Iterator<CompilerError> errors = GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetErrorMessage()
+            result = result + t
+            return result
+        end
+        return result
+    end
+
     action GetCompilerErrorsAsHTML returns text
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
