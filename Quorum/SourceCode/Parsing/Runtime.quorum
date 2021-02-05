@@ -3,6 +3,7 @@ use Libraries.Containers.Stack
 
 class Runtime
     Stack<Result> stack
+    RuntimeBlock currentBlock
 
     action PushToStack(Result result)
         stack:Push(result)
@@ -18,5 +19,14 @@ class Runtime
 
     action Empty 
         stack:Empty()
+        currentBlock:Empty()
+    end
+
+    action GetCurrentBlock returns RuntimeBlock
+        return currentBlock
+    end
+
+    action SetCurrentBlock(RuntimeBlock currentBlock)
+        me:currentBlock = currentBlock
     end
 end

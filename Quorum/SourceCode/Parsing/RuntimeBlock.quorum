@@ -1,0 +1,19 @@
+package Libraries.Language.Interpreter
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Symbol.Type
+
+class RuntimeBlock
+    HashTable<text, Result> variables
+
+    action SetVariableResult(text key, Result result)
+        variables:Add(key, result)
+    end
+
+    action GetVariableResult(text key) returns Result
+        return variables:GetValue(key)
+    end
+
+    action Empty
+        variables:Empty()
+    end
+end

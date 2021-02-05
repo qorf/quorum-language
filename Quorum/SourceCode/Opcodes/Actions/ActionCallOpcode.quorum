@@ -7,6 +7,9 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Containers.Array
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Interpreter.Result
+use Libraries.Language.Interpreter.RuntimeBlock
 
 class ActionCallOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
@@ -76,6 +79,13 @@ class ActionCallOpcode is QuorumOpcode
         if autoBoxing not= undefined
             autoBoxing:SetMethodWriterToAllChildren(writer)
         end
+    end
+
+    action Evaluate(Runtime runtime)
+        RuntimeBlock block = runtime:GetCurrentBlock()
+        text name = field:GetName()
+        Result result = block:GetVariableResult(name)        
+        runtime:PushToStack(result)
     end
 
     action SetVariableToMakeParentCallOn(Variable variable)
