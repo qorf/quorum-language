@@ -1,0 +1,274 @@
+package Libraries.Language.Interpreter
+
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Containers.List
+
+class UnifiedSourceListener is QuorumSourceListener
+    action Enter(ParseContext context)
+    end
+
+    action Exit(ParseContext context)
+    end
+
+    action EnterDocumentation(DocumentationContext context) 
+        Enter(context)
+    end
+    action ExitDocumentation(DocumentationContext context) 
+        Exit(context) 
+    end
+
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) Enter(context) end
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) Exit(context) end
+
+    action EnterActionsNoClass(ActionsNoClassContext context) Enter(context) end
+    action ExitActionsNoClass(ActionsNoClassContext context) Exit(context) end
+    
+    action EnterNumber(NumberContext context) Enter(context) end
+    action ExitNumber(NumberContext context) Exit(context) end
+
+    action EnterParenthesisExpression(ParenthesisContext context) Enter(context) end
+    action ExitParenthesisExpression(ParenthesisContext context) Exit(context) end
+
+    action EnterCast(CastContext context) 
+        Enter(context)
+    end
+    action ExitCast(CastContext context) 
+        Exit(context)
+    end
+
+    action EnterSayStatement(SayContext context) Enter(context) end
+    action ExitSayStatement(SayContext context) Exit(context) end
+
+    action EnterCheckStatement(CheckContext context) Enter(context) end
+    action ExitCheckStatement(CheckContext context) Exit(context) end
+
+    action EnterParentFieldAccess(ParentFieldAccessContext context) Enter(context) end
+    action ExitParentFieldAccess(ParentFieldAccessContext context) Exit(context) end
+
+    action EnterFullClassDeclaration(FullClassDeclarationContext context) Enter(context) end
+    action ExitFullClassDeclaration(FullClassDeclarationContext context) Exit(context) end
+
+    action EnterNoClassDeclaration(NoClassDeclarationContext context) Enter(context) end
+    action ExitNoClassDeclaration(NoClassDeclarationContext context)  Exit(context) end
+
+    action EnterFormalParameter(FormalParameterContext context) Enter(context) end
+    action ExitFormalParameter(FormalParameterContext context) Exit(context) end
+
+    action EnterStatement(StatementContext context) Enter(context) end
+    action ExitStatement(StatementContext context) Exit(context) end
+
+    action EnterMe(MeContext context) Enter(context) end
+    action ExitMe(MeContext context) Exit(context) end
+
+    action EnterActionExpressionList(ActionExpressionListContext context) 
+        Enter(context) 
+    end
+    action ExitActionExpressionList(ActionExpressionListContext context) 
+        Exit(context)
+    end
+
+    action EnterStart(StartContext context) Enter(context) end
+    action ExitStart(StartContext context) Exit(context) end
+
+    action EnterText(TextContext context) Enter(context) end
+    action ExitText(TextContext context) Exit(context) end
+
+    action EnterOr(AndOrContext context) Enter(context) end
+    action ExitOr(AndOrContext context) Exit(context) end
+
+    action EnterOutputStatement(OutputContext context) Enter(context) end
+    action ExitOutputStatement(OutputContext context) Exit(context) end
+
+    action EnterSystemAction(ActionContext context) Enter(context) end
+    action ExitSystemAction(ActionContext context) Exit(context) end
+
+    action EnterConstructor(ConstructorContext context) Enter(context) end
+    action ExitConstructor(ConstructorContext context) Exit(context) end
+
+    action EnterBlueprintAction(ActionContext context) Enter(context) end
+    action ExitBlueprintAction(ActionContext context) Exit(context) end
+
+    action EnterActionHeader(ActionContext context) 
+        Enter(context) 
+    end
+
+    action ExitActionHeader(ActionContext context) 
+        Exit(context) 
+    end
+
+    action EnterAction(ActionContext context) Enter(context) end
+    action ExitAction(ActionContext context) Exit(context) end
+
+    action EnterGenericStatement(GenericContext context) Enter(context) end
+    action ExitGenericStatement(GenericContext context) Exit(context) end
+
+    action EnterAnd(AndOrContext context) Enter(context) end
+    action ExitAnd(AndOrContext context) Exit(context) end
+
+    action EnterUndefined(UndefinedContext context) Enter(context) end
+    action ExitUndefined(UndefinedContext context) Exit(context) end
+
+    action EnterIs(IsContext context) Enter(context) end
+    action ExitIs(IsContext context) Exit(context) end
+
+    action EnterIfStatement(IfContext context) Enter(context) end
+    action ExitIfStatement(IfContext context) Exit(context) end
+
+    action EnterElseIfStatement(IfContext context) Enter(context) end
+    action ExitElseIfStatement(IfContext context) Exit(context) end
+
+    action EnterElseStatement(IfContext context) Enter(context) end
+    action ExitElseStatement(IfContext context) Exit(context) end
+
+    action EnterAccessModifier(AccessModifierContext context) Enter(context) end
+    action ExitAccessModifier(AccessModifierContext context) Exit(context) end
+
+    action EnterBlock(BlockContext context) Enter(context) end
+    action ExitBlock(BlockContext context) Exit(context) end
+
+    action EnterClassStatements(ClassStatementsContext context) Enter(context) end
+    action ExitClassStatements(ClassStatementsContext context) Exit(context) end
+
+    action EnterQualifiedName(QualifiedNameContext context) Enter(context) end
+    action ExitQualifiedName(QualifiedNameContext context) Exit(context) end
+
+    action EnterLoopStatement(LoopContext context) Enter(context) end
+    action ExitLoopStatement(LoopContext context) Exit(context) end
+
+    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) Enter(context) end
+    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) Exit(context) end
+
+    action EnterInheritStatements(InheritStatementsContext context) Enter(context) end
+    action ExitInheritStatements(InheritStatementsContext context) Exit(context) end
+
+    action EnterInheritStatement(InheritStatementContext context) Enter(context) end
+    action ExitInheritStatement(InheritStatementContext context) Exit(context) end
+
+    action EnterDetectStatement(DetectStatementContext context) Enter(context) end
+    action ExitDetectStatement(DetectStatementContext context) Exit(context) end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context) Enter(context) end
+    action ExitAlwaysStatement(AlwaysStatementContext context) Exit(context) end
+
+    action EnterAddition(AdditionContext context) 
+        Enter(context)
+    end
+    action ExitAddition(AdditionContext context) 
+        Exit(context) 
+    end
+
+    action EnterReturnStatement(ReturnContext context) Enter(context) end
+    action ExitReturnStatement(ReturnContext context) Exit(context) end
+
+    action EnterInput(InputContext context) Enter(context) end
+    action ExitInput(InputContext context) Exit(context) end
+
+    action EnterInputNoParameters(InputContext context) Enter(context) end
+    action ExitInputNoParameters(InputContext context) Exit(context) end
+
+    action EnterMultiplication(MultiplicationContext context) 
+        Enter(context)
+    end
+
+    action ExitMultiplication(MultiplicationContext context) 
+        Exit(context)
+    end
+
+    action EnterMinus(UnaryMinusContext context) Enter(context) end
+    action ExitMinus(UnaryMinusContext context) Exit(context) end
+
+    action EnterBoolean(BooleanContext context) Enter(context) end
+    action ExitBoolean(BooleanContext context) Exit(context) end
+
+    action EnterAlertStatement(AlertContext context) Enter(context) end
+    action ExitAlertStatement(AlertContext context) Exit(context) end
+
+    action EnterUse(UseContext context) Enter(context) end
+    action ExitUse(UseContext context) Exit(context) end
+
+    action EnterNot(NotContext context) Enter(context) end
+    action ExitNot(NotContext context) Exit(context) end
+
+    action EnterGenericDeclaration(GenericDeclarationContext context) Enter(context) end
+    action ExitGenericDeclaration(GenericDeclarationContext context) Exit(context) end
+
+    action EnterClassType(ClassTypeContext context) Enter(context) end
+    action ExitClassType(ClassTypeContext context) Exit(context) end
+
+    action EnterEquals(EqualsContext context) Enter(context) end
+    action ExitEquals(EqualsContext context) Exit(context) end
+
+    action EnterInequality(InequalityContext context) Enter(context) end
+    action ExitInequality(InequalityContext context) Exit(context) end
+
+    action EnterInteger(IntegerContext context) Enter(context) end
+    action ExitInteger(IntegerContext context) Exit(context) end
+
+    action EnterPackageRule(PackageContext context) Enter(context) end
+    action ExitPackageRule(PackageContext context) Exit(context) end
+
+    action EnterNormalAssignment(NormalAssignmentContext context) 
+        Enter(context)
+    end
+    action ExitNormalAssignment(NormalAssignmentContext context) 
+        Exit(context)
+    end
+
+    action EnterParentAssignment(ParentAssignmentContext context)
+        Enter(context)
+    end
+
+    action ExitParentAssignment(ParentAssignmentContext context) 
+        Exit(context) 
+    end
+
+    action EnterObjectAssignment(ObjectAssignmentContext context)
+        Enter(context)
+    end
+    action ExitObjectAssignment(ObjectAssignmentContext context) 
+        Exit(context) 
+    end
+
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) Enter(context) end
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) Exit(context) end
+
+    action EnterMeVariableAccess(MeVariableAccessContext context) Enter(context) end
+    action ExitMeVariableAccess(MeVariableAccessContext context) Exit(context) end
+
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) 
+        Enter(context)
+    end
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) 
+        Exit(context)
+    end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) Enter(context) end
+    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) Exit(context) end
+
+    action EnterInitialParentActionCall(ActionCallContext context) Enter(context) end
+    action ExitInitialParentActionCall(ActionCallContext context) Exit(context) end
+
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) 
+        Enter(context) 
+    end
+
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) 
+        Exit(context)
+    end
+
+    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) 
+        Enter(context)
+    end
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context) 
+        Exit(context)
+    end
+
+    action EnterActionCall(ActionCallContext context) 
+        Enter(context)
+    end
+
+    action ExitActionCall(ActionCallContext context) 
+        Exit(context) 
+    end
+end

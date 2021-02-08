@@ -45,7 +45,9 @@ class BinaryOpcode is QuorumOpcode
         end
     end
 
-    private action Convert(integer opcode, Result value)
+    
+
+    private action RuntimeConvert(integer opcode, Result value)
         if opcode = -1
             return now
         end
@@ -63,22 +65,57 @@ class BinaryOpcode is QuorumOpcode
 
     action Evaluate(Runtime runtime)
         me:left:Evaluate(runtime)
-        me:right:Evaluate(runtime)
-        Result right = runtime:PopFromStack()
         Result left = runtime:PopFromStack()
-
-        //do any conversions
-        Convert(rightOpcode, right)
-        Convert(leftOpcode, left)
+        RuntimeConvert(leftOpcode, left)
+        integer current = op:GetOperation()
 
         Result result
         Type type
         
         result:type = type
 
+        //short circuit at runtime
+        if current = op:AND
+            type:SetToBoolean()
+            if not left:booleanValue //if it's false, push false and bail 
+                result:booleanValue = false
+            else //evaluate the right hand side
+                me:right:Evaluate(runtime)
+                Result right = runtime:PopFromStack()
+                RuntimeConvert(rightOpcode, right)
+                if right:booleanValue
+                    result:booleanValue = true
+                else
+                    result:booleanValue = false
+                end
+            end
+
+            runtime:PushToStack(result)
+            return now
+        elseif current = op:OR
+            type:SetToBoolean()
+            if left:booleanValue //if it's true, push true and bail 
+                result:booleanValue = true
+            else //evaluate the right hand side, becaue the left is false
+                me:right:Evaluate(runtime)
+                Result right = runtime:PopFromStack()
+                RuntimeConvert(rightOpcode, right)
+                if right:booleanValue
+                    result:booleanValue = true
+                else
+                    result:booleanValue = false
+                end
+            end
+
+            runtime:PushToStack(result)
+            return now
+        end
+        me:right:Evaluate(runtime)
+        Result right = runtime:PopFromStack()
+        RuntimeConvert(rightOpcode, right)
+        
         JavaBytecodeOpcodes opcodes
         //for now assume they are integers and go for it
-        integer current = op:GetOperation()
         if current = op:PLUS
             if opcodes:GetDoubleAdd() = opcode
                 result:numberValue = left:numberValue + right:numberValue
@@ -119,10 +156,6 @@ class BinaryOpcode is QuorumOpcode
                 result:integerValue = left:integerValue mod right:integerValue
                 type:SetToInteger()
             end
-        elseif current = op:AND
-            //result:integerValue = left:integerValue and right:integerValue
-        elseif current = op:OR
-            //operator =  "||"
         elseif current = op:EQUALS
             if left:type:IsNumber() //types have been converted
                 result:booleanValue = left:numberValue = right:numberValue
@@ -183,8 +216,6 @@ class BinaryOpcode is QuorumOpcode
                 result:booleanValue = left:textValue < right:textValue
             end
             type:SetToBoolean()
-        elseif current = op:NOT
-            
         end
 
         runtime:PushToStack(result)

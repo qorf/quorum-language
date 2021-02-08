@@ -23,8 +23,25 @@ use Libraries.Language.Compile.Context.NumberContext
 use Libraries.Language.Compile.Translate.BinaryOpcode
 use Libraries.Language.Compile.Context.AdditionContext
 use Libraries.Language.Compile.Context.InequalityContext
+use Libraries.Language.Compile.Context.AndOrContext
+use Libraries.Language.Compile.Translate.BinaryAndOrOpcode
+use Libraries.Language.Compile.Context.MultiplicationContext
+use Libraries.Language.Compile.Context.UndefinedContext
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Language.Compile.Context.BooleanContext
+use Libraries.Language.Compile.Context.MeContext
+use Libraries.Language.Compile.Context.InputContext
+use Libraries.Language.Compile.Context.CastContext
+use Libraries.Language.Compile.Context.ParentVariableFunctionCallContext
+use Libraries.Language.Compile.Translate.FlipBooleanOpcode
+use Libraries.Language.Compile.Context.NotContext
+use Libraries.Language.Compile.Translate.NegateUnaryOpcode
+use Libraries.Language.Compile.Context.UnaryMinusContext
+use Libraries.Language.Interpreter.UnifiedSourceListener
+use Libraries.Language.Interpreter.Token
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
 
-class DataFrameExpressionListener is QuorumSourceListener
+class DataFrameExpressionListener is UnifiedSourceListener
     Stack<QuorumOpcode> opcodeStack
     DataFrame dataFrame = undefined
     on create
@@ -32,7 +49,13 @@ class DataFrameExpressionListener is QuorumSourceListener
         SetTypeChecker(checker)
     end
 
-    action EnterInteger(IntegerContext context) 
+    action Enter(ParseContext context)
+    end
+
+    action Exit(ParseContext context)
+        Token token = context:GetFirstToken()
+        SendDefaultError(context, "DataFrame expressions are intentionally limited and cannot use values like " +
+        token:value + " at index " + token:startIndex + ".")
     end
 
     action ExitNumber(NumberContext context) 
@@ -74,6 +97,198 @@ class DataFrameExpressionListener is QuorumSourceListener
         return type
     end
 
+    action ExitOr(AndOrContext context)
+        DoAndOr(context)
+    end
+
+    action ExitAnd(AndOrContext context) 
+        DoAndOr(context)
+    end
+
+    action DoAndOr(AndOrContext context)
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation op
+        if context:isAnd
+            op:SetOperation(op:AND)
+        else 
+            op:SetOperation(op:OR)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        BinaryAndOrOpcode binary
+        binary:SetLocation(context:GetLocation())
+        binary:isAnd = context:isAnd
+        binary:SetType(value)
+        binary:SetOperation(op)
+        binary:left = left
+        binary:right = right
+
+        if left is BinaryAndOrOpcode
+            BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, left)
+            theAnd:hasParent = true
+            theAnd:opcodeParent = binary
+            theAnd:isOnLeft = true
+        end
+
+        if right is BinaryAndOrOpcode
+            BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, right)
+            theAnd:hasParent = true
+            theAnd:opcodeParent = binary
+            theAnd:isOnLeft = false
+        end
+        opcodeStack:Push(binary)
+    end
+
+    action ExitMultiplication(MultiplicationContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation op
+        if context:isDivide
+            op:SetOperation(op:DIVIDE)
+        elseif context:isMultiply
+            op:SetOperation(op:TIMES)
+        else
+            op:SetOperation(op:MODULUS)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
+        binary:SetType(value)
+        binary:SetLeftOpcode(left)
+        binary:SetRightOpcode(right)
+        opcodeStack:Push(binary)
+    end
+
+    action ExitBoolean(BooleanContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetBooleanConstant(context:value)
+
+        QuorumConstant const
+        const:SetLocation(context:GetLocation())
+        const:SetType(type)
+        const:booleanValue = context:value
+        opcodeStack:Push(const)
+    end
+
+    action ExitUndefined(UndefinedContext context) 
+        SendDefaultError(context, "Cannot use undefined values in a DataFrame expression.")
+    end
+
+    action ExitCast(CastContext context) 
+        SendDefaultError(context, "Cannot cast in a DataFrame expression.")
+    end
+
+    action ExitMe(MeContext context) 
+        SendDefaultError(context, "Cannot use me values in a DataFrame expression.")
+    end
+
+    action ExitInput(InputContext context) 
+        SendDefaultError(context, "Cannot ask for user input in a DataFrame expression.")
+    end
+
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        SendDefaultError(context, "Cannot use parent values in a DataFrame expression.")
+    end 
+
+    private action SendDefaultError(ParseContext context, text message)
+        CompilerError error = CreateCompilerError(context, message)
+        CompilerErrorManager manager = GetCompilerErrorManager()
+        manager:Add(error)
+    end
+
+    private action CreateCompilerError(ParseContext context, text message) returns CompilerError
+        CompilerError error
+        error:SetLocation(context:GetLocation())
+        error:SetErrorMessage(message)
+        CompilerErrorType t
+        t:SetCurrentType(t:PARSER_NO_VIABLE_ALTERNATIVE)
+        error:SetCompilerErrorType(t)
+        return error
+    end
+
+    action ExitMinus(UnaryMinusContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode left = opcodeStack:Pop()
+
+        Operation notOp
+        notOp:SetOperation(notOp:MINUS)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left:GetType(), notOp) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        NegateUnaryOpcode binary = cast(NegateUnaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
+        binary:SetType(value)
+        binary:SetOpcode(left)
+        opcodeStack:Push(binary)
+    end
+
+    action ExitNot(NotContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode left = opcodeStack:Pop()
+
+        Operation notOp
+        notOp:SetOperation(notOp:NOT)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left:GetType(), notOp) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        FlipBooleanOpcode binary = cast(FlipBooleanOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
+        binary:SetType(value)
+        binary:SetOpcode(left)
+        opcodeStack:Push(binary)
+    end
+
     action ExitAddition(AdditionContext addition) 
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
@@ -105,6 +320,9 @@ class DataFrameExpressionListener is QuorumSourceListener
         binary:SetRightOpcode(right)
         opcodeStack:Push(binary)
     end
+
+    //This should do nothing, but ignores the parent error
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) end
 
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
@@ -148,9 +366,6 @@ class DataFrameExpressionListener is QuorumSourceListener
             manager:Add(error)
             return now
         end
-    end
-
-    action EnterEquals(EqualsContext context) 
     end
 
     action ExitInequality(InequalityContext context) 
@@ -231,5 +446,4 @@ class DataFrameExpressionListener is QuorumSourceListener
     action SetDataFrame(DataFrame dataFrame)
         me:dataFrame = dataFrame
     end
-
 end

@@ -1,6 +1,8 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Interpreter.Result
 
 class NegateUnaryOpcode is UnaryOpcode
     integer opcode = -1
@@ -23,6 +25,15 @@ class NegateUnaryOpcode is UnaryOpcode
 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         methodWriter:VisitInstruction(GetJavaOpcode())
+    end
+
+    action Evaluate(Runtime runtime)
+        Result left = runtime:PeekFromStack()
+        if left:type:IsInteger()
+            left:integerValue = - left:integerValue
+        elseif left:type:IsNumber()
+            left:numberValue = - left:numberValue
+        end
     end
 
     action WriteJavaScript returns text

@@ -13,6 +13,10 @@ class Runtime
         return stack:Pop()
     end
 
+    action PeekFromStack returns Result
+        return stack:Peek()
+    end
+
     action GetStackSize returns integer
         return stack:GetSize()
     end

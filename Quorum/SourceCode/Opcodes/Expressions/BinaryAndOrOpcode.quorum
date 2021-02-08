@@ -2,6 +2,8 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.Operation
+use Libraries.Language.Interpreter.Result
+use Libraries.Language.Interpreter.Runtime
 
 class BinaryAndOrOpcode is QuorumOpcode
     public boolean isAnd = true
@@ -34,6 +36,54 @@ class BinaryAndOrOpcode is QuorumOpcode
 
     action IsOnLeft returns boolean
         return isOnLeft
+    end
+
+    action Evaluate(Runtime runtime)
+        me:left:Evaluate(runtime)
+        Result left = runtime:PopFromStack()
+        integer current = op:GetOperation()
+
+        Result result
+        Type type
+        
+        result:type = type
+
+        //short circuit at runtime
+        if current = op:AND
+            type:SetToBoolean()
+            if not left:booleanValue //if it's false, push false and bail 
+                result:booleanValue = false
+            else //evaluate the right hand side
+                me:right:Evaluate(runtime)
+                Result right = runtime:PopFromStack()
+                if right:booleanValue
+                    result:booleanValue = true
+                else
+                    result:booleanValue = false
+                end
+            end
+
+            runtime:PushToStack(result)
+            return now
+        elseif current = op:OR
+            type:SetToBoolean()
+            if left:booleanValue //if it's true, push true and bail 
+                result:booleanValue = true
+            else //evaluate the right hand side, becaue the left is false
+                me:right:Evaluate(runtime)
+                Result right = runtime:PopFromStack()
+                if right:booleanValue
+                    result:booleanValue = true
+                else
+                    result:booleanValue = false
+                end
+            end
+
+            runtime:PushToStack(result)
+            return now
+        end
+
+        runtime:PushToStack(result)
     end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)

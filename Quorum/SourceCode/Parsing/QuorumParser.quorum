@@ -2829,7 +2829,9 @@ class QuorumParser
             context:right = right
 
             context2:SetFirstToken(left:GetFirstToken())
-            context2:SetLastToken(right:GetLastToken())
+            if right not= undefined
+                context2:SetLastToken(right:GetLastToken())
+            end
             SetLocation(context2)
             left = context
             if not tokenIterator:HasNext() return left end
@@ -2863,7 +2865,9 @@ class QuorumParser
             context:right = right
 
             context2:SetFirstToken(left:GetFirstToken())
-            context2:SetLastToken(right:GetLastToken())
+            if right not= undefined
+                context2:SetLastToken(right:GetLastToken())
+            end
             SetLocation(context2)
             left = context
             if not IsValid() return left end

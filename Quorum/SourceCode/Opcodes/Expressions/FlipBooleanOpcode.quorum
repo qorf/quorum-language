@@ -1,6 +1,8 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Interpreter.Result
 
 class FlipBooleanOpcode is UnaryOpcode
     JavaBytecodeOpcodes opcodes
@@ -19,6 +21,11 @@ class FlipBooleanOpcode is UnaryOpcode
         methodWriter:VisitLabel(jumpNotEqual)
         methodWriter:VisitConstant(0)
         methodWriter:VisitLabel(jumpPastLabel)
+    end
+
+    action Evaluate(Runtime runtime)
+        Result left = runtime:PeekFromStack()
+        left:booleanValue = not left:booleanValue
     end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
