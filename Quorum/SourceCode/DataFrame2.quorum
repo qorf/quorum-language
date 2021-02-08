@@ -1,17 +1,17 @@
 use Libraries.Compute.Statistics.DataFrame
-use Libraries.Language.Interpreter.QuorumLexer
+use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.CompilerErrorManager
-use Libraries.Language.Interpreter.QuorumParser
+use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Compute.Statistics.Transforms.DataFrameExpressionListener
-use Libraries.Language.Interpreter.Runtime
+use Libraries.Language.Compile.Interpreter.Runtime
 use Libraries.Containers.Array
 use Libraries.Containers.Stack
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Symbol.Type
-use Libraries.Language.Interpreter.Result
+use Libraries.Language.Compile.Interpreter.Result
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Language.Interpreter.RuntimeBlock
+use Libraries.Language.Compile.Interpreter.RuntimeBlock
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 
 class DataFrame2 is DataFrame
@@ -215,7 +215,7 @@ class DataFrame2 is DataFrame
         Load("files/Data.csv")
 
         //this is always true, so every row should be allowed
-        Filter("Group > 0 and Result < 13")
+        Filter("Group > 0 and Result < -13")
         a = 5
     end
 end
