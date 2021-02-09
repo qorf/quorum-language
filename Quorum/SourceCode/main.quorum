@@ -21,6 +21,7 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.Language.Compile.CompilerRequest
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
@@ -41,6 +42,44 @@ class Main is WebResponder
     action Main
         ProcessConsoleFlags()
         //CompileTest()
+        //RunStandardLibrary();
+    end
+
+    action RunStandardLibrary
+        Compiler compiler
+
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion() + ": Compiling Standard Library"
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        Library library
+        library:outputJavaScript = true
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        CompilerErrorManager errors = library:Scan()
+
+        output "Writing Standard Library"
+
+        if errors:IsCompilationErrorFree()
+            library:Write()
+            output "Finished"
+        else 
+            output "I cannot compile the standard library until the following errors are fixed:"
+            i = 1
+            Iterator<CompilerError> iterator = errors:GetIterator()
+            repeat while iterator:HasNext()
+                CompilerError error = iterator:Next()
+                if error:GetFile() = undefined
+                    a = 5
+                end
+                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                i = i + 1
+            end
+        end
     end
 
     action GenerateDocumentation(Array<text> fileNames)
