@@ -40,47 +40,11 @@ class Main is WebResponder
     Library sharedLibrary = undefined
 
     action Main
-        ProcessConsoleFlags()
-        //CompileTest()
-        //RunStandardLibrary();
+        //ProcessConsoleFlags()
+        CompileTest()
     end
 
-    action RunStandardLibrary
-        Compiler compiler
-
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        output compiler:GetVersion() + ": Compiling Standard Library"
-
-        File outputLocation
-        outputLocation:SetPath("Library/Compiled")
-        output "Scanning"
-        Library library
-        library:outputJavaScript = true
-        library:SetCachingLibraryOpcodes(true)
-        library:SetLocation(standardLibraryFolder)
-        library:SetOutputFolder(outputLocation)
-        CompilerErrorManager errors = library:Scan()
-
-        output "Writing Standard Library"
-
-        if errors:IsCompilationErrorFree()
-            library:Write()
-            output "Finished"
-        else 
-            output "I cannot compile the standard library until the following errors are fixed:"
-            i = 1
-            Iterator<CompilerError> iterator = errors:GetIterator()
-            repeat while iterator:HasNext()
-                CompilerError error = iterator:Next()
-                if error:GetFile() = undefined
-                    a = 5
-                end
-                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
-                i = i + 1
-            end
-        end
-    end
+    
 
     action GenerateDocumentation(Array<text> fileNames)
         Compiler compiler
@@ -247,7 +211,7 @@ class Main is WebResponder
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetPath("Library/Tests/Expressions/Pass/AddBooleanText.quorum")
+        main:SetAbsolutePath("/Users/stefika/Quorum Studio/Physics3DApplication/SourceCode/Main.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
@@ -293,6 +257,9 @@ class Main is WebResponder
         finish = time:GetEpochTime()
         output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
+        CodeCompletionRequest req
+        req:fileKey = "/Users/stefika/Quorum Studio/Physics3DApplication/SourceCode/Main.quorum"
+        req:caretLocation = 1200
 //        request:symbolTable = result:symbolTable
 //        request:opcodes = result:opcodes
 //        output "Compile again, but notice nothing needs to be built:"

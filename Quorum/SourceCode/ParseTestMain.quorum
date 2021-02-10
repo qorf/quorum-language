@@ -480,20 +480,20 @@ class ParseTestMain
         if not runWithAntlr
             return now
         end
-        frame:SetSelectedColumnRange(1,1)
-        number antlrAverage = frame:Mean()
-        output "Antlr = M(" + antlrAverage + "), SD(" + frame:StandardDeviation() + ")"
-        frame:SetSelectedColumnRange(2,2)
-        number usAverage = frame:Mean()
-        output "Mean (Hand Parser) " + usAverage + "), SD(" + frame:StandardDeviation() + ")"
-        output "Average Speedup: " + (antlrAverage / usAverage) + "x"
-        output ""
-        frame:SetSelectedColumnRange(1,2)
-        CompareGroups groups = frame:CompareSelectedColumns()
-        text result = frame:ToText()
-        File frameFile
-        frameFile:SetPath("files/Data.csv")
-        frameFile:Write(result)
-        output groups:GetFormalSummary()
+//        frame:SetSelectedColumnRange(1,1)
+//        number antlrAverage = frame:Mean()
+//        output "Antlr = M(" + antlrAverage + "), SD(" + frame:StandardDeviation() + ")"
+//        frame:SetSelectedColumnRange(2,2)
+//        number usAverage = frame:Mean()
+//        output "Mean (Hand Parser) " + usAverage + "), SD(" + frame:StandardDeviation() + ")"
+//        output "Average Speedup: " + (antlrAverage / usAverage) + "x"
+//        output ""
+//        frame:SetSelectedColumnRange(1,2)
+//        CompareGroups groups = frame:CompareSelectedColumns()
+//        text result = frame:ToText()
+//        File frameFile
+//        frameFile:SetPath("files/Data.csv")
+//        frameFile:Write(result)
+//        output groups:GetFormalSummary()
     end 
 end

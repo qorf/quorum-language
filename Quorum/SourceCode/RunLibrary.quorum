@@ -1,0 +1,82 @@
+package Libraries.Language.Compile
+
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.Language.Compile.QuorumBytecodeListener
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Symbol.TypeChecker
+use Libraries.Language.Compile.Compiler
+use Libraries.Language.Compile.CompilerListener
+use Libraries.Language.Compile.Lexer
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.Containers.Iterator
+
+class RunLibrary
+    File location = undefined
+    File outputFolder = undefined
+    File buildFolder
+    File runJar
+    File runJavaScript
+    File pluginJar
+    File nativeFolder
+    File graphicsFolder
+    File robotsFolder
+    constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
+    constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
+    constant text STANDARD_LIBRARY_JAVASCRIPT = "QuorumStandardLibrary.js"
+    constant text NATIVE_FOLDER = "jni"
+    constant text GRAPHICS_FOLDER = "Graphics"
+    constant text ROBOTS_FOLDER = "Robots"
+
+    boolean hasScannedStandardLibrary = false
+    SymbolTable librarySymbolTable
+    HashTable<text, ClassOpcode> opcodes
+    HashTable<text, Lexer> lexers
+    boolean cacheOpcodes = false
+    Array<CompilerListener> listeners
+    boolean outputJavaScript = false
+    text javascriptOutput = ""
+    text javascriptPlugins = ""
+
+    action Main
+        Compiler compiler
+
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion() + ": Compiling Standard Library"
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        Library library
+        library:outputJavaScript = true
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        CompilerErrorManager errors = library:Scan()
+
+        output "Writing Standard Library"
+
+        if errors:IsCompilationErrorFree()
+            library:Write()
+            output "Finished"
+        else 
+            output "I cannot compile the standard library until the following errors are fixed:"
+            i = 1
+            Iterator<CompilerError> iterator = errors:GetIterator()
+            repeat while iterator:HasNext()
+                CompilerError error = iterator:Next()
+                if error:GetFile() = undefined
+                    a = 5
+                end
+                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                i = i + 1
+            end
+        end
+    end
+end

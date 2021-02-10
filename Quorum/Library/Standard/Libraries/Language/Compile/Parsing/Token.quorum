@@ -16,6 +16,10 @@ class Token
     public integer category = -1
     public integer channel = 0
 
+    action GetTokenCategory returns integer
+        return category
+    end
+
     /* Returns the value of the token and the category by default */
     action ToText returns text
         text string = ""

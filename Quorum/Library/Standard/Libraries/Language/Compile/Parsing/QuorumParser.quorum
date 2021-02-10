@@ -246,7 +246,7 @@ class QuorumParser
             location:SetColumnNumberEnd(0)
             location:SetIndex(0)
             location:SetIndexEnd(0)
-            location:SetFile(lexer:GetCurrentFile())
+            location:SetFile(lexer:GetFile())
             return now
         end
 
@@ -257,15 +257,29 @@ class QuorumParser
             location:SetColumnNumberEnd(start:endColumn)
             location:SetIndex(start:startIndex)
             location:SetIndexEnd(start:endIndex)
-            location:SetFile(lexer:GetCurrentFile())
+            location:SetFile(lexer:GetFile())
         end
 
         if done not= undefined
             location:SetLineNumberEnd(done:endLine)
             location:SetColumnNumberEnd(done:endColumn)
             location:SetIndexEnd(done:endIndex)
-            location:SetFile(lexer:GetCurrentFile())
+            location:SetFile(lexer:GetFile())
         end
+    end
+
+    private action SetLocationToToken(Location location, Token token)
+        if location = undefined or token = undefined
+            return now
+        end
+
+        location:SetLineNumber(token:startLine)
+        location:SetLineNumberEnd(token:endLine)
+        location:SetColumnNumber(token:startColumn)
+        location:SetColumnNumberEnd(token:endColumn)
+        location:SetIndex(token:startIndex)
+        location:SetIndexEnd(token:endIndex)
+        location:SetFile(lexer:GetFile())
     end
 
     private action SetCompilerErrorLocation(CompilerError error, Token start, Token done)
@@ -276,7 +290,7 @@ class QuorumParser
             error:SetColumnNumberEnd(0)
             error:SetIndex(0)
             error:SetIndexEnd(0)
-            error:SetFile(lexer:GetCurrentFile())
+            error:SetFile(lexer:GetFile())
         elseif start not= undefined and done = undefined
             error:SetLineNumber(start:startLine)
             error:SetLineNumberEnd(start:endLine)
@@ -284,7 +298,7 @@ class QuorumParser
             error:SetColumnNumberEnd(start:endColumn)
             error:SetIndex(start:startIndex)
             error:SetIndexEnd(start:endIndex)
-            error:SetFile(lexer:GetCurrentFile())
+            error:SetFile(lexer:GetFile())
         else
             error:SetLineNumber(start:startLine)
             error:SetLineNumberEnd(done:endLine)
@@ -292,7 +306,7 @@ class QuorumParser
             error:SetColumnNumberEnd(done:endColumn)
             error:SetIndex(start:startIndex)
             error:SetIndexEnd(done:endIndex)
-            error:SetFile(lexer:GetCurrentFile())
+            error:SetFile(lexer:GetFile())
         end
     end
 
@@ -305,7 +319,7 @@ class QuorumParser
             error:SetColumnNumberEnd(token:endColumn)
             error:SetIndex(token:startIndex)
             error:SetIndexEnd(token:endIndex)
-            error:SetFile(lexer:GetCurrentFile())
+            error:SetFile(lexer:GetFile())
         else
             Token token = tokenIterator:Look(-1)
             if token = undefined
@@ -315,7 +329,7 @@ class QuorumParser
                 error:SetColumnNumberEnd(0)
                 error:SetIndex(0)
                 error:SetIndexEnd(0)
-                error:SetFile(lexer:GetCurrentFile())
+                error:SetFile(lexer:GetFile())
             else
                 error:SetLineNumber(token:startLine)
                 error:SetLineNumberEnd(token:endLine)
@@ -323,7 +337,7 @@ class QuorumParser
                 error:SetColumnNumberEnd(token:endColumn)
                 error:SetIndex(token:startIndex)
                 error:SetIndexEnd(token:endIndex)
-                error:SetFile(lexer:GetCurrentFile())
+                error:SetFile(lexer:GetFile())
             end
         end
     end
@@ -1170,6 +1184,7 @@ class QuorumParser
         end
         Token next = tokenIterator:GetCurrent()
         if next:category = constants:ID
+            SetLocationToToken(context:variableLocation, next)
             context:name = next:value
             next = tokenIterator:Next()
         else //this is an error
@@ -1259,6 +1274,7 @@ class QuorumParser
         Token next = tokenIterator:GetCurrent()
         context:SetFirstToken(next)
         if next:category = constants:ID
+            SetLocationToToken(context:objectLocation, next)
             context:object = next:value
             next = tokenIterator:Next()
         else //this is an error
@@ -1294,7 +1310,7 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
         if next:category = constants:ID
             context:name = next:value
-            
+            SetLocationToToken(context:variableLocation, next)
             next = tokenIterator:Next()
         else //this is an error
             SendDefaultError("Expected identifier. " + moreInformationIdentifier)
@@ -1345,9 +1361,10 @@ class QuorumParser
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
-        if access =  undefined
+        if access = undefined
             context:SetFirstToken(next)
         end
+
         if next:category = constants:CONSTANT
             context:isConstant = true
             next = tokenIterator:Next()
@@ -1357,6 +1374,8 @@ class QuorumParser
         if declaration = undefined
             return undefined //the declaration handled the error
         end
+        
+        SetLocationToToken(context:typeLocation, declaration:GetFirstToken())
         context:declaration = declaration
         context:leftHandSide = declaration:type
         if not IsValid() //this is an error
@@ -1365,8 +1384,10 @@ class QuorumParser
         end
         next = tokenIterator:GetCurrent()
         if next:category = constants:ID
+            SetLocationToToken(context:variableLocation, next)
             context:name = next:value
             context:SetLastToken(next) //may not be the last, but we can mark it and change it later
+            SetLocation(context)
             next = tokenIterator:Next()
         else //error
             CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
@@ -1431,6 +1452,7 @@ class QuorumParser
         //if we've got an ID and a colon, it's an object call before the parent
         if next:category = constants:ID
             context:variableName = next:value
+            
             next = tokenIterator:Next()
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
@@ -1515,6 +1537,7 @@ class QuorumParser
 
         //if we've got an ID and a colon, it's an object call
         if next:category = constants:ID
+            SetLocationToToken(context:objectLocation, next)
             Token look = tokenIterator:LookAhead(1)
             if look:category = constants:COLON //this is an object call
                 context:objectName = next:value
@@ -3345,6 +3368,10 @@ class QuorumParser
         if current:category = constants:ID
             context:name = current:value
             context:SetFirstToken(current)
+            context:SetLastToken(current)
+            SetLocationToToken(context:nameLocation, current)
+            SetLocation(context)
+
             //if there's a parenthesis, this is an action call. If it's not, it's an ID.
             Token next = tokenIterator:Next()
             if next = undefined //Just an ID, so return it
@@ -3457,6 +3484,7 @@ class QuorumParser
             context:SetFirstToken(actions:Get(0):GetFirstToken())
             context:SetLastToken(actions:Get(actions:GetSize() - 1):GetLastToken())
             SetLocation(context)
+            SetLocationToToken(context:objectLocation, actions:Get(0):GetFirstToken())
         end
         return context
     end

@@ -25,7 +25,7 @@ class Variable is Symbol
     HashTable<text, List<Location>> useLocationHash
     Location typeLocation = undefined
 
-    action AddUseLocation(Location location)
+    action AddUseLocation(Location location)   
         File file = location:GetFile()
         if file = undefined
            return now //ignore if this isn't supported

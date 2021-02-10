@@ -30,7 +30,7 @@ use Libraries.Language.Compile.CompilerErrorType
 class QuorumLexer is Lexer
     QuorumLexerConstants constants
     integer index = -1
-    integer currentLine = 0
+    integer currentLine = 1
     integer currentColumn = -1
     text currentValue = ""
     text currentChar = ""
@@ -661,7 +661,11 @@ class QuorumLexer is Lexer
         me:compilerErrorManager = compilerErrorManager
     end
 
-    action GetCurrentFile returns File
+    action GetFile returns File
         return currentFile
+    end
+
+    action SetFile(File file)
+        currentFile = file
     end
 end

@@ -220,9 +220,11 @@ class Library
 
                 if cacheOpcodes
                     ClassOpcode op = listener:GetClassOpcode()
-                    op:SetBuild(buildFolder)
-                    Class clazz = op:GetClass()
-                    opcodes:Add(clazz:GetStaticKey(), op)
+                    if op not= undefined
+                        op:SetBuild(buildFolder)
+                        Class clazz = op:GetClass()
+                        opcodes:Add(clazz:GetStaticKey(), op)
+                    end
                 end
                 number val = 100.0 * (cast(number, i) / max) + 50.0
                 UpdateListenerPercentage(val)

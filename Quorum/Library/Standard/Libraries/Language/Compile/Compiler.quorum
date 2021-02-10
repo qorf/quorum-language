@@ -1564,12 +1564,14 @@ There are many ways to load canvases and this is provided only as an exemplar.
 
     action Parse(File file, QuorumSourceListener listener) 
         text source = file:Read()
+        listener:SetFile(file)
         Parse(source, listener)
     end
 
     action Parse(text source, QuorumSourceListener listener)
         CompilerErrorManager errors = listener:GetCompilerErrorManager()
         QuorumLexer lexer
+        lexer:SetFile(listener:GetFile())
         lexer:SetCompilerErrorManager(errors)
         lexer:Read(source)
 
