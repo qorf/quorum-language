@@ -24,6 +24,8 @@ class FlipBooleanOpcode is UnaryOpcode
     end
 
     action Evaluate(Runtime runtime)
+        QuorumOpcode op = me:GetOpcode()
+        op:Evaluate(runtime)
         Result left = runtime:PeekFromStack()
         left:booleanValue = not left:booleanValue
     end

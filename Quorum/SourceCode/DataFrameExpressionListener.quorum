@@ -200,7 +200,7 @@ class DataFrameExpressionListener is UnifiedSourceListener
     end
 
     action ExitUndefined(UndefinedContext context) 
-        SendDefaultError(context, "Cannot use undefined values in a DataFrame expression.")
+        SendDefaultError(context, "Cannot use undefined in a DataFrame expression.")
     end
 
     action ExitCast(CastContext context) 
