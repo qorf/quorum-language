@@ -40,8 +40,8 @@ class Main is WebResponder
     Library sharedLibrary = undefined
 
     action Main
-        //ProcessConsoleFlags()
-        CompileTest()
+        ProcessConsoleFlags()
+        //CompileTest()
     end
 
     
@@ -257,9 +257,6 @@ class Main is WebResponder
         finish = time:GetEpochTime()
         output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
-        CodeCompletionRequest req
-        req:fileKey = "/Users/stefika/Quorum Studio/Physics3DApplication/SourceCode/Main.quorum"
-        req:caretLocation = 1200
 //        request:symbolTable = result:symbolTable
 //        request:opcodes = result:opcodes
 //        output "Compile again, but notice nothing needs to be built:"

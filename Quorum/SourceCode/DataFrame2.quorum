@@ -82,6 +82,7 @@ class DataFrame2 is DataFrame
 
             boolean markForRemoval = false
             Result value = runtime:PopFromStack()
+            
             if value = undefined or not value:booleanValue //get rid of the row
                 markForRemoval = true
                 skip = skip + 1
@@ -90,8 +91,9 @@ class DataFrame2 is DataFrame
             //now move the row if necessary, possibly skipping along
             MoveRow(me, row, skip, sizes, markForRemoval)
 
-            done = not HasAnotherRow(me, row)
             row = row + 1
+            done = not HasAnotherRow(me, row)
+            runtime:GetCurrentBlock():Empty()
         end
 
         i = 0
@@ -108,7 +110,7 @@ class DataFrame2 is DataFrame
     private action SetupRuntime(Runtime runtime, DataFrame frame, integer row)
         integer column = 0
         RuntimeBlock block = runtime:GetCurrentBlock()
-
+        
         //get the row for each column
         repeat while column < frame:GetSize()
             DataFrameColumn dc = frame:GetColumn(column)
@@ -215,7 +217,7 @@ class DataFrame2 is DataFrame
         Load("files/Data.csv")
 
         //this is always true, so every row should be allowed
-        Filter("Group > 0 and Result < -13")
+        Filter("Result > 13")
         a = 5
     end
 end
