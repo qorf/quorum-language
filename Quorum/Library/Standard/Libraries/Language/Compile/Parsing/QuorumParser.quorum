@@ -554,8 +554,9 @@ class QuorumParser
 
             //set the end tokens
             if next:category = constants:END
-                context:SetLastToken(tokenIterator:Next())
+                context:SetLastToken(next)
                 SetLocation(context)
+                tokenIterator:Next()
             else //ironically, this would be an error, but if a user missed this, is it really a big deal?
                 SendDefaultError("Class declarations must be completed with the word 'end,' " 
                 + "but the token received was " 
@@ -2928,7 +2929,9 @@ class QuorumParser
         if HasNext()
             tokenIterator:Next()
             ParseContext right = Inherits()
-            context:SetLastToken(right:GetLastToken())
+            if right not= undefined
+                context:SetLastToken(right:GetLastToken())
+            end
             SetLocation(context)
             context:right = right
             return context
