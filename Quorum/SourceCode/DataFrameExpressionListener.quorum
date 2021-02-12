@@ -40,10 +40,14 @@ use Libraries.Language.Compile.Context.UnaryMinusContext
 use Libraries.Language.Interpreter.UnifiedSourceListener
 use Libraries.Language.Compile.Parsing.Token
 use Libraries.Language.Compile.Context.VariableFunctionCallContext
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 class DataFrameExpressionListener is UnifiedSourceListener
     Stack<QuorumOpcode> opcodeStack
     DataFrame dataFrame = undefined
+    HashTable<text, Variable> variables
+
     on create
         TypeChecker checker
         SetTypeChecker(checker)
@@ -324,6 +328,24 @@ class DataFrameExpressionListener is UnifiedSourceListener
     //This should do nothing, but ignores the parent error
     action ExitVariableFunctionCall(VariableFunctionCallContext context) end
 
+    
+
+    action GetVariables returns Iterator<Variable>
+        return variables:GetValueIterator()
+    end
+
+    action GetVariable(text name) returns Variable
+        return variables:GetValue(name)
+    end
+
+    action HasVariable(text name) returns boolean
+        return variables:HasKey(name)
+    end
+
+    action GetVariablesSize returns integer
+        return variables:GetSize()
+    end
+
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
             ActionCallOpcode actionCall
@@ -331,6 +353,7 @@ class DataFrameExpressionListener is UnifiedSourceListener
 
             //get the name of the variable
             text name = context:name
+            
             DataFrameColumn column = dataFrame:GetColumn(name)
 
             if column = undefined //throw an error
@@ -354,6 +377,7 @@ class DataFrameExpressionListener is UnifiedSourceListener
             variable:SetType(type)
             variable:SetName(name)
             actionCall:SetField(variable)
+            variables:Add(name, variable)
             opcodeStack:Push(actionCall)
         else
             CompilerError error

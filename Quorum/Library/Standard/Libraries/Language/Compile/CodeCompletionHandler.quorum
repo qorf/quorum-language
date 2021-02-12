@@ -925,10 +925,12 @@ class CodeCompletionHandler
                 integer start = constructor:GetIndex()
                 integer finish = constructor:GetIndexEnd()
                 File f = constructor:GetFile()
-                text actionPath = f:GetAbsolutePath()
-                if index >= start and index <= finish and classPath = actionPath
-                    act = constructor
-                    return act
+                if f not= undefined
+                    text actionPath = f:GetAbsolutePath()
+                    if index >= start and index <= finish and classPath = actionPath
+                        act = constructor
+                        return act
+                    end
                 end
             end
         end

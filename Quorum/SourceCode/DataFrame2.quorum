@@ -77,13 +77,20 @@ class DataFrame2 is DataFrame
         repeat while not done
             //first check that all the variables in the list are there
             //if there are zero variables, then just process the expression for now, even though technically it's a constant
-            SetupRuntime(runtime, me, row)
-            op:Evaluate(runtime)
-
+            boolean missingValue = SetupRuntime(listener, runtime, me, row)
             boolean markForRemoval = false
-            Result value = runtime:PopFromStack()
             
-            if value = undefined or not value:booleanValue //get rid of the row
+            //if there are missing values, this row can't be evaluated
+            //so mark it for removal
+            if not missingValue
+                op:Evaluate(runtime)
+                
+                Result value = runtime:PopFromStack()
+                if value = undefined or not value:booleanValue
+                    markForRemoval = true
+                    skip = skip + 1
+                end
+            else
                 markForRemoval = true
                 skip = skip + 1
             end
@@ -107,22 +114,27 @@ class DataFrame2 is DataFrame
         output me:ToText()
     end
 
-    private action SetupRuntime(Runtime runtime, DataFrame frame, integer row)
+    private action SetupRuntime(DataFrameExpressionListener listener, Runtime runtime, DataFrame frame, integer row) returns boolean
         integer column = 0
         RuntimeBlock block = runtime:GetCurrentBlock()
-        
+        boolean hasMissingValue = false
+
         //get the row for each column
         repeat while column < frame:GetSize()
             DataFrameColumn dc = frame:GetColumn(column)
             if row < dc:GetSize() //get the value at this point and put it in as a variable name
                 text header = dc:GetHeader()
+                boolean hasVar = listener:HasVariable(header)
                 Result result = GetResultFromColumn(dc, row)
                 if result not= undefined
                     block:SetVariableResult(header, result)
+                elseif hasVar and result = undefined
+                    hasMissingValue = true
                 end
             end
             column = column + 1
         end
+        return hasMissingValue
     end
 
     private action GetResultFromColumn(DataFrameColumn column, integer row) returns Result
@@ -209,6 +221,39 @@ class DataFrame2 is DataFrame
         end
     end
 
+    action ToText(integer row) returns text
+        DataFrame frame = me
+        integer size = frame:GetSize() //number of columns
+
+        text currentRow = ""
+        text dq = currentRow:GetDoubleQuote()
+        text lf = currentRow:GetLineFeed()
+        
+        i = 0
+        repeat while i < frame:GetSize()
+            DataFrameColumn column = frame:GetColumn(i)
+            if row < column:GetSize()
+                text value = column:GetAsText(row)
+                if value not= undefined
+                    if not value:IsEmpty() and value:Contains(",")
+                        currentRow = currentRow + dq + value + dq
+                    else
+                        currentRow = currentRow + value
+                    end
+                end
+                hadRow = true
+            end
+        
+            
+            if i not= frame:GetSize() - 1
+                currentRow = currentRow + ","
+            end
+            i = i + 1
+        end
+
+        return currentRow
+    end
+
     action Main
         IntegerColumn column0
         IntegerColumn column1
@@ -217,7 +262,7 @@ class DataFrame2 is DataFrame
         Load("files/Data.csv")
 
         //this is always true, so every row should be allowed
-        Filter("Group = 5")
+        Filter("Result > 0")
         a = 5
     end
 end

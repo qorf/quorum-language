@@ -739,7 +739,13 @@ class QuorumParser
             //we need at least one type
             AssignmentDeclaractionContext decl = AssignmentDeclaration()
             contexts:Add(decl)
+            if decl = undefined
+                SendDefaultError("Missing type after processing < (less than). " 
+                + moreInformationGenerics)
+                return undefined 
+            else
             types:Add(decl:type)
+            end
             if not IsValid() 
                 SendDefaultError(textEndedError + " while trying to create a generic statement, after processing < (less than). " 
                 + moreInformationGenerics)
@@ -909,6 +915,8 @@ class QuorumParser
             end
             next = tokenIterator:GetCurrent()
             if next:category = constants:END //advance the token
+                context:SetLastToken(next)
+                SetLocation(context)
                 tokenIterator:Next()
             else //this is an error
                 SendDefaultError("Expected end at the end of a constructor. " + CalculateMatchedBracesMessage())
@@ -3448,9 +3456,13 @@ class QuorumParser
             end
     
         end
-        if contexts not= undefined and not contexts:IsEmpty()
-            context:SetFirstToken(contexts:Get(0):GetFirstToken())
-            context:SetLastToken(contexts:Get(contexts:GetSize() - 1):GetLastToken())
+        if contexts not= undefined and not contexts:IsEmpty()   
+            if contexts:Get(0) not= undefined
+                context:SetFirstToken(contexts:Get(0):GetFirstToken())
+            end
+            if contexts:Get(contexts:GetSize() - 1) not= undefined
+                context:SetLastToken(contexts:Get(contexts:GetSize() - 1):GetLastToken())
+            end
             SetLocation(context)
         end
         context:size = contexts:GetSize()
@@ -3475,7 +3487,9 @@ class QuorumParser
         repeat while not done and current not= undefined and current:category = constants:COLON
             tokenIterator:Next()
             act = ActionCall()
-            actions:Add(act)
+            if act not= undefined //errors would return undefined
+                actions:Add(act)
+            end
             if not IsValid() 
                 done = true
             else 

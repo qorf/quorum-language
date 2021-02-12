@@ -11,8 +11,8 @@ class EqualsContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)
         listener:EnterEquals(me)
-        left:Traverse(listener)
-        right:Traverse(listener)
+        if left not= undefined left:Traverse(listener) end
+        if right not= undefined right:Traverse(listener) end
         ExitDocumentation(listener)
         listener:ExitEquals(me)
     end
