@@ -158,7 +158,7 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:LIGHTS
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
             elseif key = properties:SKYBOX
-
+                LoadSkybox(cast(Layer3D, layer), json:GetObject(key))
             end
 
             counter = counter + 1
