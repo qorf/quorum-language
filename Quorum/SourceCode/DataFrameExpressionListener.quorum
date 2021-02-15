@@ -32,6 +32,7 @@ use Libraries.Language.Compile.Context.BooleanContext
 use Libraries.Language.Compile.Context.MeContext
 use Libraries.Language.Compile.Context.InputContext
 use Libraries.Language.Compile.Context.CastContext
+use Libraries.Language.Compile.Context.TextContext
 use Libraries.Language.Compile.Context.ParentVariableFunctionCallContext
 use Libraries.Language.Compile.Translate.FlipBooleanOpcode
 use Libraries.Language.Compile.Context.NotContext
@@ -200,6 +201,18 @@ class DataFrameExpressionListener is UnifiedSourceListener
         const:SetLocation(context:GetLocation())
         const:SetType(type)
         const:booleanValue = context:value
+        opcodeStack:Push(const)
+    end
+
+    action ExitText(TextContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetTextConstant(context:value)
+
+        QuorumConstant const
+        const:SetLocation(context:GetLocation())
+        const:SetType(type)
+        const:textValue = context:value
         opcodeStack:Push(const)
     end
 

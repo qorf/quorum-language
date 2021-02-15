@@ -12,7 +12,8 @@ class ActionExpressionListContext is ParseContext
         if contexts not= undefined
             i = 0
             repeat while i < contexts:GetSize()
-                contexts:Get(i):Traverse(listener)
+                ParseContext context = contexts:Get(i)
+                if context not= undefined context:Traverse(listener) end
                 i = i + 1
             end
         end

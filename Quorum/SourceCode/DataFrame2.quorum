@@ -15,6 +15,14 @@ use Libraries.Language.Compile.Interpreter.RuntimeBlock
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 
 class DataFrame2 is DataFrame
+
+    action Copy(text source) returns DataFrame2
+        DataFrame2 copy = cast(DataFrame2, me:Copy())
+        copy:Filter(source)
+
+        return copy
+    end
+
     action Filter(text source)
         QuorumLexer luthor
         CompilerErrorManager errors
@@ -257,12 +265,14 @@ class DataFrame2 is DataFrame
     action Main
         IntegerColumn column0
         IntegerColumn column1
-        //AddColumnOnLoad(0, column0)
-        //AddColumnOnLoad(1, column1)
+        AddColumnOnLoad(0, column0)
+        AddColumnOnLoad(1, column1)
         Load("files/Data.csv")
 
+        text dq = ""
+        dq = dq:GetDoubleQuote()
         //this is always true, so every row should be allowed
-        Filter("Result > 0")
+        Filter("Names = " + dq + "I'll be back" + dq)
         a = 5
     end
 end
