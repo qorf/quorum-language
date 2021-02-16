@@ -1807,8 +1807,19 @@ class QuorumParser
             Array<QualifiedNameContext> qnContexts
             next = tokenIterator:Next()
             QualifiedNameContext name = QualifiedName()
-            context:parents:Add(name:name)
-            qnContexts:Add(name)
+
+            //If this did not give a qualified name, 
+            //then it already threw an error.
+            if name not= undefined
+                context:parents:Add(name:name)
+                qnContexts:Add(name)
+            end
+
+            if not IsValid() 
+                SendDefaultError(textEndedError + " while processing a check-detect statement. " 
+                + moreInformationCheck)
+                return undefined 
+            end
             next = tokenIterator:GetCurrent()
             repeat while  next:category = constants:OR
                 next = tokenIterator:Next()
