@@ -1,9 +1,16 @@
-package Libraries.Language.Interpreter
+package Libraries.Language.Compile.Parsing
 
 use Libraries.Language.Compile.Context.all
 use Libraries.Language.Compile.QuorumSourceListener
 use Libraries.Containers.List
 
+/*
+    This is a listener that by default calls an Enter and Exit action for 
+    every rule in a parse tree. In and of itself, it is not particularly useful 
+    for clients and should not be used. It exists because some sub-classes of Quorum
+    may wish to "turn off" certain features of the language in certain circumstances 
+    and sub-classes can do this easily using this architecture.
+*/
 class UnifiedSourceListener is QuorumSourceListener
     action Enter(ParseContext context)
     end

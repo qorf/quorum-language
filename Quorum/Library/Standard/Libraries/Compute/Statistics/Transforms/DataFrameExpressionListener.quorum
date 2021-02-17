@@ -38,12 +38,16 @@ use Libraries.Language.Compile.Translate.FlipBooleanOpcode
 use Libraries.Language.Compile.Context.NotContext
 use Libraries.Language.Compile.Translate.NegateUnaryOpcode
 use Libraries.Language.Compile.Context.UnaryMinusContext
-use Libraries.Language.Interpreter.UnifiedSourceListener
 use Libraries.Language.Compile.Parsing.Token
 use Libraries.Language.Compile.Context.VariableFunctionCallContext
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Parsing.UnifiedSourceListener
 
+/*
+    This is a helper class for managing expressions inside of DataFrames. Generally,
+    this class is a utility and does not need to be used by client code.
+*/
 class DataFrameExpressionListener is UnifiedSourceListener
     Stack<QuorumOpcode> opcodeStack
     DataFrame dataFrame = undefined

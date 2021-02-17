@@ -2,6 +2,7 @@ package Libraries.Compute.Statistics
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Containers.Stack
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Compute.Statistics.DataFrameCalculation
@@ -29,6 +30,16 @@ use Libraries.Compute.Statistics.Charts.HistogramCreator
 use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Interface.Controls.Charts.BarChart
 use Libraries.Compute.Statistics.Charts.BarChartCreator
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Compute.Statistics.Transforms.DataFrameExpressionListener
+use Libraries.Language.Compile.Interpreter.Runtime
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Interpreter.RuntimeBlock
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -136,6 +147,257 @@ class DataFrame
             end
         end
         EmptyColumnsOnLoad()
+    end
+    
+    
+    /*
+        This action takes a Quorum expression text value and then filters the DataFrame on a copy. 
+        The expression follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group = 2
+        would look for any value in the column that has the integer 2 and retain only those rows. 
+
+        The filter call is on a copy, meaning it does not change the original DataFrame. If we instead want
+        to filter destructively, we should call Filter instead.
+
+        Attribute: text A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        DataFrame newFrame = frame:Copy("Group > 3")
+        output newFrame:ToText()
+    */
+    action Copy(text source) returns DataFrame
+        DataFrame copy = cast(DataFrame, me:Copy())
+        copy:Filter(source)
+
+        return copy
+    end
+
+    /*
+        This action takes a Quorum expression text value and then filters the DataFrame. The expression
+        follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group = 2
+        would look for any value in the column that has the integer 2 and retain only those rows. 
+
+        The filter call is destructive, meaning it changes the DataFrame itself. If we instead want
+        to obtain a new DataFrame with only the non-filtered data, but to retain this one, the same
+        expression can be used in the Copy action.
+
+        Attribute: text A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        frame:Filter("Group > 3")
+        output frame:ToText()
+    */
+    action Filter(text source)
+        QuorumLexer luthor
+        CompilerErrorManager errors
+        luthor:SetCompilerErrorManager(errors)
+        luthor:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+
+        if expression = undefined or not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+    
+        //Now do semantic analysis on the thing and get it setup for runtime processing
+        DataFrameExpressionListener listener
+        listener:SetCompilerErrorManager(errors)
+        listener:SetDataFrame(me)
+        expression:Traverse(listener)
+        
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        //the top-most item on the stack is the final expression
+        Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
+
+        if stack:IsEmpty()
+            alert("The expression contained an unidentified error and could not be evaluated.")
+        end
+        QuorumOpcode op = stack:Pop()
+
+        Type result = op:GetType()
+        if not result:IsBoolean()
+            alert("The expression passed must evaluate to a boolean, but evaluated to a " + result:GetStaticKey() + ".")
+        end
+
+        Array<text> variables
+        integer startingPosition = 0
+
+        Array<integer> sizes
+        integer change = 0
+        repeat while change < me:GetSize()
+            sizes:Add(startingPosition)
+            change = change + 1
+        end
+
+        //if we still look good, then create a runtime context
+        //and check it against every row, changing the value for every column
+        Runtime runtime
+        row = startingPosition
+        integer skip = 0
+        boolean done = false
+        repeat while not done
+            //first check that all the variables in the list are there
+            //if there are zero variables, then just process the expression for now, even though technically it's a constant
+            boolean missingValue = SetupRuntime(listener, runtime, me, row)
+            boolean markForRemoval = false
+            
+            //if there are missing values, this row can't be evaluated
+            //so mark it for removal
+            if not missingValue
+                op:Evaluate(runtime)
+                
+                Result value = runtime:PopFromStack()
+                if value = undefined or not value:booleanValue
+                    markForRemoval = true
+                    skip = skip + 1
+                end
+            else
+                markForRemoval = true
+                skip = skip + 1
+            end
+
+            //now move the row if necessary, possibly skipping along
+            MoveRow(me, row, skip, sizes, markForRemoval)
+
+            row = row + 1
+            done = not HasAnotherRow(me, row)
+            runtime:GetCurrentBlock():Empty()
+        end
+
+        i = 0
+        repeat while i < sizes:GetSize()
+            integer size = sizes:Get(i)
+            DataFrameColumn col = me:GetColumn(i)
+            col:SetSize(size)
+            i = i + 1
+        end
+    end
+
+    private action SetupRuntime(DataFrameExpressionListener listener, Runtime runtime, DataFrame frame, integer row) returns boolean
+        integer column = 0
+        RuntimeBlock block = runtime:GetCurrentBlock()
+        boolean hasMissingValue = false
+
+        //get the row for each column
+        repeat while column < frame:GetSize()
+            DataFrameColumn dc = frame:GetColumn(column)
+            if row < dc:GetSize() //get the value at this point and put it in as a variable name
+                text header = dc:GetHeader()
+                boolean hasVar = listener:HasVariable(header)
+                Result result = GetResultFromColumn(dc, row)
+                if result not= undefined
+                    block:SetVariableResult(header, result)
+                elseif hasVar and result = undefined
+                    hasMissingValue = true
+                end
+            end
+            column = column + 1
+        end
+        return hasMissingValue
+    end
+
+    private action GetResultFromColumn(DataFrameColumn column, integer row) returns Result
+        if column:IsUndefined(row)
+            return undefined
+        end
+
+        Result result
+        Type type
+        result:type = type
+        if column:IsIntegerColumn()
+            type:SetToInteger()
+            result:integerValue = column:GetAsInteger(row)
+        elseif column:IsNumberColumn()
+            type:SetToNumber()
+            result:numberValue = column:GetAsNumber(row)
+        elseif column:IsBooleanColumn()
+            type:SetToBoolean()
+            result:booleanValue = column:GetAsBoolean(row)
+        elseif column:IsTextColumn()
+            type:SetToText()
+            result:textValue = column:GetAsText(row)
+        end
+
+        return result
+    end
+
+    private action GetTypeFromColumn(DataFrameColumn column) returns Type
+        Type type
+        if column:IsIntegerColumn()
+            type:SetToInteger()
+        elseif column:IsNumberColumn()
+            type:SetToNumber()
+        elseif column:IsBooleanColumn()
+            type:SetToBoolean()
+        elseif column:IsTextColumn()
+            type:SetToText()
+        end
+
+        return type
+    end
+
+    private action HasAnotherRow(DataFrame frame, integer row) returns boolean
+        integer column = 0
+        //get the row for each column
+        repeat while column < frame:GetSize()
+            DataFrameColumn dc = frame:GetColumn(column)
+            if row < dc:GetSize()
+                return true
+            end
+            column = column + 1
+        end
+        return false
+    end
+
+    private action MoveRow(DataFrame frame, integer row, integer skip, Array<integer> sizes, boolean markForRemoval)
+        if skip = 0
+            i = 0
+            repeat while i < sizes:GetSize()
+                sizes:Set(i, sizes:Get(i) + 1)
+                i = i + 1
+            end
+            return now
+        end
+
+        integer column = 0
+        integer i = row
+        repeat while column < frame:GetSize()
+            DataFrameColumn col = frame:GetColumn(column)
+
+            //make sure there are actually rows here
+            if i + 1 < col:GetSize()
+                col:Move(i+1, i + 1 - skip)
+                if not markForRemoval
+                    sizes:Set(column, sizes:Get(column) + 1)
+                end
+            elseif i = col:GetSize() - 1 //only move this if it's not removed
+                if not markForRemoval
+                    col:Move(i, i - skip)
+                    sizes:Set(column, sizes:Get(column) + 1)
+                end
+            end
+            column = column + 1
+        end
     end
 
     /*
@@ -2050,6 +2312,56 @@ class DataFrame
         
         return cast(BarChart, CreateChart(creator))
     end
+    
+    /*
+        This action returns a text based representation of the data frame at a particular row.
+
+        Attribute: Returns a text based representation, in comma separated format
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(0)
+    */
+    action ToText(integer row) returns text
+        DataFrame frame = me
+        integer size = frame:GetSize() //number of columns
+
+        text currentRow = ""
+        text dq = currentRow:GetDoubleQuote()
+        text lf = currentRow:GetLineFeed()
+        
+        i = 0
+        repeat while i < frame:GetSize()
+            DataFrameColumn column = frame:GetColumn(i)
+            if row < column:GetSize()
+                text value = column:GetAsText(row)
+                if value not= undefined
+                    if not value:IsEmpty() and value:Contains(",")
+                        currentRow = currentRow + dq + value + dq
+                    else
+                        currentRow = currentRow + value
+                    end
+                end
+                hadRow = true
+            end
+        
+            
+            if i not= frame:GetSize() - 1
+                currentRow = currentRow + ","
+            end
+            i = i + 1
+        end
+
+        return currentRow
+    end
+    
     /*
         This action returns a text based representation of the data frame.
 
