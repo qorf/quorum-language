@@ -134,7 +134,7 @@ class FileWriter is FileWriterBlueprint
         writer:Close()
      */
     action OpenForWriteAppend(File file)
-        OpenForWriteAppendNative(file:GetPath())
+        OpenForWriteAppendNative(file:GetAbsolutePath())
     end
 
     /*

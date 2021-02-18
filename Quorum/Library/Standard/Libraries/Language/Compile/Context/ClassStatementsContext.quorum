@@ -10,7 +10,7 @@ class ClassStatementsContext is ParseContext
     action Traverse(QuorumSourceListener listener)
         EnterDocumentation(listener)
         listener:EnterClassStatements(me)
-        statement:Traverse(listener) //this has to be defined
+        if statement not= undefined statement:Traverse(listener) end
         ExitDocumentation(listener)
         listener:ExitClassStatements(me)
     end

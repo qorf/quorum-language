@@ -2391,6 +2391,9 @@ class QuorumParser
             //If it's a colon, it is either the Object Assignment or an action call
             elseif next:category = constants:COLON
                 next = copy:Next()
+                if next = undefined
+                    return NONE
+                end
 
                 boolean parentInObjectCall = false
                 //if we made it here, this is either an object call, or one of the action calls
@@ -3509,10 +3512,15 @@ class QuorumParser
         end
         
         if actions not= undefined and not actions:IsEmpty()
-            context:SetFirstToken(actions:Get(0):GetFirstToken())
-            context:SetLastToken(actions:Get(actions:GetSize() - 1):GetLastToken())
+            if actions:Get(0) not= undefined
+                context:SetFirstToken(actions:Get(0):GetFirstToken())
+                SetLocationToToken(context:objectLocation, actions:Get(0):GetFirstToken())
+            end
+            if actions:Get(actions:GetSize() - 1) not= undefined
+                context:SetLastToken(actions:Get(actions:GetSize() - 1):GetLastToken())
+            end
             SetLocation(context)
-            SetLocationToToken(context:objectLocation, actions:Get(0):GetFirstToken())
+            
         end
         return context
     end
