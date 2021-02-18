@@ -69,7 +69,7 @@ public class Error {
         
         //There was no useful stack trace, because we never even made it into the program
         //as such, craft a reasonable one.
-        if(array.IsEmpty()) {
+        if(array.IsEmpty() && trace.length > 0) {
             StackTraceElement e = trace[trace.length - 1];
             StackTraceItem item = new StackTraceItem();
             item.Set_Libraries_System_StackTraceItem__className_(e.getClassName());
