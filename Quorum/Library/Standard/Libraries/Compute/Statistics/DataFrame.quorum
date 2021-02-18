@@ -40,6 +40,10 @@ use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Interpreter.Result
 use Libraries.Language.Compile.Interpreter.RuntimeBlock
+use Libraries.Compute.Statistics.Charts.LineChartCreator
+use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Compute.Statistics.Charts.ViolinChartCreator
+use Libraries.Interface.Controls.Charts.ViolinChart
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -145,6 +149,10 @@ class DataFrame
                 CommaSeparatedLoader loader
                 Load(file, loader)
             end
+        elseif file = undefined
+            alert("I cannot load an undefined file.")
+        elseif not file:Exists()
+            alert("I could not locate the file at " + file:GetAbsolutePath() + ". Did you spell it correctly?")
         end
         EmptyColumnsOnLoad()
     end
@@ -2302,14 +2310,10 @@ class DataFrame
         chart:Display()
     */
     action BarChart returns BarChart
-        if not IsMultiColumnSelection(2)
-            alert("Can only conduct this calculation on 2 columns")
-        end
-
         BarChartCreator creator
-        creator:SetXColumn(selection:GetColumn(0))
-        creator:SetYColumn(selection:GetColumn(1))
-        
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
         return cast(BarChart, CreateChart(creator))
     end
     
@@ -2361,7 +2365,62 @@ class DataFrame
 
         return currentRow
     end
+
+    /*
+        This action creates a LineChart from the current column selection in the DataFrame.
+        By default, it uses all columns as separate lines in the selection as the chart area. 
+        Only one factor is allowed and this factor controls the y-axis for all of the lines. The scale
+        can be set manually by using the LineChart
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
     
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.LineChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedFactor(0)
+        LineChart chart = frame:BarChart()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action LineChart returns LineChart
+        LineChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(LineChart, CreateChart(creator))
+    end
+    
+    /*
+        This action creates a ViolinChart from the current column selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+        Factors have no impact on this action.
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ViolinChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        ViolinChart chart = frame:ViolinChart()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action ViolinChart returns ViolinChart
+        ViolinChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+
+        return cast(ViolinChart, CreateChart(creator))
+    end
+
     /*
         This action returns a text based representation of the data frame.
 

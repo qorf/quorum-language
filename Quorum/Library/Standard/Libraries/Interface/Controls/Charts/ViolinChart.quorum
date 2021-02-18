@@ -1,0 +1,540 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ViolinChartLayout
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Compute.Vector
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Statistics.WindowingActions.NormalDistributionAction
+use Libraries.Interface.Controls.Charts.ViolinChartWriter
+use Libraries.Interface.Layouts.ViolinChartLayout
+
+/*
+    Attribute: Author Silafu Yiliyaer
+    Attribute: Example
+
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinChart
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ViolinChart chart = frame:ViolinChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+*/
+
+class ViolinChart is Chart
+    // The root ChartItem.
+    private ChartItem summary
+    // How many ticks are set along the y axis and max value on y axis.
+    private integer yTicks = 0
+    private number yMax = 0
+    
+    //initial size of x and y axis
+    private integer tickLength = 10
+    private integer tickWidth = 3
+
+    //bandWidth is a scale option for distribution graph
+    //the bigger the value, the flatter the distribution graph will be
+    private integer bandWidth = 0
+
+    //labels that is shown on the x axis
+    private Array<text> xAxisLabels
+
+    //this stores all the informations for each violin graph
+    private Array<Array<number>> chartInfos
+
+    //this stores all the drawables for each violin graph
+    private Array<Array<Drawable>> chartItems
+
+    //this stores all data that need to be trasfer to the layout file
+    private Array<Vector> dataSets
+    private text kernel = ""
+
+    UnivariateAction windowingAction = undefined
+
+    on create
+        ViolinChartLayout lay
+        SetLayout(lay)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+
+        Font font = GetDefaultFont()
+        properties:SetFont(font)
+        properties:SetFontSize(GetDefaultFontSize())
+
+        SetTitle("ViolinChart")
+        SetDescription("ViolinChart")
+        SetInputGroup("Chart")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+
+        NormalDistributionAction window
+        windowingAction = window
+    end
+
+    action DisposeDrawables
+        parent:Chart:DisposeDrawables()
+        Control chartArea = me:GetChartArea()
+        integer i = 0
+        repeat while i < chartItems:GetSize()
+            Array<Drawable> items = chartItems:Get(i)
+            integer j = 0
+            repeat while j < items:GetSize()
+                Drawable target = items:Get(j)
+                target:Dispose()
+                chartArea:Remove(target)
+                j = j + 1
+            end
+            i = i + 1
+        end
+        chartItems:Empty()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        DisposeDrawables()
+        parent:Chart:LoadGraphics(properties)
+        
+        Array<Drawable> xTickDrawables = GetXTicks()
+        Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<ControlLabel> xLabels = GetXLabels()
+        Array<ControlLabel> yLabels = GetScaleLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
+        Control chartArea = GetChartArea()
+
+        //Adding Tick and labels on Y axis
+        if yTicks not= 0 and yTickDrawables:IsEmpty()
+            number space = yMax/(yTicks-1)
+            number current = 0
+            repeat until yTickDrawables:GetSize() = yTicks
+                Drawable tick
+                tick:LoadFilledRectangle(tickLength,tickWidth)
+                yTickDrawables:Add(tick)
+                verticalPanel:Add(tick)
+                
+                ControlLabel label
+                label:SetFontSize(GetFontSize() - 5)
+                label:SetFocusable(true)
+                label:SetAccessibilityCode(parent:Item:ITEM)
+                label:SetText(current+"")
+                label:SetName(current+"")
+                verticalPanel:Add(label)
+                yLabels:Add(label)
+                current = current + space
+            end
+        end
+
+        //Adding labels on X axis(violinchart only have labels on x axis)
+        integer cnt = 0
+        repeat while cnt < xAxisLabels:GetSize()
+            ControlLabel label
+            label:SetFontSize(GetFontSize() - 5)
+            label:SetFocusable(true)
+            label:SetAccessibilityCode(parent:Item:ITEM)
+            label:SetText(xAxisLabels:Get(cnt))
+            label:SetName(xAxisLabels:Get(cnt))
+            horizontalPanel:Add(label)
+            xLabels:Add(label)
+            cnt = cnt + 1
+        end
+
+        //Adding all drawables to the chartarea
+        integer i = 0
+        repeat while i < chartInfos:GetSize()
+            Array<number> info = chartInfos:Get(i)
+            number median = info:Get(0)
+            number lowwerQuartile = info:Get(1)
+            number upperQuartile = info:Get(2)
+            number smallest = info:Get(3)
+            number largest = info:Get(4)
+            Array<Drawable> items            
+
+            Color white
+            white:SetColor(1,1,1,1)
+            Color blue
+            blue:SetColor(0,0,1,1)
+    
+            Drawable box
+            box:LoadFilledRectangle(0,0)
+    
+            Drawable whisker
+            whisker:LoadFilledRectangle(0,0)
+    
+            Drawable minLine
+            minLine:LoadFilledRectangle(0,0)
+            minLine:SetName("Smallest value "+smallest)
+            minLine:SetDescription("minLine")
+            minLine:SetFocusable(true)
+            minLine:SetAccessibilityCode(0)
+    
+            Drawable lowQLine
+            lowQLine:LoadFilledRectangle(0,0)
+            lowQLine:SetName("lowwer quartile value "+lowwerQuartile)
+            lowQLine:SetDescription("lowLine")
+            lowQLine:SetFocusable(true)
+            lowQLine:SetAccessibilityCode(0)
+    
+            Drawable medianDot
+            medianDot:LoadFilledCircle(0,white)
+            medianDot:SetName("median value "+median)
+            medianDot:SetDescription("median")
+            medianDot:SetFocusable(true)
+            medianDot:SetAccessibilityCode(0)
+    
+            Drawable upQLine
+            upQLine:LoadFilledRectangle(0,0)
+            upQLine:SetName("upper quartile value "+upperQuartile)
+            upQLine:SetDescription("upLine")
+            upQLine:SetFocusable(true)
+            upQLine:SetAccessibilityCode(0)
+    
+            Drawable maxLine
+            maxLine:LoadFilledRectangle(0,0)
+            maxLine:SetName("Largest value "+largest)
+            maxLine:SetDescription("maxLine")
+            maxLine:SetFocusable(true)
+            maxLine:SetAccessibilityCode(0)
+
+            Drawable drPixel
+
+            Icon panel
+            panel:SetName(xAxisLabels:Get(i)+" panel")
+            panel:SetFocusable(true)
+            panel:SetAccessibilityCode(0)
+            
+            chartArea:Add(drPixel)
+            chartArea:Add(box)
+            chartArea:Add(whisker)
+            chartArea:Add(minLine)
+            chartArea:Add(lowQLine)
+            chartArea:Add(medianDot)
+            chartArea:Add(upQLine)       
+            chartArea:Add(maxLine)
+            chartArea:Add(panel)
+            
+            items:Add(box)
+            items:Add(whisker)
+            items:Add(minLine)
+            items:Add(lowQLine)
+            items:Add(medianDot)
+            items:Add(upQLine)       
+            items:Add(maxLine)          
+            items:Add(panel)
+            items:Add(drPixel)
+            chartItems:Add(items)
+            i = i+1
+        end
+    end
+
+    /*
+    Creates the accessibility information for the chart area.
+    */
+    action GenerateInfoTree
+        if GetDefaultLayoutProperties():NeedsRendering()
+            return now //we haven't loaded graphics yet, so bail.
+        end
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
+        ChartItem xAxis
+        ChartItem yAxis
+        ChartItem chartArea
+
+        //Level 1 top level
+        summary:SetDisplayName("ViolinChart")
+        summary:SetNext(yAxis)
+        summary:SetChild(yAxis)
+        summary:SetContainer(me)
+        summary:SetFocusTarget(me)
+    
+        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
+        xAxis:SetDisplayName("Horizontal Axis")
+        xAxis:SetFocusTarget(GetHorizontalPanel())
+        yAxis:SetDisplayName("Vertical Axis")
+        yAxis:SetFocusTarget(GetVerticalPanel())
+        chartArea:SetDisplayName("ChartArea")
+        chartArea:SetFocusTarget(GetChartArea())
+
+        xAxis:SetContainer(me)        
+        yAxis:SetContainer(me)
+        chartArea:SetContainer(me)
+
+        yAxis:SetNext(chartArea)
+        chartArea:SetNext(xAxis)
+        xAxis:SetPrevious(chartArea)
+        yAxis:SetPrevious(xAxis)
+
+        chartArea:SetPrevious(yAxis)
+        xAxis:SetParent(summary)
+        yAxis:SetParent(summary)
+        yAxis:SetPrevious(summary)
+        chartArea:SetParent(summary)
+
+        Array<ControlLabel> yLabels = GetScaleLabels()
+        ChartItem yPrevious
+        integer i = 0
+        repeat while i < yLabels:GetSize()
+            ChartItem next
+            if i = 0
+                yAxis:SetChild(next)
+            else
+                next:SetPrevious(yPrevious)
+                yPrevious:SetNext(next)   
+            end
+            next:SetContainer(me)
+            next:SetDisplayName(yLabels:Get(i):GetText())
+            next:SetParent(yAxis)
+            next:SetFocusTarget(yLabels:Get(i))
+            yPrevious = next
+            i = i + 1
+        end
+
+        Array<ControlLabel> xLabels = GetXLabels()
+        ChartItem xPrevious
+        i = 0
+        repeat while i < xLabels:GetSize()
+            ChartItem next
+            if i = 0
+                xAxis:SetChild(next)
+            else
+                next:SetPrevious(xPrevious)
+                xPrevious:SetNext(next)   
+            end
+            next:SetContainer(me)
+            next:SetDisplayName(xLabels:Get(i):GetText())
+            next:SetParent(xAxis)
+            next:SetFocusTarget(xLabels:Get(i))
+            xPrevious = next
+            i = i + 1
+        end
+        
+        ChartItem preTarget
+        i = 0
+        repeat while i < chartInfos:GetSize()
+            Array<Drawable> items = chartItems:Get(i)
+            ChartItem nexTarget
+            if i = 0
+                chartArea:SetChild(nexTarget)
+            else
+                nexTarget:SetPrevious(preTarget)
+                preTarget:SetNext(nexTarget) 
+            end
+            nexTarget:SetContainer(me)
+            nexTarget:SetDisplayName(items:Get(7):GetName())
+            nexTarget:SetFocusTarget(items:Get(7))
+            nexTarget:SetParent(chartArea)
+            preTarget = nexTarget
+
+            ChartItem previous
+            integer targetIndex = 0
+            integer index = 0
+            repeat while index < items:GetSize()
+                Drawable item = items:Get(index)
+                text description = item:GetDescription()
+                if description not= ""
+                    ChartItem next
+                    if targetIndex = 0
+                        nexTarget:SetChild(next)
+                    else
+                        next:SetPrevious(previous)
+                        previous:SetNext(next) 
+                    end
+                    next:SetContainer(me)
+                    next:SetDisplayName(item:GetName())
+                    next:SetFocusTarget(item)
+                    next:SetParent(nexTarget)
+                    previous = next
+                    targetIndex = targetIndex + 1
+                end
+                index = index + 1
+            end
+            
+            i = i + 1
+        end
+
+        ChartSelection selection = GetSelection()
+        selection:Set(summary)
+    end
+
+    /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the chart. Also the highest level of the information tree
+    of  the chart.
+    */
+    action GenerateSummary returns text
+        text lineText = "Graphs"
+        if xAxisLabels:GetSize() = 1
+            linetext = "Graph"
+        end
+        SetDescription("Violin Chart with " + xAxisLabels:GetSize() + " " + lineText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        return GetDescription()
+    end
+    
+    /*
+    This will execute when an item in violin chart lose selection
+    */
+    action LostSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined and target is ControlLabel
+            ControlLabel temp = cast(ControlLabel, target)
+            temp:LostSelection()
+        end
+    end
+
+    /*
+    This will execute when an item in violin chart gain selection
+    */
+    action GainedSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            end            
+        end
+    end
+    
+    /*
+    This sets how many ticks on the y-axis
+    */
+    action SetYTickCount(integer ticks)
+        yTicks = ticks
+    end
+
+    /*
+    This retuns total number of ticks on the y-axis
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+    
+    /*
+    This sets how many labels on x-axis
+    */
+    action SetXAxisLabels(Array<text> label)
+        xAxisLabels = label
+    end
+
+    /*
+    This returns how many labels on x-axis
+    */
+    action GetXAxisLabels returns Array<text>
+        return xAxisLabels
+    end
+
+    /*
+    This sets the maximal value on y-axis
+    */
+    action SetYMax(number num)
+        yMax = num
+    end
+    
+    /*
+    This returns the maximal value on y-axis
+    */
+    action GetYMax returns number
+        return yMax
+    end
+    
+    /*
+    This pass a 2D array that holds all needed informations 
+    from each violin graph. Like median, quartile, etc
+    */
+    action SetChartInfos(Array<Array<number>> info)
+        chartInfos = info
+    end
+
+    /*
+    This returns a 2D array that holds all needed informations
+    from each violin graph. Like median, quartile, etc
+    */
+    action GetChartInfos returns Array<Array<number>>
+        return chartInfos
+    end
+
+    /*
+    This pass a 2D array that holds all needed drawables 
+    from each violin graph.
+    */
+    action GetChartItems returns Array<Array<Drawable>>
+        return chartItems
+    end
+    
+    /*
+    This pass an array that holds datas
+    from each violin graph.
+    */
+    action SetData(Array<Vector> data)
+        dataSets = data
+    end
+
+    /*
+    This returns an array that holds datas
+    from each violin graph.
+    */
+    action GetData returns Array<Vector>
+        return dataSets
+    end
+
+    /*
+    This sets what kind of kernel function to use to calculate the normal distributions
+    */
+    action SetWindowingAction(UnivariateAction act)
+        me:windowingAction = act
+    end
+
+    /*
+    This gets what kind of kernel function that is used to calculate the normal distributions
+    */
+    action GetWindowingAction returns UnivariateAction
+        return me:windowingAction
+    end
+
+    /*
+    This sets the inteval size to calculate the normal distributions
+    */
+    action SetBandWidth(integer value)
+        bandWidth = value
+    end
+
+    /*
+    This returns the inteval size to calculate the normal distributions
+    */
+    action GetBandWidth returns integer
+        return bandWidth
+    end
+
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        ViolinChartWriter writer
+        return writer:WriteOutChart(me)
+    end
+
+end

@@ -1,0 +1,244 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Controls.Charts.ChartOptions
+use Libraries.Compute.Math
+use Libraries.Controls.Charts.ChartPoint
+use Libraries.Interface.Controls.Charts.TwoVariableChart
+use Libraries.Interface.Controls.Charts.ChartLine
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+
+/*
+    This class is used to create a Line Chart from a dataframe. The class contains two possible inputs, 
+    factors and columns. Each column represents a line on the chart, while the single allowed factor
+    represents where each data point will be mapped. 
+
+    Attribute: Author Cody Molisee and Andreas Stefik
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.LineChartCreator
+
+    //Create a LineChart and set some properties
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    LineChartCreator creator
+    creator:AddColumn(1)
+    creator:AddFactor(0)
+    Chart chart = frame:CreateChart(creator)
+
+    chart:SetTitle("Chocolate Interest over time")
+    chart:SetXAxisTitle("Time Periods")
+    chart:SetYAxisTitle("Popularity Percentage")
+    chart:Display(1500, 750)
+*/
+class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
+    integer xTicks = 5
+    integer yTicks = 5
+
+    // The minimum and maximum values portrayed in the chart area.
+    number xAxisMinimum = 0
+    number xAxisMaximum = 1
+    number yAxisMinimum = 0
+    number yAxisMaximum = 1
+    Color defaultColor
+
+    on create
+        defaultColor = defaultColor:Black()
+    end
+        
+    action Create(DataFrame frame) returns Chart
+        LineChart chart
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        //Only one factor is allowed and every column is another line compared to the factor
+        if columns = 0
+            alert("Cannot create a Line Chart without any lines.")
+        end
+
+        if factors = 0
+            alert("Without a factor, the X-Axis cannot be populated.")
+        end
+
+        number grandMax = 0
+        grandMax = grandMax:GetMinimumValue()
+        number grandMin = grandMax:GetMaximumValue()
+        Array<Summarize> calculations
+        integer i = 0
+        repeat while i < columns
+            Summarize calculation
+            frame:GetColumn(GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            if calculation:GetMaximum() > grandMax
+                grandMax = calculation:GetMaximum()
+            end
+
+            if calculation:GetMinimum() < grandMax
+                grandMin = calculation:GetMinimum()
+            end
+            i = i + 1
+        end
+        
+        if grandMax = grandMax:GetMinimumValue() or grandMin = grandMax:GetMaximumValue()
+            alert("DataFrame does not contain valid minimum or maximum values across columns.")
+        end
+
+        DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+        xAxisMinimum = 0
+        xAxisMaximum = factor:GetSize()
+        yAxisMinimum = grandMin
+        yAxisMaximum = grandMax
+
+        chart:SetYAxisMaximum(yAxisMaximum)
+        chart:SetYAxisMinimum(yAxisMinimum)
+
+        Array<text> xLabels
+        i = 0
+        integer lineNumber = 1
+        repeat while i < columns
+            Summarize summary = calculations:Get(i)
+            
+            ChartLine newLine
+            text name = "line " + lineNumber
+            newLine:SetName(name)
+            newLine:SetColor(defaultColor)
+            
+            
+            number factorSize = factor:GetSize()
+
+            if xTicks > factorSize
+                xTicks = factor:GetSize()
+            end
+            
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            integer j = 0
+            repeat while j < factor:GetSize()
+                if not factor:IsUndefined(j) and not column:IsUndefined(j)
+                    number x = j
+                    number y = column:GetAsNumber(j)
+                    text value = factor:GetAsText(j)
+
+                    xLabels:Add(value)
+
+                    number xp = (x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum)
+                    number yp = (y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum)
+                    
+                    ChartPoint point
+                    point:SetPercentX(xp)
+                    point:SetPercentY(yp)
+                    newLine:Add(point)
+                end
+                j = j + 1
+            end
+            
+            chart:AddChartLine(newLine)
+            i = i + 2
+            lineNumber = lineNumber + 1
+        end
+
+        //add in the last tick
+        text last = factor:GetAsText(factor:GetSize() - 1)
+        if last = undefined
+            xLabels:Add("NA")
+        else
+            xLabels:Add(last)
+        end
+        chart:OverrideXLabelsWithText(xLabels)
+
+        chart:SetXTickCount(xTicks)
+        chart:SetYTickCount(yTicks)
+        chart:Populate()
+        return chart
+    end
+
+    /*
+    This action returns how many scale ticks should be used along the X axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the X axis of the LineChart.
+    */
+    action GetXTickCount returns integer
+        return xTicks
+    end
+
+    /*
+    This action sets how many scale ticks should be used along the X axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Parameter xTicks How many ticks should be used along the X axis of the LineChart.
+    */
+    action SetXTickCount(integer xTicks)
+        me:xTicks = xTicks
+    end
+
+    /*
+    This action returns how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the Y axis of the LineChart.
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
+    */
+    action SetYTickCount(integer yTicks)
+        me:yTicks = yTicks
+    end
+
+    /*
+    This action returns the minimum value on the Y axis, if one has been manually set. If no value
+    has been set, the minimum Y axis value will be determined from the minimum value of the dataset
+    used during the Create action. If no value has been set, this returns 0. To determine if a value
+    has been manually set, use the "GetManualYAxisMinimum" action.
+
+    Attribute: Returns The minimum value to be used for the Y axis, or 0 if no value has been manually set.
+    */
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
+    end
+
+    /*
+    This action manually sets the minimum value to present on the Y axis of the LineChart.
+
+    Attribute: Parameter yAxisMinimum The minimum value to present on the Y axis of the LineChart.
+    */
+    action SetYAxisMinimum(number yAxisMinimum)
+        me:yAxisMinimum = yAxisMinimum
+    end
+
+    /*
+    This action returns the maximum value on the Y axis, if one has been manually set. If no value
+    has been set, the maximum Y axis value will be determined from the maximum value of the dataset
+    used during the Create action. If no value has been set, this returns 1. To determine if a value
+    has been manually set, use the "GetManualYAxisMaximum" action.
+
+    Attribute: Returns The maximum value to be used for the Y axis, or 1 if no value has been manually set.
+    */
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+
+    /*
+    This action manually sets the maximum value to present on the Y axis of the LineChart.
+
+    Attribute: Parameter yAxisMaximum The maximum value to present on the Y axis of the LineChart.
+    */
+    action SetYAxisMaximum(number yAxisMaximum)
+        me:yAxisMaximum = yAxisMaximum
+    end
+end

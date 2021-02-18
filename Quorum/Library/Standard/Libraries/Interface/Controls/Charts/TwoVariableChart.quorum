@@ -25,6 +25,24 @@ class TwoVariableChart is Chart
     number xAxisMaximum = 1
     number yAxisMinimum = 0
     number yAxisMaximum = 1
+    boolean overrideXLabels = false
+    boolean overrideYLabels = false
+    Array<text> xLabelsOverride = undefined
+    Array<text> yLabelsOverride = undefined
+
+    action OverrideXLabelsWithText(Array<text> labels)
+        if labels not= undefined
+            xTicks = labels:GetSize()
+        end
+        xLabelsOverride = labels
+    end
+
+    action OverrideYLabelsWithText(Array<text> labels)
+        if labels not= undefined
+            yTicks = labels:GetSize()
+        end
+        yLabelsOverride = labels
+    end
 
     private integer tickLength = 10
     private integer tickWidth = 3
@@ -115,7 +133,18 @@ class TwoVariableChart is Chart
                 Math math
                 text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
                 ControlLabel label = xLabels:Get(i)
-                label:SetText(scaleText)
+                if xLabelsOverride = undefined
+                    label:SetText(scaleText)
+                else
+                    //now get the location of the text value to put in
+                    if i = xTicks - 1
+                        label:SetText(xLabelsOverride:Get(xLabelsOverride:GetSize() - 1))
+                    else
+                        number percent = (i * 1.0) / ((xTicks - 1) * 1.0)
+                        integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
+                        label:SetText(xLabelsOverride:Get(index))
+                    end
+                end
                 label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
                 scaleNum = scaleNum + scaleWidth
                 i = i + 1
@@ -160,7 +189,18 @@ class TwoVariableChart is Chart
                 Math math
                 text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
                 ControlLabel label = yLabels:Get(i)
-                label:SetText(scaleText)
+                if yLabelsOverride = undefined
+                    label:SetText(scaleText)
+                else
+                    //now get the location of the text value to put in
+                    if i = yTicks - 1
+                        label:SetText(yLabelsOverride:Get(yLabelsOverride:GetSize() - 1))
+                    else
+                        number percent = (i * 1.0) / ((yTicks - 1) * 1.0)
+                        integer index = cast(integer, math:Round(percent * yLabelsOverride:GetSize()))
+                        label:SetText(yLabelsOverride:Get(index))
+                    end
+                end
                 label:SetName(scaleText + " " + (i + 1) + " of " + yTicks)
                 scaleNum = scaleNum + scaleWidth
                 i = i + 1

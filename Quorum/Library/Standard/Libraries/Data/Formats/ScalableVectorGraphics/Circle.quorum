@@ -1,0 +1,256 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+
+
+/*
+    The Circle class is an implementation of the circle shape in the SVG standard. Like other
+    ScalableVectorGraphicsObjects the circle class inherits global attributes but it also has
+    its own attributes such as the position of the center point and radius.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    Libraries.Data.Formats.ScalableVectorGraphics.all
+
+    // make an svg circle
+    Circle circle
+    canvas:SetSize(100,100)
+    circle:SetPosition(50, 50)
+    circle:SetRadius(20)
+    circle:SetFill("green")
+
+*/
+class Circle is ScalableVectorGraphicsObject
+    constant text objectName = "circle"
+    text cx = ""
+    text cy = ""
+    text radius = ""
+
+    /*
+        This action writes out all of the necessary tags and attributes that make up this
+        circle. This action will be called automatically by the parent ScalableVectorGraphics,
+        as such this action does not need to be used directly by the user.
+
+        Attribute: Returns the formatted string of all tags and attributes for this shape
+
+    */
+    action ToText returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        result = "<" + objectName
+        result = result + " cx=" +dq+ cx +dq+" cy=" +dq+ cy +dq+ " r=" +dq+ radius +dq
+        result = result + GlobalAttributesToText()
+        if GetTitle() not= "" or GetDescription() not= ""
+            result = result + ">" + newLine
+            if GetTitle() not= ""
+                Title title
+                title:SetTitle(GetTitle())
+                result = result + tab + tab + title:ToText() + newLine
+            end
+            if GetDescription() not= ""
+                Description desc
+                desc:SetDescription(GetDescription())
+                result = result + tab + tab + desc:ToText() + newLine
+            end
+            result = result + tab
+        end
+        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        return result
+    end
+
+    /*
+        This action sets the position of the circle. Circles are positioned based on their center point.
+
+        Attribute: Parameter x The x position of the center of the circle. 
+        Attribute: Parameter y The y position of the center of the circle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPosition(50,50)
+    */
+    action SetPosition(number x, number y)
+        cx = "" + x
+        cy = "" + y
+    end
+
+    /*
+        This action sets the x position of the circle. Circles are positioned based on their center point.
+
+        Attribute: Parameter x The x position of the center of the circle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPositionX(50)
+    */
+    action SetPositionX(number x)
+        cx = "" + x
+    end
+
+    /*
+        This action sets the y position of the circle. Circles are positioned based on their center point.
+
+        Attribute: Parameter x The x position of the center of the circle. 
+        Attribute: Parameter y The y position of the center of the circle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPositionY(50)
+    */
+    action SetPositionY(number y)
+        cy = "" + y
+    end
+
+    /*
+        This action sets the position of the circle along with a unit. Circles are positioned
+        based on their center point. In SVG, units are defined by unit identifiers giving by 
+        the CSS specification along with percentages. 
+
+        Attribute: Parameter x The x position of the center of the circle. 
+        Attribute: Parameter y The y position of the center of the circle.
+        Attribute: Parameter unit The unit of the length given. Applied to both x and y.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPosition(50,50, "pt")
+    */
+    action SetPosition(number x, number y, text unit)
+        cx = "" + x + unit
+        cy = "" + y + unit
+    end
+
+    /*
+        This action sets the x position of the circle along with a unit. Circles are positioned
+        based on their center point. In SVG, units are defined by unit identifiers giving by 
+        the CSS specification along with percentages. 
+
+        Attribute: Parameter x The x position of the center of the circle.
+        Attribute: Parameter unit The unit of the length given. Applied to both x and y.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPositionX(5, "%")
+    */
+    action SetPositionX(number x, text unit)
+        cx = "" + x + unit
+    end
+
+    /*
+        This action sets the y position of the circle along with a unit. Circles are positioned
+        based on their center point. In SVG, units are defined by unit identifiers giving by 
+        the CSS specification along with percentages. 
+
+        Attribute: Parameter y The y position of the center of the circle.
+        Attribute: Parameter unit The unit of the length given. Applied to both x and y.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetPositionY(5, "%")
+    */
+    action SetPositionY(number y, text unit)
+        cy = "" + y + unit
+    end
+
+    /*
+        This action returns the x position of the center of the circle with the unit appended. 
+
+        Attribute: Returns the x position of the circle. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        output circle:GetPositionX()
+    */
+    action GetPositionX returns text
+        return cx
+    end
+
+    /*
+        This action returns the y position of the center of the circle with the unit appended. 
+
+        Attribute: Returns the y position of the circle. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        output circle:GetPositionY()
+    */
+    action GetPositionY returns text
+        return cy
+    end
+
+    /*
+        This action sets the radius of the circle. 
+
+        Attribute: Parameter radius The radius of the circle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetRadius(20)
+    */
+    action SetRadius(number radius)
+        me:radius = "" + radius
+    end
+
+    /*
+        This action sets the radius of the circle along with a unit. In SVG, units are 
+        defined by unit identifiers giving by the CSS specification along with percentages. 
+
+        Attribute: Parameter radius The radius of the circle.
+        Attribute: Parameter unit The unit of the length given. Applied to both x and y.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetRadius(5, "%")
+    */
+    action SetRadius(number radius, text unit)
+        me:radius = "" + radius + unit
+    end
+
+    /*
+        This action returns the radius of the center of the circle with the unit appended. 
+
+        Attribute: Returns the radius of the circle. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        output circle:GetRadius()
+    */
+    action GetRadius returns text
+        return radius
+    end
+
+end

@@ -31,7 +31,6 @@ output page:Generate()
 */
 class WebTag is GlobalAttributeAccepter
     List<WebTag> tags
-//    text description = ""
 
     /*
         This action adds a WebTag to the list of WebTags contained within the 
@@ -51,9 +50,9 @@ class WebTag is GlobalAttributeAccepter
         row:Add(cell)
         
     */
-    //action Add(WebTag tag)
-    //    tags:Add(tag)
-    //end
+    action AddNestedTag(WebTag tag)
+        tags:Add(tag)
+    end
 
     /*
         This action removes the first instance of a webtag found in the list
@@ -91,11 +90,32 @@ class WebTag is GlobalAttributeAccepter
         TableData cell
         cell:SetDescription("name")
         row:Add(cell)
-        integer numTags = row:GetNumberOfNestedTags()
+        integer numTags = row:GetSize()
         
     */
     action GetNumberOfNestedTags returns integer
         return tags:GetSize()
+    end
+
+    /*
+        This action gets the number of nested tags within the current WebTag.
+
+        Attribute: Returns The number of nested tags. 
+
+        Attribute: Example
+        use Libraries.Web.Page.TableRow
+        use Libraries.Web.Page.TableData
+
+        //TableRow and TableData are both WebTags
+        TableRow row
+        TableData cell
+        cell:SetDescription("name")
+        row:Add(cell)
+        WebTag tag = row:GetTag(0)
+        
+    */
+    action GetTag(integer index) returns WebTag
+        return tags:Get(index)
     end
 
     /*

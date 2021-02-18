@@ -158,7 +158,7 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:LIGHTS
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
             elseif key = properties:SKYBOX
-
+                LoadSkybox(cast(Layer3D, layer), json:GetObject(key))
             end
 
             counter = counter + 1
@@ -294,6 +294,17 @@ class DefaultSceneManager is SceneManager
         return items
     end
 
+    private action CreateItem2D(text type) returns Item2D
+        if type = "Drawable"
+            Drawable drawable
+            return drawable
+        else
+            // Default to Item2D.
+            Item2D item
+            return item
+        end
+    end
+
     private action LoadItem2D(JavaScriptObjectNotation json) returns Item2D
         SceneProperties properties
 
@@ -321,14 +332,10 @@ class DefaultSceneManager is SceneManager
         Number32BitArray points = undefined
         Color color = undefined
 
-        if classValue = "Drawable"
-            Drawable newDrawable
-            drawable = newDrawable
-            item = drawable
-        else
-            // Default to Item2D.
-            Item2D newItem
-            item = newItem
+        item = CreateItem2D(classValue)
+
+        if item is Drawable
+            drawable = cast(Drawable, item)
         end
 
         Array<text> keys = json:GetKeys()
@@ -482,6 +489,20 @@ class DefaultSceneManager is SceneManager
         end
     end
 
+    private action CreateItem3D(text type) returns Item3D
+        if type = "Model"
+            Model model
+            return model
+        elseif type = "PointLight"
+            PointLight pointLight
+            return pointLight
+        else
+            // Default to Item3D.
+            Item3D newItem
+            return newItem
+        end
+    end
+
     private action LoadItem3D(JavaScriptObjectNotation json) returns Item3D
         SceneProperties properties
 
@@ -504,18 +525,14 @@ class DefaultSceneManager is SceneManager
         // Color is used for both Models and PointLights.
         Color color = undefined
 
-        if classValue = "Model"
-            Model newModel
-            model = newModel
-            item = model
-        elseif classValue = "PointLight"
-            PointLight pointLight
-            light = pointLight
-            item = light
-        else
-            // Default to Item3D.
-            Item3D newItem
-            item = newItem
+        item = CreateItem3D(classValue)
+
+        if item is Model
+            model = cast(Model, item)
+        end
+
+        if item is PointLight
+            light = cast(PointLight, item)
         end
 
         Array<text> keys = json:GetKeys()

@@ -72,6 +72,10 @@ function plugins_quorum_Libraries_Containers_Array_() {
     this.Empty = function () {
         this.array_.length = 0;
     };
+    
+    this.Empty$quorum_boolean = function (value) {
+        this.array_.length = 0;
+    };
 
     this.IsEmpty = function () {
         return this.array_.length == 0;

@@ -95,14 +95,15 @@ class HistogramCreator is DataFrameChartCreator
         
         i = 0
         repeat while i < n
-            number value = values:GetAsNumber(i)
-            integer bin = cast(integer, (value - min) / binWidth)
-            count:Set(bin, count:Get(bin) + 1)
-
-            if value < binFloor:Get(bin)
-                binFloor:Set(bin, value)
+            if not values:IsUndefined(i)
+                number value = values:GetAsNumber(i)
+                integer bin = cast(integer, (value - min) / binWidth)
+                count:Set(bin, count:Get(bin) + 1)
+    
+                if value < binFloor:Get(bin)
+                    binFloor:Set(bin, value)
+                end
             end
-
             i = i + 1
         end
 
@@ -116,11 +117,11 @@ class HistogramCreator is DataFrameChartCreator
             i = i + 1
         end
 
-        chart:SetScaleMax(maxFrequency)
+        chart:SetScaleMaximum(maxFrequency)
 
         number value = math:RaiseToPower(maxFrequency, -(1.0 / 3.0))
         
-        chart:SetNumberOfSteps(ticks)
+        chart:SetYTickSteps(ticks)
         i = 0
         repeat while i < count:GetSize()
             integer amount = count:Get(i)

@@ -1,0 +1,50 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Controls.Charts.ChartPoint
+use Libraries.Controls.Charts.ChartPointComparison
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.ChartLine
+
+use Libraries.Game.Graphics.Color
+
+/*
+    This is the layout class for Line Chart. This class is responsible for 
+    positioning all chart area components of the line chart.
+
+    Attribute: Author Cody Molisee
+*/
+class LineChartLayout is TwoVariableChartLayout
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is LineChart)
+            return now
+        end
+        
+        LineChart chart = cast(LineChart, control)
+        Array<ChartLine> lines = chart:GetAllLines()
+
+        integer i = 0
+        repeat while i < lines:GetSize()
+
+            if lines:Get(i):GetPoints() = undefined
+                return now
+            end
+
+            number width = chartAreaContainer:GetWidth()
+            number height = chartAreaContainer:GetHeight()
+            integer j = 0
+            repeat while j < lines:Get(i):GetPoints():GetSize()
+                ChartPoint point = lines:Get(i):GetPoints():Get(j)
+                point:SetPosition(cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)), cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)))
+    
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+end

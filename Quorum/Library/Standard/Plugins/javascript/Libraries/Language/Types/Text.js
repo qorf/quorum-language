@@ -279,11 +279,15 @@ String.prototype.CompareIgnoringCase$quorum_Libraries_Language_Object = function
 String.prototype.GetCharacter$quorum_integer = function(value) {
     return this.GetCharacterNative$quorum_integer(value);
 };
-String.prototype.Split$quorum_text = function(value) {
+String.prototype.Split$quorum_text$quorum_boolean = function(value, keep) {
     var result = this.split(value);
     var resultArray = new quorum_Libraries_Containers_Array_();
-    for (i = 0; i < result.length; i++) {
-        resultArray.Add$quorum_Libraries_Language_Object(new quorum_Libraries_Language_Types_Text_(false, result[i]));
+    for (var i = 0; i < result.length; i++) {
+        if ((i != result.length -1) || (result[i] != "") || (keep))
+            resultArray.Add$quorum_Libraries_Language_Object(new quorum_Libraries_Language_Types_Text_(false, result[i]));
     }
     return resultArray;
+};
+String.prototype.Split$quorum_text = function(value) {
+    return this.Split$quorum_text$quorum_boolean(value, false);
 };

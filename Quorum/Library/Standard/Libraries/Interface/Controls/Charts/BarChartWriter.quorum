@@ -1,0 +1,218 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+
+/*
+    The BarChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    use Libraries.Interface.Controls.Charts.BarChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    BarChart chart = frame:BarChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    BarChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
+
+class BarChartWriter
+    private number axisPointX = 15
+    private number axisPointY = 85
+    private number axisLength = 75
+    private number barDivWidth = 0 //(axisLength/(chart:GetNumberOfBars() + 1))
+    private number barWidth = 0//barDivWidth * 0.7
+    private number barOffset = 0//(barDivWidth / axisLength) / 2
+
+/*
+    This action writes out the BarChart by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    use Libraries.Interface.Controls.Charts.BarChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    BarChart chart = frame:BarChart()
+    chart:Display()
+
+    BarChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
+    action WriteOutChart(BarChart chart) returns text
+
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(700,600)
+
+        Label chartTitle
+        Label xAxisLabel
+        Label yAxisLabel
+
+        //start setting stuff
+        AddBackground(chartCanvas)
+        AddAxes(chartCanvas)
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("middle")
+        chartTitle:SetPosition(50, 5, "%")
+        chartTitle:SetFontSize("18pt")
+        chartCanvas:Add(chartTitle)
+
+        xAxisLabel:SetText(chart:GetXAxisTitle())
+        xAxisLabel:SetTextAnchor("middle")
+        xAxisLabel:SetPosition(50, 95, "%")
+        xAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(xAxisLabel)
+
+        yAxisLabel:SetText(chart:GetYAxisTitle())
+        yAxisLabel:SetTextAnchor("middle")
+        yAxisLabel:SetPosition(5, 50, "%")
+        yAxisLabel:SetTransform("rotate(270, 40,300)")
+        yAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(yAxisLabel)
+
+        barDivWidth = (axisLength/(chart:GetNumberOfBars() + 1))
+        barWidth = barDivWidth * 0.7
+        barOffset = (barDivWidth / axisLength) / 2
+
+        AddBars(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+
+        return chartCanvas:ToText()
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddBackground(ScalableVectorGraphics canvas)
+        Rectangle background
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        canvas:Add(background)
+    end
+
+    /*
+        This action adds the two lines for the x and y axis
+    */
+    private action AddAxes(ScalableVectorGraphics canvas)
+        Line xAxis
+        Line yAxis
+        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
+        xAxis:SetStroke("black")
+        xAxis:SetTabIndex(-1)
+        xAxis:SetStrokeWidth(0.4,"%")
+        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
+        yAxis:SetStroke("black")
+        yAxis:SetTabIndex(-1)
+        yAxis:SetStrokeWidth(0.4,"%")
+
+        canvas:Add(xAxis)
+        canvas:Add(yAxis)
+    end
+
+    /*
+        This action adds the content of the BarChart
+    */
+    private action AddBars(ScalableVectorGraphics canvas, BarChart chart)
+        integer i = 0
+        repeat while i < chart:GetNumberOfBars()
+            Rectangle tempBar
+            tempBar:SetWidth(barWidth, "%")
+            number barHeight = chart:GetBarHeights():Get(i) * axisLength
+            tempBar:SetHeight(barHeight, "%")
+            tempBar:SetTitle("" + chart:GetBarHeights():Get(i))
+            tempBar:SetPosition(axisPointX + (i + 1) * barDivWidth - barWidth/2,axisPointY-barHeight, "%")
+            //currentBar:SetPosition(xOrig + barDivWidth * (i+1) - (currentBar:GetWidth() * 1.25), barY)
+            tempBar:SetFill("navy")
+            canvas:Add(tempBar)
+
+            i = i + 1
+        end
+    end
+
+    /*
+        This action the labels on the x axis
+    */
+    private action AddXLabels(ScalableVectorGraphics canvas, BarChart chart)
+        integer i = 0
+        repeat while i < chart:GetNumberOfBars()
+            Label tempBarLabel
+            Line tempBarTick
+
+            tempBarTick:SetFirstPoint(axisPointX + axisLength*barOffset + barDivWidth*i, axisPointY, "%")
+            tempBarTick:SetSecondPoint(axisPointX + axisLength*barOffset + barDivWidth*i, axisPointY + 3, "%")
+            tempBarTick:SetStroke("black")
+            tempBarTick:SetTabIndex(-1)
+            tempBarTick:SetStrokeWidth(0.25,"%")
+            canvas:Add(tempBarTick)
+
+            tempBarLabel:SetText(chart:GetBarNames():Get(i))
+            tempBarLabel:SetTextAnchor("middle")
+            tempBarLabel:SetPosition(axisPointX + (i + 1) * barDivWidth, axisPointY + 4, "%")
+            //tempBarLabel:SetTextLength(barWidth, "%")
+            canvas:Add(tempBarLabel)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action the labels on the y axis
+    */
+    private action AddYLabels(ScalableVectorGraphics canvas, BarChart chart)
+        number scaleNum = chart:GetMinimumTick()
+        
+        number scaleWidth = (chart:GetScaleMaximum()) / (chart:GetYTickSteps())
+        number scaleDivWidth = axisLength / (chart:GetYTickSteps())
+        // scale
+        Math math
+        i = 0
+        repeat while i < chart:GetYTickSteps() + 1
+            Label scaleLabel
+            Line scaleTick
+            
+            scaleLabel:SetTextAnchor("end")
+            scaleLabel:SetText("" + math:Round(scaleNum, 4))
+            scaleLabel:SetFontSize("8pt")
+            scaleNum = scaleNum + scaleWidth
+
+            scaleTick:SetTabIndex(-1)
+            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetStroke("black")
+            scaleTick:SetStrokeWidth(0.4,"%")
+            
+            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
+
+            canvas:Add(scaleLabel)
+            canvas:Add(scaleTick)
+        i = i+1
+        end
+    end
+
+end

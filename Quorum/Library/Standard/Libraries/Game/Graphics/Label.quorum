@@ -43,6 +43,7 @@ class Label is Control
     private action LoadDefaultSettings
         isDefaultLoaded = true
         Font font
+        font:SetSize(GetFontSize())
         if font:IsFontAvailable("Arial")
             font:LoadFont("Arial")
             SetFont(font)

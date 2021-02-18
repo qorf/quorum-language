@@ -620,6 +620,30 @@ class Font
         return fontIdentifier
     end
 
+    /*
+        This action copies the Font.
+
+        Attribute: Returns the copied font
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Font
+        Font font
+        Font font2 = font:Copy()
+        output "Hooray!"
+    */
+    action Copy returns Font
+        Font font
+        font:isSystemFont = me:isSystemFont
+        font:fontName = me:fontName
+        font:fontSize = me:fontSize
+        font:angle = me:angle
+        font:subFont = me:subFont
+        font:style = me:style
+        font:fontIdentifier = me:fontIdentifier
+        font:needToRecalculateID = me:needToRecalculateID
+        return font
+    end
+
     private action CalculateIdentifier
         needToRecalculateID = false
         FontManager manager = gameStateManager:GetFontManager()

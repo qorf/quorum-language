@@ -357,9 +357,9 @@ class FontManager
         if useFreeType
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy
-        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
-            QuorumStrategy quorumStrategy
-            strategy = quorumStrategy
+//        elseif gameStateManager:GetOperatingSystem() = "Web Browser"
+//            QuorumStrategy quorumStrategy
+//            strategy = quorumStrategy
         else    // Linux and Android
             FreeTypeStrategy freeStrategy
             strategy = freeStrategy

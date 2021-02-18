@@ -38,10 +38,9 @@ class Button is Control
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
-        Font font
-        font:LoadFont("Arial")
+        Font font = GetDefaultFont()
         properties:SetFont(font)
-        properties:SetFontSize(16)
+        properties:SetFontSize(GetDefaultFontSize())
 
         Color color
         Gradient gradient
@@ -57,6 +56,18 @@ class Button is Control
         SetInputGroup("Button")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:BUTTON)
+    end
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:IsFontAvailable("Arial")
+            return "Arial"
+        end
+        return parent:Control:GetDefaultFontName()
+    end
+
+    action GetDefaultFontSize returns integer
+        return 16
     end
 
     action SetBehavior(Behavior behavior)

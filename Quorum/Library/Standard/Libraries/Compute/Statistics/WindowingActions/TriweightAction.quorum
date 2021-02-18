@@ -1,0 +1,18 @@
+package Libraries.Compute.Statistics.WindowingActions
+
+use Libraries.Compute.Analysis.UnivariateAction
+use Libraries.Compute.Math
+
+/*
+    This is a helper class for a windowing action based on a Guassian Kernel. More information
+    can be found regarding various kernels on wikipedia: https://en.wikipedia.org/wiki/Kernel_(statistics)
+*/
+class TriweightAction is UnivariateAction
+    action Calculate(number x) returns number
+        Math math
+        number fraction = 35.0 / 32.0
+        number innerpart = 1.0 - math:RaiseToPower(x, 2)
+        number kernel = fraction * math:RaiseToPower(innerpart, 3)
+        return kernel
+    end
+end
