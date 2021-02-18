@@ -183,6 +183,7 @@ class QuorumParser
     action SetLexer(QuorumLexer lexer)
         me:lexer = lexer
         tokenIterator = lexer:GetIterator()
+        tokenIterator:Next()
     end
 
     private action CreateCompilerError(integer type) returns CompilerError

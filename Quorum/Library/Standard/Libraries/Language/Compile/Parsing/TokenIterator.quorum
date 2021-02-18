@@ -215,7 +215,6 @@ class TokenIterator<Type> is Iterator<Type>
     /* This sets the lexer we are working on. */
     action SetLexer(Lexer lexer)
         me:lexer = lexer
-        Next()
     end
     /* This gets which channel we are going to work on. */
     action GetChannelToRead returns integer
