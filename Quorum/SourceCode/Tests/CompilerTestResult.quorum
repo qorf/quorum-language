@@ -3,8 +3,9 @@ package Libraries.Language.Compile.Test
 use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.System.StackTraceItem
+use Libraries.Testing.Test
 
-class CompilerTestResult 
+class CompilerTestResult is Test
     public text name = ""
     public File file = undefined
     public boolean passed = false
@@ -16,6 +17,9 @@ class CompilerTestResult
     public text errorMessage = ""
     public boolean isBytecodeTest = false
     public boolean isJavaScriptTest = false
+
+    action Run
+    end
 
     /*
         This action is a workaround for the rare bug with field values, which

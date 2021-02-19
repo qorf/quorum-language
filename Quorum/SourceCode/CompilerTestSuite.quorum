@@ -13,6 +13,8 @@ use Libraries.System.DateTime
 
 use Libraries.Language.Compile.Test.MatrixTester
 use Libraries.Language.Compile.CompilerProfiler
+use Libraries.Testing.Test
+use Libraries.Testing.Tester
 
 class CompilerTestSuite
     integer total = 0
@@ -27,7 +29,8 @@ class CompilerTestSuite
     boolean testBytecode = true
     boolean testJavaScript = false
     Library library
-  
+    Tester tester
+
     CompilerProfiler summaryProfiler
     Math math
     ExpressionsTester expressions
@@ -60,6 +63,7 @@ class CompilerTestSuite
     ByteArrayTester byteArrayChecks
 
     on create
+        output "Starting Test Suite:"
         expressions:SetCompilerTestSuite(me)
         fileChecks:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
@@ -95,101 +99,71 @@ class CompilerTestSuite
         library:SetLocation(compiler:GetStandardLibraryFolder())
         library:SetCachingLibraryOpcodes(true)
         library:SetOutputFolder(outputLocation)
+        output "Scanning Standard Library"
         library:Scan()
     end
 
     action Main
+
+        output "Testing"
         DateTime date
         start = date:GetEpochTime()
-        output "Starting Quorum 8.0 Test Suite"
-        output ""
-        output "Scanning Standard Library"
-        output ""
-        output "Starting Test Suite:"
         output expressions:GetName()
         expressions:Test()
-        output ""
         output fileChecks:GetName()
         fileChecks:Test()
-        output ""
         output typeChecks:GetName()
         typeChecks:Test()
-        output ""
         output typeChecksGenerated:GetName()
         typeChecksGenerated:Test()
-        output ""
         output chainingChecks:GetName()
         chainingChecks:Test()
-        output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
-        output ""
         output loopsChecks:GetName()
         loopsChecks:Test()
-        output ""
         output actionsChecks:GetName()
         actionsChecks:Test()
-        output ""
         output inheritanceChecks:GetName()
         inheritanceChecks:Test()
-        output ""
         output templatingChecks:GetName()
         templatingChecks:Test()
-        output ""
         output templatingChecksGenerated:GetName()
         templatingChecksGenerated:Test()
-        output ""
         output exceptionChecks:GetName()
         exceptionChecks:Test()
-        output ""
         output arrayChecks:GetName()
         arrayChecks:Test()
-        output ""
         output stackChecks:GetName()
         stackChecks:Test()
-        output ""
         output queueChecks:GetName()
         queueChecks:Test()
-        output ""
         output mathChecks:GetName()
         mathChecks:Test()
-        output ""
         output listChecks:GetName()
         listChecks:Test()
-        output ""
         output hashChecks:GetName()
         hashChecks:Test()
-        output ""
         output svChecks:GetName()
         svChecks:Test()
-        output ""
         output decompresserChecks:GetName()
         decompresserChecks:Test()
-        output ""
         output useChecks:GetName()
         useChecks:Test()
-        output ""
         output randomChecks:GetName()
         randomChecks:Test()
-        output ""
         output tableChecks:GetName()
         tableChecks:Test()
-        output ""
         output bitwiseChecks:GetName()
         bitwiseChecks:Test()
-        output ""
         output matrixChecks:GetName()
         matrixChecks:Test()
-        output ""
         output jsonChecks:GetName()
         jsonChecks:Test()
-        output ""
         output bigIntegerChecks:GetName()
         bigIntegerChecks:Test()
-        output ""
         output byteArrayChecks:GetName()
         byteArrayChecks:Test()
-        output ""
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
@@ -202,28 +176,48 @@ class CompilerTestSuite
         number javaScriptPercentage = math:Round((javaScriptPassed  * 100.0) / (totalJavaScript * 1.0), 3)
 
         output "Finished Testing in " + totalTime + " seconds."
-        output "Bytecode Tests Passed: " + bytecodePassed + " out of " + totalBytecode
-        output "Bytecode Percentage: " + bytecodePercentage + "%." + EOL
-        
-        output "JavaScript Tests Passed: " + javaScriptPassed + " out of " + totalJavaScript
-        output "JavaScript Percentage: " + javaScriptPercentage + "%." + EOL
+//        output "Bytecode Tests Passed: " + bytecodePassed + " out of " + totalBytecode
+//        output "Bytecode Percentage: " + bytecodePercentage + "%." + EOL
+//        
+//        output "JavaScript Tests Passed: " + javaScriptPassed + " out of " + totalJavaScript
+//        output "JavaScript Percentage: " + javaScriptPercentage + "%." + EOL
+//
+//        output "Tests Passed: " + passed + " out of " + total
+//
+//        number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
+//        output "Total Percentage: " + percent + "%"
+//
+//        output "Total Profiling Data per phase:"
+//        summaryProfiler:OutputSummaryTimes()
+//
+        output ""
+        output "Summary"
+        integer passedSuite = tester:GetPassingSize()
+        integer sizeSuite = tester:GetSize()
+        number percentSuite = math:Round((passedSuite  * 100.0) / (sizeSuite * 1.0), 3)
+        output "Pass: " + passedSuite + " of " + sizeSuite + ", " + percentSuite + "%."
 
-        output "Tests Passed: " + passed + " out of " + total
-
-        number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
-        output "Total Percentage: " + percent + "%"
-
-        output "Total Profiling Data per phase:"
-        summaryProfiler:OutputSummaryTimes()
+        if passedSuite not= sizeSuite
+            output "Outputting failed tests."
+            Iterator<Test> iterator = tester:GetFailedTestsIterator()
+            repeat while iterator:HasNext()
+                Test test = iterator:Next()
+                output test:GetName()
+            end
+        else
+            output "All Tests Pass"
+        end
     end
 
+    
     action Test(Array<File> files, Array<text> reply)
         if testBytecode = false
             return now
         end
         CompilerTestResult result
-        check
+        check            
             result = RunTestFile(files)
+            result:Check(result:ranWithoutError, true)
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 Iterator<text> lineIt = lines:GetIterator()
@@ -239,6 +233,7 @@ class CompilerTestSuite
                     end
                     i = i + 1
                 end
+                result:Check(result:passed, true)
             end
         detect e
             text message = e:GetErrorMessage()
@@ -247,6 +242,7 @@ class CompilerTestSuite
         end
         result:isBytecodeTest = true
         Add(result)
+        tester:Add(result)
     end
 
     private action GetDefaultCompiler returns Compiler
@@ -464,7 +460,7 @@ class CompilerTestSuite
         else
             value = value + " ... " + "passed"
         end
-        output value
+        //output value
     end
 
     action RunTestFail(text source) returns CompilerTestResult
