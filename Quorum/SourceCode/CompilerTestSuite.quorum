@@ -110,60 +110,60 @@ class CompilerTestSuite
         start = date:GetEpochTime()
         output expressions:GetName()
         expressions:Test()
-        output fileChecks:GetName()
-        fileChecks:Test()
-        output typeChecks:GetName()
-        typeChecks:Test()
-        output typeChecksGenerated:GetName()
-        typeChecksGenerated:Test()
-        output chainingChecks:GetName()
-        chainingChecks:Test()
-        output ifStatementChecks:GetName()
-        ifStatementChecks:Test()
-        output loopsChecks:GetName()
-        loopsChecks:Test()
-        output actionsChecks:GetName()
-        actionsChecks:Test()
-        output inheritanceChecks:GetName()
-        inheritanceChecks:Test()
-        output templatingChecks:GetName()
-        templatingChecks:Test()
-        output templatingChecksGenerated:GetName()
-        templatingChecksGenerated:Test()
-        output exceptionChecks:GetName()
-        exceptionChecks:Test()
-        output arrayChecks:GetName()
-        arrayChecks:Test()
-        output stackChecks:GetName()
-        stackChecks:Test()
-        output queueChecks:GetName()
-        queueChecks:Test()
-        output mathChecks:GetName()
-        mathChecks:Test()
-        output listChecks:GetName()
-        listChecks:Test()
-        output hashChecks:GetName()
-        hashChecks:Test()
-        output svChecks:GetName()
-        svChecks:Test()
-        output decompresserChecks:GetName()
-        decompresserChecks:Test()
-        output useChecks:GetName()
-        useChecks:Test()
-        output randomChecks:GetName()
-        randomChecks:Test()
-        output tableChecks:GetName()
-        tableChecks:Test()
-        output bitwiseChecks:GetName()
-        bitwiseChecks:Test()
-        output matrixChecks:GetName()
-        matrixChecks:Test()
-        output jsonChecks:GetName()
-        jsonChecks:Test()
-        output bigIntegerChecks:GetName()
-        bigIntegerChecks:Test()
-        output byteArrayChecks:GetName()
-        byteArrayChecks:Test()
+//        output fileChecks:GetName()
+//        fileChecks:Test()
+//        output typeChecks:GetName()
+//        typeChecks:Test()
+//        output typeChecksGenerated:GetName()
+//        typeChecksGenerated:Test()
+//        output chainingChecks:GetName()
+//        chainingChecks:Test()
+//        output ifStatementChecks:GetName()
+//        ifStatementChecks:Test()
+//        output loopsChecks:GetName()
+//        loopsChecks:Test()
+//        output actionsChecks:GetName()
+//        actionsChecks:Test()
+//        output inheritanceChecks:GetName()
+//        inheritanceChecks:Test()
+//        output templatingChecks:GetName()
+//        templatingChecks:Test()
+//        output templatingChecksGenerated:GetName()
+//        templatingChecksGenerated:Test()
+//        output exceptionChecks:GetName()
+//        exceptionChecks:Test()
+//        output arrayChecks:GetName()
+//        arrayChecks:Test()
+//        output stackChecks:GetName()
+//        stackChecks:Test()
+//        output queueChecks:GetName()
+//        queueChecks:Test()
+//        output mathChecks:GetName()
+//        mathChecks:Test()
+//        output listChecks:GetName()
+//        listChecks:Test()
+//        output hashChecks:GetName()
+//        hashChecks:Test()
+//        output svChecks:GetName()
+//        svChecks:Test()
+//        output decompresserChecks:GetName()
+//        decompresserChecks:Test()
+//        output useChecks:GetName()
+//        useChecks:Test()
+//        output randomChecks:GetName()
+//        randomChecks:Test()
+//        output tableChecks:GetName()
+//        tableChecks:Test()
+//        output bitwiseChecks:GetName()
+//        bitwiseChecks:Test()
+//        output matrixChecks:GetName()
+//        matrixChecks:Test()
+//        output jsonChecks:GetName()
+//        jsonChecks:Test()
+//        output bigIntegerChecks:GetName()
+//        bigIntegerChecks:Test()
+//        output byteArrayChecks:GetName()
+//        byteArrayChecks:Test()
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
@@ -200,9 +200,11 @@ class CompilerTestSuite
         if passedSuite not= sizeSuite
             output "Outputting failed tests."
             Iterator<Test> iterator = tester:GetFailedTestsIterator()
+            i = 1
             repeat while iterator:HasNext()
                 Test test = iterator:Next()
-                output test:GetName()
+                output i + ": " + test:GetName()
+                i = i + 1
             end
         else
             output "All Tests Pass"
@@ -282,7 +284,7 @@ class CompilerTestSuite
             result = result2
             result:errorMessage = "Compilation had errors"
         end
-        result:name = testFile:GetPath()
+        result:SetName(testFile:GetPath())
         return result
     end
 
@@ -342,7 +344,7 @@ class CompilerTestSuite
             result = result2
             result:errorMessage = "Compilation had errors"
         end
-        result:name = testFile:GetPath()
+        result:SetName(testFile:GetPath())
         return result
     end
 
@@ -365,7 +367,7 @@ class CompilerTestSuite
         CompilerTestResult result
         File testFile
         testFile = files:Get(0)
-        result:name = testFile:GetPath()
+        result:SetName(testFile:GetPath())
         result:isBytecodeTest = true    
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
@@ -397,7 +399,7 @@ class CompilerTestSuite
         CompilerTestResult result
         File testFile 
         testFile = files:Get(0)
-        result:name = testFile:GetPath()
+        result:SetName(testFile:GetPath())
         result:isJavaScriptTest = true
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
@@ -421,7 +423,7 @@ class CompilerTestSuite
         end
         total = total + 1
         text value = ""
-        value = result:name 
+        value = result:GetName() 
 
         if result:isBytecodeTest
             totalBytecode = totalBytecode + 1
@@ -507,15 +509,15 @@ class CompilerTestSuite
             result = result2
             result:errorMessage = "compilation had errors"
         end
-        result:name = source
+        result:SetName(source)
         return result
     end
 
     action RunTest(text source, text reply)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunTest(result:name)
+            result = RunTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 1
@@ -535,9 +537,9 @@ class CompilerTestSuite
 
     action RunTest(text source, text reply1, text reply2)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunTest(result:name)
+            result = RunTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 2
@@ -559,9 +561,9 @@ class CompilerTestSuite
 
     action RunTest(text source, text reply1, text reply2, text reply3)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunTest(result:name)
+            result = RunTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 3
@@ -584,9 +586,9 @@ class CompilerTestSuite
 
     action RunTest(text source, text reply1, text reply2, text reply3, text reply4)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunTest(result:name)
+            result = RunTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 4
@@ -610,9 +612,9 @@ class CompilerTestSuite
 
     action RunTest(text source, text reply1, text reply2, text reply3, text reply4, text reply5)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunTest(result:name)
+            result = RunTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 5
@@ -668,15 +670,15 @@ class CompilerTestSuite
             result = result2
             result:errorMessage = "compilation had errors"
         end
-        result:name = source
+        result:SetName(source)
         return result
     end
 
     action RunJavaScriptTest(text source, text reply)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunJavaScriptTest(result:name)
+            result = RunJavaScriptTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 1
@@ -696,9 +698,9 @@ class CompilerTestSuite
 
     action RunJavaScriptTest(text source, text reply1, text reply2)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunJavaScriptTest(result:name)
+            result = RunJavaScriptTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 2
@@ -719,9 +721,9 @@ class CompilerTestSuite
 
     action RunJavaScriptTest(text source, text reply1, text reply2, text reply3)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunJavaScriptTest(result:name)
+            result = RunJavaScriptTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 3
@@ -743,9 +745,9 @@ class CompilerTestSuite
 
     action RunJavaScriptTest(text source, text reply1, text reply2, text reply3, text reply4)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunJavaScriptTest(result:name)
+            result = RunJavaScriptTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 4
@@ -768,9 +770,9 @@ class CompilerTestSuite
 
     action RunJavaScriptTest(text source, text reply1, text reply2, text reply3, text reply4, text reply5)
         CompilerTestResult result
-        result:name = source
+        result:SetName(source)
         check
-            result = RunJavaScriptTest(result:name)
+            result = RunJavaScriptTest(result:GetName())
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 5

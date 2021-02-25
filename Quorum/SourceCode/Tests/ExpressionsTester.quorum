@@ -108,6 +108,7 @@ class ExpressionsTester
         PrimitiveGetMinimumValueInteger()
         PrimitiveGetMaximumValueDouble()
         PrimitiveGetMinimumValueDouble()
+        ScientificNotation()
         SubDoubleDouble()
         SubDoubleInt()
         SubIntDouble()
@@ -1343,6 +1344,22 @@ class ExpressionsTester
             results:Set(i, "-1.0")
             i = i + 1
         end
+        suite:TestJavaScript(files, results)
+    end
+
+    action ScientificNotation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ScientificNotation.quorum")
+        files:Add(main)
+        results:Add(0, "0.1")
+        results:Add(1, "0.01")
+        results:Add(2, "0.001")
+        results:Add(3, "10.0")
+        results:Add(4, "100.0")
+        results:Add(5, "1000.0")
+        suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
 
