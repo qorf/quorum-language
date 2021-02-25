@@ -104,66 +104,66 @@ class CompilerTestSuite
     end
 
     action Main
-
+        output ""
         output "Testing"
         DateTime date
         start = date:GetEpochTime()
         output expressions:GetName()
         expressions:Test()
-//        output fileChecks:GetName()
-//        fileChecks:Test()
-//        output typeChecks:GetName()
-//        typeChecks:Test()
-//        output typeChecksGenerated:GetName()
-//        typeChecksGenerated:Test()
-//        output chainingChecks:GetName()
-//        chainingChecks:Test()
-//        output ifStatementChecks:GetName()
-//        ifStatementChecks:Test()
-//        output loopsChecks:GetName()
-//        loopsChecks:Test()
-//        output actionsChecks:GetName()
-//        actionsChecks:Test()
-//        output inheritanceChecks:GetName()
-//        inheritanceChecks:Test()
-//        output templatingChecks:GetName()
-//        templatingChecks:Test()
-//        output templatingChecksGenerated:GetName()
-//        templatingChecksGenerated:Test()
-//        output exceptionChecks:GetName()
-//        exceptionChecks:Test()
-//        output arrayChecks:GetName()
-//        arrayChecks:Test()
-//        output stackChecks:GetName()
-//        stackChecks:Test()
-//        output queueChecks:GetName()
-//        queueChecks:Test()
-//        output mathChecks:GetName()
-//        mathChecks:Test()
-//        output listChecks:GetName()
-//        listChecks:Test()
-//        output hashChecks:GetName()
-//        hashChecks:Test()
-//        output svChecks:GetName()
-//        svChecks:Test()
-//        output decompresserChecks:GetName()
-//        decompresserChecks:Test()
-//        output useChecks:GetName()
-//        useChecks:Test()
-//        output randomChecks:GetName()
-//        randomChecks:Test()
-//        output tableChecks:GetName()
-//        tableChecks:Test()
-//        output bitwiseChecks:GetName()
-//        bitwiseChecks:Test()
-//        output matrixChecks:GetName()
-//        matrixChecks:Test()
-//        output jsonChecks:GetName()
-//        jsonChecks:Test()
-//        output bigIntegerChecks:GetName()
-//        bigIntegerChecks:Test()
-//        output byteArrayChecks:GetName()
-//        byteArrayChecks:Test()
+        output fileChecks:GetName()
+        fileChecks:Test()
+        output typeChecks:GetName()
+        typeChecks:Test()
+        output typeChecksGenerated:GetName()
+        typeChecksGenerated:Test()
+        output chainingChecks:GetName()
+        chainingChecks:Test()
+        output ifStatementChecks:GetName()
+        ifStatementChecks:Test()
+        output loopsChecks:GetName()
+        loopsChecks:Test()
+        output actionsChecks:GetName()
+        actionsChecks:Test()
+        output inheritanceChecks:GetName()
+        inheritanceChecks:Test()
+        output templatingChecks:GetName()
+        templatingChecks:Test()
+        output templatingChecksGenerated:GetName()
+        templatingChecksGenerated:Test()
+        output exceptionChecks:GetName()
+        exceptionChecks:Test()
+        output arrayChecks:GetName()
+        arrayChecks:Test()
+        output stackChecks:GetName()
+        stackChecks:Test()
+        output queueChecks:GetName()
+        queueChecks:Test()
+        output mathChecks:GetName()
+        mathChecks:Test()
+        output listChecks:GetName()
+        listChecks:Test()
+        output hashChecks:GetName()
+        hashChecks:Test()
+        output svChecks:GetName()
+        svChecks:Test()
+        output decompresserChecks:GetName()
+        decompresserChecks:Test()
+        output useChecks:GetName()
+        useChecks:Test()
+        output randomChecks:GetName()
+        randomChecks:Test()
+        output tableChecks:GetName()
+        tableChecks:Test()
+        output bitwiseChecks:GetName()
+        bitwiseChecks:Test()
+        output matrixChecks:GetName()
+        matrixChecks:Test()
+        output jsonChecks:GetName()
+        jsonChecks:Test()
+        output bigIntegerChecks:GetName()
+        bigIntegerChecks:Test()
+        output byteArrayChecks:GetName()
+        byteArrayChecks:Test()
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
@@ -175,27 +175,13 @@ class CompilerTestSuite
         number bytecodePercentage = math:Round((bytecodePassed  * 100.0) / (totalBytecode * 1.0), 3)
         number javaScriptPercentage = math:Round((javaScriptPassed  * 100.0) / (totalJavaScript * 1.0), 3)
 
-        output "Finished Testing in " + totalTime + " seconds."
-//        output "Bytecode Tests Passed: " + bytecodePassed + " out of " + totalBytecode
-//        output "Bytecode Percentage: " + bytecodePercentage + "%." + EOL
-//        
-//        output "JavaScript Tests Passed: " + javaScriptPassed + " out of " + totalJavaScript
-//        output "JavaScript Percentage: " + javaScriptPercentage + "%." + EOL
-//
-//        output "Tests Passed: " + passed + " out of " + total
-//
-//        number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
-//        output "Total Percentage: " + percent + "%"
-//
-//        output "Total Profiling Data per phase:"
-//        summaryProfiler:OutputSummaryTimes()
-//
+        output "Finished in " + totalTime + " seconds."
         output ""
         output "Summary"
         integer passedSuite = tester:GetPassingSize()
         integer sizeSuite = tester:GetSize()
         number percentSuite = math:Round((passedSuite  * 100.0) / (sizeSuite * 1.0), 3)
-        output "Pass: " + passedSuite + " of " + sizeSuite + ", " + percentSuite + "%."
+        output passedSuite + " of " + sizeSuite + ", " + percentSuite + "%."
 
         if passedSuite not= sizeSuite
             output "Outputting failed tests."
