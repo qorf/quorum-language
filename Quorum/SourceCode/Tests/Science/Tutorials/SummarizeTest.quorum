@@ -1,0 +1,65 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.System.File
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Calculations.Summarize
+use Libraries.Compute.Statistics.Calculations.Median
+use Libraries.Compute.Statistics.Calculations.Mode
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.Variance
+use Libraries.Compute.Statistics.Calculations.StandardDeviation
+use Libraries.Compute.Statistics.Calculations.Skew
+use Libraries.Compute.Statistics.Calculations.Kurtosis
+
+/*
+    This class tests the inter-quartile range.
+*/
+class SummarizeTest is Test
+
+    on create
+        SetName("Loading Summarizing Values Test")
+    end
+
+    action Run
+        DataFrame frame
+        NumberColumn survival
+        frame:AddColumnOnLoad(0, survival)
+        frame:Load("Library/Tests/Data/Echocardiogram.csv")
+        
+        Mean mean
+        Median median
+        Mode mode
+        Variance variance
+        StandardDeviation stdv
+        Skew skew
+        Kurtosis kurtosis
+        DataFrameColumn column = frame:GetColumn(0)
+        column:Calculate(mean)
+        column:Calculate(median)
+        column:Calculate(mode)
+        column:Calculate(variance)
+        column:Calculate(stdv) //technically pointless, but for testing the result
+        column:Calculate(skew)
+        column:Calculate(kurtosis)
+
+        //Check all of the summary values on a messy data set.
+        Check(22.18292308, mean:GetMean())
+        Check(23.5, median:GetMedian())
+        Array<number> modes = mode:GetModes()
+        modes:Sort()
+        Check(0.5, modes:Get(0))
+        Check(0.75, modes:Get(1))
+        Check(1.0, modes:Get(2))
+        Check(true, mode:HasDuplicates())
+        Check(251.4846395, variance:GetVariance())
+        Check(15.85826723, stdv:GetStandardDeviation())
+        Check(0.171598517, skew:GetSkew())
+        Check(-0.9135300958, kurtosis:GetKurtosis())
+    end
+end
+
+

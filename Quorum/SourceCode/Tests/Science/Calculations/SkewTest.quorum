@@ -1,0 +1,31 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Calculations.StandardDeviationsFromMean
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.Skew
+
+/*
+    This class tests the inter-quartile range.
+*/
+class SkewTest is Test
+
+    on create
+        SetName("Calculate Skew")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        DataFrameColumn column = frame:GetColumn(0)
+
+        Skew skew
+        column:Calculate(skew)
+
+        number value = skew:GetSkew()
+        Check(value, 1.093397225)
+    end
+end

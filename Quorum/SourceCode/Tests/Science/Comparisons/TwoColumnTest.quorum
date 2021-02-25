@@ -1,0 +1,54 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Tests.CompareGroups
+
+class TwoColumnTest is Test
+
+    on create
+        SetName("Compare Two Columns")
+    end
+
+    action Run
+        DataFrame frame
+        NumberColumn column0
+        column0:SetHeader("y")
+        column0:Add("1")
+        column0:Add("2")
+        column0:Add("3")
+        column0:Add("4")
+        column0:Add("5")
+        column0:Add("6")
+
+        NumberColumn column2
+        column2:SetHeader("2")
+        column2:Add("3")
+        column2:Add("4")
+        column2:Add("5")
+        column2:Add("6")
+        column2:Add("7")
+        column2:Add("8")
+
+
+        Array<DataFrameColumn> columns
+        columns:Add(column0)
+        columns:Add(column2)
+        frame:SetColumns(columns)
+        
+        CompareGroups tests
+        tests:AddColumn(0)
+        tests:AddColumn(1)
+        tests:Calculate(frame)
+
+        Check(tests:GetCriticalValue(), -1.85164019954510284)
+        Check(tests:GetProbabilityValue(), 0.093792551579223227)
+        Check(tests:GetDegreesOfFreedom(), 10.0000000000000018)
+        Check(tests:GetMean1(), 3.5)
+        Check(tests:GetMean2(), 5.5)
+    end
+end

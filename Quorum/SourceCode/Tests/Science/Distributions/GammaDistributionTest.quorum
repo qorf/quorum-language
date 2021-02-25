@@ -1,0 +1,23 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.Distributions.Gamma
+
+/*
+    This class tests Gamma Distributions for correct values.
+*/
+class GammaDistributionTest is Test
+
+    on create
+        SetName("Calculate Gamma Distribution test")
+    end
+
+    action Run
+        Gamma gamma
+        Check(gamma:RegularizedGammaP(1,2), 0.8646647167633873)
+        Check(gamma:RegularizedGammaQ(1,2), 0.1353352832366127)
+    end
+
+    private action CustomCheck(number value, number expectation)
+        Check(value, expectation)
+    end
+end

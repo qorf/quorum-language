@@ -1,0 +1,32 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.System.File
+
+/*
+    This class tests the inter-quartile range.
+*/
+class LoadingTest is Test
+
+    on create
+        SetName("Loading Separated Values Test")
+    end
+
+    action Run
+        File file
+        file:SetPath("Library/Tests/Data/Population.csv")
+
+        DataFrame frame
+        frame:Load(file)
+        DataFrameColumn column = frame:GetColumn(1) //get the 1980 column to spot check
+        text header = column:GetHeader()
+        Check(header, "1980")
+
+        text value = column:GetAsText(11)
+        Check(value, undefined)
+    end
+end
+
+

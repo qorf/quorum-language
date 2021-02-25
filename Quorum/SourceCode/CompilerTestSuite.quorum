@@ -61,6 +61,7 @@ class CompilerTestSuite
     JsonTester jsonChecks
     BigIntegerTester bigIntegerChecks
     ByteArrayTester byteArrayChecks
+    ScienceTester scienceChecks
 
     on create
         output "Starting Test Suite:"
@@ -92,6 +93,7 @@ class CompilerTestSuite
         jsonChecks:SetCompilerTestSuite(me)
         bigIntegerChecks:SetCompilerTestSuite(me)
         byteArrayChecks:SetCompilerTestSuite(me)
+        scienceChecks:SetTester(tester)
 
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
@@ -164,6 +166,8 @@ class CompilerTestSuite
         bigIntegerChecks:Test()
         output byteArrayChecks:GetName()
         byteArrayChecks:Test()
+        output scienceChecks:GetName()
+        scienceChecks:Test()
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()

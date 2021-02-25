@@ -1,0 +1,103 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+
+class RegressionTest1 is Test
+
+    on create
+        SetName("Test Regression")
+    end
+
+    action Run
+        DataFrame frame
+        NumberColumn column0
+        column0:SetHeader("y")
+        column0:Add("1")
+        column0:Add("2")
+        column0:Add("3")
+        column0:Add("4")
+        column0:Add("5")
+        column0:Add("6")
+
+        NumberColumn column2
+        column2:SetHeader("2")
+        column2:Add("12.0")
+        column2:Add("6")
+        column2:Add("-4")
+        column2:Add("1")
+        column2:Add("97")
+        column2:Add("65")
+
+        NumberColumn column3
+        column3:SetHeader("3")
+        column3:Add("-51.0")
+        column3:Add("167")
+        column3:Add("24")
+        column3:Add("2")
+        column3:Add("120")
+        column3:Add("69")
+
+        NumberColumn column4
+        column4:SetHeader("4")
+        column4:Add("4")
+        column4:Add("-68")
+        column4:Add("-41")
+        column4:Add("3")
+        column4:Add("159")
+        column4:Add("73")
+
+        Array<DataFrameColumn> columns
+        columns:Add(column0)
+        columns:Add(column2)
+        columns:Add(column3)
+        columns:Add(column4)
+
+        frame:SetColumns(columns)
+        Regression regression
+        regression:AddColumn(0)
+        regression:AddFactor(1)
+        regression:AddFactor(2)
+        regression:AddFactor(3)
+        frame:Calculate(regression)
+    
+        
+        Vector beta = regression:GetCoefficients()
+        Check(beta:Get(0), 3.035055201547502)
+        Check(beta:Get(1), -0.010656531617057518)
+        Check(beta:Get(2), 0.006309244819505084)
+        Check(beta:Get(3), 0.019903960397522992)
+
+        Vector ts = regression:GetCoefficientProbabilityValues()
+        Check(ts:Get(0), 0.21901707084942137)
+        Check(ts:Get(1), 0.9352876986878635)
+        Check(ts:Get(2), 0.7871528412383333)
+        Check(ts:Get(3), 0.7475527528887774)
+
+        Vector residuals = regression:GetResiduals()
+        Check(residuals:Get(0), -1.6650211779381445)
+        Check(residuals:Get(1), -0.6712905896709431)
+        Check(residuals:Get(2), 0.5869591726145886)
+        Check(residuals:Get(3), 0.9032709592379766)
+        Check(residuals:Get(4), -0.923210716239689)
+        Check(residuals:Get(5), 1.7692923519962074)
+
+        number rss = regression:GetResidualSumOfSquares()
+        Check(rss, 8.366059528294457)
+        
+        number tss = regression:GetTotalSumOfSquares()
+        Check(tss, 17.5)
+
+        number F = regression:GetCriticalValue()
+        Check(F, 0.727856839556231)
+
+        number p = regression:GetProbabilityValue()
+        Check(p, 0.6229228705704561)
+
+        Check(regression:GetEffectSize(), 0.521939455526031)
+    end
+end

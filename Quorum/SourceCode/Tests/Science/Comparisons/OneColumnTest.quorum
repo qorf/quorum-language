@@ -1,0 +1,41 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Tests.CompareGroupToMean
+
+class OneColumnTest is Test
+
+    on create
+        SetName("Compare Column to Mean")
+    end
+
+    action Run
+        DataFrame frame
+        NumberColumn column0
+        column0:SetHeader("y")
+        column0:Add("1")
+        column0:Add("2")
+        column0:Add("3")
+        column0:Add("4")
+        column0:Add("5")
+        column0:Add("6")
+
+
+        Array<DataFrameColumn> columns
+        columns:Add(column0)
+        frame:SetColumns(columns)
+        
+        CompareGroupToMean tests
+        tests:SetGroup(0)
+        tests:SetMean(-1)
+        tests:Calculate(frame)
+    
+        Check(tests:GetCriticalValue(), 5.89188303637179356)
+        Check(tests:GetProbabilityValue(), 0.0020023414411332648)
+        Check(tests:GetDegreesOfFreedom(), 5)
+        Check(tests:GetGroupMean(), 3.5)
+    end
+end

@@ -1,0 +1,40 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Calculations.StandardDeviationsFromMean
+use Libraries.Containers.Array
+
+/*
+    This class tests the inter-quartile range.
+*/
+class StandardDeviationsFromMeanTest is Test
+
+    on create
+        SetName("Calculate Standard Deviations From Mean")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        DataFrameColumn column = frame:GetColumn(0)
+
+        StandardDeviationsFromMean zscores
+        column:Calculate(zscores)
+
+        DataFrame newFrame
+        Array<DataFrameColumn> columns
+        NumberColumn nums = zscores:GetResultColumn()
+        columns:Add(nums)
+        newFrame:SetColumns(columns)
+        
+        Check(nums:GetAsNumber(0), -0.755928946)
+        Check(nums:GetAsNumber(1), 0)
+        Check(nums:GetAsNumber(2), -0.5669467095)
+        Check(nums:GetAsNumber(3), 0.5669467095)
+        Check(nums:GetAsNumber(4), 1.700840129)
+        Check(nums:GetAsNumber(5), -0.9449111825)
+    end
+end

@@ -1,0 +1,184 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.System.StackTraceItem
+use Libraries.Testing.Tester
+use Science.Tests.RegressionTest1
+use Libraries.Containers.Iterator
+use Science.Tests.TwoColumnTest
+use Science.Tests.OneColumnTest
+use Science.Tests.InterQuartileRangeTest
+use Science.Tests.StandardDeviationsFromMeanTest
+use Science.Tests.SkewTest
+use Science.Tests.KurtosisTest
+use Science.Tests.CorrelateGroupsTest
+use Science.Tests.RankTransformTest
+use Science.Tests.CorrelateRanksTest
+use Science.Tests.StandardDeviationTest
+use Science.Tests.VarianceTest
+use Science.Tests.CompareNGroupsTest
+use Science.Tests.ZeroFinderTest
+use Science.Tests.NormalDistributionTest
+use Science.Tests.CompareVariancesTest
+use Science.Tests.GammaDistributionTest
+use Science.Tests.LoadingTest
+use Science.Tests.RemoveUndefinedRowsTest
+use Science.Tests.SummarizeTest
+use Science.Tests.CompareNGroupsTestFromSelection
+use Science.Tests.SummarizeFromSelectionTest
+
+class ScienceTester
+    Tester tester = undefined
+
+    action GetName returns text
+        return "Science Tests"
+    end
+
+    action Test
+        TestCompareNGroups()
+        TestCompareNGroupsFromSelection()
+        TestVariance()
+        TestStandardDeviation()
+        TestRegression()
+        TestColumns()
+        TestInterQuartileRange()
+        TestStandardDeviationsFromMean()
+        TestSkew()
+        TestKurtosis()
+        TestCorrelateGroups()
+        TestRankTransform()
+        TestCorrelateRanks()
+        ZeroFinder()
+        NormalDistribution()
+        TestCompareVariances()
+        GammaDistribution()
+        LoadingTest()
+        RemoveUndefinedRowsTest()
+        SummarizeTest()
+        SummarizeFromSelectionTest()
+    end
+
+    action SummarizeFromSelectionTest
+        SummarizeFromSelectionTest test
+        tester:Run(test)
+    end
+
+    action SummarizeTest
+        SummarizeTest test
+        tester:Run(test)
+    end
+
+    action RemoveUndefinedRowsTest
+        RemoveUndefinedRowsTest test
+        tester:Run(test)
+    end
+
+    action LoadingTest
+        LoadingTest test
+        tester:Run(test)
+    end
+
+    action GammaDistribution
+        GammaDistributionTest test
+        tester:Run(test)
+    end
+
+    action NormalDistribution
+        NormalDistributionTest test
+        tester:Run(test)
+    end
+
+    action ZeroFinder
+        ZeroFinderTest test
+        tester:Run(test)
+    end
+
+    action TestCompareNGroups
+        CompareNGroupsTest test
+        tester:Run(test)
+    end
+
+    action TestCompareNGroupsFromSelection
+        CompareNGroupsTestFromSelection test
+        tester:Run(test)
+    end
+
+    action TestCompareVariances
+        CompareVariancesTest test
+        tester:Run(test)
+    end
+
+    action TestVariance
+        VarianceTest test
+        tester:Run(test)
+    end
+      
+    action TestStandardDeviation
+        StandardDeviationTest test
+        tester:Run(test)
+    end
+
+    action TestCorrelateRanks
+        CorrelateRanksTest test
+        tester:Run(test)
+    end
+
+    action TestRankTransform
+        RankTransformTest test
+        tester:Run(test)
+    end
+
+    action TestCorrelateGroups
+        CorrelateGroupsTest test
+        tester:Run(test)
+    end
+
+    action TestKurtosis
+        KurtosisTest test
+        tester:Run(test)
+    end
+
+    action TestSkew
+        SkewTest skew
+        tester:Run(skew)
+    end
+
+    action TestStandardDeviationsFromMean
+        StandardDeviationsFromMeanTest test1
+        tester:Run(test1)
+    end
+
+    action TestInterQuartileRange
+        InterQuartileRangeTest test1
+        tester:Run(test1)
+    end
+
+    action TestColumns
+        TwoColumnTest test1
+        tester:Run(test1)
+
+        OneColumnTest test2
+        tester:Run(test2)
+    end
+
+    action TestRegression
+        //first conduct the test
+        RegressionTest1 test1
+        tester:Run(test1)
+    end
+
+    action GetTester returns Tester
+        return tester
+    end
+
+    action SetTester(Tester tester)
+        me:tester = tester
+    end
+
+end 
