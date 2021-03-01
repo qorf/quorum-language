@@ -2160,10 +2160,10 @@ class QuorumParser
             next = tokenIterator:Next()
             AssignmentDeclaractionContext theReturn = AssignmentDeclaration()
             context:returnsStatement = theReturn
-            context:returnType = theReturn:type
             if theReturn = undefined
                 return undefined
             else
+                context:returnType = theReturn:type
                 context:SetLastToken(theReturn:GetLastToken())
             end
         else
