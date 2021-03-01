@@ -13,21 +13,32 @@ use Libraries.Language.Compile.Interpreter.Result
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Language.Compile.Interpreter.RuntimeBlock
 use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.System.File
+use Libraries.System.DateTime
+use Libraries.Data.Formats.Reader2
+use Libraries.Data.Formats.SeparatedValueFileReader
+use Libraries.Data.Formats.SeparatedValue
 
 class DataFrame2 is DataFrame
 
     action Main
+        DateTime time
+        number start = time:GetEpochTime()
         IntegerColumn column0
         IntegerColumn column1
         AddColumnOnLoad(0, column0)
         AddColumnOnLoad(1, column1)
-        Load("files/Data.csv")
+        output "Started Loading"
+        File file
+        file:SetAbsolutePath("/Users/stefika/Desktop/survey_results_public.csv")
+        Load(file)
 
         text dq = ""
         dq = dq:GetDoubleQuote()
         //this is always true, so every row should be allowed
-        Filter("Result < 13.0")
-        a = 5
-        output ToText()
+        //Filter("Result < 13.0")
+        done = time:GetEpochTime()
+        amount = (done - start) / 1000.0
+        output "Finished Loading in " + amount + " seconds." 
     end
 end

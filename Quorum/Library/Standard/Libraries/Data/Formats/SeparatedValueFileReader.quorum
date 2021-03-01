@@ -3,49 +3,132 @@ package Libraries.Data.Formats
 use Libraries.Containers.Array
 use Libraries.System.FileReader
 
+/*
+    This class reads in text and separates it into lines. It loads the text
+    from the file when the first ReadLine or ReadLines call is issued and not before.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Data.Formats.SeparatedValueFileReader
+    use Libraries.Containers.Array
+    use Libraries.System.File
+
+    SeparatedValueFileReader reader
+    File file
+    file:SetPath("file.csv")
+    reader:OpenForRead(file)
+    Array<text> value = reader:ReadLines()
+*/
 class SeparatedValueFileReader is FileReader
     boolean isSetup = false
     text total = ""
-    integer current = 0
+    integer currentCharacter = 0
     Array<text> lines
+    boolean storeLines = true
 
+    /*
+        This action reads one line from the loaded text. By default, it stores 
+        the line in an array, in addition to returning it. This can be turned off by calling
+        SetStoreLines(false)
+    
+        Attribute: Example
+        use Libraries.Data.Formats.SeparatedValueFileReader
+        use Libraries.Containers.Array
+        use Libraries.System.File
+    
+        SeparatedValueFileReader reader
+        File file
+        file:SetPath("file.csv")
+        reader:OpenForRead(file)
+        output reader:ReadLine()
+    */
     action ReadLine() returns text
         if not isSetup
             Setup()
         end
-        
-        value = lines:Get(current)
-        current = current + 1
-        return value
+        text line = ReadNextLine()
+        if storeLines
+            lines:Add(line)
+        end
+        return line
     end
 
+    /*
+        This class reads the entire file into an array. If ReadLine has been called prior
+        to this action being called, with SetStoreLines set to false, then this begins
+        filling the array from this point. If called from the beginning, this action ignores
+        the value of SetStoreLines, because otherwise this would be guaranteed to return an empty array.
+
+        Attribute: Returns an array with all lines in the file.
+    
+        Attribute: Example
+        use Libraries.Data.Formats.SeparatedValueFileReader
+        use Libraries.Containers.Array
+        use Libraries.System.File
+    
+        SeparatedValueFileReader reader
+        File file
+        file:SetPath("file.csv")
+        reader:OpenForRead(file)
+        Array<text> value = reader:ReadLines()
+    */
     action ReadLines() returns Array<text>
         if not isSetup
             Setup()
         end
+
+        //It would make no sense for storeLines to turn this off, 
+        //as we would always return an empty array. As such, this action
+        //ignores the flag and this is only used if the user
+        //is calling ReadLine manually, then switching to this action (for some reason)
+        integer size = total:GetSize()
+        repeat while currentCharacter < size
+            text line = ReadNextLine()
+            lines:Add(line)
+        end
         return lines
     end
 
+    /*
+        This action returns true if we have finished reading the file.
+
+        Attribute: Returns true if we have finished reading.
+    */
     action IsAtEndOfFile() returns boolean
         if not isSetup
             Setup()
         end
-        if current < lines:GetSize()
+        integer size = total:GetSize()
+        if currentCharacter < size
             return false
         else
             return true
         end
     end
 
+    /*
+        This returns the number of characters that were read in the file.
+        Attribute: Returns the number of characters
+    */
+    action GetCharacterSize returns integer
+        return total:GetSize()
+    end
+
+    /*
+        If ReadLine is being called, this returns the current index being processed.
+    */
+    action GetCharacterIndex returns integer
+        return currentCharacter
+    end
+
     private action Setup
         isSetup = true
         total = parent:FileReader:Read()
-        BreakIntoLines()
     end
 
-    private action BreakIntoLines
+    private action ReadNextLine returns text
         size = total:GetSize()
-        Array<text> lines
         isInDoubleQuote = false
         myTotal = total //temporary fix to possible compiler bug with using autoboxed primitives in fields.
         
@@ -55,9 +138,10 @@ class SeparatedValueFileReader is FileReader
         text newline = myTotal:GetCarriageReturn()
         
         integer totalSize = myTotal:GetSize()
-        i = 0
-        repeat while i < totalSize
-            char = myTotal:GetCharacter(i)
+        integer lineStart = currentCharacter
+        integer lineEnd = 0
+        repeat while currentCharacter < totalSize
+            char = myTotal:GetCharacter(currentCharacter)
             if char = dq
                 isInDoubleQuote = not isInDoubleQuote
             end
@@ -65,29 +149,43 @@ class SeparatedValueFileReader is FileReader
             //Check to see if it's a carriage return, a line feed, or a carriage return line feed. Seems like not all of 
             //the CSV files out there actually follow a reasonable spec, so we have to do stuff like this.
             if (char = lineFeed and not isInDoubleQuote) or (char = newline and not isInDoubleQuote)
-                or (i = (size - 1))
+                or (currentCharacter = (size - 1))
 
-                if char = newline and i + 1 < (size - 1) and myTotal:GetCharacter(i + 1) = lineFeed
+                //if it's the last character, keep it
+                if currentCharacter = size - 1
+                    currentCharacter = currentCharacter + 1
+                end
+
+                //if it's a newline and the next character is a linefeed, include it
+                if char = newline and currentCharacter + 1 < (size - 1) and myTotal:GetCharacter(currentCharacter + 1) = lineFeed
                     //we need to skip a character, because this is a carriage return, line feed
-                    i = i + 1
+                    currentCharacter = currentCharacter + 1
                 end
 
-                if i = (size - 1) //don't miss the last character
-                    line = line + char
-                end
-                lines:Add(line)
-                line = ""
-            else 
-                if char not= lineFeed and char not= newline
-                    line = line + char
-                else 
-                    line = line + " "
-                end
+                lineEnd = currentCharacter
+                text value = myTotal:GetSubtext(lineStart, lineEnd)
+                lineStart = currentCharacter + 1
+                currentCharacter = currentCharacter + 1
+                return value
             end
 
-            i = i + 1
+            currentCharacter = currentCharacter + 1
         end
 
-        me:lines = lines
+        return undefined
+    end
+
+    /*
+        Returns true if we store lines on every call to ReadLine. 
+    */
+    action GetStoreLines returns boolean
+        return storeLines
+    end
+
+    /*
+        Sets whether or not we store lines on every call to ReadLine. 
+    */
+    action SetStoreLines(boolean storeLines)
+        me:storeLines = storeLines
     end
 end

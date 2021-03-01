@@ -59,13 +59,14 @@ class SeparatedValue
         end
 
         reader:OpenForRead(file)
+        reader:SetStoreLines(false)
         count = 1
         done = false
-        repeat until done //for testing
+        repeat until done
 
             if not reader:IsAtEndOfFile()
                 line = reader:ReadLine()
-                Array<text> row = ReadLine(line)
+                Array<text> row = ReadLine(line)                
                 if row not= undefined
                     table:AddRow(row)
 
