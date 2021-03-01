@@ -32,6 +32,7 @@ use Science.Tests.RemoveUndefinedRowsTest
 use Science.Tests.SummarizeTest
 use Science.Tests.CompareNGroupsTestFromSelection
 use Science.Tests.SummarizeFromSelectionTest
+use Science.Tests.FilterTest
 
 class ScienceTester
     Tester tester = undefined
@@ -62,6 +63,12 @@ class ScienceTester
         RemoveUndefinedRowsTest()
         SummarizeTest()
         SummarizeFromSelectionTest()
+        TestFilters()
+    end
+
+    action TestFilters
+        FilterTest test
+        tester:Run(test)
     end
 
     action SummarizeFromSelectionTest
