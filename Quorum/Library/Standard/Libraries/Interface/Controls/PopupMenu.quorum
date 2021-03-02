@@ -126,6 +126,10 @@ class PopupMenu is MenuRoot, MouseListener
         dialog:Hide()
     end
 
+    action IsShowing returns boolean
+        return dialog:IsShowing()
+    end
+
     // Closely mirrors MenuBar's related action, but without concern for the top bar.
     action MoveSelectionLeft
         Array<MenuItem> path = GetSelection():GetPath()
