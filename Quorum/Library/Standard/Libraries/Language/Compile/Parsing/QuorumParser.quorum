@@ -1914,6 +1914,11 @@ class QuorumParser
         repeat while next:category = constants:ELSE_IF
             next = tokenIterator:Next()
             ParseContext expression = Expression()
+            if expression = undefined //no expression, so kill it, because you have to
+                SendDefaultError("The elseif was missing its expression. " 
+                + moreInformationIf)
+                return undefined 
+            end
             BlockContext block = Block()
             elseIfExpressions:Add(expression)
             elseIfBlocks:Add(block)
