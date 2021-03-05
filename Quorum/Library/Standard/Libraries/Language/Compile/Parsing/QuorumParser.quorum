@@ -2140,6 +2140,9 @@ class QuorumParser
                 repeat while next:category = constants:COMMA
                     next = tokenIterator:Next()
                     param = FormalParameter()
+                    if param = undefined //error issued already
+                        return undefined
+                    end
                     parameters:Add(param)
 
                     Variable variable2
@@ -3422,6 +3425,7 @@ class QuorumParser
                 if next = undefined
                     SendDefaultError(textEndedError + " a right paren or " +
                         "a list of expressions to pass to the action. ")
+                    return undefined
                 end
                 //if this is a right paren, there's no expression list to parse, so just end it
                 if next:category = constants:RIGHT_PAREN

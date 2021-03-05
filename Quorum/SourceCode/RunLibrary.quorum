@@ -74,7 +74,12 @@ class RunLibrary
                 if error:GetFile() = undefined
                     a = 5
                 end
-                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                text message = i + ": " 
+                if error:GetFile() not= undefined
+                    message = error:GetFile():GetFileName() + " "
+                end
+                message = message + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                output message
                 i = i + 1
             end
         end
