@@ -9,10 +9,22 @@ use Libraries.System.File
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.ActionIndexSort
+use Libraries.Language.Compile.Parsing.QuorumLexerConstants
+use Libraries.Language.Compile.Parsing.TokenIterator
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Language.Compile.CodeCompletionListener
+use Libraries.Language.Compile.Translate.QuorumOpcode
 
 class CodeCompletionHandler 
     constant text USE = "use"
     constant text PACKAGE = "package"
+    QuorumLexerConstants constants
+    ActionIndexSort actionSorter
 
     private action AddUseResults(CodeCompletionRequest request, CodeCompletionResult result, boolean isUse)
         text trim = request:line
@@ -98,6 +110,21 @@ class CodeCompletionHandler
 
         //now set the filter for this particular request
         SetFilter(result, split, line)
+        if not split:IsEmpty() and not line:IsEmpty()
+            i = 0
+            text left = ""
+            repeat while i < split:GetSize()
+                left = left + split:Get(i)
+                if i not= split:GetSize() - 1
+                    left = left + ":"
+                end
+                i = i + 1
+            end
+
+            request:left = left
+        end
+
+
         SymbolTable last = undefined
         SymbolTable compiled = undefined
         if compilerResult not= undefined
@@ -117,27 +144,185 @@ class CodeCompletionHandler
 
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
-        
-        if (clazz = undefined or table = undefined or not IsLegalCall(request, request:clazzCurrentParse, split))
-            and not (isUse or isPackage)
-            return result
-        end
+
+        QuorumLexer luthor
+        luthor:Read(source)
+        TokenIterator<Libraries.Language.Compile.Parsing.Token> tokenIterator = luthor:GetIterator()
 
         //true or true  or true and false
         request:clazz = clazz
         request:table = table
-        FindLocation(request, clazz)
-        CheckIfVariableCall(request, result, clazz, split)
+        CalculateScope(request:caretLocation, tokenIterator, request)
+
+        if (clazz = undefined or table = undefined) // or not IsLegalCall(request, request:clazzCurrentParse, split)
+            and not (isUse or isPackage)
+            return result
+        end
+
+        
+        //FindLocation(request, clazz)
+        //CheckIfVariableCall(request, result, clazz, split)
 
         if isUse
             AddUseResults(request, result, true)
         elseif not isUse and isPackage
             AddUseResults(request, result, false)
         elseif not isUse and not isPackage
-            AddRegion(request, result)
+            AddParsedRegion(request, result)
         end
 
         return result
+    end
+
+    private action AddParsedRegion(CodeCompletionRequest request, CodeCompletionResult result)
+        Class clazz = request:clazz
+        Action method = request:method
+        Block block = request:block
+
+        //we are in the field region, so work there
+        if block = undefined and method = undefined
+            AddFieldRegion(request, result)
+        //if there is ever a case where the block is undefined and the method isn't, that's a compiler
+        //bug. The method "has" a block, so it shouldn't happen ever.
+        elseif block not= undefined and method not= undefined
+            AddActionRegion(request, result)
+        end
+    end
+
+    private action GetSortedActions(Class clazz) returns Array<Action> 
+        Iterator<Action> iterator = clazz:GetActions()
+
+        Array<Action> actions
+        repeat while iterator:HasNext()
+            actions:Add(iterator:Next())
+        end
+
+        
+        actions:Sort(actionSorter)
+        return actions
+    end
+
+    private action GetSortedBlocks(Action act) returns Array<Block>
+        Array<Block> blocks
+        Block block = act:GetBlock()
+        blocks:Add(block)
+
+        Iterator<Block> actionBlocks = block:GetBlocks()
+        repeat while actionBlocks:HasNext()
+            block = actionBlocks:Next()
+            blocks:Add(block)
+            FillFromBlock(blocks, block)
+        end
+        return blocks
+    end
+
+    private action FillFromBlock(Array<Block> blocks, Block block)
+        Iterator<Block> iterator = block:GetBlocks()
+        repeat while iterator:HasNext()
+            Block next = iterator:Next()
+            blocks:Add(next)
+            FillFromBlock(blocks, next)
+        end
+    end
+
+    private action CalculateScope(integer index, TokenIterator<Libraries.Language.Compile.Parsing.Token> iterator, CodeCompletionRequest request)
+        if request = undefined or request:clazz = undefined or iterator = undefined or index < 0
+            return now
+        end
+
+        Class clazz = request:clazz
+        integer actionIndex = -1
+        integer blockIndex = -1
+        integer candidateBlock = -1
+        Array<Action> actions = GetSortedActions(clazz)
+        Array<Block> blocks = undefined
+        Stack<Block> blockStack
+        boolean inClass = false
+        boolean inAction = false
+        repeat while iterator:HasNext() 
+            Libraries.Language.Compile.Parsing.Token token = iterator:Next()
+            if token:category = constants:CLASS
+                request:clazz = clazz
+                inClass = true
+            elseif token:category = constants:ACTION
+                actionIndex = actionIndex + 1
+                if index > token:startIndex and actionIndex < actions:GetSize() and actionIndex >= 0
+                    request:method = actions:Get(actionIndex)
+                    request:block = request:method:GetBlock()
+                    blockStack:Push(request:block)
+                    blocks = GetSortedBlocks(request:method)
+                    blockIndex = -1
+                end
+            elseif token:category = constants:IF
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE_IF
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:REPEAT
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:CHECK
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:DETECT
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ALWAYS
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:END  
+                //it's constrained. If we are in a block and it's before the end, we have a winner
+                //if it's not, then just decrement the values, as this isn't the right candidate
+                if index <= token:endIndex
+                    return now
+                else //if there's a block left, pop it off
+                    if not blockStack:IsEmpty()
+                        request:block = blockStack:Pop()
+                    else
+                        request:block = undefined
+                        request:method = undefined
+                    end
+
+                    if actionIndex >= actions:GetSize() - 1
+                        request:clazz = undefined
+                    end
+                end
+            end
+        end
+
+        //This is an implicit class, so get the implicit Main and use it as a block
+        if not inClass
+            Action act = clazz:GetAction("Main")
+            if act not= undefined
+                request:method = act
+                request:block = act:GetBlock()
+            end
+        end
     end
 
     private action SetFilter(CodeCompletionResult result, Array<text> split, text line)
@@ -297,10 +482,7 @@ class CodeCompletionHandler
         if request:left = "me"
             AddClassVariables(request, result)
             AddParentVariables(request, result)
-        elseif request:left:StartsWith("parent")
-            result:filter = request:unmodifiedLine:Trim()
-            AddParentVariables(request, result)
-        elseif request:variable = undefined
+        elseif request:left:IsEmpty()
             AddClassVariables(request, result)
             AddParentVariables(request, result)
 
@@ -309,10 +491,72 @@ class CodeCompletionHandler
             AddPrimitives(request, result)
             AddControlStructures(request, result)
             AddAvailableClasses(request, result)
-        //this is a call where we've detected we are calling on a variable
-        elseif request:variable not= undefined
-            AddClassVariables(request, result)
-            AddActions(request, result)
+        else  //if it's something else, just parse it
+
+            text value = request:left
+            QuorumLexer luthor
+            luthor:Read(value)
+            QuorumParser parser
+            parser:SetLexer(luthor)
+
+            ParseContext expression = parser:Expression()
+            CodeCompletionListener listener
+            listener:SetRequest(request)
+
+            //if we can parse it, do so. If not, we bail with nothing returned
+            if expression not= undefined
+                expression:Traverse(listener)
+
+                Stack<QuorumOpcode> opcodes = listener:GetOpcodeStack()
+                if opcodes:IsEmpty()
+                    return now //empty
+                else //otherwise get the type of the top and call it a day
+                    QuorumOpcode op = opcodes:Pop() //pop it off
+                    Type type = op:GetType()
+                    if type = undefined
+                        return now
+                    end
+
+                    if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
+                        return now
+                    end
+
+                    Class cl = undefined
+                    if type:IsPrimitive()
+                        cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+                    else
+                        cl = request:table:GetClass(type:GetStaticKey())
+                    end
+
+                    if cl = undefined
+                        return now
+                    else
+                        if cl:GetStaticKey() not= request:clazz:GetStaticKey() 
+                            request:variableClass = cl
+                        end
+                        AddClassVariables(request, result)
+                        AddParentVariables(request, result)
+            
+                        AddActions(request, result)
+                    end
+                end
+            end
+//        elseif request:left:StartsWith("parent")
+//            result:filter = request:unmodifiedLine:Trim()
+//            AddParentVariables(request, result)
+//        elseif request:variable = undefined
+//            AddClassVariables(request, result)
+//            AddParentVariables(request, result)
+//
+//            AddActions(request, result)
+//            AddBlockVariables(request, result)
+//            AddPrimitives(request, result)
+//            AddControlStructures(request, result)
+//            AddAvailableClasses(request, result)
+//        //this is a call where we've detected we are calling on a variable
+//        elseif request:variable not= undefined
+//            AddClassVariables(request, result)
+//            AddActions(request, result)
         end
     end
 
@@ -511,7 +755,7 @@ class CodeCompletionHandler
     /* Add all of the fields from this class */
     private action AddClassVariables(CodeCompletionRequest request, CodeCompletionResult result)
         Class clazzToProcess = request:clazz
-        if request:variable not= undefined
+        if request:variableClass not= undefined
             clazzToProcess = request:variableClass
             if clazzToProcess not= undefined and request:clazz not= undefined
                and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()

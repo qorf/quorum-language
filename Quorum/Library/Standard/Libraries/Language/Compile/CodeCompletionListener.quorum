@@ -1,0 +1,66 @@
+package Libraries.Language.Compile
+use Libraries.Language.Compile.Translate.ActionCallOpcode
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Context.ActionCallContext
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Block
+
+/*
+    The codeCompletionListener is a QuorumSourceListener designed to read
+    expressions for code completion. It processes a limited subset of the language
+    on a per line basis, notably expressions, and places an opcode on the opcode 
+    stack of a particular type. This type is the type being requested for code completion
+    information.
+
+    Attribute: Author Andreas Stefik
+*/
+class CodeCompletionListener is QuorumSourceListener
+    Stack<QuorumOpcode> opcodeStack
+    CodeCompletionRequest request = undefined
+    boolean canCodeComplete = false
+
+    action ExitActionCall(ActionCallContext context)
+        if not context:isActionCall
+            ActionCallOpcode actionCall
+            actionCall:SetLocation(context:GetLocation())
+
+            //get the name of the variable
+            text name = context:name
+            Class clazz = request:clazz
+            Action method = request:method
+            Block block = request:block
+
+            if block not= undefined
+                Variable variable = block:GetVariable(name)
+                if variable not= undefined
+                    request:variable = variable
+                    Type type = variable:GetType()
+                    actionCall:SetType(type)
+                    actionCall:SetIsActionCall(false)
+                    canCodeComplete = true
+                    opcodeStack:Push(actionCall)
+                end
+            end
+        end
+    end
+
+    action GetOpcodeStack returns Stack<QuorumOpcode>
+        return opcodeStack
+    end
+
+    action GetRequest returns CodeCompletionRequest
+        return request
+    end
+
+    action SetRequest(CodeCompletionRequest request)
+        me:request = request
+    end
+
+    action CanCodeComplete returns boolean
+        return canCodeComplete
+    end
+end
