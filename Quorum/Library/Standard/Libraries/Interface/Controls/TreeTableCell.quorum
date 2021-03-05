@@ -30,7 +30,7 @@ class TreeTableCell is Control
 
     // How many pixels the content of a cell is padded per tree depth of the
     // row this cell represents.
-    constant integer PADDING_PER_DEPTH = 8
+    constant integer PADDING_PER_DEPTH = 12
     Label label
 
     // The Behavior to use when the Cell is activated (e.g. by double click).
@@ -183,7 +183,7 @@ class TreeTableCell is Control
             end
 
             LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
-            expandButton:SetLeftPadding(PADDING_PER_DEPTH * row:GetTreeDepth())
+            expandButton:SetLeftPadding(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
         end
     end
 
