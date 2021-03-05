@@ -314,6 +314,15 @@ class CodeCompletionHandler
                 end
             end
         end
+
+        //This is an implicit class, so get the implicit Main and use it as a block
+        if not inClass
+            Action act = clazz:GetAction("Main")
+            if act not= undefined
+                request:method = act
+                request:block = act:GetBlock()
+            end
+        end
     end
 
     private action SetFilter(CodeCompletionResult result, Array<text> split, text line)
@@ -507,7 +516,18 @@ class CodeCompletionHandler
                     if type = undefined
                         return now
                     end
-                    Class cl = request:table:GetClass(type:GetStaticKey())
+
+                    if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
+                        return now
+                    end
+
+                    Class cl = undefined
+                    if type:IsPrimitive()
+                        cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+                    else
+                        cl = request:table:GetClass(type:GetStaticKey())
+                    end
+
                     if cl = undefined
                         return now
                     else
@@ -735,7 +755,7 @@ class CodeCompletionHandler
     /* Add all of the fields from this class */
     private action AddClassVariables(CodeCompletionRequest request, CodeCompletionResult result)
         Class clazzToProcess = request:clazz
-        if request:variable not= undefined
+        if request:variableClass not= undefined
             clazzToProcess = request:variableClass
             if clazzToProcess not= undefined and request:clazz not= undefined
                and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()

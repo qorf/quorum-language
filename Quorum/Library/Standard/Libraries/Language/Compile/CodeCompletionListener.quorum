@@ -21,6 +21,7 @@ use Libraries.Language.Compile.Symbol.Block
 class CodeCompletionListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
     CodeCompletionRequest request = undefined
+    boolean canCodeComplete = false
 
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
@@ -36,10 +37,11 @@ class CodeCompletionListener is QuorumSourceListener
             if block not= undefined
                 Variable variable = block:GetVariable(name)
                 if variable not= undefined
+                    request:variable = variable
                     Type type = variable:GetType()
                     actionCall:SetType(type)
                     actionCall:SetIsActionCall(false)
-        
+                    canCodeComplete = true
                     opcodeStack:Push(actionCall)
                 end
             end
@@ -56,5 +58,9 @@ class CodeCompletionListener is QuorumSourceListener
 
     action SetRequest(CodeCompletionRequest request)
         me:request = request
+    end
+
+    action CanCodeComplete returns boolean
+        return canCodeComplete
     end
 end
