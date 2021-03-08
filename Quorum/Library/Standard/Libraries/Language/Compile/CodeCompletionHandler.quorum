@@ -207,6 +207,9 @@ class CodeCompletionHandler
         Block block = act:GetBlock()
         blocks:Add(block)
 
+        if act:GetName() = "NavigateToDeclaration"
+            a = 5
+        end
         Iterator<Block> actionBlocks = block:GetBlocks()
         repeat while actionBlocks:HasNext()
             block = actionBlocks:Next()
@@ -225,6 +228,14 @@ class CodeCompletionHandler
         end
     end
 
+    private action IsInToken(integer index, Libraries.Language.Compile.Parsing.Token token) returns boolean
+        if index >= token:startIndex// and index < token:endIndex
+            return true
+        end
+
+        return false
+    end
+
     private action CalculateScope(integer index, TokenIterator<Libraries.Language.Compile.Parsing.Token> iterator, CodeCompletionRequest request)
         if request = undefined or request:clazz = undefined or iterator = undefined or index < 0
             return now
@@ -232,7 +243,7 @@ class CodeCompletionHandler
 
         Class clazz = request:clazz
         integer actionIndex = -1
-        integer blockIndex = -1
+        integer blockIndex = 0
         integer candidateBlock = -1
         Array<Action> actions = GetSortedActions(clazz)
         Array<Block> blocks = undefined
@@ -246,28 +257,28 @@ class CodeCompletionHandler
                 inClass = true
             elseif token:category = constants:ACTION
                 actionIndex = actionIndex + 1
-                if index > token:startIndex and actionIndex < actions:GetSize() and actionIndex >= 0
+                if IsInToken(index, token) and actionIndex < actions:GetSize() and actionIndex >= 0
                     request:method = actions:Get(actionIndex)
                     request:block = request:method:GetBlock()
                     blockStack:Push(request:block)
                     blocks = GetSortedBlocks(request:method)
-                    blockIndex = -1
+                    blockIndex = 0
                 end
             elseif token:category = constants:IF
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ELSE_IF
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ELSE
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
@@ -279,19 +290,19 @@ class CodeCompletionHandler
                 end
             elseif token:category = constants:CHECK
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex > 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:DETECT
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex > 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ALWAYS
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < actions:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
@@ -528,7 +539,7 @@ class CodeCompletionHandler
                         cl = request:table:GetClass(type:GetStaticKey())
                     end
 
-                    if cl = undefined
+                    if cl = undefined and request:clazz not= undefined
                         return now
                     else
                         if cl:GetStaticKey() not= request:clazz:GetStaticKey() 

@@ -1540,7 +1540,7 @@ class QuorumParser
             if next:category = constants:COLON
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected : (colon). " + moreInformationActionCall)
+                SendDefaultError("Expected colon after me. " + moreInformationActionCall)
                 return undefined
             end
         end
@@ -1576,6 +1576,7 @@ class QuorumParser
                     context:SetLastToken(last:GetLastToken())
                     context:calls = calls
                 end
+                SetLocation(context)
                 return context
             end
             next = tokenIterator:GetCurrent()
@@ -3572,7 +3573,8 @@ class QuorumParser
                 current = tokenIterator:Next()
                 hasMe = true
             else //otherwise it's an error
-
+                SendDefaultError("Unexpected end of text in action or parent call")
+                return undefined 
             end
         end
 

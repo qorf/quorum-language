@@ -24,7 +24,8 @@ class VariableFunctionCallContext is ParseContext
         if calls not= undefined
             i = 0
             repeat while i < calls:GetSize()
-                calls:Get(i):Traverse(listener)
+                ActionCallContext c = calls:Get(i)
+                if c not= undefined c:Traverse(listener) end
                 i = i + 1
             end
         end
