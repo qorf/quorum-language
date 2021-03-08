@@ -592,9 +592,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                         end
 
                         if highlight:IsVisibleWhileSelected()
-                            background:AddPostSelectionHighlight(draw)
+                            background:AddPostSelectionHighlight(highlight, draw)
                         else
-                            background:AddPreSelectionHighlight(draw)
+                            background:AddPreSelectionHighlight(highlight, draw)
                         end
                     end
                 end

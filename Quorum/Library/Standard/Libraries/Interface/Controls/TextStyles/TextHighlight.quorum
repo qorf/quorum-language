@@ -7,7 +7,7 @@ class TextHighlight
     boolean isLineHighlight = false
     boolean visibleWhileSelected = true
     boolean isError = false
-
+    number renderPriority = 0
 
     /*
     This action returns a Drawable representing the visual content of a text
@@ -74,5 +74,39 @@ class TextHighlight
     */
     action IsError returns boolean
         return isError
+    end
+
+    /*
+    This action sets a priority value on this highlight. If multiple highlights
+    overlap in the TextBox, highlights with a higher priority will be rendered
+    on top of highlights with a lower priority.
+    */
+    action SetRenderPriority(number priority)
+        renderPriority = priority
+    end
+
+    /*
+    This action returns the priority value on this highlight. If multiple highlights
+    overlap in the TextBox, highlights with a higher priority will be rendered
+    on top of highlights with a lower priority.
+    */
+    action GetRenderPriority returns number
+        return renderPriority
+    end
+
+    action Compare(Object object) returns integer
+        if not (object is TextHighlight)
+            return parent:Object:Compare(object)
+        end
+
+        TextHighlight other = cast(TextHighlight, object)
+        number otherPriority = other:GetRenderPriority()
+        if renderPriority < otherPriority
+            return -1
+        elseif renderPriority = otherPriority
+            return 0
+        else
+            return 1
+        end
     end
 end

@@ -1,19 +1,29 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
+use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Controls.TextStyles.TextHighlight
 
 class TextBoxRenderer is Control
 
     Array<Array<Drawable>> lines
     Array<Drawable> selectionDrawables
-    Array<Drawable> preSelectionHighlights
-    Array<Drawable> postSelectionHighlights
+    Array<SortableContainer<TextHighlight, Drawable>> preSelectionHighlights
+    Array<SortableContainer<TextHighlight, Drawable>> postSelectionHighlights
     Array<Gutter> gutters
     Drawable caret
 
+    /*
+    These variables indicate if the pre/post selection highlights
+    need to be sorted before they're rendered.
+    */
+    boolean sortPreHighlights = false
+    boolean sortPostHighlights = false
+
     Array<Drawable> drawablePool
+    Array<SortableContainer<TextHighlight, Drawable>> highlightContainerPool
 
     // The line number of the first line of text we're displaying.
     integer startLine = 0
@@ -44,14 +54,55 @@ class TextBoxRenderer is Control
         drawablePool:Add(drawable)
     end
 
+    action GetHighlightContainer returns SortableContainer<TextHighlight, Drawable>
+        if highlightContainerPool:IsEmpty() = false
+            return highlightContainerPool:RemoveFromEnd()
+        else
+            SortableContainer<TextHighlight, Drawable> container
+            return container
+        end
+    end
+
+    action RecycleHighlightContainer(SortableContainer<TextHighlight, Drawable> container)
+        if container = undefined
+            return now
+        end
+
+        // We don't recycle the Drawables from the highlights because
+        // we didn't create them, and so we don't know if they're being reused
+        // by whatever the original sources of the highlight drawables are.
+
+        container:Set(undefined, undefined)
+        highlightContainerPool:Add(container)
+    end
+
     action Draw(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
         end
 
+        if sortPreHighlights
+            preSelectionHighlights:Sort()
+            sortPreHighlights = false
+        end
+
+        number priority = 0
+
+        if preSelectionHighlights:IsEmpty() = false
+            priority = preSelectionHighlights:Get(0):GetSorter():GetRenderPriority()
+        end
+
         integer counter = 0
         repeat while counter < preSelectionHighlights:GetSize()
-            preSelectionHighlights:Get(counter):Draw(painter)
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:Get(counter)
+
+            // If we find an object is in the wrong position according to its render priority,
+            // we'll sort the objects on the next Draw call.
+            if container:GetSorter():GetRenderPriority() < priority
+                sortPreHighlights = true
+            end
+
+            container:GetValue():Draw(painter)
             counter = counter + 1
         end
 
@@ -61,9 +112,26 @@ class TextBoxRenderer is Control
             counter = counter + 1
         end
 
+        if sortPostHighlights
+            postSelectionHighlights:Sort()
+            sortPostHighlights = false
+        end
+
+        if postSelectionHighlights:IsEmpty() = false
+            priority = postSelectionHighlights:Get(0):GetSorter():GetRenderPriority()
+        end
+
         counter = 0
         repeat while counter < postSelectionHighlights:GetSize()
-            postSelectionHighlights:Get(counter):Draw(painter)
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:Get(counter)
+
+            // If we find an object is in the wrong position according to its render priority,
+            // we'll sort the objects on the next Draw call.
+            if container:GetSorter():GetRenderPriority() < priority
+                sortPostHighlights = true
+            end
+
+            container:GetValue():Draw(painter)
             counter = counter + 1
         end
 
@@ -122,32 +190,50 @@ class TextBoxRenderer is Control
         RecycleDrawable(selection)
     end
 
-    action AddPreSelectionHighlight(Drawable highlight)
-        Add(highlight)
-        preSelectionHighlights:Add(highlight)
+    action AddPreSelectionHighlight(TextHighlight highlight, Drawable drawable)
+        Add(drawable)
+        SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
+        container:Set(highlight, drawable)
+        preSelectionHighlights:Add(container)
+        sortPreHighlights = true
     end
 
-    action RemovePreSelectionHighlight(Drawable highlight)
-        // We don't recycle the Drawables from the pre/post highlights because
-        // we didn't create them, and so we don't know if they're being reused
-        // by whatever the original sources of the highlight drawables are.
+    action RemovePreSelectionHighlight(TextHighlight highlight)
+        integer counter = 0
+        repeat while counter < preSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:Get(counter)
+            if container:GetSorter() = highlight
+                counter = preSelectionHighlights:GetSize()
 
-        preSelectionHighlights:Remove(highlight)
-        Remove(highlight)
+                preSelectionHighlights:Remove(container)
+                Remove(container:GetValue())
+            else
+                counter = counter + 1
+            end
+        end
     end
 
-    action AddPostSelectionHighlight(Drawable highlight)
-        Add(highlight)
-        postSelectionHighlights:Add(highlight)
+    action AddPostSelectionHighlight(TextHighlight highlight, Drawable drawable)
+        Add(drawable)
+        SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
+        container:Set(highlight, drawable)
+        postSelectionHighlights:Add(container)
+        sortPostHighlights = true
     end
 
-    action RemovePostSelectionHighlight(Drawable highlight)
-        // We don't recycle the Drawables from the pre/post highlights because
-        // we didn't create them, and so we don't know if they're being reused
-        // by whatever the original sources of the highlight drawables are.
+    action RemovePostSelectionHighlight(TextHighlight highlight)
+        integer counter = 0
+        repeat while counter < postSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:Get(counter)
+            if container:GetSorter() = highlight
+                counter = postSelectionHighlights:GetSize()
 
-        postSelectionHighlights:Remove(highlight)
-        Remove(highlight)
+                postSelectionHighlights:Remove(container)
+                Remove(container:GetValue())
+            else
+                counter = counter + 1
+            end
+        end
     end
 
     action AddGutter(Gutter gutter)
@@ -220,14 +306,18 @@ class TextBoxRenderer is Control
 
     action EmptyPreSelectionHighlights
         repeat until preSelectionHighlights:IsEmpty()
-            RemovePreSelectionHighlight(preSelectionHighlights:Get(0))
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:RemoveFromEnd()
+            Remove(container:GetValue())
         end
+        sortPreHighlights = false
     end
 
     action EmptyPostSelectionHighlights
         repeat until postSelectionHighlights:IsEmpty()
-            RemovePostSelectionHighlight(postSelectionHighlights:Get(0))
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:RemoveFromEnd()
+            Remove(container:GetValue())
         end
+        sortPostHighlights = false
     end
 
     action SetLineCount(integer lineCount)
