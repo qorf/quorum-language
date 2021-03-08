@@ -188,6 +188,11 @@ class FreeTypeStrategy is FontStrategy
         end
     */
     action LoadFont(text fontName)
+        if gameStateManager:GetOperatingSystem() = "Web Browser"
+            LoadFontNative(fontName)
+            return now
+        end
+
         text location = fontManager:GetFontLocation()
         File fontFile
         fontFile:SetWorkingDirectory(location)
