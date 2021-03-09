@@ -122,7 +122,7 @@ class SortableContainer <Type1, Type2>
             return parent:Object:Compare(object)
         end
 
-        SortableContainer temp = cast(SortableContainer, object)
+        SortableContainer<Type1, Type2> temp = cast(SortableContainer<Type1, Type2>, object)
         return sorter:Compare(temp:GetSorter())
     end
 end
