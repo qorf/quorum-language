@@ -3485,6 +3485,9 @@ class QuorumParser
                 next = tokenIterator:Next()
                 ParseContext expression = Expression()
                 contexts:Add(expression)
+                if not IsValid() //there isn't anything else, so just return.
+                    return context
+                end
                 next = tokenIterator:GetCurrent()
             else
                 done = true
