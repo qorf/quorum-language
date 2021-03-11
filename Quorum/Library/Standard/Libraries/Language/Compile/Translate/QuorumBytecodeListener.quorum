@@ -1110,7 +1110,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                     fieldHolder = clazz
 
                     //get a field. It has to be there, otherwise a previous phase would have complained
-                    field = clazz:GetVariable(name)
+                    if clazz not= undefined
+                        field = clazz:GetVariable(name)
+                    end
 
                     if field not= undefined
                         if field:IsConstant() //issue an error, this is not allowed.

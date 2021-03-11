@@ -1163,7 +1163,8 @@ class Class is Symbol
 
         Library library = table:GetLibrary()
         //first check the cache and see if the name exists
-        
+        text myPackageKey = GetPackageKey()
+
         Iterator<Class> iterator = table:GetClassByName(key)
         repeat while iterator not= undefined and iterator:HasNext()
             Class value = iterator:Next()
@@ -1399,10 +1400,12 @@ class Class is Symbol
         if split:GetSize() > 1
             clazz = table:GetClass(key)
         end
-
+        
         if clazz not= undefined
             return clazz
         end
+
+        
         //next check if this is the name of a generic in this class
         has = HasGeneric(key)
         if has

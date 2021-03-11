@@ -1212,11 +1212,28 @@ There are many ways to load canvases and this is provided only as an exemplar.
         SymbolTable standardLibrary = library:GetSymbolTable()
         Iterator<Class> iterator = table:GetClassesInPackage(value)
 
-        if iterator = undefined
-            //check the standard library
-            iterator = standardLibrary:GetClassesInPackage(value)
+        boolean processedClass = false
+        if iterator not= undefined
+            processedClass = true
+            repeat while iterator:HasNext()
+                Class clazz = iterator:Next()
+                if not table:HasClass(clazz:GetStaticKey())
+                    table:Add(clazz)
+                end
+            end
         end
-        if iterator = undefined
+
+        iterator = standardLibrary:GetClassesInPackage(value)
+        if iterator not= undefined
+            processedClass = true
+            repeat while iterator:HasNext()
+                Class clazz = iterator:Next()
+                if not table:HasClass(clazz:GetStaticKey())
+                    table:Add(clazz)
+                end
+            end
+        end
+        if not processedClass
             CompilerError error
             error:SetErrorMessage("I noticed a package named " + value + 
                 " was referenced, but I cannot find any record of it.")
@@ -1227,12 +1244,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
             errors:Add(error)
             return now
         end
-        repeat while iterator:HasNext()
-            Class clazz = iterator:Next()
-            if not table:HasClass(clazz:GetStaticKey())
-                table:Add(clazz)
-            end
-        end
+        
     end
 
     private action ResolveClass(SymbolTable table, text key, Class clazz, Library library, CompilerErrorManager errors)

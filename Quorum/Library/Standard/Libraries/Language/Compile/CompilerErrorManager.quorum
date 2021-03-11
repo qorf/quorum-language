@@ -24,7 +24,7 @@ class CompilerErrorManager
     //text errorKey = ""
     text fileNameKey = ""
 
-    action Add(CompilerError error) 
+    action Add(CompilerError error)
         if error not= undefined
             numberOfErrors = numberOfErrors + 1
             List<CompilerError> l = errorsPerFile:GetValue(error:GetStaticKey())
