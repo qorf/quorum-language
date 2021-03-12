@@ -31,6 +31,7 @@ use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Library
+use Libraries.Language.Compile.Compiler
 
 class DocumentationGenerator 
     File runFolder = undefined
@@ -145,14 +146,15 @@ class DocumentationGenerator
         metaDataDescription:SetName("description")
         page:AddMetaData(metaDataDescription)
 
-        page:SetWebPageTitle("Standard Library Index - Quorum 6.0")
+        Compiler compiler
+        page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
         //page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
         Header headDiv
         headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading("Quorum 6.0 Standard Library", 1)
+        headDiv:AddHeading(compiler:GetVersion() + " Standard Library", 1)
         page:Add(headDiv)
 
         Division bodyDiv
