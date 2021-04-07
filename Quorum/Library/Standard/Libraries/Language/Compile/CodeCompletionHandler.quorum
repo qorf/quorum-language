@@ -320,7 +320,7 @@ class CodeCompletionHandler
                     end
 
                     if actionIndex >= actions:GetSize() - 1
-                        request:clazz = undefined
+                        inClass = false
                     end
                 end
             end
@@ -552,22 +552,6 @@ class CodeCompletionHandler
                     end
                 end
             end
-//        elseif request:left:StartsWith("parent")
-//            result:filter = request:unmodifiedLine:Trim()
-//            AddParentVariables(request, result)
-//        elseif request:variable = undefined
-//            AddClassVariables(request, result)
-//            AddParentVariables(request, result)
-//
-//            AddActions(request, result)
-//            AddBlockVariables(request, result)
-//            AddPrimitives(request, result)
-//            AddControlStructures(request, result)
-//            AddAvailableClasses(request, result)
-//        //this is a call where we've detected we are calling on a variable
-//        elseif request:variable not= undefined
-//            AddClassVariables(request, result)
-//            AddActions(request, result)
         end
     end
 
