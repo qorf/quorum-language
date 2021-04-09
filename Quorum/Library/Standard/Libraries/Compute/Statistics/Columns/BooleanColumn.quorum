@@ -3,6 +3,8 @@ package Libraries.Compute.Statistics.Columns
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 /*
     BooleanColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -128,6 +130,65 @@ class BooleanColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        BooleanColumn column
+        column:SetHeader(GetHeader())
+
+        Array<Boolean> newRows
+        i = rowStart
+        repeat while i < rowEnd
+            Boolean value = rows:Get(i)
+            if value = undefined
+                newRows:Add(undefined)
+            else
+                Boolean value2
+                value2:SetValue(value:GetValue())
+                newRows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            newRows:Sort()
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    private action CalculateValueCount(Array<Boolean> values) returns HashTable<boolean,integer>
+        HashTable<boolean, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Boolean> array) returns Array<Boolean>
+        Array<Boolean> set
+        HashTable<boolean,integer> hash = CalculateValueCount(array)
+        Iterator<boolean> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
     end
 
     action ToText returns text

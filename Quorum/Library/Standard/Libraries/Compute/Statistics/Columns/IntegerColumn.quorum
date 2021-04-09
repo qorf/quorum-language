@@ -6,6 +6,7 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
+use Libraries.Containers.Iterator
 
 /*
     IntegerColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -145,6 +146,65 @@ class IntegerColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        IntegerColumn column
+        column:SetHeader(GetHeader())
+
+        Array<Integer> newRows
+        i = rowStart
+        repeat while i < rowEnd
+            Integer value = rows:Get(i)
+            if value = undefined
+                newRows:Add(undefined)
+            else
+                Integer value2
+                value2:SetValue(value:GetValue())
+                newRows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            newRows:Sort()
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    private action CalculateValueCount(Array<Integer> values) returns HashTable<integer,integer>
+        HashTable<integer, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Integer> array) returns Array<Integer>
+        Array<Number> set
+        HashTable<integer,integer> hash = CalculateValueCount(array)
+        Iterator<integer> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
     end
 
     action ToText returns text

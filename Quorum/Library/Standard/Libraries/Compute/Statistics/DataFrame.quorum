@@ -44,6 +44,7 @@ use Libraries.Compute.Statistics.Charts.LineChartCreator
 use Libraries.Interface.Controls.Charts.LineChart
 use Libraries.Compute.Statistics.Charts.ViolinChartCreator
 use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Compute.Statistics.Transforms.CrossTab
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2419,6 +2420,39 @@ class DataFrame
         selection:CopyTo(cast(ColumnInput, creator))
 
         return cast(ViolinChart, CreateChart(creator))
+    end
+
+    /*
+        The CrossTab class takes a DataFrame and its selection to decide how to transform it. Specifically, 
+        CrossTab takes the first column in the selection and places it on the left-most column of the 
+        new frame, then the second column and places it on top. In both cases, the columns are filtered 
+        for unique items and sorted.
+    
+        Once these columns are placed, the CrossTab calculates how many of each unique item pair exist in 
+        the original DataFrame. For example, if the first row of the original DataFrame has the value 'test'
+        and the right-most value has '11.2,' then the position in the transformed CrossTab DataFrame will 
+        increment this value in the table. Thus, if there were no other test, 11.2 pairs, this value in the 
+        new DataFrame would be 1.
+    
+        Attribute: Author Andreas Stefik
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        
+        //Create a DataFrame, load it, and set which column to focus on
+        DataFrame frame
+        frame:Load("Words.csv")
+        frame:AddSelectedColumn(2)
+        frame:AddSelectedColumn(3)
+        
+        DataFrame crossTab = frame:CrossTab()
+        crossTab:Save("Cross.csv")
+        output "File Saved."
+    */
+    action CrossTab returns DataFrame
+        CrossTab tab
+        return Transform(tab)
     end
 
     /*

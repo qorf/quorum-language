@@ -5,6 +5,7 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Containers.Array
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -349,6 +350,25 @@ class DataFrameColumn
 
     /* This action conducts a deep copy of the column. */
     blueprint action Copy returns DataFrameColumn
+
+    /* This action conducts a deep copy of the column. The two parameters indicate whether to sort
+        the column or whether to require that it be unique.
+
+        Attribute: Parameter sort true if we sort the column
+        Attribute: Parameter unique true if only those values that are unique are included in the copy
+    */
+    blueprint action Copy(boolean sort, boolean unique) returns DataFrameColumn
+
+    /* 
+        This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. The two extra
+        parameters indicate whether to sort the column or whether to require that it be unique.
+
+        Attribute: Parameter rowStart the first row to copy
+        Attribute: Parameter rowEnd the last row to copy
+        Attribute: Parameter sort true if we sort the column
+        Attribute: Parameter unique true if only those values that are unique are included in the copy
+    */
+    blueprint action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
 
     /* 
         This action does a deep copy of the row between the 0-indexed rowStart and rowEnd. 

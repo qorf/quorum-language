@@ -4,6 +4,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 /*
     NumberColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -137,6 +139,65 @@ class NumberColumn is DataFrameColumn
 
     action Copy returns DataFrameColumn
         return Copy(0, rows:GetSize())
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        NumberColumn column
+        column:SetHeader(GetHeader())
+
+        Array<Number> newRows
+        i = rowStart
+        repeat while i < rowEnd
+            Number value = rows:Get(i)
+            if value = undefined
+                newRows:Add(undefined)
+            else
+                Number value2
+                value2:SetValue(value:GetValue())
+                newRows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            newRows:Sort()
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    private action CalculateValueCount(Array<Number> values) returns HashTable<number,integer>
+        HashTable<number, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Number> array) returns Array<Number>
+        Array<Number> set
+        HashTable<number,integer> hash = CalculateValueCount(array)
+        Iterator<number> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
     end
 
     action ToText returns text

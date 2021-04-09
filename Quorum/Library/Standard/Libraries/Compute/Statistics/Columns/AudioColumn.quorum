@@ -4,6 +4,9 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Sound.AudioSamples
 use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Vector
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 /*
     AudioColumn is a DataFrameColumn that contains number objects. The AudioColumn
@@ -112,6 +115,69 @@ class AudioColumn is DataFrameColumn
         col:SetSamples(copy)
         col:SetHeader(GetHeader())
         return col
+    end
+
+    action ConvertToVector(integer rowStart, integer rowEnd) returns Vector
+        Vector vector
+        vector:SetSize(rowEnd - rowStart)
+        i = rowStart
+        repeat while i < rowEnd
+            number value = samples:Get(i, channel)
+            vector:Set(i, value)
+            i = i + 1
+        end
+        return vector
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        Vector vector = ConvertToVector(rowStart, rowEnd)
+
+        if unique
+            HashTable<number, integer> hash
+            i = 0
+            repeat while i < vector:GetSize()
+                if hash:HasKey(vector:Get(i))
+                    hash:Add(vector:Get(i), hash:GetValue(vector:Get(i)) + 1)
+                else
+                    hash:Add(vector:Get(i), 1)
+                end
+                i = i + 1
+            end
+
+            Vector vector2
+            vector2:SetSize(hash:GetSize())
+            i = 0
+            Iterator<number> iterator = hash:GetKeyIterator()
+            repeat while iterator:HasNext()
+                vector:Set(i, iterator:Next())
+                i = i + 1
+            end
+
+            vector = vector2
+        end
+
+        if sort
+            vector:Sort()
+        end
+
+        AudioSamples copy
+        copy:SetChannels(samples:GetChannels())
+        copy:SetSamplesPerSecond(samples:GetSamplesPerSecond())
+        copy:SetSize(vector:GetSize())
+        i = 0
+        repeat while i < vector:GetSize()
+            copy:Set(i, vector:Get(i), 0)
+            i = i + 1
+        end
+        
+        AudioColumn col
+        col:SetSamples(copy)
+        col:SetHeader(GetHeader())
+        return col
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, samples:GetSize(), sort, unique)
     end
 
     action ToText returns text

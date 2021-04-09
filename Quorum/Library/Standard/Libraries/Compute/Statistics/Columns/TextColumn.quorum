@@ -102,6 +102,94 @@ class TextColumn is DataFrameColumn
         return Copy(0, rows:GetSize())
     end
 
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        TextColumn column
+        column:SetHeader(GetHeader())
+
+        Array<Text> newRows
+        i = rowStart
+        repeat while i < rowEnd
+            Text value = rows:Get(i)
+            if value = undefined
+                newRows:Add(undefined)
+            else
+                Text value2
+                value2:SetValue(value:GetValue())
+                newRows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            newRows:Sort()
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    action CopyToColumns(boolean sort, boolean unique) returns Array<DataFrameColumn>
+        Array<DataFrameColumn> columns
+        Array<Text> numbers = undefined
+        if unique
+            numbers = GetUnique(rows)
+        else
+            Array<Text> numbers2
+            numbers = numbers2
+            i = 0
+            repeat while i < rows:GetSize()
+                numbers:Add(rows:Get(i))
+                i = i + 1
+            end
+        end
+
+        if sort
+            numbers:Sort()
+        end
+
+        i = 0
+        repeat while i < numbers:GetSize()
+            TextColumn column
+            column:SetHeader("" + numbers:Get(i):GetValue())
+            columns:Add(column)
+            i = i + 1
+        end
+        return columns
+    end
+
+    private action CalculateValueCount(Array<Text> values) returns HashTable<text,integer>
+        HashTable<text, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Text> array) returns Array<Text>
+        Array<Text> set
+        HashTable<text,integer> hash = CalculateValueCount(array)
+        Iterator<text> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
     action ToText returns text
         text result = ""
         text lf = result:GetLineFeed()
