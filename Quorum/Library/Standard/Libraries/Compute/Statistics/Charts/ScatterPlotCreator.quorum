@@ -17,26 +17,16 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+    use Libraries.Interface.Controls.Charts.ScatterPlot
 
     DataFrame frame
-    frame:Load("Data/Data.csv")
-
-    //Create a ScatterPlot and set some properties
-    DataFrame frame
-    frame:Load("Data/Data.csv")
-
-    ScatterPlotCreator creator
-    creator:SetXColumn("DT")
-    creator:SetYColumn("FS")
-
-    Chart chart = frame:CreateChart(creator)
-
-    chart:SetTitle("Scatter Plot")
-    chart:SetYAxisTitle("FS")
-    chart:SetXAxisTitle("DT")
-
-    //we might then add this chart to a game.
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    frame:AddSelectedColumn(2)
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
 */
 class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
     integer xTicks = 5

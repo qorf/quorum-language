@@ -2425,7 +2425,7 @@ class DataFrame
     end
 
     /*
-        This action creates a ViolinChart from the current column selection in the DataFrame.
+        This action creates a ScatterPlot from the current two column selection in the DataFrame.
         By default, it uses all columns as separate values in the selection as the chart area. 
         Factors have no impact on this action.
 
@@ -2433,12 +2433,13 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Interface.Controls.Charts.ViolinChart
-        
+        use Libraries.Interface.Controls.Charts.ScatterPlot
+
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(1)
-        ViolinChart chart = frame:ViolinChart()
+        frame:AddSelectedColumn(2)
+        ScatterPlot chart = frame:ScatterPlot()
         chart:SetTitle("My Awesome Title")
         chart:SetXAxisTitle("Time")
         chart:Display()
