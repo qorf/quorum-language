@@ -8,6 +8,7 @@ use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Controls.Charts.ChartPoint
+use Libraries.Compute.Statistics.Inputs.ColumnInput
 
 /*
     This class is used to create a scatter plot for use in an application.
@@ -37,10 +38,7 @@ use Libraries.Controls.Charts.ChartPoint
 
     //we might then add this chart to a game.
 */
-class ScatterPlotCreator is DataFrameChartCreator
-    private text xColumn = undefined
-    private text yColumn = undefined
-
+class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
     integer xTicks = 5
     integer yTicks = 5
 
@@ -63,20 +61,20 @@ class ScatterPlotCreator is DataFrameChartCreator
 
     action Create(DataFrame frame) returns Chart
         ScatterPlot chart
-        if xColumn = undefined or yColumn = undefined
-            alert("Cannot create chart without defining an x and y column.")
+        if GetColumnSize() not= 2
+            alert("Must define two columns")
         end
 
         //error checking
-        DataFrameColumn dfx = frame:GetColumn(xColumn)
-        DataFrameColumn dfy = frame:GetColumn(yColumn)
+        DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
+        DataFrameColumn dfy = frame:GetColumn(GetColumn(1))
 
         if dfx = undefined and dfx:CanConvertToVector()
-            alert("Could not find a column named " + xColumn)
+            alert("Could not compute a scatterplot on the x column")
         end
 
         if dfy = undefined and dfy:CanConvertToVector()
-            alert("Could not find a column named " + yColumn)
+            alert("Could not compute a scatterplot on the y column")
         end
 
         //at first, assume these are numeric columns. This isn't ideal, you should be able to plot
@@ -133,46 +131,6 @@ class ScatterPlotCreator is DataFrameChartCreator
         end
 
         return chart
-    end
-
-    /*
-    This action returns the identifier of a column from a DataFrame. This column is used to
-    indicate the X value of each point on the ScatterPlot.
-
-    Attribute: Returns The column name of the X variable on the ScatterPlot.
-    */
-    action GetXColumn returns text
-        return xColumn
-    end
-
-    /*
-    This action is used to select a column from a DataFrame by name. The named column will
-    be used as the X value of each point on the ScatterPlot.
-
-    Attribute: Parameter xColumn The name of the column to use for the X axis on the ScatterPlot.
-    */
-    action SetXColumn(text xColumn)
-        me:xColumn = xColumn
-    end
-
-    /*
-    This action returns the identifier of a column from a DataFrame. This column is used to
-    indicate the Y value of each point on the ScatterPlot.
-
-    Attribute: Returns The column name of the Y variable on the ScatterPlot.
-    */
-    action GetYColumn returns text
-        return yColumn
-    end
-
-    /*
-    This action is used to select a column from a DataFrame by name. The named column will
-    be used as the Y value of each point on the ScatterPlot.
-
-    Attribute: Parameter yColumn The name of the column to use for the Y axis on the ScatterPlot.
-    */
-    action SetYColumn(text yColumn)
-        me:yColumn = yColumn
     end
 
     /*

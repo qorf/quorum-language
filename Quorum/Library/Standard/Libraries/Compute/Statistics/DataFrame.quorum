@@ -45,6 +45,8 @@ use Libraries.Interface.Controls.Charts.LineChart
 use Libraries.Compute.Statistics.Charts.ViolinChartCreator
 use Libraries.Interface.Controls.Charts.ViolinChart
 use Libraries.Compute.Statistics.Transforms.CrossTab
+use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2423,6 +2425,32 @@ class DataFrame
     end
 
     /*
+        This action creates a ViolinChart from the current column selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+        Factors have no impact on this action.
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ViolinChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        ViolinChart chart = frame:ViolinChart()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action ScatterPlot returns ScatterPlot
+        ScatterPlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+
+        return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
         The CrossTab class takes a DataFrame and its selection to decide how to transform it. Specifically, 
         CrossTab takes the first column in the selection and places it on the left-most column of the 
         new frame, then the second column and places it on top. In both cases, the columns are filtered 
@@ -2452,6 +2480,7 @@ class DataFrame
     */
     action CrossTab returns DataFrame
         CrossTab tab
+        selection:CopyTo(cast(ColumnInput, tab))
         return Transform(tab)
     end
 
