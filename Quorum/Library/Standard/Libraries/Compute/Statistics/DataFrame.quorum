@@ -1689,7 +1689,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareVariances groups = CompareSelectedVariances()
+        CompareVariances groups = frame:CompareSelectedVariances()
         output groups:GetFormalSummary()
     */
     action CompareSelectedVariances returns CompareVariances
@@ -1725,7 +1725,7 @@ class DataFrame
         frame:AddSelectedFactor(1)
         frame:AddSelectedFactor(2)
         frame:AddSelectedFactor(3)
-        Regression result = RegressionOnSelected()
+        Regression result = frame:RegressionOnSelected()
         output result:GetFormalSummary()
     */
     action RegressionOnSelected returns Regression

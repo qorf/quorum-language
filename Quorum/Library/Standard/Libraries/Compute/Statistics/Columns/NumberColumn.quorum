@@ -82,6 +82,10 @@ class NumberColumn is DataFrameColumn
         calculation:Add(num)
     end
 
+    action GetAsInteger(integer index) returns integer
+        return cast(integer, GetAsNumber(index))
+    end
+
     action GetAsNumber(integer index) returns number
         Number num = rows:Get(index)
         if num = undefined
@@ -95,6 +99,10 @@ class NumberColumn is DataFrameColumn
     end
 
     action SetAsNumber(integer index, number value)
+        rows:Set(index, value)
+    end
+
+    action SetAsInteger(integer index, integer value)
         rows:Set(index, value)
     end
 

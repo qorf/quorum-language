@@ -64,6 +64,10 @@ class IntegerColumn is DataFrameColumn
         rows:Set(index, value)
     end
 
+    action SetAsNumber(integer index, number value)
+        rows:Set(index, cast(integer, value))
+    end
+
     action IsIntegerColumn returns boolean
         return true
     end
