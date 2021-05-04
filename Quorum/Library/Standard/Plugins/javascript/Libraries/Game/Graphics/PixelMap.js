@@ -1173,4 +1173,13 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         
         return true;
     };
+	
+	this.LoadFromFontBitmap = function(pixelArray, newWidth, newHeight, newFormat)
+	{
+		width = newWidth;
+        height = newHeight;
+        format = newFormat.GetValue();
+        image = undefined;
+		pixels = pixelArray;
+	};
 }

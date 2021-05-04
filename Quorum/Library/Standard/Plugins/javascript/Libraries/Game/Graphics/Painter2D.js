@@ -364,7 +364,8 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
                 
                 this.SetupMatrices();
             }
-            fontShader.SetUniform("u_fontColor", texture.plugin_.fontColor);
+            //fontShader.SetUniform("u_fontColor", texture.plugin_.fontColor);
+			fontShader.SetUniform4fFromName("u_fontColor", texture.plugin_.fontColor.GetRed(), texture.plugin_.fontColor.GetGreen(), texture.plugin_.fontColor.GetBlue(), texture.plugin_.fontColor.GetAlpha());
         }
         else
         {
