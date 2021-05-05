@@ -20,10 +20,10 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 	this.LoadFontNative$quorum_text = function (fontName) {
 
 		var loadFontNativeC = Module.cwrap('LoadFontC', 'number', ['string']);
-		var loadFontNativeResult = loadFontNativeC(fontName);
+		var loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".ttf");
 		if (loadFontNativeResult == 1) {
 			// error loading font
-			console.log('Error loading font.');
+			console.log('Error loading font:' + fontName);
 		}
 
 		this.SetSizeNative$quorum_integer(this.me_.GetSize());

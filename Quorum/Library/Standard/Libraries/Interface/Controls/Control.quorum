@@ -820,7 +820,9 @@ class Control is Item2D
     action GetDefaultFontName returns text
         text name = undefined
         Font font
-        if font:IsFontAvailable("FiraCode-Retina")
+        if font:IsFontAvailable("Lato")
+            name = "Lato"
+        elseif font:IsFontAvailable("FiraCode-Retina")
             name = "FiraCode-Retina"
         elseif font:IsFontAvailable("FiraCode-Regular")
             name = "FiraCode-Regular"

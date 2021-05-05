@@ -44,11 +44,21 @@ class FontManager
     // Each font uniquely produces a string key to the table.
     HashTable<text, FontStrategy> fontTable
 
+    // An array containing all fonts available on the web.
+    // Update this array in the on create to add/remove available fonts for web.
+    Array<text> availableWebFonts
+
     // Used to determine if the program is being run in a web browser.
     GameStateManager gameStateManager
     text lastRequestedKey = ""
     FontStrategy typicallyRequestedStrategy = undefined
     text overrideFontLocation = undefined
+
+    on create
+        availableWebFonts:Add("Lato")
+    end
+
+
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
@@ -218,8 +228,16 @@ class FontManager
     */
     action IsFontAvailable(text fontName) returns boolean
         if gameStateManager:GetOperatingSystem() = "Web Browser"
-            return true
+            integer counter = 0
+            repeat while counter < availableWebFonts:GetSize()
+                if availableWebFonts:Get(counter) = fontName
+                    return true
+                end
+                counter = counter + 1
+            end
+            return false
         end
+
         File fontFile
         text location = GetFontLocation()
         fontFile:SetWorkingDirectory(location)
@@ -282,7 +300,14 @@ class FontManager
     */
     action GetAvailableFonts returns Array<File>
         if gameStateManager:GetOperatingSystem() = "Web Browser"
-            return undefined
+            Array<File> array
+            integer counter = 0
+            repeat while counter < availableWebFonts:GetSize()
+                File file
+                file:SetAbsolutePath(availableWebFonts:Get(counter))
+                counter = counter + 1
+            end
+            return array
         end
 
         File fontDirectory
