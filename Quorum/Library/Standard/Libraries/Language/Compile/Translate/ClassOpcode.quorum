@@ -1711,9 +1711,11 @@ class ClassOpcode is QuorumOpcode
 
         convertedSource = convertedSource + EOL + "};" + EOL
         if clazz:IsProgramStartingClass()
+            convertedSource = convertedSource + "function Start(){" + EOL
             convertedSource = convertedSource + "var $starter = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
             convertedSource = convertedSource + "$starter.Main();" + EOL
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
+            convertedSource = convertedSource + "}" + EOL
         end
 
         

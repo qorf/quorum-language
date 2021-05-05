@@ -147,7 +147,7 @@ class Compiler
     /* This action tells the compiler under the hood to dispose of resources
         after the next compile.
     */
-    system action Dispose
+    //system action Dispose
 
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
@@ -175,9 +175,10 @@ class Compiler
             end
         end
 
-        if request:disposeAfterNextCompile
-            Dispose()
-        end
+//      This is leftovers from Antlr. Keeping it for now.
+//        if request:disposeAfterNextCompile
+//            Dispose()
+//        end
 
         Library library = request:library
         CompilerResult result
@@ -583,6 +584,21 @@ class Compiler
             jsStandardLibrary:SetPath("Compiled/Run/QuorumStandardLibrary.js")
             jsStandardLibrary:Copy(jsSTLCopyLocation)
 
+            File jsFontsCopyLocation
+            jsFontsCopyLocation:SetWorkingDirectory(run:GetAbsolutePath())
+            
+            jsStandardLibrary:SetPath("Compiled/Run/load.js")
+            jsFontsCopyLocation:SetPath("load.js")
+            jsStandardLibrary:Copy(jsFontsCopyLocation)
+
+            jsStandardLibrary:SetPath("Compiled/Run/load.wasm")
+            jsFontsCopyLocation:SetPath("load.wasm")
+            jsStandardLibrary:Copy(jsFontsCopyLocation)
+
+            jsStandardLibrary:SetPath("Compiled/Run/load.data")
+            jsFontsCopyLocation:SetPath("load.data")
+            jsStandardLibrary:Copy(jsFontsCopyLocation)
+        
             text readMeText = 
 "
 For this default file to run, the bottom of the Quorum generated JavaScript, this:
@@ -614,11 +630,20 @@ There are many ways to load canvases and this is provided only as an exemplar.
         <script src = "+ dq +"QuorumStandardLibrary.js"+ dq +"></script>
         <script src = "+ dq + GetName() + ".js"+ dq +"></script>
     </head>
-    <body onload="+ dq +"Start()"+ dq +">
+    <body>
         <canvas id="+ dq +"QuorumGraphicsCanvas"+ dq +" width="+ dq +"800"+ dq +" height="+ dq +"600"+ dq +" tabindex="+ dq +"0"+ dq +" style="+ dq +"outline: none"+ dq +">
             Your browser doesn't appear to support the 
             <code>&lt;canvas&gt;</code> element.
         </canvas>
+        <script type="+ dq +"text/javascript"+ dq +">
+            var Module = {
+                onRuntimeInitialized: function () {
+                    Start();
+                    console.log("+ dq +"start()"+ dq +");
+            }
+        };
+            </script>
+            <script type="+ dq +"application/javascript"+ dq +" src="+ dq +"load.js"+ dq +"></script>
     </body>
 </html>
 "
@@ -1600,9 +1625,9 @@ There are many ways to load canvases and this is provided only as an exemplar.
         end
     end
 
-    system action ParseNative(File file, QuorumSourceListener listener)
+    //system action ParseNative(File file, QuorumSourceListener listener)
 
-    system action ParseNative(text source, QuorumSourceListener listener)
+    //system action ParseNative(text source, QuorumSourceListener listener)
 
     action GetName returns text
         return name

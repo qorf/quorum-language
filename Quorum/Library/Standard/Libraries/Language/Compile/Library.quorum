@@ -13,6 +13,7 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
 
 class Library 
     File location = undefined
@@ -20,6 +21,10 @@ class Library
     File buildFolder
     File runJar
     File runJavaScript
+    File libraryLoadFile
+    File fontLoadingLoader
+    File fontLoadingWASM
+    File fontLoadingData
     File pluginJar
     File nativeFolder
     File graphicsFolder
@@ -27,6 +32,10 @@ class Library
     constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
     constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
     constant text STANDARD_LIBRARY_JAVASCRIPT = "QuorumStandardLibrary.js"
+    constant text STANDARD_LIBRARY_LOAD_FILE = "QuorumStandardLibrary.json"
+    constant text STANDARD_LIBRARY_LOAD_FONTS_LOADER = "load.js"
+    constant text STANDARD_LIBRARY_LOAD_FONTS_WASM = "load.wasm"
+    constant text STANDARD_LIBRARY_LOAD_FONTS_DATA = "load.data"
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
@@ -167,6 +176,10 @@ class Library
         if outputFolder not= undefined
             buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             runJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            libraryLoadFile:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            fontLoadingLoader:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            fontLoadingWASM:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            fontLoadingData:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             runJavaScript:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             pluginJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             nativeFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
@@ -176,6 +189,10 @@ class Library
             buildFolder:SetPath("/Build")
             runJar:SetPath("/Run/" + STANDARD_LIBRARY_JAR)
             runJavaScript:SetPath("/Run/" + STANDARD_LIBRARY_JAVASCRIPT)
+            libraryLoadFile:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FILE)
+            fontLoadingLoader:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FONTS_LOADER)
+            fontLoadingWASM:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FONTS_WASM)
+            fontLoadingData:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FONTS_DATA)
             pluginJar:SetPath("/Run/" + STANDARD_PLUGINS_JAR)
             nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
             graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
@@ -295,6 +312,18 @@ class Library
 
         copier:SetPath("ev3classes.jar")
         ev3:Copy(copier, true)
+
+        File fontWeb
+        fontWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/javascript")
+
+        fontWeb:SetPath(STANDARD_LIBRARY_LOAD_FONTS_LOADER)
+        fontWeb:Copy(fontLoadingLoader)
+
+        fontWeb:SetPath(STANDARD_LIBRARY_LOAD_FONTS_WASM)
+        fontWeb:Copy(fontLoadingWASM)
+
+        fontWeb:SetPath(STANDARD_LIBRARY_LOAD_FONTS_DATA)
+        fontWeb:Copy(fontLoadingData)
     end
 
     action WriteStandardLibrary
@@ -310,6 +339,7 @@ class Library
         end
         generator:Open(runJar)
 
+        JavaScriptObjectNotation notation
         text tempJS = ""
         Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
         repeat while codes:HasNext()
@@ -328,11 +358,15 @@ class Library
                 generator:Add(buildInterface)
             end
 
+            text keyPath = key:Replace(".", "/") + ".quorum"
+            notation:Add(code:GetStaticKey(), keyPath)
             if outputJavaScript
                 tempJS = tempJS + WriteJavaScriptOpcode(code)
             end
         end
 
+        text libraryText = notation:ToText()
+        libraryLoadFile:Write(libraryText)
         javascriptOutput = javascriptPlugins + tempJS
         //if runJavaScript:Exists()
             runJavaScript:Write(javascriptOutput)
