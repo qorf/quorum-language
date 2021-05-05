@@ -32,44 +32,8 @@ Attribute: Example
     end
 */
 class Label is Control
+    
     boolean isDefaultLoaded = false
-    on create
-        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
-        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
-        SetName("Label")
-    end
-
-    private action LoadDefaultSettings
-        isDefaultLoaded = true
-        Font font
-        font:SetSize(GetFontSize())
-        if font:IsFontAvailable("Arial")
-            font:LoadFont("Arial")
-            SetFont(font)
-        elseif font:IsFontAvailable("Arial Unicode")
-            font:LoadFont("Arial Unicode")
-            SetFont(font)
-        elseif font:IsFontAvailable("Helvetica")
-            font:LoadFont("Helvetica")
-            SetFont(font)
-        elseif font:IsFontAvailable("Georgia")
-            font:LoadFont("Georgia")
-            SetFont(font)
-        elseif font:IsFontAvailable("Times New Roman")
-            font:LoadFont("Times New Roman")
-            SetFont(font)
-        elseif font:IsFontAvailable("Roboto-Black")
-            font:LoadFont("Roboto-Black")
-            SetFont(font)
-        else
-            Array<File> availableFontFiles = font:GetAvailableFonts()
-            if availableFontFiles:GetSize() > 0
-                font:LoadFont(availableFontFiles:Get(0))
-                SetFont(font)
-            end
-        end
-    end
 
     integer horizontalMargins = 0
     integer verticalMargins = 0
@@ -91,6 +55,33 @@ class Label is Control
     maximum descent of the Font.
     */
     boolean positionOnBaseLine = true
+
+    on create
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
+        defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
+        SetName("Label")
+    end
+
+
+    action GetDefaultFontName returns text
+        Font font
+        if font:IsFontAvailable("Arial")
+            return "Arial"
+        else
+            return parent:Control:GetDefaultFontName()
+        end
+    end
+
+    private action LoadDefaultSettings
+        isDefaultLoaded = true
+        Font font
+        font:SetSize(GetFontSize())
+
+        text name = GetDefaultFontName()
+        font:LoadFont(name)
+        SetFont(font)
+    end
 
     /*
     Sets the horizontal margins for this label. When the label's text is drawn,

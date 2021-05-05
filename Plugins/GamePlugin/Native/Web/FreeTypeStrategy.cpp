@@ -27,15 +27,8 @@ int InitializeFreeTypeC() {
 
 int LoadFontC(char* font)
 {
-    // Make sure requested font is arial
-    char arialFont[] = "Arial";
-    if (strcmp(font, arialFont) != 0) {
-        std::cerr << "Only the arial font face is supported at this time." << std::endl;
-        return 1;
-    }
-
     // Load font
-    error = FT_New_Face(library, "fonts/Arial.ttf", 0, &face);
+    error = FT_New_Face(library, font, 0, &face);
     if (error == FT_Err_Unknown_File_Format) {
         std::cerr << "Font format is unsupported" << std::endl;
         return 1;
