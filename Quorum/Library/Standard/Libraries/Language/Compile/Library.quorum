@@ -418,12 +418,25 @@ class Library
         end
         generator:Open(pluginJar)
         AddStandardPlugins(generator)
+        AddCompilerDependencies(generator)
         AddSoundDependencies(generator)
         AddGameDependencies(generator)
         AddLegoDependencies(generator)
         AddSpeechDependencies(generator)
         generator:Close()
     end
+
+    private action AddCompilerDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        to:SetPath("org")
+
+        File objectWeb
+        objectWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        objectWeb:SetPath("org/objectweb")
+        AddToJar(generator, objectWeb, to)
+    end
+
 
     private action AddStandardPlugins(JarGenerator generator)
         File plugins
