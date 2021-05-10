@@ -1,0 +1,261 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Controls.Charts.ChartPoint
+use Libraries.Compute.Vector
+use Libraries.Interface.Layouts.BoxPlotLayout
+
+/*
+    The BoxPlotChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Benjamin Murphy & Shyann Calhoun
+
+    Attribute: Example
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    
+    BoxPlotCreator creator
+    creator:AddColumn(2)  
+  
+    BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+    chart:SetPercentageWidth(1)
+    chart:SetPercentageHeight(1)
+    chart:SetTitle("Sample Title")
+    chart:SetXAxisTitle("X-axis Variable")
+    chart:SetYAxisTitle("Y-axis Variable")
+    Add(chart)
+
+    File f
+    f:SetPath("Data/chart.svg")
+    svgtxt = chart:ConvertToScalableVectorGraphics()
+    f:Write(svgtxt)
+*/
+class BoxPlotWriter
+
+    private number axisPointX = 15
+    private number axisPointY = 85
+    private number axisLength = 75
+
+
+action WriteOutChart(BoxPlot chart) returns text
+
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(700,600)
+
+        Label chartTitle
+        Label xAxisLabel
+        Label yAxisLabel
+
+        //start setting stuff
+        AddBackground(chartCanvas)
+        AddAxes(chartCanvas)
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("middle")
+        chartTitle:SetPosition(50, 5, "%")
+        chartTitle:SetFontSize("18pt")
+        chartCanvas:Add(chartTitle)
+
+        xAxisLabel:SetText(chart:GetXAxisTitle())
+        xAxisLabel:SetTextAnchor("middle")
+        xAxisLabel:SetPosition(50, 95, "%")
+        xAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(xAxisLabel)
+
+        yAxisLabel:SetText(chart:GetYAxisTitle())
+        yAxisLabel:SetTextAnchor("middle")
+        yAxisLabel:SetPosition(5, 50, "%")
+        yAxisLabel:SetTransform("rotate(270, 40,300)")
+        yAxisLabel:SetFontSize("18pt")
+        chartCanvas:Add(yAxisLabel)
+
+        AddBoxes(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+
+        return chartCanvas:ToText()
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddBackground(ScalableVectorGraphics canvas)
+        Rectangle background
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        canvas:Add(background)
+    end
+
+    /*
+        This action adds the two lines for the x and y axis
+    */
+    private action AddAxes(ScalableVectorGraphics canvas)
+        Line xAxis
+        Line yAxis
+        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
+        xAxis:SetStroke("black")
+        xAxis:SetTabIndex(-1)
+        xAxis:SetStrokeWidth(0.4,"%")
+        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
+        yAxis:SetStroke("black")
+        yAxis:SetTabIndex(-1)
+        yAxis:SetStrokeWidth(0.4,"%")
+
+        canvas:Add(xAxis)
+        canvas:Add(yAxis)
+    end
+
+    /*
+        This action adds the content of the BarChart
+    */
+    private action AddBoxes(ScalableVectorGraphics canvas, BoxPlot chart)
+        BoxPlotLayout layout
+        Array<Array<number>> boxPlotInfo = chart:GetChartInfo()
+        Array<Vector> dataSets = chart:GetDataSets()
+        
+        number total = boxPlotInfo:GetSize()
+        number width = axisLength/total
+        number height = axisLength
+        
+        number lineH = axisLength*0.005
+        number dataScale = chart:GetYMaximum()/height
+        number center = width/2
+        number size = width/4
+
+
+        // The 0,0 location is in the upper left corner and grows down and to the right
+        integer i = 0
+        repeat while i < total
+            Array<number> info = boxPlotInfo:Get(i)
+            number median = info:Get(0)
+            number lowerQuartile = info:Get(1)
+            number upperQuartile = info:Get(2)
+            number min = info:Get(3)
+            number max = info:Get(4)
+            number startW = width*i
+
+            //Left IQR
+            Rectangle first 
+            first:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale + lineH, "%")
+            first:SetPosition(axisPointX + startW + size, axisPointY - upperQuartile/dataScale, "%")
+
+            //CenterLine
+            Rectangle second
+            second:SetSize(lineH, (max-upperQuartile)/dataScale, "%")
+            second:SetPosition(axisPointX + startW + center, axisPointY - max/dataScale, "%")
+
+            Rectangle third
+            third:SetSize(lineH, (lowerQuartile-min)/dataScale, "%")
+            third:SetPosition(axisPointX + startW + center, axisPointY -lowerQuartile/dataScale, "%")
+
+            //Max
+            Rectangle fourth
+            fourth:SetSize(center+lineH, lineH, "%")
+            fourth:SetPosition(axisPointX + startW + size,axisPointY - max/dataScale, "%")
+            
+            //Upper Quartile
+            Rectangle fifth
+            fifth:SetSize(center+lineH, lineH, "%")
+            fifth:SetPosition(axisPointX + startW+ size, axisPointY - upperQuartile/dataScale, "%")
+            
+            //Lower Quartile
+            Rectangle sixth
+            sixth:SetSize(center+lineH, lineH,"%")
+            sixth:SetPosition(axisPointX+ startW + size,axisPointY - lowerQuartile/dataScale, "%")
+            
+            //Min
+            Rectangle seventh
+            seventh:SetSize(center+lineH, lineH, "%")
+            seventh:SetPosition(axisPointX + startW + size,axisPointY - min/dataScale - lineH, "%")
+            
+            //Right IQR
+            Rectangle eighth
+            eighth:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale + lineH, "%")
+            eighth:SetPosition(axisPointX + startW + size + center, axisPointY - upperQuartile/dataScale, "%")
+            
+            //Median
+            Rectangle ninth
+            ninth:SetSize(center+lineH, lineH, "%")
+            ninth:SetPosition(axisPointX + startW + size,axisPointY - median/dataScale, "%")
+            
+            canvas:Add(first)
+            canvas:Add(second)
+            canvas:Add(third)
+            canvas:Add(fourth)
+            canvas:Add(fifth)
+            canvas:Add(sixth)
+            canvas:Add(seventh)
+            canvas:Add(eighth)
+            canvas:Add(ninth)
+            i=i+1
+        end  
+    end
+
+    /*
+        This action adds the labels on the x axis
+    */
+    private action AddXLabels(ScalableVectorGraphics canvas, BoxPlot chart)
+        integer i = 0
+        Array<Array<number>> boxWhiskerInfos = chart:GetChartInfo()
+        Array<text> xLabelText = chart:GetXAxisLabels()
+        integer total = boxWhiskerInfos:GetSize()
+        number space = axisLength/(total)
+        repeat while i < total
+            Label tempLabel
+
+            tempLabel:SetText(chart:GetXAxisLabels():Get(i))
+            tempLabel:SetTextAnchor("middle")
+            tempLabel:SetPosition(axisPointX + (i) * space + space/2, axisPointY + 4, "%")
+            canvas:Add(tempLabel)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action adds the labels on the y axis
+    */
+    private action AddYLabels(ScalableVectorGraphics canvas, BoxPlot chart)
+        number scaleNum = 0//chart:GetYAxisMinimum()
+        
+        number scaleWidth = (chart:GetYMaximum()) / (chart:GetYIncrementCount() - 1)
+        number scaleDivWidth = axisLength / (chart:GetYIncrementCount() - 1)
+        // scale
+        Math math
+        i = 0
+        //output chart:GetYMax()
+        repeat while i < chart:GetYIncrementCount()
+            Label scaleLabel
+            Line scaleTick
+            
+            scaleLabel:SetTextAnchor("end")
+            scaleLabel:SetText("" + math:Round(scaleNum, 1))
+            scaleLabel:SetFontSize("8pt")
+            scaleNum = scaleNum + scaleWidth
+
+            scaleTick:SetTabIndex(-1)
+            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
+            scaleTick:SetStroke("black")
+            scaleTick:SetStrokeWidth(0.4,"%")
+            
+            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
+
+            canvas:Add(scaleLabel)
+            canvas:Add(scaleTick)
+        i = i+1
+        end
+    end
+
+end

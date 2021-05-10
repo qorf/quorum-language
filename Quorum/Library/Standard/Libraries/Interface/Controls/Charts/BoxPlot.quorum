@@ -1,0 +1,634 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.BoxPlotLayout
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Analysis.UnivariateAction
+use Libraries.Compute.Statistics.WindowingActions.NormalDistributionAction
+use Libraries.Interface.Controls.Charts.BoxPlotWriter 
+use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+
+
+/*
+
+    Attribute: Author Christian Castillo
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    BoxPlotCreator creator
+    creator:AddColumn(2)
+
+    BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+    chart:SetPercentageWidth(1)
+    chart:SetPercentageHeight(1)
+    chart:SetTitle("Sample Title")
+    chart:SetXAxisTitle("X-axis Variable")
+    chart:SetYAxisTitle("Y-axis Variable")
+    Add(chart)
+*/
+
+class BoxPlot is Chart
+    // The root ChartItem.
+    private ChartItem summary
+
+    // How many ticks are set along the y axis and max value on y axis.
+    private integer yIncrements = 0 //increments in the y axis
+    private number yMaximum = 0 // the maximum value in y axis
+    
+    // Initial size of x and y axis
+    private integer IntervalLength = 10
+    private integer IntervalWidth = 30
+
+    // Labels that is shown on the x axis
+    private Array<text> xAxisLabels
+
+    // This stores all the informations for each Box graph
+    private Array<Array<number>> chartInfos
+
+    // This stores all the drawables for each Box graph
+    private Array<Array<Drawable>> chartItems
+
+    //This stores all data that need to be trasfer to the layout file
+    private Array<Vector> dataSets
+    private text kernel = ""
+
+   // SetYAxisTitle("Speed of Cars miles per hour")
+    public text xTitle = ""
+    public text yTitle = ""
+
+    // Panels
+    Control TitlePanel
+    Control AreaOfChart
+    Control VerticalTitlePanel
+    Control HorizontalTitlePanel
+    
+    //Gets the TitlePanel
+    action GetTitlePanel returns Control
+        return TitlePanel
+    end
+
+    // Gets the AreaOfChart
+    action GetChartA returns Control
+        return AreaOfChart
+    end
+
+    // Gets the HorizontalTitlePanel
+     action GetHorizontalTitlePanel returns Control
+        return HorizontalTitlePanel
+    end
+
+    // Gets the VerticalTitlePanel
+    action GetVerticalTitlePanel returns Control
+        return VerticalTitlePanel
+    end
+
+    // Sets the labels along the x axis
+    action SetXAxisLabels(Array<text> label)
+        xAxisLabels = label
+    end
+  
+    // Returns the labels
+    action GetXAxisLabels returns Array<text>
+        return xAxisLabels
+    end
+    
+    // Sets how many increments in y-axis
+    action SetYIncrementCount(integer increments)
+        yIncrements = increments
+    end
+   
+    // Returns number of increments on the y axis
+    action GetYIncrementCount returns integer
+        return yIncrements
+    end
+
+    // Sets the maximum in y axis
+    action SetYMaximum(number max)
+        yMaximum = max
+     end
+    
+    // Get the maximum in y axis
+    action GetYMaximum returns number
+        return yMaximum
+    end
+    
+   
+    // Sets the chart info
+    action SetChartInfo(Array<Array<number>> info)
+        chartInfos = info
+    end
+
+    
+    // Gets the chart info
+    action GetChartInfo returns Array<Array<number>>
+        return chartInfos
+    end
+
+    // Get the drawable items of the chart
+    action GetChartItems returns Array<Array<Drawable>>
+        return chartItems
+    end
+   
+
+    // Sets the list (Array) of data for each sample
+    action SetDatasets(Array<Vector> data)
+        dataSets = data
+    end
+
+    // Get the list (Array) of data for each sample 
+    action GetDataSets returns Array<Vector>
+        return dataSets
+    end
+
+    on create
+        BoxPlotLayout lay
+        SetLayout(lay)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+
+        Font font = GetDefaultFont()
+        properties:SetFont(font)
+        properties:SetFontSize(GetDefaultFontSize())
+
+        SetTitle("BoxPlot")
+        SetDescription("BoxPlot")
+        SetInputGroup("Chart")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+
+    end
+
+    /*
+        This is called by GenerateInfoTree to generate the title panels and their speech recognition
+    */
+    action GenerateLevelTwo
+        TitlePanel:SetName(GetTitle() + " To Navigate this BoxPlot Press the right arrow key. ")
+        TitlePanel:SetFocusable(true)
+        TitlePanel:SetAccessibilityCode(parent:Item:CUSTOM)
+        Add(TitlePanel)
+
+        VerticalTitlePanel:SetName("The Y Axis variable is " + GetYAxisTitle() + ".")
+        VerticalTitlePanel:SetFocusable(true)
+        VerticalTitlePanel:SetAccessibilityCode(parent:Item:CUSTOM)
+        Add(VerticalTitlePanel)
+        
+        HorizontalTitlePanel:SetName("The X Axis variable is " + GetXAxisTitle() + ".")
+        HorizontalTitlePanel:SetFocusable(true)
+        HorizontalTitlePanel:SetAccessibilityCode(parent:Item:CUSTOM)
+        Add(HorizontalTitlePanel)
+
+        AreaOfChart:SetName("You are now in the Chart Area.")
+        AreaOfChart:SetFocusable(true)
+        AreaOfChart:SetAccessibilityCode(parent:Item:CUSTOM)
+        Add(AreaOfChart)
+    end
+
+    /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the chart. Also the highest level of the information tree
+    of  the chart.
+    */
+    action GenerateSummary returns text
+        text lineText = "Graphs"
+        if xAxisLabels:GetSize() = 1
+            linetext = "Graph"
+        end
+        SetDescription("Box Plot with " + xAxisLabels:GetSize() + " " + lineText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        return GetDescription()
+    end // end of GenerateSummary
+
+     //Removes any unwanted Drawables
+    action DisposeDrawables
+        parent:Chart:DisposeDrawables()
+        Control chart_Area = me:GetChartArea()
+        integer i = 0
+        repeat while i < chartItems:GetSize()
+            Array<Drawable> items = chartItems:Get(i)
+            integer j = 0
+            repeat while j < items:GetSize()
+                Drawable target = items:Get(j)
+                target:Dispose()
+                chart_Area:Remove(target)
+                j = j + 1
+            end //end of second repeat loop
+            
+            i = i + 1
+        
+        end //end of first repeat loop
+
+        chartItems:Empty()
+
+    end //end of DisposeDrawable
+
+
+    /*
+        This action loads the graphics to the game, and associates those graphics to their verbal descriptions.
+    */
+    action LoadGraphics(LayoutProperties properties)
+
+        DisposeDrawables()
+
+        parent:Chart:LoadGraphics(properties)
+        
+        //Sets the base format of boxplot chart
+        Control vertical = GetVerticalPanel()
+        Control horizontal = GetHorizontalPanel()
+        Control chart = GetChartArea()
+
+        // Gets the increments of the axes of the chart
+        Array<Drawable> drawable_Xincrements = GetXTicks()
+        Array<Drawable> drawable_Yincrements = GetScaleTicks()
+        
+        //Gets the labels of the axes
+        Array<ControlLabel> x_Labels = GetXLabels()
+        Array<ControlLabel> y_Labels = GetScaleLabels()
+
+        //Adding Tick and labels on Y axis
+        if yIncrements not= 0 and drawable_Yincrements:IsEmpty()
+            number space = yMaximum/ (yIncrements - 1)
+            number curr = 0
+            repeat until drawable_Yincrements:GetSize() = yIncrements
+                Drawable Increment
+                Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
+                drawable_Yincrements:Add(Increment)
+                vertical:Add(Increment)
+
+                ControlLabel label
+                label:SetFontSize(GetFontSize())
+                label:SetFocusable(true)
+                label:SetAccessibilityCode(parent:Item:ITEM)
+                label:SetText(curr + " ")
+                label:SetName(curr + " ")
+                vertical:Add(label)
+                y_Labels:Add(label)
+                curr = curr + space
+            end //end of repeat statement
+        end // end of if statement
+
+        //Add Labels on X axis
+        integer count = 0
+        repeat while count < xAxisLabels:GetSize()
+            ControlLabel label
+            label:SetFocusable(true)
+            label:SetFontSize(GetFontSize())
+            label:SetAccessibilityCode(parent:Item:ITEM)
+            label:SetName(xAxisLabels:Get(count))
+            label:SetText(xAxisLabels:Get(count))
+            horizontal:Add(label)
+            x_Labels:Add(label)
+            count = count + 1
+        end
+
+        // add drawables per each boxplot to the chart
+        integer i = 0
+        repeat while i < chartInfos:GetSize()
+            Array<number> info = chartInfos:Get(i)
+            number median = info:Get(0)
+            number firstQ = info:Get(1)
+            number thirdQ = info:Get(2)
+            number minimum = info:Get(3)
+            number maximum = info:Get(4)
+            number iqr = thirdQ - firstQ
+         
+            Array<Drawable> items
+
+            // SET COLOR HERE
+            Color white
+            white:SetColor(1,1,1,1)
+            Color blue
+            blue:SetColor(0,0,1,1)
+    
+           // Adding all parts of each of the boxplot in the chart
+            Drawable box
+            Drawable whisker 
+            Drawable line
+            
+            box:LoadFilledRectangle(0,0)
+            whisker:LoadFilledRectangle(0,0)
+            line:LoadFilledRectangle(0,0)
+            
+            Drawable minimumLine
+            Drawable maximumLine
+            Drawable medianLine
+            Drawable firstQuartileLine
+            Drawable thirdQuartileLine
+            Drawable interQuartileRange
+
+            minimumLine:LoadFilledRectangle(0,0)
+            minimumLine:SetName("The minimum value of the data is " + minimum + ".  ")
+            minimumLine:SetDescription("Minimum")
+            minimumLine:SetFocusable(true)
+            minimumLine:SetAccessibilityCode(0)
+    
+            firstQuartileLine:LoadFilledRectangle(0,0)
+            firstQuartileLine:SetName("The lower quartile value of the data is " + firstQ + ". ")
+            firstQuartileLine:SetDescription("1st Quartile")
+            firstQuartileLine:SetFocusable(true)
+            firstQuartileLine:SetAccessibilityCode(0)
+
+            medianLine:LoadFilledRectangle(0,0)
+            medianLine:SetName("The Median value of the data is " + median + ".  ")
+            medianLine:SetDescription("Median")
+            medianLine:SetFocusable(true)
+            medianLine:SetAccessibilityCode(0)
+
+            thirdQuartileLine:LoadFilledRectangle(0,0)
+            thirdQuartileLine:SetName("The upper quartile value of the data is " + thirdQ + ". ")
+            thirdQuartileLine:SetDescription("3rd Quartile")
+            thirdQuartileLine:SetFocusable(true)
+            thirdQuartileLine:SetAccessibilityCode(0)
+
+            interQuartileRange:LoadFilledRectangle(0,0)
+            interQuartileRange:SetName("The Interquartile range of the data is " + iqr + " .  ")
+            interQuartileRange:SetDescription("IQR")
+            interQuartileRange:SetFocusable(true)
+            interQuartileRange:SetAccessibilityCode(0)
+        
+            maximumLine:LoadFilledRectangle(0,0)
+            maximumLine:SetName("The Maximum value of the data is " + maximum + "." )
+            maximumLine:SetDescription("Maximum")
+            maximumLine:SetFocusable(true)
+            maximumLine:SetAccessibilityCode(0)
+
+            Drawable Pixel
+            Icon panel
+            if(i < chartInfos:GetSize() - 1)
+                panel:SetName(xAxisLabels:Get(i) + " box plot.")
+            else
+                panel:SetName(xAxisLabels:Get(i) + " box plot.")
+            end
+     
+            panel:SetFocusable(true)
+            panel:SetAccessibilityCode(0)
+          
+        
+            chart:Add(box)
+            chart:Add(whisker)
+            chart:Add(line) 
+
+            chart:Add(minimumLine)
+            chart:Add(firstQuartileLine) 
+            chart:Add(medianLine)
+            chart:Add(thirdQuartileLine)
+            chart:Add(interQuartileRange)
+            chart:Add(maximumLine) 
+            chart:Add(panel)
+
+            items:Add(box)
+            items:Add(whisker) 
+            items:Add(line)
+
+            items:Add(minimumLine)
+            items:Add(firstQuartileLine)
+            items:Add(medianLine)
+            items:Add(thirdQuartileLine)
+            items:Add(interQuartileRange)
+            items:Add(maximumLine)
+            items:Add(panel)
+            items:Add(Pixel)
+            chartItems:Add(items)
+            
+            i = i + 1
+
+        end//end of loop
+    end // end of loadGraphics
+           
+
+    /* 
+    Creates the accessibility information for the chart area.
+    */
+    action GenerateInfoTree
+        if GetDefaultLayoutProperties():NeedsRendering()
+            return now //we haven't loaded graphics yet, so bail.
+        end
+        
+
+        ChartItem VerticalTitle // yAxisTitle
+        ChartItem y_Axis //y axis of chart
+        ChartItem HorizontalTitle //xAxisTitle
+        ChartItem x_Axis // x axis of chart
+        ChartItem chartA //area of chart
+
+        // top level of tree
+        summary:SetDisplayName("BoxPlot")
+        summary:SetNext(VerticalTitle)
+        summary:SetChild(y_Axis)
+        summary:SetContainer(me)
+        summary:SetFocusTarget(GetTitlePanel())       
+    
+        // Second Level : yAxis Title, y axis, XAxis Title, x axis, chart area
+        GenerateLevelTwo()
+
+        //VerticalTitle
+        VerticalTitle:SetDisplayName("Verical Title") 
+        VerticalTitle:SetContainer(me)
+        VerticalTitle:SetFocusTarget(GetVerticalTitlePanel())
+        VerticalTitle:SetNext(y_Axis)
+        VerticalTitle:SetParent(summary)
+        VerticalTitle:SetPrevious(summary)
+
+        //y axis
+        y_Axis:SetDisplayName("Vertical Axis")
+        y_Axis:SetContainer(me)
+        y_Axis:SetFocusTarget(GetVerticalPanel())
+        y_Axis:SetNext(HorizontalTitle)
+        y_Axis:SetParent(summary)
+        y_Axis:SetPrevious(VerticalTitle)
+
+
+        //HorizontalTitle
+        HorizontalTitle:SetDisplayName("Horizontal Title") 
+        HorizontalTitle:SetContainer(me)
+        HorizontalTitle:SetFocusTarget(GetHorizontalTitlePanel())
+        HorizontalTitle:SetNext(x_Axis)
+        HorizontalTitle:SetParent(summary)
+        HorizontalTitle:SetPrevious(y_Axis)
+
+        //x axis
+        x_Axis:SetDisplayName("Horizontal Axis")
+        x_Axis:SetFocusTarget(GetHorizontalPanel())
+        x_Axis:SetContainer(me)
+        x_Axis:SetPrevious(HorizontalTitle)
+        x_Axis:SetParent(summary)
+        x_Axis:SetNext(chartA)
+
+        //ChartA
+        chartA:SetDisplayName("Chart Area")
+        chartA:SetFocusTarget(GetChartA())
+        chartA:SetContainer(me)
+        chartA:SetPrevious(x_Axis)
+        chartA:SetParent(summary)
+
+       // Makes control labels for y axis
+        Array<ControlLabel> y_Labels = GetScaleLabels()
+        ChartItem y_Prev
+    
+        integer i = 0
+    
+        repeat while i < y_Labels:GetSize()
+            ChartItem next
+            if i = 0
+                y_Axis:SetChild(next)
+            else
+                next:SetPrevious(y_Prev)
+                y_Prev:SetNext(next)
+            end
+        
+            next:SetDisplayName(y_Labels:Get(i):GetText())
+            next:SetFocusTarget(y_Labels:Get(i))
+            next:SetContainer(me)
+            next:SetParent(y_Axis)
+            
+            y_Prev = next
+        
+            i = i + 1 
+        end //end of repeat loop
+
+
+        //Makes control labels for x axis      
+        Array<ControlLabel> x_Labels = GetXLabels()
+        ChartItem x_Prev
+        integer j = 0
+        repeat while j < x_Labels:GetSize()
+            ChartItem next
+            if j =0
+                x_Axis:SetChild(next)
+            else
+                next:SetPrevious(x_Prev)
+                x_Prev:SetNext(next)
+            end
+            
+            next:SetDisplayName(x_Labels:Get(j):GetText())
+            next:SetFocusTarget(x_Labels:Get(j))
+            next:SetContainer(me)
+            next:SetParent(x_Axis)
+           
+            x_Prev = next
+
+            j = j + 1
+        end // end of loop
+        
+    
+         ChartItem prev_target
+        integer k = 0
+        repeat while k < chartInfos:GetSize()
+            ChartItem next_target
+            Array<Drawable> items = chartItems:Get(k)
+
+            if k = 0
+                chartA:SetChild(next_target)
+            
+            else
+                next_target:SetPrevious(prev_target)
+                prev_target:SetNext(next_target)
+            end
+            
+            next_target:SetContainer(me)
+            next_target:SetDisplayName(items:Get(9):GetName()) 
+            next_target:SetFocusTarget(items:Get(9))  
+
+
+            next_target:SetParent(chartA)
+
+            prev_target = next_target
+            
+            ChartItem previous
+            integer target_index = 0
+            integer index = 0
+            repeat while index < items:GetSize()
+                Drawable item = items:Get(index)
+                Drawable lastItem = items:Get(items:GetSize() - 1)
+                text Description = item:GetDescription()
+      
+                if Description not= ""
+
+                    ChartItem next
+                    if target_index = 0
+                        next_target:SetChild(next)
+                    else
+                        next:SetPrevious(previous)
+                        previous:SetNext(next)
+                    end
+                    next:SetContainer(me)
+                    next:SetDisplayName(item:GetName()) 
+                    next:SetFocusTarget(item)
+                    next:SetParent(next_target)
+                    
+                    previous = next
+                    target_index = target_index+1 
+
+                end // end of if statement
+        
+                index = index+1
+            end// end of 2nd repeat
+        
+            k = k + 1
+        end // end of 1st repeat
+
+         ChartSelection selection = GetSelection()
+        selection:Set(summary)
+            
+    end //end of Genarate infotree
+
+    /*
+    This will execute when an item in Box chart gain selection
+    */
+    action GainedSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            end            
+        end
+    end
+
+    /*
+    This will execute when an item in Box chart lose selection
+    */
+    action LostSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined and target is ControlLabel
+            ControlLabel temp = cast(ControlLabel, target)
+            temp:LostSelection()
+        end
+    end // end of LoseSelection
+   
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        BoxPlotWriter writer
+        return writer:WriteOutChart(me)
+    end
+
+end

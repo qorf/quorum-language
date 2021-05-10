@@ -1,0 +1,185 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Vector
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+
+/*
+    This class is used to create a box plot of data in a DataFrame.
+    It calculates the median and the lower and upper quartiles,
+    it also finds the maximum and minimum values.
+
+    Attribute: Authors Benjamin Murphy & Shyann Calhoun
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+    
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    BoxPlotCreator creator
+    creator:AddColumn(2)
+    
+    BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+    chart:SetPercentageWidth(1)
+    chart:SetPercentageHeight(1)
+    chart:SetTitle("Sample Title")
+    chart:SetXAxisTitle("X-axis Variable")
+    chart:SetYAxisTitle("Y-axis Variable")
+    Add(chart)
+
+*/
+
+class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput
+    //x ticks to mark numbers along the x axis
+    private integer yTicks = 5   
+
+
+    action Create(DataFrame frame) returns Chart
+        BoxPlot chart
+
+        // error if no column selected
+            if GetColumnSize() = 0
+                alert("Please define more than one column")
+            end
+
+        Array<text> columnNames
+        Array<Array<number>> info
+        Array<Vector> dataSets
+        number largest = 0
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn columnFrame = frame:GetColumn(GetColumn(i))
+            if columnFrame = undefined and columnFrame:CanConvertToVector()
+                alert("Could not find column number " + GetColumn(i))
+            end
+            if columnFrame:CanConvertToVector() = false
+                alert("Could not covert values in " + GetColumn(i)+ " to vector")
+            end
+
+            //convert to vector, do the calculation
+            Summarize sum
+            sum:Calculate(columnFrame)
+            if largest < sum:GetMaximum()
+                largest = sum:GetMaximum()
+            end
+
+            Vector dataset = columnFrame:ConvertToVector()
+            dataset:Sort()
+            info:Add(Calculations(dataset))
+
+            columnNames:Add(columnFrame:GetHeader()) 
+
+            dataSets:Add(dataset)
+            i=i+1 
+        end
+
+        //Set the information
+        chart:SetChartInfo(info)
+        chart:SetXAxisLabels(columnNames)
+        chart:SetDatasets(dataSets)
+        chart:SetYIncrementCount(yTicks)
+        chart:SetYMaximum(largest)
+        return chart
+    end
+    
+    /*
+    This action returns the five number summary of a dataset as an array, in the order median, lower quartile, upper quartile, smallest, largest. 
+    It also excludes outliers in the set as smallest and largest.
+    */
+    action Calculations(Vector dataset) returns Array<number>
+    
+        number median = GetMedian(dataset,0,dataset:GetSize()-1)
+        integer medianIndex = 0
+        integer lowerMedianIndex = 0
+        integer upperMedianIndex = 0
+        number lowerQuartile = 0
+        number upperQuartile = 0
+        //Calculating what needs to be sent to GetMedian is slightly different depending on even or odd data sets.
+        if dataset:GetSize() mod 2 = 0
+            lowerMedianIndex = (dataset:GetSize()-1)/2
+            upperMedianIndex = dataset:GetSize()/2
+            lowerQuartile = GetMedian(dataset,0,lowerMedianIndex)
+            upperQuartile = GetMedian(dataset,upperMedianIndex,dataset:GetSize()-1)
+        else
+            medianIndex = (dataset:GetSize()-1)/2
+            lowerQuartile = GetMedian(dataset,0,medianIndex)
+            upperQuartile = GetMedian(dataset,medianIndex,dataset:GetSize()-1)
+        end
+         //We want to exclude outliers from the data as our high and low values.
+        number iqr = upperQuartile-lowerQuartile
+        number lowerRange = lowerQuartile - iqr*1.5
+        number upperRange = upperQuartile + iqr*1.5
+        integer lastEle = dataset:GetSize()-1
+        number largest = dataset:Get(lastEle)
+        number smallest = dataset:Get(0)
+        integer i = 0
+        boolean notOutlier = false
+        integer index = 0
+
+        repeat while notOutlier = false
+            if dataset:Get(index)>lowerRange
+                smallest = dataset:Get(index)
+                
+                notOutlier = true
+            end
+            if dataset:Get(index) = lowerQuartile
+                //If we somehow navigate all the way to the lower quartile without finding another data point that's not an outlier, set the lower 
+                //quartile as the smallest.
+                smallest = dataset:Get(index)
+                notOutlier = true
+            end
+            index = index+1
+        end
+        notOutlier = false
+        index = dataset:GetSize()-1
+        repeat while notOutlier = false
+            if dataset:Get(index)<upperRange
+                largest = dataset:Get(index)
+                notOutlier = true
+            end
+            if dataset:Get(index) = upperQuartile
+                //If we somehow navigate all the way back to the upper quartile without finding another data point 
+                //that's not an outlier, set upper quartile as largest.
+                largest = dataset:Get(index)
+                notOutlier = true
+            end
+            index = index-1
+        end
+        Array<number> myData
+        myData:Add(median)
+        myData:Add(lowerQuartile)
+        myData:Add(upperQuartile)
+        myData:Add(smallest)
+        myData:Add(largest)
+        return myData
+    end
+
+    /*
+    This action returns how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the Y axis of the LineChart.
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
+    */
+    action SetYTickCount(integer yTicks)
+        me:yTicks = yTicks
+    end
+
+end
+
