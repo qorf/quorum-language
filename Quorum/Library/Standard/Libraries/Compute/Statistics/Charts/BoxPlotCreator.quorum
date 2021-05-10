@@ -21,20 +21,29 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 
     use Libraries.Compute.Statistics.DataFrame
     use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+    use Libraries.Interface.Controls.Charts.BoxPlot
+    use Libraries.Game.Game
     
-    DataFrame frame
-    frame:Load("Data/Data.csv")
-    BoxPlotCreator creator
-    creator:AddColumn(2)
+    class Main is Game
+        action Main
+            StartGame()
+        end
     
-    BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
-    chart:SetPercentageWidth(1)
-    chart:SetPercentageHeight(1)
-    chart:SetTitle("Sample Title")
-    chart:SetXAxisTitle("X-axis Variable")
-    chart:SetYAxisTitle("Y-axis Variable")
-    Add(chart)
-
+        action CreateGame
+            DataFrame frame
+            frame:Load("Data/Data.csv")
+            BoxPlotCreator creator
+            creator:AddColumn(2)
+        
+            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+            chart:SetPercentageWidth(1)
+            chart:SetPercentageHeight(1)
+            chart:SetTitle("Sample Title")
+            chart:SetXAxisTitle("X-axis Variable")
+            chart:SetYAxisTitle("Y-axis Variable")
+            Add(chart)
+        end
+    end
 */
 
 class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput

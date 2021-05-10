@@ -19,26 +19,35 @@ use Libraries.Compute.Statistics.Charts.BoxPlotCreator
 
 
 /*
-
     Attribute: Author Christian Castillo
 
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
     use Libraries.Compute.Statistics.Charts.BoxPlotCreator
-
-    DataFrame frame
-    frame:Load("Data/Data.csv")
-    BoxPlotCreator creator
-    creator:AddColumn(2)
-
-    BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
-    chart:SetPercentageWidth(1)
-    chart:SetPercentageHeight(1)
-    chart:SetTitle("Sample Title")
-    chart:SetXAxisTitle("X-axis Variable")
-    chart:SetYAxisTitle("Y-axis Variable")
-    Add(chart)
+    use Libraries.Interface.Controls.Charts.BoxPlot
+    use Libraries.Game.Game
+    
+    class Main is Game
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            DataFrame frame
+            frame:Load("Data/Data.csv")
+            BoxPlotCreator creator
+            creator:AddColumn(2)
+        
+            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+            chart:SetPercentageWidth(1)
+            chart:SetPercentageHeight(1)
+            chart:SetTitle("Sample Title")
+            chart:SetXAxisTitle("X-axis Variable")
+            chart:SetYAxisTitle("Y-axis Variable")
+            Add(chart)
+        end
+    end
 */
 
 class BoxPlot is Chart
