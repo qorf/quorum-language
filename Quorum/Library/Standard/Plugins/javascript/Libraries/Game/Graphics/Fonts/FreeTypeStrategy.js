@@ -309,9 +309,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			var x = rowWidth;
 			rowWidth += currentWidth + padding;
 
-			if (rowWidth > totalWidth)
-				totalWidth = rowWidth;
-
 			if (rowWidth > maxSize) {
 				var newRow = new ImageSheetRow(rowHeight, current - 1);
 				rows.push(newRow);
@@ -321,6 +318,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 				x = padding;
 				rowHeight = padding;
 			}
+			
+			if (rowWidth > totalWidth)
+				totalWidth = rowWidth;
 
 			if (currentHeight + padding > rowHeight) {
 				rowHeight = currentHeight + padding;
@@ -456,8 +456,8 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 	};
 
 	this.GetLineHeight = function () {
-		var GetUnderlineThicknessC = Module.cwrap('GetUnderlineThicknessC', 'number', null);
-		return (GetUnderlineThicknessC() >> 6);
+		var GetLineHeightC = Module.cwrap('GetLineHeightC', 'number', null);
+		return (GetLineHeightC() >> 6);
 	};
 
 	this.GetAvailableFonts = function () {
