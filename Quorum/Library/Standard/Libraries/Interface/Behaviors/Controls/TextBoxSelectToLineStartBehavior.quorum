@@ -34,7 +34,7 @@ class TextBoxSelectToLineStartBehavior is Behavior
 
         // If only a single line is selected
         if selection:GetFirstLine() = selection:GetLastLine()
-            integer selectionStartPosition = selection:GetStartIndex() - textBox:GetIndexOfLine(selection:GetStartIndex())
+            integer selectionStartPosition = selection:GetStartIndex() - textBox:GetIndexOfLine(textBox:GetCaretLine())
             if leadingSpaces >= selectionStartPosition
                 leadingSpaces = 0
             end

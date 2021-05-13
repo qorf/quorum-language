@@ -15,8 +15,9 @@ use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
-class Tree is Control
+class Tree is Control, FirstLetterNavigator
     Control panel
     Layout panelLayout = undefined
     TreeSelection selection
@@ -346,5 +347,89 @@ class Tree is Control
 
     action IsEmpty returns boolean
         return treeItems:IsEmpty()
+    end
+
+    /*
+    This action selects an item using first letter navigation.
+    */
+    action SelectByFirstLetters(text firstLetters)
+        /* 
+        We prioritize returning the original selection or the next item
+        after it over items found before the original selection.
+        We use a Boolean object so that we can pass it as a parameter and
+        see if the value has changed via side effects (essentially, it's an
+        extra return value).
+        */
+        Boolean foundOriginalSelection
+        foundOriginalSelection:SetValue(false)
+
+        TreeItem firstCandidate = undefined
+
+        // We ignore case sensitivity when we're selecting in this way.
+        text filter = firstLetters:ToLowerCase()
+
+        TreeSelection selection = GetSelection()
+        TreeItem originalSelection = selection:GetTreeItem()
+
+        if originalSelection = undefined
+            // If there's no current selection, we want to return the first result we find that matches.
+            foundOriginalSelection:SetValue(true)
+        end
+
+        integer counter = 0
+        repeat while counter < treeItems:GetSize()
+            TreeItem result = RecursiveSelectByFirstLetters(treeItems:Get(counter), filter, foundOriginalSelection, originalSelection)
+            if firstCandidate = undefined
+                firstCandidate = result
+            end
+
+            // If we've found a valid result and we've already found the original selection,
+            // we've found our desired item. Select it and return.
+            if foundOriginalSelection:GetValue() = true and result not= undefined
+                result:Select()
+                return now
+            end
+            counter = counter + 1
+        end
+
+        // If we've reached this point, we didn't find a valid candidate without looping around to the beginning.
+        if firstCandidate not= undefined
+            firstCandidate:Select()
+        end
+    end
+
+    private action RecursiveSelectByFirstLetters(TreeItem currentCandidate, text firstLetters, Boolean foundOriginalSelection, TreeItem originalSelection) returns TreeItem
+        if currentCandidate = originalSelection
+            foundOriginalSelection:SetValue(true)
+        end
+
+        TreeItem firstValid = undefined
+
+        if currentCandidate:GetName():ToLowerCase():StartsWith(firstLetters)
+            if foundOriginalSelection:GetValue() = true
+                return currentCandidate
+            else
+                firstValid = currentCandidate
+            end
+        end
+
+        if currentCandidate:IsSubtree() and currentCandidate:IsOpen()
+            Iterator<TreeItem> treeItems = currentCandidate:GetTreeItems()
+            repeat while treeItems:HasNext()
+                TreeItem next = treeItems:Next()
+                TreeItem result = RecursiveSelectByFirstLetters(next, firstLetters, foundOriginalSelection, originalSelection)
+    
+                if result not= undefined
+                    if foundOriginalSelection:GetValue() = true
+                        return result
+                    elseif firstValid = undefined
+                        firstValid = result
+                    end
+                end
+            end
+        end
+
+        // If we didn't find an exact match earlier, return the first valid one we found (or undefined if there was none).
+        return firstValid
     end
 end

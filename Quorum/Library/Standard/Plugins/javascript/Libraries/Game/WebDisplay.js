@@ -5,6 +5,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     var lastTime = 0;
     var deltaTime = 0;
+    var totalTime = 0;
     var renderingRequested = false;
     
     this.SetConfigurationNative$quorum_Libraries_Game_WebConfiguration = function(config)
@@ -83,6 +84,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         var time = window.performance.now();
         deltaTime = (time - lastTime)/1000.0;
         lastTime = time;
+        totalTime = totalTime + deltaTime;
     };
     
     this.SetLastTime = function()
@@ -93,6 +95,11 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     this.GetSecondsBetweenFrames = function()
     {
         return deltaTime;
+    };
+    
+    this.GetSecondsSinceStart = function()
+    {
+        return totalTime;
     };
     
     this.GetPixelScaleFactor = function()
