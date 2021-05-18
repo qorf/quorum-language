@@ -29,6 +29,7 @@ class Library
     File nativeFolder
     File graphicsFolder
     File robotsFolder
+    constant text STANDARD = "Standard"
     constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
     constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
     constant text STANDARD_LIBRARY_JAVASCRIPT = "QuorumStandardLibrary.js"
@@ -47,6 +48,7 @@ class Library
     boolean cacheOpcodes = false
     Array<CompilerListener> listeners
     boolean outputJavaScript = false
+    boolean scanningFromPrecompute = false
     text javascriptOutput = ""
     text javascriptPlugins = ""
 
@@ -644,28 +646,54 @@ class Library
         f1:SetPath(standardLibraryFolder:GetPath() + "/Libraries")
         standardLibraryFolder = f1
 
-        Array<File> folders
-        folders:Add(standardLibraryFolder)
-        integer folderIndex = 0
-        done = false
-        repeat while folderIndex < folders:GetSize()
-            File folder = folders:Get(folderIndex)
-            Array<File> listing = folder:GetDirectoryListing()
-            i = 0
-            repeat listing:GetSize() times
-                File file = listing:Get(i)
-                if file:IsDirectory()
-                    folders:Add(file)
-                else
-                    if file:GetFileName() not= ".DS_Store"
-                        files:Add(file)
-                    end
-                end
-                i = i + 1
+        if IsScanningFromPrecompute()
+            JavaScriptObjectNotation notate
+            notate:Read(libraryLoadFile)
+    
+            text working = standardLibraryFolder:GetWorkingDirectory() + "/" + STANDARD
+            Iterator<JavaScriptObjectNotation> iterator = notate:GetIterator()
+            repeat while iterator:HasNext()
+                JavaScriptObjectNotation json = iterator:Next()
+                text value = json:GetText()
+                File newFile
+                newFile:SetWorkingDirectory(working)
+                newFile:SetPath(value)
+                files:Add(newFile)
             end
-            folderIndex = folderIndex + 1
+            return files
+        else
+            Array<File> folders
+            folders:Add(standardLibraryFolder)
+            integer folderIndex = 0
+            done = false
+            repeat while folderIndex < folders:GetSize()
+                File folder = folders:Get(folderIndex)
+                Array<File> listing = folder:GetDirectoryListing()
+                i = 0
+                repeat listing:GetSize() times
+                    File file = listing:Get(i)
+                    if file:IsDirectory()
+                        folders:Add(file)
+                    else
+                        if file:GetFileName() not= ".DS_Store"
+                            files:Add(file)
+                        end
+                    end
+                    i = i + 1
+                end
+                folderIndex = folderIndex + 1
+            end
+    
+            return files
         end
-
-        return files
     end
+
+    action IsScanningFromPrecompute returns boolean
+        return scanningFromPrecompute
+    end
+
+    action SetScanningFromPrecompute(boolean scanningFromPrecompute)
+        me:scanningFromPrecompute = scanningFromPrecompute
+    end
+
 end
