@@ -1,0 +1,35 @@
+package Libraries.Interface.Controls.Support
+
+use Libraries.Game.GameStateManager
+
+class FirstLetterNavigator
+
+    // Characters that have been typed for first letter navigation.
+    text typedCharacters = ""
+
+    // The last time a character was received.
+    number lastInputTime = 0
+
+    GameStateManager manager
+
+    action FirstLetterCharactersTyped(text newCharacters)
+        number threshold = manager:GetGame():GetFirstLetterNavigationTime()
+        number currentTime = manager:GetGameDisplay():GetSecondsSinceStart()
+
+        if currentTime - lastInputTime > threshold
+            typedCharacters = newCharacters
+        else
+            typedCharacters = typedCharacters + newCharacters
+        end
+
+        lastInputTime = currentTime
+
+        SelectByFirstLetters(typedCharacters)
+    end
+
+    /*
+    This action selects an item using first letter navigation.
+    */
+    blueprint action SelectByFirstLetters(text firstLetters)
+
+end

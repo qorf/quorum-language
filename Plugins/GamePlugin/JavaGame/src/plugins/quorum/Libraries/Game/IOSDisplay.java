@@ -161,6 +161,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     int height;
     long lastFrameTime;
     float deltaTime;
+    double totalTime = 0;
     long framesStart;
     int frames;
     int fps;
@@ -438,6 +439,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         long time = System.nanoTime();
         deltaTime = (time - lastFrameTime) / 1000000000.0f;
         lastFrameTime = time;
+        totalTime = totalTime + deltaTime;
         
         frames++;
         if (time - framesStart >= 1000000000l) 
@@ -504,6 +506,11 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     public double GetSecondsBetweenFrames()
     {
         return deltaTime;
+    }
+    
+    public double GetSecondsSinceStart()
+    {
+        return totalTime;
     }
     
     public int GetFramesPerSecond()

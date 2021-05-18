@@ -189,6 +189,7 @@ use Libraries.Interface.Behaviors.Controls.TreeSelectLastBehavior
 use Libraries.System.File
 use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
+use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -245,6 +246,9 @@ class Game
 
     /* This allows us to turn off collisions for the entire game. */
     private boolean collide = true
+
+    // How much time must pass after typing characters for first letter navigation before the filter resets.
+    number firstLetterNavigationTime = 0.400
 
     // A pool storing used DialogLayers for later reuse.
     DialogLayerPool dialogLayerPool
@@ -1466,6 +1470,9 @@ class Game
         shiftF10Set:SetKeyboardInput(keys:F10)
         shiftF10Set:AddModifier(shiftF10Set:SHIFT)
         treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
+
+        FirstLetterNavigateBehavior firstLetterNavigateBehavior
+        treeTable:Add(textInputSet, firstLetterNavigateBehavior)
 
         AddInputTable(treeTable)
 
@@ -5290,4 +5297,13 @@ class Game
 
         return undefined
     end
+
+    action GetFirstLetterNavigationTime returns number
+        return firstLetterNavigationTime
+    end
+
+    action SetFirstLetterNavigationTime(number firstLetterNavigationTime)
+        me:firstLetterNavigationTime = firstLetterNavigationTime
+    end
+
 end

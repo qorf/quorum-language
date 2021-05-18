@@ -52,6 +52,7 @@ public class AndroidDisplay implements Renderer
 
        protected long lastFrameTime = System.nanoTime();
        protected float deltaTime = 0;
+       private double totalTime = 0;
        protected long frameStart = System.nanoTime();
        protected long frameId = -1;
        protected int frames = 0;
@@ -389,6 +390,7 @@ public class AndroidDisplay implements Renderer
         long time = System.nanoTime();
         deltaTime = (time - lastFrameTime) / 1000000000.0f;
         lastFrameTime = time;
+        totalTime = totalTime + deltaTime;
         
         /* After pause deltaTime can have a somewhat huge value that 
         destabilizes the mean, so we ignore it. */
@@ -511,6 +513,11 @@ public class AndroidDisplay implements Renderer
     public double GetSecondsBetweenFrames() 
     {
         return mean.getMean() == 0 ? deltaTime : mean.getMean();
+    }
+    
+    public double GetSecondsSinceStart()
+    {
+        return totalTime;
     }
 
     public float GetRawDeltaTime() 

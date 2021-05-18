@@ -111,6 +111,41 @@ class WebDisplay is GameDisplay
     system action GetSecondsBetweenFrames returns number
 
     /*
+    This action returns the number of seconds that have passed since the game
+    was started.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.GameDisplay
+    use Libraries.Game.GameStateManager
+    
+    class Main is Game
+
+        GameDisplay display = undefined
+        integer frameCount = 0
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            GameStateManager manager
+            display = manager:GetGameDisplay()
+        end
+
+        action Update(number seconds)
+            frameCount = frameCount + 1
+            if frameCount = 30
+                number time = display:GetSecondsSinceStart()
+                output "The game has been running for " + time + " seconds."
+            end
+        end
+    end
+    */
+    system action GetSecondsSinceStart returns number
+
+    /*
     This action returns the ratio between screen coordinates and pixels.
     */
     system action GetPixelScaleFactor returns number

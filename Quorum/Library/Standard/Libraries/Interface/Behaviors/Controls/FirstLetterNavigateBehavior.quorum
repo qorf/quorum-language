@@ -1,0 +1,23 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TextInputEvent
+
+class FirstLetterNavigateBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        Object item = event:GetItem()
+        if item is FirstLetterNavigator
+            FirstLetterNavigator navigator = cast(FirstLetterNavigator, item)
+            TextInputEvent textEvent = event:GetTextInputEvent()
+            navigator:FirstLetterCharactersTyped(textEvent:GetText())
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+
+end

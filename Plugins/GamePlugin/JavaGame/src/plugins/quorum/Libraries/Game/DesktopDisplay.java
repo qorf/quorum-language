@@ -147,6 +147,7 @@ public class DesktopDisplay {
     volatile boolean isContinuous = true;
     volatile boolean requestRendering = false;
     float deltaTime = 0;
+    double totalTime = 0;
     long frameStart = 0;
     int frames = 0;
     int fps;
@@ -406,6 +407,7 @@ public class DesktopDisplay {
         long time = System.nanoTime();
         deltaTime = (time - lastTime) / 1000000000.0f;
         lastTime = time;
+        totalTime = totalTime + deltaTime;
 
         if (time - frameStart >= 1000000000) 
         {
@@ -419,6 +421,11 @@ public class DesktopDisplay {
     public double GetSecondsBetweenFrames()
     {
         return deltaTime;
+    }
+    
+    public double GetSecondsSinceStart()
+    {
+        return totalTime;
     }
     
     public void SetLastTime()
