@@ -22,30 +22,33 @@ use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.Language.Compile.CompilerRequest
+use Libraries.Network.WebServer
+use Libraries.Network.NetworkExchangeListener
+use Libraries.Network.NetworkExchange
 
-class Main is WebResponder
+class Main is NetworkExchangeListener
     public constant text NAME_FLAG = "-name"
     public constant text COMPILE_FLAG = "-compile"
     public constant text DOCUMENT_FLAG = "-document"
     public constant text DOCUMENT_LIBRARY = "-documentLibrary"
     public constant text ERRORS_FLAG = "-errors"
+    public constant text SERVER_FLAG = "-server"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
     public constant text LIBRARY_FLAG = "-library"
     public constant text REGENERATE_STANDARD_LIBRARY = "-setup"
     public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
+    public constant integer DEFAULT_PORT = 1269
     private boolean isWebSetup = false
     HashTable<text, Array<text>> flagValues
     Library sharedLibrary = undefined
-
+    DateTime time
     action Main
         ProcessConsoleFlags()
         //CompileTest()
         //GenerateDocumentation()
     end
-
-    
 
     action GenerateDocumentation(Array<text> fileNames)
         Compiler compiler
@@ -371,6 +374,110 @@ class Main is WebResponder
         //DisplayFlagValues()
     end
 
+    action StartServer(integer port)
+        Compiler compiler
+        compiler:SetOutputType(compiler:JAVASCRIPT)
+
+        CompilerRequest request
+        request:SetOutputType(compiler:JAVASCRIPT)
+
+        request:isFastCompileRequest = true
+        request:noWritingFiles = true
+        request:mainOnlyJavaScript = true
+
+        output "Starting " + compiler:GetVersion() + " Server"
+        output "Finding Standard Library."
+        File root
+        root:SetPath("")
+        compiler:SetOutputFolder(root)
+
+        //create a standard library for Quorum. It needs 
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        Library library
+        //by default, don't keep track of the extra build information
+        //that is required
+        library:SetCachingLibraryOpcodes(false)
+        library:SetOutputFolder(outputLocation)
+
+
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+                library:SetLocation(libraryPath)
+            end
+        else 
+            File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+            library:SetLocation(standardLibraryFolder)
+        end
+        sharedLibrary = library
+        isWebSetup = true
+
+        output "Scanning Standard Library."
+        library:Scan()
+
+        output "Booting Web Server on port " + port
+        WebServer server
+        
+
+        server:Create(port)
+        server:Add("/", me)
+        output "Listening ..."
+        server:Start()
+    end
+
+    action ResponseReceived(NetworkExchange exchange)
+        text query = exchange:GetQuery()
+        if query = undefined
+            text response = "No Quorum Code Sent to Server."
+            exchange:SendResponseHeaders(200, response:GetSize())
+            exchange:SendResponse(response)
+            return now
+        end
+        number start = time:GetEpochTime()
+
+        Compiler compiler
+        File main
+        compiler:SetOutputType(compiler:JAVASCRIPT)
+        
+        CompilerRequest compilerRequest
+        
+        Array<File> files
+        files:Add(main)
+
+        compilerRequest:recompile = main
+        compilerRequest:recompileValue = query
+        compilerRequest:SetOutputType(compilerRequest:JAVASCRIPT)
+        compilerRequest:main = main
+        compilerRequest:library = sharedLibrary
+        compilerRequest:files = files
+        
+        CompilerResult compilerResult = compiler:Compile(compilerRequest)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
+        text response = ""
+        if manager:IsCompilationErrorFree()
+            response = compilerResult:convertedJavaScript
+        else
+            response = manager:GetCompilerErrorsAsHTML()
+        end
+        
+        
+        exchange:SendResponseHeaders(200, response:GetSize())
+        exchange:SendResponse(response)
+        number stop = time:GetEpochTime()
+        output "Time: " + (stop - start)
+    end
+
     /*
         Flags are processed by Quorum in a particular order and within certain
         constraints. The -help flag overrides everything, so it is requested, 
@@ -394,6 +501,28 @@ class Main is WebResponder
                 return now
             else
                 output "I noticed a -test flag was issued, but this flag can only be requested on its own, not with other flags."
+                return now
+            end
+        end
+
+        if flagValues:HasKey(SERVER_FLAG)
+            if flagValues:GetSize() = 1
+                StartServer(DEFAULT_PORT)
+                return now
+            else
+                Array<text> values = flagValues:GetValue(SERVER_FLAG)
+                if values:GetSize() not= 1
+                    output "I noticed the server flag was used, but the port number has more than one value."
+                    return now
+                else
+                    integer port = DEFAULT_PORT
+                    check
+                        port = cast(integer, values:Get(0))
+                        StartServer(port)
+                    detect e
+                        output "Invalid port number " + values:Get(0)
+                    end
+                end
                 return now
             end
         end
@@ -667,58 +796,41 @@ class Main is WebResponder
 
     private action GetHelpText returns text
         Compiler compiler
-        text help = compiler:GetVersion() + "
+        text help = compiler:GetVersion() + 
+"
 
-Quorum is a computer programming language, which you can use either " +
-"from the console using flags (the program you just ran) or from a development environment (like NetBeans). " +
-"For this version, the commands that Quorum knows take the following format:
-
-    java -jar Quorum.jar (-flag value*)*
-
-What this means is that you can pass a flag to Quorum combined with any number of values. " +
-"The legal flags are listed as follows:
+Valid Quorum Commands include:
     -name This flag tells Quorum to change the name the file is outputs.
     -compile This flag tells Quorum to compile a set of files. If no flag is passed, this is the default.
     -web This flag tells Quorum to convert to a server-side application
     -javascript This flag converts the source code to JavaScript, so it can be run in a browser.
     -test This flag tells Quorum to run its test suite on itself.
     -library If a file path is passed to this flag, we can tell Quorum we have placed its standard library in a different folder.
+    -server This flag tells Quorum to start itself as a web server on a particular port. If no parameter is specified, the port 1269 is used.
     -setup If a file path is passed to this flag, it tells Quorum to recompile its standard library. Generally, unless you have modified the standard library, this flag should not be used.
     -help This flag tells Quorum to output this help screen. 
 
+Examples:
+Compile a file named Hello.quorum
+        java -jar Quorum.jar Hello.quorum
+        java -jar Quorum.jar -compile Hello.quorum
 
-Here are a few examples of how you can use this program:
-        java -jar Quorum.jar Hello.quorum 
-
-    This would request that Quorum compiles the source file Hello.quorum.
-
-        java -jar Quorum.jar -compile Hello.quorum" +
-    "
-
+Compile Hello.quorum and give the output the name MyProgram
         java -jar Quorum.jar -name MyProgram -compile Hello.quorum
 
-    This would cause Quorum to compile Hello.quorum and name the output MyProgram." +
-    "
-
+Compile two files, Hello.quorum and Goodbye.quorum
         java -jar Quorum.jar Hello.quorum Goodbye.quorum
 
-    This would cause Quorum to Compile two source code files. The first file must have a Main action.
-
+Compile Hello.quorum and output the errors to JavaScriptObjectNotation (JSON) format.
         java -jar Quorum.jar -errors Hello.quorum
 
-    This would cause Quorum to compile one source file and output the errors, if any in JavaScriptObjectNotation (JSON) format.
+Start Quorum as a server, accepting requests to compile to JavaScript on port 1269
+        java -jar Quorum.jar -server 1269
 
-For more information on writing programs in Quorum, visit www.quorumlanguage.com."     
+Visit www.quorumlanguage.com.
+"     
         return help
     end
-
-//    action WebRequestTest
-//        WebRequest request
-//        request:AddParameter("code", "output 5")
-//        WebResponse response = Respond(request)
-//        text value = response:GetPageText()
-//        output value
-//    end
 
     action Respond(WebRequest request) returns WebResponse
         text result = ""

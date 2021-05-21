@@ -76,8 +76,19 @@ function plugins_quorum_Libraries_System_FileReader_() {
     this.IsAtEndOfFile = function () {
         return eof;
     };
-    this.OpenForRead$quorum_Libraries_System_File = function (file) {
-        
+    this.OpenForReadNative$quorum_Libraries_System_File = function (file) {
+    	this.xmlhttp = new XMLHttpRequest();
+        var url = file.GetAbsolutePath();
+
+        this.xmlhttp.onreadystatechange = function() {
+            if (this.readyState === 4 && this.status === 200) {
+                response = this.responseText;
+                if (response.length == 0)
+                    eof = true;
+            }
+        };
+        this.xmlhttp.open("GET", url, false);
+        this.xmlhttp.send();
     };
     this.Close = function () {
         response = null;

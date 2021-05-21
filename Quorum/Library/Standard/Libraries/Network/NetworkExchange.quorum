@@ -1,0 +1,17 @@
+package Libraries.Network
+
+class NetworkExchange
+    system action SendResponseHeaders(integer code, integer size)
+
+    system action SendResponse(text response)
+
+    system action GetQuery returns text
+
+    system action GetPath returns text
+    
+    system action GetHost returns text
+    
+    system action GetPort returns integer
+    
+    system action GetAuthority returns text
+end
