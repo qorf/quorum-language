@@ -1,9 +1,12 @@
 package Libraries.Network
+use Libraries.Containers.HashTable
 
 class NetworkExchange
     system action SendResponseHeaders(integer code, integer size)
 
     system action SendResponse(text response)
+
+    system action GetParameters returns HashTable<text,text>
 
     system action GetQuery returns text
 
