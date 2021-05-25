@@ -8,7 +8,11 @@ package plugins.quorum.Libraries.Network;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import quorum.Libraries.Containers.HashTable;
+import quorum.Libraries.Containers.HashTable_;
+import quorum.Libraries.Language.Types.Text;
 
 /**
  *
@@ -16,7 +20,7 @@ import java.net.URI;
  */
 public class NetworkExchange {
     public java.lang.Object me_ = null;
-    
+    private String ENCODING = "UTF-8";
     private HttpExchange exchange;
     private URI uri;
         
@@ -28,6 +32,26 @@ public class NetworkExchange {
         OutputStream body = exchange.getResponseBody();
         body.write(response.getBytes());
         body.close();
+    }
+    
+    public HashTable_ GetParameters() throws UnsupportedEncodingException {
+        HashTable table = new HashTable();
+        String raw = uri.getRawQuery();
+        String[] params = raw.split("&");
+        
+        for(int i = 0; i < params.length; i++) {
+            String[] split = params[i].split("=");
+            Text left = new Text();
+            Text right = new Text();
+            
+            left.SetValue(java.net.URLDecoder.decode(split[0], ENCODING));
+            if(split.length > 1) {
+                right.SetValue(java.net.URLDecoder.decode(split[1], ENCODING));
+            }
+            table.Add(left, right);
+        }
+        
+        return table;
     }
     
     public String GetQuery() {
