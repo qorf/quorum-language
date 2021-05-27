@@ -291,9 +291,11 @@ class CompilerTestSuite
                 integer n = lines:GetSize()
                 integer i = 0
                 result:passed = true
+                result:SetPassed(true)
                 repeat n times
                     if lines:Get(i) not= reply:Get(i)
                         result:passed = false
+                        result:SetPassed(false)
                     end
                     i = i + 1
                 end
@@ -364,11 +366,14 @@ class CompilerTestSuite
 
         if manager:IsCompilationErrorFree()
             result:passed = false
+            result:SetPassed(false)
             result:errorMessage = "Compilation was error free"
         else
             result:passed = true
+            result:SetPassed(true)
         end
         Add(result)
+        tester:Add(result)
     end
 
     action TestJavaScriptFail(Array<File> files)
@@ -396,11 +401,14 @@ class CompilerTestSuite
 
         if manager:IsCompilationErrorFree()
             result:passed = false
+            result:SetPassed(false)
             result:errorMessage = "Compilation was error free"
         else
+            result:SetPassed(true)
             result:passed = true
         end
         Add(result)
+        tester:Add(result)
     end
     
     action Add(CompilerTestResult result)

@@ -543,6 +543,9 @@ class QuorumParser
 
             repeat while IsClassStatement()
                 ClassStatementsContext statement = ClassStatement()
+                if statement = undefined
+                    return undefined
+                end
                 statements:Add(statement)
             end
             context:statements = statements
@@ -860,10 +863,15 @@ class QuorumParser
             context:statement = ActionDeclaration()
             return context
         elseif IsAssignmentStatement()
-            ClassStatementsContext context
-            context:SetDocumentation(CheckForDocumentation())
-            context:statement = AssignmentStatement()
-            return context
+            ParseContext parse = AssignmentStatementInFieldBlock()
+            if parse not= undefined
+                ClassStatementsContext context
+                context:SetDocumentation(CheckForDocumentation())
+                context:statement = parse
+                return context
+            else
+                return undefined
+            end
         else //this is an error
             SendDefaultError(" Expecting either an action or a statement. This might include a Main action, statements like output or repeat, "
             + "or others. " + moreInformationClasses)
@@ -2224,6 +2232,53 @@ class QuorumParser
             return undefined 
         end
         return context
+    end
+
+    action AssignmentStatementInFieldBlock returns ParseContext
+        ParseContext statement = undefined
+        integer type = GetStatementType()
+        if type = NONE //this is an error. A statement has been requested and it doesn't match anything
+            if statementError = undefined
+                Token token = tokenIterator:GetCurrent()
+                if token not= undefined
+                    SendDefaultError("An assignment statement was expected, but " + token:value
+                        + "does not start a valid assignment" )
+                else
+                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                end
+            else
+                compilerErrorManager:Add(statementError)
+                statementError = undefined
+            end
+        elseif type = VARIABLE_SOLO_ACTION_CALL
+            SendDefaultError("Cannot call action in a field block. Did you mean an assignment statement?")
+            return undefined
+        elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
+            SendDefaultError("Cannot call parent action in a field block. Did you mean an assignment statement?")
+            return undefined
+        elseif type = NO_TYPE_ASSIGNMENT
+            statement = NoTypeAssignment()
+        elseif type = PARENT_ASSIGNMENT
+            statement = ParentAssignment()
+        elseif type = OBJECT_ASSIGNMENT
+            statement = ObjectAssignment()
+        elseif type = NORMAL_ASSIGNMENT
+            statement = NormalAssignment()
+        else //this also an error, but is weird because this value should never be returned.
+            if statementError = undefined
+                Token token = tokenIterator:GetCurrent()
+                if token not= undefined
+                    SendDefaultError("An assignment statement was expected, but " + token:value
+                        + "does not start a valid assignment" )
+                else
+                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                end
+            else
+                compilerErrorManager:Add(statementError)
+                statementError = undefined
+            end
+        end
+        return statement
     end
 
     /*
