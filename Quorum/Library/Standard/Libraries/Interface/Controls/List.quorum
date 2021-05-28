@@ -9,8 +9,9 @@ use Libraries.Interface.Selections.ListSelection
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
-class List is Control
+class List is Control, FirstLetterNavigator
 
     ListSelection selection
 
@@ -207,5 +208,43 @@ class List is Control
 
     action GetListItems returns Array<ListItem>
         return cast(Array<ListItem>, GetChildren())
+    end
+
+    /*
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
+    */
+    action SelectByFirstLetters(text firstLetters)
+        Array<ListItem> items = GetListItems()
+        ListItem originalSelection = selection:GetListItem()
+
+        boolean originalFound = false
+        if originalSelection = undefined
+            originalFound = true
+        end
+
+        ListItem firstValid = undefined
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            ListItem current = items:Get(counter)
+            if current = originalSelection
+                originalFound = true
+            end
+
+            if current:GetText():ToLowerCase():StartsWith(firstLetters)
+                if originalFound = true
+                    current:Select()
+                    return now
+                elseif firstValid = undefined
+                    firstValid = current
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        if firstValid not= undefined
+            firstValid:Select()
+        end
     end
 end

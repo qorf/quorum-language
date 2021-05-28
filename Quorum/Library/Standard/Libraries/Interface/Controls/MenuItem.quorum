@@ -26,7 +26,7 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.InputSet
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
-use Libraries.Interface.Behaviors.Controls.PassthroughBehavior
+use Libraries.Interface.Behaviors.Controls.MenuItemShortcutBehavior
 use Libraries.Game.Graphics.TextureRegion
 
 class MenuItem is Control
@@ -77,6 +77,8 @@ class MenuItem is Control
     */
     FlowLayout rootLayout
     MenuItemLayout menuItemLayout
+
+    text mnemonic = undefined
 
     on create
         SetInputGroup("MenuItem")
@@ -172,8 +174,8 @@ class MenuItem is Control
         text name = set:GetDisplayName()
         GameStateManager manager
         InputTable table = manager:GetGame():GetDefaultInputTable()
-        PassthroughBehavior behave
-        behave:SetControl(me)
+        MenuItemShortcutBehavior behave
+        behave:SetMenuItem(me)
         table:Add(set, behave)
         SetShortcut(name)
     end
@@ -754,6 +756,12 @@ class MenuItem is Control
                 backgroundColor = color
                 properties:SetBackgroundColor(backgroundColor)
             end
+
+            if shortcutLabel:GetText() = ""
+                shortcutLabel:Hide()
+            else
+                shortcutLabel:Show()
+            end
         end
 
         if properties:GetBorderColor() = undefined
@@ -849,12 +857,6 @@ class MenuItem is Control
 
         shortcutLabel:SetSize(properties:GetFontSize())
 
-        if shortcutLabel:GetText() = ""
-            shortcutLabel:Hide()
-        else
-            shortcutLabel:Show()
-        end
-
         //This is a box with a border on it that is the background of the menu
         if GetView2D() = undefined
             LabelBoxView view
@@ -896,4 +898,13 @@ class MenuItem is Control
         // override the anchor's ManualLayout.
         panelAnchor:Resize()
     end
+
+    action GetMnemonic returns text
+        return mnemonic
+    end
+
+    action SetMnemonic(text mnemonic)
+        me:mnemonic = mnemonic
+    end
+
 end

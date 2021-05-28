@@ -18,6 +18,7 @@ public:
 	const std::wstring& GetShortcut();
 
 	void NotifyExpandCollapse();
+	std::wstring GetMnemonic();
 
 private:
 	std::wstring m_shortcut;

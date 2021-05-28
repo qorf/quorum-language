@@ -36,3 +36,24 @@ void MenuItemControl::NotifyExpandCollapse()
 {
 	GetProvider()->NotifyElementExpandCollapse();
 }
+
+std::wstring MenuItemControl::GetMnemonic()
+{
+	JNIEnv* env = GetJNIEnv();
+	if (env != NULL)
+	{
+		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_MenuItem.GetMnemonic));
+
+		if (jText != NULL)
+		{
+			const char* nativeText = env->GetStringUTFChars(jText, 0);
+			std::wstring wText = CreateWideStringFromUTF8Win32(nativeText);
+
+			env->ReleaseStringUTFChars(jText, nativeText);
+
+			return wText;
+		}
+	}
+
+	return L"";
+}
