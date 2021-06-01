@@ -67,7 +67,7 @@ class MenuItem is Control
     Behavior activationBehavior = undefined
 
     Icon icon
-    Label label
+    MnemonicLabel label
     Label shortcutLabel
     Icon arrow
 
@@ -904,6 +904,7 @@ class MenuItem is Control
     end
 
     action SetMnemonic(text mnemonic)
+        label:SetMnemonic(mnemonic)
         me:mnemonic = mnemonic
     end
 

@@ -7,6 +7,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.GameStateManager
+use Libraries.Interface.AccessibilityManager
 
 /*
 The Label class is used to draw text on the screen using a Font that is loaded
@@ -275,6 +276,18 @@ class Label is Control
         if targetText not= newText
             targetText = newText
             textChanged = true
+
+            /*
+            If this label doesn't have a custom description, labels use their
+            text as the description instead, so inform the underlying
+            accessibility architecture.
+            */
+            if parent:Item:GetDescription() = ""
+                AccessibilityManager accessibility = manager:GetAccessibilityManager()
+                if accessibility not= undefined
+                    accessibility:DescriptionChanged(me)
+                end
+            end
         end
     end
 
@@ -809,14 +822,12 @@ class Label is Control
 
     end
 
-    integer drawableCounter = 0
-
     private action GetDrawable returns Drawable
         if drawablePool:IsEmpty() = false
             Drawable drawable = drawablePool:RemoveFromEnd()
+            drawable:Show()
             return drawable
         else
-            drawableCounter = drawableCounter + 1
             Drawable drawable
             return drawable
         end
