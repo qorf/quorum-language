@@ -20,8 +20,12 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.SetupDisplay = function()
     {
-        var id = configuration.canvasID;
-        canvas = document.getElementById(id);
+        if (typeof currentIDECanvas_$Global_ !== 'undefined') {
+            canvas = document.getElementById(currentIDECanvas_$Global_);
+        } else {
+            var id = configuration.canvasID;
+            canvas = document.getElementById(id);
+        }
     };
     
     this.GetCanvas = function()
