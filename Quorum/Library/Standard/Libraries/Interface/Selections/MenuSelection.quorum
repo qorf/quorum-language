@@ -73,4 +73,20 @@ class MenuSelection is Selection
     action GetPath returns Array<MenuItem>
         return menuItems:CopyToArray()
     end
+
+    /*
+        This action returns the last MenuItem in the path of the selection. This
+        is typically the "active" selection, e.g. what changes when the user uses
+        navigation keys or what will trigger when activated via keystroke. If
+        the selection is empty, this will return undefined.
+
+        Attribute: Returns The last MenuItem in the path of this selection.
+    */
+    action GetLastItemInPath returns MenuItem
+        if IsEmpty()
+            return undefined
+        else
+            return menuItems:GetFromEnd()
+        end
+    end
 end

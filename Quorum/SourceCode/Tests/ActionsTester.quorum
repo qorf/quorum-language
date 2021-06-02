@@ -108,6 +108,7 @@ class ActionsTester
         BadVariableInParameter()
         BadVariableInReturn()
         DoubleConstructor()
+        FieldSoloAction()
         HOCUndefinedVariable()
         HOCReturnIntFromMain()
         HOCReturnIntFromMainDeclared()
@@ -1254,6 +1255,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "HOCUndeclaredFunction.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action FieldSoloAction
+        Array<File> files
+        File main
+        main:SetPath(path + "FieldSoloAction.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

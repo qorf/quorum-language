@@ -6,10 +6,17 @@
 package plugins.quorum.Libraries.Network;
 
 import com.sun.net.httpserver.HttpExchange;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import quorum.Libraries.Containers.HashTable;
 import quorum.Libraries.Containers.HashTable_;
 import quorum.Libraries.Language.Types.Text;
@@ -34,23 +41,51 @@ public class NetworkExchange {
         body.close();
     }
     
-    public HashTable_ GetParameters() throws UnsupportedEncodingException {
+    public HashTable_ GetParameters() throws UnsupportedEncodingException, IOException {
         HashTable table = new HashTable();
-        String raw = uri.getRawQuery();
-        String[] params = raw.split("&");
+        boolean urlencdoded = false;
+        List<String> list = exchange.getRequestHeaders().get("Content-type");
+        if(list != null && list.size() > 0) {
+            String type = list.get(0);
+            if(type.compareTo("application/x-www-form-urlencoded") == 0)
+            {
+                urlencdoded = true;
+            }
+        }
+        String rawQuery = "";
+        if(urlencdoded) {
+            InputStream requestBody = exchange.getRequestBody();
+            StringBuilder textBuilder = new StringBuilder();
+            try (Reader reader = new BufferedReader(new InputStreamReader
+              (requestBody, Charset.forName(StandardCharsets.UTF_8.name())))) {
+                int c = 0;
+                while ((c = reader.read()) != -1) {
+                    textBuilder.append((char) c);
+                }
+            }
+            
+            requestBody.close();
+            rawQuery = textBuilder.toString();
+        } else {
+            rawQuery = uri.getRawQuery();
+        }
         
+        if(rawQuery == null) {
+            return table;
+        }
+        String[] params = rawQuery.split("&");
+
         for(int i = 0; i < params.length; i++) {
             String[] split = params[i].split("=");
             Text left = new Text();
             Text right = new Text();
-            
+
             left.SetValue(java.net.URLDecoder.decode(split[0], ENCODING));
             if(split.length > 1) {
                 right.SetValue(java.net.URLDecoder.decode(split[1], ENCODING));
             }
             table.Add(left, right);
         }
-        
         return table;
     }
     

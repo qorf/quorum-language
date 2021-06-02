@@ -13,6 +13,7 @@ class FirstLetterNavigator
     GameStateManager manager
 
     action FirstLetterCharactersTyped(text newCharacters)
+        newCharacters = newCharacters:ToLowerCase()
         number threshold = manager:GetGame():GetFirstLetterNavigationTime()
         number currentTime = manager:GetGameDisplay():GetSecondsSinceStart()
 
@@ -28,7 +29,8 @@ class FirstLetterNavigator
     end
 
     /*
-    This action selects an item using first letter navigation.
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
     */
     blueprint action SelectByFirstLetters(text firstLetters)
 

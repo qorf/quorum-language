@@ -190,6 +190,7 @@ use Libraries.System.File
 use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
+use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1371,6 +1372,9 @@ class Game
         menuRootTable:Add(leftArrow, menuLeftBehavior)
         menuRootTable:Add(rightArrow, menuRightBehavior)
 
+        MenuMnemonicBehavior mnemonicBehavior
+        menuRootTable:Add(textInputSet, mnemonicBehavior)
+
         InputSet spaceBar
         spaceBar:SetKeyboardInput(keys:SPACE)
 
@@ -1554,6 +1558,8 @@ class Game
         treeTableInputTable:Add(rightArrow, treeTableRightBehavior)
         treeTableInputTable:Add(spaceSet, treeTableActivate)
 
+        treeTableInputTable:Add(textInputSet, firstLetterNavigateBehavior)
+
         gameInput:AddInputTable(treeTableInputTable)
 
         InputTable treeTableCellTable
@@ -1576,6 +1582,8 @@ class Game
         listInputTable:Add(downArrow, listDownBehavior)
         listInputTable:Add(upArrow, listUpBehavior)
         listInputTable:Add(spaceSet, listActivate)
+
+        listInputTable:Add(textInputSet, firstLetterNavigateBehavior)
 
         gameInput:AddInputTable(listInputTable)
 

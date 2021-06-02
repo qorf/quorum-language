@@ -22,9 +22,9 @@ use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.Language.Compile.CompilerRequest
-use Libraries.Network.WebServer
 use Libraries.Network.NetworkExchangeListener
 use Libraries.Network.NetworkExchange
+use Libraries.Network.WebServer
 
 class Main is NetworkExchangeListener
     public constant text NAME_FLAG = "-name"
@@ -45,10 +45,10 @@ class Main is NetworkExchangeListener
     Library sharedLibrary = undefined
     DateTime time
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //CompileTest()
         //GenerateDocumentation()
-        StartServer(DEFAULT_PORT)
+        //StartServer(DEFAULT_PORT)
     end
 
     action GenerateDocumentation(Array<text> fileNames)
@@ -216,7 +216,7 @@ class Main is NetworkExchangeListener
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetAbsolutePath("/Users/stefika/Quorum Studio/Physics3DApplication/SourceCode/Main.quorum")
+        main:SetAbsolutePath("/Users/stefika/Quorum Studio/MainApplication3234234234/SourceCode/Main.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
@@ -387,7 +387,6 @@ class Main is NetworkExchangeListener
         request:mainOnlyJavaScript = true
 
         output "Starting " + compiler:GetVersion() + " Server"
-        output "Finding Standard Library."
         File root
         root:SetPath("")
         compiler:SetOutputFolder(root)
@@ -428,7 +427,6 @@ class Main is NetworkExchangeListener
 
         output "Booting Web Server on port " + port
         WebServer server
-        
 
         server:Create(port)
         server:Add("/", me)
@@ -437,56 +435,58 @@ class Main is NetworkExchangeListener
     end
 
     action ResponseReceived(NetworkExchange exchange)
-        
         text response = "No Quorum Code Sent to Server."
-        HashTable<text, text> params = exchange:GetParameters()
-        
-        if params = undefined
+        check
+            HashTable<text, text> params = exchange:GetParameters()
+            if params = undefined
+                exchange:SendResponseHeaders(200, response:GetSize())
+                exchange:SendResponse(response)
+                return now
+            end
+    
+            //by default the server sends a parmater called code, with the code in it.
+            if not params:HasKey("code")
+                exchange:SendResponseHeaders(200, response:GetSize())
+                exchange:SendResponse(response)
+                return now
+            end
+            text query = params:GetValue("code")
+            number start = time:GetEpochTime()
+    
+            Compiler compiler
+            File main
+            compiler:SetOutputType(compiler:JAVASCRIPT)
+            
+            CompilerRequest compilerRequest
+            
+            Array<File> files
+            files:Add(main)
+    
+            compilerRequest:recompile = main
+            compilerRequest:recompileValue = query
+            compilerRequest:SetOutputType(compilerRequest:JAVASCRIPT)
+            compilerRequest:main = main
+            compilerRequest:library = sharedLibrary
+            compilerRequest:files = files
+            
+            CompilerResult compilerResult = compiler:Compile(compilerRequest)
+            CompilerErrorManager manager = compilerResult:compilerErrorManager
+    
+            response = ""
+            if manager:IsCompilationErrorFree()
+                response = compilerResult:convertedJavaScript
+            else
+                response = manager:GetCompilerErrorsAsHTML()
+            end
+            
+            
             exchange:SendResponseHeaders(200, response:GetSize())
             exchange:SendResponse(response)
-            return now
-        end
-
-        //by default the server sends a parmater called code, with the code in it.
-        if not params:HasKey("code")
-            exchange:SendResponseHeaders(200, response:GetSize())
-            exchange:SendResponse(response)
-            return now
-        end
-        text query = params:GetValue("code")
-        number start = time:GetEpochTime()
-
-        Compiler compiler
-        File main
-        compiler:SetOutputType(compiler:JAVASCRIPT)
-        
-        CompilerRequest compilerRequest
-        
-        Array<File> files
-        files:Add(main)
-
-        compilerRequest:recompile = main
-        compilerRequest:recompileValue = query
-        compilerRequest:SetOutputType(compilerRequest:JAVASCRIPT)
-        compilerRequest:main = main
-        compilerRequest:library = sharedLibrary
-        compilerRequest:files = files
-        
-        CompilerResult compilerResult = compiler:Compile(compilerRequest)
-        CompilerErrorManager manager = compilerResult:compilerErrorManager
-
-        response = ""
-        if manager:IsCompilationErrorFree()
-            response = compilerResult:convertedJavaScript
-        else
-            response = manager:GetCompilerErrorsAsHTML()
-        end
-        
-        
-        exchange:SendResponseHeaders(200, response:GetSize())
-        exchange:SendResponse(response)
-        number stop = time:GetEpochTime()
-        output "Time: " + (stop - start)
+            number stop = time:GetEpochTime()
+            output "Time: " + (stop - start)
+        detect e
+            output e:GetStackTraceMessage()
+        end        
     end
 
     /*

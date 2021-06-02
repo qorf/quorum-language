@@ -1,0 +1,53 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.MenuRoot
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Interface.Events.TextInputEvent
+use Libraries.Interface.Selections.MenuSelection
+use Libraries.Containers.Iterator
+
+class MenuMnemonicBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        Object item = event:GetItem()
+        if item is MenuRoot
+            MenuRoot root = cast(MenuRoot, item)
+            TextInputEvent textEvent = event:GetTextInputEvent()
+            text inputText = textEvent:GetText():ToLowerCase()
+            MenuSelection selection = root:GetSelection()
+            Iterator<MenuItem> iterator = undefined
+
+            integer pathLength = selection:GetPathLength()
+            if pathLength > 1
+                iterator = selection:GetLastItemInPath():GetParentMenu():GetMenuItems()
+            else
+                iterator = root:GetIterator()
+            end
+
+            repeat while iterator:HasNext()
+                MenuItem current = iterator:Next()
+                text mnemonic = current:GetMnemonic()
+                if mnemonic not= undefined and mnemonic:ToLowerCase() = inputText
+                    if current:IsMenu()
+                        if current:IsOpen() = false
+                            current:Open()
+                        end
+
+                        // Select the first item in the submenu
+                        current:GetMenuItems():Next():Select()
+                    else
+                        current:Activate()
+                    end
+                    return now
+                end
+            end
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+
+end

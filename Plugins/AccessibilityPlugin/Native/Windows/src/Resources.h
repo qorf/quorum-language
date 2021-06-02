@@ -160,6 +160,11 @@ struct JClass_ProgressBar
 	jmethodID GetMinimum;
 	jmethodID GetMaximum;
 };
+struct JClass_MenuItem
+{
+	jclass me;
+	jmethodID GetMnemonic;
+};
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
@@ -177,3 +182,4 @@ extern JClass_TreeTable JavaClass_TreeTable;
 extern JClass_Cell JavaClass_Cell;
 extern JClass_ListItem JavaClass_ListItem;
 extern JClass_ProgressBar JavaClass_ProgressBar;
+extern JClass_MenuItem JavaClass_MenuItem;
