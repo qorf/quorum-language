@@ -1,0 +1,32 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Controls.Icon
+
+class Bar
+    number barHeight = 0
+    text barName = ""
+    Icon barIcon
+
+    action SetIcon(Icon icon)
+        barIcon = icon
+    end
+    action GetIcon() returns Icon
+        return barIcon
+    end
+    action SetName(text name)
+        barName = name
+    end
+    
+    action GetName() returns text
+        return barName
+    end
+
+    action SetHeight(number height)
+        barHeight = height
+    end
+    
+    action GetHeight() returns number
+        return barHeight
+    end
+
+end

@@ -15,6 +15,8 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.Charts.BarChart
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Controls.Charts.BarGroup
 
 /*
     This class is used to create a Bar Chart from columns of data in a DataFrame.
@@ -203,7 +205,98 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             
             number percent = value / max
             
-            chart:AddBar(key, percent)
+            BarGroup group
+            group:SetName(key)
+            Bar bar
+            bar:SetName(key)
+            bar:SetHeight(percent)
+            group:AddBar(bar)
+            chart:AddBarGroup(group)
+        end
+
+        SetTicks(chart)
+        SetScale(chart, min, max)
+        return chart
+    end
+
+private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BarChart
+        BarChart chart
+
+        Summarize summary
+        column:Calculate(summary)
+        number max = summary:GetMaximum()
+        number min = summary:GetMinimum()
+        HashTable<text, HashTable<text, number>> groupingFactor    
+        i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
+                number valueForName = column:GetAsNumber(i)
+                //number percent = valueForName / max
+                
+                
+                //chart:AddBar(factor:GetAsText(i), percent)
+                if(groupingFactor:HasKey(factor1:GetAsText(i)))
+                       if(groupingFactor:GetValue(factor1:GetAsText(i)):HasKey(factor2:GetAsText(i)))
+                            valueForName = valueForName + groupingFactor:GetValue(factor1:GetAsText(i)):GetValue(factor2:GetAsText(i))
+                            groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                       else
+                            groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                       end
+                else
+                    HashTable<text, number> innerGrouping
+                    groupingFactor:Add(factor1:GetAsText(i), innerGrouping)
+                    groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                end
+            end
+            
+            i = i + 1
+        end
+
+        Array<HashTable<text, number>> valueArray = groupingFactor:CopyToValueArray()
+        if(valueArray:GetSize() > 0)
+            Array<number> innerValue = valueArray:Get(0):CopyToValueArray()
+            if(innerValue:GetSize() > 0)
+                max = innerValue:Get(0)
+                min = innerValue:Get(0)
+            end
+        end
+        i = 0
+        repeat while i < valueArray:GetSize()
+            Array<number> innerValue = valueArray:Get(i):CopyToValueArray()
+            integer j = 0
+            repeat while j < innerValue:GetSize()
+                if(innerValue:Get(j) > max)
+                    max = innerValue:Get(j)
+                end
+    
+                if(innerValue:Get(j) < min)
+                    min = innerValue:Get(j)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        Iterator<text> it = groupingFactor:GetKeyIterator()
+        repeat while it:HasNext()
+            text key = it:Next()
+            HashTable<text, number> innerHash = groupingFactor:GetValue(key)
+
+            BarGroup group
+            group:SetName(key)
+            Iterator<text> innerIt = innerHash:GetKeyIterator()
+            repeat while innerIt:HasNext()
+                text innerKey = innerIt:Next()
+                number value = innerHash:GetValue(innerKey)
+
+                number percent = value / max
+                //chart:AddBar(innerKey, percent)
+                Bar innerBar
+                innerBar:SetName(innerKey)
+                innerBar:SetHeight(percent)
+                group:AddBar(innerBar)
+            end
+            chart:AddBarGroup(group)
         end
 
         SetTicks(chart)
@@ -225,6 +318,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             return CreateChart(factor, column)
+        elseif GetColumnSize() = 1 and GetFactorSize() = 2
+            DataFrameColumn factor1 = frame:GetColumn(GetFactor(0))
+            DataFrameColumn factor2 = frame:GetColumn(GetFactor(1))
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            return CreateChart(factor1, factor2, column)
         end
     
 

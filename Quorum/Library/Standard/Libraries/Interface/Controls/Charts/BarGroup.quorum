@@ -1,0 +1,29 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Bar
+
+class BarGroup
+    Array<Bar> bars
+    text groupName = ""
+
+    action AddBar(Bar newBar)
+        bars:Add(newBar)
+    end
+
+    action SetName(text name)
+        groupName = name
+    end
+    
+    action GetName() returns text
+        return groupName
+    end
+
+    action GetSize() returns integer
+        return bars:GetSize()
+    end
+
+    action Get(integer i) returns Bar
+        return bars:Get(i)
+    end
+end
