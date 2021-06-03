@@ -25,27 +25,30 @@ class SharedBarChartLayout is ChartLayout
         Array<BarGroup> barGroups = chart:GetBarGroups()
         Drawable axis = chart:GetXAxis()
 
-        outerPadding = cast(integer, (chartAreaContainer:GetWidth() * (5/100)) / 2)
-        innerPadding = cast(integer, ((chartAreaContainer:GetWidth() - outerPadding*2) * (10/100)) / (barGroups:GetSize()-1))
-
-        barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
-        number barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2
-
+        number currentXPosition = 0
         if not barGroups:IsEmpty()
+            outerEdgePadding = cast(integer, (((chartAreaContainer:GetWidth() * 5)/100) / 2)) //Uses 5% of space
+            betweenGroupPadding = cast(integer, (((chartAreaContainer:GetWidth() * 10)/ 100) / (barGroups:GetSize()-1))) //Uses 10% of space
+            betweenBarPadding = cast(integer, (((chartAreaContainer:GetWidth() * 5)/ 100) / chart:GetNumberOfBars())) //Uses 2% of space
+            totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(barGroups:GetSize()-1) + betweenBarPadding*chart:GetNumberOfBars()))
+            
+            remainingArea = cast(integer, (chartAreaContainer:GetWidth() - totalPadding)) //Total remaining space on chart for bars
+            barWidth = cast(integer, remainingArea / chart:GetNumberOfBars())
+            
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             barY = originPointY
-            number xOrig = originPointX + chartAreaContainer:GetWidth()*barOffset
+            currentXPosition = currentXPosition + outerEdgePadding
             integer i = 0
-            integer barCount = 0
             repeat while i < barGroups:GetSize()
                 integer j = 0
                 repeat while j < barGroups:Get(i):GetSize()
                     currentBar = barGroups:Get(i):Get(j):GetIcon()
-                    number barX = xOrig + barDivWidth * (barCount)
-                    currentBar:SetPosition(barX, barY)
+                    currentBar:SetWidth(barWidth)
+                    currentBar:SetPosition(currentXPosition, barY)
+                    currentXPosition = currentXPosition + barWidth + betweenBarPadding
                     j = j + 1
-                    barCount = barCount + 1
                 end
+                currentXPosition = currentXPosition + betweenGroupPadding
                 i = i + 1
             end
         end
