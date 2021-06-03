@@ -22,6 +22,11 @@ class Bar
     end
 
     action SetHeight(number height)
+        if height < 0
+            height = 0
+        elseif height > 1.0
+            height = 1.0
+        end
         barHeight = height
     end
     

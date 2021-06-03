@@ -120,7 +120,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while i < namesArray:GetSize()
             number valueForName = hash:GetValue(namesArray:Get(i))
             number percent = valueForName / max
-            chart:AddBar(namesArray:Get(i), percent)
+
+            BarGroup group
+            group:SetName(namesArray:Get(i))
+            Bar bar
+            bar:SetName(namesArray:Get(i))
+            bar:SetHeight(percent)
+            group:AddBar(bar)
+            chart:AddBarGroup(group)
             i = i + 1
         end 
         SetTicks(chart)

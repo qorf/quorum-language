@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.BarGroup
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
@@ -21,20 +22,30 @@ class SharedBarChartLayout is ChartLayout
         originPointX = 0
         originPointY = 0
 
+        Array<BarGroup> barGroups = chart:GetBarGroups()
         Drawable axis = chart:GetXAxis()
+
+        outerPadding = cast(integer, (chartAreaContainer:GetWidth() * (5/100)) / 2)
+        innerPadding = cast(integer, ((chartAreaContainer:GetWidth() - outerPadding*2) * (10/100)) / (barGroups:GetSize()-1))
+
         barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
         number barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2
-        Array<Icon> bars = chart:GetBars()
-        if not bars:IsEmpty()
-            Icon currentBar = bars:Get(0)
+
+        if not barGroups:IsEmpty()
+            Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             barY = originPointY
             number xOrig = originPointX + chartAreaContainer:GetWidth()*barOffset
             integer i = 0
-            repeat while i < bars:GetSize()
-                currentBar = bars:Get(i)
-                number bump = currentBar:GetWidth()
-                number barX = xOrig + barDivWidth * (i)
-                currentBar:SetPosition(barX, barY)
+            integer barCount = 0
+            repeat while i < barGroups:GetSize()
+                integer j = 0
+                repeat while j < barGroups:Get(i):GetSize()
+                    currentBar = barGroups:Get(i):Get(j):GetIcon()
+                    number barX = xOrig + barDivWidth * (barCount)
+                    currentBar:SetPosition(barX, barY)
+                    j = j + 1
+                    barCount = barCount + 1
+                end
                 i = i + 1
             end
         end
