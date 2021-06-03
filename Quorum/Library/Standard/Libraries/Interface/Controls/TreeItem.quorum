@@ -534,6 +534,11 @@ class TreeItem is Control
         end
         panelProperties:SetPixelX(height/2 * 3)
 
+        if IsSelected()
+            // If this is selected, we need the visuals to reflect that.
+            GainedSelection()
+        end
+
         parent:Control:LoadGraphics(properties)
     end
 
@@ -547,6 +552,10 @@ class TreeItem is Control
             return false
         end
         Array<TreeItem> path = GetTree():GetSelection():GetPath()
+        if path:IsEmpty()
+            return false
+        end
+
         return path:GetFromEnd() = me
     end
 end

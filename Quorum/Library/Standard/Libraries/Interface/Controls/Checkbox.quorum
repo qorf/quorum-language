@@ -137,6 +137,12 @@ class Checkbox is ToggleButton
             buttonIcon:SetView2D(checkboxView)
             checkboxView:SetToggleState(parent:ToggleButton:toggled)
         end
+
+        boolean toggleState = parent:ToggleButton:toggled
+        if buttonIcon:GetView2D() is ToggleView
+            ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
+            content:SetToggleState(toggleState)
+        end
     end
 
     /*

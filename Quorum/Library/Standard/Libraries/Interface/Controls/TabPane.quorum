@@ -100,6 +100,10 @@ class TabPane is Control
         end
         currentItem = item
         Resize()
+        if item not= undefined and item is Control
+            Control control = cast(Control, item)
+            control:RequestLayout()
+        end
     end
 
     action GetCurrentItem returns Item2D

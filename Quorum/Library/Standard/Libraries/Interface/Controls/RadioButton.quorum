@@ -155,5 +155,11 @@ class RadioButton is ToggleButton
             radioView:Initialize(label:GetLineHeight() / 2, properties)
             buttonIcon:SetView2D(radioView)
         end
+
+        boolean toggleState = parent:ToggleButton:toggled
+        if buttonIcon:GetView2D() is ToggleView
+            ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
+            content:SetToggleState(toggleState)
+        end
     end
 end
