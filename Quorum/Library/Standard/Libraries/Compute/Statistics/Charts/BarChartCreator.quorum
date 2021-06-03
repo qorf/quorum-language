@@ -159,18 +159,53 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         column:Calculate(summary)
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
-            
+        HashTable<text, number> groupingFactor    
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor:IsUndefined(i)
                 number valueForName = column:GetAsNumber(i)
-                number percent = valueForName / max
+                //number percent = valueForName / max
                 
-                chart:AddBar(factor:GetAsText(i), percent)
+                //chart:AddBar(factor:GetAsText(i), percent)
+                if(groupingFactor:HasKey(factor:GetAsText(i)))
+                    valueForName = valueForName + groupingFactor:GetValue(factor:GetAsText(i))
+                    groupingFactor:Add(factor:GetAsText(i), valueForName)
+                else
+                    groupingFactor:Add(factor:GetAsText(i), valueForName)
+                end
             end
             
             i = i + 1
         end
+
+        Array<number> valueArray = groupingFactor:CopyToValueArray()
+        if(valueArray:GetSize() > 0)
+            max = valueArray:Get(0)
+            min = valueArray:Get(0)
+        end
+        i = 0
+        repeat while i < valueArray:GetSize()
+            if(valueArray:Get(i) > max)
+                max = valueArray:Get(i)
+            end
+
+            if(valueArray:Get(i) < min)
+                min = valueArray:Get(i)
+            end
+            
+            i = i + 1
+        end
+
+        Iterator<text> it = groupingFactor:GetKeyIterator()
+        repeat while it:HasNext()
+            text key = it:Next()
+            number value = groupingFactor:GetValue(key)
+            
+            number percent = value / max
+            
+            chart:AddBar(key, percent)
+        end
+
         SetTicks(chart)
         SetScale(chart, min, max)
         return chart
@@ -191,6 +226,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             return CreateChart(factor, column)
         end
+    
 
         return undefined
     end
