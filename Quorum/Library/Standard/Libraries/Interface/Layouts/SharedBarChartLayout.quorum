@@ -13,6 +13,10 @@ use Libraries.Interface.Controls.Charts.BarGroup
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
+    integer outerEdgePadding = 0
+    integer betweenGroupPadding = 0
+    integer betweenBarPadding = 0
+    integer barWidth = 0
     action LayoutChartContent(Chart control, Control chartAreaContainer)
         if not (control is SharedBarChartParent)
             return now
@@ -74,6 +78,8 @@ class SharedBarChartLayout is ChartLayout
         number xOrig = originPointX + chartAreaContainer:GetWidth()*barOffset
         Array<Drawable> ticks = chart:GetXTicks()
 
+        Array<BarGroup> barGroups = chart:GetBarGroups()
+
         //bump and label tick bump
         number bump = chart:GetNumberOfBars() / (ticks:GetSize() * 1.0)
         if not ticks:IsEmpty()
@@ -85,13 +91,14 @@ class SharedBarChartLayout is ChartLayout
             Drawable currentTick = ticks:Get(0)
             number tickX = originPointX + chartAreaContainer:GetWidth()*barOffset
             integer tickY = originPointY - cast(integer, currentTick:GetHeight())
-            
+            number barX = outerEdgePadding
             integer i = 0
             repeat while i < ticks:GetSize()
                 currentTick = ticks:Get(i)
-                integer barIndex = cast(integer, math:Round(bump * i))
-                Icon bar = chart:GetBars():Get(barIndex)
-                number barX = bar:GetX() + (bar:GetWidth() / 2.0) - (currentTick:GetWidth() / 2.0)
+                barX = barX + barGroupsGet(i)
+                //integer barIndex = cast(integer, math:Round(bump * i))
+                //Icon bar = chart:GetBars():Get(barIndex)
+                //number barX = bar:GetX() + (bar:GetWidth() / 2.0) - (currentTick:GetWidth() / 2.0)
                 currentTick:SetPosition(barX, tickY)
                 tickX = tickX + (barDivWidth * bump)
                 i = i + 1
