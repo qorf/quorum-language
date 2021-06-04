@@ -350,7 +350,8 @@ class Tree is Control, FirstLetterNavigator
     end
 
     /*
-    This action selects an item using first letter navigation.
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
     */
     action SelectByFirstLetters(text firstLetters)
         /* 
@@ -365,9 +366,6 @@ class Tree is Control, FirstLetterNavigator
 
         TreeItem firstCandidate = undefined
 
-        // We ignore case sensitivity when we're selecting in this way.
-        text filter = firstLetters:ToLowerCase()
-
         TreeSelection selection = GetSelection()
         TreeItem originalSelection = selection:GetTreeItem()
 
@@ -378,7 +376,7 @@ class Tree is Control, FirstLetterNavigator
 
         integer counter = 0
         repeat while counter < treeItems:GetSize()
-            TreeItem result = RecursiveSelectByFirstLetters(treeItems:Get(counter), filter, foundOriginalSelection, originalSelection)
+            TreeItem result = RecursiveSelectByFirstLetters(treeItems:Get(counter), firstLetters, foundOriginalSelection, originalSelection)
             if firstCandidate = undefined
                 firstCandidate = result
             end
@@ -405,6 +403,8 @@ class Tree is Control, FirstLetterNavigator
 
         TreeItem firstValid = undefined
 
+        // We test with the lower case letters because we ignore case sensitivity,
+        // and the incoming filter characters are guaranteed to be lower case.
         if currentCandidate:GetName():ToLowerCase():StartsWith(firstLetters)
             if foundOriginalSelection:GetValue() = true
                 return currentCandidate

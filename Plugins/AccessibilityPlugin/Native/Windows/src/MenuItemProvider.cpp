@@ -22,6 +22,7 @@ CONTROLTYPEID MenuItemProvider::GetControlType() const noexcept
 void MenuItemProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* retVal) const
 {
 	JNIEnv* env;
+	std::wstring access;
 
 	switch (propertyId)
 	{
@@ -29,6 +30,15 @@ void MenuItemProvider::GetControlSpecificPropertyValue(PROPERTYID propertyId, _O
 			retVal->bstrVal = wil::make_bstr(m_control->GetShortcut().c_str()).release();
 			retVal->vt = VT_BSTR;
 			break;
+		case UIA_AccessKeyPropertyId:
+			access = m_control->GetMnemonic();
+			if (access.compare(L"") != 0)
+			{
+				retVal->bstrVal = wil::make_bstr(access.c_str()).release();
+				retVal->vt = VT_BSTR;
+			}
+			break;
+
 		case UIA_PositionInSetPropertyId:
 			env = GetJNIEnv();
 			if (env == NULL)

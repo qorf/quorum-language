@@ -11,8 +11,9 @@ use Libraries.Interface.Selections.TreeTableSelection
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Game.Game
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
-class TreeTable is Control
+class TreeTable is Control, FirstLetterNavigator
     Array<TreeTableColumn> columns
     Array<TreeTableRow> rows
     TreeTableSelection selection
@@ -771,5 +772,63 @@ class TreeTable is Control
         end
 
         manager:GetInput():NotifyTreeTableChangeListeners(event)
+    end
+
+    /*
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
+    */
+    action SelectByFirstLetters(text firstLetters)
+        TreeTableSelection selection = GetSelection()
+
+        // Ignore attempts to first letter navigate if any column other than the first is selected
+        if selection:GetColumn() > 0
+            return now
+        end
+
+        /* 
+        We prioritize returning the original selection or the next item
+        after it over items found before the original selection.
+        We use a Boolean object so that we can pass it as a parameter and
+        see if the value has changed via side effects (essentially, it's an
+        extra return value).
+        */
+        boolean foundOriginalSelection = false
+
+        TreeTableCell firstCandidate = undefined
+        TreeTableCell originalSelection = selection:Get()
+
+        if originalSelection = undefined
+            // If there's no current selection, we want to return the first result we find that matches.
+            foundOriginalSelection = true
+        end
+
+        TreeTableColumn column = columns:Get(0)
+
+        integer counter = 0
+        repeat while counter < column:GetSize()
+            TreeTableCell result = column:GetCell(counter)
+            if result = originalSelection
+                foundOriginalSelection = true
+            end
+
+            if result:GetText():ToLowerCase():StartsWith(firstLetters)
+                // If we've found a valid result and we've already found the original selection,
+                // we've found our desired item. Select it and return.
+                if foundOriginalSelection = true
+                    result:Select()
+                    return now
+                elseif firstCandidate = undefined
+                    firstCandidate = result
+                end
+            end
+            
+            counter = counter + 1
+        end
+
+        // If we've reached this point, we didn't find a valid candidate without looping around to the beginning.
+        if firstCandidate not= undefined
+            firstCandidate:Select()
+        end
     end
 end

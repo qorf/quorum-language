@@ -36,6 +36,7 @@ JClass_Spreadsheet JavaClass_Spreadsheet;
 JClass_Cell JavaClass_Cell;
 JClass_ProgressBar JavaClass_ProgressBar;
 JClass_Item JavaClass_Item;
+JClass_MenuItem JavaClass_MenuItem;
 
 int outputCounter = 0;
 
@@ -316,12 +317,21 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion
 
+	/*********
+	* MenuItem
+	**********/
+#pragma region MenuItem
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/MenuItem_");
 
+	// Assign the ClassId as a Global Reference
+	JavaClass_MenuItem.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 
+	// Load the method ids
+	JavaClass_MenuItem.GetMnemonic = env->GetMethodID(JavaClass_MenuItem.me, "GetMnemonic", "()Ljava/lang/String;");
+	// Delete local reference
+	env->DeleteLocalRef(tempLocalClassRef);
 
-
-
-
+#pragma endregion
 
 	/*************
 	* ToolBar
