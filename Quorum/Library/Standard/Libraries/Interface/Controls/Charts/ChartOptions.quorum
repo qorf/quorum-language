@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
 
 /*
     This class represents the default options any chart will use when displaying information in a chart. These options
@@ -20,6 +21,8 @@ shared class ChartOptions
     Color selectionColor = undefined
     integer tickDigits = 1
 
+    Array<Color> colorPalette
+
     on create
         Color color
         if barColor = undefined
@@ -29,6 +32,16 @@ shared class ChartOptions
         if selectionColor = undefined
             selectionColor = color:Blue()
         end
+
+        colorPalette:Add(color:Navy())
+        colorPalette:Add(color:Red())
+        colorPalette:Add(color:Green())
+        colorPalette:Add(color:Orange())
+        colorPalette:Add(color:Yellow())
+        colorPalette:Add(color:Black())
+        colorPalette:Add(color:Purple())
+        colorPalette:Add(color:Blue())
+        colorPalette:Add(color:Gray())
     end
 
     /* 
@@ -38,6 +51,14 @@ shared class ChartOptions
     */
     action GetBarColor returns Color
         return barColor
+    end
+
+    action GetColorFromPalette(integer index) returns Color
+        return colorPalette:Get(index mod colorPalette:GetSize())
+    end
+
+    action SetPalette(Array<Color> colorPalette)
+        me:colorPalette = colorPalette
     end
 
     /*

@@ -491,14 +491,14 @@ class Chart is Control
 
         if GetXAxis() = undefined
             Drawable line
-            line:LoadFilledRectangle(cast(integer, GetWidth() * 0.8), 5)
+            line:LoadFilledRectangle(cast(integer, GetWidth() * 0.75), 5)
             SetXAxis(line)
             chartArea:Add(line)
         end
 
         if GetYAxis() = undefined
             Drawable line
-            line:LoadFilledRectangle(5, cast(integer, GetHeight() * 0.8))
+            line:LoadFilledRectangle(5, cast(integer, GetHeight() * 0.75))
             SetYAxis(line)
             chartArea:Add(line)
         end

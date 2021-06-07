@@ -18,6 +18,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Interface.Controls.Charts.Series
 
 class SharedBarChartParent is Chart
     private ChartItem summary // root of the tree
@@ -26,6 +27,7 @@ class SharedBarChartParent is Chart
     Array<number> barHeights
     Array<text> barNames
     Array<BarGroup> barGroups
+    Array<Series> seriesList
 
     integer yTickSteps = 2
     integer xTickSteps = -1
@@ -243,12 +245,19 @@ class SharedBarChartParent is Chart
     end
 
     /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
     */
     action GetBarGroups returns Array<BarGroup>
         return barGroups
+    end
+
+    /*
+    */
+    action GetSeriesList returns Array<Series>
+        return seriesList
+    end
+
+    action AddSeries(Series series)
+        seriesList:Add(series)
     end
 
     /*
@@ -486,6 +495,7 @@ class SharedBarChartParent is Chart
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
 
+
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
             yLabels:SetSize(GetYTickSteps())
@@ -573,14 +583,14 @@ class SharedBarChartParent is Chart
                     //make bars
                     number height = GetBarHeight(barGroups:Get(i), j)
                     number width = GetBarWidth()
-                    Icon temp
+                    Icon temp = barGroups:Get(i):Get(j):GetIcon()
                     temp:LoadFilledRectangle(cast(integer, width), cast(integer, height), barColor)
                     temp:SetName("Bar Group " + (i + 1) + "Bar " + (j + 1))
                     temp:SetFocusable(true)
                     temp:SetAccessibilityCode(parent:Item:ITEM)
                     temp:SetNextFocus(GetNextFocus())
                     temp:SetPreviousFocus(GetPreviousFocus())
-                    barGroups:Get(i):Get(j):SetIcon(temp)
+                    //barGroups:Get(i):Get(j):SetIcon(temp)
                     bars:Set(barCount, temp)
                     chartArea:Add(bars:Get(barCount))
                     j = j + 1
@@ -589,9 +599,23 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
 
+            i = 0
+            repeat while i < seriesList:GetSize()
+                Series series = seriesList:Get(i)
+                series:SetColor(options:GetColorFromPalette(i))
+                integer j = 0
+                repeat while j < series:GetSize()
+                    series:GetItem(j):SetColor(series:GetColor())
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            
             if IsShowingLegend()
                 Add(GetLegend())
             end
+
+            //AdjustForLegend()
         end
     end
 
@@ -676,6 +700,16 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
         end
+        AdjustForLegend()
         parent:Chart:Resize()
+    end
+
+    action AdjustForLegend()
+        if IsShowingLegend()
+            GetLegend():Resize()
+            number legendPercent = GetLegend():GetWidth() / parent:Chart:GetWidth()
+            number remainingChartArea = 1 - 0.15 //0.15 is hardcoded elsewhere as a flat xOrigOffset
+            SetChartAreaWidthPercent(remainingChartArea - legendPercent)
+        end
     end
 end

@@ -31,12 +31,12 @@ class SharedBarChartLayout is ChartLayout
 
         number currentXPosition = 0
         if not barGroups:IsEmpty()
-            outerEdgePadding = cast(integer, (((chartAreaContainer:GetWidth() * 5)/100) / 2)) //Uses 5% of space
-            betweenGroupPadding = cast(integer, (((chartAreaContainer:GetWidth() * 10)/ 100) / (barGroups:GetSize()-1))) //Uses 10% of space
-            betweenBarPadding = cast(integer, (((chartAreaContainer:GetWidth() * 5)/ 100) / chart:GetNumberOfBars())) //Uses 2% of space
+            outerEdgePadding = cast(integer, ((axis:GetWidth() * 0.05) / 2)) //Uses 5% of space
+            betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1))) //Uses 10% of space
+            betweenBarPadding = cast(integer, ((axis:GetWidth() * 0.05) / (chart:GetNumberOfBars() - barGroups:GetSize()))) //Uses 5% of space
             totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(barGroups:GetSize()-1) + betweenBarPadding*chart:GetNumberOfBars()))
             
-            remainingArea = cast(integer, (chartAreaContainer:GetWidth() - totalPadding)) //Total remaining space on chart for bars
+            remainingArea = cast(integer, (axis:GetWidth() - totalPadding)) //Total remaining space on chart for bars
             barWidth = cast(integer, remainingArea / chart:GetNumberOfBars())
             
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
@@ -52,7 +52,7 @@ class SharedBarChartLayout is ChartLayout
                     currentXPosition = currentXPosition + barWidth + betweenBarPadding
                     j = j + 1
                 end
-                currentXPosition = currentXPosition + betweenGroupPadding
+                currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                 i = i + 1
             end
         end
@@ -79,10 +79,19 @@ class SharedBarChartLayout is ChartLayout
         Array<Drawable> ticks = chart:GetXTicks()
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
-
+        Array<ControlLabel> barLabels = chart:GetXLabels()
+        integer yLabelOffset = 0
         //bump and label tick bump
         number bump = chart:GetNumberOfBars() / (ticks:GetSize() * 1.0)
-        if not ticks:IsEmpty()
+        if not ticks:IsEmpty() and not barGroups:IsEmpty() and not barLabels:IsEmpty()
+
+            Label currentLabel = barLabels:Get(0)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+            integer labelY = originPointY - yLabelOffset
 
             Drawable axis = chart:GetXAxis()
             barDivWidth = cast(integer, axis:GetWidth() / (chart:GetNumberOfBars() + 1))
@@ -91,49 +100,27 @@ class SharedBarChartLayout is ChartLayout
             Drawable currentTick = ticks:Get(0)
             number tickX = originPointX + chartAreaContainer:GetWidth()*barOffset
             integer tickY = originPointY - cast(integer, currentTick:GetHeight())
+            number labelX = tickX
             number barX = outerEdgePadding
+            tickX = barX
             integer i = 0
+            number centerOffset = 0
             repeat while i < ticks:GetSize()
-                currentTick = ticks:Get(i)
-                barX = barX + barGroupsGet(i)
-                //integer barIndex = cast(integer, math:Round(bump * i))
-                //Icon bar = chart:GetBars():Get(barIndex)
-                //number barX = bar:GetX() + (bar:GetWidth() / 2.0) - (currentTick:GetWidth() / 2.0)
-                currentTick:SetPosition(barX, tickY)
-                tickX = tickX + (barDivWidth * bump)
-                i = i + 1
-            end
-        end
-
-        //This is the labels on the X axis
-        originPointX = 0
-        originPointY = cast(integer, horizContainer:GetHeight())
-        integer xLabelOffset = 0
-        Array<ControlLabel> barLabels = chart:GetXLabels()
-        if not barLabels:IsEmpty()
-            Label currentLabel = barLabels:Get(0)
-            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-            end
-            xLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
-            integer labelY = originPointY - xLabelOffset
-            number xOrigin = originPointX + chartAreaContainer:GetWidth()*barOffset
-            number centerOffset = barDivWidth/2
-
-            number tickX = originPointX + chartAreaContainer:GetWidth()*barOffset
-            integer i = 0
-            repeat while i < barLabels:GetSize()
                 currentLabel = barLabels:Get(i)
+
                 if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                     currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                 end
 
-                integer barIndex = cast(integer, math:Round(bump * i))
-                Icon bar = chart:GetBars():Get(barIndex)
-                number barX = bar:GetX() + (chart:GetBarWidth() / 2.0)
-                number x = barX - currentLabel:GetWidth()/2
-                currentLabel:SetPosition(x, labelY)
-                tickX = tickX + (barDivWidth * bump)
+                currentTick = ticks:Get(i)
+                centerOffset = (((barGroups:Get(i):GetSize() * barWidth) + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) / 2)
+                tickX = barX + centerOffset
+
+                labelX = tickX - (currentLabel:GetWidth()/2)
+                currentLabel:SetPosition(labelX, labelY)
+
+                barX = barX + ((barGroups:Get(i):GetSize() * barWidth) + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) + betweenGroupPadding
+                currentTick:SetPosition(tickX, tickY)
                 i = i + 1
             end
         end
@@ -142,7 +129,7 @@ class SharedBarChartLayout is ChartLayout
         originPointX = 0
         originPointY = cast(integer, horizContainer:GetHeight())
         Label axisLabel = chart:GetXLabel()
-        number axisY = originPointY - (xLabelOffset + axisLabel:GetHeight()*1.5)
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
         if axisY < 1
             axisY = 1
         end

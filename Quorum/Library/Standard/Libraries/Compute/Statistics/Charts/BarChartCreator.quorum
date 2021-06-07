@@ -17,6 +17,8 @@ use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Containers.Support.Comparison
 use Libraries.Interface.Controls.Charts.Bar
 use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.Legend
 
 /*
     This class is used to create a Bar Chart from columns of data in a DataFrame.
@@ -233,7 +235,8 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
         column:Calculate(summary)
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
-        HashTable<text, HashTable<text, number>> groupingFactor    
+        HashTable<text, HashTable<text, number>> groupingFactor
+        HashTable<text, Series> seriesFactor
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
@@ -253,6 +256,13 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
                     HashTable<text, number> innerGrouping
                     groupingFactor:Add(factor1:GetAsText(i), innerGrouping)
                     groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                end
+              
+                //Get a running list of all factor2 options
+                if(not seriesFactor:HasKey(factor2:GetAsText(i)))
+                    Series series
+                    series:SetName(factor2:GetAsText(i))
+                    seriesFactor:Add(factor2:GetAsText(i), series)
                 end
             end
             
@@ -302,10 +312,33 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
                 innerBar:SetName(innerKey)
                 innerBar:SetHeight(percent)
                 group:AddBar(innerBar)
+
+                //Add bar to the correct Series
+                if(seriesFactor:HasKey(innerKey))
+                    seriesFactor:GetValue(innerKey):AddItem(innerBar:GetIcon())
+                end
             end
             chart:AddBarGroup(group)
         end
 
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+
+        Legend legend
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
+
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, min, max)
         return chart

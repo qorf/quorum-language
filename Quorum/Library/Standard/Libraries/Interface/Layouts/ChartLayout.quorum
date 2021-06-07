@@ -16,6 +16,7 @@ use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Graphics.Color
 
 
 class ChartLayout is Layout
@@ -185,8 +186,14 @@ class ChartLayout is Layout
         if legend = undefined
             return now
         end
-        legend:SetX(originPointX + containerWidth * 0.72)
-        legend:SetY(containerHeight * 0.4)
+        if legend:GetSeriesList():GetSize() > 0
+            output legend:GetSeriesList():Get(0):GetName()
+        end
+
+        number legendOffsetX = 1 - (legend:GetWidth() / containerWidth) - 0.025
+        number legendOffsetY = 0.5 - ((legend:GetHeight() / containerHeight) / 2)
+        legend:SetX(cast(integer, containerWidth * legendOffsetX))
+        legend:SetY(cast(integer, containerHeight * legendOffsetY))
     end
 
     blueprint action LayoutChartContent(Chart chart, Control chartAreaContainer)

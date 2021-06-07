@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+
+class Series
+    text name = ""
+    Color color
+    Array<Drawable> items
+
+    action GetName() returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetColor() returns Color
+        return color
+    end
+
+    action SetColor(Color color)
+        me:color = color
+    end
+
+    action AddItem(Drawable item)
+        
+        items:Add(item)
+    end
+
+    action GetItem(integer index) returns Drawable
+        return items:Get(index)
+    end
+
+    action GetSize() returns integer
+        return items:GetSize()
+    end
+
+end
