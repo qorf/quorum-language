@@ -264,7 +264,7 @@ class SharedBarChartParent is Chart
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
-    action GenerateInfoTree 
+    action GenerateInfoTree
         if GetDefaultLayoutProperties():NeedsRendering()
             return now //we haven't loaded graphics yet, so bail.
         end
@@ -355,9 +355,9 @@ class SharedBarChartParent is Chart
                     previous:SetNext(barNode)
                     barNode:SetPrevious(previous)
                     previous = barNode
-                    j = j + 1
                     barCount = barCount + 1
                 end
+                j = j + 1
             end
             i = i + 1
         end
