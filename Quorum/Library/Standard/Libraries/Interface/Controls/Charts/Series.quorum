@@ -3,17 +3,27 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Label
 
 class Series
-    text name = ""
+    Label name
     Color color
     Array<Drawable> items
 
     action GetName() returns text
-        return name
+        return name:GetName()
     end
 
     action SetName(text name)
+        me:name:SetName(name)
+        me:name:SetText(name)
+    end
+
+    action GetLabel() returns Label
+        return name
+    end
+
+    action SetLabel(Label name)
         me:name = name
     end
 

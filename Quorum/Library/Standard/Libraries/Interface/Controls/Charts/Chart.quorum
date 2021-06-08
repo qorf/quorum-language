@@ -500,7 +500,7 @@ class Chart is Control
 
         if GetYAxis() = undefined
             Drawable line
-            line:LoadFilledRectangle(5, cast(integer, GetHeight() * xAxisSizeOffset))
+            line:LoadFilledRectangle(5, cast(integer, GetHeight() * yAxisSizeOffset))
             SetYAxis(line)
             chartArea:Add(line)
         end

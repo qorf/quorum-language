@@ -130,7 +130,7 @@ class Legend is Control
             parent:Item2D:Add(titleLabel)
 
             repeat while i < seriesList:GetSize()
-                Control newEntry = MakeEntry(seriesList:Get(i):GetName(), seriesList:Get(i):GetColor())
+                Control newEntry = MakeEntry(seriesList:Get(i), seriesList:Get(i):GetColor())
                 newEntry:Resize()
                 if(newEntry:GetWidth() > maxWidth)
                     maxWidth = newEntry:GetWidth()
@@ -153,14 +153,14 @@ class Legend is Control
     end
 
     
-    private action MakeEntry(text name, Color color) returns Control
+    private action MakeEntry(Series series, Color color) returns Control
         Control newItemStructure
         newItemStructure:SetFocusable(true)
         newItemStructure:SetAccessibilityCode(parent:Item:ITEM)
         FlowLayout layout
 
 
-        Label newLabel
+        Label newLabel = series:GetLabel()
         LayoutProperties properties = GetDefaultLayoutProperties()
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
@@ -170,7 +170,6 @@ class Legend is Control
         labelProperties:SetTopPadding(4)
         labelProperties:SetBottomPadding(7)
         newLabel:SetSize(properties:GetFontSize())
-        newLabel:SetText(name)
 
         Icon newIcon
         newIcon:SetName("Icon")

@@ -303,32 +303,7 @@ class SharedBarChartParent is Chart
         yAxis:SetPrevious(summary)
         chartArea:SetParent(summary)
 
-        //Level 3
-        //bars
-//        ChartItem firstbar
-//        firstbar:SetContainer(me)
-//        if numberOfBars > 0
-//            chartArea:SetChild(firstbar)
-//            bars:Get(0):SetDescription(", " + GetPercentFromHeight(barHeights:Get(0)) 
-//                + "%, 1 of " + numberOfBars + ", " + Round(barHeights:Get(0) * maxScale))
-//            firstbar:SetParent(chartArea)
-//            firstbar:SetFocusTarget(bars:Get(0))
-//        end
-//        integer i = 1
-//        ChartItem previous = firstbar
-//        repeat while i < bars:GetSize()
-//            ChartItem barNode
-//            barNode:SetContainer(me)
-//            bars:Get(i):SetDescription(", " + GetPercentFromHeight(barHeights:Get(i)) + "%, "+(i+1) 
-//                + " of " + numberOfBars + ", " + Round(barHeights:Get(i) * maxScale))
-//            barNode:SetParent(chartArea)
-//            barNode:SetFocusTarget(bars:Get(i))
-//            previous:SetNext(barNode)
-//            barNode:SetPrevious(previous)
-//            previous = barNode
-//        i = i + 1
-//        end
-
+        //Bars
         ChartItem firstbar
         firstbar:SetContainer(me)
         if numberOfBars > 0
@@ -708,7 +683,7 @@ class SharedBarChartParent is Chart
         if IsShowingLegend()
             GetLegend():Resize()
             number legendPercent = GetLegend():GetWidth() / parent:Chart:GetWidth()
-            number remainingChartArea = 1 - 0.15 //0.15 is hardcoded elsewhere as a flat xOrigOffset
+            number remainingChartArea = 1 - 0.15 - 0.05 //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding
             SetChartAreaWidthPercent(remainingChartArea - legendPercent)
         end
     end

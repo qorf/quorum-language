@@ -34,7 +34,8 @@ class SharedBarChartLayout is ChartLayout
             outerEdgePadding = cast(integer, ((axis:GetWidth() * 0.05) / 2)) //Uses 5% of space
             betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1))) //Uses 10% of space
             betweenBarPadding = cast(integer, ((axis:GetWidth() * 0.05) / (chart:GetNumberOfBars() - barGroups:GetSize()))) //Uses 5% of space
-            totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(barGroups:GetSize()-1) + betweenBarPadding*chart:GetNumberOfBars()))
+            totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(barGroups:GetSize()-1)))
+            totalPadding = totalPadding + cast(integer, betweenBarPadding*(chart:GetNumberOfBars() - barGroups:GetSize()))
             
             remainingArea = cast(integer, (axis:GetWidth() - totalPadding)) //Total remaining space on chart for bars
             barWidth = cast(integer, remainingArea / chart:GetNumberOfBars())

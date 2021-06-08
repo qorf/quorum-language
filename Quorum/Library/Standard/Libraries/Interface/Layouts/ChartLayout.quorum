@@ -186,9 +186,6 @@ class ChartLayout is Layout
         if legend = undefined
             return now
         end
-        if legend:GetSeriesList():GetSize() > 0
-            output legend:GetSeriesList():Get(0):GetName()
-        end
 
         number legendOffsetX = 1 - (legend:GetWidth() / containerWidth) - 0.025
         number legendOffsetY = 0.5 - ((legend:GetHeight() / containerHeight) / 2)
