@@ -1,0 +1,61 @@
+use Libraries.Data.Formats.SeparatedValue
+use Libraries.System.File
+use Libraries.System.FileWriter
+
+class Main
+
+    action Main
+        text csvText = ""
+        text CR = csvText:GetCarriageReturn()
+        text LF = csvText:GetLineFeed()
+        text lineEndingLF = "C1,C2,C3,C4,C5,C6,C7"+ LF +
+        "1,2,3,4,5,6,7" + LF +
+        "1,2,3,4,5,6,7" + LF +
+        "1,2,3,4,5,6,7" + LF +
+        "1,2,3,4,5,6,7" + LF
+        text lineEndingCRLF = "C1,C2,C3,C4,C5,C6,C7" + CR + LF +
+        "1,2,3,4,5,6,7" + CR + LF +
+        "1,2,3,4,5,6,7" + CR + LF +
+        "1,2,3,4,5,6,7" + CR + LF +
+        "1,2,3,4,5,6,7" + CR + LF
+
+        FileWriter writer
+
+        File csvLF
+        csvLF:SetPath("../../Library/Tests/SeparatedValue/Resources/LineEndingsLF.csv")
+        writer:OpenForWrite(csvLF)
+        csvText = lineEndingLF
+        writer:Write(csvText)
+        writer:Close()
+
+        File csvCRLF
+        csvCRLF:SetPath("../../Library/Tests/SeparatedValue/Resources/LineEndingsCRLF.csv")
+        writer:OpenForWrite(csvCRLF)
+        csvText = lineEndingCRLF
+        writer:Write(csvText)
+        writer:Close()
+
+        SeparatedValue csvReader
+        csvReader:Read(csvLF)
+
+        output "Rows: " + csvReader:GetNumberOfRows() 
+        output "Columns: " + csvReader:GetNumberOfColumns()
+        output "IsConsistent: " + csvReader:IsConsistent()
+        output "Separator: " + csvReader:GetSeparator()
+
+        SeparatedValue csvReader2
+        csvReader2:Read(csvCRLF)
+
+        output "Rows: " + csvReader2:GetNumberOfRows() 
+        output "Columns: " + csvReader2:GetNumberOfColumns()
+        output "IsConsistent: " + csvReader2:IsConsistent()
+        output "Separator: " + csvReader2:GetSeparator()
+
+        //deletion was not working so the file is emptied after output to make sure only the generated text is used
+        writer:OpenForWrite(csvLF)
+        writer:Close()
+        writer:OpenForWrite(csvCRLF)
+        writer:Close()
+    end
+
+end
