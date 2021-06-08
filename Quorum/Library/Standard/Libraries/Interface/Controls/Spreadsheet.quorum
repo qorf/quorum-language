@@ -3,7 +3,7 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Events.FocusEvent
-use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.SpreadsheetLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
 use Libraries.Interface.Behaviors.Behavior
@@ -17,7 +17,7 @@ class Spreadsheet is Control
     Behavior cellBehavior = undefined
     
     on create
-        FlowLayout layout
+        SpreadsheetLayout layout
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()

@@ -4,10 +4,12 @@ use Libraries.Interface.Item2D
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Dialog
+use Libraries.Interface.Controls.Cell
 
 class ManualLayout is Layout
 
     boolean layoutContainer = false
+    boolean ignoreInterfaceScale = false
 
     action ApplyToContainer(boolean shouldLayout)
         layoutContainer = shouldLayout
@@ -15,6 +17,14 @@ class ManualLayout is Layout
 
     action IsAppliedToContainer returns boolean
         return layoutContainer
+    end
+
+    action SetIgnoreInterfaceScale(boolean ignore)
+        ignoreInterfaceScale = ignore
+    end
+
+    action IsIgnoringInterfaceScale returns boolean
+        return ignoreInterfaceScale
     end
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
@@ -38,12 +48,17 @@ class ManualLayout is Layout
                     parentHeight = containerParent:GetHeight()
                 end
 
+                number interfaceScale = properties:GetInterfaceScale()
+                if ignoreInterfaceScale
+                    interfaceScale = 1.0
+                end
+
                 if properties:IsSettingWidth()
-                    width = parentWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
+                    width = parentWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
                 end
 
                 if properties:IsSettingHeight()
-                    height = parentHeight * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
+                    height = parentHeight * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
                 end
 
                 if width < properties:GetMinimumWidth()
@@ -122,12 +137,17 @@ class ManualLayout is Layout
                     number width = control:GetWidth()
                     number height = control:GetHeight()
 
+                    number interfaceScale = properties:GetInterfaceScale()
+                    if ignoreInterfaceScale
+                        interfaceScale = 1.0
+                    end
+
                     if properties:IsSettingWidth()
-                        width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
+                        width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
                     end
 
                     if properties:IsSettingHeight()
-                        height = containerHeight * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
+                        height = containerHeight * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
                     end
 
                     if width < properties:GetMinimumWidth()
