@@ -1015,7 +1015,11 @@ class QuorumParser
 
         repeat while IsStatement()
             ParseContext parse = Statement()
-            statements:Add(parse)
+            if parse not= undefined
+                statements:Add(parse)
+            else //we hit a compiler error
+                return undefined
+            end
         end
         //if there are statements in the block, bookmark them
         if statements not= undefined and not statements:IsEmpty()
@@ -1116,6 +1120,10 @@ class QuorumParser
                 statement = NormalAssignment()
             else
                 SendDefaultError(unknownStatement + moreInformationStatement)
+                return undefined
+            end
+
+            if statement = undefined
                 return undefined
             end
         end
@@ -1592,7 +1600,9 @@ class QuorumParser
             repeat while next:category = constants:COLON 
                 next = tokenIterator:Next()
                 call = ActionCall()
-                calls:Add(call)
+                if call not= undefined
+                    calls:Add(call)
+                end
                 next = tokenIterator:GetCurrent()
             end
 
