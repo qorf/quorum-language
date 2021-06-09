@@ -4,9 +4,11 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
 
 class Series
     Label name
+    Icon icon
     Color color
     Array<Drawable> items
 
@@ -25,6 +27,14 @@ class Series
 
     action SetLabel(Label name)
         me:name = name
+    end
+
+    action GetIcon() returns Icon
+        return icon
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
     end
 
     action GetColor() returns Color

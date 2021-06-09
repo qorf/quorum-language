@@ -25,9 +25,9 @@ use Libraries.Containers.Array
 
 class Legend is Control
 
+    Label title
     Array<Series> seriesList
     Array<text> itemNames
-    Array<Color> itemIcons
 
     on create
         FlowLayout flowLayout
@@ -71,6 +71,15 @@ class Legend is Control
 
     action GetSeriesList() returns Array<Series>
         return seriesList 
+    end
+
+    action SetTitle(text title)
+        me:title:SetName(title)
+        me:title:SetText(title)
+    end
+    
+    action GetTitle() returns text
+        return title:GetName()
     end
 
     action SetName(text name)
@@ -124,19 +133,31 @@ class Legend is Control
                 SetView2D(view)
             end
             integer i = 0
-            Control titleLabel = MakeTitle(labelText)
+            Control titleLabel = MakeTitleEntry(labelText)
             titleLabel:Resize()
             number maxWidth = titleLabel:GetWidth()
+            number maxLabel = maxWidth - 21 // 21 for extra padding hardcoded in MakeEntry
             parent:Item2D:Add(titleLabel)
 
+            // This gets the longest label, so we can calculate how much of a padding is needed to wrap legend
             repeat while i < seriesList:GetSize()
-                Control newEntry = MakeEntry(seriesList:Get(i), seriesList:Get(i):GetColor())
+                if(seriesList:Get(i):GetLabel():GetWidth() > maxLabel)
+                    maxLabel = seriesList:Get(i):GetLabel():GetWidth()
+                end
+                i = i + 1
+            end
+
+            i = 0
+            integer rightPadding = 0
+            repeat while i < seriesList:GetSize()
+                rightPadding = cast(integer, maxLabel - seriesList:Get(i):GetLabel():GetWidth())
+                Icon newEntry = MakeEntry(seriesList:Get(i), seriesList:Get(i):GetColor(), rightPadding)
                 newEntry:Resize()
                 if(newEntry:GetWidth() > maxWidth)
                     maxWidth = newEntry:GetWidth()
                 end
-
-                parent:Item2D:Add(newEntry)//itemStructure)
+                seriesList:Get(i):SetIcon(newEntry)
+                parent:Item2D:Add(newEntry)
                 i = i + 1
             end
 
@@ -153,8 +174,8 @@ class Legend is Control
     end
 
     
-    private action MakeEntry(Series series, Color color) returns Control
-        Control newItemStructure
+    private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
+        Icon newItemStructure
         newItemStructure:SetFocusable(true)
         newItemStructure:SetAccessibilityCode(parent:Item:ITEM)
         FlowLayout layout
@@ -166,7 +187,7 @@ class Legend is Control
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7)
+        labelProperties:SetRightPadding(7+rightPadding)
         labelProperties:SetTopPadding(4)
         labelProperties:SetBottomPadding(7)
         newLabel:SetSize(properties:GetFontSize())
@@ -243,8 +264,13 @@ class Legend is Control
         return newItemStructure
     end
 
-    action MakeTitle(text title) returns Control
-        Label newLabel
+    action MakeTitleEntry(text title) returns Control
+        Control newItemStructure
+        newItemStructure:SetFocusable(true)
+        newItemStructure:SetAccessibilityCode(parent:Item:ITEM)
+        FlowLayout layout
+
+        Label newLabel = me:title
         LayoutProperties properties = GetDefaultLayoutProperties()
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
@@ -256,7 +282,16 @@ class Legend is Control
         newLabel:SetSize(properties:GetFontSize())
         newLabel:SetText(title)
 
-        return newLabel
-    end
+        LayoutProperties itemStructureProperties = newItemStructure:GetDefaultLayoutProperties()
+        itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
+        itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
+        itemStructureProperties:SetFont(newLabel:GetFont())
+        itemStructureProperties:SetFontSize(properties:GetFontSize())
+        itemStructureProperties:SetInterfaceScale(properties:GetInterfaceScale())
+        newItemStructure:SetLayout(layout)
 
+        newItemStructure:Add(newLabel)
+
+        return newItemStructure
+    end
 end

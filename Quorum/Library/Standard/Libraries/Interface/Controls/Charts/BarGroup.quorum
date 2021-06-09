@@ -2,21 +2,41 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Label
 
 class BarGroup
     Array<Bar> bars
-    text groupName = ""
+    Icon icon
+    Label groupName
 
     action AddBar(Bar newBar)
         bars:Add(newBar)
     end
 
+    action GetName() returns text
+        return groupName:GetName()
+    end
+
     action SetName(text name)
+        groupName:SetName(name)
+        groupName:SetText(name)
+    end
+
+    action GetLabel() returns Label
+        return groupName
+    end
+
+    action SetLabel(Label name)
         groupName = name
     end
-    
-    action GetName() returns text
-        return groupName
+
+    action GetIcon() returns Icon
+        return icon
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
     end
 
     action GetSize() returns integer

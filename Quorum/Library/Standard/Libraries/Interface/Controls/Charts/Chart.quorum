@@ -60,6 +60,7 @@ use Libraries.System.File
 class Chart is Control
     Legend legend
     boolean showLegend = false
+    boolean grayscale = false
     boolean treeNeedsUpdate = true
     ChartSelection selection
     text xName = ""
@@ -460,6 +461,10 @@ class Chart is Control
 
         ChartOptions options
 
+        if IsGrayScale()
+            options:SetPaletteToGrayScale()
+        end
+
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()
         number borderThickness = properties:GetBorderThickness()
@@ -717,6 +722,14 @@ class Chart is Control
     */
     action IsShowingLegend returns boolean
         return showLegend
+    end
+
+    action UseGrayScale(boolean usegray)
+        grayscale = usegray
+    end
+
+    action IsGrayScale returns boolean
+        return grayscale
     end
 
     /*
