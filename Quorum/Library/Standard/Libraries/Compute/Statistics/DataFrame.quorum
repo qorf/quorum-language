@@ -47,6 +47,12 @@ use Libraries.Interface.Controls.Charts.ViolinChart
 use Libraries.Compute.Statistics.Transforms.CrossTab
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Transforms.DataTuple
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
+use Libraries.Compute.Statistics.Transforms.DataTupleComparison
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -409,6 +415,189 @@ class DataFrame
             end
             column = column + 1
         end
+    end
+
+    private action MoveRow(integer row1, integer row2)
+        integer column = 0
+        integer startIndex = 0
+        integer endIndex = 0
+
+        if row1 < row2
+            startIndex = row1
+            endIndex = row2
+        elseif row1 > row2
+            startIndex = row2
+            endIndex = row1
+        else
+            return
+        end
+
+        repeat while column < GetSize()
+            DataFrameColumn col = GetColumn(column)
+
+            //make sure there are actually rows here
+            if startIndex < col:GetSize() and endIndex < col:GetSize()
+                col:Move(startIndex, endIndex)
+            end
+            column = column + 1
+        end
+    end
+
+
+    /*
+        This action reads a comma separated list of header names and determines the indices 
+        from this list. This action is inherently strict, where if the parsing fails, the headers are 
+        not unique, or there are other issues in the list, this action throws an error. 
+
+        Attribute: Parameter headers the columns to sort
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:Sort("name1,name2")
+        output frame:ToText()
+    */
+    action Sort(text headers)
+        Array<integer> sortOrder = GetColumnsFromHeaderNames(headers)
+        if(sortOrder:GetSize() > 0)
+            integer size = GetColumn(sortOrder:Get(0)):GetSize()
+            if size = 0 or size = 1
+                return now //it is already sorted
+            end
+            //Array<Type> types = GetTypesFromColumns(sortOrder)
+            //Type type = types:Get(sortDepth)
+            Array<integer> newPositions
+            DataFrame temp = me:Copy()
+            MergeSort(sortOrder, temp, 0, GetColumn(0):GetSize() - 1)
+        end
+    end
+
+    /*
+        This action takes an Array of column indexes and returns the Type associated to each of the DataFrameColumns.
+    */
+    /*
+    private action GetTypesFromColumns(Array<integer> columns) returns Array<Type>
+        Array<Type> temp
+        integer i = 0
+        repeat while i < columns:GetSize()
+            temp:Add(GetTypeFromColumn(GetColumn(columns:Get(i))))
+            i = i + 1
+        end
+        return temp
+    end
+    */
+
+    private action MergeSort(Array<integer> sortOrder, DataFrame temp,
+        integer left, integer right)
+
+        if left < right 
+           center = (left + right) / 2
+           MergeSort(sortOrder, temp, left, center)
+           MergeSort(sortOrder, temp, center + 1, right)
+           Merge(sortOrder, temp, left, center + 1, right)
+        end
+    end
+
+    private action Merge(Array<integer> sortOrder, DataFrame temp,
+        integer left, integer center, integer right)
+        leftEnd = center - 1
+        leftTemp = left
+        rightTemp = right
+        centerTemp = center
+        position = left
+        
+        repeat while leftTemp <= leftEnd and centerTemp <= right
+            DataTuple l = GetSortingTuple(sortOrder, leftTemp)
+            DataTuple r = GetSortingTuple(sortOrder, centerTemp)
+            DataTupleComparison comparison
+            integer result = comparison:Compare(l,r)
+            if  result = -1 or result = 0
+                temp:SetRow(me, position, leftTemp)
+                leftTemp = leftTemp + 1
+            else 
+                temp:SetRow(me, position, centerTemp)
+                centerTemp = centerTemp + 1
+            end
+            position = position + 1
+        end
+
+        repeat while leftTemp <= leftEnd
+            temp:SetRow(me, position, leftTemp)
+            leftTemp = leftTemp + 1
+            position = position + 1
+        end
+
+        repeat while centerTemp <= right
+            temp:SetRow(me, position, centerTemp)
+            centerTemp = centerTemp + 1
+            position = position + 1
+        end
+
+        size = right - left + 1
+        i = left
+        repeat size times
+            SetRow(temp,i,i)
+            i = i + 1
+        end
+    end
+
+    /*
+        This set an entire row of the calling DataFrame (me) from a row in the the passed DataFrame (frame).
+    */
+    private action SetRow(DataFrame frame, integer to, integer from)
+        integer col = 0
+        if GetSize() not= frame:GetSize()
+            alert("Mismatched size in SetRow.")
+        end
+        repeat while col < GetSize()
+            if me:GetColumn(col):IsNumberColumn() and frame:GetColumn(col):IsNumberColumn()
+                NumberColumn numCol1 = cast(NumberColumn, me:GetColumn(col))
+                NumberColumn numCol2 = cast(NumberColumn, frame:GetColumn(col))
+                numCol1:SetAsNumber(to,numCol2:Get(from))
+            elseif me:GetColumn(col):IsIntegerColumn() and frame:GetColumn(col):IsIntegerColumn()
+                IntegerColumn intCol1 = cast(IntegerColumn, me:GetColumn(col))
+                IntegerColumn intCol2 = cast(IntegerColumn, frame:GetColumn(col))
+                intCol1:SetAsInteger(to,intCol2:Get(from))
+            elseif me:GetColumn(col):IsTextColumn() and frame:GetColumn(col):IsTextColumn()
+                TextColumn textCol1 = cast(TextColumn, me:GetColumn(col))
+                TextColumn textCol2 = cast(TextColumn, frame:GetColumn(col))
+                textCol1:SetAsText(to,textCol2:Get(from))
+            elseif me:GetColumn(col):IsBooleanColumn() and frame:GetColumn(col):IsBooleanColumn()
+                BooleanColumn boolCol1 = cast(BooleanColumn, me:GetColumn(col))
+                BooleanColumn boolCol2 = cast(BooleanColumn, frame:GetColumn(col))
+                boolCol1:SetAsBoolean(to,boolCol2:Get(from))
+            else
+                alert("Potential type mismatch in SetRow.")
+            end
+            col = col + 1
+        end
+    end
+
+    private action GetSortingTuple(Array<integer> sortOrder, integer row) returns DataTuple
+        DataTuple tuple
+        integer i = 0
+        repeat while i < sortOrder:GetSize()
+            DataFrameColumn col = GetColumn(sortOrder:Get(i))
+            if col:IsNumberColumn()
+                NumberColumn numCol = cast(NumberColumn, col)
+                tuple:values:Add(numCol:Get(row))
+            elseif col:IsIntegerColumn()
+                IntegerColumn intCol = cast(IntegerColumn, col)
+                tuple:values:Add(intCol:Get(row))
+            elseif col:IsTextColumn()
+                TextColumn textCol = cast(TextColumn, col)
+                tuple:values:Add(textCol:Get(row))
+            elseif col:IsBooleanColumn()
+                BooleanColumn boolCol = cast(BooleanColumn, col)
+                tuple:values:Add(boolCol:Get(row))
+            else
+                alert("Could not find the column type of column index: " + sortOrder:Get(i))
+            end
+            i = i + 1
+        end
+        return tuple
     end
 
     /*

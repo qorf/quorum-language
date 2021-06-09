@@ -1,0 +1,34 @@
+package Libraries.Compute.Statistics.Transforms
+use Libraries.Containers.Support.Comparison
+
+class DataTupleComparison is Comparison
+    boolean sortSmallToLarge = true
+
+    action Compare(Object a, Object b) returns integer
+        DataTuple tupleA = cast(DataTuple, a)
+        DataTuple tupleB = cast(DataTuple, b)
+
+        integer comparison = 0
+        if tupleA:values:GetSize() = tupleB:values:GetSize()
+            integer i = 0
+            repeat while i < tupleA:values:GetSize() and comparison = 0
+                if sortSmallToLarge
+                    comparison = tupleA:values:Get(i):Compare(tupleB:values:Get(i))
+                else
+                    comparison = -1 * tupleA:values:Get(i):Compare(tupleB:values:Get(i))
+                end
+                i = i + 1
+            end
+        end
+
+        return comparison
+    end
+
+    action GetSortSmallToLarge returns boolean
+        return sortSmallToLarge
+    end
+
+    action SetSortSmallToLarge(boolean sortSmallToLarge)
+        me:sortSmallToLarge = sortSmallToLarge
+    end
+end
