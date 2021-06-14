@@ -132,10 +132,124 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             chart:AddBarGroup(group)
             i = i + 1
         end 
+        Legend legend
+        Series series
+        series:SetName(" ")
+        chart:AddSeries(series)
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, min, max)
 
         
+        return chart
+    end
+
+    private action BuildCountChart(DataFrame frame, boolean useFactor) returns BarChart
+        BarChart chart
+
+        DataFrameColumn factor = frame:GetColumn(GetColumn(0))  //May or may not use factor but still requires initialization
+        HashTable<text, BarGroup> groupFactor
+        HashTable<text, Series> seriesFactor
+
+        if(useFactor)
+            factor =  frame:GetColumn(GetFactor(0))
+            chart:SetXAxisTitle(factor:GetHeader())
+        end
+        chart:SetYAxisTitle("Count")
+        
+        number max = 0.0
+        number min = 10000000.0
+
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            Summarize summary
+            column:Calculate(summary)
+            if(summary:GetMaximum() > max)
+                max = summary:GetMaximum()
+            end
+            if(summary:GetMinimum() < min)
+                min = summary:GetMinimum()
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < factor:GetSize()
+            BarGroup group
+            group:SetName(""+(i+1))
+            if(useFactor)
+                group:SetName(factor:GetAsText(i))
+            end
+            if(not groupFactor:HasKey(factor:GetAsText(i)))
+                groupFactor:Add(factor:GetAsText(i), group)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+
+            if(not seriesFactor:HasKey(column:GetHeader()))
+                Series series
+                series:SetName(column:GetHeader())
+                seriesFactor:Add(column:GetHeader(), series)
+            end
+    
+            //make chart
+            number valueForName = 0.0
+            number percent = 0.0
+            integer j = 0
+            repeat while j < column:GetSize()
+                valueForName = column:GetAsNumber(j)
+                percent = valueForName / max
+
+                Bar bar
+                bar:SetName(column:GetHeader())
+                bar:SetHeight(percent)
+                if(groupFactor:HasKey(factor:GetAsText(j)))
+                    groupFactor:GetValue(factor:GetAsText(j)):AddBar(bar)
+                end
+                if(seriesFactor:HasKey(column:GetHeader()))
+                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        // Bar Groups
+        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+        if comparison = undefined
+            groupKeyArray:Sort()
+        else
+            groupKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < groupKeyArray:GetSize()
+            chart:AddBarGroup(groupFactor:GetValue(groupKeyArray:Get(i)))
+            i = i + 1
+        end    
+        
+        // Series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        Legend legend
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
+        SetTicks(chart)
+        SetScale(chart, min, max)
         return chart
     end
 
@@ -166,6 +280,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     private action CreateChart(DataFrameColumn factor, DataFrameColumn column) returns BarChart
         BarChart chart
 
+        chart:SetTitle(column:GetHeader())
+        chart:SetXAxisTitle(factor:GetHeader())
+        chart:SetYAxisTitle(column:GetHeader())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -223,6 +340,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             chart:AddBarGroup(group)
         end
 
+        Legend legend
+        Series series
+        series:SetName(" ")
+        chart:AddSeries(series)
+        legend:SetSeriesList(chart:GetSeriesList())
+        legend:SetName(factor:GetHeader())
+        chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, min, max)
         return chart
@@ -231,6 +355,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BarChart
         BarChart chart
 
+        chart:SetTitle(column:GetHeader())
+        chart:SetXAxisTitle(factor1:GetHeader())
+        chart:SetYAxisTitle(column:GetHeader())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -338,9 +465,17 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
         end
 
         legend:SetSeriesList(chart:GetSeriesList())
+        legend:SetName(factor2:GetHeader())
         chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, min, max)
+        return chart
+    end
+
+    private action CreateChartTwoColumns(DataFrameColumn column1, DataFrameColumn column2) returns BarChart
+        BarChart chart
+
+
         return chart
     end
 
@@ -351,10 +486,12 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             HashTable<text, integer> hash = CalculateItemCounts(column)
             Chart chart = BuildCountChart(hash)
+            chart:SetTitle(column:GetHeader())
             chart:SetXAxisTitle(column:GetHeader())
             chart:SetYAxisTitle("Count")
+            chart:GetLegend():SetName(column:GetHeader())
             return chart
-        elseif GetColumnSize() = 1 and GetFactorSize() = 1
+        elseif (GetColumnSize() = 1 and GetFactorSize() = 1)
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             return CreateChart(factor, column)
@@ -363,6 +500,11 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
             DataFrameColumn factor2 = frame:GetColumn(GetFactor(1))
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             return CreateChart(factor1, factor2, column)
+        elseif (GetColumnSize() > 1 and GetFactorSize() = 0)
+            return BuildCountChart(frame, false) //Boolean will track if using a factor or not
+        elseif (GetColumnSize() > 1 and GetFactorSize() = 1)
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            return BuildCountChart(frame, true)
         end
     
 
