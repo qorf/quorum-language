@@ -594,8 +594,11 @@ class Game
 
         InputSet dialogEnter
         dialogEnter:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnter
+        numpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
         DialogEnterBehavior dialogEnterBehavior
         dialogTable:Add(dialogEnter, dialogEnterBehavior)
+        dialogTable:Add(numpadEnter, dialogEnterBehavior)
 
         InputSet dialogEscape
         dialogEscape:SetKeyboardInput(keys:ESCAPE)
@@ -893,11 +896,17 @@ class Game
         enter:SetKeyboardInput(keys:ENTER)
         TextBoxStartNewLineBehavior newLineBehavior
         textBoxTable:Add(enter, newLineBehavior)
+        textBoxTable:Add(numpadEnter, newLineBehavior)
 
         InputSet releaseEnter
         releaseEnter:SetKeyboardInput(keys:ENTER)
         releaseEnter:SetInputTrigger(releaseEnter:FINISH)
         textBoxTable:Add(releaseEnter, cancelBehavior)
+
+        InputSet releaseNumpadEnter
+        releaseNumpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
+        releaseNumpadEnter:SetInputTrigger(releaseNumpadEnter:FINISH)
+        textBoxTable:Add(releaseNumpadEnter, cancelBehavior)
 
         InputSet textInputSet
         textInputSet:SetInputType(textInputSet:TEXT_INPUT)
@@ -1468,6 +1477,7 @@ class Game
         enterSet:SetKeyboardInput(keys:ENTER)
         TreeActivateBehavior treeActivateBehavior
         treeTable:Add(enterSet, treeActivateBehavior)
+        treeTable:Add(numpadEnter, treeActivateBehavior)
 
         // On Windows, Shift-F10 opens context menus just like right-clicking.
         InputSet shiftF10Set
