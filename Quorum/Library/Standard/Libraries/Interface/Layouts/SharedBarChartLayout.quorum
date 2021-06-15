@@ -55,6 +55,8 @@ class SharedBarChartLayout is ChartLayout
                 repeat while j < barGroups:Get(i):GetSize()
                     currentBar = barGroups:Get(i):Get(j):GetIcon()
                     currentBar:SetWidth(barWidth)
+                    number percent = barGroups:Get(i):Get(j):GetValue() / chart:GetMaxBarValue()
+                    barGroups:Get(i):Get(j):SetHeight(percent)
                     if(currentBar:GetHeight() > groupHeight)
                         groupHeight = currentBar:GetHeight() //Height for barGroup Icon
                     end

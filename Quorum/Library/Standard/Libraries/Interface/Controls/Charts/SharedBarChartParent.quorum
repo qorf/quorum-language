@@ -24,6 +24,7 @@ class SharedBarChartParent is Chart
     private ChartItem summary // root of the tree
     integer numberOfBars = 0
     integer numberOfGroups = 0
+    number maxBarValue = 0.0
     Array<number> barHeights
     Array<text> barNames
     Array<BarGroup> barGroups
@@ -258,6 +259,14 @@ class SharedBarChartParent is Chart
 
     action AddSeries(Series series)
         seriesList:Add(series)
+    end
+
+    action GetMaxBarValue() returns number
+         return maxBarValue
+    end
+
+    action SetMaxBarValue(number max)
+         maxBarValue = max
     end
 
     /*

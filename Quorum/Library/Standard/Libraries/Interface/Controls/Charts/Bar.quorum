@@ -4,6 +4,7 @@ use Libraries.Interface.Controls.Icon
 
 class Bar
     number barHeight = 0
+    number barValue = 0
     text barName = ""
     Icon barIcon
 
@@ -19,6 +20,13 @@ class Bar
     
     action GetName() returns text
         return barName
+    end
+    action SetValue(number value)
+        barValue = value
+    end
+    
+    action GetValue() returns number
+        return barValue
     end
 
     action SetHeight(number height)
