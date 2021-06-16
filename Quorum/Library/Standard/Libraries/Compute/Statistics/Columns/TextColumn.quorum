@@ -63,6 +63,14 @@ class TextColumn is DataFrameColumn
         rows:Set(index, value)
     end
 
+    action SetAsText(integer index, Text value)
+        if value = undefined
+            rows:Set(index,undefined)
+        else
+            rows:Set(index,value:GetValue())
+        end
+    end
+
     action IsTextColumn returns boolean
         return true
     end
@@ -170,6 +178,32 @@ class TextColumn is DataFrameColumn
         HashTable<text, integer> hash
         i = 0
         repeat while i < rows:GetSize()
+            if rows:Get(i) not= undefined
+                if hash:HasKey(rows:Get(i))
+                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+                else
+                    hash:Add(rows:Get(i), 1)
+                end
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Text> array) returns Array<Text>
+        Array<Text> set
+        HashTable<text,integer> hash = CalculateValueCount(array)
+        Iterator<text> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
+    action CalculateValueCount() returns HashTable<text,integer>
+        HashTable<text, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
             if hash:HasKey(rows:Get(i))
                 hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
             else
@@ -180,9 +214,9 @@ class TextColumn is DataFrameColumn
         return hash
     end
 
-    private action GetUnique(Array<Text> array) returns Array<Text>
+    action GetUnique() returns Array<Text>
         Array<Text> set
-        HashTable<text,integer> hash = CalculateValueCount(array)
+        HashTable<text,integer> hash = CalculateValueCount()
         Iterator<text> iterator = hash:GetKeyIterator()
         repeat while iterator:HasNext()
             set:Add(iterator:Next())

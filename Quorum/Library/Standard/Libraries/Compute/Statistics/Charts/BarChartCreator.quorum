@@ -361,99 +361,85 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
         column:Calculate(summary)
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
-        HashTable<text, HashTable<text, number>> groupingFactor
-        HashTable<text, Series> seriesFactor
+        
+        DataFrameColumn uniqueFactor1 = factor1:Copy(true,true)
+        DataFrameColumn uniqueFactor2 = factor2:Copy(true,true)       
+
+        HashTable<text, HashTable<text, Number>> groupingFactor = CreateSortedGrouping(uniqueFactor1,uniqueFactor2)
+        HashTable<text, Series> seriesFactor = CreateSortedSeriesList(uniqueFactor2)
+
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
                 number valueForName = column:GetAsNumber(i)
-                if(groupingFactor:HasKey(factor1:GetAsText(i)))
-                       if(groupingFactor:GetValue(factor1:GetAsText(i)):HasKey(factor2:GetAsText(i)))
-                            valueForName = valueForName + groupingFactor:GetValue(factor1:GetAsText(i)):GetValue(factor2:GetAsText(i))
-                            groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
-                       else
-                            groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
-                       end
-                else
-                    HashTable<text, number> innerGrouping
-                    groupingFactor:Add(factor1:GetAsText(i), innerGrouping)
-                    groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                
+                if groupingFactor:GetValue(factor1:GetAsText(i)):GetValue(factor2:GetAsText(i)) not= undefined
+                    valueForName = valueForName + groupingFactor:GetValue(factor1:GetAsText(i)):GetValue(factor2:GetAsText(i)):GetValue()
                 end
-              
-                //Get a running list of all factor2 options
-                if(not seriesFactor:HasKey(factor2:GetAsText(i)))
-                    Series series
-                    series:SetName(factor2:GetAsText(i))
-                    seriesFactor:Add(factor2:GetAsText(i), series)
-                end
+                groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(i), valueForName)
+                
             end
             
             i = i + 1
         end
 
-        Array<HashTable<text, number>> valueArray = groupingFactor:CopyToValueArray()
-        if(valueArray:GetSize() > 0)
-            Array<number> innerValue = valueArray:Get(0):CopyToValueArray()
-            if(innerValue:GetSize() > 0)
-                max = innerValue:Get(0)
-                min = innerValue:Get(0)
-            end
-        end
+        Array<HashTable<text, Number>> valueArray = groupingFactor:CopyToValueArray()
+        max = max:GetMinimumValue()
+        min = min:GetMaximumValue()
         i = 0
         repeat while i < valueArray:GetSize()
-            Array<number> innerValue = valueArray:Get(i):CopyToValueArray()
+            Array<Number> innerValue = valueArray:Get(i):CopyToValueArray()
             integer j = 0
             repeat while j < innerValue:GetSize()
-                if(innerValue:Get(j) > max)
-                    max = innerValue:Get(j)
-                end
-    
-                if(innerValue:Get(j) < min)
-                    min = innerValue:Get(j)
+                if innerValue:Get(j) not= undefined
+                    if(innerValue:Get(j):GetValue() > max)
+                        max = innerValue:Get(j):GetValue()
+                    end
+        
+                    if(innerValue:Get(j):GetValue() < min)
+                        min = innerValue:Get(j):GetValue()
+                    end
                 end
                 j = j + 1
             end
             i = i + 1
         end
 
-        Iterator<text> it = groupingFactor:GetKeyIterator()
-        repeat while it:HasNext()
-            text key = it:Next()
-            HashTable<text, number> innerHash = groupingFactor:GetValue(key)
-
+        i = 0
+        repeat while i < uniqueFactor1:GetSize()
+            HashTable<text, Number> innerHash = groupingFactor:GetValue(uniqueFactor1:GetAsText(i))
             BarGroup group
-            group:SetName(key)
-            Iterator<text> innerIt = innerHash:GetKeyIterator()
-            repeat while innerIt:HasNext()
-                text innerKey = innerIt:Next()
-                number value = innerHash:GetValue(innerKey)
-
-                Bar innerBar
-                innerBar:SetName(innerKey)
-                innerBar:SetValue(value)
-                group:AddBar(innerBar)
-
-                //Add bar to the correct Series
-                if(seriesFactor:HasKey(innerKey))
-                    seriesFactor:GetValue(innerKey):AddItem(innerBar:GetIcon())
+            group:SetName(uniqueFactor1:GetAsText(i))
+            j = 0
+            repeat while j < uniqueFactor2:GetSize()
+                Number value = innerHash:GetValue(uniqueFactor2:GetAsText(j))
+                
+                if value not= undefined
+                    Bar innerBar
+                    innerBar:SetName(uniqueFactor2:GetAsText(j))
+                    innerBar:SetValue(value)
+                    group:AddBar(innerBar)
+    
+                    //Add bar to the correct Series
+                    if(seriesFactor:HasKey(uniqueFactor2:GetAsText(j)))
+                        seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):AddItem(innerBar:GetIcon())
+                    end
                 end
+                j = j + 1
             end
-            chart:AddBarGroup(group)
+            if(group:GetSize() > 0)
+                chart:AddBarGroup(group)
+            end
+            i = i + 1
         end
 
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
 
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-
         Legend legend
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
+        repeat while i < uniqueFactor2:GetSize()
 
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            chart:AddSeries(seriesFactor:GetValue(uniqueFactor2:GetAsText(i)))
             i = i + 1
         end
 
@@ -466,7 +452,62 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
         return chart
     end
 
+    action CreateSortedGrouping(DataFrameColumn factor) returns HashTable<text, Number>
+        HashTable<text, Number> groupingFactor
+        
+        integer i = 0
+        repeat while i < factor:GetSize()
+            if not groupingFactor:HasKey(factor:GetAsText(i))
+                groupingFactor:Add(factor:GetAsText(i), undefined)
+            end
+            i = i + 1
+        end
+        return groupingFactor
+    end
+    
+    action CreateSortedGrouping(DataFrameColumn factor1, DataFrameColumn factor2) returns HashTable<text, HashTable<text,Number>>
+        HashTable<text, HashTable<text, Number>> groupingFactor
+
+        integer i = 0
+        repeat while i < factor1:GetSize()
+            integer j = 0
+            repeat while j < factor2:GetSize()
+                if(groupingFactor:HasKey(factor1:GetAsText(i)))
+                    if not groupingFactor:GetValue(factor1:GetAsText(i)):HasKey(factor2:GetAsText(j))
+                        groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(j), undefined)
+                    end
+                else
+                    HashTable<text, number> innerGrouping
+                    groupingFactor:Add(factor1:GetAsText(i), innerGrouping)
+                    groupingFactor:GetValue(factor1:GetAsText(i)):Add(factor2:GetAsText(j), undefined)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return groupingFactor
+    end
+
+    action CreateSortedSeriesList(DataFrameColumn col) returns HashTable<text, Series>
+        HashTable<text, Series> seriesFactor
+
+        DataFrameColumn seriesNames = col:Copy(true,true)
+
+        integer i = 0
+        repeat while i < seriesNames:GetSize()
+            if(not seriesFactor:HasKey(seriesNames:GetAsText(i)))
+                Series series
+                series:SetName(seriesNames:GetAsText(i))
+                seriesFactor:Add(seriesNames:GetAsText(i), series)
+            end
+            i = i + 1
+        end
+        return seriesFactor
+    end
+
     action Create(DataFrame frame) returns Chart
+        //Make a copy of the frame so it can be sorted without altering the original
+        DataFrame copyFrame = frame:Copy()
         //there are no factors to map to, so just count the number of items
         //in each bucket and toss them on the X-axis by default
         if GetColumnSize() = 1 and GetFactorSize() = 0
@@ -479,13 +520,15 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
             chart:GetLegend():SetName(column:GetHeader())
             return chart
         elseif (GetColumnSize() = 1 and GetFactorSize() = 1)
-            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
-            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            copyFrame:Sort(copyFrame:GetColumn(GetFactor(0)):GetHeader())
+            DataFrameColumn factor = copyFrame:GetColumn(GetFactor(0))
+            DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
             return CreateChart(factor, column)
         elseif GetColumnSize() = 1 and GetFactorSize() = 2
-            DataFrameColumn factor1 = frame:GetColumn(GetFactor(0))
-            DataFrameColumn factor2 = frame:GetColumn(GetFactor(1))
-            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            copyFrame:Sort(copyFrame:GetColumn(GetFactor(0)):GetHeader() + "," + copyFrame:GetColumn(GetFactor(1)):GetHeader())
+            DataFrameColumn factor1 = copyFrame:GetColumn(GetFactor(0))
+            DataFrameColumn factor2 = copyFrame:GetColumn(GetFactor(1))
+            DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
             return CreateChart(factor1, factor2, column)
         elseif (GetColumnSize() > 1 and GetFactorSize() = 0)
             return BuildCountChart(frame, false) //Boolean will track if using a factor or not
@@ -521,6 +564,8 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
           
         return values
     end
+
+    
 
     action GetYSteps returns integer
         return ySteps

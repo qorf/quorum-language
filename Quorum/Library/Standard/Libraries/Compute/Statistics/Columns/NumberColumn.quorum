@@ -102,6 +102,14 @@ class NumberColumn is DataFrameColumn
         rows:Set(index, value)
     end
 
+    action SetAsNumber(integer index, Number value)
+        if value = undefined
+            rows:Set(index,undefined)
+        else
+            rows:Set(index,value:GetValue())
+        end
+    end
+
     action SetAsInteger(integer index, integer value)
         rows:Set(index, value)
     end
@@ -188,6 +196,34 @@ class NumberColumn is DataFrameColumn
         HashTable<number, integer> hash
         i = 0
         repeat while i < rows:GetSize()
+            if rows:Get(i) not= undefined
+                if hash:HasKey(rows:Get(i))
+                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+                else
+                    hash:Add(rows:Get(i), 1)
+                end
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<Number> array) returns Array<Number>
+        Array<Number> set
+        HashTable<number,integer> hash = CalculateValueCount(array)
+        Iterator<number> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
+
+
+    action CalculateValueCount() returns HashTable<number,integer>
+        HashTable<number, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
             if hash:HasKey(rows:Get(i))
                 hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
             else
@@ -198,9 +234,9 @@ class NumberColumn is DataFrameColumn
         return hash
     end
 
-    private action GetUnique(Array<Number> array) returns Array<Number>
+    action GetUnique() returns Array<Number>
         Array<Number> set
-        HashTable<number,integer> hash = CalculateValueCount(array)
+        HashTable<number,integer> hash = CalculateValueCount()
         Iterator<number> iterator = hash:GetKeyIterator()
         repeat while iterator:HasNext()
             set:Add(iterator:Next())
