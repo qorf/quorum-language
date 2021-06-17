@@ -544,7 +544,7 @@ class DataFrame
     end
 
     /*
-        This set an entire row of the calling DataFrame (me) from a row in the the passed DataFrame (frame).
+        This sets an entire row of the calling DataFrame (me) from a row in the the passed DataFrame (frame).
     */
     private action SetRow(DataFrame frame, integer to, integer from)
         integer col = 0
@@ -555,7 +555,9 @@ class DataFrame
             if me:GetColumn(col):IsNumberColumn() and frame:GetColumn(col):IsNumberColumn()
                 NumberColumn numCol1 = cast(NumberColumn, me:GetColumn(col))
                 NumberColumn numCol2 = cast(NumberColumn, frame:GetColumn(col))
-                numCol1:SetAsNumber(to,numCol2:Get(from))
+                Number test = numCol2:Get(from)
+                Number test2 = undefined
+                numCol1:SetAsNumber(to,test)
             elseif me:GetColumn(col):IsIntegerColumn() and frame:GetColumn(col):IsIntegerColumn()
                 IntegerColumn intCol1 = cast(IntegerColumn, me:GetColumn(col))
                 IntegerColumn intCol2 = cast(IntegerColumn, frame:GetColumn(col))
