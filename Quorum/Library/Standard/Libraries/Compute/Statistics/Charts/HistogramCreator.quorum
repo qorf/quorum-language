@@ -62,6 +62,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
+        integer totalCount = 0
         number min = 10000000.0
         number max = 0.0
 
@@ -102,6 +103,12 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         repeat while n < numberOfBins
             count:Add(0)
             binFloor:Add(nextFloor)
+            text valueDisplay = "[" + cast(integer, nextFloor) + "-" + cast(integer, nextFloor + binWidth) + "]"
+            if(not groupFactor:HasKey(valueDisplay))
+                BarGroup group
+                group:SetName(valueDisplay)
+                groupFactor:Add(valueDisplay, group)
+            end
             nextFloor = nextFloor + binWidth
             n = n + 1
         end  
@@ -155,11 +162,6 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
                 text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
-                if(not groupFactor:HasKey(valueDisplay))
-                    BarGroup group
-                    group:SetName(valueDisplay)
-                    groupFactor:Add(valueDisplay, group)
-                end
 
                 Bar bar
                 bar:SetValue(amount)
@@ -176,16 +178,15 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
             end
             n = n + 1
         end
+
         // Bar Groups
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
-        if comparison = undefined
-            groupKeyArray:Sort()
-        else
-            groupKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < groupKeyArray:GetSize()
-            chart:AddBarGroup(groupFactor:GetValue(groupKeyArray:Get(i)))
+        repeat while i < groupFactor:GetSize()
+            floor = binFloor:Get(i)
+            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+            if(groupFactor:HasKey(valueDisplay) and (floor+binWidth) < max) 
+                chart:AddBarGroup(groupFactor:GetValue(valueDisplay))
+            end
             i = i + 1
         end    
         
