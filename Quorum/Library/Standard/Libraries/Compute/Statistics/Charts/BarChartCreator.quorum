@@ -290,13 +290,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         column:Calculate(summary)
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
-        HashTable<text, number> groupingFactor    
+        DataFrameColumn uniqueFactor = factor:Copy(true,true)
+        HashTable<text, Number> groupingFactor = CreateSortedGrouping(uniqueFactor) 
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor:IsUndefined(i)
                 number valueForName = column:GetAsNumber(i)
-                if(groupingFactor:HasKey(factor:GetAsText(i)))
-                    valueForName = valueForName + groupingFactor:GetValue(factor:GetAsText(i))
+                if groupingFactor:GetValue(factor:GetAsText(i)) not= undefined
+                    valueForName = valueForName + groupingFactor:GetValue(factor:GetAsText(i)):GetValue()
                     groupingFactor:Add(factor:GetAsText(i), valueForName)
                 else
                     groupingFactor:Add(factor:GetAsText(i), valueForName)
@@ -306,36 +307,39 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        Array<number> valueArray = groupingFactor:CopyToValueArray()
-        if(valueArray:GetSize() > 0)
-            max = valueArray:Get(0)
-            min = valueArray:Get(0)
-        end
+        Array<Number> valueArray = groupingFactor:CopyToValueArray()
+        
+        max = max:GetMinimumValue()
+        min = min:GetMaximumValue()
+
         i = 0
         repeat while i < valueArray:GetSize()
-            if(valueArray:Get(i) > max)
-                max = valueArray:Get(i)
+            if(valueArray:Get(i):GetValue() > max)
+                max = valueArray:Get(i):GetValue()
             end
 
-            if(valueArray:Get(i) < min)
-                min = valueArray:Get(i)
+            if(valueArray:Get(i):GetValue() < min)
+                min = valueArray:Get(i):GetValue()
             end
             
             i = i + 1
         end
 
-        Iterator<text> it = groupingFactor:GetKeyIterator()
-        repeat while it:HasNext()
-            text key = it:Next()
-            number value = groupingFactor:GetValue(key)
-
-            BarGroup group
-            group:SetName(key)
-            Bar bar
-            bar:SetName(key)
-            bar:SetValue(value)
-            group:AddBar(bar)
-            chart:AddBarGroup(group)
+        i = 0
+        repeat while i < uniqueFactor:GetSize()
+            
+            Number value = groupingFactor:GetValue(uniqueFactor:GetAsText(i))
+            
+            if value not= undefined
+                BarGroup group
+                group:SetName(uniqueFactor:GetAsText(i))
+                Bar bar
+                bar:SetName(uniqueFactor:GetAsText(i))
+                bar:SetValue(value)
+                group:AddBar(bar)
+                chart:AddBarGroup(group)
+            end
+            i = i + 1
         end
 
         Legend legend
