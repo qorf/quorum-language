@@ -104,6 +104,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
     private action BuildCountChart(HashTable<text, integer> hash) returns BarChart
         BarChart chart
+        Series series
+        series:SetName(" ")
 
         Array<text> namesArray = hash:CopyToKeyArray()
         if comparison = undefined
@@ -128,12 +130,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             bar:SetName(namesArray:Get(i))
             bar:SetValue(valueForName)
             group:AddBar(bar)
+            series:AddItem(bar:GetIcon())
             chart:AddBarGroup(group)
             i = i + 1
         end 
         Legend legend
-        Series series
-        series:SetName(" ")
         chart:AddSeries(series)
         chart:SetMaxBarValue(max)
         legend:SetSeriesList(chart:GetSeriesList())
@@ -282,6 +283,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
     private action CreateChart(DataFrameColumn factor, DataFrameColumn column) returns BarChart
         BarChart chart
+        Series series
+        series:SetName(" ")
 
         chart:SetTitle(column:GetHeader())
         chart:SetXAxisTitle(factor:GetHeader())
@@ -337,14 +340,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetName(uniqueFactor:GetAsText(i))
                 bar:SetValue(value)
                 group:AddBar(bar)
+                series:AddItem(bar:GetIcon())
                 chart:AddBarGroup(group)
             end
             i = i + 1
         end
 
         Legend legend
-        Series series
-        series:SetName(" ")
         chart:AddSeries(series)
         chart:SetMaxBarValue(max)
         legend:SetSeriesList(chart:GetSeriesList())
