@@ -17,6 +17,11 @@ class SharedBarChartLayout is ChartLayout
     integer betweenGroupPadding = 0
     integer betweenBarPadding = 0
     integer barWidth = 0
+
+    /*
+        This action will calculate the size and placement of the elements (bars) within the chart 
+        based on the size of the display screen.
+    */
     action LayoutChartContent(Chart control, Control chartAreaContainer)
         if not (control is SharedBarChartParent)
             return now
@@ -31,34 +36,46 @@ class SharedBarChartLayout is ChartLayout
 
         number currentXPosition = 0
         if not barGroups:IsEmpty()
-            outerEdgePadding = cast(integer, ((axis:GetWidth() * 0.05) / 2)) //Uses 5% of space
-            betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1))) //Uses 10% of space
-            betweenBarPadding = cast(integer, ((axis:GetWidth() * 0.05) / (chart:GetNumberOfBars() - barGroups:GetSize()))) //Uses 5% of space
+            // Space on each side of the inner chart (5%)
+            outerEdgePadding = cast(integer, ((axis:GetWidth() * 0.05) / 2))
+
+            // Space spread evenly between each bar group (10%)
+            betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1)))
+
+            // Space spread evenly between each bar with the bar groups (5%)
+            betweenBarPadding = cast(integer, ((axis:GetWidth() * 0.05) / (chart:GetNumberOfBars() - barGroups:GetSize())))
+
+            // Total white space alloted for inner chart area
             totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(barGroups:GetSize()-1)))
             totalPadding = totalPadding + cast(integer, betweenBarPadding*(chart:GetNumberOfBars() - barGroups:GetSize()))
             
-            remainingArea = cast(integer, (axis:GetWidth() - totalPadding)) //Total remaining space on chart for bars
+            // Remaining non-white space to be evenly divided amongst all bars (80%)
+            remainingArea = cast(integer, (axis:GetWidth() - totalPadding))
             barWidth = cast(integer, remainingArea / chart:GetNumberOfBars())
             
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             barY = originPointY
             currentXPosition = currentXPosition + outerEdgePadding
 
-            number groupX = currentXPosition
-            number groupY = 0
-            number groupWidth = 0
-            number groupHeight = 0
+            // Tracking area of each bar group for group icon
+            number groupX = currentXPosition    // x-axis coordinate
+            number groupY = 0                   // y-axis coordinate
+            number groupWidth = 0               // width of entire group
+            number groupHeight = 0              // height of entire group
 
             integer i = 0
             repeat while i < barGroups:GetSize()
                 integer j = 0
                 repeat while j < barGroups:Get(i):GetSize()
                     currentBar = barGroups:Get(i):Get(j):GetIcon()
+                    // Set bar width
                     currentBar:SetWidth(barWidth)
+                    // Set bar height (percentage)
                     number percent = barGroups:Get(i):Get(j):GetValue() / chart:GetMaxBarValue()
                     barGroups:Get(i):Get(j):SetHeight(percent)
+                    //Find max height for barGroup Icon
                     if(currentBar:GetHeight() > groupHeight)
-                        groupHeight = currentBar:GetHeight() //Height for barGroup Icon
+                        groupHeight = currentBar:GetHeight()
                     end
                     currentBar:SetPosition(currentXPosition, barY)
                     currentXPosition = currentXPosition + barWidth + betweenBarPadding
@@ -77,10 +94,6 @@ class SharedBarChartLayout is ChartLayout
                 groupX = currentXPosition
             end
         end
-    end
-
-    private action CalculateBarX(number width) returns number
-        return 0
     end
 
     action LayoutHorizontalAxis(Chart control, Control horizContainer)

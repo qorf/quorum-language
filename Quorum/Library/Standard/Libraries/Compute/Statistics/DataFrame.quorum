@@ -2430,20 +2430,10 @@ class DataFrame
         chart:Display()
     */
     action Histogram returns Histogram
-        if not IsSingleColumnSelection()
-            alert("Can only conduct this calculation on a single column")
-        end
-
         HistogramCreator creator
-        creator:SetColumn(selection:GetColumn(0))
-        DataFrameColumn col = GetColumn(selection:GetColumn(0))
-        
-        Histogram histogram = cast(Histogram, CreateChart(creator))
-        //set a default title.
-        if col:GetHeader() not= undefined
-            histogram:SetXAxisTitle(col:GetHeader())
-        end
-        return histogram
+        selection:CopyTo(cast(ColumnInput, creator))
+
+        return cast(Histogram, CreateChart(creator))
     end
 
     /*

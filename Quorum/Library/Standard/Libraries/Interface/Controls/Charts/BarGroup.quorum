@@ -5,6 +5,27 @@ use Libraries.Interface.Controls.Charts.Bar
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Label
 
+/*
+The BarGroup class is a data structure that stores information for each 
+group (array) of bars at a certain tick or by a certain factor marked 
+by its label. This class also contains an Icon that is used for accessibility.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.BarGroup
+class Main
+   action Main
+      //make group
+      BarGroup group
+      //add a bar
+      Bar bar
+      group:AddBar(bar)
+      //get a bar and set its value
+      group:Get(0):SetValue(20.0)
+   end
+end
+*/
+
 class BarGroup
     Array<Bar> bars
     Icon icon

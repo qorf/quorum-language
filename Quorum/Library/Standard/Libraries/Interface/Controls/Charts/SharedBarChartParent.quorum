@@ -246,12 +246,14 @@ class SharedBarChartParent is Chart
     end
 
     /*
+        Returns an array of all the bar groups
     */
     action GetBarGroups returns Array<BarGroup>
         return barGroups
     end
 
     /*
+        Returns an array of all the series sets 
     */
     action GetSeriesList returns Array<Series>
         return seriesList
@@ -261,6 +263,9 @@ class SharedBarChartParent is Chart
         seriesList:Add(series)
     end
 
+    /*
+        Returns the value of the largest bar (used to calculate height percentage of bars)
+    */
     action GetMaxBarValue() returns number
          return maxBarValue
     end
@@ -419,40 +424,6 @@ class SharedBarChartParent is Chart
             end
             i = i + 1
         end
-
-//        //Bars
-//        ChartItem firstbar
-//        firstbar:SetContainer(me)
-//        if numberOfBars > 0
-//            chartArea:SetChild(firstbar)
-//            bars:Get(0):SetDescription(", " + GetPercentFromHeight(barGroups:Get(0):Get(0):GetHeight()) 
-//                + "%, 1 of " + numberOfBars + ", " + Round(barGroups:Get(0):Get(0):GetHeight() * maxScale))
-//            firstbar:SetParent(chartArea)
-//            firstbar:SetFocusTarget(bars:Get(0))
-//        end
-//
-//        integer barCount = 1
-//        integer i = 0
-//        ChartItem previous = firstbar
-//        repeat while i < barGroups:GetSize()
-//            integer j = 0
-//            repeat while j < barGroups:Get(i):GetSize()
-//                if i not= 0 and j not=0
-//                    ChartItem barNode
-//                    barNode:SetContainer(me)
-//                    bars:Get(j):SetDescription(", " + GetPercentFromHeight(barGroups:Get(i):Get(j):GetHeight()) + "%, "+(barCount+1) 
-//                        + " of " + numberOfBars + ", " + Round(barGroups:Get(i):Get(j):GetHeight() * maxScale))
-//                    barNode:SetParent(chartArea)
-//                    barNode:SetFocusTarget(bars:Get(j))
-//                    previous:SetNext(barNode)
-//                    barNode:SetPrevious(previous)
-//                    previous = barNode
-//                    barCount = barCount + 1
-//                end
-//                j = j + 1
-//            end
-//            i = i + 1
-//        end
 
         //scale
         ChartItem genericScaleNode
@@ -706,8 +677,6 @@ class SharedBarChartParent is Chart
             if IsShowingLegend()
                 Add(GetLegend())
             end
-
-            //AdjustForLegend()
         end
     end
 

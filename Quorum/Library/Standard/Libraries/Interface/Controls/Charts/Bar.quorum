@@ -2,9 +2,29 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Controls.Icon
 
+/*
+The Bar class is a data structure that stores information for each 
+indiviual bar. Bar contains a barIcon that is used for accessibility
+and keeping track of to which series the bar belongs.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Bar
+class Main
+   action Main
+      //make bar
+      Bar bar
+      //add value
+      bar:SetValue(20.0)
+      //get value
+      number x = bar:GetValue()
+   end
+end
+*/
+
 class Bar
-    number barHeight = 0
-    number barValue = 0
+    number barHeight = 0    //barHeight is a percentage based on the max value all bars
+    number barValue = 0     //barValue is the actual numerical value
     text barName = ""
     Icon barIcon
 
