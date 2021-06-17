@@ -6,6 +6,29 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 
+/*
+The Series class is a data structure that stores information for each 
+set (array) of drawable items (bar icons) of a certain series. 
+This class also contains an Icon that is used for accessibility.
+This will allow every bar of a series to be drawn with the same color.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Series
+class Main
+   action Main
+      //make a series
+      Series series
+      //add an item
+      Bar bar
+      series:AddItem(bar:GetIcon())
+      //set the color for the series
+      Color color
+      series:SetColor(color:Red())
+   end
+end
+*/
+
 class Series
     Label name
     Icon icon

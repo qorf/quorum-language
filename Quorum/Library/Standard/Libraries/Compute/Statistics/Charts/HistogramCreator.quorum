@@ -10,6 +10,14 @@ use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Compute.Statistics.Calculations.InterQuartileRange
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Charts.ColumnToTextArray
+use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
+use Libraries.Containers.Support.Comparison
 
 /*
     This class is used to create a histogram for use in an application. By default, it uses 
@@ -42,98 +50,164 @@ use Libraries.Compute.Math
 
     //we might then add this chart to a game.
 */
-class HistogramCreator is DataFrameChartCreator
+class HistogramCreator is DataFrameChartCreator, ColumnInput
     private integer valueColumn = -1
     private integer ticks = 5
     number binWidthOverride = -1
-
+    Comparison comparison = undefined
+    
     action Create(DataFrame frame) returns Chart
         Histogram chart
+        chart:SetYAxisTitle("Count")
+        HashTable <text, Series> seriesFactor
+        HashTable <text, BarGroup> groupFactor
+        number maxFrequency = 0.0
+        number min = 10000000.0
+        number max = 0.0
 
-        //error checking
-        DataFrameColumn values = frame:GetColumn(valueColumn)
-
-        if values = undefined
-            alert("Could not find a column named " + valueColumn)
+        integer columnSize = 0
+        if GetColumnSize() = 1
+            chart:SetXAxisTitle(frame:GetColumn(GetColumn(0)):GetHeader())
         end
-
-        //first calculate the inter-quartile range
-        InterQuartileRange range
-        values:Calculate(range)
-
-        number binWidth = 2 * range:GetInterQuartileRange()
-
-        //if the user set the bin width, let them adjust as they see fit.
-        //if they didn't, record the default.
-        if binWidthOverride > 0
-            binWidth = binWidthOverride
-        else 
-            binWidthOverride = binWidth
+        // Find overall max and min of all series and largest column
+        integer n = 0
+        repeat while n < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(n))
+            if(column:GetSize() > columnSize)
+                columnSize = column:GetSize()
+            end
+            InterQuartileRange range
+            column:Calculate(range)
+            if(range:GetMinimum() < min)
+                min = range:GetMinimum()
+            end
+            if(range:GetMaximum() > max)
+                max = range:GetMaximum()
+            end
+            n = n + 1 
         end
 
         Math math
+        // Take square root of number of data points and round up for default number of bins
+        // If too many bins are made, they won't be placed on chart after the max value
+        integer numberOfBins = cast(integer, math:RaiseToPower(columnSize, (1.0 / 2.0))) + 1
+        // Take range and divide it amongst bins and round up to get the default bin width
+        number binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
 
-        integer n = values:GetSize()
-        number val = math:RaiseToPower(n, -(1.0 / 3.0))
-        
-        binWidth = binWidth * val
-
-        number min = range:GetMinimum()
-        number max = range:GetMaximum()
-
-        number binSpacing = (max - min)  / binWidth
-
-        integer bins = cast(integer, binSpacing) + 1
         Array<integer> count
         Array<number> binFloor
-        i = 0
-        repeat while i < bins
-            count:Add(0)
-            binFloor:Add(binWidth:GetMaximumValue())
-            i = i + 1
-        end
-        
-        i = 0
-        repeat while i < n
-            if not values:IsUndefined(i)
-                number value = values:GetAsNumber(i)
-                integer bin = cast(integer, (value - min) / binWidth)
-                count:Set(bin, count:Get(bin) + 1)
-    
-                if value < binFloor:Get(bin)
-                    binFloor:Set(bin, value)
-                end
-            end
-            i = i + 1
-        end
 
-        number maxFrequency = 0
-        i = 0
-        repeat while i < count:GetSize()
-            integer amount = count:Get(i)
-            if amount > maxFrequency
-                maxFrequency = amount
+        n = 0
+        number nextFloor = min
+        repeat while n < numberOfBins
+            count:Add(0)
+            binFloor:Add(nextFloor)
+            nextFloor = nextFloor + binWidth
+            n = n + 1
+        end  
+
+        n = 0
+        repeat while n < GetColumnSize()  
+            DataFrameColumn column = frame:GetColumn(GetColumn(n))   
+
+            // Reset counts to zero for each series
+            i = 0
+            repeat while i < numberOfBins
+                count:Set(i, 0)
+                i = i + 1
+            end     
+
+            i = 0
+            repeat while i < column:GetSize()
+                if not column:IsUndefined(i)
+                    number value = column:GetAsNumber(i)
+                    integer bin = cast(integer, (value - min) / binWidth)
+                    number binRoof = binFloor:Get(bin) + binWidth
+                    if value < binRoof and value >= binFloor:Get(bin)
+                        count:Set(bin, count:Get(bin) + 1)
+                    elseif value >= binRoof
+                        count:Set(bin+1, count:Get(bin+1) + 1)
+                    end
+                end
+                i = i + 1
             end
+    
+            // Find max frequency of all counts across all series
+            i = 0
+            repeat while i < count:GetSize()
+                integer amount = count:Get(i)
+                if amount > maxFrequency
+                    maxFrequency = amount
+                end
+                i = i + 1
+            end
+
+            // If a new series (ie new column)
+            if(not seriesFactor:HasKey(column:GetHeader()))
+                Series series
+                series:SetName(column:GetHeader())
+                seriesFactor:Add(column:GetHeader(), series)
+            end
+    
+            i = 0
+            number floor = 0.0
+            repeat while i < count:GetSize() and (floor+binWidth) < max
+                integer amount = count:Get(i)
+                floor = binFloor:Get(i)
+                text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+                if(not groupFactor:HasKey(valueDisplay))
+                    BarGroup group
+                    group:SetName(valueDisplay)
+                    groupFactor:Add(valueDisplay, group)
+                end
+
+                Bar bar
+                bar:SetValue(amount)
+                bar:SetName(valueDisplay)
+                // If bar is part of a group
+                if(groupFactor:HasKey(valueDisplay))
+                    groupFactor:GetValue(valueDisplay):AddBar(bar)
+                end
+                // If bar is part of a series
+                if(seriesFactor:HasKey(column:GetHeader()))
+                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                end
+                i = i + 1
+            end
+            n = n + 1
+        end
+        // Bar Groups
+        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+        if comparison = undefined
+            groupKeyArray:Sort()
+        else
+            groupKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < groupKeyArray:GetSize()
+            chart:AddBarGroup(groupFactor:GetValue(groupKeyArray:Get(i)))
+            i = i + 1
+        end    
+        
+        // Series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
         chart:SetScaleMaximum(maxFrequency)
-
-        number value = math:RaiseToPower(maxFrequency, -(1.0 / 3.0))
-        
         chart:SetYTickSteps(ticks)
-        i = 0
-        repeat while i < count:GetSize()
-            integer amount = count:Get(i)
-            number floor = binFloor:Get(i)
-            boolean doNotDisplay = floor = floor:GetMaximumValue()
-            text valueDisplay = "" + cast(integer, floor)
-            if doNotDisplay
-                valueDisplay = ""
-            end
-            chart:AddBar(valueDisplay, (amount / maxFrequency))
-            i = i + 1
-        end
+        Legend legend
+        chart:SetMaxBarValue(maxFrequency)
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
         return chart
     end
 
