@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Game.Graphics.Color
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
@@ -52,6 +53,9 @@ class SharedBarChartLayout is ChartLayout
             // Remaining non-white space to be evenly divided amongst all bars (80%)
             remainingArea = cast(integer, (axis:GetWidth() - totalPadding))
             barWidth = cast(integer, remainingArea / chart:GetNumberOfBars())
+
+            Color transparent
+            transparent:SetColor(0, 0, 0, 0)
             
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             barY = originPointY
@@ -84,7 +88,8 @@ class SharedBarChartLayout is ChartLayout
                 // Creating Bar Group Icon
                 groupWidth = currentXPosition - betweenBarPadding - groupX
                 Icon newIcon = barGroups:Get(i):GetIcon()
-                newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight+1))
+                newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight+1), transparent)
+                LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
                 newIcon:SetX(groupX)
                 newIcon:SetY(originPointY)
                 currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding

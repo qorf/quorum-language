@@ -41,6 +41,8 @@ class SharedBarChartParent is Chart
     Color barColor = undefined
     Color barSelectionColor = undefined
     Array<Icon> bars
+
+    Color previousColor
    
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -52,9 +54,8 @@ class SharedBarChartParent is Chart
             ControlLabel temp = cast(ControlLabel, target)
             temp:LostSelection()
         elseif target not= undefined and target is Icon
-            Color c
             Icon temp = cast(Icon, target)
-            temp:SetColor(GetBarColor())
+            temp:SetColor(previousColor)
         end
     end
 
@@ -71,6 +72,7 @@ class SharedBarChartParent is Chart
             elseif target is Icon
                 Color c
                 Icon temp = cast(Icon, target)
+                previousColor = temp:GetColor()
                 temp:SetColor(GetBarSelectionColor())
             end            
         end

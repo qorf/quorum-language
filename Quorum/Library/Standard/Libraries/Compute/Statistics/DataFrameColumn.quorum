@@ -6,6 +6,7 @@ use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -398,6 +399,35 @@ class DataFrameColumn
     */
     action GetUndefinedSize returns integer
         return undefinedSize
+    end
+
+    /*
+        This action returns a HashTable with AsText key values and counts of the items in the column.
+        Attribute: Returns a HashTable with the count for each item in the column.
+    */
+    action CalculateValueCountAsText() returns HashTable<text,integer>
+        HashTable<text, integer> result
+        integer groupCount = 0
+        integer size = GetSize()
+        integer undefinedCount = 0
+        i = 0
+        repeat while i < size
+            //just keep track of the fact that we have undefined values
+            if IsUndefined(i)
+                undefinedCount = undefinedCount + 1
+            else
+                text name = GetAsText(i)
+                if not result:HasKey(name)
+                    result:Add(name, 1)
+                else
+                    result:Add(name, result:GetValue(name) + 1)
+                end
+            end
+            
+            i = i + 1
+        end
+        result:Add(undefined, undefinedCount)
+        return result
     end
 
     /*
