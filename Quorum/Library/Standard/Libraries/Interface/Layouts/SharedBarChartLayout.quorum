@@ -83,11 +83,10 @@ class SharedBarChartLayout is ChartLayout
                 end
                 // Creating Bar Group Icon
                 groupWidth = currentXPosition - betweenBarPadding - groupX
-                Icon newIcon
+                Icon newIcon = barGroups:Get(i):GetIcon()
                 newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight+1))
                 newIcon:SetX(groupX)
                 newIcon:SetY(originPointY)
-                barGroups:Get(i):SetIcon(newIcon)
                 currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                 i = i + 1
                 groupHeight = 0

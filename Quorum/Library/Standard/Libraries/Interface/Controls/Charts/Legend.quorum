@@ -95,7 +95,48 @@ class Legend is Control
             content:SetText(name)
         end
     end
+    
+    /*
+        Generates the tree of ChartItems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem xAxis, ChartItem yAxis)
+        ChartItem legendArea
+        legendArea:SetDisplayName("Legend")
+        legendArea:SetFocusTarget(me)
+        legendArea:SetParent(summary)
 
+        me:SetDescription(me:GetTitle() + seriesList:GetSize() + " series")
+        legendArea:SetFocusTarget(me)
+        legendArea:SetContainer(chart)
+
+        xAxis:SetNext(legendArea)
+        legendArea:SetPrevious(xAxis)
+        yAxis:SetPrevious(legendArea)
+
+        // Legend Entries
+        ChartItem firstEntry
+        firstEntry:SetContainer(chart)
+        if seriesList:GetSize() > 0
+            legendArea:SetChild(firstEntry)
+            seriesList:Get(0):GetIcon():SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
+            firstEntry:SetParent(legendArea)
+            firstEntry:SetFocusTarget(seriesList:Get(0):GetIcon())
+        end
+        integer i = 1
+        ChartItem previous = firstEntry
+        repeat while i < seriesList:GetSize()
+            ChartItem entry
+            entry:SetContainer(chart)
+            seriesList:Get(i):GetIcon():SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
+            entry:SetParent(legendArea)
+            entry:SetFocusTarget(seriesList:Get(i):GetIcon())
+            previous:SetNext(entry)
+            entry:SetPrevious(previous)
+            previous = entry
+            i = i + 1
+        end
+    end
     /*
     This action is used to load the graphical components of the Control. This is
     handled automatically by the Game engine as needed, and most users shouldn't
