@@ -62,14 +62,16 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        integer totalCount = 0
+        boolean decimalScale = false
         number min = 10000000.0
         number max = 0.0
 
-        integer columnSize = 0
-        if GetColumnSize() = 1
-            chart:SetXAxisTitle(frame:GetColumn(GetColumn(0)):GetHeader())
+        if GetColumnSize() < 1
+            alert("Cannot create a Histogram without any columns.")
         end
+
+        integer columnSize = 0 // This will keep track of the largest column (if they are not all the same)
+
         // Find overall max and min of all series and largest column
         integer n = 0
         repeat while n < GetColumnSize()
@@ -91,25 +93,35 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         Math math
         // Take square root of number of data points and round up for default number of bins
         // If too many bins are made, they won't be placed on chart after the max value
-        integer numberOfBins = cast(integer, math:RaiseToPower(columnSize, (1.0 / 2.0))) + 1
+        integer numberOfBins = cast(integer, math:SquareRoot(columnSize)) + 1
+
         // Take range and divide it amongst bins and round up to get the default bin width
-        number binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
+        number binWidth = 0.0
+        if max <= 1
+            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 0.01
+            decimalScale = true
+        else
+            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
+        end
 
         Array<integer> count
         Array<number> binFloor
 
         n = 0
-        number nextFloor = min
+        number floor = min // Starts at minimum value
         repeat while n < numberOfBins
             count:Add(0)
-            binFloor:Add(nextFloor)
-            text valueDisplay = "[" + cast(integer, nextFloor) + "-" + cast(integer, nextFloor + binWidth) + "]"
+            binFloor:Add(floor)
+            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
+            if(decimalScale)
+                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+            end
             if(not groupFactor:HasKey(valueDisplay))
                 BarGroup group
                 group:SetName(valueDisplay)
                 groupFactor:Add(valueDisplay, group)
             end
-            nextFloor = nextFloor + binWidth
+            floor = floor + binWidth
             n = n + 1
         end  
 
@@ -157,12 +169,14 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
             end
     
             i = 0
-            number floor = 0.0
-            repeat while i < count:GetSize() and (floor+binWidth) < max
+            floor = 0.0
+            repeat while i < count:GetSize() and floor < max
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
                 text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
-
+                if(decimalScale)
+                    valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                end
                 Bar bar
                 bar:SetValue(amount)
                 bar:SetName(valueDisplay)
@@ -184,7 +198,10 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         repeat while i < groupFactor:GetSize()
             floor = binFloor:Get(i)
             text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
-            if(groupFactor:HasKey(valueDisplay) and (floor+binWidth) < max) 
+            if(decimalScale)
+                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+            end
+            if(groupFactor:HasKey(valueDisplay) and floor < max) 
                 chart:AddBarGroup(groupFactor:GetValue(valueDisplay))
             end
             i = i + 1
