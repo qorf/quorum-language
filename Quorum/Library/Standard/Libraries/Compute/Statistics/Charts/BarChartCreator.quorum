@@ -198,7 +198,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetXAxisTitle(column:GetHeader())
         chart:SetYAxisTitle("Count")
         chart:GetLegend():SetName(column:GetHeader())
-        
+        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         return chart
     end
 
