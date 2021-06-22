@@ -2459,7 +2459,7 @@ class DataFrame
         end
 
         HistogramCreator creator
-        creator:SetColumn(selection:GetColumn(0))
+        selection:CopyTo(cast(ColumnInput, creator))
         creator:SetBinWidth(binWidth)
 
         DataFrameColumn col = GetColumn(selection:GetColumn(0))
