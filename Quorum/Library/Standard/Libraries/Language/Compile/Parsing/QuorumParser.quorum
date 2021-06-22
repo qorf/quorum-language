@@ -93,17 +93,12 @@ class QuorumParser
     constant integer OBJECT_ASSIGNMENT = 5
     constant integer NORMAL_ASSIGNMENT = 6
 
-    text identifierMessage = "An identifier is a name that starts with a letter" +
-                    " and then containing any number of letters, digits, or underscores. Quorum does" +
-                    " not allow an underscore for the last character in an identifier."
+    text identifierMessage = "A name starts with a letter and is followed by letters, digits, or underscores (_). "
+        + "The last character cannot be an underscore."
 
     text textEndedError = "The text ended when trying to process"
-    text qualifiedNameExample = "A qualified name is an "
-            + "identifier, followed by period identifier pairs. " + identifierMessage
-            + "Overall, we can think of a qualified name as a web address. "
-            + "By convention, we normally use only letters in qualified names as CamelCase values. An example might be "
-            + "'Libraries.Containers.Array' All legal qualified names in the standard library "
-            + "are available at the Quorum libraries page, https://quorumlanguage.com/libraries.html"
+    text qualifiedNameExample = "A name sequence is an name, which can be followed by period name pairs. 
+            This is kind of like a web address. An example might be 'Libraries.Containers.Array'"
 
     text moreInformationIdentifier = identifierMessage
 
@@ -115,64 +110,53 @@ class QuorumParser
             + "about how to define actions at " +
             "https://quorumlanguage.com/tutorials/language/actions.html"
 
-    text moreInformationGenerics = "Generics are defined as a type, surrounded by less than and greater than signs "
-            + "An example might be Array<integer> myArray." 
-            + "More information can be found about generics at https://quorumlanguage.com/tutorials/language/generics.html"
+    text moreInformationGenerics = "Generics are types inside of less than and greater than signs. " +
+        "An example is Array<integer> myArray. More info at" +
+        "https://quorumlanguage.com/tutorials/language/generics.html"
 
-    text moreInformationStatement = "Statements represent the core of what we want our program to do. They might include output,"
-        + "repetition using repeat, or asking the computer to make a decision using if, amongst others. For more information on " 
-        + "statements, see the Introduction to Quorum section of the reference page at https://quorumlanguage.com/reference.html"
+    text moreInformationStatement = "Statements are the core of what programs do. They might include output, repeat, or decision making with if. For more information, see 
+        https://quorumlanguage.com/reference.html"
 
-    text moreInformationMe = "This looks like a statement, containing the phrase me, "
-                + "but if me, a reference to the current class being processed in memory, is used, then "
-                + "it must be followed by a colon. An example might be me:someVariable = true " 
-                + "me:SomeActionCall(). More information can be found about me at the class documentation " 
-                + "page, https://quorumlanguage.com/tutorials/language/classes.html"
+    text moreInformationMe = "A me statement must be followed by a colon. An example might be me:someVariable = true or me:SomeActionCall(). More information at " 
+                + " https://quorumlanguage.com/tutorials/language/classes.html"
 
-    text moreInformationParent = "This looks like a statement, containing a reference to a parent, "
-                + "but if parent is used, we are asking the computer to reference a parent class, so "
-                + "we have to tell it which one. This means we need a colon, then the name of the parent, and "
-                + "then another colon, followed by what we want to do on that parent. Valid things might be "
-                + "referencing a variable or calling an action. "
-                + "An example might be parent:SomeClass:someVariable = true " 
-                + ". More information can be found about inheritance and parents on the inheritance documentation " 
-                + "page, https://quorumlanguage.com/tutorials/language/inheritance.html"
+    text moreInformationParent = "It looks like this statement is trying to use a parent, but the name is missing. "
+                + "An example might be parent:SomeClass:someVariable = true  or parent:SomeClass:SomeAction(). "
+                + "More information at https://quorumlanguage.com/tutorials/language/inheritance.html"
 
     text moreInformationParentCall = "This looks like an action call on a parent class. This means we need to declare the parent call, "
-        + "followed by a colon and then the action call itself, which must be a valid name and parameters for the action."
+        + "followed by a colon, then the action call. An action call is a valid name and parameters."
         + "More information "
             + "about how to define actions at " +
             "https://quorumlanguage.com/tutorials/language/actions.html"
 
-    text moreInformationAssignment = "Assigning values to variables can take several forms. We can use me: to indicate the "
-            + "variable is a field. We can assign to a parent, and we can also use an = (equals sign) to assign to an existing or new "
-            + "variable. We can learn more about assignments at the types and variables tutorial, " 
+    text moreInformationAssignment = "To assign values we can use me: to indicate the "
+            + "variable is a field. We can assign to a parent and we can also use an = (equals sign) to set a value to a variable. More info at, " 
             + "https://quorumlanguage.com/tutorials/language/types.html"
 
-    text moreInformationActionCall = "A call to an action is typically an idenfifier followed by ( (left paren), expressions "
-            + "as arguments to the action, then ) (right paren). More information about actions can be found at "
+    text moreInformationActionCall = "A call to an action is a name followed by ( (left paren), expressions, then ) (right paren). More info at "
             + " https://quorumlanguage.com/tutorials/language/actions.html"
 
-    text moreInformationReturn = "A return statement tells an action to end and to immediately go back to whatever action called it. If "
-            + "the action has no return type, return now ends the action. If it has a return type, it must return an appropriate value. For "
-            + "example, if we had action MyAction returns integer, then return 5 would be valid. More information about actions can be found at "
+    text moreInformationReturn = "A return statement tells an action to end and go back to where it was called. If "
+            + "the action has no return type, return now ends the action. If it has a return type, it must return an appropriate value. An example for 'action MyAction returns integer' would be 'return 5'. " 
+            + " More info at " 
             + "https://quorumlanguage.com/tutorials/language/actions.html."
 
-    text moreInformationRepeat = "Repeat is a way to tell the computer to do something over and over again. "
-        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/repeat.html" 
+    text moreInformationRepeat = "Repeat lets us do something over and over. "
+        + "More info at https://quorumlanguage.com/tutorials/language/repeat.html" 
 
-    text moreInformationIf = "If statements allow a computer to make decisions. If an expression evaluates to true, that block is executed."
-        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/if.html" 
-    text moreInformationCheck = "Check and detect blocks are used to detect errors in programming that happen while an application is running."
-        + "More information about input can be found at https://quorumlanguage.com/tutorials/language/errors.html" 
+    text moreInformationIf = "If is about control flow, jumping into a block or skipping it."
+        + "More info at  https://quorumlanguage.com/tutorials/language/if.html" 
+    text moreInformationCheck = "Check and detect detects errors while a program is running.."
+        + "More info at  https://quorumlanguage.com/tutorials/language/errors.html" 
     text moreInformationSay = "The say command talks out of a computer's speaker. An example like say 5 would say the number 5 out loud."
     text moreInformationInput = "The input command gets text from the user via the console. An example like input() would return text."
     text moreInformationOutput = "The output command puts information into the console. An example like output 5 would put the number on the screen."
     text moreInformationAlert= "The alert command forces the program to throw an error. This error may be caught with a check detect block or " +
-        "may intentionally crash a program. More information can be found at https://quorumlanguage.com/tutorials/language/errors.html"
+        "may intentionally crash a program. More info at https://quorumlanguage.com/tutorials/language/errors.html"
 
     text moreInformationCast = "A cast statement allows us to attempt to convert one type to another, which may alter it in the process." +
-        "More information can be found at https://quorumlanguage.com/tutorials/language/casting.html"
+        "More info at https://quorumlanguage.com/tutorials/language/casting.html"
 
     CompilerError statementError = undefined
 
@@ -514,7 +498,7 @@ class QuorumParser
                 context:name = name
                 context:className = next:value
             else //this is an error. We expected an ID.
-                SendDefaultError("An identifier was expected, but the token received was "
+                SendDefaultError("A name was expected, but the next value was "
                 + next:value + ". " + identifierMessage + " " + moreInformationClasses)
                 return undefined
             end
@@ -551,7 +535,7 @@ class QuorumParser
             context:statements = statements
 
             if not IsValid() 
-                SendDefaultError(textEndedError + " the end of a class declaration. " + moreInformationClasses)
+                SendDefaultError(textEndedError + " the end of a class. " + moreInformationClasses)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -562,8 +546,8 @@ class QuorumParser
                 SetLocation(context)
                 tokenIterator:Next()
             else //ironically, this would be an error, but if a user missed this, is it really a big deal?
-                SendDefaultError("Class declarations must be completed with the word 'end,' " 
-                + "but the token received was " 
+                SendDefaultError("Classes must be completed with the word 'end,' " 
+                + "but the next value was " 
                 + next:value + ". " + moreInformationClasses)
                 return undefined 
             end
@@ -579,7 +563,7 @@ class QuorumParser
     */
     action GenericDeclaration returns GenericDeclarationContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " while trying to create a generic. " 
+            SendDefaultError(textEndedError + " while creating a generic. " 
             + moreInformationGenerics)
             return undefined 
         end
@@ -606,7 +590,7 @@ class QuorumParser
                             tokens:Add(next:value)
                             next = tokenIterator:Next()
                         else //this is a syntax error
-                            SendDefaultError("Expected an identifier. " + moreInformationGenerics)
+                            SendDefaultError("Expected a name. " + moreInformationGenerics)
                             return undefined
                         end
                     end
@@ -631,11 +615,11 @@ class QuorumParser
         Process inheritance
     */
     action IneritanceDeclaration returns InheritStatementsContext
-        text moreInformationInheritance = "Inheritance is a way for us to extend the capabilities of a class. "
-            + "An example might be to say class MyClass is AnotherClass" 
-            + "More information can be found about generics at https://quorumlanguage.com/tutorials/language/inheritance.html"
+        text moreInformationInheritance = "Inheritance creates a new class with more actions. An example is 'class MyClass is AnotherClass'. "
+            + "More info at https://quorumlanguage.com/tutorials/language/inheritance.html"
+
         if not IsValid() 
-            SendDefaultError(textEndedError + " while trying to create a sub-class using inheritance. " 
+            SendDefaultError(textEndedError + " while creating a sub-class using inheritance. " 
             + moreInformationInheritance)
             return undefined 
         end
@@ -692,7 +676,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
         QualifiedNameContext name = QualifiedName() //cannot be undefined
         if name = undefined //this is an error
-            SendDefaultError("Expected a qualified name." + qualifiedNameExample)
+            SendDefaultError("Expected a name sequence." + qualifiedNameExample)
             return undefined
         end
         context:SetFirstToken(name:GetFirstToken())
@@ -727,7 +711,7 @@ class QuorumParser
     */
     action GenericStatement returns GenericContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " while trying to create a generic statement. " 
+            SendDefaultError(textEndedError + " while creating a generic statement. " 
             + moreInformationGenerics)
             return undefined 
         end
@@ -744,14 +728,14 @@ class QuorumParser
             AssignmentDeclaractionContext decl = AssignmentDeclaration()
             contexts:Add(decl)
             if decl = undefined
-                SendDefaultError("Missing type after processing < (less than). " 
+                SendDefaultError("Missing type after the < (less than). " 
                 + moreInformationGenerics)
                 return undefined 
             else
             types:Add(decl:type)
             end
             if not IsValid() 
-                SendDefaultError(textEndedError + " while trying to create a generic statement, after processing < (less than). " 
+                SendDefaultError(textEndedError + " while creating a generic, after the < (less than). " 
                 + moreInformationGenerics)
                 return undefined 
             end
@@ -886,7 +870,7 @@ class QuorumParser
     */
     action ActionDeclaration returns ParseContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " while trying to create an action. " 
+            SendDefaultError(textEndedError + " while creating an action. " 
             + moreInformationActions)
             return undefined 
         end
@@ -901,7 +885,7 @@ class QuorumParser
             context:SetDocumentation(CheckForDocumentation())
 
             if not IsValid() 
-                SendDefaultError(textEndedError + " while trying to create an action. " 
+                SendDefaultError(textEndedError + " while creating an action. " 
                 + moreInformationActions)
                 return undefined 
             end
@@ -909,8 +893,7 @@ class QuorumParser
             if next:category = constants:CREATE
                 next = tokenIterator:Next() //skip it
             else //this is an error
-                SendDefaultError("Expected create. To create a constructor, we need to say on create, followed by any number of statements " 
-                + "and then the word end.")
+                SendDefaultError("Expected the value 'create' any number of statements and then 'end'.")
                 return undefined 
             end
 
@@ -928,7 +911,7 @@ class QuorumParser
                 SetLocation(context)
                 tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected end at the end of a constructor. " + CalculateMatchedBracesMessage())
+                SendDefaultError("Expected 'end' at the end of a constructor. " + CalculateMatchedBracesMessage())
                 return undefined 
             end
             return context
@@ -992,7 +975,7 @@ class QuorumParser
             if next:category = constants:END //advance the token
                 context:SetLastToken(tokenIterator:Next())
             else //this is an error
-                SendDefaultError("Expected end at the end of an action. " + CalculateMatchedBracesMessage())
+                SendDefaultError("Expected 'end' at the end of an action. " + CalculateMatchedBracesMessage())
                 return undefined 
             end
         end
@@ -1015,7 +998,11 @@ class QuorumParser
 
         repeat while IsStatement()
             ParseContext parse = Statement()
-            statements:Add(parse)
+            if parse not= undefined
+                statements:Add(parse)
+            else //we hit a compiler error
+                return undefined
+            end
         end
         //if there are statements in the block, bookmark them
         if statements not= undefined and not statements:IsEmpty()
@@ -1073,7 +1060,7 @@ class QuorumParser
     */
     action Statement returns StatementContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " while trying to create a statement. " 
+            SendDefaultError(textEndedError + " while creating a statement. " 
                 + moreInformationStatement)
             return undefined 
         end
@@ -1096,8 +1083,10 @@ class QuorumParser
         elseif next:category = constants:ALERT
             statement = AlertStatement()
         else //if it isn't any of these, let's see if it's a particular assignment or action call
-            text unknownStatement = "A statement was expected, but the token received was "
-                    + next:value + ". What type of statement was written cannot be determined. "
+            text unknownStatement = "A statement was expected, but the value received was " +
+            next:value +
+            " The intent of the statement could not be determined."
+
             integer type = GetStatementType()
             if type = NONE //this is an error. A statement has been requested and it doesn't match anything
                 SendDefaultError(unknownStatement + moreInformationStatement)
@@ -1118,6 +1107,10 @@ class QuorumParser
                 SendDefaultError(unknownStatement + moreInformationStatement)
                 return undefined
             end
+
+            if statement = undefined
+                return undefined
+            end
         end
 
         context:statement = statement
@@ -1133,7 +1126,7 @@ class QuorumParser
                 next = tokenIterator:Next()
                 return true
             else //this is an error
-                SendDefaultError("Expected colon after me. " + moreInformationMe)
+                SendDefaultError("Expected : (colon) after 'me'. " + moreInformationMe)
             end
         end
         return false
@@ -1148,7 +1141,7 @@ class QuorumParser
                 next = tokenIterator:Next()
                 return true
             else //this is an error
-                SendDefaultError("Expected colon after parent. " + moreInformationParent)
+                SendDefaultError("Expected : (colon) after 'parent'. " + moreInformationParent)
             end
         end
         return false
@@ -1206,7 +1199,7 @@ class QuorumParser
             context:name = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected an identifier. " + moreInformationAssignment)
+            SendDefaultError("Expected a name. " + moreInformationAssignment)
         end
         
         if next:category = constants:EQUALITY
@@ -1257,13 +1250,13 @@ class QuorumParser
             context:name = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier)
         end
         
         if next:category = constants:EQUALITY
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("expected = (equals sign). " + moreInformationParent)
+            SendDefaultError("Expected = (equals sign). " + moreInformationParent)
         end
 
         ParseContext expression = Expression()
@@ -1296,7 +1289,7 @@ class QuorumParser
             context:object = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier)
             return undefined
         end
         
@@ -1331,7 +1324,7 @@ class QuorumParser
             SetLocationToToken(context:variableLocation, next)
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier)
             return undefined
         end
         
@@ -1397,7 +1390,7 @@ class QuorumParser
         context:declaration = declaration
         context:leftHandSide = declaration:type
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while expecting an identifier. " + moreInformationAssignment)
+            SendDefaultError(textEndedError + " while expecting a name. " + moreInformationAssignment)
             return undefined
         end
         next = tokenIterator:GetCurrent()
@@ -1411,15 +1404,13 @@ class QuorumParser
             CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
             if declaration:type not= undefined
                 text key = declaration:type:GetStaticKey()
-                error:SetErrorMessage("A declaration of type '" + key + 
-                    "' was written followed by '" + next:value + ".' The value following '" +
-                    key + "' must be an identifier." + identifierMessage + " A correct example might " +
-                    " be '" + key + " myVariableName' .")
+                error:SetErrorMessage("The type '" + key + 
+                    "' was followed by '" + next:value + ",' which needs to be a name. " +
+                    " A correct example might be '" + key + " myVariableName' .")
             else
-                error:SetErrorMessage("An assignment declaration was detected, followed by " +
-                    next:value + ". The value following a declaration must be an identifier. "
-                    + identifierMessage + ". A correct example might " +
-                    " be 'integer myVariableName' .")
+                error:SetErrorMessage("A type was followed by " +
+                    next:value + ", which needs to be a name. A correct example might " +
+                    " be 'text myVariableName'")
             end
             SendToCompilerErrorManager(error)
         end
@@ -1475,7 +1466,7 @@ class QuorumParser
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected identifier. " + moreInformationIdentifier)
+                SendDefaultError("Expected a name. " + moreInformationIdentifier)
                 return undefined
             end
         end
@@ -1592,7 +1583,9 @@ class QuorumParser
             repeat while next:category = constants:COLON 
                 next = tokenIterator:Next()
                 call = ActionCall()
-                calls:Add(call)
+                if call not= undefined
+                    calls:Add(call)
+                end
                 next = tokenIterator:GetCurrent()
             end
 
@@ -1800,7 +1793,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected detect. " + moreInformationCheck)
+            SendDefaultError("Expected 'detect'. " + moreInformationCheck)
             return undefined 
         end
 
@@ -1808,7 +1801,7 @@ class QuorumParser
             context:name = next:value
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected detect. " + moreInformationIdentifier)
+            SendDefaultError("Expected 'detect'. " + moreInformationIdentifier)
             return undefined 
         end
         
@@ -2029,7 +2022,7 @@ class QuorumParser
             end
             return context
         else
-            SendDefaultError("Expected say, received " + next:value + "." + moreInformationSay)
+            SendDefaultError("Expected 'say', received " + next:value + "." + moreInformationSay)
             return undefined 
         end
         return undefined
@@ -2228,7 +2221,7 @@ class QuorumParser
             SetLocation(context)
             tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected identifier, received " + next:value + "." + moreInformationIdentifier)
+            SendDefaultError("Expected a name, received " + next:value + "." + moreInformationIdentifier)
             return undefined 
         end
         return context
@@ -2244,7 +2237,7 @@ class QuorumParser
                     SendDefaultError("An assignment statement was expected, but " + token:value
                         + "does not start a valid assignment" )
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2271,7 +2264,7 @@ class QuorumParser
                     SendDefaultError("An assignment statement was expected, but " + token:value
                         + "does not start a valid assignment" )
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2294,7 +2287,7 @@ class QuorumParser
                     SendDefaultError("An assignment statement was expected, but " + token:value
                         + "does not start a valid assignment" )
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2319,7 +2312,7 @@ class QuorumParser
                     SendDefaultError("An assignment statement was expected, but " + token:value
                         + "does not start a valid assignment" )
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid token could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2734,11 +2727,11 @@ class QuorumParser
                     statements:Add(statement)
                 else //this is an error
                     if statementError = undefined
-                        SendDefaultError("A statement or action was expected to be declared, but the token "
+                        SendDefaultError("A statement or action was expected to be declared, but the value "
                         + next:value + " was found instead. Valid statements might start with words like output, "
-                        + "to put information on the screen, or repeat, to start a loop, or if, to ask the computer "
-                        + "to make a decision. More information about statements can be found in the Introduction " 
-                        + "to Quorum section of the reference page at https://quorumlanguage.com/reference.html")
+                        + "to put information on the screen, repeat, to start a loop, or if, to ask the computer "
+                        + "to make a decision. More info " 
+                        + "at https://quorumlanguage.com/reference.html")
                     else
                         compilerErrorManager:Add(statementError)
                         statementError = undefined
@@ -2828,7 +2821,7 @@ class QuorumParser
                 return undefined
             end
         else
-            SendDefaultError("A package statement was expected, but the token received was "
+            SendDefaultError("A package statement was expected, but the value received was "
             + next:value)
             return undefined
         end
@@ -2859,7 +2852,7 @@ class QuorumParser
                 SetLocation(context)
             end
         else
-            SendDefaultError("A use statement was expected, but the token received was "
+            SendDefaultError("A use statement was expected, but the value received was "
             + next:value)
             return undefined
         end
@@ -2871,7 +2864,7 @@ class QuorumParser
     */
     action QualifiedName returns QualifiedNameContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " a qualified name. " + qualifiedNameExample)
+            SendDefaultError(textEndedError + " a name sequence. " + qualifiedNameExample)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -2891,10 +2884,10 @@ class QuorumParser
                     name:Add(next:value)
                     context:SetLastToken(next)
                 else //this is an error
-                    text intro = "A qualified name was started and then there was a period. "
-                        + " After the period another identifier is needed"
+                    text intro = "A name sequence was started and then there was a period. "
+                        + " After the period another name is needed"
                     if IsValid()
-                        SendDefaultError(intro + ", but the token received was "
+                        SendDefaultError(intro + ", but the value received was "
                         + next:value + ". " + qualifiedNameExample)
                     else
                         SendDefaultError(intro + ", but the text ended. "
@@ -2905,7 +2898,7 @@ class QuorumParser
                 next = tokenIterator:Next()
             end
         else 
-            SendDefaultError("A qualified name was expected, but the token received was "
+            SendDefaultError("A name sequence was expected, but the value received was "
             + next:value + ". " + qualifiedNameExample)
             return undefined 
         end

@@ -4,33 +4,82 @@ use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
-use Libraries.Interface.Controls.MenuBar
-use Libraries.Interface.Controls.Dialog
 use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Label
-use Libraries.Interface.Controls.RadioButton
 
 class FlowLayout is Layout
 
+    /*
+    These variables predominantly store information about how the layout should be applied
+    every time the layout occurs. These are retained between layout calls.
+    */
     Math math
     boolean ignoreHidden = false
     boolean singleLine = false
     boolean verticalCentering = false
+    boolean ignoreInterfaceScale = false
 
-    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
-        // This is the x position of the next item, unless it flows onto the
-        // next line (and resets to 0).
-        number x = 0
 
+
+    /* 
+    All variables below this point are used in the Layout function and its related subfunctions.
+    These are reset to default values whenever layout is called.
+    */
+
+    number containerBorder = 0
+    LayoutProperties containerProperties = undefined
+    number containerWidth = 0
+    number containerHeight = 0
+
+    /*
+    Boolean used to ensure we don't perform redundant resizing on items
+    that were already fit to their contents while fitting the container
+    width to its contents.
+    */
+    boolean fitContainerContents = false
+
+    // This is the x position of the next item, unless it flows onto the
+    // next line (and resets to 0).
+    number x = 0
+
+    // Objects are placed such that their top edge is at the currentY.
+    number currentY = 0
+    number nextY = currentY
+
+    // Used if we're vertically centering items on each line.
+    integer nextItemToCenter = 0
+
+    action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        x = 0
+        containerWidth = newContainerWidth
+        containerHeight = newContainerHeight
+
+        // Perform any necessary layout on the container itself before we adjust the items within it.
+        LayoutContainer(container, items, containerWidth, containerHeight)
+        
+        // Objects are placed such that their top edge is at the currentY.
+        currentY = containerHeight - containerBorder
+        nextY = currentY
+
+        // Used if we're vertically centering items on each line.
+        nextItemToCenter = 0
+
+        // Layout the children items in the container.
+        LayoutItems(container, items, containerWidth, containerHeight)
+
+        // If the container needs to fit its contents, do that now that we've laid out the contents.
+        VerticalFitContainer(container, items, containerWidth, containerHeight)
+    end
+
+    private action LayoutContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
         that were already fit to their contents while fitting the container
         width to its contents.
         */
-        boolean fitContainerContents = false
-        LayoutProperties containerProperties = undefined
-        number containerBorder = 0
+        fitContainerContents = false
+        containerProperties = undefined
+        containerBorder = 0
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
@@ -47,12 +96,16 @@ class FlowLayout is Layout
                 end
 
                 containerBorder = containerProperties:GetBorderThickness()
+                number interfaceScale = containerProperties:GetInterfaceScale()
+                if ignoreInterfaceScale
+                    interfaceScale = 1.0
+                end
 
                 if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_FONT
                     Font font = containerProperties:GetFont()
                     if font not= undefined
-                        if font:GetSize() not= cast(integer, containerProperties:GetFontSize() * containerProperties:GetInterfaceScale())
-                            font:SetSize(cast(integer, containerProperties:GetFontSize() * containerProperties:GetInterfaceScale()))
+                        if font:GetSize() not= cast(integer, containerProperties:GetFontSize() * interfaceScale)
+                            font:SetSize(cast(integer, containerProperties:GetFontSize() * interfaceScale))
                         end
 
                         number topPadding = 0
@@ -111,7 +164,7 @@ class FlowLayout is Layout
                                         // We have to estimate the height now to determine the width.
                                         number height = 0
                                         if properties:GetVerticalLayoutMode() = properties:STANDARD
-                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetPixelHeight() * properties:GetInterfaceScale()
+                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetPixelHeight() * interfaceScale
                                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                             if properties:GetFont() not= undefined
                                                 height = properties:GetFont():GetLineHeight()
@@ -125,7 +178,7 @@ class FlowLayout is Layout
                                         totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
                                             + properties:GetLeftPadding() + properties:GetRightPadding()
                                     else
-                                        totalWidthOffset = totalWidthOffset + (properties:GetPixelWidth() + properties:GetLeftPadding() + properties:GetRightPadding()) * properties:GetInterfaceScale()
+                                        totalWidthOffset = totalWidthOffset + (properties:GetPixelWidth() + properties:GetLeftPadding() + properties:GetRightPadding()) * interfaceScale
                                         totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
                                     end
                                 else
@@ -151,164 +204,20 @@ class FlowLayout is Layout
                 end
             end
         end
+    end
 
-        // Objects are placed such that their top edge is at the currentY.
-        number currentY = containerHeight - containerBorder
-        number nextY = currentY
-
-        // Used if we're vertically centering items on each line.
-        integer nextItemToCenter = 0
-
-        i = 0
+    private action LayoutItems(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        integer i = 0
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
-
-            if item is Control
-                Control control = cast(Control, item)
-                control:ResetLayoutFlag()
-                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-
-                if properties:NeedsRendering()
-                    control:LoadGraphics(properties)
-                end
-
-                if properties not= undefined and (ignoreHidden = false or control:IsShowing())
-                    number width = 0
-                    number height = 0
-                    number leftPadding = properties:GetLeftPadding()
-                    number rightPadding = properties:GetRightPadding()
-                    number topPadding = properties:GetTopPadding()
-                    number bottomPadding = properties:GetBottomPadding()
-
-                    /*
-                    Boolean used to ensure we don't perform redundant resizing
-                    on a control.
-                    */
-                    boolean alreadyFitContents = fitContainerContents and properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
-
-                    if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS and alreadyFitContents = false
-                        alreadyFitContents = true
-                        if properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS 
-                            or properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
-                            // Resize the control and allow it to set its own dimensions.
-                            control:Resize()
-                        elseif properties:GetVerticalLayoutMode() = properties:FILL
-                            // Setting the height will trigger a resize.
-                            control:SetHeight(currentY - properties:GetTopPadding() - properties:GetBottomPadding())
-                        elseif properties:GetVerticalLayoutMode() = properties:STANDARD
-                            // Setting the height will trigger a resize.
-                            number setHeight = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
-                            if properties:IsSnappingToPixels()
-                                setHeight = cast(integer, setHeight)
-                            end
-                            control:SetHeight(setHeight)
-                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
-                            if properties:GetFont() not= undefined
-                                control:SetHeight(properties:GetFont():GetLineHeight())
-                            end
-                        end
-                        width = control:GetWidth()
-                    elseif properties:GetHorizontalLayoutMode() = properties:FILL
-                        width = containerWidth - x
-                        if width = 0
-                            // If there's no space left to fill, fill the next line instead.
-                            width = containerWidth
-                        end
-                    elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
-                        width = (containerWidth - containerBorder * 2 - properties:GetLeftPadding() - properties:GetRightPadding()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * properties:GetInterfaceScale()
-                    end
-
-                    x = x + leftPadding
-
-                    if x + width > containerWidth and singleLine = false
-                        if verticalCentering
-                            integer centerCounter = nextItemToCenter
-                            repeat while centerCounter < i
-                                Item2D lineItem = items:Get(centerCounter)
-                                number destination = (currentY - nextY) - (lineItem:GetHeight() / 2.0)
-                                if properties:IsSnappingToPixels()
-                                    destination = cast(integer, destination)
-                                end
-
-                                lineItem:SetY(destination)
-                                centerCounter = centerCounter + 1
-                            end
-
-                            nextItemToCenter = i
-                        end
-
-                        currentY = nextY
-                        x = leftPadding
-                    end
-
-                    // When we set the size in this step, we also trigger a
-                    // resize that will cascade to the entire control's hierarchy.
-                    if alreadyFitContents = false
-                        boolean shouldSetSize = true
-
-                        if properties:GetVerticalLayoutMode() = properties:FILL
-                            height = currentY
-                        elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
-                            // Set the control's width and allow it to set its own height via its contents.
-                            // Setting the width triggers its layout to resize.
-                            shouldSetSize = false
-                            if properties:IsSnappingToPixels()
-                                width = cast(integer, width)
-                            end
-                            control:SetWidth(width)
-                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
-                            Font font = properties:GetFont()
-                            if font not= undefined
-                                if font:GetSize() not= cast(integer, properties:GetFontSize() * properties:GetInterfaceScale())
-                                    font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
-                                end
-
-                                height = font:GetLineHeight()
-                            end
-                        elseif properties:GetVerticalLayoutMode() = properties:STANDARD
-                            height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * properties:GetInterfaceScale()
-                        elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
-                            height = properties:GetPercentageHeight() * width
-                        end
-
-                        if properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
-                            width = properties:GetPercentageWidth() * height
-                        end
-
-                        if shouldSetSize
-                            if properties:IsSnappingToPixels()
-                                width = cast(integer, width)
-                                height = cast(integer, height)
-                            end
-
-                            control:SetSize(width, height)
-                        end
-                    end
-
-                    number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
-
-                    if verticalSpace < nextY and singleLine = false
-                        nextY = verticalSpace
-                    end
-
-                    number targetY = currentY - control:GetHeight() - topPadding
-
-                    if properties:IsSnappingToPixels()
-                        x = cast(integer, x)
-                        targetY = cast(integer, targetY)
-                    end
-
-                    control:SetPosition(x, targetY)
-                    x = x + control:GetWidth() + rightPadding
-                end
-            end
-
+            DefaultLayoutItem(item, items, i, containerWidth, containerHeight)
             i = i + 1
         end
 
+        // Vertically center the contents in a line.
         if verticalCentering
             integer centerCounter = nextItemToCenter
-            repeat while centerCounter < i
+            repeat while centerCounter < items:GetSize()
                 Item2D lineItem = items:Get(centerCounter)
                 number destination = nextY + (currentY - lineItem:GetHeight()) / 2.0
                 if containerProperties:IsSnappingToPixels()
@@ -319,7 +228,156 @@ class FlowLayout is Layout
                 centerCounter = centerCounter + 1
             end
         end
+    end
 
+    private action DefaultLayoutItem(Item2D item, Array<Item2D> allItems, integer itemIndex, number newContainerWidth, number newContainerHeight)
+        if item is Control
+            Control control = cast(Control, item)
+            control:ResetLayoutFlag()
+            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+            if properties:NeedsRendering()
+                control:LoadGraphics(properties)
+            end
+
+            number interfaceScale = properties:GetInterfaceScale()
+            if ignoreInterfaceScale
+                interfaceScale = 1.0
+            end
+
+            if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                number width = 0
+                number height = 0
+                number leftPadding = properties:GetLeftPadding()
+                number rightPadding = properties:GetRightPadding()
+                number topPadding = properties:GetTopPadding()
+                number bottomPadding = properties:GetBottomPadding()
+
+                /*
+                Boolean used to ensure we don't perform redundant resizing
+                on a control.
+                */
+                boolean alreadyFitContents = fitContainerContents and properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+
+                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS and alreadyFitContents = false
+                    alreadyFitContents = true
+                    if properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS 
+                        or properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        // Resize the control and allow it to set its own dimensions.
+                        control:Resize()
+                    elseif properties:GetVerticalLayoutMode() = properties:FILL
+                        // Setting the height will trigger a resize.
+                        control:SetHeight(currentY - properties:GetTopPadding() - properties:GetBottomPadding())
+                    elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                        // Setting the height will trigger a resize.
+                        number setHeight = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                        if properties:IsSnappingToPixels()
+                            setHeight = cast(integer, setHeight)
+                        end
+                        control:SetHeight(setHeight)
+                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                        if properties:GetFont() not= undefined
+                            control:SetHeight(properties:GetFont():GetLineHeight())
+                        end
+                    end
+                    width = control:GetWidth()
+                elseif properties:GetHorizontalLayoutMode() = properties:FILL
+                    width = containerWidth - x
+                    if width = 0
+                        // If there's no space left to fill, fill the next line instead.
+                        width = containerWidth
+                    end
+                elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
+                    width = (containerWidth - containerBorder * 2 - properties:GetLeftPadding() - properties:GetRightPadding()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
+                end
+
+                x = x + leftPadding
+
+                if x + width > containerWidth and singleLine = false
+                    if verticalCentering
+                        integer centerCounter = nextItemToCenter
+                        repeat while centerCounter < itemIndex
+                            Item2D lineItem = allItems:Get(centerCounter)
+                            number destination = (currentY - nextY) - (lineItem:GetHeight() / 2.0)
+                            if properties:IsSnappingToPixels()
+                                destination = cast(integer, destination)
+                            end
+
+                            lineItem:SetY(destination)
+                            centerCounter = centerCounter + 1
+                        end
+
+                        nextItemToCenter = itemIndex
+                    end
+
+                    currentY = nextY
+                    x = leftPadding
+                end
+
+                // When we set the size in this step, we also trigger a
+                // resize that will cascade to the entire control's hierarchy.
+                if alreadyFitContents = false
+                    boolean shouldSetSize = true
+
+                    if properties:GetVerticalLayoutMode() = properties:FILL
+                        height = currentY
+                    elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                        // Set the control's width and allow it to set its own height via its contents.
+                        // Setting the width triggers its layout to resize.
+                        shouldSetSize = false
+                        if properties:IsSnappingToPixels()
+                            width = cast(integer, width)
+                        end
+                        control:SetWidth(width)
+                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                        Font font = properties:GetFont()
+                        if font not= undefined
+                            if font:GetSize() not= cast(integer, properties:GetFontSize() * interfaceScale)
+                                font:SetSize(cast(integer, properties:GetFontSize() * interfaceScale))
+                            end
+
+                            height = font:GetLineHeight()
+                        end
+                    elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                        height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                    elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        height = properties:GetPercentageHeight() * width
+                    end
+
+                    if properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        width = properties:GetPercentageWidth() * height
+                    end
+
+                    if shouldSetSize
+                        if properties:IsSnappingToPixels()
+                            width = cast(integer, width)
+                            height = cast(integer, height)
+                        end
+
+                        control:SetSize(width, height)
+                    end
+                end
+
+                number verticalSpace = currentY - control:GetHeight() - topPadding - bottomPadding
+
+                if verticalSpace < nextY and singleLine = false
+                    nextY = verticalSpace
+                end
+
+                number targetY = currentY - control:GetHeight() - topPadding
+
+                if properties:IsSnappingToPixels()
+                    x = cast(integer, x)
+                    targetY = cast(integer, targetY)
+                end
+
+                control:SetPosition(x, targetY)
+                x = x + control:GetWidth() + rightPadding
+            end
+        end
+    end
+
+    private action VerticalFitContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
             if containerProperties:IsSnappingToPixels()
                 nextY = cast(integer, nextY)
@@ -336,6 +394,7 @@ class FlowLayout is Layout
             containerHeight = container:GetHeight()
             currentY = containerHeight
             nextY = containerHeight
+
             repeat while counter < items:GetSize()
                 Item2D item = items:Get(counter)
                 item:MoveY(containerHeight)
@@ -366,5 +425,13 @@ class FlowLayout is Layout
 
     action IsVerticalCentering returns boolean
         return verticalCentering
+    end
+    
+    action SetIgnoreInterfaceScale(boolean ignore)
+        ignoreInterfaceScale = ignore
+    end
+
+    action IsIgnoringInterfaceScale returns boolean
+        return ignoreInterfaceScale
     end
 end

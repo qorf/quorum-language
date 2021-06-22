@@ -445,10 +445,10 @@ class Item2D is Item
                 number parentX = GetGlobalX()
                 number x2 = parentX + dimensions:GetX()
 
-                vertices:Set(X1, parentX)
-                vertices:Set(X2, parentX)
-                vertices:Set(X3, x2)
-                vertices:Set(X4, x2)
+                vertices:Set(X1, cast(integer, parentX))
+                vertices:Set(X2, cast(integer, parentX))
+                vertices:Set(X3, cast(integer, x2))
+                vertices:Set(X4, cast(integer, x2))
             end
         end
 
@@ -489,10 +489,10 @@ class Item2D is Item
                 number parentY = GetGlobalY()
                 number y2 = parentY + dimensions:GetY()
 
-                vertices:Set(Y1, parentY)
-                vertices:Set(Y2, y2)
-                vertices:Set(Y3, y2)
-                vertices:Set(Y4, parentY)
+                vertices:Set(Y1, cast(integer, parentY))
+                vertices:Set(Y2, cast(integer, y2))
+                vertices:Set(Y3, cast(integer, y2))
+                vertices:Set(Y4, cast(integer, parentY))
             end
         end
         
@@ -627,10 +627,10 @@ class Item2D is Item
         if xAmount not= offset:GetX() and verticesChanged = false
             number adjust = xAmount - offset:GetX()
 
-            vertices:Set(X1, vertices:Get(X1) + adjust)
-            vertices:Set(X2, vertices:Get(X2) + adjust)
-            vertices:Set(X3, vertices:Get(X3) + adjust)
-            vertices:Set(X4, vertices:Get(X4) + adjust)
+            vertices:Set(X1, cast(integer, vertices:Get(X1) + adjust))
+            vertices:Set(X2, cast(integer, vertices:Get(X2) + adjust))
+            vertices:Set(X3, cast(integer, vertices:Get(X3) + adjust))
+            vertices:Set(X4, cast(integer, vertices:Get(X4) + adjust))
         end
 
         offset:SetX(xAmount)
@@ -666,10 +666,10 @@ class Item2D is Item
         if yAmount not= offset:GetY() and verticesChanged = false
             number adjust = yAmount - offset:GetY()
         
-            vertices:Set(Y1, vertices:Get(Y1) + adjust)
-            vertices:Set(Y2, vertices:Get(Y2) + adjust)
-            vertices:Set(Y3, vertices:Get(Y3) + adjust)
-            vertices:Set(Y4, vertices:Get(Y4) + adjust)
+            vertices:Set(Y1, cast(integer, vertices:Get(Y1) + adjust))
+            vertices:Set(Y2, cast(integer, vertices:Get(Y2) + adjust))
+            vertices:Set(Y3, cast(integer, vertices:Get(Y3) + adjust))
+            vertices:Set(Y4, cast(integer, vertices:Get(Y4) + adjust))
         end
 
         offset:SetY(yAmount)
@@ -790,17 +790,17 @@ class Item2D is Item
             number adjustX = xAmount - GetOffsetX()
             number adjustY = yAmount - GetOffsetY()
             
-            vertices:Set(X1, vertices:Get(X1) + adjustX)
-            vertices:Set(Y1, vertices:Get(Y1) + adjustY)
+            vertices:Set(X1, cast(integer, vertices:Get(X1) + adjustX))
+            vertices:Set(Y1, cast(integer, vertices:Get(Y1) + adjustY))
 
-            vertices:Set(X2, vertices:Get(X2) + adjustX)
-            vertices:Set(Y2, vertices:Get(Y2) + adjustY)
+            vertices:Set(X2, cast(integer, vertices:Get(X2) + adjustX))
+            vertices:Set(Y2, cast(integer, vertices:Get(Y2) + adjustY))
 
-            vertices:Set(X3, vertices:Get(X3) + adjustX)
-            vertices:Set(Y3, vertices:Get(Y3) + adjustY)
+            vertices:Set(X3, cast(integer, vertices:Get(X3) + adjustX))
+            vertices:Set(Y3, cast(integer, vertices:Get(Y3) + adjustY))
 
-            vertices:Set(X4, vertices:Get(X4) + adjustX)
-            vertices:Set(Y4, vertices:Get(Y4) + adjustY)
+            vertices:Set(X4, cast(integer, vertices:Get(X4) + adjustX))
+            vertices:Set(Y4, cast(integer, vertices:Get(Y4) + adjustY))
         end
 
         offset:SetX(xAmount)
@@ -838,19 +838,19 @@ class Item2D is Item
             if xAmount not= offset:GetX()
                 number adjustX = xAmount - GetOffsetX()
 
-                vertices:Set(X1, vertices:Get(X1) + adjustX)
-                vertices:Set(X2, vertices:Get(X2) + adjustX)
-                vertices:Set(X3, vertices:Get(X3) + adjustX)
-                vertices:Set(X4, vertices:Get(X4) + adjustX)
+                vertices:Set(X1, cast(integer, vertices:Get(X1) + adjustX))
+                vertices:Set(X2, cast(integer, vertices:Get(X2) + adjustX))
+                vertices:Set(X3, cast(integer, vertices:Get(X3) + adjustX))
+                vertices:Set(X4, cast(integer, vertices:Get(X4) + adjustX))
             end
 
             if yAmount not= offset:GetY()
                 number adjustY = yAmount - GetOffsetY()
 
-                vertices:Set(Y1, vertices:Get(Y1) + adjustY)
-                vertices:Set(Y2, vertices:Get(Y2) + adjustY)
-                vertices:Set(Y3, vertices:Get(Y3) + adjustY)
-                vertices:Set(Y4, vertices:Get(Y4) + adjustY)
+                vertices:Set(Y1, cast(integer, vertices:Get(Y1) + adjustY))
+                vertices:Set(Y2, cast(integer, vertices:Get(Y2) + adjustY))
+                vertices:Set(Y3, cast(integer, vertices:Get(Y3) + adjustY))
+                vertices:Set(Y4, cast(integer, vertices:Get(Y4) + adjustY))
             end
 
             if zAmount not= offset:GetZ()
@@ -960,17 +960,17 @@ class Item2D is Item
                 number x2 = parentX + dimensions:GetX()
                 number y2 = parentY + dimensions:GetY()
 
-                vertices:Set(X1, parentX)
-                vertices:Set(Y1, parentY)
+                vertices:Set(X1, cast(integer, parentX))
+                vertices:Set(Y1, cast(integer, parentY))
 
-                vertices:Set(X2, parentX)
-                vertices:Set(Y2, y2)
+                vertices:Set(X2, cast(integer, parentX))
+                vertices:Set(Y2, cast(integer, y2))
 
-                vertices:Set(X3, x2)
-                vertices:Set(Y3, y2)
+                vertices:Set(X3, cast(integer, x2))
+                vertices:Set(Y3, cast(integer, y2))
 
-                vertices:Set(X4, x2)
-                vertices:Set(Y4, parentY)
+                vertices:Set(X4, cast(integer, x2))
+                vertices:Set(Y4, cast(integer, parentY))
             end
         end
 
@@ -990,10 +990,10 @@ class Item2D is Item
     */
     action MoveX(number xAmount)
         if verticesChanged = false
-            vertices:Set(X1, vertices:Get(X1) + xAmount)
-            vertices:Set(X2, vertices:Get(X2) + xAmount)
-            vertices:Set(X3, vertices:Get(X3) + xAmount)
-            vertices:Set(X4, vertices:Get(X4) + xAmount)
+            vertices:Set(X1, cast(integer, vertices:Get(X1) + xAmount))
+            vertices:Set(X2, cast(integer, vertices:Get(X2) + xAmount))
+            vertices:Set(X3, cast(integer, vertices:Get(X3) + xAmount))
+            vertices:Set(X4, cast(integer, vertices:Get(X4) + xAmount))
         end
 
         hasMoved = true
@@ -1022,10 +1022,10 @@ class Item2D is Item
     */
     action MoveY(number yAmount)
         if verticesChanged = false
-            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
-            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
-            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
-            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+            vertices:Set(Y1, cast(integer, vertices:Get(Y1) + yAmount))
+            vertices:Set(Y2, cast(integer, vertices:Get(Y2) + yAmount))
+            vertices:Set(Y3, cast(integer, vertices:Get(Y3) + yAmount))
+            vertices:Set(Y4, cast(integer, vertices:Get(Y4) + yAmount))
         end
 
         hasMoved = true
@@ -1104,17 +1104,17 @@ class Item2D is Item
     action Move(number xAmount, number yAmount)
         if verticesChanged = false
             
-            vertices:Set(X1, vertices:Get(X1) + xAmount)
-            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
+            vertices:Set(X1, cast(integer, vertices:Get(X1) + xAmount))
+            vertices:Set(Y1, cast(integer, vertices:Get(Y1) + yAmount))
 
-            vertices:Set(X2, vertices:Get(X2) + xAmount)
-            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
+            vertices:Set(X2, cast(integer, vertices:Get(X2) + xAmount))
+            vertices:Set(Y2, cast(integer, vertices:Get(Y2) + yAmount))
 
-            vertices:Set(X3, vertices:Get(X3) + xAmount)
-            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
+            vertices:Set(X3, cast(integer, vertices:Get(X3) + xAmount))
+            vertices:Set(Y3, cast(integer, vertices:Get(Y3) + yAmount))
 
-            vertices:Set(X4, vertices:Get(X4) + xAmount)
-            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+            vertices:Set(X4, cast(integer, vertices:Get(X4) + xAmount))
+            vertices:Set(Y4, cast(integer, vertices:Get(Y4) + yAmount))
         end
 
         hasMoved = true
@@ -1612,17 +1612,17 @@ class Item2D is Item
                 number x2 = localX2 + worldOriginX
                 number y2 = localY2 + worldOriginY
 
-                vertices:Set(X1, x1)
-                vertices:Set(Y1, y1)
+                vertices:Set(X1, cast(integer, x1))
+                vertices:Set(Y1, cast(integer, y1))
 
-                vertices:Set(X2, x1)
-                vertices:Set(Y2, y2)
+                vertices:Set(X2, cast(integer, x1))
+                vertices:Set(Y2, cast(integer, y2))
 
-                vertices:Set(X3, x2)
-                vertices:Set(Y3, y2)
+                vertices:Set(X3, cast(integer, x2))
+                vertices:Set(Y3, cast(integer, y2))
 
-                vertices:Set(X4, x2)
-                vertices:Set(Y4, y1)
+                vertices:Set(X4, cast(integer, x2))
+                vertices:Set(Y4, cast(integer, y1))
             end
 
             // Vertices are set to negative Z to reverse draw order.

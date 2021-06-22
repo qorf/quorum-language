@@ -3,7 +3,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.View2D
 use Libraries.Game.Graphics.Color
-use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.ColorGroup
@@ -22,13 +22,13 @@ class Cell is Control
     Behavior activationBehavior = undefined
 
     on create
-        FlowLayout layout
-        layout:SetIgnoreHidden(true)
+        ManualLayout layout
+        layout:SetIgnoreInterfaceScale(true)
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
-        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
 
         properties:SetPercentageWidth(1)
 
@@ -243,6 +243,10 @@ class Cell is Control
 
     action SetActivationBehavior(Behavior behavior)
         activationBehavior = behavior
+    end
+
+    action GetLabel returns Label
+        return label
     end
 
     action Activate(BehaviorEvent event)
