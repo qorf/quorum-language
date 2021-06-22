@@ -71,7 +71,7 @@ class Parser is QuorumSourceListener
             error:SetCompilerErrorType(type)
             text DQ = ""
             DQ = DQ:GetDoubleQuote()
-            error:SetErrorMessage("The name " + DQ + name + DQ + " is not allowed, as I do not understand things that end with an underscore (" + ILLEGAL_ID + ").")
+            error:SetErrorMessage("The name " + DQ + name + DQ + " cannot end with an underscore (" + ILLEGAL_ID + ").")
             error:SetLocation(location)
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
@@ -453,8 +453,7 @@ class Parser is QuorumSourceListener
             CompilerErrorType cet
             cet:SetCurrentType(cet:METHOD_DUPLICATE)
             error:SetCompilerErrorType(cet)
-            error:SetErrorMessage("I noticed that there is a second constructor defined, but I am not sure " +
-                "which one is supposed to setup the object.")
+            error:SetErrorMessage("There can be only one constructor defined (on create). ")
             CompilerErrorManager manager = me:GetCompilerErrorManager()
             manager:Add(error)
         else
