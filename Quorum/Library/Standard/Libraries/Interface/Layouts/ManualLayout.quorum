@@ -73,38 +73,17 @@ class ManualLayout is Layout
                     height = properties:GetMaximumHeight()
                 end
 
-                if properties:IsSnappingToPixels()
-                    width = cast(integer, width)
-                    height = cast(integer, height)
-                end
-
                 if properties:IsPositioningInX()
                     if properties:IsPositioningInY()
                         number targetX = parentWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX()
                         number targetY = parentHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY()
-
-                        if properties:IsSnappingToPixels()
-                            targetX = cast(integer, targetX)
-                            targetY = cast(integer, targetY)
-                        end
-
                         container:SetPosition(targetX, targetY)
                     else
                         number targetX = parentWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX()
-                        
-                        if properties:IsSnappingToPixels()
-                            targetX = cast(integer, targetX)
-                        end
-
                         container:SetX(targetX)
                     end
                 elseif properties:IsPositioningInY()
                     number targetY = parentHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY()
-
-                    if properties:IsSnappingToPixels()
-                        targetY = cast(integer, targetY)
-                    end
-
                     container:SetY(targetY)
                 end
 
@@ -162,38 +141,17 @@ class ManualLayout is Layout
                         height = properties:GetMaximumHeight()
                     end
 
-                    if properties:IsSnappingToPixels()
-                        width = cast(integer, width)
-                        height = cast(integer, height)
-                    end
-
                     if properties:IsPositioningInX()
                         if properties:IsPositioningInY()
                             number targetX = containerWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX()
                             number targetY = containerHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY()
-
-                            if properties:IsSnappingToPixels()
-                                targetX = cast(integer, targetX)
-                                targetY = cast(integer, targetY)
-                            end
-
                             control:SetPosition(targetX, targetY)
                         else
                             number targetX = containerWidth * properties:GetPercentageX() + properties:GetPixelX() - width * properties:GetPercentageOriginX()
-
-                            if properties:IsSnappingToPixels()
-                                targetX = cast(integer, targetX)
-                            end
-
                             control:SetX(targetX)
                         end
                     elseif properties:IsPositioningInY()
                         number targetY = containerHeight * properties:GetPercentageY() + properties:GetPixelY() - height * properties:GetPercentageOriginY() 
-
-                        if properties:IsSnappingToPixels()
-                            targetY = cast(integer, targetY)
-                        end
-
                         control:SetY(targetY)
                     end
 

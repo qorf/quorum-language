@@ -525,6 +525,12 @@ class DefaultSceneManager is SceneManager
         // Color is used for both Models and PointLights.
         Color color = undefined
 
+        // These variables are used if the item has physics enabled.
+        boolean physicsEnabled = false
+        integer responsiveness = -1
+        number mass = 0
+        number friction = 0
+
         item = CreateItem3D(classValue)
 
         if item is Model
@@ -570,20 +576,13 @@ class DefaultSceneManager is SceneManager
             elseif key = properties:CHILDREN
                 children = json:GetObject(key)
             elseif key = properties:PHYSICS_ENABLED
-                item:EnablePhysics(json:GetBoolean(key))
+                physicsEnabled = json:GetBoolean(key)
             elseif key = properties:RESPONSIVENESS
-                text responsiveness = json:GetValue(key)
-                if responsiveness = "UNMOVABLE"
-                    item:SetResponsiveness(0)
-                elseif responsiveness = "NON_RESPONSIVE"
-                    item:SetResponsiveness(1)
-                elseif responsiveness = "RESPONSIVE"
-                    item:SetResponsiveness(2)
-                end
+               responsiveness = json:GetInteger(key)
             elseif key = properties:MASS
-                item:SetMass(json:GetNumber(key))
+                mass = json:GetNumber(key)
             elseif key = properties:FRICTION
-                item:SetFriction(json:GetNumber(key))
+                friction = json:GetNumber(key)
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
             end
@@ -628,6 +627,13 @@ class DefaultSceneManager is SceneManager
                 light:SetColor(color)
                 light:SetIntensity(intensity)
             end
+        end
+
+        if physicsEnabled = true
+            item:EnablePhysics(true)
+            item:SetResponsiveness(responsiveness)
+            item:SetMass(mass)
+            item:SetFriction(friction)
         end
 
         Matrix4 matrix = item:GetTransform()

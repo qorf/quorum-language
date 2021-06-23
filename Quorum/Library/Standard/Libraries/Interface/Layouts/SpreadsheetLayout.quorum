@@ -92,13 +92,8 @@ class SpreadsheetLayout is FlowLayout
             LayoutProperties properties = column:GetDefaultLayoutProperties()
             x = x + column:GetLeftPadding() * column:GetInterfaceScale()
 
-            if properties:IsSnappingToPixels()
-                column:SetPosition(cast(integer, x), cast(integer, parent:FlowLayout:containerHeight - totalHeight))
-                column:SetSize(cast(integer, columnWidths:Get(i)), cast(integer, totalHeight))
-            else
-                column:SetPosition(x, parent:FlowLayout:containerHeight - totalHeight)
-                column:SetSize(columnWidths:Get(i), totalHeight)
-            end
+            column:SetPosition(x, parent:FlowLayout:containerHeight - totalHeight)
+            column:SetSize(columnWidths:Get(i), totalHeight)
 
             x = x + columnWidths:Get(i) + column:GetRightPadding() * column:GetInterfaceScale()
             i = i + 1
