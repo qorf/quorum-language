@@ -1425,6 +1425,15 @@ class QuorumParser
 
         ParseContext expression = Expression()
         if expression = undefined
+            //if there is a right hand side, but the expression was undefined, it is an error. 
+            if context:hasRightHandSide
+                if IsValid()
+                    Token invalidToken = tokenIterator:GetCurrent()
+                    SendDefaultError("Invalid Expression at " + invalidToken:value)
+                else
+                    SendDefaultError("Invalid Expression")
+                end
+            end
             return undefined
         else
             context:SetLastToken(expression:GetLastToken()) 
