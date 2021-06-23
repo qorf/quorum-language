@@ -113,6 +113,7 @@ class ExpressionsTester
         SubDoubleInt()
         SubIntDouble()
         SubIntInt()
+
 // FAIL TESTS
         path = failPath
         BadActionName()
@@ -139,6 +140,7 @@ class ExpressionsTester
         NoVariable()
         NoVariable2()
         SelfInitialize()
+        TextDoublePlus()
         VariableNamedAsKeyword()
         WeirdText()
     end
@@ -1634,6 +1636,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "SelfInitialize.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TextDoublePlus
+        Array<File> files
+        File main
+        main:SetPath(path + "TextDoublePlus.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
