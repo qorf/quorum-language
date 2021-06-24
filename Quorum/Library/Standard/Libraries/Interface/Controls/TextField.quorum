@@ -25,7 +25,7 @@ use Libraries.Containers.MultipleLineText
 use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -178,7 +178,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action SetPassword(boolean value)
         me:passwordField = value
         GameStateManager manager
-        AccessibilityManager access = manager:GetAccessibilityManager()
+        Accessibility access = manager:GetAccessibility()
         if access not= undefined
             access:TextFieldUpdatePassword(me)
             TextChangeEvent changeEvent

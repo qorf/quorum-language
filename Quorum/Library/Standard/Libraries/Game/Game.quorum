@@ -41,7 +41,7 @@ use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Fonts.FontManager
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -169,7 +169,6 @@ use Libraries.Interface.Events.WindowFocusListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
-use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.CollisionListener2D
@@ -224,7 +223,7 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
-    AccessibilityManager accessibility = undefined
+    Accessibility accessibility = undefined
     EditManager editManager
 
     public boolean exitRequested = false
@@ -4903,14 +4902,14 @@ class Game
     /*
 
     */
-    action SetAccessibilityManager(AccessibilityManager accessibilityManager)
+    action SetAccessibility(Accessibility accessibilityManager)
         accessibility = accessibilityManager
     end
 
     /*
 
     */
-    action GetAccessibilityManager returns AccessibilityManager
+    action GetAccessibility returns Accessibility
         return accessibility
     end
 

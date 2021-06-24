@@ -1,6 +1,6 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.GameStateManager
@@ -81,7 +81,7 @@ class Button is Control
     action Activate(BehaviorEvent event)
         parent:Control:Activate(event)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:ButtonActivated(me)
         end

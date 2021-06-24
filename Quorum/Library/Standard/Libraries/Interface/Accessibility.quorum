@@ -1,0 +1,63 @@
+package Libraries.Interface
+
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeTableChangeEvent
+use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.WindowFocusEvent
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.ToggleButton
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.ProgressBarValueChangedEvent
+
+class Accessibility
+    blueprint action NameChanged(Item item)
+
+    blueprint action DescriptionChanged(Item item)
+
+    blueprint action TextFieldUpdatePassword(TextField field)
+
+    blueprint action Update
+
+    blueprint action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    blueprint action SelectionChanged(SelectionEvent event)
+
+    blueprint action ButtonActivated(Button button)
+
+    blueprint action ToggleButtonToggled(ToggleButton button)
+
+    blueprint action FocusChanged(FocusEvent event)
+
+    blueprint action Add(Item item)
+
+    blueprint action Remove(Item item)
+
+    blueprint action MenuChanged(MenuChangeEvent event)
+
+    blueprint action TreeChanged(TreeChangeEvent event)
+
+    blueprint action TreeTableChanged(TreeTableChangeEvent event)
+
+    blueprint action ControlActivated(ControlActivationEvent event)
+
+    blueprint action TextChanged(TextChangeEvent event)
+
+    blueprint action WindowFocusChanged(WindowFocusEvent event)
+
+    blueprint action Notify(Item item, text value)
+
+    blueprint action Notify(Item item, text value, integer notificationType)
+
+    /*
+    The Shutdown action shuts down the underlying accessibility architecture.
+    */
+    blueprint action Shutdown
+
+    blueprint action IsScreenReaderListening returns boolean
+end
