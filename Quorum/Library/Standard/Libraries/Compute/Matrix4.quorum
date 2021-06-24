@@ -4157,4 +4157,118 @@ class Matrix4
             end
         end
     end
+
+    /*
+    This action takes a Vector3 representing a coordinate in 3D space (for example, the position of an Item3D)
+    and transforms it by multiplying it with this Matrix. This can be used to apply translation, scaling, and
+    rotation to a 3D point. The result is returned in a new Vector3 object.
+
+    Attribute: Parameter coordinate A Vector3 containing a coordinate in 3D space.
+
+    Attribute: Example
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    matrix:SetToTranslation(3, 0, 1)
+    matrix:Scale(2)
+
+    Vector3 coordinate
+    coordinate:Set(-2, 4, 2)
+    Vector3 result = matrix:TransformWorldCoordinate(coordinate)
+
+    output "Transformed coordinate is at " + result:GetX() + ", " + result:GetY() + ", " + result:GetZ()
+    */
+    action TransformWorldCoordinate(Vector3 coordinate) returns Vector3
+        Vector3 result
+        return TransformWorldCoordinate(coordinate:GetX(), coordinate:GetY(), coordinate:GetZ(), result)
+    end
+
+    /*
+    This action takes a Vector3 representing a coordinate in 3D space (for example, the position of an Item3D)
+    and transforms it by multiplying it with this Matrix. This can be used to apply translation, scaling, and
+    rotation to a 3D point. The result is stored in the second parameter, the "out" Vector3. The same Vector3
+    can be safely passed as both parameters in order to store the result in the original coordinate vector.
+
+    Attribute: Parameter coordinate A Vector3 containing a coordinate in 3D space.
+    Attribute: Parameter out A Vector3 that will store the result of the transformation.
+
+    Attribute: Example
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    matrix:SetToTranslation(3, 0, 1)
+    matrix:Scale(2)
+
+    Vector3 coordinate
+    coordinate:Set(-2, 4, 2)
+    Vector3 result
+    matrix:TransformWorldCoordinate(coordinate, result)
+
+    output "Transformed coordinate is at " + result:GetX() + ", " + result:GetY() + ", " + result:GetZ()
+    */
+    action TransformWorldCoordinate(Vector3 coordinate, Vector3 out) returns Vector3
+        return TransformWorldCoordinate(coordinate:GetX(), coordinate:GetY(), coordinate:GetZ(), out)
+    end
+
+    /*
+    This action takes a coordinate in 3D space (for example, the position of an Item3D)
+    and transforms it by multiplying it with this Matrix. This can be used to apply translation, scaling, and
+    rotation to a 3D point. The result is returned in a new Vector3 object.
+
+    Attribute: Parameter x The x coordinate of the 3D point to transform.
+    Attribute: Parameter y The y coordinate of the 3D point to transform.
+    Attribute: Parameter z The z coordinate of the 3D point to transform.
+
+    Attribute: Example
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    matrix:SetToTranslation(3, 0, 1)
+    matrix:Scale(2)
+
+    Vector3 result = matrix:TransformWorldCoordinate(-2, 4, 2)
+
+    output "Transformed coordinate is at " + result:GetX() + ", " + result:GetY() + ", " + result:GetZ()
+    */
+    action TransformWorldCoordinate(number x, number y, number z) returns Vector3
+        Vector3 result
+        return TransformWorldCoordinate(x, y, z, result)
+    end
+
+    /*
+    This action takes a coordinate in 3D space (for example, the position of an Item3D)
+    and transforms it by multiplying it with this Matrix. This can be used to apply translation, scaling, and
+    rotation to a 3D point. The result is stored in the provided Vector3 parameter.
+
+    Attribute: Parameter x The x coordinate of the 3D point to transform.
+    Attribute: Parameter y The y coordinate of the 3D point to transform.
+    Attribute: Parameter z The z coordinate of the 3D point to transform.
+    Attribute: Parameter out A Vector3 to store the result in. This is the same Vector3 returned by the action.
+
+    Attribute: Example
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    matrix:SetToTranslation(3, 0, 1)
+    matrix:Scale(2)
+
+    Vector3 result
+    matrix:TransformWorldCoordinate(-2, 4, 2, result)
+
+    output "Transformed coordinate is at " + result:GetX() + ", " + result:GetY() + ", " + result:GetZ()
+    */
+    action TransformWorldCoordinate(number x, number y, number z, Vector3 out) returns Vector3
+        // This action can be considered the result of multiplying this matrix by the column vector [x y z 1].
+
+        out:SetX(row0column0 * x + row0column1 * y + row0column2 * z + row0column3)
+        out:SetY(row1column0 * x + row1column1 * y + row1column2 * z + row1column3)
+        out:SetZ(row2column0 * x + row2column1 * y + row2column2 * z + row2column3)
+
+        return out
+    end
+    
 end
