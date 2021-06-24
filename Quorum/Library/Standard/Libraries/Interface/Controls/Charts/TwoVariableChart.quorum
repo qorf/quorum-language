@@ -15,6 +15,7 @@ class TwoVariableChart is Chart
 
     // The root ChartItem.
     ChartItem summary
+    Array<Series> seriesList
 
     // How many ticks are set along the x and y axes.
     integer xTicks = 0
@@ -136,14 +137,9 @@ class TwoVariableChart is Chart
                 if xLabelsOverride = undefined
                     label:SetText(scaleText)
                 else
-                    //now get the location of the text value to put in
-                    if i = xTicks - 1
-                        label:SetText(xLabelsOverride:Get(xLabelsOverride:GetSize() - 1))
-                    else
-                        number percent = (i * 1.0) / ((xTicks - 1) * 1.0)
-                        integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
-                        label:SetText(xLabelsOverride:Get(index))
-                    end
+                    number percent = (i * 1.0) / ((xTicks) * 1.0)
+                    integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
+                    label:SetText(xLabelsOverride:Get(index))
                 end
                 label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
                 scaleNum = scaleNum + scaleWidth
@@ -206,10 +202,38 @@ class TwoVariableChart is Chart
                 i = i + 1
             end
         end
+        
+        // Right now this series coloring isn't working here 
+        // I set the color in the LineChartCreator until I can figure out why
+//        i = 0
+//        repeat while i < seriesList:GetSize()
+//            Series series = seriesList:Get(i)
+//            series:SetColor(options:GetColorFromPalette(i))
+//            integer j = 0
+//            repeat while j < series:GetSize()
+//                series:GetItem(j):SetColor(series:GetColor())
+//                j = j + 1
+//            end
+//            i = i + 1
+//        end
 
         if IsShowingLegend()
             Add(GetLegend())
+            
+            AdjustForLegend()
+            parent:Chart:Resize()
         end
+    end
+
+    /*
+        Returns an array of all the series sets 
+    */
+    action GetSeriesList returns Array<Series>
+        return seriesList
+    end
+
+    action AddSeries(Series series)
+        seriesList:Add(series)
     end
 
     action SetXTickCount(integer ticks)
@@ -368,5 +392,20 @@ class TwoVariableChart is Chart
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
+    /*
+        This action is called whenever the window is resized.
+    */
+    action Resize()
+        AdjustForLegend()
+        parent:Chart:Resize()
+    end
 
+    action AdjustForLegend()
+        if IsShowingLegend()
+            GetLegend():Resize()
+            number legendPercent = GetLegend():GetWidth() / parent:Chart:GetWidth()
+            number remainingChartArea = 1 - 0.05 //0.05 for legend padding
+            SetChartAreaWidthPercent(remainingChartArea - legendPercent)
+        end
+    end
 end
