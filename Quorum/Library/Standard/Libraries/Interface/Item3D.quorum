@@ -1925,6 +1925,26 @@ class Item3D is Item
         rotationMatrix:IdentityMatrix()
         rotationMatrix:Rotate(angles)
         transformDirty = true
+
+        if updateTransform
+            if shape not= undefined
+                Vector3 scale
+                shape:GetLocalScaling(scale)
+                Matrix3 tempMatrix
+                tempMatrix:row0column0 = rotationMatrix:row0column0 / scale:GetX()
+                tempMatrix:row0column1 = rotationMatrix:row0column1 / scale:GetX()
+                tempMatrix:row0column2 = rotationMatrix:row0column2 / scale:GetX()
+
+                tempMatrix:row1column0 = rotationMatrix:row1column0 / scale:GetY()
+                tempMatrix:row1column1 = rotationMatrix:row1column1 / scale:GetY()
+                tempMatrix:row1column2 = rotationMatrix:row1column2 / scale:GetY()
+
+                tempMatrix:row2column0 = rotationMatrix:row2column0 / scale:GetZ()
+                tempMatrix:row2column1 = rotationMatrix:row2column1 / scale:GetZ()
+                tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
+                collisionTransform:GetBasis():Set(tempMatrix)
+            end
+        end
     end
 
     action GetYaw returns number
@@ -2121,6 +2141,13 @@ class Item3D is Item
         me:scaleY = scaleY
         me:scaleZ = scaleZ
         transformDirty = true
+
+        if shape not= undefined
+            Vector3 temp
+            shape:GetLocalScaling(temp)
+            temp:Set(scaleX / temp:GetX(), scaleY / temp:GetY(), scaleZ / temp:GetZ())
+            shape:Scale(temp)
+        end
 
         if scaleChildren and not children:IsEmpty()
             ScaleChildren(scaleX, scaleY, scaleZ)
@@ -3272,14 +3299,14 @@ class Item3D is Item
 
         matrix:row0column0 = tempMatrix:row0column0
         matrix:row0column1 = tempMatrix:row0column1
-        matrix:row0column2 = tempMatrix:row0column2
+        matrix:row0column2 = -tempMatrix:row0column2
 
         matrix:row1column0 = tempMatrix:row1column0
         matrix:row1column1 = tempMatrix:row1column1
-        matrix:row1column2 = tempMatrix:row1column2
+        matrix:row1column2 = -tempMatrix:row1column2
 
-        matrix:row2column0 = tempMatrix:row2column0
-        matrix:row2column1 = tempMatrix:row2column1
+        matrix:row2column0 = -tempMatrix:row2column0
+        matrix:row2column1 = -tempMatrix:row2column1
         matrix:row2column2 = tempMatrix:row2column2
 
 //        matrix:row0column3 = collisionTransform:GetOrigin():GetX()

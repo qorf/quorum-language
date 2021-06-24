@@ -2730,15 +2730,12 @@ class Layer3D is Layer
         end
 
         i = 0
-        //output "In Solve physics in Layer3D, joint count is: " + joints:GetSize()
         repeat joints:GetSize() times
             Joint3D joint = joints:Get(i)
             joint:SetInCollisionGroup(false)
-            //output "This is the joint with itemA as " + joint:GetItemA():GetDescription()
             i = i + 1
         end
 
-        //output "The total number of objects in this layer is: " + items:GetSize()
         i = 0
         repeat items:GetSize() times
             
