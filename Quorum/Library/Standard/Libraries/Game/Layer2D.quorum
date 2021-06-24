@@ -3,7 +3,7 @@ package Libraries.Game
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
 use Libraries.Game.Graphics.GraphicsManager
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.ResizeEvent
@@ -240,7 +240,7 @@ class Layer2D is Layer
         items:Add(item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -300,7 +300,7 @@ class Layer2D is Layer
         items:Add(index, item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -361,7 +361,7 @@ class Layer2D is Layer
         items:AddToFront(item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -511,7 +511,7 @@ class Layer2D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -590,7 +590,7 @@ class Layer2D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -668,7 +668,7 @@ class Layer2D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -745,7 +745,7 @@ class Layer2D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -1046,7 +1046,7 @@ class Layer2D is Layer
     action Set(integer index, Item2D item)
         if index < items:GetSize()
             Item oldItem = items:Get(index)
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(oldItem)
             end
@@ -1055,7 +1055,7 @@ class Layer2D is Layer
         items:Set(index, item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end

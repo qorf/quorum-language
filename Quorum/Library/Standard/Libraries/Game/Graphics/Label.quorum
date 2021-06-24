@@ -7,7 +7,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.GameStateManager
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 
 /*
 The Label class is used to draw text on the screen using a Font that is loaded
@@ -283,7 +283,7 @@ class Label is Control
             accessibility architecture.
             */
             if parent:Item:GetDescription() = ""
-                AccessibilityManager accessibility = manager:GetAccessibilityManager()
+                Accessibility accessibility = manager:GetAccessibility()
                 if accessibility not= undefined
                     accessibility:DescriptionChanged(me)
                 end

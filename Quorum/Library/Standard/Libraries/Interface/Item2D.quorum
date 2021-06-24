@@ -1309,7 +1309,7 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(newItem)
             end
@@ -1338,7 +1338,7 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(newItem)
             end
@@ -1375,7 +1375,7 @@ class Item2D is Item
         if layer not= undefined
             removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(removed)
             end
@@ -1418,7 +1418,7 @@ class Item2D is Item
         if layer not= undefined
             temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(temp)
             end
@@ -1519,7 +1519,7 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(oldItem)
                 accessibility:Add(newItem)

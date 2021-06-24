@@ -1,6 +1,6 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.GameStateManager
@@ -86,7 +86,7 @@ class ProgressBar is Control
     action SetValue(number value)
         
 
-        AccessibilityManager access = manager:GetAccessibilityManager()
+        Accessibility access = manager:GetAccessibility()
         if access not= undefined
             ProgressBarValueChangedEvent event
             event:SetOldValue(me:value)
