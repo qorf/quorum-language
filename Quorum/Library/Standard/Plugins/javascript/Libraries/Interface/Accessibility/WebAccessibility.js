@@ -1,41 +1,57 @@
-function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
+function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
+    /*
+     * These variables are old and may not be relevant. I'm leaving them in for now, 
+     * but presume they will be modified or go away as we develop the library.
+     */
     var type = "";      //specifies the input type of the element
     var elementType = "";   //specifies the type of element DEFAULT is INPUT right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
+    
+//    system action NameChanged(Item item)
 
-    //private system action SetFocus(Item item) returns boolean
-//
+    this.NameChanged$quorum_Libraries_Interface_Item = function(item) {
+    };
 
-    this.SetFocus$quorum_Libraries_Interface_Item = function(item) {
-        currentFocus = item;
+//    system action DescriptionChanged(Item item)
+
+    this.DescriptionChanged$quorum_Libraries_Interface_Item = function(item) {
+    };
+    
+//    system action TextFieldUpdatePassword(TextField field)
+
+    this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
+    };
+    
+//    system action Update
+
+    this.Update = function() {
+    };
+    
+//    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
+    };
+    
+//    system action SelectionChanged(SelectionEvent event)
+
+    this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
+    };
+    
+//    system action ButtonActivated(Button button)
+    this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
+    };
+    
+//    system action ToggleButtonToggled(ToggleButton button)    
+    this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
+    };
+    
+//    system action FocusChanged(FocusEvent event)
+    this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         
-        //item.Focus();
-        //plugins_quorum_Libraries_Interface_AccessibilityManager_.focus = item;
     };
-    
-    //    private system action Select(Item item) returns boolean
-//
-
-    this.Select$quorum_Libraries_Interface_Item = function(item) {
-        
-    };
-    
-    //    private system action Deselect(Item item) returns boolean
-//
-
-    this.Deselect$quorum_Libraries_Interface_Item = function(item) {
-
-    };
-    
-    //    // NativeAdd: Adds an Item to the accessibility hierarchy so the screen 
-//    //            readers can access information about it.
-//    private system action NativeAdd(Item item) returns boolean
-//    
-//  
-
-
-   this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {      
+//    system action Add(Item item)
+    this.Add$quorum_Libraries_Interface_Item = function(item) {      
        //replace this code with item appropriate material 
 
         var id = item.GetHashCode();        
@@ -105,23 +121,57 @@ function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
         element.appendChild(para);
         console.log(description, " has been added.");
     };
-    
-
-    //    
-//    // NativeRemove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
-//    private system action NativeRemove(Item item) returns boolean
-//
-    this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
+//    system action Remove(Item item)
+    this.Remove$quorum_Libraries_Interface_Item = function(item) {
         var parent = document.getElementById("QuorumGraphicsCanvas");
         var child = document.getElementById(item.GetHashCode());
         parent.removeChild(child);
         console.log(elementList[item.GetHashCode()], " has been removed.");
     };
     
-    //    // ===== actions for Buttons
-//    
-//    // == Pushbuttons
-//    private system action InvokeButton(Item button) returns boolean
+//    system action MenuChanged(MenuChangeEvent event)
+    this.MenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
+    };
+    
+//    system action TreeChanged(TreeChangeEvent event)
+    this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
+    };
+    
+//    system action TreeTableChanged(TreeTableChangeEvent event)
+    this.TreeTableChanged$quorum_Libraries_Interface_Events_TreeTableChangeEvent = function(event) {
+    };
+    
+//    system action ControlActivated(ControlActivationEvent event)
+    this.ControlActivated$quorum_Libraries_Interface_Events_ControlActivationEvent = function(event) {
+    };
+    
+//    system action TextChanged(TextChangeEvent event)
+    this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
+    };
+    
+//    system action WindowFocusChanged(WindowFocusEvent event)
+    this.WindowFocusChanged$quorum_Libraries_Interface_Events_WindowFocusEvent = function(event) {
+    };
+    
+//    system action Notify(Item item, text value)
+    this.Notify$quorum_Libraries_Interface_Item$text = function(item, value) {
+    };
+    
+//    system action Notify(Item item, text value, integer notificationType)
+    this.Notify$quorum_Libraries_Interface_Events_Item$text$integer = function(item, value, notificationType) {
+    };
+    
+//    system action Shutdown
+    this.Shutdown = function() {
+    };
+    
+
+
+/*
+ * This implementation is old, but I am leaving it in as an exemplar. 
+ * 
+ * 
+ *
     this.InvokeButton$quorum_Libraries_Interface_Item = function(item) {
         var buttonId = this.id;
         var button = elementList[buttonId];
@@ -133,9 +183,7 @@ function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
         button.ActivateFakeButton$quorum_Libraries_Interface_Events_MouseEvent(mouseEvent);
     };
     
-    //
-//    // == Togglebuttons
-//    private system action UpdateToggleState(Item button, boolean selected) returns boolean
+
     this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean = function(item, selected) {
         var toggleId = this.id;
         var toggle = elementList[toggleId];
@@ -158,42 +206,5 @@ function plugins_quorum_Libraries_Interface_AccessibilityManager_() {
         }
 
     };
-    
-    //
-//    // ===== actions for Textbox
-//
-//    // TextSelectionChanged: This action will be called whenever the text selection has changed.
-//    //                       For example, a word or character has been added to the selection.
-//    private system action TextSelectionChanged(TextBoxSelection selection)
-    this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection_ = function(selection) {
-
-    };
-    
-    //
-//    // CaretPositionChanged: This action will be called whenever the caret moves or when text has
-//    //                       been added or removed.
-//    private system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
-    this.CaretPositionChanged$quorum_Libraries_Interface_Item$text = function(item, adjacentCharacter) {
-
-    };
-    
-    //
-//    // =====
-//
-//    private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
-    this.NativeMenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
-
-    };
-
-//    private system action NativeTreeChanged(TreeChangeEvent event) returns boolean
-    this.NativeTreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
-
-    };
-
-
-//    //    system action Update
-//
-    this.Update = function() {
-
-    };
+    */
 }
