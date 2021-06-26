@@ -19,6 +19,8 @@ import quorum.Libraries.Interface.Item_;
  * @author andreasstefik
  */
 public class AndroidAccessibility {
+    public java.lang.Object me_ = null;
+    
     public void  NameChanged(Item_ item) {}
 
     public void  DescriptionChanged(Item_ item) {}
