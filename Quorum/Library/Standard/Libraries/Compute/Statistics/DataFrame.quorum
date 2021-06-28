@@ -2626,6 +2626,7 @@ class DataFrame
     action ScatterPlot returns ScatterPlot
         ScatterPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ScatterPlot, CreateChart(creator))
     end

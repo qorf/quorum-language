@@ -30,10 +30,12 @@ class LineChartLayout is TwoVariableChartLayout
         number width = chartAreaContainer:GetWidth()
         number height = chartAreaContainer:GetHeight()
 
-        // Give 1.5% of chart area space to each point
-        number pointDensity = (width * 0.015) 
+        // Give 1.25% of chart area space to each point
+        number pointDensity = (width * 0.0125) 
         chart:SetPointRadius(cast(integer, pointDensity/2))
-        chart:SetLineDensity(cast(integer, pointDensity/2))
+
+        // Set default line density to 0.75% of chart area
+        chart:SetLineDensity(cast(integer, width * 0.0075))
 
         integer i = 0
         repeat while i < lines:GetSize()

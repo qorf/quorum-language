@@ -203,20 +203,6 @@ class TwoVariableChart is Chart
             end
         end
         
-        // Right now this series coloring isn't working here 
-        // I set the color in the LineChartCreator until I can figure out why
-//        i = 0
-//        repeat while i < seriesList:GetSize()
-//            Series series = seriesList:Get(i)
-//            series:SetColor(options:GetColorFromPalette(i))
-//            integer j = 0
-//            repeat while j < series:GetSize()
-//                series:GetItem(j):SetColor(series:GetColor())
-//                j = j + 1
-//            end
-//            i = i + 1
-//        end
-
         if IsShowingLegend()
             Add(GetLegend())
             
@@ -396,7 +382,7 @@ class TwoVariableChart is Chart
         This action is called whenever the window is resized.
     */
     action Resize()
-        AdjustForLegend()
+        //AdjustForLegend()
         parent:Chart:Resize()
     end
 
