@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.Charts.BarGroup
 use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Views.LabelBoxView
 
 class SharedBarChartParent is Chart
     private ChartItem summary // root of the tree
@@ -42,7 +43,10 @@ class SharedBarChartParent is Chart
     Color barSelectionColor = undefined
     Array<Icon> bars
 
-    Color previousColor
+    ColorGroup previousColorGroup = undefined
+    Color previousColor = undefined
+    Control controlHighlight
+    
    
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -56,6 +60,15 @@ class SharedBarChartParent is Chart
         elseif target not= undefined and target is Icon
             Icon temp = cast(Icon, target)
             temp:SetColor(previousColor)
+        elseif target is Control
+            Control temp = cast(Control, target)
+            LayoutProperties properties = temp:GetDefaultLayoutProperties()
+            if properties not= undefined
+                LabelBoxView view
+                view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
+                temp:SetView2D(view)
+            end
         end
     end
 
@@ -74,6 +87,16 @@ class SharedBarChartParent is Chart
                 Icon temp = cast(Icon, target)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetBarSelectionColor())
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    previousColorGroup = properties:GetBorderColor()
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:Initialize(properties:GetBackgroundColor(), GetBarSelectionColor())
+                    temp:SetView2D(view)
+                end
             end            
         end
     end
@@ -686,7 +709,6 @@ class SharedBarChartParent is Chart
                     temp:SetAccessibilityCode(parent:Item:ITEM)
                     temp:SetNextFocus(GetNextFocus())
                     temp:SetPreviousFocus(GetPreviousFocus())
-                    //barGroups:Get(i):Get(j):SetIcon(temp)
                     bars:Set(barCount, temp)
                     chartArea:Add(bars:Get(barCount))
                     j = j + 1
@@ -699,6 +721,8 @@ class SharedBarChartParent is Chart
             repeat while i < seriesList:GetSize()
                 Series series = seriesList:Get(i)
                 series:SetColor(options:GetColorFromPalette(i))
+                series:GetLabel():SetFocusable(true)
+                series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
                 integer j = 0
                 repeat while j < series:GetSize()
                     series:GetItem(j):SetColor(series:GetColor())
@@ -713,19 +737,7 @@ class SharedBarChartParent is Chart
         end
     end
 
-    private action GetBarHeight(integer index) returns number
-        integer thickness = cast(integer, GetWidth()*0.001) + 3
-        number height = 0
-        check
-            height = GetChartArea():GetHeight() * barHeights:Get(index)
-        detect e
-            height = 0
-            barHeights:Set(index, 0.0)
-        end
-        number thickHeight = height + thickness/2
-        return thickHeight
-    end
-    
+
     private action GetBarHeight(BarGroup group, integer index) returns number
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         number height = 0
@@ -744,29 +756,16 @@ class SharedBarChartParent is Chart
         return width
     end
 
-    private action GetBarHeight(integer index, number chartAreaHeight) returns number
-        integer thickness = cast(integer, GetWidth()*0.001) + 3
-        number height = 0
-        check
-            height = chartAreaHeight * barHeights:Get(index)
-        detect e
-            height = 0
-            barHeights:Set(index, 0.0)
-        end
-        number thickHeight = height + thickness/2
-        return thickHeight
-    end
-
     private action GetBarHeight(BarGroup group, integer index, number chartAreaHeight) returns number
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         number height = 0
         check
-            height = chartAreaHeight * group:Get(index):GetHeight()
+            height = cast(integer, (chartAreaHeight - GetXAxis():GetHeight())) * group:Get(index):GetHeight()
         detect e
             height = 0
             group:Get(index):SetHeight(0.0)
         end
-        number thickHeight = height + thickness/2
+        number thickHeight = height// + thickness/2
         return thickHeight
     end
     
@@ -802,7 +801,7 @@ class SharedBarChartParent is Chart
         if IsShowingLegend()
             GetLegend():Resize()
             number legendPercent = GetLegend():GetWidth() / parent:Chart:GetWidth()
-            number remainingChartArea = 1 - 0.15 - 0.05 //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding
+            number remainingChartArea = 0.8 //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding
             SetChartAreaWidthPercent(remainingChartArea - legendPercent)
         end
     end

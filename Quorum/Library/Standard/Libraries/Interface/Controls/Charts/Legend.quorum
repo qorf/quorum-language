@@ -21,11 +21,12 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.ControlLabel
 
 
 class Legend is Control
 
-    Label title
+    ControlLabel title
     Array<Series> seriesList
     Array<text> itemNames
 
@@ -52,6 +53,7 @@ class Legend is Control
         SetName("Legend")
 
 //        SetInputGroup("Button")
+        SetDescription("Legend")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
     end
@@ -79,7 +81,7 @@ class Legend is Control
     end
     
     action GetTitle() returns text
-        return title:GetName()
+        return title:GetText()
     end
 
     action SetName(text name)
@@ -106,7 +108,7 @@ class Legend is Control
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
 
-        me:SetDescription(me:GetTitle() + seriesList:GetSize() + " series")
+        me:SetDescription("Legend , " + seriesList:GetSize() + " series")
         legendArea:SetFocusTarget(me)
         legendArea:SetContainer(chart)
 
@@ -119,18 +121,18 @@ class Legend is Control
         firstEntry:SetContainer(chart)
         if seriesList:GetSize() > 0
             legendArea:SetChild(firstEntry)
-            seriesList:Get(0):GetIcon():SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
+            seriesList:Get(0):GetLabel():SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
             firstEntry:SetParent(legendArea)
-            firstEntry:SetFocusTarget(seriesList:Get(0):GetIcon())
+            firstEntry:SetFocusTarget(seriesList:Get(0):GetLabel())
         end
         integer i = 1
         ChartItem previous = firstEntry
         repeat while i < seriesList:GetSize()
             ChartItem entry
             entry:SetContainer(chart)
-            seriesList:Get(i):GetIcon():SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
+            seriesList:Get(i):GetLabel():SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
             entry:SetParent(legendArea)
-            entry:SetFocusTarget(seriesList:Get(i):GetIcon())
+            entry:SetFocusTarget(seriesList:Get(i):GetLabel())
             previous:SetNext(entry)
             entry:SetPrevious(previous)
             previous = entry
@@ -167,7 +169,7 @@ class Legend is Control
                 if border = undefined
                     border = color:CustomColor(0, 0, 0, 0)
                 end
-
+                
                 labelBoxView:SetBorderThickness(cast(integer, borderThickness))
                 labelBoxView:Initialize(background, border)
                 view = labelBoxView

@@ -380,6 +380,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetName(uniqueFactor:GetAsText(i))
                 bar:SetValue(value)
                 group:AddBar(bar)
+                series:SetName(uniqueFactor:GetAsText(i))
                 series:AddItem(bar:GetIcon())
                 chart:AddBarGroup(group)
             end
@@ -449,6 +450,7 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
     
                     //Add bar to the correct Series
                     if(seriesFactor:HasKey(uniqueFactor2:GetAsText(j)))
+                        seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):SetName(uniqueFactor2:GetAsText(j))
                         seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):AddItem(innerBar:GetIcon())
                     end
                 end

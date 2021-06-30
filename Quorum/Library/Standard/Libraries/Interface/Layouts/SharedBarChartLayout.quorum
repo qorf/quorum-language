@@ -34,6 +34,7 @@ class SharedBarChartLayout is ChartLayout
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
         Drawable axis = chart:GetXAxis()
+        number axisHeight = axis:GetHeight()
 
         number currentXPosition = 0
         if not barGroups:IsEmpty()
@@ -58,7 +59,6 @@ class SharedBarChartLayout is ChartLayout
             transparent:SetColor(0, 0, 0, 0)
             
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
-            barY = originPointY
             currentXPosition = currentXPosition + outerEdgePadding
 
             // Tracking area of each bar group for group icon
@@ -81,7 +81,7 @@ class SharedBarChartLayout is ChartLayout
                     if(currentBar:GetHeight() > groupHeight)
                         groupHeight = currentBar:GetHeight()
                     end
-                    currentBar:SetPosition(currentXPosition, barY)
+                    currentBar:SetPosition(currentXPosition, cast(integer, originPointY + axisHeight))
                     currentXPosition = currentXPosition + barWidth + betweenBarPadding
                     j = j + 1
                 end
@@ -91,7 +91,7 @@ class SharedBarChartLayout is ChartLayout
                 newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight+1), transparent)
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
                 newIcon:SetX(groupX)
-                newIcon:SetY(originPointY)
+                newIcon:SetY(cast(integer, originPointY + axisHeight))
                 currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                 i = i + 1
                 groupHeight = 0
@@ -145,10 +145,12 @@ class SharedBarChartLayout is ChartLayout
             number centerOffset = 0
             repeat while i < ticks:GetSize()
                 currentLabel = barLabels:Get(i)
-
+    
+                
                 if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                     currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                 end
+                
 
                 currentTick = ticks:Get(i)
                 centerOffset = (((barGroups:Get(i):GetSize() * barWidth) + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) / 2)
@@ -173,5 +175,6 @@ class SharedBarChartLayout is ChartLayout
         end
         axisLabel:SetX(cast(integer, horizContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
         axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
 end

@@ -3,8 +3,8 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.ControlLabel
 
 /*
 The Series class is a data structure that stores information for each 
@@ -30,7 +30,7 @@ end
 */
 
 class Series
-    Label name
+    ControlLabel name
     Icon icon
     Color color
     Array<Drawable> items
@@ -44,11 +44,11 @@ class Series
         me:name:SetText(name)
     end
 
-    action GetLabel() returns Label
+    action GetLabel() returns ControlLabel
         return name
     end
 
-    action SetLabel(Label name)
+    action SetLabel(ControlLabel name)
         me:name = name
     end
 
