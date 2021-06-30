@@ -179,8 +179,8 @@ class QuorumLexer is Lexer
             elseif not isIgnored //it's not an ignorable character and it's not valid
                 CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
                 SetCompilerErrorLocation(error)
-                error:SetErrorMessage("The character '" + currentChar +
-                    "' has no meaning and cannot be used. Try removing it.")
+                error:SetErrorMessage("The symbol '" + currentChar +
+                    "' is not valid. Please remove it")
                 SendToCompilerErrorManager(error)
             end
             index = index + 1
@@ -506,7 +506,7 @@ class QuorumLexer is Lexer
                 if digitCount = 0
                     CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
                     SetCompilerErrorLocation(error)
-                    error:SetErrorMessage("A Minus (-) must be followed by any number of digits (0-9)")
+                    error:SetErrorMessage("A minus (-) must be followed by more digits (0-9).")
                     SendToCompilerErrorManager(error)
                 end
                 done = true
@@ -540,7 +540,7 @@ class QuorumLexer is Lexer
                         if digitCount = 0
                             CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
                             SetCompilerErrorLocation(error)
-                            error:SetErrorMessage("A period (.) must be followed by any number of digits (0-9)")
+                            error:SetErrorMessage("A period (.) must be followed by more digits (0-9).")
                             SendToCompilerErrorManager(error)
                         end
                         done = true
@@ -583,7 +583,7 @@ class QuorumLexer is Lexer
                         if digitCount = 0
                             CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
                             SetCompilerErrorLocation(error)
-                            error:SetErrorMessage("An exponent (e) must be followed by any number of digits (0-9)")
+                            error:SetErrorMessage("An exponent (e) must be followed by more digits (0-9)")
                             SendToCompilerErrorManager(error)
                         end
                         done = true

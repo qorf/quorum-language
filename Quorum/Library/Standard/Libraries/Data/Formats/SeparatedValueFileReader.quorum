@@ -151,17 +151,16 @@ class SeparatedValueFileReader is FileReader
             if (char = lineFeed and not isInDoubleQuote) or (char = newline and not isInDoubleQuote)
                 or (currentCharacter = (size - 1))
 
-                //if it's the last character, keep it
-                if currentCharacter = size - 1
-                    currentCharacter = currentCharacter + 1
-                end
-
                 //if it's a newline and the next character is a linefeed, include it
-                if char = newline and currentCharacter + 1 < (size - 1) and myTotal:GetCharacter(currentCharacter + 1) = lineFeed
+                if char = newline and myTotal:GetCharacter(currentCharacter + 1) = lineFeed
                     //we need to skip a character, because this is a carriage return, line feed
                     currentCharacter = currentCharacter + 1
                 end
 
+                //if it's the last character, keep it
+                if currentCharacter = size - 1
+                    currentCharacter = currentCharacter + 1
+                end
                 lineEnd = currentCharacter
                 text value = myTotal:GetSubtext(lineStart, lineEnd)
                 lineStart = currentCharacter + 1

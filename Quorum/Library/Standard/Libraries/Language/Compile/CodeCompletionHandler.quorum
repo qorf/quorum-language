@@ -205,16 +205,17 @@ class CodeCompletionHandler
     private action GetSortedBlocks(Action act) returns Array<Block>
         Array<Block> blocks
         Block block = act:GetBlock()
-        blocks:Add(block)
+        
 
-        if act:GetName() = "NavigateToDeclaration"
-            a = 5
-        end
-        Iterator<Block> actionBlocks = block:GetBlocks()
-        repeat while actionBlocks:HasNext()
-            block = actionBlocks:Next()
+        if block not= undefined
             blocks:Add(block)
-            FillFromBlock(blocks, block)
+
+            Iterator<Block> actionBlocks = block:GetBlocks()
+            repeat while actionBlocks:HasNext()
+                block = actionBlocks:Next()
+                blocks:Add(block)
+                FillFromBlock(blocks, block)
+            end
         end
         return blocks
     end

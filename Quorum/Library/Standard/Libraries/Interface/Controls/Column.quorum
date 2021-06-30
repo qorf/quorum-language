@@ -11,6 +11,8 @@ class Column is Control
 
     on create
         FlowLayout layout
+        // Interface scaling is handled by the parent Spreadsheet, rather than the child columns
+        layout:SetIgnoreInterfaceScale(true)
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()

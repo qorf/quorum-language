@@ -174,15 +174,17 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         //make chart
         i = 0
         repeat while i < labels:GetSize()
-            number valueForName = hash:GetValue(labels:GetAsText(i))
-
-            BarGroup group
-            group:SetName(labels:GetAsText(i))
-            Bar bar
-            bar:SetName(labels:GetAsText(i))
-            bar:SetValue(valueForName)
-            group:AddBar(bar)
-            chart:AddBarGroup(group)
+            if not labels:IsUndefined(i)
+                number valueForName = hash:GetValue(labels:GetAsText(i))
+    
+                BarGroup group
+                group:SetName(labels:GetAsText(i))
+                Bar bar
+                bar:SetName(labels:GetAsText(i))
+                bar:SetValue(valueForName)
+                group:AddBar(bar)
+                chart:AddBarGroup(group)
+            end
             i = i + 1
         end 
         Legend legend
@@ -205,10 +207,15 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     private action BuildCountChart(DataFrame frame, boolean useFactor) returns BarChart
         BarChart chart
 
+        //Only one factor is allowed and every column is another line compared to the factor
+        if GetFactorSize() > 1
+            alert("Maximum of one factor can be used when charting with multiple columns")
+        end
+
         Array <text> factorText
         HashTable<text, BarGroup> groupFactor
         HashTable<text, Series> seriesFactor
-        chart:SetYAxisTitle("Count")
+        chart:SetYAxisTitle("Total")
         
         number max = 0.0
         number min = 10000000.0
@@ -220,20 +227,24 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         integer i = 0
         repeat while i < factor:GetSize()
-            if(useFactor)
-                if(not groupFactor:HasKey(factor:GetAsText(i)))
-                    BarGroup group
-                    group:SetName(factor:GetAsText(i))
-                    groupFactor:Add(factor:GetAsText(i), group)
+            if not factor:IsUndefined(i)
+                if(useFactor)
+                    if(not groupFactor:HasKey(factor:GetAsText(i)))
+                        BarGroup group
+                        group:SetName(factor:GetAsText(i))
+                        groupFactor:Add(factor:GetAsText(i), group)
+                    end
+                    factorText:Add(factor:GetAsText(i))
+                else
+                    if(not groupFactor:HasKey(""+(i+1)))
+                        BarGroup group
+                        group:SetName(""+(i+1))
+                        groupFactor:Add(""+(i+1), group)
+                    end
+                    factorText:Add(""+(i+1))
                 end
-                factorText:Add(factor:GetAsText(i))
             else
-                if(not groupFactor:HasKey(""+(i+1)))
-                    BarGroup group
-                    group:SetName(""+(i+1))
-                    groupFactor:Add(""+(i+1), group)
-                end
-                factorText:Add(""+(i+1))
+                alert("Factor is undefined for row: " + (i+1))
             end
             i = i + 1
         end
@@ -253,26 +264,28 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             integer j = 0
             HashTable<text, Bar> barFactor
             repeat while j < column:GetSize()
-                valueForName = column:GetAsNumber(j)
-
-                text barKey = factorText:Get(j) + " " + column:GetHeader()
-                if(not barFactor:HasKey(barKey))
-                    Bar bar
-                    bar:SetName(barKey)
-                    bar:SetValue(valueForName)
-                    barFactor:Add(barKey, bar)
-                    if(groupFactor:HasKey(factorText:Get(j)))
-                        groupFactor:GetValue(factorText:Get(j)):AddBar(bar)
+                if not column:IsUndefined(j) and not factor:IsUndefined(j)
+                    valueForName = column:GetAsNumber(j)
+    
+                    text barKey = factorText:Get(j) + " " + column:GetHeader()
+                    if(not barFactor:HasKey(barKey))
+                        Bar bar
+                        bar:SetName(barKey)
+                        bar:SetValue(valueForName)
+                        barFactor:Add(barKey, bar)
+                        if(groupFactor:HasKey(factorText:Get(j)))
+                            groupFactor:GetValue(factorText:Get(j)):AddBar(bar)
+                        end
+                        if(seriesFactor:HasKey(column:GetHeader()))
+                            seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                        end
+                    else
+                        valueForName = valueForName + barFactor:GetValue(barKey):GetValue()
+                        barFactor:GetValue(barKey):SetValue(valueForName)
                     end
-                    if(seriesFactor:HasKey(column:GetHeader()))
-                        seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                    if(valueForName > max)
+                        max = valueForName
                     end
-                else
-                    valueForName = valueForName + barFactor:GetValue(barKey):GetValue()
-                    barFactor:GetValue(barKey):SetValue(valueForName)
-                end
-                if(valueForName > max)
-                    max = valueForName
                 end
                 j = j + 1
             end

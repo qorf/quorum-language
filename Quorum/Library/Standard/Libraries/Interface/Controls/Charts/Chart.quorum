@@ -594,6 +594,8 @@ class Chart is Control
             GetBackground():SetSize(GetWidth(), GetHeight())
         end
 
+        AdjustForLegend()
+
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
@@ -650,6 +652,16 @@ class Chart is Control
         end
 
         parent:Control:Resize()
+    end
+    action AdjustForLegend()
+        if IsShowingLegend()
+            legend:Resize()
+            number legendPercent = legend:GetWidth() / GetWidth()
+            Math math
+            number remainingChartArea = math:Round(1 - legendPercent - 0.20, 2) //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding 
+            output legendPercent + ", " + remainingChartArea
+            SetChartAreaWidthPercent(remainingChartArea)
+        end
     end
 
     /* 
