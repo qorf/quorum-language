@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
 
 /*
     This class represents the default options any chart will use when displaying information in a chart. These options
@@ -20,15 +21,91 @@ shared class ChartOptions
     Color selectionColor = undefined
     integer tickDigits = 1
 
+    Array<Color> colorPalette
+
     on create
-        Color color
+        Color color1
         if barColor = undefined
-            barColor = color:Navy()
+            barColor = color1:Navy()
         end
 
         if selectionColor = undefined
-            selectionColor = color:Blue()
+            selectionColor = color1:Blue()
         end
+
+        /*
+            Default colors will be filled with a 10-color color-blind-friendly palette
+            See the website below for more information
+            https://analyticsdemystified.com/excel-tips/data-visualization-that-is-color-blind-friendly-excel-2007/
+        */
+        number r = (54.0/255.0)
+        number g = (94.0/255.0)
+        number b = (150.0/255.0)
+        color1:SetColor(r,g,b,1)
+        colorPalette:Add(color1)
+
+        Color color2
+        r = (153.0/255.0)
+        g = (51.0/255.0)
+        b = (53.0/255.0)
+        color2:SetColor(r,g,b,1)
+        colorPalette:Add(color2)
+
+        Color color3
+        r = (120.0/255.0)
+        g = (151.0/255.0)
+        b = (61.0/255.0)
+        color3:SetColor(r,g,b,1)
+        colorPalette:Add(color3)
+
+        Color color4
+        r = (93.0/255.0)
+        g = (68.0/255.0)
+        b = (125.0/255.0)
+        color4:SetColor(r,g,b,1)
+        colorPalette:Add(color4)
+
+        Color color5
+        r = (54.0/255.0)
+        g = (134.0/255.0)
+        b = (160.0/255.0)
+        color5:SetColor(r,g,b,1)
+        colorPalette:Add(color5)
+
+        Color color6
+        r = (208.0/255.0)
+        g = (112.0/255.0)
+        b = (47.0/255.0)
+        color6:SetColor(r,g,b,1)
+        colorPalette:Add(color6)
+
+        Color color7
+        r = (129.0/255.0)
+        g = (152.0/255.0)
+        b = (198.0/255.0)
+        color7:SetColor(r,g,b,1)
+        colorPalette:Add(color7)
+
+        Color color8
+        r = (196.0/255.0)
+        g = (128.0/255.0)
+        b = (128.0/255.0)
+        color8:SetColor(r,g,b,1)
+        colorPalette:Add(color8)
+
+        Color color9
+        r = (173.0/255.0)
+        g = (196.0/255.0)
+        b = (133.0/255.0)
+        color9:SetColor(r,g,b,1)
+        colorPalette:Add(color9)
+
+        Color color10
+        r = (152.0/255.0)
+        g = (136.0/255.0)
+        b = (176.0/255.0)
+        color10:SetColor(r,g,b,1)
+        colorPalette:Add(color10)
     end
 
     /* 
@@ -40,6 +117,25 @@ shared class ChartOptions
         return barColor
     end
 
+    action GetColorFromPalette(integer index) returns Color
+        return colorPalette:Get(index mod colorPalette:GetSize())
+    end
+
+    action SetPalette(Array<Color> colorPalette)
+        me:colorPalette = colorPalette
+    end
+    /*
+        This action uses the weighted RBG grayscale method based on the wavelength GRAYSCALE  = 0.299R + 0.587G + 0.114B
+    */
+    action SetPaletteToGrayScale()
+        integer i = 0
+        number grayscale = 0.0
+        repeat while i < colorPalette:GetSize()
+            grayscale = (0.299 * colorPalette:Get(i):GetRed()) + (0.587 * colorPalette:Get(i):GetGreen()) + (0.114 * colorPalette:Get(i):GetBlue())
+            colorPalette:Get(i):SetColor(grayscale,grayscale,grayscale,1)
+            i = i + 1
+        end
+    end
     /*
         This action sets the default color for all charts with bars on the system. If a chart is already created,
         changing this does not necessarily change its defaults, as these are set when graphics are first loaded.
