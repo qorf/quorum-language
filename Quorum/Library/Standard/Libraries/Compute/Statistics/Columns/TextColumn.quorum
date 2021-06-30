@@ -145,6 +145,10 @@ class TextColumn is DataFrameColumn
         return Copy(0, rows:GetSize(), sort, unique)
     end
 
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsText(to,column:GetAsText(from))
+    end
+
     action CopyToColumns(boolean sort, boolean unique) returns Array<DataFrameColumn>
         Array<DataFrameColumn> columns
         Array<Text> numbers = undefined

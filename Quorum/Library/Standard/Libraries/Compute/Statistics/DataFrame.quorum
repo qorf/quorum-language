@@ -552,25 +552,7 @@ class DataFrame
             alert("Mismatched size in SetRow.")
         end
         repeat while col < GetSize()
-            if me:GetColumn(col):IsNumberColumn() and frame:GetColumn(col):IsNumberColumn()
-                NumberColumn numCol1 = cast(NumberColumn, me:GetColumn(col))
-                NumberColumn numCol2 = cast(NumberColumn, frame:GetColumn(col))
-                numCol1:SetAsNumber(to,numCol2:Get(from))
-            elseif me:GetColumn(col):IsIntegerColumn() and frame:GetColumn(col):IsIntegerColumn()
-                IntegerColumn intCol1 = cast(IntegerColumn, me:GetColumn(col))
-                IntegerColumn intCol2 = cast(IntegerColumn, frame:GetColumn(col))
-                intCol1:SetAsInteger(to,intCol2:Get(from))
-            elseif me:GetColumn(col):IsTextColumn() and frame:GetColumn(col):IsTextColumn()
-                TextColumn textCol1 = cast(TextColumn, me:GetColumn(col))
-                TextColumn textCol2 = cast(TextColumn, frame:GetColumn(col))
-                textCol1:SetAsText(to,textCol2:Get(from))
-            elseif me:GetColumn(col):IsBooleanColumn() and frame:GetColumn(col):IsBooleanColumn()
-                BooleanColumn boolCol1 = cast(BooleanColumn, me:GetColumn(col))
-                BooleanColumn boolCol2 = cast(BooleanColumn, frame:GetColumn(col))
-                boolCol1:SetAsBoolean(to,boolCol2:Get(from))
-            else
-                alert("Potential type mismatch in SetRow.")
-            end
+            me:GetColumn(col):CopyToRow(frame:GetColumn(col), to, from)
             col = col + 1
         end
     end
