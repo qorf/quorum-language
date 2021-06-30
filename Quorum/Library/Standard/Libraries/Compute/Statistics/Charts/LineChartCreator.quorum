@@ -122,9 +122,20 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array<text> xLabels
         Array<text> factorText
 
+        // This will be used for numerical factor data vs text factor data
+        boolean numericalFactor = false
+        number xMin = 0.0
+        number xMax = 0.0
+        
         // Line Chart With Factor
-        if(useFactor)
+        if useFactor
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsNumberColumn()
+                numericalFactor = true
+                xMin = factor:GetAsNumber(0)
+                xMax = xMin
+            end
+
             chart:SetXAxisTitle(factor:GetHeader())
             // Get all the distinct factors
             i = 0
@@ -133,27 +144,58 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if(not sharedFactor:HasKey(factor:GetAsText(i)))
                         number num = 0.0
                         sharedFactor:Add(factor:GetAsText(i), num)
+                        if numericalFactor
+                            number current = factor:GetAsNumber(i)
+                            factorXPosition:Add(factor:GetAsText(i), current)
+                            if current > xMax
+                                xMax = current
+                            end
+                            if current < xMin
+                                xMin = current
+                            end
+                        end
                     end
                     factorText:Add(factor:GetAsText(i))
                 end 
                 i = i + 1
             end
-            // Sort all factors and make a list of text labels (ticks)
+
+            // Sort all x-axis labels if not numerical get new position
             xLabels = sharedFactor:CopyToKeyArray()
             if comparison = undefined
                 xLabels:Sort()
             else
                 xLabels:Sort(comparison)
             end
-            i = 0
-            repeat while i < xLabels:GetSize()
-                if(not factorXPosition:HasKey(xLabels:Get(i)))
-                    factorXPosition:Add(xLabels:Get(i), cast(number, i))
+
+            if not numericalFactor
+                i = 0
+                repeat while i < xLabels:GetSize()
+                    if(not factorXPosition:HasKey(xLabels:Get(i)))
+                        factorXPosition:Add(xLabels:Get(i), cast(number, i))
+                    end
+                    i = i + 1
                 end
-                i = i + 1
             end
-            xAxisMinimum = 0
-            xAxisMaximum = sharedFactor:GetSize()-1   
+
+            xTicks = xLabels:GetSize()
+
+            // Default to a max of 10 x-axis labels for numerical. This can be changed, but this way it is legible
+            if numericalFactor
+                if xLabels:GetSize() < 10
+                    xTicks = xLabels:GetSize()
+                else
+                    xTicks = 10
+                end
+                xAxisMinimum = xMin
+                xAxisMaximum = xMax
+                if (xMax - xMin) < 10
+                    xTicks = cast(integer, xMax - xMin) + 1
+                end
+            else
+                xAxisMinimum = 0
+                xAxisMaximum = sharedFactor:GetSize()-1
+            end
             yAxisMaximum = yAxisMaximum:GetMinimumValue()            
     
             // Get the overall y axis maximum across all columns including factor summation 
@@ -196,21 +238,27 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
 
         // Line Chart Without Factor
-        else
+        else 
+            //numericalFactor = true       
             // Get all the distinct factors
             i = 0
             repeat while i < largestColumnSize
-                if(not sharedFactor:HasKey(" "+(i+1)+" "))
-                    xLabels:Add(" "+(i+1)+" ")
-                    number num = 0.0
-                    sharedFactor:Add(" "+(i+1)+" ", num)
-                    factorXPosition:Add(" "+(i+1)+" ", cast(number, i))
-                end
-                factorText:Add(" "+(i+1)+" ")
+                number num = 0.0
+                text name = " "+ (i+1) +" "
+                sharedFactor:Add(name, num)
+                xLabels:Add(name)
+                factorXPosition:Add(name, cast(number, (i+1)))
+                factorText:Add(name)
                 i = i + 1
             end
-            xAxisMinimum = 0
-            xAxisMaximum = sharedFactor:GetSize()-1   
+            
+            if xLabels:GetSize() < 10
+                xTicks = xLabels:GetSize()
+            else
+                xTicks = 10
+            end
+            xAxisMinimum = 1
+            xAxisMaximum = xLabels:GetSize()
             yAxisMaximum = grandMax
             
             // Get distinct series
@@ -259,26 +307,28 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             // Locate the marker for factor on x-axis and plot point there
             j = 0
             repeat while j < xLabels:GetSize()
-                number x = factorXPosition:GetValue(xLabels:Get(j))
-                number xp = (x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum)
-                number y = sharedFactor:GetValue(xLabels:Get(j))
-                number yp = (y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum)
-                ChartPoint point
-                point:SetPercentX(xp)
-                point:SetPercentY(yp)
-                point:SetName("Point for " + xLabels:Get(j) + ", " + column:GetHeader())
-                newLine:Add(point)
-                sharedFactor:Set(xLabels:Get(j), 0.0) //Reset the values for next series
+                if(factorXPosition:HasKey(xLabels:Get(j)))
+                    number x = factorXPosition:GetValue(xLabels:Get(j))
+                    number xp = (x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum)
+                    number y = sharedFactor:GetValue(xLabels:Get(j))
+                    number yp = (y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum)
+                    ChartPoint point
+                    point:SetPercentX(xp)
+                    point:SetPercentY(yp)
+                    point:SetName("Point for " + xLabels:Get(j) + ", " + column:GetHeader())
+                    newLine:Add(point)
+                    sharedFactor:Set(xLabels:Get(j), 0.0) //Reset the values for next series
+                end
                 j = j + 1
             end
 
             if(seriesFactor:HasKey(column:GetHeader()))
-                // Remove color setting once its working in parent chart
                 seriesFactor:GetValue(column:GetHeader()):SetColor(options:GetColorFromPalette(i))
                 newLine:SetColor(options:GetColorFromPalette(i))
 
                 seriesFactor:GetValue(column:GetHeader()):AddItem(newLine)
             end
+            newLine:SortPoints()
             chart:AddChartLine(newLine)   
             i = i + 1
         end
@@ -290,7 +340,9 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        chart:OverrideXLabelsWithText(xLabels)
+        if not numericalFactor
+            chart:OverrideXLabelsWithText(xLabels)
+        end
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
@@ -298,7 +350,10 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
+        chart:SetXAxisMaximum(xAxisMaximum)
+        chart:SetXAxisMinimum(xAxisMinimum)
         chart:SetYTickCount(yTicks)
+        chart:SetXTickCount(xTicks)
         chart:Populate()
         return chart
     end

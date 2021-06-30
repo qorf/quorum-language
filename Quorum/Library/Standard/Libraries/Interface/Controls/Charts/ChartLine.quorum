@@ -101,4 +101,30 @@ class ChartLine is Drawable
             lines:Add(line)
         end
     end
+    
+    /*
+    Sorts all the chart points within the line by lowest x value first
+    Very basic bubble sort, can be improved. Used in numerical factor line charts
+    */
+    action SortPoints()
+        integer i = 0
+        repeat while i < points:GetSize()-1
+            integer j = 0
+            repeat while j < points:GetSize()-i-1
+                if points:Get(j):GetPercentX() > points:Get(j+1):GetPercentX()
+                    ChartPoint temp
+                    temp:SetPercentX(points:Get(j):GetPercentX())
+                    temp:SetPercentY(points:Get(j):GetPercentY())
+
+                    points:Get(j):SetPercentX(points:Get(j+1):GetPercentX())
+                    points:Get(j):SetPercentY(points:Get(j+1):GetPercentY())
+
+                    points:Get(j+1):SetPercentX(temp:GetPercentX())
+                    points:Get(j+1):SetPercentY(temp:GetPercentY())
+                end
+                j = j + 1 
+            end
+            i = i + 1
+        end
+    end
 end

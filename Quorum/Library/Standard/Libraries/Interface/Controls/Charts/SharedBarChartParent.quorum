@@ -794,16 +794,6 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
         end
-        AdjustForLegend()
         parent:Chart:Resize()
-    end
-
-    action AdjustForLegend()
-        if IsShowingLegend()
-            GetLegend():Resize()
-            number legendPercent = GetLegend():GetWidth() / parent:Chart:GetWidth()
-            number remainingChartArea = 1 - 0.15 - 0.05 //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding
-            SetChartAreaWidthPercent(remainingChartArea - legendPercent)
-        end
     end
 end

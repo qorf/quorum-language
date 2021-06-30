@@ -590,7 +590,17 @@ class Chart is Control
                 i = i + 1
             end
         end
+        AdjustForLegend()
         parent:Control:Resize()
+    end
+    action AdjustForLegend()
+        if IsShowingLegend()
+            legend:Resize()
+            number legendPercent = legend:GetWidth() / GetWidth()
+            Math math
+            number remainingChartArea = math:Round(1 - legendPercent - 0.10, 2) // 0.10 right chart padding
+            SetChartAreaWidthPercent(remainingChartArea)
+        end
     end
 
     /* 
