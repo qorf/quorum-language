@@ -95,6 +95,13 @@ class CompilerTestSuite
         byteArrayChecks:SetCompilerTestSuite(me)
         scienceChecks:SetTester(tester)
 
+        //delete the output folder to start the testing fresh
+        File rootTestFolder
+        rootTestFolder:SetPath("Output")
+        if rootTestFolder:Exists()
+            rootTestFolder:Delete(true)
+        end
+
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
         Compiler compiler
