@@ -510,6 +510,7 @@ class DefaultSceneManager is SceneManager
         text classValue = json:GetValue(properties:CLASS)
         Item3D item = undefined
         Number32BitArray size = undefined
+        Number32BitArray scale = undefined
         Number32BitArray transform = undefined
         JavaScriptObjectNotation children = undefined
 
@@ -533,11 +534,11 @@ class DefaultSceneManager is SceneManager
 
         item = CreateItem3D(classValue)
 
-        if item is Model
+        if classValue = "Model"
             model = cast(Model, item)
         end
 
-        if item is PointLight
+        if classValue = "PointLight"
             light = cast(PointLight, item)
         end
 
@@ -556,7 +557,7 @@ class DefaultSceneManager is SceneManager
                 item:SetPosition(position:Get(0), position:Get(1), position:Get(2))
             elseif key = properties:SIZE
                 size = ConvertToNumber32BitArray(json:GetObject(key))
-            elseif key = properties:TRANSFORM
+            elseif key = properties:ROTATION
                 transform = ConvertToNumber32BitArray(json:GetObject(key))
             elseif key = properties:TYPE
                 type = json:GetInteger(key)
@@ -564,10 +565,8 @@ class DefaultSceneManager is SceneManager
                 file = json:GetValue(key)
             elseif key = properties:DESCRIPTION
                 item:SetDescription(json:GetValue(key))
-            elseif key = properties:ROTATION
-                item:SetProperty(key, json:GetObject(key))
             elseif key = properties:SCALE
-                item:SetProperty(key, json:GetObject(key))
+                scale = ConvertToNumber32BitArray(json:GetObject(key))
             elseif key = properties:COLOR
                 Color modelColor
                 Number32BitArray colorArray = ConvertToNumber32BitArray(json:GetObject(key))
@@ -624,8 +623,7 @@ class DefaultSceneManager is SceneManager
             item:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
 
             if light not= undefined
-                light:SetColor(color)
-                light:SetIntensity(intensity)
+                light:SetLight(color, light:GetPosition(), intensity)
             end
         end
 
@@ -636,23 +634,29 @@ class DefaultSceneManager is SceneManager
             item:SetFriction(friction)
         end
 
-        Matrix4 matrix = item:GetTransform()
-        matrix:row0column0 = transform:Get(0)
-        matrix:row0column1 = transform:Get(1)
-        matrix:row0column2 = transform:Get(2)
-        matrix:row0column3 = transform:Get(3)
-        matrix:row1column0 = transform:Get(4)
-        matrix:row1column1 = transform:Get(5)
-        matrix:row1column2 = transform:Get(6)
-        matrix:row1column3 = transform:Get(7)
-        matrix:row2column0 = transform:Get(8)
-        matrix:row2column1 = transform:Get(9)
-        matrix:row2column2 = transform:Get(10)
-        matrix:row2column3 = transform:Get(11)
-        matrix:row3column0 = transform:Get(12)
-        matrix:row3column1 = transform:Get(13)
-        matrix:row3column2 = transform:Get(14)
-        matrix:row3column3 = transform:Get(15)
+        if scale not= undefined
+            item:SetScale(scale:Get(0), scale:Get(1), scale:Get(2))
+        end
+
+        if transform not= undefined
+            Matrix4 matrix = item:GetRotationTransform()
+            matrix:row0column0 = transform:Get(0)
+            matrix:row0column1 = transform:Get(1)
+            matrix:row0column2 = transform:Get(2)
+            matrix:row0column3 = transform:Get(3)
+            matrix:row1column0 = transform:Get(4)
+            matrix:row1column1 = transform:Get(5)
+            matrix:row1column2 = transform:Get(6)
+            matrix:row1column3 = transform:Get(7)
+            matrix:row2column0 = transform:Get(8)
+            matrix:row2column1 = transform:Get(9)
+            matrix:row2column2 = transform:Get(10)
+            matrix:row2column3 = transform:Get(11)
+            matrix:row3column0 = transform:Get(12)
+            matrix:row3column1 = transform:Get(13)
+            matrix:row3column2 = transform:Get(14)
+            matrix:row3column3 = transform:Get(15)
+        end
 
         if children not= undefined
             Array<Item3D> childItems = LoadItem3Ds(children)
@@ -1012,16 +1016,23 @@ class DefaultSceneManager is SceneManager
         Model model = undefined
         PointLight light = undefined
 
-        if item is Model
-            json:Add(properties:CLASS, "Model")
-
-            model = cast(Model, item)
-        elseif item is PointLight
-            json:Add(properties:CLASS, "PointLight")
-            
-            light = cast(PointLight, item)
+        if not CustomSaveProperty3D(item, properties:CLASS, json)
+            if item is Model
+                json:Add(properties:CLASS, "Model")
+                model = cast(Model, item)
+            elseif item is PointLight
+                json:Add(properties:CLASS, "PointLight")
+                light = cast(PointLight, item)
+            else
+                json:Add(properties:CLASS, "Item3D")
+            end
         else
-            json:Add(properties:CLASS, "Item3D")
+            text classValue = json:GetValue(properties:CLASS)
+            if classValue = "Model"
+                model = cast(Model, item)
+            elseif classValue = "PointLight"
+                light = cast(PointLight, item)
+            end
         end
 
         if not CustomSaveProperty3D(item, properties:NAME, json)
@@ -1036,16 +1047,12 @@ class DefaultSceneManager is SceneManager
         if not CustomSaveProperty3D(item, properties:SIZE, json)
             json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
         end
-        if (not CustomSaveProperty3D(item, properties:SCALE, json)) and item:HasProperty(properties:SCALE)
+        if not CustomSaveProperty3D(item, properties:SCALE, json)
             JavaScriptObjectNotation scaleJson = item:GetProperty(properties:SCALE)
-            json:Add(properties:SCALE, NewJsonArray(scaleJson:Get(0):GetNumber(), scaleJson:Get(1):GetNumber(), scaleJson:Get(2):GetNumber()))
+            json:Add(properties:SCALE, NewJsonArray(item:GetScaleX(), item:GetScaleY(), item:GetScaleZ()))
         end
-        if (not CustomSaveProperty3D(item, properties:ROTATION, json)) and item:HasProperty(properties:ROTATION)
-            JavaScriptObjectNotation rotationJson = item:GetProperty(properties:ROTATION)
-            json:Add(properties:ROTATION, NewJsonArray(rotationJson:Get(0):GetNumber(), rotationJson:Get(1):GetNumber(), rotationJson:Get(2):GetNumber()))
-        end
-        if not CustomSaveProperty3D(item, properties:TRANSFORM, json)
-            Matrix4 matrix = item:GetTransform()
+        if not CustomSaveProperty3D(item, properties:ROTATION, json)
+            Matrix4 matrix = item:GetRotationTransform()
             JavaScriptObjectNotation transform
             transform:SetArray()
             transform:Add(matrix:row0column0)
@@ -1065,7 +1072,7 @@ class DefaultSceneManager is SceneManager
             transform:Add(matrix:row3column2)
             transform:Add(matrix:row3column3)
     
-            json:Add(properties:TRANSFORM, transform)
+            json:Add(properties:ROTATION, transform)
         end
 
         if model not= undefined

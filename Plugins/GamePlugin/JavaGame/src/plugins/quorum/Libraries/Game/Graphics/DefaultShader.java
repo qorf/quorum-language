@@ -25,7 +25,7 @@ import quorum.Libraries.Game.Graphics.DirectionalLight;
 import quorum.Libraries.Game.Graphics.DirectionalLightsAttribute;
 import quorum.Libraries.Game.Graphics.Environment_;
 import quorum.Libraries.Game.Graphics.OrthographicCamera_;
-import quorum.Libraries.Game.Graphics.PointLight;
+import quorum.Libraries.Game.Graphics.PointLight_;
 import quorum.Libraries.Game.Graphics.PointLightsAttribute;
 import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Game.Graphics.TextureAttribute;
@@ -516,8 +516,8 @@ public class DefaultShader extends BaseShader
                         {
                             quorum.Libraries.Containers.Array_ lights = ((PointLightsAttribute)combinedAttributes.GetAttribute(pointLightsAttribute.GetPointLightsValue())).lights;
                             for (int i = pointLightsOffset; i < lights.GetSize(); i++)
-                                cacheAmbientCubemap.Add(((PointLight)lights.Get(i)).GetColor(), ((PointLight)lights.Get(i)).GetGlobalPosition(),
-                                    tmpV1, ((PointLight)lights.Get(i)).intensity);
+                                cacheAmbientCubemap.Add(((PointLight_)lights.Get(i)).GetColor(), ((PointLight_)lights.Get(i)).GetGlobalPosition(),
+                                    tmpV1, ((PointLight_)lights.Get(i)).Get_Libraries_Game_Graphics_PointLight__intensity_());
                         }
                         
                         cacheAmbientCubemap.Clamp();
@@ -653,7 +653,7 @@ public class DefaultShader extends BaseShader
 	//protected final boolean shadowMap;
 	protected final AmbientCubemap ambientCubemap = new AmbientCubemap();
 	protected final DirectionalLight directionalLights[];
-	protected final PointLight pointLights[];
+	protected final PointLight_ pointLights[];
 	//protected final SpotLight spotLights[];
         
 	/** The renderable used to create this shader, invalid after the call to init */
@@ -734,9 +734,9 @@ public class DefaultShader extends BaseShader
             this.directionalLights = new DirectionalLight[lighting && config.numDirectionalLights > 0 ? config.numDirectionalLights : 0];
             for (int i = 0; i < directionalLights.length; i++)
                     directionalLights[i] = new DirectionalLight();
-            this.pointLights = new PointLight[lighting && config.numPointLights > 0 ? config.numPointLights : 0];
+            this.pointLights = new PointLight_[lighting && config.numPointLights > 0 ? config.numPointLights : 0];
             for (int i = 0; i < pointLights.length; i++)
-                    pointLights[i] = new PointLight();
+                    pointLights[i] = new quorum.Libraries.Game.Graphics.PointLight();
             /*
             this.spotLights = new SpotLight[lighting && config.numSpotLights > 0 ? config.numSpotLights : 0];
             for (int i = 0; i < spotLights.length; i++)
@@ -981,7 +981,7 @@ public class DefaultShader extends BaseShader
                 dirLight.SetColor(0, 0, 0, 1);
                 dirLight.SetDirection(0, -1, 0);
             }
-            for (final PointLight pointLight : pointLights)
+            for (final PointLight_ pointLight : pointLights)
             {
                 pointLight.SetColor(0, 0, 0, 0);
                 pointLight.SetPosition(0, 0, 0);
@@ -1128,23 +1128,12 @@ public class DefaultShader extends BaseShader
                         continue;
                     else
                     {
-                        PointLight tempPoint = (PointLight)points.Get(i);
+                        PointLight_ tempPoint = (PointLight_)points.Get(i);
                         pointLights[i].SetLight(tempPoint.GetColor(), tempPoint.GetPosition(), tempPoint.GetIntensity());
                         pointLights[i].SetOffset(tempPoint.GetOffsetX(), tempPoint.GetOffsetY(), tempPoint.GetOffsetZ());
                     }
                     
                     int idx = pointLightsLoc + i * pointLightsSize;
-                    
-//                    System.out.println("\npointLight " + i);
-//                    System.out.println("Color 1: " + (idx + pointLightsColorOffset));
-//                    System.out.println("Color 2: " + pointLights[i].GetColor().GetRed() + " * " + pointLights[i].intensity);
-//                    System.out.println("Color 3: " + pointLights[i].GetColor().GetGreen() + " * " + pointLights[i].intensity);
-//                    System.out.println("Color 4: " + pointLights[i].GetColor().GetBlue() + " * " + pointLights[i].intensity);
-//
-//                    System.out.println("\nPosition 1: " + (idx + pointLightsPositionOffset));
-//                    System.out.println("Position 2: " + pointLights[i].position.GetX());
-//                    System.out.println("Position 3: " + pointLights[i].position.GetY());
-//                    System.out.println("Position 4: " + pointLights[i].position.GetZ());
                     
                     double intensity = pointLights[i].GetIntensity();
                     
