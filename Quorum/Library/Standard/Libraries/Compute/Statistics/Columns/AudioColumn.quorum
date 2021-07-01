@@ -180,6 +180,10 @@ class AudioColumn is DataFrameColumn
         return Copy(0, samples:GetSize(), sort, unique)
     end
 
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsNumber(to,column:GetAsNumber(from))
+    end
+
     action ToText returns text
         text result = ""
         text lf = result:GetLineFeed()

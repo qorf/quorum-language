@@ -56,7 +56,9 @@ class TwoVariableChartLayout is ChartLayout
                 if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                     currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                 end
-                currentLabel:SetPosition(cast(integer, originPointX + (scaleDivWidth * i) - (currentLabel:GetWidth() / 2)), cast(integer, originPointY - currentLabel:GetLineHeight()))
+                integer xCurrentLabel = cast(integer, originPointX + (scaleDivWidth * i) - (currentLabel:GetWidth() / 2))
+                integer yCurrentLabel = cast(integer, originPointY - currentLabel:GetLineHeight())
+                currentLabel:SetPosition(xCurrentLabel, yCurrentLabel)
                 i = i + 1
             end
         end

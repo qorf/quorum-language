@@ -1,0 +1,61 @@
+package Libraries.Interface.Accessibility
+
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.MenuChangeEvent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.TreeTableChangeEvent
+use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.WindowFocusEvent
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.ToggleButton
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Accessibility
+
+class MacAccessibility is Accessibility
+    system action NameChanged(Item item)
+
+    system action DescriptionChanged(Item item)
+
+    system action TextFieldUpdatePassword(TextField field)
+
+    system action Update
+
+    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    system action SelectionChanged(SelectionEvent event)
+
+    system action ButtonActivated(Button button)
+
+    system action ToggleButtonToggled(ToggleButton button)
+
+    system action FocusChanged(FocusEvent event)
+
+    system action Add(Item item) 
+
+    system action Remove(Item item)
+
+    system action MenuChanged(MenuChangeEvent event)
+
+    system action TreeChanged(TreeChangeEvent event)
+
+    system action TreeTableChanged(TreeTableChangeEvent event)
+
+    system action ControlActivated(ControlActivationEvent event)
+
+    system action TextChanged(TextChangeEvent event)
+
+    system action WindowFocusChanged(WindowFocusEvent event)
+
+    system action Notify(Item item, text value)
+
+    system action Notify(Item item, text value, integer notificationType)
+
+    system action Shutdown
+
+    action IsScreenReaderListening returns boolean return false end
+end

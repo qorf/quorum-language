@@ -20,6 +20,7 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.ChartDisplay
 use Libraries.System.File
+use Libraries.Interface.Views.LabelBoxView
 
 /*
 
@@ -60,6 +61,7 @@ use Libraries.System.File
 class Chart is Control
     Legend legend
     boolean showLegend = false
+    boolean grayscale = false
     boolean treeNeedsUpdate = true
     ChartSelection selection
     text xName = ""
@@ -88,6 +90,9 @@ class Chart is Control
     number yAxisSizeOffset = 0.75
 
     on create
+        ManualLayout manualLayout
+        chartArea:SetLayout(manualLayout)
+
         horizontalPanel:SetName("Horizontal")
         verticalPanel:SetName("Vertical")
         chartArea:SetName("Chart Area")
@@ -95,7 +100,11 @@ class Chart is Control
         //ManualLayout panelLayout
         //horizontalPanel:SetLayout(panelLayout)
         //verticalPanel:SetLayout(panelLayout)
-        //chartArea:SetLayout(panelLayout)
+        Color color
+        LayoutProperties properties = chartArea:GetDefaultLayoutProperties()
+        properties:SetBackgroundColor(color:White())
+        properties:SetBorderColor(color:White())
+        properties:SetBorderThickness(4)
 
         horizontalPanel:SetFocusable(true)
         verticalPanel:SetFocusable(true)
@@ -322,6 +331,7 @@ class Chart is Control
     end
 
     action DisposeDrawables()
+
         if title not= undefined
             title:Dispose()
             Remove(title)
@@ -451,23 +461,29 @@ class Chart is Control
         me:yAxisSizeOffset = value
     end
 
-    action LoadGraphics(LayoutProperties properties)        
+    action LoadGraphics(LayoutProperties properties)
+               
         if properties = undefined
             return now
         end
 
         ChartOptions options
 
+        if IsGrayScale()
+            options:SetPaletteToGrayScale()
+        end
+
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()
         number borderThickness = properties:GetBorderThickness()
         text labelText = properties:GetLabelText()
 
+        Control chartArea = GetChartArea()
+
         Font font = properties:GetFont()
         TextureRegion iconTexture = properties:GetIcon()
 
         Color color
-        View2D view = properties:GetView2D()
         
         if GetWidth() = 0 or GetHeight() = 0
             SetSize(500,500)//this is for a default size
@@ -479,26 +495,49 @@ class Chart is Control
             SetBackground(rect)
             Add(rect)
         end
-        
+
+        ColorGroup chartAreaBackground = chartArea:GetDefaultLayoutProperties():GetBackgroundColor()
+        ColorGroup chartAreaBorder = chartArea:GetDefaultLayoutProperties():GetBorderColor()
+        number chartAreaBorderThickness = chartArea:GetDefaultLayoutProperties():GetBorderThickness()
+        View2D chartAreaView = chartArea:GetDefaultLayoutProperties():GetView2D()
+
+        if chartAreaView = undefined
+            //background of chart area
+            LabelBoxView chartAreaLabelBoxView
+            if chartAreaBackground = undefined
+                chartAreaBackground = color:CustomColor(0, 0, 0, 0)
+            end
+            if chartAreaBorder = undefined
+                chartAreaBorder = color:CustomColor(0, 0, 0, 0)
+            end
+    
+            chartAreaLabelBoxView:SetBorderThickness(cast(integer, chartAreaBorderThickness))
+            chartAreaLabelBoxView:Initialize(chartAreaBackground, chartAreaBorder)
+            chartAreaView = chartAreaLabelBoxView
+            chartArea:SetView2D(chartAreaLabelBoxView)
+        end
+
+        if chartAreaView not= undefined
+            chartArea:SetView2D(chartAreaView)
+        end
         Array<Drawable> barTicks = GetXTicks()
         Array<Drawable> scaleTicks = GetScaleTicks()
         Array<ControlLabel> barLabels = GetXLabels()
         Array<ControlLabel> scaleLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
-        Control chartArea = GetChartArea()
 
 
         if GetXAxis() = undefined
             Drawable line
-            line:LoadFilledRectangle(cast(integer, GetWidth() * 0.8), 5)
+            line:LoadFilledRectangle(cast(integer, GetWidth() * xAxisSizeOffset), 5)
             SetXAxis(line)
             chartArea:Add(line)
         end
 
         if GetYAxis() = undefined
             Drawable line
-            line:LoadFilledRectangle(5, cast(integer, GetHeight() * 0.8))
+            line:LoadFilledRectangle(5, cast(integer, GetHeight() * yAxisSizeOffset))
             SetYAxis(line)
             chartArea:Add(line)
         end
@@ -555,10 +594,14 @@ class Chart is Control
             GetBackground():SetSize(GetWidth(), GetHeight())
         end
 
+        AdjustForLegend()
+
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
         Array<Drawable> scaleTicks = GetScaleTicks()
+        Array<ControlLabel> barLabels = GetXLabels()
+        Array<ControlLabel> scaleLabels = GetScaleLabels()
 
         horizontalPanel:SetSize(GetWidth()*xAxisSizeOffset, GetHeight()*0.15)
         verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*yAxisSizeOffset)
@@ -583,7 +626,41 @@ class Chart is Control
                 i = i + 1
             end
         end
+
+        if not barLabels:IsEmpty()
+            integer i = 0
+            repeat while i < barLabels:GetSize()
+                barLabels:Get(i):SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
+                i = i + 1
+            end
+        end
+
+        if not scaleLabels:IsEmpty()
+            integer i = 0
+            repeat while i < scaleLabels:GetSize()
+                scaleLabels:Get(i):SetFontSize(cast(integer, GetFontSize()*GetYAxisFontSizeOffset()))
+                i = i + 1
+            end
+        end
+
+        if GetXLabel() not= undefined
+            GetXLabel():SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
+        end
+
+        if GetYLabel() not= undefined
+            GetYLabel():SetFontSize(cast(integer, GetFontSize()*GetYAxisFontSizeOffset()))
+        end
+
         parent:Control:Resize()
+    end
+    action AdjustForLegend()
+        if IsShowingLegend()
+            legend:Resize()
+            number legendPercent = legend:GetWidth() / GetWidth()
+            Math math
+            number remainingChartArea = math:Round(1 - legendPercent - 0.20, 2) //0.15 is hardcoded elsewhere as a flat xOrigOffset and 0.05 for legend padding 
+            SetChartAreaWidthPercent(remainingChartArea)
+        end
     end
 
     /* 
@@ -715,6 +792,14 @@ class Chart is Control
     */
     action IsShowingLegend returns boolean
         return showLegend
+    end
+
+    action UseGrayScale(boolean usegray)
+        grayscale = usegray
+    end
+
+    action IsGrayScale returns boolean
+        return grayscale
     end
 
     /*

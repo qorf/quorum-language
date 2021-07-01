@@ -375,7 +375,7 @@ class ScatterPlot is TwoVariableChart
         integer i = 0
         repeat while i < points:GetSize()
             ChartPoint point = points:Get(i)
-            point:LoadFilledCircle(radius) 
+            point:LoadFilledCircle(radius, points:Get(i):GetColor()) 
             i = i + 1
         end
     end

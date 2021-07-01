@@ -17,12 +17,20 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Views.LabelBoxView
 
 class SharedBarChartParent is Chart
     private ChartItem summary // root of the tree
     integer numberOfBars = 0
+    integer numberOfGroups = 0
+    number maxBarValue = 0.0
     Array<number> barHeights
     Array<text> barNames
+    Array<BarGroup> barGroups
+    boolean hasBarGroups = true
+    Array<Series> seriesList
 
     integer yTickSteps = 2
     integer xTickSteps = -1
@@ -34,6 +42,11 @@ class SharedBarChartParent is Chart
     Color barColor = undefined
     Color barSelectionColor = undefined
     Array<Icon> bars
+
+    ColorGroup previousColorGroup = undefined
+    Color previousColor = undefined
+    Control controlHighlight
+    
    
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -45,9 +58,17 @@ class SharedBarChartParent is Chart
             ControlLabel temp = cast(ControlLabel, target)
             temp:LostSelection()
         elseif target not= undefined and target is Icon
-            Color c
             Icon temp = cast(Icon, target)
-            temp:SetColor(GetBarColor())
+            temp:SetColor(previousColor)
+        elseif target is Control
+            Control temp = cast(Control, target)
+            LayoutProperties properties = temp:GetDefaultLayoutProperties()
+            if properties not= undefined
+                LabelBoxView view
+                view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
+                temp:SetView2D(view)
+            end
         end
     end
 
@@ -64,7 +85,18 @@ class SharedBarChartParent is Chart
             elseif target is Icon
                 Color c
                 Icon temp = cast(Icon, target)
+                previousColor = temp:GetColor()
                 temp:SetColor(GetBarSelectionColor())
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    previousColorGroup = properties:GetBorderColor()
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:Initialize(properties:GetBackgroundColor(), GetBarSelectionColor())
+                    temp:SetView2D(view)
+                end
             end            
         end
     end
@@ -76,8 +108,18 @@ class SharedBarChartParent is Chart
         return numberOfBars
     end
 
+    /*
+        Returns the minimum tick
+    */
     action GetMinimumTick returns number
         return minTick
+    end
+
+    /*
+        Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
+    */
+    action HasBarGroups(boolean flag)
+        hasBarGroups = flag
     end
 
     //Made private to avoid issues with using this before AddBar
@@ -92,6 +134,26 @@ class SharedBarChartParent is Chart
     */
     action AddBar(text name, number height)
         SetBar(numberOfBars+1, name, height)
+    end
+
+    /*
+        Appends a bargroup to end of the Bar Chart.
+    */
+    action AddBarGroup(BarGroup group)
+        barGroups:Add(group)
+        numberOfGroups = numberOfGroups + 1
+    end
+
+    /*
+        Sets the numberOfBars variable by checking the group size for each BarGroup
+    */
+    action CalculateNumberOfBars
+        numberOfBars = 0
+        integer i = 0
+        repeat while i < barGroups:GetSize()
+            numberOfBars = numberOfBars + barGroups:Get(i):GetSize()
+            i = i + 1
+        end
     end
 
     /*
@@ -187,33 +249,39 @@ class SharedBarChartParent is Chart
     /*
         Returns the maxiumum value of the scale.
     */
-    action GetScaleinimum returns number
+    action GetScaleMinimum returns number
         return minScale
     end
-
+    
+    /*
+        Sets the default color for the bars
+    */
     action SetBarColor(Color color)
         me:barColor = color
     end
 
+    /*
+        Gets the default selection color (highlighting) for the bars
+    */
     action GetBarSelectionColor returns Color
         return barSelectionColor
     end
 
+    /*
+        Sets the default selection color (highlighting) for the bars
+    */
     action SetBarSelectionColor(Color color)
         me:barSelectionColor = color
     end
 
+    /*
+        Returns a percentage value of a bar's height 
+    */
     private action GetPercentFromHeight(number full) returns number
         Math math
         return math:Round(full, 2) * 100
     end
-
-    private action Round(number full) returns number
-        Math math
-        return math:Round(full, 2)
-    end
   
-
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -223,16 +291,44 @@ class SharedBarChartParent is Chart
         return bars
     end
 
-    
+    /*
+        Returns an array of all the bar groups
+    */
+    action GetBarGroups returns Array<BarGroup>
+        return barGroups
+    end
+
+    /*
+        Returns an array of all the series sets 
+    */
+    action GetSeriesList returns Array<Series>
+        return seriesList
+    end
+
+    action AddSeries(Series series)
+        seriesList:Add(series)
+    end
+
+    /*
+        Returns the value of the largest bar (used to calculate height percentage of bars)
+    */
+    action GetMaxBarValue() returns number
+         return maxBarValue
+    end
+
+    action SetMaxBarValue(number max)
+         maxBarValue = max
+    end
 
     /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
-    action GenerateInfoTree 
+    action GenerateInfoTree
         if GetDefaultLayoutProperties():NeedsRendering()
             return now //we haven't loaded graphics yet, so bail.
         end
+        Math math
         //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
@@ -268,30 +364,105 @@ class SharedBarChartParent is Chart
         yAxis:SetPrevious(summary)
         chartArea:SetParent(summary)
 
-        //Level 3
-        //bars
-        ChartItem firstbar
-        firstbar:SetContainer(me)
-        if numberOfBars > 0
-            chartArea:SetChild(firstbar)
-            bars:Get(0):SetDescription(", " + GetPercentFromHeight(barHeights:Get(0)) 
-                + "%, 1 of " + numberOfBars + ", " + Round(barHeights:Get(0) * maxScale))
-            firstbar:SetParent(chartArea)
-            firstbar:SetFocusTarget(bars:Get(0))
+        // Legend Area
+        if IsShowingLegend()
+            GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
         end
-        integer i = 1
-        ChartItem previous = firstbar
-        repeat while i < bars:GetSize()
-            ChartItem barNode
-            barNode:SetContainer(me)
-            bars:Get(i):SetDescription(", " + GetPercentFromHeight(barHeights:Get(i)) + "%, "+(i+1) 
-                + " of " + numberOfBars + ", " + Round(barHeights:Get(i) * maxScale))
-            barNode:SetParent(chartArea)
-            barNode:SetFocusTarget(bars:Get(i))
-            previous:SetNext(barNode)
-            barNode:SetPrevious(previous)
-            previous = barNode
-        i = i + 1
+
+        if hasBarGroups
+            //Bar Groups
+            ChartItem firstGroup
+            firstGroup:SetContainer(me)
+            if barGroups:GetSize() > 0
+                chartArea:SetChild(firstGroup)
+                barGroups:Get(0):GetIcon():SetDescription(", 1 of " + barGroups:GetSize() + " groups, " + barGroups:Get(0):GetName())
+                firstGroup:SetParent(chartArea)
+                firstGroup:SetFocusTarget(barGroups:Get(0):GetIcon())
+    
+                //Bars within Bar Groups
+                ChartItem firstBar
+                firstBar:SetContainer(me)
+                if barGroups:Get(0):GetSize() > 0
+                    firstGroup:SetChild(firstBar)
+                    barGroups:Get(0):Get(0):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(0):Get(0):GetHeight()) + "%, 1 of " + barGroups:Get(0):GetSize() + " bars inside bar group 1, " + barGroups:Get(0):GetName() + ", " + math:Round(barGroups:Get(0):Get(0):GetValue(),2))
+                    firstBar:SetParent(firstGroup)
+                    firstBar:SetFocusTarget(barGroups:Get(0):Get(0):GetIcon())
+                end
+                integer j = 1
+                ChartItem previousBar = firstBar
+                repeat while j < barGroups:Get(0):GetSize()
+                    ChartItem bar
+                    bar:SetContainer(me)
+                    barGroups:Get(0):Get(j):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(0):Get(j):GetHeight()) + "%, " + (j+1) + " of " + barGroups:Get(0):GetSize() + " bars inside bar group 1, " + barGroups:Get(0):GetName() + ", " + math:Round(barGroups:Get(0):Get(j):GetValue(),2))
+                    bar:SetParent(firstGroup)
+                    bar:SetFocusTarget(barGroups:Get(0):Get(j):GetIcon())
+                    previousBar:SetNext(bar)
+                    bar:SetPrevious(previousBar)
+                    previousBar = bar
+                    j = j + 1
+                end
+            end
+    
+            integer i = 1
+            ChartItem previousGroup = firstGroup
+            repeat while i < barGroups:GetSize()
+                ChartItem group
+                group:SetContainer(me)
+                barGroups:Get(i):GetIcon():SetDescription(", " + (i+1) + " of " + barGroups:GetSize() + " groups, " + barGroups:Get(i):GetName())
+                group:SetParent(chartArea)
+                group:SetFocusTarget(barGroups:Get(i):GetIcon())
+                previousGroup:SetNext(group)
+                group:SetPrevious(previousGroup)
+                previousGroup = group
+    
+                //Bars within Bar Groups
+                ChartItem firstBar
+                firstBar:SetContainer(me)
+                if barGroups:Get(i):GetSize() > 0
+                    group:SetChild(firstBar)
+                    barGroups:Get(i):Get(0):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(i):Get(0):GetHeight()) + "%, 1 of " + barGroups:Get(i):GetSize() + " bars inside bar group " + (i+1) + ", " + barGroups:Get(i):GetName() + ", " + math:Round(barGroups:Get(i):Get(0):GetValue(),2))
+                    firstBar:SetParent(group)
+                    firstBar:SetFocusTarget(barGroups:Get(i):Get(0):GetIcon())
+                end
+                integer j = 1
+                ChartItem previousBar = firstBar
+                repeat while j < barGroups:Get(i):GetSize()
+                    ChartItem bar
+                    bar:SetContainer(me)
+                    barGroups:Get(i):Get(j):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(i):Get(j):GetHeight()) + "%, " + (j+1) + " of " + barGroups:Get(i):GetSize() + " bars inside bar group " + (i+1) + ", " + barGroups:Get(i):GetName() + ", " + math:Round(barGroups:Get(i):Get(j):GetValue(),2))
+                    bar:SetParent(group)
+                    bar:SetFocusTarget(barGroups:Get(i):Get(j):GetIcon())
+                    previousBar:SetNext(bar)
+                    bar:SetPrevious(previousBar)
+                    previousBar = bar
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        else
+            if barGroups:GetSize() > 0
+                ChartItem firstBar
+                firstBar:SetContainer(me)
+                if barGroups:Get(0):GetSize() > 0
+                    chartArea:SetChild(firstBar)
+                    barGroups:Get(0):Get(0):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(0):Get(0):GetHeight()) + "%, 1 of " + barGroups:GetSize() + " bars, " + math:Round(barGroups:Get(0):Get(0):GetValue(),2))
+                    firstBar:SetParent(chartArea)
+                    firstBar:SetFocusTarget(barGroups:Get(0):Get(0):GetIcon())
+                end
+                integer i = 1
+                ChartItem previousBar = firstBar
+                repeat while i < barGroups:GetSize()
+                    ChartItem bar
+                    bar:SetContainer(me)
+                    barGroups:Get(i):Get(0):GetIcon():SetDescription(", " + GetPercentFromHeight(barGroups:Get(i):Get(0):GetHeight()) + "%, " + (i+1) + " of " + barGroups:GetSize() + " bars, " + math:Round(barGroups:Get(i):Get(0):GetValue(),2))
+                    bar:SetParent(chartArea)
+                    bar:SetFocusTarget(barGroups:Get(i):Get(0):GetIcon())
+                    previousBar:SetNext(bar)
+                    bar:SetPrevious(previousBar)
+                    previousBar = bar
+                    i = i + 1
+                end
+            end
         end
 
         //scale
@@ -311,7 +482,7 @@ class SharedBarChartParent is Chart
         end
 
         i = 1
-        previous = firstScale
+        ChartItem previous = firstScale
         repeat while i < scaleLabels:GetSize()
             ChartItem scaleNode
             scaleNode:SetContainer(me)
@@ -425,6 +596,8 @@ class SharedBarChartParent is Chart
         Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
         Array<text> barNames = GetBarNames()
+        CalculateNumberOfBars()
+
 
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
@@ -456,19 +629,19 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
         end
-
+        
         if barTicks:IsEmpty() and barLabels:IsEmpty() and bars:IsEmpty()
-            if xTickSteps > numberOfBars
-                xTickSteps = numberOfBars
+            if xTickSteps > numberOfGroups
+                xTickSteps = numberOfGroups
             end
 
             integer tickJumps = 1
             if xTickSteps = -1
-                barTicks:SetSize(numberOfBars)
-                barLabels:SetSize(numberOfBars)
-                xTickSteps = numberOfBars
+                barTicks:SetSize(numberOfGroups)
+                barLabels:SetSize(numberOfGroups)
+                xTickSteps = numberOfGroups
             else
-                tickJumps = numberOfBars / xTickSteps
+                tickJumps = numberOfGroups / xTickSteps
                 barTicks:SetSize(xTickSteps)
                 barLabels:SetSize(xTickSteps)
                 
@@ -487,11 +660,11 @@ class SharedBarChartParent is Chart
                 ControlLabel tempLabel
                 
                 Text name
-                name:SetValue(barNames:Get(i * tickJumps))
+                name:SetValue(barGroups:Get(i * tickJumps):GetName())
 
                 if name:GetValue() = undefined
                     name:SetValue("Bar " + (i + 1))
-                    barNames:Set(i, name:GetValue())
+                    barGroups:Get(i):SetName(name:GetValue())
                 end
                 tempLabel:SetText(name:GetValue())
                 tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + numberOfBars)
@@ -505,57 +678,94 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
 
+            integer barCount = 0
             i = 0
-            repeat while i < numberOfBars
-                //make bars
-                Icon temp
-                number height = GetBarHeight(i)
-                number width = GetBarWidth()
-                temp:LoadFilledRectangle(cast(integer, width), cast(integer, height), barColor)
-                temp:SetName("Bar " + (i + 1))
-                temp:SetFocusable(true)
-                temp:SetAccessibilityCode(parent:Item:ITEM)
-                temp:SetNextFocus(GetNextFocus())
-                temp:SetPreviousFocus(GetPreviousFocus())
-                bars:Set(i, temp)
-                chartArea:Add(bars:Get(i))
+            repeat while i < barGroups:GetSize()
+                integer j = 0
                 
+                if hasBarGroups
+                    Icon barGroupIcon = barGroups:Get(i):GetIcon()
+                    barGroupIcon:LoadFilledRectangle(cast(integer, GetBarWidth() * barGroups:Get(i):GetSize()), cast(integer, GetChartArea():GetHeight()), barColor)
+                    barGroupIcon:SetName("Bar Group " + (i + 1))
+                    barGroupIcon:SetFocusable(true)
+                    barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
+                    barGroupIcon:SetNextFocus(GetNextFocus())
+                    barGroupIcon:SetPreviousFocus(GetPreviousFocus())
+                    chartArea:Add(barGroupIcon)
+                end
+
+                repeat while j < barGroups:Get(i):GetSize()
+                    //make bars
+                    number height = GetBarHeight(barGroups:Get(i), j)
+                    number width = GetBarWidth()
+                    Icon temp = barGroups:Get(i):Get(j):GetIcon()
+                    temp:LoadFilledRectangle(cast(integer, width), cast(integer, height), barColor)
+                    if hasBarGroups
+                        temp:SetName("Bar Group " + (i + 1) + ", Bar " + (j + 1))
+                    else
+                        temp:SetName("Bar " + (barCount + 1))
+                    end
+                    temp:SetFocusable(true)
+                    temp:SetAccessibilityCode(parent:Item:ITEM)
+                    temp:SetNextFocus(GetNextFocus())
+                    temp:SetPreviousFocus(GetPreviousFocus())
+                    bars:Set(barCount, temp)
+                    chartArea:Add(bars:Get(barCount))
+                    j = j + 1
+                    barCount = barCount + 1
+                end
                 i = i + 1
             end
+
+            i = 0
+            repeat while i < seriesList:GetSize()
+                Series series = seriesList:Get(i)
+                series:SetColor(options:GetColorFromPalette(i))
+                series:GetLabel():SetFocusable(true)
+                series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
+                integer j = 0
+                repeat while j < series:GetSize()
+                    series:GetItem(j):SetColor(series:GetColor())
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            
             if IsShowingLegend()
                 Add(GetLegend())
             end
         end
     end
 
-    private action GetBarHeight(integer index) returns number
+
+    private action GetBarHeight(BarGroup group, integer index) returns number
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         number height = 0
         check
-            height = GetChartArea():GetHeight() * barHeights:Get(index)
+            height = GetChartArea():GetHeight() * group:Get(index):GetHeight()
         detect e
             height = 0
-            barHeights:Set(index, 0.0)
+            group:Get(index):SetHeight(0.0)
         end
         number thickHeight = height + thickness/2
         return thickHeight
-    end
-    
+    end    
+
     action GetBarWidth returns number
         number width = (GetChartArea():GetWidth()/(bars:GetSize() + 1))* 0.7 
         return width
     end
 
-    private action GetBarHeight(integer index, number chartAreaHeight) returns number
+    private action GetBarHeight(BarGroup group, integer index, number chartAreaHeight) returns number
         integer thickness = cast(integer, GetWidth()*0.001) + 3
         number height = 0
         check
-            height = chartAreaHeight * barHeights:Get(index)
+            height = cast(integer, (chartAreaHeight - GetXAxis():GetHeight())) * group:Get(index):GetHeight()
         detect e
             height = 0
-            barHeights:Set(index, 0.0)
+            group:Get(index):SetHeight(0.0)
         end
-        number thickHeight = height + thickness/2
+        number thickHeight = height// + thickness/2
         return thickHeight
     end
     
@@ -571,11 +781,15 @@ class SharedBarChartParent is Chart
         if not bars:IsEmpty()
             integer i = 0
             Icon temp
-            repeat while i < bars:GetSize()
-                temp = bars:Get(i)
-                number height = GetBarHeight(i, GetHeight()*0.75)
-                number width = GetBarWidth(GetWidth()*0.75)
-                temp:SetSize(width, height)
+            repeat while i < barGroups:GetSize()
+                integer j = 0
+                repeat while j < barGroups:Get(i):GetSize()
+                    temp = barGroups:Get(i):Get(j):GetIcon()
+                    number height = GetBarHeight(barGroups:Get(i), j, GetHeight()*0.75)
+                    number width = GetBarWidth(GetWidth()*0.75)
+                    temp:SetSize(width, height)
+                    j = j + 1
+                end
                 i = i + 1
             end
         end

@@ -20,10 +20,18 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
         number width = chartAreaContainer:GetWidth()
         number height = chartAreaContainer:GetHeight()
+
+        // Give 1.5% of chart area space to each point
+        number pointDensity = (width * 0.015)
+
         i = 0
         repeat while i < points:GetSize()
             ChartPoint point = points:Get(i)
-            point:SetPosition(cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)), cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)))
+            point:SetWidth(pointDensity)
+            point:SetHeight(pointDensity)
+            integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
+            integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
+            point:SetPosition(x, y)
             i = i + 1
         end
     end

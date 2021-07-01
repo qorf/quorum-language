@@ -15,43 +15,158 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 
+/*
+    Accessibility is a class designed to encapsulate accessibility concepts across all operating systems, 
+    inside of the graphics and user interface system. Accessibility systems are not the same everywhere, 
+    including on Windows (UIA), Mac (NSAccessibility), or the web, and as such each platform or operating 
+    environment must implement its own Accessibility sub-class. 
+
+    Attribute: Author Andreas Stefik
+
+*/
 class Accessibility
+
+    /*
+        This action indicates that an item had its name changed.
+
+        Attribute: Parameter item the item that had its name changed.
+    */
     blueprint action NameChanged(Item item)
 
+    /*
+        This action indicates that an item had its description changed.
+
+        Attribute: Parameter item the item that had its name changed.
+    */
     blueprint action DescriptionChanged(Item item)
 
+    /*
+        This action indicates that a text field in password mode had its value changed.
+
+        Attribute: Parameter field a particular field that had its password changed.
+    */
     blueprint action TextFieldUpdatePassword(TextField field)
 
+    /*
+        In some implementations, this triggers a focus change event. 
+    */
     blueprint action Update
 
+    /*
+        This action indicates that a progress bar has had its value changed.
+
+        Attribute: Parameter progress the progress bar that had its value updated.
+    */
     blueprint action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
+    /*
+        This action indicates that the selection has changed for a particular item.
+
+        Attribute: Parameter event this provides more information about how the selection was changed.
+    */
     blueprint action SelectionChanged(SelectionEvent event)
 
+    /*
+        This action indicates that a button has been activated, which can be done either through a click, 
+        use of the enter key, or really any other mechanism allowable in the implementation.
+
+        Attribute: Parameter button the button that was activated.
+    */
     blueprint action ButtonActivated(Button button)
 
+    /*
+        This action indicates that a toggle button has had its status changed.
+
+        Attribute: Parameter Item the item that had its name changed.
+    */
     blueprint action ToggleButtonToggled(ToggleButton button)
 
+    /*
+        This action indicates that the focus changed. Generally, implementing this is a minimum bar
+        for almost any kind of meaningful accessibility interaction.
+
+        Attribute: Parameter event the event with information about the focus.
+    */
     blueprint action FocusChanged(FocusEvent event)
 
+    /*
+        This action indicates that an item should be explicitly added to the accessibility system. 
+
+        Attribute: Parameter Item the item to be added
+    */
     blueprint action Add(Item item)
 
+    /*
+        This action indicates that an item should be explicitly removed from the accessibility system. 
+
+        Attribute: Parameter Item the item to be removed
+    */
     blueprint action Remove(Item item)
 
+    /*
+        This action indicates a menu was changed and the accessibility system should be informed.
+
+        Attribute: Parameter event the event about the menu change.
+    */
     blueprint action MenuChanged(MenuChangeEvent event)
 
+    /*
+        This action indicates that a tree was changed and this notifies the accessibility system.
+
+        Attribute: Parameter event the event about the changes to the tree.
+    */
     blueprint action TreeChanged(TreeChangeEvent event)
 
+    /*
+        This action indicates that a tree table was changed and this notifies the accessibility system.
+
+        Attribute: Parameter event the event about the changes to the tree table.
+    */
     blueprint action TreeTableChanged(TreeTableChangeEvent event)
 
+    /*
+        This action indicates that a control was activated and this notifies the accessibility system.
+
+        Attribute: Parameter event the event about the control.
+    */
     blueprint action ControlActivated(ControlActivationEvent event)
 
+    /*
+        This action indicates that a component that involves text had a change in its value. This is used
+        in multiple components, including text fields and text boxes.
+
+        Attribute: Parameter event the event indicating what text changed.
+    */
     blueprint action TextChanged(TextChangeEvent event)
 
+    /*
+        This action indicates that there was a change in the window focus. Broadly, this occurs when 
+        there is a pop-up box, dialog, or something similar. 
+
+        Attribute: Parameter event the event about the changes to the tree.
+    */
     blueprint action WindowFocusChanged(WindowFocusEvent event)
 
+    /*
+        This action indicates to make a statement from the accessibility system. Not all accessibility systems
+        support such events and in our experience, even if they do, whether they work is inconsistent. We 
+        urge caution in relying in production on these actions.
+
+        Attribute: Parameter item The item to be notified from
+        Attribute: Parameter value The value to speak
+    */
     blueprint action Notify(Item item, text value)
 
+    /*
+        This action indicates to make a statement from the accessibility system. Not all accessibility systems
+        support such events and in our experience, even if they do, whether they work is inconsistent. We 
+        urge caution in relying in production on these actions.
+
+        Attribute: Parameter item The item to be notified from
+        Attribute: Parameter value The value to speak
+        Attribute: Parameter notificationType some systems have a notification type, although in our experience whether 
+            particular implementations actually correctly respond to them is hit and miss.
+    */
     blueprint action Notify(Item item, text value, integer notificationType)
 
     /*
@@ -59,5 +174,15 @@ class Accessibility
     */
     blueprint action Shutdown
 
+    /*
+        This action hypothetically tells us whether a screen reader is being used. In almost all implementations, 
+        whether this works is hit and miss. Some accessibility systems, at the operating system level, claim to report this
+        but do not do so correctly. Other systems explicitly do not allow querying for this information (e.g., the web). In
+        any case, if this implementation returns false, it means either there is no screen reader or the system does
+        not allow querying. 
+
+        Attribute: Returns whether or not a screen reader is listening, although whether this is correct is operating environment
+            dependent.
+    */
     blueprint action IsScreenReaderListening returns boolean
 end

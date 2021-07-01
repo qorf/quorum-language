@@ -16,6 +16,7 @@ use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Graphics.Color
 
 
 class ChartLayout is Layout
@@ -27,20 +28,20 @@ class ChartLayout is Layout
         originPointY = 0
 
         //This is the ticks on the Y axis
-        integer scaleDivWidth = 0
+        number scaleDivWidth = 0.0
         Array<Drawable> ticks = chart:GetScaleTicks()
         if not ticks:IsEmpty()
             
             Drawable axis = chart:GetYAxis()
-            scaleDivWidth = cast(integer, axis:GetHeight() / (ticks:GetSize() - 1))
+            scaleDivWidth = (axis:GetHeight() - ticks:Get(0):GetHeight()) / (ticks:GetSize() - 1)
             
             Drawable currentTick = ticks:Get(0)
             integer tickX = originPointX - cast(integer, currentTick:GetWidth() - axis:GetWidth())
-            integer tickY = originPointY// - cast(integer, currentTick:GetHeight()/2)
+            number tickY = originPointY// - cast(integer, currentTick:GetHeight()/2)
             integer i = 0
             repeat while i < ticks:GetSize()
                 currentTick = ticks:Get(i)
-                currentTick:SetPosition(tickX, tickY)
+                currentTick:SetPosition(tickX, cast(integer, tickY))
                 tickY = tickY + scaleDivWidth
                 i = i + 1
             end
@@ -185,8 +186,11 @@ class ChartLayout is Layout
         if legend = undefined
             return now
         end
-        legend:SetX(originPointX + containerWidth * 0.72)
-        legend:SetY(containerHeight * 0.4)
+
+        number legendOffsetX = 1 - (legend:GetWidth() / containerWidth) - 0.025
+        number legendOffsetY = 0.5 - ((legend:GetHeight() / containerHeight) / 2)
+        legend:SetX(cast(integer, containerWidth * legendOffsetX))
+        legend:SetY(cast(integer, containerHeight * legendOffsetY))
     end
 
     blueprint action LayoutChartContent(Chart chart, Control chartAreaContainer)

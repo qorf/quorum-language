@@ -9,6 +9,13 @@ use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Containers.Support.Comparison
 
 /*
     This class is used to create a scatter plot for use in an application.
@@ -28,7 +35,7 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
     chart:SetXAxisTitle("Time")
     chart:Display()
 */
-class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
+class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     integer xTicks = 5
     integer yTicks = 5
 
@@ -37,6 +44,8 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
     number xAxisMaximum = 1
     number yAxisMinimum = 0
     number yAxisMaximum = 1
+    Comparison comparison = undefined
+    ChartOptions options
 
     /*
     Whether the minimum and maximum values of the chart area have been
@@ -50,31 +59,75 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
     boolean manualYAxisMaximum = false
 
     action Create(DataFrame frame) returns Chart
+        if GetColumnSize() > 1 and GetFactorSize() = 0
+            return CreateChart(frame)
+        elseif GetColumnSize() > 1 and GetFactorSize() > 0
+            alert("Factors cannot be used for scatter plots at this time.")
+        else
+            alert("ScatterPlotCreator does not support the number of column/factors that were selected.")
+        end
+
+        return undefined
+    end
+
+    action CreateChart(DataFrame frame) returns Chart
         ScatterPlot chart
-        if GetColumnSize() not= 2
-            alert("Must define two columns")
-        end
+        boolean numericalXData = true
+        boolean numericalYData = true
+        integer columns = GetColumnSize()
+        HashTable<text, Series> seriesFactor
+        HashTable<text, number> xLabels //Used for non-numerical data
+        HashTable<text, number> yLabels //Used for non-numerical data
+        Vector xVector
+        Vector yVector
 
-        //error checking
+        // The first column will default to the x-axis
         DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
-        DataFrameColumn dfy = frame:GetColumn(GetColumn(1))
-
-        if dfx = undefined and dfx:CanConvertToVector()
-            alert("Could not compute a scatterplot on the x column")
+        if(dfx:IsNumberColumn())
+            if dfx = undefined and dfx:CanConvertToVector()
+                alert("Could not compute a scatterplot on the x column")  
+            end
+            xVector = dfx:ConvertToVector()
+        else
+            numericalXData = false
         end
 
-        if dfy = undefined and dfy:CanConvertToVector()
-            alert("Could not compute a scatterplot on the y column")
+        integer i = 1
+        repeat while i < columns
+            DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+
+            if(dfy:IsNumberColumn())
+                if dfy = undefined and dfy:CanConvertToVector()
+                    alert("Could not compute a scatterplot on a y column")        
+                end
+                yVector = dfy:ConvertToVector()
+                if dfx:GetSize() not= dfy:GetSize()
+                    alert("Columns must be the same size in order to create Scatter Plot")
+                end
+            else
+                numericalYData = false
+            end
+
+            if(not seriesFactor:HasKey(dfy:GetHeader()))
+                Series series
+                series:SetName(dfy:GetHeader())
+                seriesFactor:Add(dfy:GetHeader(), series)
+            end
+
+            i = i + 1
         end
 
-        //at first, assume these are numeric columns. This isn't ideal, you should be able to plot
-        //anything, but for version 1 this might be ok
-        
-        Vector xVector = dfx:ConvertToVector()
-        Vector yVector = dfy:ConvertToVector()
+        chart:SetXAxisTitle(dfx:GetHeader())
+        if columns = 2
+            chart:SetYAxisTitle(frame:GetColumn(GetColumn(1)):GetHeader())
+        end
 
-        if xVector:GetSize() not= yVector:GetSize()
-            alert("The default scatter plot creator can only make scatter plots of numeric columns of the same size.")
+        // Sort the series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
         end
 
         number xMin = GetXAxisMinimum()
@@ -82,44 +135,339 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput
         number yMin = GetYAxisMinimum()
         number yMax = GetYAxisMaximum()
 
-        Summarize xSum
-        Summarize ySum
+        // If everything is numerical
+        if numericalXData and numericalYData
+            Summarize xSum
+            dfx:Calculate(xSum)
+            if GetManualXAxisMinimum() = false
+                xMin = xSum:GetMinimum()
+            end
+            if GetManualXAxisMaximum() = false
+                xMax = xSum:GetMaximum()
+            end
+    
+            Summarize ySum
+            frame:GetColumn(GetColumn(1)):Calculate(ySum)
+            if GetManualYAxisMinimum() = false
+                yMin = ySum:GetMinimum()
+            end
+            if GetManualYAxisMaximum() = false
+                yMax = ySum:GetMaximum()
+            end
+    
+            i = 1 
+            repeat while i < columns
+                frame:GetColumn(GetColumn(i)):Calculate(ySum)
+                if ySum:GetMinimum() < yMin
+                    yMin = ySum:GetMinimum()
+                end
+                if ySum:GetMaximum() > yMax
+                    yMax = ySum:GetMaximum()
+                end
+                i = i + 1
+            end
+            yAxisMinimum = yMin
+            yAxisMaximum = yMax
+            xAxisMinimum = xMin
+            xAxisMaximum = xMax
+    
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfx:GetSize()
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                        number x = dfx:GetAsNumber(j)
+                        number y = dfy:GetAsNumber(j)
+                        ChartPoint point
+                        point:SetPercentX((x - xMin) / (xMax - xMin))
+                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        if(seriesFactor:HasKey(dfy:GetHeader()))
+                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
+                            point:SetColor(options:GetColorFromPalette(i-1))
+                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        end
+                        chart:Add(point)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
 
-        xSum:Calculate(dfx)
-        ySum:Calculate(dfy)
 
-        if GetManualXAxisMinimum() = false
-            xMin = xSum:GetMinimum()
-        end
-        if GetManualXAxisMaximum() = false
-            xMax = xSum:GetMaximum()
-        end
-        if GetManualYAxisMinimum() = false
-            yMin = ySum:GetMinimum()
-        end
-        if GetManualYAxisMaximum() = false
-            yMax = ySum:GetMaximum()
+        // If x data is non-numerical and y data is numerical
+        elseif not numericalXData and numericalYData
+            // Get distinct x-axis labels
+            i = 0
+            repeat while i < dfx:GetSize()
+                if not dfx:IsUndefined(i)
+                    if(not xLabels:HasKey(dfx:GetAsText(i)))
+                        xLabels:Add(dfx:GetAsText(i), cast(number, i))
+                    end
+                end
+                i = i + 1
+            end
+            
+            //Sort the labels
+            Array<text> xLabelTextArray = xLabels:CopyToKeyArray()
+            if comparison = undefined
+                xLabelTextArray:Sort()
+            else
+                xLabelTextArray:Sort(comparison)
+            end
+
+            //Get new position on x-axis for each label
+            i = 0
+            repeat while i < xLabelTextArray:GetSize()
+                if(xLabels:HasKey(xLabelTextArray:Get(i)))
+                    xLabels:Set(xLabelTextArray:Get(i), cast(number, i))
+                end
+                i = i + 1
+            end
+            
+
+            xMax = xLabels:GetSize()-1
+            xMin = 0
+
+            Summarize ySum
+            frame:GetColumn(GetColumn(1)):Calculate(ySum)
+            if GetManualYAxisMinimum() = false
+                yMin = ySum:GetMinimum()
+            end
+            if GetManualYAxisMaximum() = false
+                yMax = ySum:GetMaximum()
+            end
+    
+            i = 2 
+            repeat while i < columns
+                frame:GetColumn(GetColumn(i)):Calculate(ySum)
+                if ySum:GetMinimum() < yMin
+                    yMin = ySum:GetMinimum()
+                end
+                if ySum:GetMaximum() > yMax
+                    yMax = ySum:GetMaximum()
+                end
+                i = i + 1
+            end
+
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfx:GetSize()
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                        number x = xLabels:GetValue(dfx:GetAsText(j))
+                        number y = dfy:GetAsNumber(j)
+                        ChartPoint point
+                        point:SetPercentX((x - xMin) / (xMax - xMin))
+                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        if(seriesFactor:HasKey(dfy:GetHeader()))
+                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
+                            point:SetColor(options:GetColorFromPalette(i-1))
+                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        end
+                        chart:Add(point)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            xTicks = xLabels:GetSize()
+            yAxisMinimum = yMin
+            yAxisMaximum = yMax
+            xAxisMinimum = xMin
+            xAxisMaximum = xMax
+            
+            chart:OverrideXLabelsWithText(xLabelTextArray)
+
+        // If everything is non-numerical data
+        elseif not numericalXData and not numericalYData 
+            // Get distinct x-axis labels
+            i = 0
+            repeat while i < dfx:GetSize()
+                if not dfx:IsUndefined(i)
+                    if(not xLabels:HasKey(dfx:GetAsText(i)))
+                        xLabels:Add(dfx:GetAsText(i), cast(number, i))
+                    end
+                end
+                i = i + 1
+            end
+            //Sort the x labels
+            Array<text> xLabelTextArray = xLabels:CopyToKeyArray()
+            if comparison = undefined
+                xLabelTextArray:Sort()
+            else
+                xLabelTextArray:Sort(comparison)
+            end
+            //Get new position on x-axis for each label
+            i = 0
+            repeat while i < xLabelTextArray:GetSize()
+                if(xLabels:HasKey(xLabelTextArray:Get(i)))
+                    xLabels:Set(xLabelTextArray:Get(i), cast(number, i))
+                end
+                i = i + 1
+            end
+
+
+            // Get distinct y-axis labels
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfy:GetSize()
+                    if not dfy:IsUndefined(j)
+                        if(not yLabels:HasKey(dfy:GetAsText(j)))
+                            yLabels:Add(dfy:GetAsText(j), cast(number, j))
+                        end
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            //Sort the y labels
+            Array<text> yLabelTextArray = yLabels:CopyToKeyArray()
+            if comparison = undefined
+                yLabelTextArray:Sort()
+            else
+                yLabelTextArray:Sort(comparison)
+            end
+            //Get new position on y-axis for each label
+            i = 0
+            repeat while i < yLabelTextArray:GetSize()
+                if(yLabels:HasKey(yLabelTextArray:Get(i)))
+                    yLabels:Set(yLabelTextArray:Get(i), cast(number, i))
+                end
+                i = i + 1
+            end
+
+            yAxisMinimum = 0
+            yAxisMaximum = yLabels:GetSize()-1
+            xAxisMinimum = 0
+            xAxisMaximum = xLabels:GetSize()-1
+
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfx:GetSize()
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                        number x = xLabels:GetValue(dfx:GetAsText(j))
+                        number y = yLabels:GetValue(dfy:GetAsText(j))
+                        ChartPoint point
+                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
+                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        if(seriesFactor:HasKey(dfy:GetHeader()))
+                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
+                            point:SetColor(options:GetColorFromPalette(i-1))
+                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        end
+                        chart:Add(point)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            xTicks = xLabels:GetSize()
+            yTicks = yLabels:GetSize()
+
+            chart:OverrideXLabelsWithText(xLabelTextArray)
+            chart:OverrideYLabelsWithText(yLabelTextArray)
+
+        // If x data is numerical and y data is non-numerical
+        else
+            Summarize xSum
+            dfx:Calculate(xSum)
+            if GetManualXAxisMinimum() = false
+                xMin = xSum:GetMinimum()
+            end
+            if GetManualXAxisMaximum() = false
+                xMax = xSum:GetMaximum()
+            end
+
+            // Get distinct y-axis labels
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfy:GetSize()
+                    if not dfy:IsUndefined(j)
+                        if(not yLabels:HasKey(dfy:GetAsText(j)))
+                            yLabels:Add(dfy:GetAsText(j), cast(number, j))
+                        end
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            //Sort the y labels
+            Array<text> yLabelTextArray = yLabels:CopyToKeyArray()
+            if comparison = undefined
+                yLabelTextArray:Sort()
+            else
+                yLabelTextArray:Sort(comparison)
+            end
+            //Get new position on y-axis for each label
+            i = 0
+            repeat while i < yLabelTextArray:GetSize()
+                if(yLabels:HasKey(yLabelTextArray:Get(i)))
+                    yLabels:Set(yLabelTextArray:Get(i), cast(number, i))
+                end
+                i = i + 1
+            end
+
+            yAxisMinimum = 0
+            yAxisMaximum = yLabels:GetSize()-1
+            xAxisMinimum = xMin
+            xAxisMaximum = xMax
+            if (xMax - xMin) < 10
+                xTicks = cast(integer, xMax - xMin) + 1
+            else
+                xTicks = 10
+            end            
+
+            i = 1
+            repeat while i < columns
+                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                integer j = 0
+                repeat while j < dfx:GetSize()
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                        number x = dfx:GetAsNumber(j)
+                        number y = yLabels:GetValue(dfy:GetAsText(j))
+                        ChartPoint point
+                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
+                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        if(seriesFactor:HasKey(dfy:GetHeader()))
+                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
+                            point:SetColor(options:GetColorFromPalette(i-1))
+                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        end
+                        chart:Add(point)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            yTicks = yLabels:GetSize()
+            chart:OverrideYLabelsWithText(yLabelTextArray)
         end
 
-        chart:SetXTickCount(xTicks)
-        chart:SetYTickCount(yTicks)
-        chart:SetXAxisMinimum(xMin)
-        chart:SetXAxisMaximum(xMax)
-        chart:SetYAxisMinimum(yMin)
-        chart:SetYAxisMaximum(yMax)
-
+        // Add all the series to the chart
         i = 0
-        repeat while i < dfx:GetSize()
-            number x = dfx:GetAsNumber(i)
-            number y = dfy:GetAsNumber(i)
-
-            ChartPoint point
-            point:SetPercentX((x - xMin) / (xMax - xMin))
-            point:SetPercentY((y - yMin) / (yMax - yMin))
-            chart:Add(point)
+        repeat while i < seriesKeyArray:GetSize()
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
+        Legend legend
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
+
+        chart:SetYAxisMaximum(yAxisMaximum)
+        chart:SetYAxisMinimum(yAxisMinimum)
+        chart:SetXAxisMaximum(xAxisMaximum)
+        chart:SetXAxisMinimum(xAxisMinimum)
+        chart:SetYTickCount(yTicks)
+        chart:SetXTickCount(xTicks)
         return chart
     end
 
