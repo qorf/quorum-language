@@ -28,6 +28,7 @@ use Libraries.Interface.Item3D
 use Libraries.Game.Graphics.Skybox
 use Libraries.System.File
 use Libraries.Containers.HashTable
+use Libraries.Game.Audio3D
 
 class DefaultSceneManager is SceneManager
     
@@ -496,6 +497,9 @@ class DefaultSceneManager is SceneManager
         elseif type = "PointLight"
             PointLight pointLight
             return pointLight
+        elseif type = "Audio3D"
+            Audio3D audio
+            return audio
         else
             // Default to Item3D.
             Item3D newItem
@@ -526,6 +530,16 @@ class DefaultSceneManager is SceneManager
         // Color is used for both Models and PointLights.
         Color color = undefined
 
+        // Variables used if the Item is an Audio3D.
+        Audio3D audio = undefined
+        number volume = 0
+        number pitch = 0
+        number maxDistance = 0
+        number rolloffRate = 0
+        boolean looping = false
+        boolean doppler = true
+        boolean playOnLoad = false
+
         // These variables are used if the item has physics enabled.
         boolean physicsEnabled = false
         integer responsiveness = -1
@@ -540,6 +554,13 @@ class DefaultSceneManager is SceneManager
 
         if classValue = "PointLight"
             light = cast(PointLight, item)
+        end
+
+        if classValue = "Audio3D"
+            audio = cast(Audio3D, item)
+
+            // Audio needs to be loaded before we can set any of its other properties.
+            audio:Load(json:GetValue(properties:FILE))
         end
 
         Array<text> keys = json:GetKeys()
@@ -584,6 +605,20 @@ class DefaultSceneManager is SceneManager
                 friction = json:GetNumber(key)
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
+            elseif key = properties:VOLUME
+                volume = json:GetNumber(key)
+            elseif key = properties:PITCH
+                pitch = json:GetNumber(key)
+            elseif key = properties:MAX_VOLUME_DISTANCE
+                maxDistance = json:GetNumber(key)
+            elseif key = properties:ROLLOFF_RATE
+                rolloffRate = json:GetNumber(key)
+            elseif key = properties:LOOPING
+                looping = json:GetBoolean(key)
+            elseif key = properties:DOPPLER_ENABLED
+                doppler = json:GetBoolean(key)
+            elseif key = properties:PLAY_ON_LOAD
+                playOnLoad = json:GetBoolean(key)
             end
 
             counter = counter + 1
@@ -617,6 +652,23 @@ class DefaultSceneManager is SceneManager
             elseif type = properties:CUSTOM
                 model:Load(file)
                 model:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+            end
+        elseif audio not= undefined
+            audio:SetVolume(volume)
+            audio:SetPitch(pitch)
+            audio:SetMaximumVolumeDistance(maxDistance)
+            audio:SetRolloffRate(rolloffRate)
+            if looping
+                audio:EnableLooping()
+            end
+            if doppler
+                audio:EnableDoppler()
+            end
+            if playOnLoad
+                JavaScriptObjectNotation playJson
+                playJson:SetBoolean(true)
+                audio:SetProperty(properties:PLAY_ON_LOAD, playJson)
+                audio:Play()
             end
         else
             // Set the size, which would've been handled by model loading.
@@ -1015,6 +1067,7 @@ class DefaultSceneManager is SceneManager
         JavaScriptObjectNotation json
         Model model = undefined
         PointLight light = undefined
+        Audio3D audio = undefined
 
         if not CustomSaveProperty3D(item, properties:CLASS, json)
             if item is Model
@@ -1023,6 +1076,9 @@ class DefaultSceneManager is SceneManager
             elseif item is PointLight
                 json:Add(properties:CLASS, "PointLight")
                 light = cast(PointLight, item)
+            elseif item is Audio3D
+                json:Add(properties:CLASS, "Audio3D")
+                audio = cast(Audio3D, item)
             else
                 json:Add(properties:CLASS, "Item3D")
             end
@@ -1032,6 +1088,8 @@ class DefaultSceneManager is SceneManager
                 model = cast(Model, item)
             elseif classValue = "PointLight"
                 light = cast(PointLight, item)
+            elseif classValue = "Audio3D"
+                audio = cast(Audio3D, item)
             end
         end
 
@@ -1093,6 +1151,34 @@ class DefaultSceneManager is SceneManager
             end
             if not CustomSaveProperty3D(item, properties:INTENSITY, json)
                 json:Add(properties:INTENSITY, light:GetIntensity())
+            end
+        elseif audio not= undefined
+            if not CustomSaveProperty3D(audio, properties:FILE, json)
+                json:Add(properties:FILE, audio:GetSourceFile():GetPath())
+            end
+            if not CustomSaveProperty3D(audio, properties:VOLUME, json)
+                json:Add(properties:VOLUME, audio:GetVolume())
+            end
+            if not CustomSaveProperty3D(audio, properties:PITCH, json)
+                json:Add(properties:PITCH, audio:GetPitch())
+            end
+            if not CustomSaveProperty3D(audio, properties:MAX_VOLUME_DISTANCE, json)
+                json:Add(properties:MAX_VOLUME_DISTANCE, audio:GetMaximumVolumeDistance())
+            end
+            if not CustomSaveProperty3D(audio, properties:ROLLOFF_RATE, json)
+                json:Add(properties:ROLLOFF_RATE, audio:GetRolloffRate())
+            end
+            if not CustomSaveProperty3D(audio, properties:LOOPING, json)
+                json:Add(properties:LOOPING, audio:IsLoopingEnabled())
+            end
+            if not CustomSaveProperty3D(audio, properties:DOPPLER_ENABLED, json)
+                json:Add(properties:DOPPLER_ENABLED, audio:IsDopplerEnabled())
+            end
+
+            if audio:HasProperty(properties:PLAY_ON_LOAD)
+                if not CustomSaveProperty3D(audio, properties:PLAY_ON_LOAD, json)
+                    json:Add(properties:PLAY_ON_LOAD, audio:GetProperty(properties:PLAY_ON_LOAD):GetBoolean())
+                end
             end
         end
 
