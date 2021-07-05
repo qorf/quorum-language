@@ -34,7 +34,6 @@ class CompilerTestSuite
     CompilerProfiler summaryProfiler
     Math math
     ExpressionsTester expressions
-    FilesTester fileChecks
     TypeCheckTester typeChecks
     TypeCheckTesterGenerated typeChecksGenerated
     ChainingTester chainingChecks
@@ -66,7 +65,6 @@ class CompilerTestSuite
     on create
         output "Starting Test Suite:"
         expressions:SetCompilerTestSuite(me)
-        fileChecks:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         typeChecksGenerated:SetCompilerTestSuite(me)
         chainingChecks:SetCompilerTestSuite(me)
@@ -95,6 +93,13 @@ class CompilerTestSuite
         byteArrayChecks:SetCompilerTestSuite(me)
         scienceChecks:SetTester(tester)
 
+        //delete the output folder to start the testing fresh
+        File rootTestFolder
+        rootTestFolder:SetPath("Output")
+        if rootTestFolder:Exists()
+            rootTestFolder:Delete(true)
+        end
+
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
         Compiler compiler
@@ -105,69 +110,99 @@ class CompilerTestSuite
         library:Scan()
     end
 
+    private action GetCurrentTestPassText returns text
+        return ": " + tester:GetPassingSize() + "/" + tester:GetSize()
+    end
+
     action Main
         output ""
         output "Testing"
         DateTime date
         start = date:GetEpochTime()
-        output expressions:GetName()
         expressions:Test()
-        output fileChecks:GetName()
-        fileChecks:Test()
-        output typeChecks:GetName()
+        output expressions:GetName() + GetCurrentTestPassText()
+        
         typeChecks:Test()
-        output typeChecksGenerated:GetName()
+        output typeChecks:GetName() + GetCurrentTestPassText()
+        
         typeChecksGenerated:Test()
-        output chainingChecks:GetName()
+        output typeChecksGenerated:GetName() + GetCurrentTestPassText()
+        
         chainingChecks:Test()
-        output ifStatementChecks:GetName()
+        output chainingChecks:GetName() + GetCurrentTestPassText()
+        
         ifStatementChecks:Test()
-        output loopsChecks:GetName()
+        output ifStatementChecks:GetName() + GetCurrentTestPassText()
+        
         loopsChecks:Test()
-        output actionsChecks:GetName()
+        output loopsChecks:GetName() + GetCurrentTestPassText()
+        
         actionsChecks:Test()
-        output inheritanceChecks:GetName()
+        output actionsChecks:GetName() + GetCurrentTestPassText()
+        
         inheritanceChecks:Test()
-        output templatingChecks:GetName()
+        output inheritanceChecks:GetName() + GetCurrentTestPassText()
+        
         templatingChecks:Test()
-        output templatingChecksGenerated:GetName()
+        output templatingChecks:GetName() + GetCurrentTestPassText()
+        
         templatingChecksGenerated:Test()
-        output exceptionChecks:GetName()
+        output templatingChecksGenerated:GetName() + GetCurrentTestPassText()
+        
         exceptionChecks:Test()
-        output arrayChecks:GetName()
+        output exceptionChecks:GetName() + GetCurrentTestPassText()
+        
         arrayChecks:Test()
-        output stackChecks:GetName()
+        output arrayChecks:GetName() + GetCurrentTestPassText()
+        
         stackChecks:Test()
-        output queueChecks:GetName()
+        output stackChecks:GetName() + GetCurrentTestPassText()
+        
         queueChecks:Test()
-        output mathChecks:GetName()
+        output queueChecks:GetName() + GetCurrentTestPassText()
+        
         mathChecks:Test()
-        output listChecks:GetName()
+        output mathChecks:GetName() + GetCurrentTestPassText()
+        
         listChecks:Test()
-        output hashChecks:GetName()
+        output listChecks:GetName() + GetCurrentTestPassText()
+
         hashChecks:Test()
-        output svChecks:GetName()
+        output hashChecks:GetName() + GetCurrentTestPassText()
+
         svChecks:Test()
-        output decompresserChecks:GetName()
+        output svChecks:GetName() + GetCurrentTestPassText()
+
         decompresserChecks:Test()
-        output useChecks:GetName()
+        output decompresserChecks:GetName() + GetCurrentTestPassText()
+
         useChecks:Test()
-        output randomChecks:GetName()
+        output useChecks:GetName() + GetCurrentTestPassText()
+
         randomChecks:Test()
-        output tableChecks:GetName()
+        output randomChecks:GetName() + GetCurrentTestPassText()
+
         tableChecks:Test()
-        output bitwiseChecks:GetName()
+        output tableChecks:GetName() + GetCurrentTestPassText()
+
         bitwiseChecks:Test()
-        output matrixChecks:GetName()
+        output bitwiseChecks:GetName() + GetCurrentTestPassText()
+
         matrixChecks:Test()
-        output jsonChecks:GetName()
+        output matrixChecks:GetName() + GetCurrentTestPassText()
+
         jsonChecks:Test()
-        output bigIntegerChecks:GetName()
+        output jsonChecks:GetName() + GetCurrentTestPassText()
+
         bigIntegerChecks:Test()
-        output byteArrayChecks:GetName()
+        output bigIntegerChecks:GetName() + GetCurrentTestPassText()
+
         byteArrayChecks:Test()
-        output scienceChecks:GetName()
+        output byteArrayChecks:GetName() + GetCurrentTestPassText()
+
         scienceChecks:Test()
+        output scienceChecks:GetName() + GetCurrentTestPassText()
+        
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()

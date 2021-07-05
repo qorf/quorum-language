@@ -34,8 +34,10 @@ class DesktopApplication is Application
             AccessibilityManager accessibility
             game:SetAccessibility(accessibility)
         elseif manager:GetOperatingSystem():Contains("Mac OS X") and game:GetDesktopConfiguration():enableAccessibility
-            MacAccessibility mac
-            game:SetAccessibility(mac)
+            //turned off for 9.0, as it is blank. Should be enabled again
+            //once the implementation is complete.
+            //MacAccessibility mac
+            //game:SetAccessibility(mac)
         end
 
         MainLoop()
