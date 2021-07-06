@@ -468,6 +468,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetXAxisMinimum(xAxisMinimum)
         chart:SetYTickCount(yTicks)
         chart:SetXTickCount(xTicks)
+        chart:Populate()
         return chart
     end
 

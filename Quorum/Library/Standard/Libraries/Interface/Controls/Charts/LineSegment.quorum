@@ -1,0 +1,59 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Color
+
+class LineSegment is Drawable
+    text name = ""
+    boolean increasing = false
+    ChartPoint point1
+    ChartPoint point2
+
+    Icon icon
+
+    on create
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetPoint1 returns ChartPoint
+        return point1
+    end
+
+    action SetPoint1(ChartPoint point)
+        me:point1 = point
+    end
+
+    action GetPoint2 returns ChartPoint
+        return point2
+    end
+
+    action SetPoint2(ChartPoint point)
+        me:point2 = point
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetIcon returns Icon
+        return icon
+    end
+
+    action SetIncreasing(boolean increasing)
+        me:increasing = increasing
+    end
+
+    action IsIncreasing() returns boolean
+        return increasing
+    end
+end

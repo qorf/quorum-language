@@ -12,6 +12,8 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.ChartLine
 
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.LineSegment
 
 /*
     This is the layout class for Line Chart. This class is responsible for 
@@ -23,19 +25,21 @@ class LineChartLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
         if not (control is LineChart)
             return now
-        end
-        
+        end      
+
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
         number width = chartAreaContainer:GetWidth()
         number height = chartAreaContainer:GetHeight()
 
-        // Give 1.25% of chart area space to each point
-        number pointDensity = (width * 0.0125) 
-        chart:SetPointRadius(cast(integer, pointDensity/2))
+        // Give 1.5% of chart area space to each point
+        number pointDensity = (width * 0.015) 
+        integer PointRadius = cast(integer, pointDensity/2)
+        chart:SetPointRadius(PointRadius)
 
         // Set default line density to 0.75% of chart area
-        chart:SetLineDensity(cast(integer, width * 0.0075))
+        integer LineDensity = cast(integer, width * 0.0075)
+        chart:SetLineDensity(LineDensity)
 
         integer i = 0
         repeat while i < lines:GetSize()
@@ -50,6 +54,39 @@ class LineChartLayout is TwoVariableChartLayout
                 integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
+                j = j + 1
+            end
+
+            j = 0
+            repeat while j < lines:Get(i):GetLines():GetSize()
+                Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
+                LineSegment line = lines:Get(i):GetLines():Get(j)
+                ChartPoint a = lines:Get(i):GetPoints():Get(j)
+                ChartPoint b = lines:Get(i):GetPoints():Get(j + 1)
+                Math math
+
+                integer x1 = cast(integer, a:GetX())
+                integer y1 = cast(integer, a:GetY())
+                integer x2 = cast(integer, b:GetX())
+                integer y2 = cast(integer, b:GetY())
+
+                if y1 < y2      
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), LineDensity, lines:Get(i):GetColor())
+                    line:SetPosition(x1+PointRadius, y1+PointRadius)
+                    line:FlipY()
+                    lineIcon:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), LineDensity+2, chart:GetHighlightColor())
+                    lineIcon:SetPosition(x1+PointRadius, y1+PointRadius)
+                    lineIcon:FlipY()
+                else
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), LineDensity, lines:Get(i):GetColor())
+                    line:SetPosition(x1+PointRadius, y2+PointRadius)
+                    lineIcon:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), LineDensity+2, chart:GetHighlightColor())
+                    lineIcon:SetPosition(x1+PointRadius, y2+PointRadius)
+                end
+                line:SetPoint1(a)
+                line:SetPoint2(b)
+                lineIcon:Hide()
+                LayoutProperties properties = lineIcon:GetDefaultLayoutProperties()
                 j = j + 1
             end
             i = i + 1
