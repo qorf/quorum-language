@@ -1154,14 +1154,14 @@ begin(createAttributes(attributes), primitiveType);
             EnsureVertices(24)
             EnsureRectangleIndices(6)
             Vector3 norm = calcVector1:Set(corner000):LinearInterpolation(corner110, 0.5):Subtract(calcVector2:Set(corner001):LinearInterpolation(corner111, 0.5)):Normalize()
-            BuildRectangle(corner000, corner010, corner110, corner100, norm)
-            BuildRectangle(corner011, corner001, corner101, corner111, norm:Scale(-1))
+            BuildRectangle(corner100, corner000, corner010, corner110, norm)
+            BuildRectangle(corner001, corner101, corner111, corner011, norm:Scale(-1))
             norm = calcVector1:Set(corner000):LinearInterpolation(corner101, 0.5):Subtract(calcVector2:Set(corner010):LinearInterpolation(corner111, 0.5)):Normalize()
-            BuildRectangle(corner001, corner000, corner100, corner101, norm)
-            BuildRectangle(corner010, corner011, corner111, corner110, norm:Scale(-1))
+            BuildRectangle(corner000, corner100, corner101, corner001, norm)
+            BuildRectangle(corner011, corner111, corner110, corner010, norm:Scale(-1))
             norm = calcVector1:Set(corner000):LinearInterpolation(corner011, 0.5):Subtract(calcVector2:Set(corner100):LinearInterpolation(corner111, 0.5)):Normalize()
-            BuildRectangle(corner001, corner011, corner010, corner000, norm)
-            BuildRectangle(corner100, corner110, corner111, corner101, norm:Scale(-1))
+            BuildRectangle(corner000, corner001, corner011, corner010, norm)
+            BuildRectangle(corner101, corner100, corner110, corner111, norm:Scale(-1))
         end
     end
 
