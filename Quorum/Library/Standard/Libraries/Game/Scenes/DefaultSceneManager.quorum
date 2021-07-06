@@ -626,32 +626,47 @@ class DefaultSceneManager is SceneManager
 
         if model not= undefined
             if type = properties:BOX
-                if color not= undefined
+                if file not= ""
+                    model:LoadBox(size:Get(0), size:Get(1), size:Get(2), ConvertToProjectFile(file))
+                    if color not= undefined
+                        model:SetColor(color)
+                    end
+                elseif color not= undefined
                     model:LoadBox(size:Get(0), size:Get(1), size:Get(2), color)
-                elseif file not= ""
-                    model:LoadBox(size:Get(0), size:Get(1), size:Get(2), file)
                 end
             elseif type = properties:SPHERE
-                if color not= undefined
+                if file not= ""
+                    model:LoadSphere(size:Get(0), size:Get(1), size:Get(2), ConvertToProjectFile(file))
+                    if color not= undefined
+                        model:SetColor(color)
+                    end
+                elseif color not= undefined
                     model:LoadSphere(size:Get(0), size:Get(1), size:Get(2), color)
-                elseif file not= ""
-                    model:LoadSphere(size:Get(0), size:Get(1), size:Get(2), file)
                 end
             elseif type = properties:CYLINDER
-                if color not= undefined
+                if file not= ""
+                    model:LoadCylinder(size:Get(0), size:Get(1), size:Get(2), ConvertToProjectFile(file))
+                    if color not= undefined
+                        model:SetColor(color)
+                    end
+                elseif color not= undefined
                     model:LoadCylinder(size:Get(0), size:Get(1), size:Get(2), color)
-                elseif file not= ""
-                    model:LoadCylinder(size:Get(0), size:Get(1), size:Get(2), file)
                 end
             elseif type = properties:PLANE
-                if color not= undefined
-                    model:LoadPlane(size:Get(0), size:Get(2), color)
-                elseif file not= ""
-                    model:LoadPlane(size:Get(0), size:Get(2), file)
+                if file not= ""
+                    model:LoadPlane(size:Get(0), size:Get(1), ConvertToProjectFile(file))
+                    if color not= undefined
+                        model:SetColor(color)
+                    end
+                elseif color not= undefined
+                    model:LoadPlane(size:Get(0), size:Get(1), color)
                 end
             elseif type = properties:CUSTOM
-                model:Load(file)
+                model:Load(ConvertToProjectFile(file))
                 model:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+                if color not= undefined
+                    model:SetColor(color)
+                end
             end
         elseif audio not= undefined
             audio:SetVolume(volume)
@@ -720,6 +735,17 @@ class DefaultSceneManager is SceneManager
         end
 
         return item
+    end
+
+    /*
+    This action can be used to determine what working directory
+    to use for file loading. This can be used to open model resources that
+    exist in a different project, for example.
+    */
+    private action ConvertToProjectFile(text path) returns File
+        File file
+        file:SetPath(path)
+        return file
     end
 
     /*
@@ -1142,6 +1168,12 @@ class DefaultSceneManager is SceneManager
                 Color color = model:GetColor()
                 if color not= undefined
                     json:Add(properties:COLOR, NewJsonArray(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha()))
+                end
+            end
+            if not CustomSaveProperty3D(item, properties:FILE, json)
+                File file = model:GetAssetFile()
+                if file not= undefined
+                    json:Add(properties:FILE, file:GetPath())
                 end
             end
         elseif light not= undefined

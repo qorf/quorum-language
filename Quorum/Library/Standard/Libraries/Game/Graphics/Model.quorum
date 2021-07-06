@@ -73,6 +73,14 @@ class Model is Item3D
     // The color of this Model. Used only if a primitive shape has been loaded.
     Color diffuseColor = undefined
 
+    /*
+    The asset file that was used to load this asset. This might be a custom
+    model file (e.g. ".obj") or it might be a texture applied to a primitive
+    (e.g. ".png"). If this model doesn't use an asset file (e.g. it's a 
+    non-textured primitive object) then this will remain undefined.
+    */
+    File assetFile = undefined
+
     on create
         SceneProperties properties
         modelType = properties:NONE
@@ -287,8 +295,8 @@ class Model is Item3D
     end
 
     /*
-    This action sets the diffuse color of a primitive model. This action has no
-    effect on custom models loaded from files.
+    This action sets the diffuse color of a primitive model. If the model did not
+    previously have a color applied to it, it will add a color to it.
     */
     action SetColor(Color color)
         integer counter = 0
@@ -299,6 +307,9 @@ class Model is Item3D
             if material:HasAttribute(attribute:GetDiffuseValue())
                 attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
                 attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            else
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+                material:Add(attribute)
             end
             counter = counter + 1
         end
@@ -344,8 +355,12 @@ class Model is Item3D
 
     */
     action Load(File file)
+        SceneProperties properties
+        modelType = properties:CUSTOM
         ModelBlueprint schematic = GetCachedBlueprint(file)
         Load(schematic)
+
+        assetFile = file
     end
 
     /*
@@ -478,6 +493,7 @@ class Model is Item3D
         Texture texture
         texture:LoadFromFile(textureFile)
         LoadBox(width, height, depth, texture)
+        assetFile = textureFile
     end
 
     /*
@@ -597,6 +613,12 @@ class Model is Item3D
 
         SceneProperties properties
         modelType = properties:BOX
+
+        if texture:GetSource() not= undefined
+            File file
+            file:SetPath(texture:GetSource())
+            assetFile = file
+        end
     end
 
     /*
@@ -682,6 +704,8 @@ class Model is Item3D
         Texture texture
         texture:LoadFromFile(textureFile)
         LoadPlane(width, depth, texture)
+
+        assetFile = textureFile
     end
 
     /*
@@ -800,6 +824,12 @@ class Model is Item3D
 
         SceneProperties properties
         modelType = properties:PLANE
+
+        if texture:GetSource() not= undefined
+            File file
+            file:SetPath(texture:GetSource())
+            assetFile = file
+        end
     end
 
     /*
@@ -892,6 +922,8 @@ class Model is Item3D
         Texture texture
         texture:LoadFromFile(textureFile)
         LoadPlane(width, depth, texture)
+
+        assetFile = textureFile
     end
 
     /*
@@ -1021,6 +1053,12 @@ class Model is Item3D
 
         SceneProperties properties
         modelType = properties:PLANE
+
+        if texture:GetSource() not= undefined
+            File file
+            file:SetPath(texture:GetSource())
+            assetFile = file
+        end
     end
 
     /*
@@ -1150,6 +1188,8 @@ class Model is Item3D
         Texture texture
         texture:LoadFromFile(textureFile)
         LoadCylinder(width, height, depth, divisions, texture)
+
+        assetFile = textureFile
     end
 
     /*
@@ -1278,6 +1318,12 @@ class Model is Item3D
 
         SceneProperties properties
         modelType = properties:CYLINDER
+
+        if texture:GetSource() not= undefined
+            File file
+            file:SetPath(texture:GetSource())
+            assetFile = file
+        end
     end
 
     /*
@@ -1557,6 +1603,8 @@ class Model is Item3D
         Texture texture
         texture:LoadFromFile(textureFile)
         LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+
+        assetFile = textureFile
     end
 
     /*
@@ -1688,6 +1736,12 @@ class Model is Item3D
 
         SceneProperties properties
         modelType = properties:SPHERE
+
+        if texture:GetSource() not= undefined
+            File file
+            file:SetPath(texture:GetSource())
+            assetFile = file
+        end
     end
 
     /*
@@ -2476,6 +2530,19 @@ class Model is Item3D
         end
 
         return box
+    end
+
+    /*
+    This action returns the asset file that was used to load this asset. 
+    This might be a custom model file (e.g. ".obj") or it might be a 
+    texture applied to a primitive (e.g. ".png"). If this model doesn't 
+    use an asset file (e.g. it's a non-textured primitive object) then 
+    this will remain undefined.
+
+    Attribute: Returns The file that was used to load this Model, or undefined if no such file has been used.
+    */
+    action GetAssetFile returns File
+        return assetFile
     end
 
 end
