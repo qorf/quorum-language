@@ -72,10 +72,10 @@ class Tree is Control, FirstLetterNavigator
     end
     
     action Remove(TreeItem item)
-        // If the removed TreeItem was part of the selected path, empty the
-        // selection (rather than maintaining it on a removed item).
+        // If the removed TreeItem was part of the selected path, move the
+        // selection down (rather than maintaining it on a removed item).
         if selection:GetPath():Get(0) = item
-            Deselect()
+            SelectionDown()
         end
 
         panel:Remove(item)
