@@ -10,7 +10,8 @@ The easiest way to develop for Quorum is to use the corresponding development en
 
 The easiest way to build Quorum is in Quorum Studio. To build it, please follow these directions:
 
-1. Visit the Bitbucket page to get the latest source code for Quorum: https://bitbucket.org/stefika/quorum-language
+1. Visit the Bitbucket page to get the latest source code for Quorum: [Quorum Repository](https://bitbucket.org/stefika/quorum-language).
+1. Switch to the most current branch, if you wish (e.g., git checkout Quorum9).
 1. Clone the repository using Git from the terminal. The command will look something like "git clone https://stefika@bitbucket.org/stefika/quorum-language.git"
 1. Open Quorum Studio 3.0 or above
 1. Inside of Quorum Studio, open Quorum, which is under quorum-language/Quorum
