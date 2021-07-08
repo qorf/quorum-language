@@ -4,7 +4,7 @@ The Quorum programming language is a general purpose language designed for sever
 
 ### Developing in Quorum ###
 
-The easiest way to develop for Quorum is to use the corresponding development environment, Quorum Studio. Quorum Studio provides many of the basic features of Quorum, like compiling and running programs, out of the box. Quorum Studio can be downloaded from [The Quorum Download Page] (https://quorumlanguage.com/download.html).
+The easiest way to develop for Quorum is to use the corresponding development environment, Quorum Studio. Quorum Studio provides many of the basic features of Quorum, like compiling and running programs, out of the box. Quorum Studio can be downloaded from [The Quorum Download Page](https://quorumlanguage.com/download.html).
 
 ### Building Quorum from Source ###
 
