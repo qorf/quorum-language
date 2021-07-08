@@ -4,13 +4,16 @@ The Quorum programming language is a general purpose language designed for sever
 
 ### Developing in Quorum ###
 
-The easiest way to develop for Quorum is to use the corresponding development environment, Quorum Studio. Quorum Studio provides many of the basic features of Quorum, like compiling and running programs, out of the box. Quorum Studio can be downloaded from <insert link>
+The easiest way to develop for Quorum is to use the corresponding development environment, Quorum Studio. Quorum Studio provides many of the basic features of Quorum, like compiling and running programs, out of the box. Quorum Studio can be downloaded from [The Quorum Download Page] (https://quorumlanguage.com/download.html).
 
 ### Building Quorum from Source ###
 
 The easiest way to build Quorum is in Quorum Studio. To build it, please follow these directions:
-Visit the Bitbucket page to get the latest source code for Quorum: https://bitbucket.org/stefika/quorum-language
-Clone the repository using Git from the terminal. The command will look something like "git clone https://stefika@bitbucket.org/stefika/quorum-language.git"
-Open Quorum Studio
-Inside of Quorum Studio, open Quorum, which is under quorum-language/Quorum
-Build the project normally
+
+1. Visit the Bitbucket page to get the latest source code for Quorum: https://bitbucket.org/stefika/quorum-language
+1. Clone the repository using Git from the terminal. The command will look something like "git clone https://stefika@bitbucket.org/stefika/quorum-language.git"
+1.Open Quorum Studio 3.0 or above
+1. Inside of Quorum Studio, open Quorum, which is under quorum-language/Quorum
+1. Build the project normally
+
+We can also regenerate the standard library by running RunLibrary.quorum or run the test suite by running CompilerTestSuite.quorum.
