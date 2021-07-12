@@ -921,6 +921,28 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    action LoadLine(integer x, integer y, integer density, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(x+1, y+1, format)
+
+        pixmap:DrawLine(0, 0, x, y, color)
+        integer i = 1
+        repeat while i < (density/2)
+            pixmap:DrawLine(0+i, 0, x+i, y, color)
+            pixmap:DrawLine(0-i, 0, x-i, y, color)
+            pixmap:DrawLine(0, 0+i, x, y+i, color)
+            pixmap:DrawLine(0, 0-i, x, y-i, color)
+            i = i + 1
+        end
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
     /*
     This action will create a new Texture with a hollow white rectangle with
     the given width and height.

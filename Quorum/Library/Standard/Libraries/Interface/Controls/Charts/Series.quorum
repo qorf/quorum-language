@@ -1,0 +1,84 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.ControlLabel
+
+/*
+The Series class is a data structure that stores information for each 
+set (array) of drawable items (bar icons) of a certain series. 
+This class also contains an Icon that is used for accessibility.
+This will allow every bar of a series to be drawn with the same color.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Series
+class Main
+   action Main
+      //make a series
+      Series series
+      //add an item
+      Bar bar
+      series:AddItem(bar:GetIcon())
+      //set the color for the series
+      Color color
+      series:SetColor(color:Red())
+   end
+end
+*/
+
+class Series
+    ControlLabel name
+    Icon icon
+    Color color
+    Array<Drawable> items
+
+    action GetName() returns text
+        return name:GetName()
+    end
+
+    action SetName(text name)
+        me:name:SetName(name)
+        me:name:SetText(name)
+    end
+
+    action GetLabel() returns ControlLabel
+        return name
+    end
+
+    action SetLabel(ControlLabel name)
+        me:name = name
+    end
+
+    action GetIcon() returns Icon
+        return icon
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetColor() returns Color
+        return color
+    end
+
+    action SetColor(Color color)
+        me:color = color
+    end
+
+    action AddItem(Drawable item)
+        
+        items:Add(item)
+    end
+
+    action GetItem(integer index) returns Drawable
+        return items:Get(index)
+    end
+
+    action GetSize() returns integer
+        return items:GetSize()
+    end
+
+end

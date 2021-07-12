@@ -6,12 +6,21 @@ use Libraries.Interface.Controls.Icon
 class ChartPoint is Drawable
     number percentX = 0
     number percentY = 0
+    text name = ""
     
     Icon parentRegion = undefined
 
     on create
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
     end
 
     action GetPercentX returns number

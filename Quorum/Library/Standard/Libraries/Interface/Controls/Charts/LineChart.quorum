@@ -28,6 +28,7 @@ use Libraries.Interface.Layouts.LineChartLayout
 use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.ChartPointComparison
 use Libraries.Interface.Controls.Charts.ChartLine
+use Libraries.Compute.Matrix
 
 /*
     The Line Chart Class
@@ -58,6 +59,7 @@ class LineChart is TwoVariableChart
     Color defaultColor
 
     private integer PointRadius = 2
+    private integer LineDensity = 1
     //Place holder for custom line width
     //private integer LineWidth = 2
 
@@ -361,19 +363,39 @@ class LineChart is TwoVariableChart
     end
 
     /*
+    Set and get the point radius.
+    */
+    action SetPointRadius(integer radius)
+        PointRadius = radius
+    end
+    action GetPointRadius() returns integer
+        return PointRadius
+    end
+
+    /*
+    Set and get the line density.
+    */
+    action SetLineDensity(integer density)
+        LineDensity = density
+    end
+    action GetLineDensity() returns integer
+        return LineDensity
+    end
+
+    /*
     Helper used to add the points and lines of a ChartLine to the chart area.
     */
     action Populate()
         integer i = 0
         repeat while i < lines:GetSize()
             integer j = 0
-            repeat while j < lines:Get(i):GetPoints():GetSize()
-                GetChartArea():Add(lines:Get(i):GetPoints():Get(j))
+            repeat while j < lines:Get(i):GetLines():GetSize()
+                GetChartArea():Add(lines:Get(i):GetLines():Get(j))
                 j = j + 1
             end
             j = 0
-            repeat while j < lines:Get(i):GetLines():GetSize()
-                GetChartArea():Add(lines:Get(i):GetLines():Get(j))
+            repeat while j < lines:Get(i):GetPoints():GetSize()
+                GetChartArea():Add(lines:Get(i):GetPoints():Get(j))
                 j = j + 1
             end
             i = i + 1
@@ -508,13 +530,16 @@ class LineChart is TwoVariableChart
                 integer x2 = cast(integer, b:GetX())
                 integer y2 = cast(integer, b:GetY())
     
+                Color color 
+                color = lines:Get(i):GetColor()
+
                 if y1 < y2
-                    line:SetPosition(x1 + 2, y1 + 2)
-                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), lines:Get(i):GetColor())
+                    line:SetPosition(x1+PointRadius, y1+PointRadius)
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), LineDensity, color)
                     line:FlipY()
                 else
-                    line:SetPosition(x1 + 2, y2 + 2)
-                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), lines:Get(i):GetColor())
+                    line:SetPosition(x1+PointRadius, y2+PointRadius)
+                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), LineDensity, color)
                 end
                 j = j + 1
             end

@@ -15,6 +15,7 @@ class TwoVariableChart is Chart
 
     // The root ChartItem.
     ChartItem summary
+    Array<Series> seriesList
 
     // How many ticks are set along the x and y axes.
     integer xTicks = 0
@@ -136,14 +137,9 @@ class TwoVariableChart is Chart
                 if xLabelsOverride = undefined
                     label:SetText(scaleText)
                 else
-                    //now get the location of the text value to put in
-                    if i = xTicks - 1
-                        label:SetText(xLabelsOverride:Get(xLabelsOverride:GetSize() - 1))
-                    else
-                        number percent = (i * 1.0) / ((xTicks - 1) * 1.0)
-                        integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
-                        label:SetText(xLabelsOverride:Get(index))
-                    end
+                    number percent = (i * 1.0) / ((xTicks) * 1.0)
+                    integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
+                    label:SetText(xLabelsOverride:Get(index))
                 end
                 label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
                 scaleNum = scaleNum + scaleWidth
@@ -193,10 +189,10 @@ class TwoVariableChart is Chart
                     label:SetText(scaleText)
                 else
                     //now get the location of the text value to put in
-                    if i = yTicks - 1
-                        label:SetText(yLabelsOverride:Get(yLabelsOverride:GetSize() - 1))
+                    if i = yTicks
+                        label:SetText(yLabelsOverride:Get(yLabelsOverride:GetSize())) 
                     else
-                        number percent = (i * 1.0) / ((yTicks - 1) * 1.0)
+                        number percent = (i * 1.0) / ((yTicks) * 1.0)
                         integer index = cast(integer, math:Round(percent * yLabelsOverride:GetSize()))
                         label:SetText(yLabelsOverride:Get(index))
                     end
@@ -206,10 +202,21 @@ class TwoVariableChart is Chart
                 i = i + 1
             end
         end
-
+        
         if IsShowingLegend()
             Add(GetLegend())
         end
+    end
+
+    /*
+        Returns an array of all the series sets 
+    */
+    action GetSeriesList returns Array<Series>
+        return seriesList
+    end
+
+    action AddSeries(Series series)
+        seriesList:Add(series)
     end
 
     action SetXTickCount(integer ticks)
@@ -368,5 +375,10 @@ class TwoVariableChart is Chart
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
-
+    /*
+        This action is called whenever the window is resized.
+    */
+    action Resize()
+        parent:Chart:Resize()
+    end
 end

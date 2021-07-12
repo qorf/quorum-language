@@ -64,6 +64,14 @@ class IntegerColumn is DataFrameColumn
         rows:Set(index, value)
     end
 
+    action SetAsText(integer index, Integer value)
+        if value = undefined
+            rows:Set(index,undefined)
+        else
+            rows:Set(index,value:GetValue())
+        end
+    end
+
     action SetAsNumber(integer index, number value)
         rows:Set(index, cast(integer, value))
     end
@@ -185,6 +193,10 @@ class IntegerColumn is DataFrameColumn
 
     action Copy(boolean sort, boolean unique) returns DataFrameColumn
         return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsInteger(to,column:GetAsInteger(from))
     end
 
     private action CalculateValueCount(Array<Integer> values) returns HashTable<integer,integer>

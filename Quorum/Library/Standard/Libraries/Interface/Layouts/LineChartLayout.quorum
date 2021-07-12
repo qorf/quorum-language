@@ -27,21 +27,29 @@ class LineChartLayout is TwoVariableChartLayout
         
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
+        number width = chartAreaContainer:GetWidth()
+        number height = chartAreaContainer:GetHeight()
+
+        // Give 1.25% of chart area space to each point
+        number pointDensity = (width * 0.0125) 
+        chart:SetPointRadius(cast(integer, pointDensity/2))
+
+        // Set default line density to 0.75% of chart area
+        chart:SetLineDensity(cast(integer, width * 0.0075))
 
         integer i = 0
         repeat while i < lines:GetSize()
-
             if lines:Get(i):GetPoints() = undefined
                 return now
             end
-
-            number width = chartAreaContainer:GetWidth()
-            number height = chartAreaContainer:GetHeight()
             integer j = 0
             repeat while j < lines:Get(i):GetPoints():GetSize()
                 ChartPoint point = lines:Get(i):GetPoints():Get(j)
-                point:SetPosition(cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)), cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)))
-    
+                point:SetWidth(pointDensity)
+                point:SetHeight(pointDensity)
+                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
+                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
+                point:SetPosition(x, y)
                 j = j + 1
             end
             i = i + 1

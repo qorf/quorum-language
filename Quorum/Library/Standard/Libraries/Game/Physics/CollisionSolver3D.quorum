@@ -109,7 +109,6 @@ class CollisionSolver3D
             normalImpulse = contactConstraint:GetAppliedPushImpulse() - oldNormalImpulse
 
             Vector3 temp
-            
             temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
             body1:InternalApplyPushImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
 
@@ -152,7 +151,7 @@ class CollisionSolver3D
         normalImpulse = contactConstraint:GetAppliedImpulse() - oldNormalImpulse
 
         Vector3 temp
-
+        
         temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
         body1:InternalApplyImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
 
@@ -301,8 +300,6 @@ class CollisionSolver3D
         Matrix3 tempMatrix
 
         repeat while i < numManifolds
-//            output "Number of manifolds: " + numManifolds
-//            output "Manifold offset: " + manifold_offset
             manifold = manifoldPtr:Get(manifold_offset + i)
             obj0 = manifold:GetBody0()
             obj1 = manifold:GetBody1()
@@ -393,6 +390,14 @@ class CollisionSolver3D
                         tempMatrix:Transform(solverConstraint:GetAngularComponentB())
                     else
                         solverConstraint:GetAngularComponentB():Set(0, 0, 0)
+                    end
+
+                    if solverConstraint:GetAngularComponentA():Length() > 5
+//                        output "PRE Constraint A angular length = " + solverConstraint:GetAngularComponentA():Length()
+                    end
+
+                    if solverConstraint:GetAngularComponentB():Length() > 5
+//                        output "PRE Constraint B angular length = " + solverConstraint:GetAngularComponentB():Length()
                     end
 
                     number denom0 = 0
@@ -504,6 +509,14 @@ class CollisionSolver3D
                         AddFrictionConstraint(cp:GetLateralFrictionDirectionB(), solverBodyIDA, solverBodyIDB, frictionIndex, cp, relativePosition1, relativePosition2, obj0, obj1, relaxation)
                     end
 
+                    if solverConstraint:GetAngularComponentA():Length() > 5
+//                        output "Constraint A angular length = " + solverConstraint:GetAngularComponentA():Length()
+                    end
+
+                    if solverConstraint:GetAngularComponentB():Length() > 5
+//                        output "Constraint B angular length = " + solverConstraint:GetAngularComponentB():Length()
+                    end
+
                     SolverConstraint3D frictionConstraint1 = tempSolverFrictionConstraintPool:Get(solverConstraint:GetFrictionIndex())
                     if infoGlobal:IsWarmStarting()
                         frictionConstraint1:SetAppliedImpulse(cp:GetAppliedImpulseLateralA() * infoGlobal:GetWarmStartingFactor())
@@ -541,8 +554,6 @@ class CollisionSolver3D
         end
 
 
-        //output "Number of Joints: " + numJoints
-        //output "Joints Offset: " + joints_offset
         integer j = 0
         repeat while j < numJoints
             Joint3D joint = joints:Get(joints_offset + j)
@@ -614,20 +625,8 @@ class CollisionSolver3D
 
             j = 0
             repeat while j < numJoints
-                //output "Number of Joints: " + numJoints
-                //output "Joints Offset: " + joints_offset
-                //output "Solving for joint number: " + j
-
                 Joint3D joint = joints:Get(joints_offset + j)
                 
-
-//                output joint:GetItemA():GetDescription() + "'s collision group index: " + joint:GetItemA():GetCollisionGroupIndex()
-//                joint:GetItemA():GetCenterOfMassPosition():Output()
-//                output joint:GetItemB():GetDescription() +  "'s collision group index: " + joint:GetItemB():GetCollisionGroupIndex()
-//                output "B's position: "
-//                joint:GetItemB():GetCenterOfMassPosition():Output()
-//
-//                output "bodies to account for size: " + tempSolverBodyPool:GetSize()
 
                 //if itemA needs to have physics updated && itemA has collided with someone
                 if joint:GetItemA():GetCollisionGroupFlag() and joint:GetItemA():GetCollisionGroupIndex() >= 0
@@ -978,7 +977,7 @@ class CollisionSolver3D
 
                 cpd:GetFrictionAngularComponent1B():Set(ftorqueAxis1)
                 tempMatrix:Set(body1:GetInverseInertiaWorld()):Transform(cpd:GetFrictionAngularComponent1B())
-
+//                output "CollisionSolver3D: PrepareConstraints"
                 body0:ApplyLinearImpulse(totalImpulse, relpos1)
 
                 tempVector:Set(totalImpulse):Scale(-1)
