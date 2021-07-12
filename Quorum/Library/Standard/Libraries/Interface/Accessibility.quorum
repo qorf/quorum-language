@@ -170,6 +170,13 @@ class Accessibility
     blueprint action Notify(Item item, text value, integer notificationType)
 
     /*
+        Accessibility may require custom setup for each platform. This action is called
+        during StartGame, before a window is created.
+    */
+    action Setup
+    end
+
+    /*
     The Shutdown action shuts down the underlying accessibility architecture.
     */
     blueprint action Shutdown
