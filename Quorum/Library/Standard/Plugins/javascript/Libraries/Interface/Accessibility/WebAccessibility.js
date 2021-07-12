@@ -59,78 +59,88 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         console.log("Focus Changed");
     };
 //    system action Add(Item item)
-    this.Add$quorum_Libraries_Interface_Item = function(item) {      
+    this.Add$quorum_Libraries_Interface_Item = function(item) {  
+        
+        console.log("UPDATED FILE.");    
        //replace this code with item appropriate material
         var id = item.GetHashCode();        
         var description = item.GetName();   //used for testing purposes
-//        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
-//        
-//        if (item.GetAccessibilityCode() == 1)
-//        {
-//            type = "image";
-//            elementType = "IMG";
-//        }
-//        if (item.GetAccessibilityCode() == 2)
-//        {
-//            type = "checkbox";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 3)
-//        {
-//            type = "radio";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
-//        {
-//            type = "button";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 5)
-//        {
-//            type = "range";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 6)
-//        {
-//            type = "textarea";
-//            elementType = "INPUT";
-//        }
-//       
-//        /* Creating Item Element Tag with Attributes */
-//        var para = document.createElement(elementType);
-//        para.id = id;       //sets the item's id to the item's HashCode value
-//        para.setAttribute("type", type);
-//        para.setAttribute("value", item.GetDescription());
-//        if (item.GetAccessibilityCode() == 4){
-//           para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-//        }
-//        else if (item.GetAccessibilityCode() == 2){
-//            para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-//        }
-//        else if (item.GetAccessibilityCode() == 3){
-//            para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
-//            para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-//        }
-//        
-//        /*
-//        //Drawable using an img tag 
-//        else if (item.GetAccessibilityCode() == 1){
-//            para.setAttribute("src", description);      //Need Path for src attribute
-//            para.setAttribute("alt", item.GetDescription());
-//        }
-//        */
-//       
-//        var node = document.createTextNode(description);
-//        para.appendChild(node);
-//
-//        //we very likely need to not hard code this, but for testing it is ok.
-//        var element = document.getElementById("QuorumGraphicsCanvas");
-//        element.appendChild(para);
+       elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
+       
+       if (item.GetAccessibilityCode() == 1)
+       {
+           type = "image";
+           elementType = "IMG";
+       }
+       if (item.GetAccessibilityCode() == 2)
+       {
+           type = "checkbox";
+           elementType = "INPUT";
+       }
+       else if (item.GetAccessibilityCode() == 3)
+       {
+           type = "radio";
+           elementType = "INPUT";
+       }
+       else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
+       {
+           type = "button";
+           elementType = "INPUT";
+       }
+       else if (item.GetAccessibilityCode() == 5)
+       {
+           type = "range";
+           elementType = "INPUT";
+       }
+       else if (item.GetAccessibilityCode() == 6)
+       {
+           type = "textarea";
+           elementType = "INPUT";
+       }
+       else {
+        type = "";
+        elementType = "A";
+       }
+      
+       /* Creating Item Element Tag with Attributes */
+       var para = document.createElement(elementType);
+       para.id = id;       //sets the item's id to the item's HashCode value
+       para.type = type;
+       para.value = item.GetDescription();
+       para.tabindex = -1;
+       //para.setAttribute("type", type);
+       //para.setAttribute("value", item.GetDescription());
+       //para.setAttribute("tabindex", -1);
+       if (item.GetAccessibilityCode() == 4){
+          para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
+       }
+       else if (item.GetAccessibilityCode() == 2){
+           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
+       }
+       else if (item.GetAccessibilityCode() == 3){
+           para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
+           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
+       }
+       
+       /*
+       //Drawable using an img tag 
+       else if (item.GetAccessibilityCode() == 1){
+           para.setAttribute("src", description);      //Need Path for src attribute
+           para.setAttribute("alt", item.GetDescription());
+       }
+       */
+      
+       var node = document.createTextNode(description);
+       para.appendChild(node);
+
+       //we very likely need to not hard code this, but for testing it is ok.
+       var element = document.getElementById("frontPageQuorumGraphicsCanvas");
+       element.appendChild(para);
         console.log(description, " has been added.");
     };
 //    system action Remove(Item item)
     this.Remove$quorum_Libraries_Interface_Item = function(item) {
-        var parent = document.getElementById("QuorumGraphicsCanvas");
+        var parent = document.getElementById("frontPageQuorumGraphicsCanvas");
         var child = document.getElementById(item.GetHashCode());
         parent.removeChild(child);
         console.log(elementList[item.GetHashCode()], " has been removed.");
