@@ -492,6 +492,10 @@ class Game
 
         DefaultSceneManager manager
         sceneManager = manager
+    
+        if accessibility not= undefined
+            accessibility:Setup()
+        end
 
         application:Setup(me)
     end
