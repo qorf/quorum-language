@@ -585,6 +585,11 @@ public class DesktopDisplay {
         return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(window);
     }
     
+    //only works on Mac. This will fail on other platforms.
+    public static long GetCocoaHandle()
+    {
+        return org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(window);
+    }
     /*
     Used to retrieve or construct a screen resolution from the
     DesktopConfiguration. Used to provide a screen resolution if the display
