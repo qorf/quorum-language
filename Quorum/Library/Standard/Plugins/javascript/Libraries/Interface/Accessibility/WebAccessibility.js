@@ -27,9 +27,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
     
 //    system action Update
-
+//this is handled in Quorum for now might be added back if need be
     this.Update = function() {
-        console.log("Update called");
+        //removed
+        //console.log("Update called");
     };
     
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
@@ -57,6 +58,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         console.log("Focus Changed");
+        var item = event.GetNewFocus()
+        var id = item.GetHashCode();
+        var element = document.getElementById("frontPageQuorumGraphicsCanvas");
+        element.setAttribute("aria-activedescendant", id)
     };
 //    system action Add(Item item)
     this.Add$quorum_Libraries_Interface_Item = function(item) {  
@@ -72,7 +77,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
            type = "image";
            elementType = "IMG";
        }
-       if (item.GetAccessibilityCode() == 2)
+       else if (item.GetAccessibilityCode() == 2)
        {
            type = "checkbox";
            elementType = "INPUT";
