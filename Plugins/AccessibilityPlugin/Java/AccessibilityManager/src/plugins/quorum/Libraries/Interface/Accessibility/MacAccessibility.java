@@ -1,7 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import plugins.quorum.Libraries.Game.DesktopDisplay;
-import static plugins.quorum.Libraries.Game.DesktopDisplay.window;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
@@ -25,7 +24,7 @@ public class MacAccessibility {
     
     static {
         //this is the NSWindow handle on Mac, I think?
-        long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(window);
+        long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
     }
     public void  NameChanged(Item_ item) {}
 

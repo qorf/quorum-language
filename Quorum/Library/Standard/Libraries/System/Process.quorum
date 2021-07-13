@@ -1,0 +1,110 @@
+package Libraries.System
+
+use Libraries.Containers.Array
+use Libraries.System.File
+
+class Process
+    Array<ProcessListener> listeners
+    text name = ""
+    Array<text> flags
+
+    action AddListener(ProcessListener listener)
+        listeners:Add(listener)
+    end
+
+    action Remove(ProcessListener listener)
+        listeners:Remove(listener)
+    end
+
+    action FireProcessStartedEvent
+        i = 0
+        repeat while i < listeners:GetSize()
+            ProcessListener listener = listeners:Get(i)
+            ProcessEvent event
+            event:SetEventCode(event:START_EVENT)
+            event:SetName(name)
+            event:SetParameters(flags)
+            event:SetProcess(me)
+            listener:ProcessStarted(event)
+            i = i + 1
+        end
+    end
+
+    action FireProcessStoppedEvent(integer exit)
+        i = 0
+        repeat while i < listeners:GetSize()
+            ProcessListener listener = listeners:Get(i)
+            ProcessEvent event
+            event:SetEventCode(event:STOP_EVENT)
+            event:SetName(name)
+            event:SetParameters(flags)
+            event:SetProcess(me)
+            event:SetExit(exit)
+            listener:ProcessStopped(event)
+            i = i + 1
+        end
+    end
+
+    action FireProcessErrorEvent(text value)
+        i = 0
+        repeat while i < listeners:GetSize()
+            ProcessListener listener = listeners:Get(i)
+            ProcessEvent event
+            event:SetEventCode(event:ERROR_EVENT)
+            event:SetName(name)
+            event:SetParameters(flags)
+            event:SetProcess(me)
+            event:SetOutput(value)
+            listener:Error(event)
+            i = i + 1
+        end
+    end
+
+    action FireProcessOutputEvent(text value)
+        i = 0
+        repeat while i < listeners:GetSize()
+            ProcessListener listener = listeners:Get(i)
+            ProcessEvent event
+            event:SetEventCode(event:OUTPUT_EVENT)
+            event:SetName(name)
+            event:SetParameters(flags)
+            event:SetProcess(me)
+            event:SetOutput(value)
+            listener:Output(event)
+            i = i + 1
+        end
+    end
+
+    action GetName returns text
+        return me:name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetParameters returns Array<text>
+        return me:flags
+    end
+
+    action SetParameters(Array<text> flags)
+        me:flags = flags
+    end
+    
+    action Run
+        Run(name, flags)
+    end
+
+    system action IsAlive returns boolean
+
+    private system action Run(text name, Array<text> flags)
+
+    system action SendInput(text value)
+    system action GetDirectory returns File
+    system action SetDirectory(File folder)
+    system action Cancel
+
+    action ToText returns text
+        return name
+    end
+end
