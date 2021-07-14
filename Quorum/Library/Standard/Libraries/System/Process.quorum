@@ -92,6 +92,13 @@ class Process
     end
     
     action Run
+        //if no file is set, set this to run by default in the current
+        //working directory.
+        File file = GetDirectory()
+        if file = undefined
+            File default
+            SetDirectory(default)
+        end
         Run(name, flags)
     end
 
