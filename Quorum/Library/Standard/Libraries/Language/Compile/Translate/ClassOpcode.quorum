@@ -1711,11 +1711,23 @@ class ClassOpcode is QuorumOpcode
 
         convertedSource = convertedSource + EOL + "};" + EOL
         if clazz:IsProgramStartingClass()
+            convertedSource = convertedSource + "var $starter;"
             convertedSource = convertedSource + "function Start(){" + EOL
-            convertedSource = convertedSource + "var $starter = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+            convertedSource = convertedSource + "$starter = new " + 
+                clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
             convertedSource = convertedSource + "$starter.Main();" + EOL
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
             convertedSource = convertedSource + "}" + EOL
+
+            Class isParentGame = clazz:GetParentClass("Libraries.Game.Game")
+            if isParentGame not= undefined
+                convertedSource = convertedSource + "function Stop(){" + EOL
+                convertedSource = convertedSource + "if ($starter != null) { " + EOL
+                convertedSource = convertedSource + "$starter.Exit();" + EOL
+                convertedSource = convertedSource + "}" + EOL
+            else
+                convertedSource = convertedSource + "function Stop() {}" + EOL
+            end
         end
 
         
