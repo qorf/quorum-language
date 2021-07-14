@@ -4825,4 +4825,14 @@ class Item2D is Item
         // actually be on the screen).
         return z:GetNotANumberValue()
     end
+
+    /*
+    This action returns true if the item has been added to a Layer, or
+    false otherwise.
+
+    Attribute: Returns True if the item is on a Layer, or false otherwise.
+    */
+    action IsOnLayer returns boolean
+        return layer not= undefined
+    end
 end
