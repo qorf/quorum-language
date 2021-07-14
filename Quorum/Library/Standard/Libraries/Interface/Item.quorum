@@ -214,6 +214,14 @@ class Item
     blueprint action Empty
 
     /*
+    This action returns true if the item has been added to a Layer, or
+    false otherwise.
+
+    Attribute: Returns True if the item is on a Layer, or false otherwise.
+    */
+    blueprint action IsOnLayer returns boolean
+
+    /*
     This action sets whether or not this Item accepts mouse input.
     If set to true, this will intercept incoming mouse events, triggering any
     related MouseListeners and InputSets and preventing the mouse event from

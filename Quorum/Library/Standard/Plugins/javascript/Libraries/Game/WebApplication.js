@@ -7,7 +7,6 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var currentTime = 0;
     var targetFPS = 30;
     
-    var exitRequested = false;
     var configuration = null;
     var game = null;
     var display = null;
@@ -61,8 +60,25 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     
     this.MainLoop = function(timeStamp)
     {
-        if (exitRequested)
-            return;
+        if (game.Get_Libraries_Game_Game__exitRequested_())
+        {
+            var exitRequested = game.OnExit();
+            
+            if (exitRequested)
+            {
+                var accessibility = game.GetAccessibility();
+                if (accessibility != null)
+                {
+                    accessibility.Shutdown();
+                }
+                
+                return;
+            }
+            else
+            {
+                game.Set_Libraries_Game_Game__exitRequested_(false);
+            }
+        }
         
         currentTime = timeStamp;
         elapsedTime = currentTime - lastTime;
@@ -85,7 +101,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     
     this.Exit = function()
     {
-        exitRequested = true;
+        game.Set_Libraries_Game_Game__exitRequested_(true);
     };
     
 }

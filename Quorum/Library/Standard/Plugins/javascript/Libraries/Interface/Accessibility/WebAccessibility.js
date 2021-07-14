@@ -60,58 +60,60 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         console.log("Focus Changed");
         var item = event.GetNewFocus()
         var id = item.GetHashCode();
-        var element = document.getElementById("frontPageQuorumGraphicsCanvas");
+        var element = document.getElementById(currentIDECanvas_$Global_);
         element.setAttribute("aria-activedescendant", id)
     };
 //    system action Add(Item item)
     this.Add$quorum_Libraries_Interface_Item = function(item) {  
         
-        console.log("UPDATED FILE.");    
+        console.log("UPDATED FILE.");
        //replace this code with item appropriate material
-        var id = item.GetHashCode();        
-        var description = item.GetName();   //used for testing purposes
+        var id = item.GetHashCode();
+        var itemName = item.GetName();   //used for testing purposes
        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
-       
-       if (item.GetAccessibilityCode() == 1)
-       {
-           type = "image";
-           elementType = "IMG";
-       }
-       else if (item.GetAccessibilityCode() == 2)
-       {
-           type = "checkbox";
-           elementType = "INPUT";
-       }
-       else if (item.GetAccessibilityCode() == 3)
-       {
-           type = "radio";
-           elementType = "INPUT";
-       }
-       else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
-       {
-           type = "button";
-           elementType = "INPUT";
-       }
-       else if (item.GetAccessibilityCode() == 5)
-       {
-           type = "range";
-           elementType = "INPUT";
-       }
-       else if (item.GetAccessibilityCode() == 6)
-       {
-           type = "textarea";
-           elementType = "INPUT";
-       }
-       else {
-        type = "";
-        elementType = "A";
-       }
+       elementType = "DIV"
+    //    if (item.GetAccessibilityCode() == 1)
+    //    {
+    //        type = "image";
+    //        elementType = "DIV";
+    //    }
+    //    else if (item.GetAccessibilityCode() == 2)
+    //    {
+    //        type = "checkbox";
+    //        elementType = "DIV";
+    //    }
+    //    else if (item.GetAccessibilityCode() == 3)
+    //    {
+    //        type = "radio";
+    //        elementType = "DIV";
+    //    }
+    //    else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
+    //    {
+    //        type = "button";
+    //        elementType = "DIV";
+    //    }
+    //    else if (item.GetAccessibilityCode() == 5)
+    //    {
+    //        type = "range";
+    //        elementType = "DIV";
+    //    }
+    //    else if (item.GetAccessibilityCode() == 6)
+    //    {
+    //        type = "textarea";
+    //        elementType = "DIV";
+    //    }
+    //    else {
+    //     type = "";
+    //     elementType = "DIV";
+    //    }
       
        /* Creating Item Element Tag with Attributes */
        var para = document.createElement(elementType);
        para.id = id;       //sets the item's id to the item's HashCode value
-       para.type = type;
-       para.value = item.GetDescription();
+       //para.type = type;
+       para.setAttribute("role","region");
+       para.setAttribute("aria-label", itemName);
+       para.setAttribute("aria-roledescription", item.GetDescription())
        para.tabindex = -1;
        //para.setAttribute("type", type);
        //para.setAttribute("value", item.GetDescription());
@@ -135,17 +137,18 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
        }
        */
       
-       var node = document.createTextNode(description);
-       para.appendChild(node);
+       //var node = document.createTextNode(description);
+       //para.appendChild(node);
 
        //we very likely need to not hard code this, but for testing it is ok.
-       var element = document.getElementById("frontPageQuorumGraphicsCanvas");
-       element.appendChild(para);
-        console.log(description, " has been added.");
+       var canvas = document.getElementById(currentIDECanvas_$Global_);
+       //var element = document.getElementById("frontPageQuorumGraphicsCanvas");
+       canvas.appendChild(para);
+        console.log(item.GetName(), " has been added.");
     };
 //    system action Remove(Item item)
     this.Remove$quorum_Libraries_Interface_Item = function(item) {
-        var parent = document.getElementById("frontPageQuorumGraphicsCanvas");
+        var parent = canvas = document.getElementById(currentIDECanvas_$Global_);
         var child = document.getElementById(item.GetHashCode());
         parent.removeChild(child);
         console.log(elementList[item.GetHashCode()], " has been removed.");
