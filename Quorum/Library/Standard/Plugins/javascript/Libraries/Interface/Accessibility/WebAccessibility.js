@@ -11,12 +11,22 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action NameChanged(Item item)
 
     this.NameChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            element.setAttribute("aria-label", item.GetName());
+        }
         console.log("Name Changed");
     };
 
 //    system action DescriptionChanged(Item item)
 
     this.DescriptionChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            element.setAttribute("aria-roledescription", item.GetDescription());
+        }
         console.log("Description Changed");
     };
     
@@ -65,8 +75,11 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
 //    system action Add(Item item)
     this.Add$quorum_Libraries_Interface_Item = function(item) {  
-        
-        console.log("UPDATED FILE.");
+        console.log(item.GetAccessibilityCode())
+        console.log(item.GetHashCode() + ":" + item.GetName() + ":" + item.GetDescription())
+        if (item.GetAccessibilityCode() == -1) {
+            return;
+        }
        //replace this code with item appropriate material
         var id = item.GetHashCode();
         var itemName = item.GetName();   //used for testing purposes
