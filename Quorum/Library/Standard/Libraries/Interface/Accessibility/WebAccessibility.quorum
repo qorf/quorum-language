@@ -16,6 +16,10 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+use Libraries.Containers.Iterator
 
 class WebAccessibility is Accessibility
     GameStateManager manager
@@ -48,9 +52,67 @@ class WebAccessibility is Accessibility
 
     system action FocusChanged(FocusEvent event)
 
-    system action Add(Item item) 
+    system action NativeAdd(Item item) 
 
-    system action Remove(Item item)
+    system action NativeRemove(Item item)
+
+    action Add(Item item)
+        //this is the same code from AccessibilityManager.quorum
+        NativeAdd(item)
+        // Add the children
+        if item is Item2D
+            Item2D temp = cast(Item2D, item)
+            Array<Item2D> children = temp:GetChildren()
+            
+            integer counter = 0
+
+            repeat while counter < children:GetSize()
+                Add(children:Get(counter))
+                counter = counter + 1
+            end
+
+        elseif item is Item3D
+            Item3D temp = cast(Item3D, item)
+            Iterator<Item3D> children = temp:GetItems()
+
+            Item3D child = undefined
+
+            repeat while children:HasNext()
+                child = children:Next()
+                Add(child)
+            end
+        end
+    end
+
+    action Remove(Item item)
+        //this is the same code from AccessibilityManager.quorum
+        // If the item being removed has children then remove them first.
+        //Is this necessary or does the native layer figure this out?
+        if item is Item2D
+            Item2D temp = cast(Item2D, item)
+            Array<Item2D> children = temp:GetChildren()
+            
+            integer counter = 0
+
+            repeat while counter < children:GetSize()
+                Remove(children:Get(counter))
+                counter = counter + 1
+            end
+
+        elseif item is Item3D
+            Item3D temp = cast(Item3D, item)
+            Iterator<Item3D> children = temp:GetItems()
+            
+            Item child = undefined
+
+            repeat while children:HasNext()
+                child = children:Next()
+                Remove(child)
+            end
+        end
+
+        NativeRemove(item)
+    end
 
     system action MenuChanged(MenuChangeEvent event)
 

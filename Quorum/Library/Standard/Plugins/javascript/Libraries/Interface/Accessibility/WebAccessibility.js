@@ -74,14 +74,18 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var element = document.getElementById(currentIDECanvas_$Global_);
         element.setAttribute("aria-activedescendant", id)
     };
-//    system action Add(Item item)
-    this.Add$quorum_Libraries_Interface_Item = function(item) {
+//    system action NativeAdd(Item item)
+    this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
         //dont add to DOM if not accessible
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
        //replace this code with item appropriate material
         var id = item.GetHashCode();
+        //dont want to add something to the DOM twice
+        if( elementList[id] != null ) {
+            return;
+        }
         var itemName = item.GetName();   //used for testing purposes
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
@@ -227,12 +231,17 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
        canvas.appendChild(para);
         console.log(item.GetName(), " has been added.");
     };
-//    system action Remove(Item item)
-    this.Remove$quorum_Libraries_Interface_Item = function(item) {
+//    system action NativeRemove(Item item)
+    this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
+        //cant remove what's not there
+        if( elementList[id] == null ) {
+            return;
+        }
         //if it wasn't accessible it was never in the DOM
         if( elementList[id] != null ) {
             document.getElementById(item.GetHashCode()).remove();
+            elementList[id] = null;
         }
         console.log(elementList[item.GetHashCode()], " has been removed.");
     };
