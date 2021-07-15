@@ -87,97 +87,120 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         elementType = "DIV";
         //default role
         let role = "region";
+
+        /* Creating Item Element Tag with Attributes */
+        var para = document.createElement(elementType);
+        para.id = id;       //sets the item's id to the item's HashCode value
+
         switch(item.GetAccessibilityCode()){
             //CUSTOM
             case 1:
-               break;
+                para.setAttribute("aria-roledescription","custom");
+                break;
             //CHECKBOX
             case 2:
+                role = "checkbox";
+                //check for checked status
                 break;
             //RADIO_BUTTON
             case 3:
+                role = "radio";
                 break;
             //BUTTON
             case 4:
+                role = "button";
                 break;
             //TOGGLE_BUTTON
             case 5:
+                role = "button";
+                //check for pressed
                 break;
             //TEXTBOX
             case 6:
+                role = "textbox";
                 break;
             //MENU_BAR
             case 7:
+                role = "menubar";
                 break;
             //MENU_ITEM
             case 8:
+                role = "menuitem";
                 break;
             //PANE
             case 9:
                 break;
             //TREE
             case 10:
+                role = "tree";
                 break;
             //TREE_ITEM
             case 11:
+                role = "treeitem";
                 break;
             //TOOLBAR
             case 12:
+                role = "toolbar";
                 break;
             //TAB
             case 13:
+                role = "tab";
                 break;
             //TAB_PANE
             case 14:
+                role = "tabpanel";
                 break;
             //TABLE
             case 15:
+                role = "table";
                 break;
             //CELL
             case 16:
+                role = "cell";
                 break;
             //TEXT_FIELD
             case 17:
                 break;
             //LIST
             case 18:
+                role = "list";
                 break;
             //LIST_ITEM
             case 19:
+                role = "listitem"
                 break;
             //TREE_TABLE
             case 20:
+                role = "treegrid";
                 break;
             //DIALOG
             case 21:
+                role = "dialog";
                 break;
             //POPUP_MENU
             case 22:
                 break;
             //PROGRESS_BAR
             case 23:
+                role = "progressbar"
                 break;
             //TREE_TABLE_CELL
             case 24:
                 break;
             //GROUP
             case 25:
+                role = "group"
                 break;
             default:
                 // do nothing?
         }
       
-        /* Creating Item Element Tag with Attributes */
-        var para = document.createElement(elementType);
-        para.id = id;       //sets the item's id to the item's HashCode value
+        
         //para.type = type;
         para.setAttribute("role",role);
         para.setAttribute("aria-label", itemName);
         para.setAttribute("aria-description", item.GetDescription())
         para.tabindex = -1;
-       //para.setAttribute("type", type);
-       //para.setAttribute("value", item.GetDescription());
-       //para.setAttribute("tabindex", -1);
        if (item.GetAccessibilityCode() == 4){
           para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
        }
