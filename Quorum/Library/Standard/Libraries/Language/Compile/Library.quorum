@@ -284,6 +284,9 @@ class Library
         interfaceNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         interfaceNative:SetPath("Libraries.Interface")
 
+        File nativeDeployment
+        nativeDeployment:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
+        nativeDeployment:SetPath("Deploy")
 
         File lwjglFolder
         lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
@@ -300,8 +303,11 @@ class Library
         speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
         interfaceNative:Copy(nativeFolder, true)
+        if nativeDeployment:Exists()
+            nativeDeployment:Copy(nativeFolder, true)
+        end
         lwjglFolder:Copy(graphicsFolder, true)
-
+        
 
         File copier
         copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())

@@ -23,10 +23,24 @@ class Natives is ProcessListener
         CreateMacFolders()
         RunClang()
         RunLinkerMac()
+        CopyMac()
 
         number stop = time:GetEpochTime()
         number amount = (stop - start) / 1000.0
         output "Native Creation Completed in " + amount + " seconds."
+    end
+
+    action CopyMac
+        File from
+        from:SetWorkingDirectory(root:GetAbsolutePath())
+        from:SetPath("Deploy")
+        
+        File to
+        to:SetWorkingDirectory(root:GetWorkingDirectory())
+        to:SetPath("Quorum/Library/Standard/Native/Deploy")
+        output to:GetAbsolutePath()
+        from:Copy(to, true)
+
     end
 
     action RunLinkerMac
