@@ -56,14 +56,44 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
     
 //    system action ButtonActivated(Button button)
-    this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
-        console.log("Button Activated");
-    };
-    
+this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        element.setAttribute('aria-pressed', "true");
+    }
+    console.log("Button Activated");
+};
+
 //    system action ToggleButtonToggled(ToggleButton button)    
-    this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
-        console.log("Toggled Buttoned");
-    };
+this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        if ((element.getAttribute('aria-roledescription') == "checkbox") 
+            || (element.getAttribute('aria-roledescription') == "radio")) {
+            switch(element.getAttribute('aria-checked')) {
+                case "true":
+                    element.setAttribute('aria-checked', "false");
+                    break;
+                case "false":
+                    element.setAttribute('aria-checked', "true");
+                    break;
+            }
+        }
+        else if (element.getAttribute('aria-roledescription') == "toggle button") {
+            switch(element.getAttribute('aria-pressed')) {
+                case "true":
+                    element.setAttribute('aria-pressed', "false");
+                    break;
+                case "false":
+                    element.setAttribute('aria-pressed', "true");
+                    break;
+            }
+        }
+    }
+    console.log("Toggled Buttoned");
+};
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
@@ -104,19 +134,41 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             //CHECKBOX
             case 2:
                 role = "checkbox";
+                para.setAttribute("aria-roledescription","checkbox");
+                if (item.GetName() == undefined)
+                    itemName = "Check Box"
+                para.setAttribute('aria-checked', "false");
+                para.onKeyPress = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
+                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
                 //check for checked status
                 break;
             //RADIO_BUTTON
             case 3:
                 role = "radio";
+                para.setAttribute("aria-roledescription","radio");
+                if (item.GetName() == undefined)
+                    itemName = "Radio"
+                para.setAttribute('aria-checked', "false");
+                para.onKeyPress = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
+                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
                 break;
             //BUTTON
             case 4:
                 role = "button";
+                para.setAttribute("aria-roledescription","button");
+                para.setAttribute('aria-pressed', "false");
+                para.onKeyDown = this.ButtonActivated$quorum_Libraries_Interface_Controls_Button
+                para.onclick = this.ButtonActivated$quorum_Libraries_Interface_Controls_Button
                 break;
             //TOGGLE_BUTTON
             case 5:
                 role = "button";
+                para.setAttribute("aria-roledescription","toggle button");
+                if (item.GetName() == undefined)
+                    itemName = "Toggle Button"
+                para.setAttribute('aria-pressed', "false");
+                para.onKeyDown = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
+                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
                 //check for pressed
                 break;
             //TEXTBOX
@@ -193,7 +245,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
                 break;
             //GROUP
             case 25:
-                role = "group"
+                role = "radiogroup";
+                para.setAttribute("aria-roledescription", "radio group");
+                if (item.GetName() == undefined)
+                    itemName = "Radio Group"
                 break;
             default:
                 // do nothing?
@@ -205,16 +260,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         para.setAttribute("aria-label", itemName);
         para.setAttribute("aria-description", item.GetDescription())
         para.tabindex = -1;
-       if (item.GetAccessibilityCode() == 4){
-          para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-       }
-       else if (item.GetAccessibilityCode() == 2){
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
-       else if (item.GetAccessibilityCode() == 3){
-           para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
+    //    if (item.GetAccessibilityCode() == 4){
+    //       para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
+    //    }
+    //    else if (item.GetAccessibilityCode() == 2){
+    //        para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
+    //    }
        
        /*
        //Drawable using an img tag 
@@ -227,9 +278,18 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
        //var node = document.createTextNode(description);
        //para.appendChild(node);
 
-       var canvas = document.getElementById(currentIDECanvas_$Global_);
-       canvas.appendChild(para);
-        console.log(item.GetName(), " has been added.");
+        // Add radio button child to radio group
+        if (item.GetAccessibilityCode() == 3){
+            var element = document.getElementById(item.GetButtonGroup().GetHashCode());
+            element.appendChild(para)
+            console.log(item.GetName(), " has been added to ", item.GetButtonGroup().GetName(), ".");
+        }
+        // Add child to canvas
+        else {
+            var canvas = document.getElementById(currentIDECanvas_$Global_);
+            canvas.appendChild(para);
+            console.log(item.GetName(), " has been added.");
+        }
     };
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
