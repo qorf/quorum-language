@@ -4,7 +4,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
      * but presume they will be modified or go away as we develop the library.
      */
     var type = "";      //specifies the input type of the element
-    var elementType = "";   //specifies the type of element DEFAULT is INPUT right now for testing
+    var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     
@@ -57,7 +57,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     
 //    system action ButtonActivated(Button button)
     this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
-        console.log("BUtton Activated");
+        console.log("Button Activated");
     };
     
 //    system action ToggleButtonToggled(ToggleButton button)    
@@ -68,66 +68,113 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         console.log("Focus Changed");
-        var item = event.GetNewFocus()
+        var item = event.GetNewFocus();
         var id = item.GetHashCode();
+        currentFocus = item;
         var element = document.getElementById(currentIDECanvas_$Global_);
         element.setAttribute("aria-activedescendant", id)
     };
 //    system action Add(Item item)
-    this.Add$quorum_Libraries_Interface_Item = function(item) {  
-        console.log(item.GetAccessibilityCode())
-        console.log(item.GetHashCode() + ":" + item.GetName() + ":" + item.GetDescription())
+    this.Add$quorum_Libraries_Interface_Item = function(item) {
+        //dont add to DOM if not accessible
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
        //replace this code with item appropriate material
         var id = item.GetHashCode();
         var itemName = item.GetName();   //used for testing purposes
-       elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
-       elementType = "DIV"
-    //    if (item.GetAccessibilityCode() == 1)
-    //    {
-    //        type = "image";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 2)
-    //    {
-    //        type = "checkbox";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 3)
-    //    {
-    //        type = "radio";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
-    //    {
-    //        type = "button";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 5)
-    //    {
-    //        type = "range";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 6)
-    //    {
-    //        type = "textarea";
-    //        elementType = "DIV";
-    //    }
-    //    else {
-    //     type = "";
-    //     elementType = "DIV";
-    //    }
+        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
+        elementType = "DIV";
+        //default role
+        let role = "region";
+        switch(item.GetAccessibilityCode()){
+            //CUSTOM
+            case 1:
+               break;
+            //CHECKBOX
+            case 2:
+                break;
+            //RADIO_BUTTON
+            case 3:
+                break;
+            //BUTTON
+            case 4:
+                break;
+            //TOGGLE_BUTTON
+            case 5:
+                break;
+            //TEXTBOX
+            case 6:
+                break;
+            //MENU_BAR
+            case 7:
+                break;
+            //MENU_ITEM
+            case 8:
+                break;
+            //PANE
+            case 9:
+                break;
+            //TREE
+            case 10:
+                break;
+            //TREE_ITEM
+            case 11:
+                break;
+            //TOOLBAR
+            case 12:
+                break;
+            //TAB
+            case 13:
+                break;
+            //TAB_PANE
+            case 14:
+                break;
+            //TABLE
+            case 15:
+                break;
+            //CELL
+            case 16:
+                break;
+            //TEXT_FIELD
+            case 17:
+                break;
+            //LIST
+            case 18:
+                break;
+            //LIST_ITEM
+            case 19:
+                break;
+            //TREE_TABLE
+            case 20:
+                break;
+            //DIALOG
+            case 21:
+                break;
+            //POPUP_MENU
+            case 22:
+                break;
+            //PROGRESS_BAR
+            case 23:
+                break;
+            //TREE_TABLE_CELL
+            case 24:
+                break;
+            //GROUP
+            case 25:
+                break;
+            default:
+                // do nothing?
+        }
       
-       /* Creating Item Element Tag with Attributes */
-       var para = document.createElement(elementType);
-       para.id = id;       //sets the item's id to the item's HashCode value
-       //para.type = type;
-       para.setAttribute("role","region");
-       para.setAttribute("aria-label", itemName);
-       para.setAttribute("aria-roledescription", item.GetDescription())
-       para.tabindex = -1;
+        /* Creating Item Element Tag with Attributes */
+        var para = document.createElement(elementType);
+        para.id = id;       //sets the item's id to the item's HashCode value
+        //para.type = type;
+        para.setAttribute("role",role);
+        para.setAttribute("aria-label", itemName);
+        para.setAttribute("aria-description", item.GetDescription())
+        para.tabindex = -1;
        //para.setAttribute("type", type);
        //para.setAttribute("value", item.GetDescription());
        //para.setAttribute("tabindex", -1);
@@ -153,17 +200,17 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
        //var node = document.createTextNode(description);
        //para.appendChild(node);
 
-       //we very likely need to not hard code this, but for testing it is ok.
        var canvas = document.getElementById(currentIDECanvas_$Global_);
-       //var element = document.getElementById("frontPageQuorumGraphicsCanvas");
        canvas.appendChild(para);
         console.log(item.GetName(), " has been added.");
     };
 //    system action Remove(Item item)
     this.Remove$quorum_Libraries_Interface_Item = function(item) {
-        var parent = canvas = document.getElementById(currentIDECanvas_$Global_);
-        var child = document.getElementById(item.GetHashCode());
-        parent.removeChild(child);
+        let id = item.GetHashCode();
+        //if it wasn't accessible it was never in the DOM
+        if( elementList[id] != null ) {
+            document.getElementById(item.GetHashCode()).remove();
+        }
         console.log(elementList[item.GetHashCode()], " has been removed.");
     };
     
@@ -209,7 +256,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     
 //    system action Shutdown
     this.Shutdown = function() {
-        console.log("SHutdown");
+        console.log("Shutdown");
+        //dispose of the children
+        var canvas = document.getElementById(currentIDECanvas_$Global_);
+        while (canvas.firstChild) {
+            canvas.firstChild.remove()
+        }
+        elementList.length = 0;
+        currentFocus = null;
     };
     
 
