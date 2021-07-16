@@ -48,6 +48,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
         console.log("Progress bar updated");
     };
+<<<<<<< HEAD
     
 //  private system action TextSelectionChanged(TextBoxSelection selection)
     this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
@@ -68,6 +69,20 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     }
     
 //    system action SelectionChanged(SelectionEvent event)
+=======
+
+//    system action Select(Item item)
+
+    this.Select$quorum_Libraries_Interface_Item = function(item) {
+        console.log(item.GetName() + " selected");
+        var id = item.GetHashCode();
+        var element = document.getElementById(currentIDECanvas_$Global_);
+        element.setAttribute("aria-activedescendant", id);
+    };
+
+//    system action SelectionChanged(SelectionEvent event)
+    // REMOVED for now as it was easier to handle Quorum side
+>>>>>>> bcefeac4c1b8aa842cd2d94af93950223c8b7f80
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
         
         var selection = event.GetSelection();
@@ -128,14 +143,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
     
 //    system action ButtonActivated(Button button)
-    this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
-        console.log("Button Activated");
-    };
-    
+this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        // removed for now because this makes it a toggle button
+        // not sure what we should be doing instead
+        //element.setAttribute('aria-pressed', "true");
+    }
+    console.log("Button Activated");
+};
+
 //    system action ToggleButtonToggled(ToggleButton button)    
-    this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
-        console.log("Toggled Buttoned");
-    };
+this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        element.setAttribute("aria-checked", button.GetToggleState())
+    }
+    console.log("Toggled Buttoned");
+};
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
@@ -144,7 +171,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         currentFocus = item;
         var element = document.getElementById(currentIDECanvas_$Global_);
-        element.setAttribute("aria-activedescendant", id)
+        element.setAttribute("aria-activedescendant", id);
     };
 //    system action NativeAdd(Item item)
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
@@ -168,6 +195,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         let role = "region";
 
         /* Creating Item Element Tag with Attributes */
+        var parent = undefined; // used if item needs to be added to group
         var para = document.createElement(elementType);
         para.id = id;       //sets the item's id to the item's HashCode value
 
@@ -179,11 +207,28 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             //CHECKBOX
             case 2:
                 role = "checkbox";
+                if (item.GetName() == undefined)
+                    itemName = "Check Box"
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Checkbox")) {
+                    let checkbox = global_CheckCast(item, "Libraries.Interface.Controls.Checkbox");
+                    para.setAttribute('aria-checked', checkbox.GetToggleState());
+                }   
                 //check for checked status
                 break;
             //RADIO_BUTTON
             case 3:
                 role = "radio";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.RadioButton")) {
+                    let radioButton = global_CheckCast(item, "Libraries.Interface.Controls.RadioButton");
+                    // attach to proper parent
+                    // IDK WHAT WILL HAPPEN IF RADIO BUTTON IS ADDED TO GAME BEFORE GROUP
+                    let parentGroup = radioButton.GetButtonGroup();
+                    if (parentGroup != undefined) {
+                        // attach to radiogroup
+                        parent = parentGroup.GetHashCode();
+                    }
+                }
+                para.setAttribute("aria-checked", false);
                 break;
             //BUTTON
             case 4:
@@ -192,6 +237,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             //TOGGLE_BUTTON
             case 5:
                 role = "button";
+                para.setAttribute("aria-roledescription","toggle button");
+                if (item.GetName() == undefined)
+                    itemName = "Toggle Button"
+                para.setAttribute('aria-pressed', "false");
                 //check for pressed
                 break;
             //TEXTBOX
@@ -216,6 +265,31 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             //TREE_ITEM
             case 11:
                 role = "treeitem";
+                // tree items can have subtrees so they need a group too
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeItem")) {
+                    let treeItem = global_CheckCast(item, "Libraries.Interface.Controls.TreeItem");
+                    if (treeItem.IsSubtree()) {
+                        let treegroup = document.createElement(elementType);
+                        treegroup.id = id+"-group";
+                        treegroup.setAttribute("role","group");
+                        para.appendChild(treegroup);
+                        para.setAttribute("aria-expanded", treeItem.IsOpen());
+                    }
+                    // attach to proper parent
+                    let parentTree = treeItem.GetParentTreeItem();
+                    if (parentTree != undefined) {
+                        // if attached to a treeitem they need to be in a group
+                        parent = parentTree.GetHashCode() + "-group";
+                    } else {
+                        parentTree = treeItem.GetTree();
+                        if (parentTree != undefined) {
+                            // if attached to tree directly they can be a child of that element
+                            parent = parentTree.GetHashCode();
+                        } else {
+                            // the tree item is not on any tree
+                        }
+                    }
+                }
                 break;
             //TOOLBAR
             case 12:
@@ -273,43 +347,36 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
                 break;
             //GROUP
             case 25:
-                role = "group"
+                role = "radiogroup";
+                if (item.GetName() == undefined)
+                    itemName = "Radio Group"
                 break;
             default:
                 // do nothing?
         }
-      
-        
-        //para.type = type;
+
         para.setAttribute("role",role);
         para.setAttribute("aria-label", itemName);
         para.setAttribute("aria-description", item.GetDescription())
         para.tabindex = -1;
-       if (item.GetAccessibilityCode() == 4){
-          para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-       }
-       else if (item.GetAccessibilityCode() == 2){
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
-       else if (item.GetAccessibilityCode() == 3){
-           para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
-       
-       /*
-       //Drawable using an img tag 
-       else if (item.GetAccessibilityCode() == 1){
-           para.setAttribute("src", description);      //Need Path for src attribute
-           para.setAttribute("alt", item.GetDescription());
-       }
-       */
-      
-       //var node = document.createTextNode(description);
-       //para.appendChild(node);
 
+<<<<<<< HEAD
        canvas.appendChild(para);
         console.log(item.GetName(), " has been added.");
     };
+=======
+        //add element to a parent if need be or directly to canvas
+        if (parent != undefined) {
+            var parentElement = document.getElementById(parent);
+            parentElement.appendChild(para);
+            console.log(item.GetName(), " has been added to a parent.");
+        } else {
+            var canvas = document.getElementById(currentIDECanvas_$Global_);
+            canvas.appendChild(para);
+            console.log(item.GetName(), " has been added.");
+        }
+};
+>>>>>>> bcefeac4c1b8aa842cd2d94af93950223c8b7f80
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
@@ -320,9 +387,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         //if it wasn't accessible it was never in the DOM
         if( elementList[id] != null ) {
             document.getElementById(item.GetHashCode()).remove();
-            elementList[id] = null;
         }
         console.log(elementList[item.GetHashCode()], " has been removed.");
+        elementList[id] = null;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)
@@ -333,6 +400,15 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action TreeChanged(TreeChangeEvent event)
     this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
         console.log("Tree Changed");
+        var treeItemID = event.GetTreeItem().GetHashCode();
+        if (elementList[treeItemID] != null) {
+            var element = document.getElementById(treeItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeTableChanged(TreeTableChangeEvent event)
