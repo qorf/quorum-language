@@ -44,6 +44,7 @@ public class MacAccessibility {
             }
             System.load(nativeFile);
             long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+            
             String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
             InitializeAccessibilityNative(handle, windowTitle);
 //            DesktopDisplay.ForceWindowVisible();
