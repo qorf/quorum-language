@@ -42,7 +42,10 @@ class SharedBarChartLayout is ChartLayout
             outerEdgePadding = cast(integer, ((axis:GetWidth() * 0.05) / 2))
 
             // Space spread evenly between each bar group (10%)
-            betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1)))
+            betweenGroupPadding = 0
+            if barGroups:GetSize() > 1
+                betweenGroupPadding = cast(integer, ((axis:GetWidth() * 0.1) / (barGroups:GetSize()-1)))
+            end
 
             // Space spread evenly between each bar with the bar groups (5%)
             betweenBarPadding = cast(integer, ((axis:GetWidth() * 0.05) / (chart:GetNumberOfBars() - barGroups:GetSize())))
