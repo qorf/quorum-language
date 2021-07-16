@@ -35,6 +35,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
         console.log("Text field updated Changed");
     };
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
+    var textbox = selection.GetTextBox();
+    if (textbox == null){
+        return;
+    }
+    
+}
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
+    var textField = selection.GetTextField();
+    var id = textField.GetHashCode();
+    var element = document.getElementById(id);
+    
+    element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+
+    console.log("TextField Selection Changed");
+}
     
 //    system action Update
 //this is handled in Quorum for now might be added back if need be
@@ -92,8 +112,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var item = event.GetNewFocus();
         var id = item.GetHashCode();
         currentFocus = item;
+        //TEXTBOX or TEXTFIELD
+        if (item.GetAccessibilityCode() == 6 || item.GetAccessibilityCode() == 17){
+            var element = document.getElementById(id);
+            element.focus;
+        }
+        
         var element = document.getElementById(currentIDECanvas_$Global_);
         element.setAttribute("aria-activedescendant", id);
+        
     };
 //    system action NativeAdd(Item item)
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
@@ -101,6 +128,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
+        
+       var canvas = document.getElementById(currentIDECanvas_$Global_);
+
        //replace this code with item appropriate material
         var id = item.GetHashCode();
         //dont want to add something to the DOM twice
@@ -232,6 +262,12 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TEXT_FIELD
             case 17:
+                elementType = "INPUT"
+                para = document.createElement(elementType);
+                para.id = id;
+                para.type = "text"
+                //role = "textbox";
+                //para.setAttribute("contenteditable",true);
                 break;
             //LIST
             case 18:
@@ -331,7 +367,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action TextChanged(TextChangeEvent event)
     this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
-        console.log("Text Changed");
+        var control = event.GetControl();
+        if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextBox") )
+        {
+            var textbox = global_CheckCast(control, "Libraries.Interface.Controls.TextBox");
+            var text = textbox.GetText();
+            var id = textbox.GetHashCode();
+            var element = document.getElementById(id);
+            element.innerHTML = text;
+            console.log("TextBox text Changed");
+        }
+        else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
+        {
+            var textfield = global_CheckCast(control, "Libraries.Interface.Controls.TextField");
+            var text = textfield.GetText();
+            var id = textfield.GetHashCode();
+            var element = document.getElementById(id);
+            element.value = text;
+            console.log("TextField Text Changed");
+        }
+        else {
+            console.log("Text Changed");
+        }
+        
     };
     
 //    system action WindowFocusChanged(WindowFocusEvent event)
