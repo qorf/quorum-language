@@ -48,9 +48,18 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
         console.log("Progress bar updated");
     };
-    
-//    system action SelectionChanged(SelectionEvent event)
 
+//    system action Select(Item item)
+
+    this.Select$quorum_Libraries_Interface_Item = function(item) {
+        console.log(item.GetName() + " selected");
+        var id = item.GetHashCode();
+        var element = document.getElementById(currentIDECanvas_$Global_);
+        element.setAttribute("aria-activedescendant", id);
+    };
+
+//    system action SelectionChanged(SelectionEvent event)
+    // REMOVED for now as it was easier to handle Quorum side
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
         console.log("Selection Changed");
     };
@@ -60,7 +69,9 @@ this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(butto
     var id = button.GetHashCode();
     if( elementList[id] != null ) {
         var element = document.getElementById(id);
-        element.setAttribute('aria-pressed', "true");
+        // removed for now because this makes it a toggle button
+        // not sure what we should be doing instead
+        //element.setAttribute('aria-pressed', "true");
     }
     console.log("Button Activated");
 };
@@ -70,27 +81,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     var id = button.GetHashCode();
     if( elementList[id] != null ) {
         var element = document.getElementById(id);
-        if ((element.getAttribute('aria-roledescription') == "checkbox") 
-            || (element.getAttribute('aria-roledescription') == "radio")) {
-            switch(element.getAttribute('aria-checked')) {
-                case "true":
-                    element.setAttribute('aria-checked', "false");
-                    break;
-                case "false":
-                    element.setAttribute('aria-checked', "true");
-                    break;
-            }
-        }
-        else if (element.getAttribute('aria-roledescription') == "toggle button") {
-            switch(element.getAttribute('aria-pressed')) {
-                case "true":
-                    element.setAttribute('aria-pressed', "false");
-                    break;
-                case "false":
-                    element.setAttribute('aria-pressed', "true");
-                    break;
-            }
-        }
+        element.setAttribute("aria-checked", button.GetToggleState())
     }
     console.log("Toggled Buttoned");
 };
@@ -102,7 +93,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var id = item.GetHashCode();
         currentFocus = item;
         var element = document.getElementById(currentIDECanvas_$Global_);
-        element.setAttribute("aria-activedescendant", id)
+        element.setAttribute("aria-activedescendant", id);
     };
 //    system action NativeAdd(Item item)
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
@@ -123,6 +114,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         let role = "region";
 
         /* Creating Item Element Tag with Attributes */
+        var parent = undefined; // used if item needs to be added to group
         var para = document.createElement(elementType);
         para.id = id;       //sets the item's id to the item's HashCode value
 
@@ -134,31 +126,32 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //CHECKBOX
             case 2:
                 role = "checkbox";
-                para.setAttribute("aria-roledescription","checkbox");
                 if (item.GetName() == undefined)
                     itemName = "Check Box"
-                para.setAttribute('aria-checked', "false");
-                para.onKeyPress = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
-                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Checkbox")) {
+                    let checkbox = global_CheckCast(item, "Libraries.Interface.Controls.Checkbox");
+                    para.setAttribute('aria-checked', checkbox.GetToggleState());
+                }   
                 //check for checked status
                 break;
             //RADIO_BUTTON
             case 3:
                 role = "radio";
-                para.setAttribute("aria-roledescription","radio");
-                if (item.GetName() == undefined)
-                    itemName = "Radio"
-                para.setAttribute('aria-checked', "false");
-                para.onKeyPress = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
-                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.RadioButton")) {
+                    let radioButton = global_CheckCast(item, "Libraries.Interface.Controls.RadioButton");
+                    // attach to proper parent
+                    // IDK WHAT WILL HAPPEN IF RADIO BUTTON IS ADDED TO GAME BEFORE GROUP
+                    let parentGroup = radioButton.GetButtonGroup();
+                    if (parentGroup != undefined) {
+                        // attach to radiogroup
+                        parent = parentGroup.GetHashCode();
+                    }
+                }
+                para.setAttribute("aria-checked", false);
                 break;
             //BUTTON
             case 4:
                 role = "button";
-                para.setAttribute("aria-roledescription","button");
-                para.setAttribute('aria-pressed', "false");
-                para.onKeyDown = this.ButtonActivated$quorum_Libraries_Interface_Controls_Button
-                para.onclick = this.ButtonActivated$quorum_Libraries_Interface_Controls_Button
                 break;
             //TOGGLE_BUTTON
             case 5:
@@ -167,8 +160,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 if (item.GetName() == undefined)
                     itemName = "Toggle Button"
                 para.setAttribute('aria-pressed', "false");
-                para.onKeyDown = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
-                para.onclick = this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton;
                 //check for pressed
                 break;
             //TEXTBOX
@@ -193,6 +184,31 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //TREE_ITEM
             case 11:
                 role = "treeitem";
+                // tree items can have subtrees so they need a group too
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeItem")) {
+                    let treeItem = global_CheckCast(item, "Libraries.Interface.Controls.TreeItem");
+                    if (treeItem.IsSubtree()) {
+                        let treegroup = document.createElement(elementType);
+                        treegroup.id = id+"-group";
+                        treegroup.setAttribute("role","group");
+                        para.appendChild(treegroup);
+                        para.setAttribute("aria-expanded", treeItem.IsOpen());
+                    }
+                    // attach to proper parent
+                    let parentTree = treeItem.GetParentTreeItem();
+                    if (parentTree != undefined) {
+                        // if attached to a treeitem they need to be in a group
+                        parent = parentTree.GetHashCode() + "-group";
+                    } else {
+                        parentTree = treeItem.GetTree();
+                        if (parentTree != undefined) {
+                            // if attached to tree directly they can be a child of that element
+                            parent = parentTree.GetHashCode();
+                        } else {
+                            // the tree item is not on any tree
+                        }
+                    }
+                }
                 break;
             //TOOLBAR
             case 12:
@@ -246,51 +262,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //GROUP
             case 25:
                 role = "radiogroup";
-                para.setAttribute("aria-roledescription", "radio group");
                 if (item.GetName() == undefined)
                     itemName = "Radio Group"
                 break;
             default:
                 // do nothing?
         }
-      
-        
-        //para.type = type;
+
         para.setAttribute("role",role);
         para.setAttribute("aria-label", itemName);
         para.setAttribute("aria-description", item.GetDescription())
         para.tabindex = -1;
-    //    if (item.GetAccessibilityCode() == 4){
-    //       para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-    //    }
-    //    else if (item.GetAccessibilityCode() == 2){
-    //        para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-    //    }
-       
-       /*
-       //Drawable using an img tag 
-       else if (item.GetAccessibilityCode() == 1){
-           para.setAttribute("src", description);      //Need Path for src attribute
-           para.setAttribute("alt", item.GetDescription());
-       }
-       */
-      
-       //var node = document.createTextNode(description);
-       //para.appendChild(node);
 
-        // Add radio button child to radio group
-        if (item.GetAccessibilityCode() == 3){
-            var element = document.getElementById(item.GetButtonGroup().GetHashCode());
-            element.appendChild(para)
-            console.log(item.GetName(), " has been added to ", item.GetButtonGroup().GetName(), ".");
-        }
-        // Add child to canvas
-        else {
+        //add element to a parent if need be or directly to canvas
+        if (parent != undefined) {
+            var parentElement = document.getElementById(parent);
+            parentElement.appendChild(para);
+            console.log(item.GetName(), " has been added to a parent.");
+        } else {
             var canvas = document.getElementById(currentIDECanvas_$Global_);
             canvas.appendChild(para);
             console.log(item.GetName(), " has been added.");
         }
-    };
+};
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
@@ -301,9 +295,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         //if it wasn't accessible it was never in the DOM
         if( elementList[id] != null ) {
             document.getElementById(item.GetHashCode()).remove();
-            elementList[id] = null;
         }
         console.log(elementList[item.GetHashCode()], " has been removed.");
+        elementList[id] = null;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)
@@ -314,6 +308,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 //    system action TreeChanged(TreeChangeEvent event)
     this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
         console.log("Tree Changed");
+        var treeItemID = event.GetTreeItem().GetHashCode();
+        if (elementList[treeItemID] != null) {
+            var element = document.getElementById(treeItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeTableChanged(TreeTableChangeEvent event)
