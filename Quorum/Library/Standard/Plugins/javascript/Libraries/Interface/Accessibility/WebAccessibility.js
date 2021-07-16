@@ -48,28 +48,6 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
         console.log("Progress bar updated");
     };
-<<<<<<< HEAD
-    
-//  private system action TextSelectionChanged(TextBoxSelection selection)
-    this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
-        var textbox = selection.GetTextBox();
-        if (textbox == null){
-            return;
-        }
-        
-    }
-
-//  private system action TextSelectionChanged(TextBoxSelection selection)
-    this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
-        var textField = selection.GetTextField();
-        if (textField == null){
-            return;
-        }
-        
-    }
-    
-//    system action SelectionChanged(SelectionEvent event)
-=======
 
 //    system action Select(Item item)
 
@@ -82,7 +60,6 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
 //    system action SelectionChanged(SelectionEvent event)
     // REMOVED for now as it was easier to handle Quorum side
->>>>>>> bcefeac4c1b8aa842cd2d94af93950223c8b7f80
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
         
         var selection = event.GetSelection();
