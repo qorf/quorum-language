@@ -1725,6 +1725,7 @@ class ClassOpcode is QuorumOpcode
                 convertedSource = convertedSource + "if ($starter != null) { " + EOL
                 convertedSource = convertedSource + "$starter.Exit();" + EOL
                 convertedSource = convertedSource + "}" + EOL
+                convertedSource = convertedSource + "}" + EOL
             else
                 convertedSource = convertedSource + "function Stop() {}" + EOL
             end

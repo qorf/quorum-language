@@ -89,6 +89,15 @@ function plugins_quorum_Libraries_Containers_Array_() {
         } else {
         }
     };
+    
+    this.ClearContents$quorum_integer$quorum_integer = function (start, stop)
+    {
+        for (var i = start; i < stop; i++) {
+            if (i >= this.array_.length)
+                return;
+            this.array_[i] = null;
+        }
+    };
 }
 
 function plugins_quorum_Libraries_Containers_Integer32BitArray_() {

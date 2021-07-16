@@ -4,7 +4,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
      * but presume they will be modified or go away as we develop the library.
      */
     var type = "";      //specifies the input type of the element
-    var elementType = "";   //specifies the type of element DEFAULT is INPUT right now for testing
+    var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     
@@ -48,123 +48,256 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
         console.log("Progress bar updated");
     };
-    
-//    system action SelectionChanged(SelectionEvent event)
 
+//    system action Select(Item item)
+
+    this.Select$quorum_Libraries_Interface_Item = function(item) {
+        console.log(item.GetName() + " selected");
+        var id = item.GetHashCode();
+        var element = document.getElementById(currentIDECanvas_$Global_);
+        element.setAttribute("aria-activedescendant", id);
+    };
+
+//    system action SelectionChanged(SelectionEvent event)
+    // REMOVED for now as it was easier to handle Quorum side
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
         console.log("Selection Changed");
     };
     
 //    system action ButtonActivated(Button button)
-    this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
-        console.log("BUtton Activated");
-    };
-    
+this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        // removed for now because this makes it a toggle button
+        // not sure what we should be doing instead
+        //element.setAttribute('aria-pressed', "true");
+    }
+    console.log("Button Activated");
+};
+
 //    system action ToggleButtonToggled(ToggleButton button)    
-    this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
-        console.log("Toggled Buttoned");
-    };
+this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        element.setAttribute("aria-checked", button.GetToggleState())
+    }
+    console.log("Toggled Buttoned");
+};
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         console.log("Focus Changed");
-        var item = event.GetNewFocus()
+        var item = event.GetNewFocus();
         var id = item.GetHashCode();
+        currentFocus = item;
         var element = document.getElementById(currentIDECanvas_$Global_);
-        element.setAttribute("aria-activedescendant", id)
+        element.setAttribute("aria-activedescendant", id);
     };
-//    system action Add(Item item)
-    this.Add$quorum_Libraries_Interface_Item = function(item) {  
-        console.log(item.GetAccessibilityCode())
-        console.log(item.GetHashCode() + ":" + item.GetName() + ":" + item.GetDescription())
+//    system action NativeAdd(Item item)
+    this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
+        //dont add to DOM if not accessible
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
        //replace this code with item appropriate material
         var id = item.GetHashCode();
+        //dont want to add something to the DOM twice
+        if( elementList[id] != null ) {
+            return;
+        }
         var itemName = item.GetName();   //used for testing purposes
-       elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
-       elementType = "DIV"
-    //    if (item.GetAccessibilityCode() == 1)
-    //    {
-    //        type = "image";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 2)
-    //    {
-    //        type = "checkbox";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 3)
-    //    {
-    //        type = "radio";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
-    //    {
-    //        type = "button";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 5)
-    //    {
-    //        type = "range";
-    //        elementType = "DIV";
-    //    }
-    //    else if (item.GetAccessibilityCode() == 6)
-    //    {
-    //        type = "textarea";
-    //        elementType = "DIV";
-    //    }
-    //    else {
-    //     type = "";
-    //     elementType = "DIV";
-    //    }
-      
-       /* Creating Item Element Tag with Attributes */
-       var para = document.createElement(elementType);
-       para.id = id;       //sets the item's id to the item's HashCode value
-       //para.type = type;
-       para.setAttribute("role","region");
-       para.setAttribute("aria-label", itemName);
-       para.setAttribute("aria-roledescription", item.GetDescription())
-       para.tabindex = -1;
-       //para.setAttribute("type", type);
-       //para.setAttribute("value", item.GetDescription());
-       //para.setAttribute("tabindex", -1);
-       if (item.GetAccessibilityCode() == 4){
-          para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-       }
-       else if (item.GetAccessibilityCode() == 2){
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
-       else if (item.GetAccessibilityCode() == 3){
-           para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
-           para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-       }
-       
-       /*
-       //Drawable using an img tag 
-       else if (item.GetAccessibilityCode() == 1){
-           para.setAttribute("src", description);      //Need Path for src attribute
-           para.setAttribute("alt", item.GetDescription());
-       }
-       */
-      
-       //var node = document.createTextNode(description);
-       //para.appendChild(node);
+        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
+        elementType = "DIV";
+        //default role
+        let role = "region";
 
-       //we very likely need to not hard code this, but for testing it is ok.
-       var canvas = document.getElementById(currentIDECanvas_$Global_);
-       //var element = document.getElementById("frontPageQuorumGraphicsCanvas");
-       canvas.appendChild(para);
-        console.log(item.GetName(), " has been added.");
-    };
-//    system action Remove(Item item)
-    this.Remove$quorum_Libraries_Interface_Item = function(item) {
-        var parent = canvas = document.getElementById(currentIDECanvas_$Global_);
-        var child = document.getElementById(item.GetHashCode());
-        parent.removeChild(child);
+        /* Creating Item Element Tag with Attributes */
+        var parent = undefined; // used if item needs to be added to group
+        var para = document.createElement(elementType);
+        para.id = id;       //sets the item's id to the item's HashCode value
+
+        switch(item.GetAccessibilityCode()){
+            //CUSTOM
+            case 1:
+                para.setAttribute("aria-roledescription","custom");
+                break;
+            //CHECKBOX
+            case 2:
+                role = "checkbox";
+                if (item.GetName() == undefined)
+                    itemName = "Check Box"
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Checkbox")) {
+                    let checkbox = global_CheckCast(item, "Libraries.Interface.Controls.Checkbox");
+                    para.setAttribute('aria-checked', checkbox.GetToggleState());
+                }   
+                //check for checked status
+                break;
+            //RADIO_BUTTON
+            case 3:
+                role = "radio";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.RadioButton")) {
+                    let radioButton = global_CheckCast(item, "Libraries.Interface.Controls.RadioButton");
+                    // attach to proper parent
+                    // IDK WHAT WILL HAPPEN IF RADIO BUTTON IS ADDED TO GAME BEFORE GROUP
+                    let parentGroup = radioButton.GetButtonGroup();
+                    if (parentGroup != undefined) {
+                        // attach to radiogroup
+                        parent = parentGroup.GetHashCode();
+                    }
+                }
+                para.setAttribute("aria-checked", false);
+                break;
+            //BUTTON
+            case 4:
+                role = "button";
+                break;
+            //TOGGLE_BUTTON
+            case 5:
+                role = "button";
+                para.setAttribute("aria-roledescription","toggle button");
+                if (item.GetName() == undefined)
+                    itemName = "Toggle Button"
+                para.setAttribute('aria-pressed', "false");
+                //check for pressed
+                break;
+            //TEXTBOX
+            case 6:
+                role = "textbox";
+                break;
+            //MENU_BAR
+            case 7:
+                role = "menubar";
+                break;
+            //MENU_ITEM
+            case 8:
+                role = "menuitem";
+                break;
+            //PANE
+            case 9:
+                break;
+            //TREE
+            case 10:
+                role = "tree";
+                break;
+            //TREE_ITEM
+            case 11:
+                role = "treeitem";
+                // tree items can have subtrees so they need a group too
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeItem")) {
+                    let treeItem = global_CheckCast(item, "Libraries.Interface.Controls.TreeItem");
+                    if (treeItem.IsSubtree()) {
+                        let treegroup = document.createElement(elementType);
+                        treegroup.id = id+"-group";
+                        treegroup.setAttribute("role","group");
+                        para.appendChild(treegroup);
+                        para.setAttribute("aria-expanded", treeItem.IsOpen());
+                    }
+                    // attach to proper parent
+                    let parentTree = treeItem.GetParentTreeItem();
+                    if (parentTree != undefined) {
+                        // if attached to a treeitem they need to be in a group
+                        parent = parentTree.GetHashCode() + "-group";
+                    } else {
+                        parentTree = treeItem.GetTree();
+                        if (parentTree != undefined) {
+                            // if attached to tree directly they can be a child of that element
+                            parent = parentTree.GetHashCode();
+                        } else {
+                            // the tree item is not on any tree
+                        }
+                    }
+                }
+                break;
+            //TOOLBAR
+            case 12:
+                role = "toolbar";
+                break;
+            //TAB
+            case 13:
+                role = "tab";
+                break;
+            //TAB_PANE
+            case 14:
+                role = "tabpanel";
+                break;
+            //TABLE
+            case 15:
+                role = "table";
+                break;
+            //CELL
+            case 16:
+                role = "cell";
+                break;
+            //TEXT_FIELD
+            case 17:
+                break;
+            //LIST
+            case 18:
+                role = "list";
+                break;
+            //LIST_ITEM
+            case 19:
+                role = "listitem"
+                break;
+            //TREE_TABLE
+            case 20:
+                role = "treegrid";
+                break;
+            //DIALOG
+            case 21:
+                role = "dialog";
+                break;
+            //POPUP_MENU
+            case 22:
+                break;
+            //PROGRESS_BAR
+            case 23:
+                role = "progressbar"
+                break;
+            //TREE_TABLE_CELL
+            case 24:
+                break;
+            //GROUP
+            case 25:
+                role = "radiogroup";
+                if (item.GetName() == undefined)
+                    itemName = "Radio Group"
+                break;
+            default:
+                // do nothing?
+        }
+
+        para.setAttribute("role",role);
+        para.setAttribute("aria-label", itemName);
+        para.setAttribute("aria-description", item.GetDescription())
+        para.tabindex = -1;
+
+        //add element to a parent if need be or directly to canvas
+        if (parent != undefined) {
+            var parentElement = document.getElementById(parent);
+            parentElement.appendChild(para);
+            console.log(item.GetName(), " has been added to a parent.");
+        } else {
+            var canvas = document.getElementById(currentIDECanvas_$Global_);
+            canvas.appendChild(para);
+            console.log(item.GetName(), " has been added.");
+        }
+};
+//    system action NativeRemove(Item item)
+    this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
+        let id = item.GetHashCode();
+        //cant remove what's not there
+        if( elementList[id] == null ) {
+            return;
+        }
+        //if it wasn't accessible it was never in the DOM
+        if( elementList[id] != null ) {
+            document.getElementById(item.GetHashCode()).remove();
+        }
         console.log(elementList[item.GetHashCode()], " has been removed.");
+        elementList[id] = null;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)
@@ -175,6 +308,15 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action TreeChanged(TreeChangeEvent event)
     this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
         console.log("Tree Changed");
+        var treeItemID = event.GetTreeItem().GetHashCode();
+        if (elementList[treeItemID] != null) {
+            var element = document.getElementById(treeItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeTableChanged(TreeTableChangeEvent event)
@@ -209,7 +351,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     
 //    system action Shutdown
     this.Shutdown = function() {
-        console.log("SHutdown");
+        console.log("Shutdown");
+        //dispose of the children
+        var canvas = document.getElementById(currentIDECanvas_$Global_);
+        while (canvas.firstChild) {
+            canvas.firstChild.remove()
+        }
+        elementList.length = 0;
+        currentFocus = null;
     };
     
 
