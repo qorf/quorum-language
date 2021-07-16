@@ -35,6 +35,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
         console.log("Text field updated Changed");
     };
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
+    var textbox = selection.GetTextBox();
+    if (textbox == null){
+        return;
+    }
+    
+}
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
+    var textField = selection.GetTextField();
+    var id = textField.GetHashCode();
+    var element = document.getElementById(id);
+    
+    element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+
+    console.log("TextField Selection Changed");
+}
     
 //    system action Update
 //this is handled in Quorum for now might be added back if need be
@@ -61,62 +81,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 //    system action SelectionChanged(SelectionEvent event)
     // REMOVED for now as it was easier to handle Quorum side
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
-        
-        var selection = event.GetSelection();
-        if ( global_InstanceOf(selection,"Libraries.Interface.Selections.TextBoxSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.TextBoxSelection");
-            this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection(selection);
-            console.log("TextBox Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.TextFieldSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.TextFieldSelection");
-            var textField = selection.GetTextField();
-            var id = textField.GetHashCode();
-            var liveElement = document.getElementById(id+"-selection");
-            liveElement.innerHTML = selection.GetText();
-            console.log("TextField Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.TabPaneSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.TabPaneSelection");
-            console.log("TabPane Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.MenuSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.MenuSelection");
-            console.log("Menu Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.TreeSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.TreeSelection");
-            console.log("Tree Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.SpreadsheetSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.SpreadsheetSelection");
-            console.log("Spreadsheet Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.ListSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.ListSelection");
-            console.log("List Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.TreeTableSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.TreeTableSelection");
-            console.log("TreeTable Selection Changed");
-        }
-        else if ( global_InstanceOf(selection,"Libraries.Interface.Selections.ButtonGroupSelection") )
-        {
-            selection = global_CheckCast(selection, "Libraries.Interface.Selections.ButtonGroupSelection");
-            console.log("ButtonGroup Selection Changed");
-        }
-        else {
-            console.log("Selection Changed");
-        }
-        
+        console.log("Selection Changed");
     };
     
 //    system action ButtonActivated(Button button)
@@ -147,8 +112,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var item = event.GetNewFocus();
         var id = item.GetHashCode();
         currentFocus = item;
+        //TEXTBOX or TEXTFIELD
+        if (item.GetAccessibilityCode() == 6 || item.GetAccessibilityCode() == 17){
+            var element = document.getElementById(id);
+            element.focus;
+        }
+        
         var element = document.getElementById(currentIDECanvas_$Global_);
         element.setAttribute("aria-activedescendant", id);
+        
     };
 //    system action NativeAdd(Item item)
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
@@ -290,11 +262,12 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TEXT_FIELD
             case 17:
-                role = "textbox";
-                var selection = document.createElement(elementType);
-                selection.id = id + "-selection";
-                selection.setAttribute("aria-live","polite");
-                canvas.appendChild(selection);
+                elementType = "INPUT"
+                para = document.createElement(elementType);
+                para.id = id;
+                para.type = "text"
+                //role = "textbox";
+                //para.setAttribute("contenteditable",true);
                 break;
             //LIST
             case 18:
@@ -337,11 +310,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         para.setAttribute("aria-description", item.GetDescription())
         para.tabindex = -1;
 
-<<<<<<< HEAD
-       canvas.appendChild(para);
-        console.log(item.GetName(), " has been added.");
-    };
-=======
         //add element to a parent if need be or directly to canvas
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
@@ -353,7 +321,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             console.log(item.GetName(), " has been added.");
         }
 };
->>>>>>> bcefeac4c1b8aa842cd2d94af93950223c8b7f80
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
@@ -407,7 +374,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var text = textbox.GetText();
             var id = textbox.GetHashCode();
             var element = document.getElementById(id);
-            element.setAttribute("aria-description",text);
+            element.innerHTML = text;
             console.log("TextBox text Changed");
         }
         else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
@@ -416,7 +383,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var text = textfield.GetText();
             var id = textfield.GetHashCode();
             var element = document.getElementById(id);
-            element.setAttribute("aria-description",text);
+            element.value = text;
             console.log("TextField Text Changed");
         }
         else {

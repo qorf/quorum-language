@@ -47,6 +47,10 @@ class WebAccessibility is Accessibility
 
     system action TextFieldUpdatePassword(TextField field)
 
+    private system action TextSelectionChanged(TextBoxSelection selection)
+
+    private system action TextSelectionChanged(TextFieldSelection selection)
+
     action Update
         Item focus = manager:GetFocus()
         if focus not= lastFocused
@@ -67,10 +71,10 @@ class WebAccessibility is Accessibility
         Selection selection = event:GetSelection()
         if selection is TextBoxSelection
             TextBoxSelection textSelection = cast(TextBoxSelection, selection)
-            //TextSelectionChanged(textSelection)
+            TextSelectionChanged(textSelection)
         elseif selection is TextFieldSelection
             TextFieldSelection textSelection = cast(TextFieldSelection, selection)
-            //TextSelectionChanged(textSelection)
+            TextSelectionChanged(textSelection)
 
         elseif selection is TabPaneSelection
             // Do TabPane things
