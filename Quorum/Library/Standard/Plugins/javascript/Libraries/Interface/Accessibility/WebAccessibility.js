@@ -110,7 +110,25 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         console.log("Focus Changed");
         var item = event.GetNewFocus();
+        if(item == null) {
+            console.log("Tried to focus nothing");
+            return;
+        }
+        // if not accessible focus the parent
+        // if no accessible parent then ignore event
+        if (item.GetAccessibilityCode() == -1) {
+            var accessibleFocus = item.GetAccessibleParent();
+            if (accessibleFocus != undefined) {
+                item = accessibleFocus;
+            } else {
+                return;
+            }
+        }
         var id = item.GetHashCode();
+        //accessible item got focus that was never added
+        if (elementList[id] == null) {
+            return;
+        }
         currentFocus = item;
         //TEXTBOX or TEXTFIELD
         if (item.GetAccessibilityCode() == 6 || item.GetAccessibilityCode() == 17){
@@ -137,7 +155,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if( elementList[id] != null ) {
             return;
         }
-        var itemName = item.GetName();   //used for testing purposes
+        var itemName = item.GetName();
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
         //default role
@@ -203,6 +221,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //MENU_ITEM
             case 8:
                 role = "menuitem";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.MenuItem")) {
+                    let menuItem = global_CheckCast(item, "Libraries.Interface.Controls.MenuItem");
+                    if (menuItem.IsMenu()) {
+                        let menuGroup = document.createElement(elementType);
+                        menuGroup.id = id + "-submenu";
+                        menuGroup.setAttribute("role", "menu");
+                        para.appendChild(menuGroup);
+                        // there is no event to change this so it will always say collapsed 
+                        para.setAttribute("aria-expanded", menuItem.IsOpen());
+                    }
+                    //attach to proper parent
+                    let parentMenu = menuItem.GetParentMenu();
+                    if (parentMenu != undefined) {
+                        parent = parentMenu.GetHashCode() + "-submenu";
+                    } else {
+                        parentMenu = menuItem.GetMenuRoot();
+                        if (parentMenu != undefined) {
+                            parent = parentMenu.GetHashCode();
+                        } else {
+                            // lonely menu item
+                        }
+                    }
+                }
                 break;
             //PANE
             case 9:
@@ -275,7 +316,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //LIST_ITEM
             case 19:
-                role = "listitem"
+                role = "listitem";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
+                    let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
+                    para.innerHTML = listItem.GetText();
+                    itemName = listItem.GetText();
+                    //attach to proper parent
+                    let parentList = listItem.GetList();
+                    if (parentList != undefined) {
+                        parent = parentList.GetHashCode();
+                    } else {
+                        // the list item is not in a list
+                    }
+                }
                 break;
             //TREE_TABLE
             case 20:
