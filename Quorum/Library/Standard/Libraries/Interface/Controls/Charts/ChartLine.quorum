@@ -15,60 +15,54 @@ use Libraries.Game.Graphics.Label
     Attribute: Author Cody Molisee
 */
 class ChartLine is Drawable
-    Label name
+    text name = ""
     Array<ChartPoint> points
     Array<LineSegment> lines
     private boolean showPoints = true
     private Color lineColor
-    number maxYPercent = 0.0
-    number minYPercent = 1.0
-    number maxXPercent = 0.0
-    number minXPercent = 1.0
+    ChartPoint lineMax
+    ChartPoint lineMin
+    ChartPoint lineStart
+    ChartPoint lineEnd
 
     on create
         lineColor:SetColor(0, 0, 1, 1)
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
     end
 
-    /*
-    Returns the name of this line.
-    */
-    action GetName() returns text
-        return name:GetName()
+    action GetName returns text
+        return name
     end
 
-    /*
-    Sets/Changes the name of this line.
-    */
     action SetName(text name)
-        me:name:SetName(name)
-        me:name:SetText(name)
+        me:name = name
     end
 
     /*
-    Returns max y percent of all points
+    Returns max y point of all points
     */
-    action GetMaxYPercent() returns number
-        return maxYPercent
+    action GetLineMax() returns ChartPoint
+        return lineMax
     end
     /*
-    Returns min y percent of all points
+    Returns min y point of all points
     */
-    action GetMinYPercent() returns number
-        return minYPercent
+    action GetLineMin() returns ChartPoint
+        return lineMin
     end
     /*
-    Returns max x percent of all points
+    Returns max x point of all points
     */
-    action GetMaxXPercent() returns number
-        return maxXPercent
+    action GetLineStart() returns ChartPoint
+        return lineStart
     end
     /*
-    Returns min x percent of all points
+    Returns min x point of all points
     */
-    action GetMinXPercent() returns number
-        return minXPercent
+    action GetLineEnd() returns ChartPoint
+        return lineEnd
     end
-
 
     /*
     Returns an array of ChartPoints for this line.
@@ -119,6 +113,11 @@ class ChartLine is Drawable
     */
     action SetColor(Color lineColor)
         me:lineColor = lineColor
+        integer i = 0
+        repeat while i < points:GetSize()
+        points:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
     end
     
     /*
@@ -127,22 +126,11 @@ class ChartLine is Drawable
     */
     action Add(ChartPoint point)
         points:Add(point)
-        if point:GetPercentY() > maxYPercent
-            maxYPercent = point:GetPercentY()
-        end
-        if point:GetPercentY() < minYPercent
-            minYPercent = point:GetPercentY()
-        end
-        if point:GetPercentX() > maxXPercent
-            maxXPercent = point:GetPercentX()
-        end
-        if point:GetPercentX() < minXPercent
-            minXPercent = point:GetPercentX()
-        end
         if points:GetSize() > 1
             LineSegment line
             line:SetFocusable(true)
             line:SetAccessibilityCode(parent:Item:CUSTOM)
+            line:SetName("Line ")
             lines:Add(line)
         end
     end
@@ -157,17 +145,38 @@ class ChartLine is Drawable
             integer j = 0
             repeat while j < points:GetSize()-i-1
                 if points:Get(j):GetPercentX() > points:Get(j+1):GetPercentX()
-                    ChartPoint temp
-                    temp:SetPercentX(points:Get(j):GetPercentX())
-                    temp:SetPercentY(points:Get(j):GetPercentY())
+                    ChartPoint point
+                    point:SetPercentX(points:Get(j):GetPercentX())
+                    point:SetPercentY(points:Get(j):GetPercentY())
+                    point:SetName(points:Get(j):GetName())
 
                     points:Get(j):SetPercentX(points:Get(j+1):GetPercentX())
                     points:Get(j):SetPercentY(points:Get(j+1):GetPercentY())
+                    points:Get(j):SetName(points:Get(j+1):GetName())
 
-                    points:Get(j+1):SetPercentX(temp:GetPercentX())
-                    points:Get(j+1):SetPercentY(temp:GetPercentY())
+                    points:Get(j+1):SetPercentX(point:GetPercentX())
+                    points:Get(j+1):SetPercentY(point:GetPercentY())
+                    points:Get(j+1):SetName(point:GetName())
                 end
                 j = j + 1 
+            end
+            i = i + 1
+        end
+        lineStart = points:Get(0)
+        lineEnd = points:Get(points:GetSize()-1)
+
+        //Get max point and min point
+        number maxY = 0.0
+        number minY = 1.0
+        i = 0
+        repeat while i < points:GetSize()
+            if points:Get(i):GetPercentY() > maxY
+                maxY = points:Get(i):GetPercentY()
+                lineMax = points:Get(i)
+            end
+            if points:Get(i):GetPercentY() < minY
+                minY = points:Get(i):GetPercentY()
+                lineMin = points:Get(i)
             end
             i = i + 1
         end

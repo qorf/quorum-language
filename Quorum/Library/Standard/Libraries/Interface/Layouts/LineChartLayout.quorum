@@ -34,8 +34,8 @@ class LineChartLayout is TwoVariableChartLayout
 
         // Give 1.5% of chart area space to each point
         number pointDensity = (width * 0.015) 
-        integer PointRadius = cast(integer, pointDensity/2)
-        chart:SetPointRadius(PointRadius)
+        integer radius = cast(integer, pointDensity/2)
+        chart:SetPointRadius(radius)
 
         // Set default line density to 0.75% of chart area
         integer LineDensity = cast(integer, width * 0.0075)
@@ -46,14 +46,22 @@ class LineChartLayout is TwoVariableChartLayout
             if lines:Get(i):GetPoints() = undefined
                 return now
             end
+
             integer j = 0
             repeat while j < lines:Get(i):GetPoints():GetSize()
+                Icon pointIcon = lines:Get(i):GetPoints():Get(j):GetIcon()
                 ChartPoint point = lines:Get(i):GetPoints():Get(j)
-                point:SetWidth(pointDensity)
-                point:SetHeight(pointDensity)
+                
+                if chart:GetPointsFlag()
+                    point:LoadFilledCircle(radius, lines:Get(i):GetColor())
+                    pointIcon:LoadFilledCircle(radius+2, chart:GetHighlightColor()) //Slightly denser when highlighted
+                end
+
                 integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
+                pointIcon:SetPosition(x-2, y-2) // -2 to make up for denser icon
+                pointIcon:Hide()
                 j = j + 1
             end
 
@@ -70,23 +78,36 @@ class LineChartLayout is TwoVariableChartLayout
                 integer x2 = cast(integer, b:GetX())
                 integer y2 = cast(integer, b:GetY())
 
-                if y1 < y2      
-                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), LineDensity, lines:Get(i):GetColor())
-                    line:SetPosition(x1+PointRadius, y1+PointRadius)
-                    line:FlipY()
-                    lineIcon:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y2 - y1), LineDensity+2, chart:GetHighlightColor())
-                    lineIcon:SetPosition(x1+PointRadius, y1+PointRadius)
-                    lineIcon:FlipY()
-                else
-                    line:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), LineDensity, lines:Get(i):GetColor())
-                    line:SetPosition(x1+PointRadius, y2+PointRadius)
-                    lineIcon:LoadLine(math:AbsoluteValue(x2 - x1), math:AbsoluteValue(y1 - y2), LineDensity+2, chart:GetHighlightColor())
-                    lineIcon:SetPosition(x1+PointRadius, y2+PointRadius)
-                end
+                // Pythagorean Theorem
+                number sideA = math:AbsoluteValue(x2 - x1) * math:AbsoluteValue(x2 - x1)
+                number sideB = math:AbsoluteValue(y2 - y1) * math:AbsoluteValue(y2 - y1)
+                number sideC = math:SquareRoot((sideA + sideB))
+                number slope = math:Round(cast(number, (y2 - y1)) / cast(number, (x2 - x1)), 2)
+                number tanInverse = math:Round(math:RadiansToDegrees(math:InverseTangent(slope)), 2)
+
+                line:LoadFilledRectangle(cast(integer, sideC)+2, LineDensity, lines:Get(i):GetColor())
+                lineIcon:LoadFilledRectangle(cast(integer, sideC)+3, LineDensity+2, chart:GetHighlightColor()) //Slightly denser when highlighted
+
+                number angle = -1.0*tanInverse
+
+                line:SetPosition(x1+radius, y1+radius)
+                line:SetCenterX(x1+radius + (cast(number, x2 - x1) / 2.0)) 
+                line:SetCenterY(y1+radius + (cast(number, y2 - y1) / 2.0))
+                line:SetRotation(angle)
+                number offX = math:Cosine(math:DegreesToRadians(angle))
+                number offY = math:Sine(math:DegreesToRadians(angle))
+                line:SetCenterY(line:GetCenterY() + offY)
+                line:SetCenterX(line:GetCenterX() - offX)
+
+                lineIcon:SetPosition(x1+radius, y1+radius)
+                lineIcon:SetRotation(angle)
+                lineIcon:SetCenterY(line:GetCenterY())
+                lineIcon:SetCenterX(line:GetCenterX())
+     
                 line:SetPoint1(a)
                 line:SetPoint2(b)
+                line:SetName("Line segment between point " + (j+1) + " and " + (j+2) + ".")
                 lineIcon:Hide()
-                LayoutProperties properties = lineIcon:GetDefaultLayoutProperties()
                 j = j + 1
             end
             i = i + 1

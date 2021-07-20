@@ -254,11 +254,17 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             
             if xLabels:GetSize() < 10
                 xTicks = xLabels:GetSize()
+                xAxisMinimum = 0
+                xAxisMaximum = xLabels:GetSize()
             else
                 xTicks = 10
+                if xLabels:GetSize() mod xTicks not= 0
+                   xAxisMaximum = ((xLabels:GetSize() / xTicks) + 1) * xTicks
+                else 
+                    xAxisMaximum = xLabels:GetSize()
+                end
+                xAxisMinimum = 0
             end
-            xAxisMinimum = 1
-            xAxisMaximum = xLabels:GetSize()
             yAxisMaximum = grandMax
             
             // Get distinct series
@@ -302,7 +308,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
           
             ChartLine newLine
-            newLine:SetName(column:GetHeader() + " line")
+            newLine:SetName(column:GetHeader())
 
             // Locate the marker for factor on x-axis and plot point there
             j = 0
@@ -315,7 +321,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     ChartPoint point
                     point:SetPercentX(xp)
                     point:SetPercentY(yp)
-                    point:SetName("Point for " + xLabels:Get(j) + ", " + column:GetHeader())
+                    point:SetName("Point for "+ xLabels:Get(j))
                     newLine:Add(point)
                     sharedFactor:Set(xLabels:Get(j), 0.0) //Reset the values for next series
                 end
@@ -323,9 +329,6 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
 
             if(seriesFactor:HasKey(column:GetHeader()))
-                seriesFactor:GetValue(column:GetHeader()):SetColor(options:GetColorFromPalette(i))
-                newLine:SetColor(options:GetColorFromPalette(i))
-
                 seriesFactor:GetValue(column:GetHeader()):AddItem(newLine)
             end
             newLine:SortPoints()
@@ -341,7 +344,22 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         if not numericalFactor
-            chart:OverrideXLabelsWithText(xLabels)
+            if xTicks > 9
+                Array <text> labels
+                integer gap = xLabels:GetSize() / xTicks
+                if xLabels:GetSize() mod xTicks not= 0
+                   gap = ((xLabels:GetSize() / xTicks) + 1)
+                end
+                i = 0
+                repeat while i < xLabels:GetSize()
+                    labels:Add(xLabels:Get(i))
+                    i = i + gap
+                end
+                labels:Add(cast(text, ((xLabels:GetSize() / xTicks) + 1) * xTicks))
+                chart:OverrideXLabelsWithText(labels)
+            else
+                chart:OverrideXLabelsWithText(xLabels)
+            end
         end
 
         Legend legend

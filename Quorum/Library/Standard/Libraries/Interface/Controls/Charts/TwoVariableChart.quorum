@@ -95,18 +95,15 @@ class TwoVariableChart is Chart
             elseif target is ChartPoint
                 if GetPointsFlag()
                     ChartPoint temp = cast(ChartPoint, target)
-                    temp:SetColor(previousColor)
-                    temp:GetParentRegion():Hide()
+                    temp:GetIcon():Hide()
                 end
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    ChartPoint p1 = temp:GetPoint1()
-                    p1:SetColor(previousColor)
-                    p1:GetParentRegion():Hide()
-                    ChartPoint p2 = temp:GetPoint2()
-                    p2:SetColor(previousColor)
-                    p2:GetParentRegion():Hide()
+                    Icon icon1 = temp:GetPoint1():GetIcon()
+                    icon1:Hide()
+                    Icon icon2 = temp:GetPoint2():GetIcon()
+                    icon2:Hide()
                 end
                 Icon icon = temp:GetIcon()
                 icon:Hide()
@@ -116,8 +113,7 @@ class TwoVariableChart is Chart
                 if GetPointsFlag()
                     repeat while i < temp:GetPoints():GetSize()
                         ChartPoint point = temp:GetPoints():Get(i)
-                        point:SetColor(previousColor)
-                        point:GetParentRegion():Hide()
+                        point:GetIcon():Hide()
                         i = i + 1
                     end
                 end
@@ -128,9 +124,7 @@ class TwoVariableChart is Chart
                     i = i + 1
                 end
             elseif target is Icon
-                Icon temp = cast(Icon, target)
-                temp:SetColor(previousColor)
-                temp:Hide()
+                target:Hide()
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -158,21 +152,15 @@ class TwoVariableChart is Chart
             elseif target is ChartPoint
                 if GetPointsFlag()
                     ChartPoint temp = cast(ChartPoint, target)
-                    previousColor = temp:GetColor()
-                    temp:SetColor(GetHighlightColor())
-                    temp:GetParentRegion():Show()
+                    temp:GetIcon():Show()
                 end
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    ChartPoint p1 = temp:GetPoint1()
-                    previousColor = p1:GetColor()
-                    p1:SetColor(GetHighlightColor())
-                    p1:GetParentRegion():Show()
-                    ChartPoint p2 = temp:GetPoint2()
-                    previousColor = p2:GetColor()
-                    p2:SetColor(GetHighlightColor())
-                    p2:GetParentRegion():Show()
+                    Icon icon1 = temp:GetPoint1():GetIcon()
+                    icon1:Show()
+                    Icon icon2 = temp:GetPoint2():GetIcon()
+                    icon2:Show()
                 end
                 Icon icon = temp:GetIcon()
                 icon:Show()
@@ -182,9 +170,7 @@ class TwoVariableChart is Chart
                 if GetPointsFlag()
                     repeat while i < temp:GetPoints():GetSize()
                         ChartPoint point = temp:GetPoints():Get(i)
-                        previousColor = point:GetColor()
-                        point:SetColor(GetHighlightColor())
-                        point:GetParentRegion():Show()
+                        point:GetIcon():Show()
                         i = i + 1
                     end
                 end
@@ -195,10 +181,7 @@ class TwoVariableChart is Chart
                     i = i + 1
                 end
             elseif target is Icon
-                Icon temp = cast(Icon, target)
-                previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
-                temp:Show()
+                target:Show()
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -377,53 +360,58 @@ class TwoVariableChart is Chart
             SetHighlightColor(options:GetSelectionColor())
         end
         
+        // Line Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
                 if lines:Get(i):GetPointsFlag()
                     integer j = 0
                     repeat while j < lines:Get(i):GetPoints():GetSize()
-                        ChartPoint point = lines:Get(i):GetPoints():Get(j)
-                        point:LoadFilledCircle(PointRadius, lines:Get(i):GetColor())
-                        j = j + 1
-                    end
-
-                    j = 0
-                    repeat while j < lines:Get(i):GetLines():GetSize()
-                        Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
-                        lineIcon:SetName("Line segment between point " + (j+1) + " and " + (j+2) + ".")
-                        lineIcon:SetFocusable(true)
-                        lineIcon:SetAccessibilityCode(parent:Item:ITEM)
-                        lineIcon:SetNextFocus(GetNextFocus())
-                        lineIcon:SetPreviousFocus(GetPreviousFocus())
-                        lineIcon:Hide()
-                        GetChartArea():Add(lineIcon)
+                        Icon pointIcon = lines:Get(i):GetPoints():Get(j):GetIcon()
+                        GetChartArea():Add(pointIcon)
                         j = j + 1
                     end
                 end
+
+                integer j = 0
+                repeat while j < lines:Get(i):GetLines():GetSize()
+                    Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
+                    GetChartArea():Add(lineIcon)
+                    j = j + 1
+                end
+                GetChartArea():Add(lines:Get(i))
                 i = i + 1
             end
         end
+
+        // Scatter Plot
         if points:GetSize() > 0
-            number width = GetXAxis():GetWidth()
-            number height = GetYAxis():GetHeight()
-            integer radius = 0
-            if width < height
-                radius = cast(integer, width * pointScaleFactor)
-            else
-                radius = cast(integer, height * pointScaleFactor)
-            end
-    
-            if radius < minimumPointRadius
-                radius = minimumPointRadius
-            end
-    
             integer i = 0
             repeat while i < points:GetSize()
-                ChartPoint point = points:Get(i)
-                point:LoadFilledCircle(radius, points:Get(i):GetColor()) 
+                Icon pointIcon = points:Get(i):GetIcon()
+                GetChartArea():Add(pointIcon)
                 i = i + 1
             end
+        end
+
+        i = 0
+        repeat while i < seriesList:GetSize()
+            Series series = seriesList:Get(i)
+            series:SetColor(options:GetColorFromPalette(i))
+            series:GetLabel():SetFocusable(true)
+            series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
+            integer j = 0
+            repeat while j < series:GetSize()
+                if lines:GetSize() > 0
+                    ChartLine cline = cast(ChartLine, series:GetItem(j))
+                    cline:SetColor(series:GetColor())
+                else
+                    ChartPoint cpoint = cast(ChartPoint, series:GetItem(j))
+                    cpoint:SetColor(series:GetColor())
+                end
+                j = j + 1
+            end
+            i = i + 1
         end
 
         if IsShowingLegend()
@@ -656,7 +644,7 @@ class TwoVariableChart is Chart
 
         text lineText = "lines"
         text pointText = "points"
-        if lines:GetSize() = 1
+        if GetNumberOfLines() = 1
             linetext = "line"
         end
         if points:GetSize() = 1
@@ -665,10 +653,10 @@ class TwoVariableChart is Chart
         
         if lines:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
-            me:GetChartArea():SetDescription(lines:GetSize() + " " + lineText + ".")
+            me:GetChartArea():SetDescription("with" + lines:GetSize() + " " + lineText + ".")
         elseif points:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
-            me:GetChartArea():SetDescription(points:GetSize() + " " + pointText + ".")
+            me:GetChartArea():SetDescription("with" + points:GetSize() + " " + pointText + ".")
         end
         chartArea:SetFocusTarget(me:GetChartArea())
         xAxis:SetContainer(me)        
@@ -691,17 +679,34 @@ class TwoVariableChart is Chart
             GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
         end
 
+        // Generate Line Chart Info
         if lines:GetSize() > 0
-            // Generate Line Chart info
             ChartItem firstChartLineItem
             firstChartLineItem:SetContainer(me)
             chartArea:SetChild(firstChartLineItem)
-            lines:Get(0):SetDescription(" 1 of " + lines:GetSize() + " lines, This is the region for " + lines:Get(0):GetName() + ".")
             firstChartLineItem:SetDisplayName("This is the line for " + lines:Get(0):GetName() + ".")
             firstChartLineItem:SetParent(chartArea)
 
             ChartLine firstChartLine = lines:Get(0)
-            firstChartLine:SetName("This is the line for " + lines:Get(0):GetName() + ".")
+            number lineMax = firstChartLine:GetLineMax():GetPercentY()*GetYAxisMaximum()
+            number lineMin = firstChartLine:GetLineMin():GetPercentY()*GetYAxisMaximum()
+            number lineStart = firstChartLine:GetLineStart():GetPercentY()*GetYAxisMaximum()
+            number lineEnd = firstChartLine:GetLineEnd():GetPercentY()*GetYAxisMaximum()
+            integer numOfPoints = firstChartLine:GetPoints():GetSize()
+            integer numOfSegs = firstChartLine:GetLines():GetSize()
+            text lineChange = " "
+            if lineStart > lineEnd
+                lineChange = ", This line is decreasing overall."
+            elseif lineStart < lineEnd
+                lineChange = ", This line is increasing overall."
+            else 
+                lineChange = ", This line shows no overall change from start to end."
+            end
+            firstChartLine:SetDescription(" , 1 of " + lines:GetSize() + " lines. 
+                This line has " + numOfPoints + " points and " + numOfSegs + " line segments. 
+                The maximum value for this line is " + lineMax + " , 
+                the minimum value for this line is " + lineMin + " , 
+                This line starts at a value of " + lineStart + " and ends at a value of "+ lineEnd + lineChange)
             firstChartLineItem:SetFocusTarget(firstChartLine)
 
             Icon region = NewRegionIcon(0,0,1,1)
@@ -713,13 +718,30 @@ class TwoVariableChart is Chart
         
                 ChartItem chartLineItem
                 chartLineItem:SetContainer(me)
-                lines:Get(i):SetDescription((i+1) + " of " + lines:GetSize() + " lines, This is the region for " + lines:Get(i):GetName() + ".")
                 chartLineItem:SetDisplayName("This is the line for " + lines:Get(i):GetName() + ".")
                 chartLineItem:SetParent(chartArea)
                 chartLineItem:SetPrevious(previousChartLineItem)
 
                 ChartLine chartLine = lines:Get(i)
-                chartLine:SetName("This is the line for " + lines:Get(i):GetName() + ".")
+                lineMax = chartLine:GetLineMax():GetPercentY()*GetYAxisMaximum()
+                lineMin = chartLine:GetLineMin():GetPercentY()*GetYAxisMaximum()
+                lineStart = chartLine:GetLineStart():GetPercentY()*GetYAxisMaximum()
+                lineEnd = chartLine:GetLineEnd():GetPercentY()*GetYAxisMaximum()
+                numOfPoints = chartLine:GetPoints():GetSize()
+                numOfSegs = chartLine:GetLines():GetSize()
+                lineChange = " "
+                if lineStart > lineEnd
+                    lineChange = ", This line is decreasing overall."
+                elseif lineStart < lineEnd
+                    lineChange = ", This line is increasing overall."
+                else 
+                    lineChange = ", This line shows no overall change from start to end."
+                end
+                chartLine:SetDescription(" , "+(i+1)+" of " + lines:GetSize() + " lines. 
+                    This line has " + numOfPoints + " points and " + numOfSegs + " line segments. 
+                    The maximum value for this line is " + lineMax + " , 
+                    the minimum value for this line is " + lineMin + " , 
+                    This line starts at a value of " + lineStart + " and ends at a value of "+ lineEnd + lineChange)
                 chartLineItem:SetFocusTarget(chartLine)
 
                 region = NewRegionIcon(0,0,1,1)
@@ -733,6 +755,7 @@ class TwoVariableChart is Chart
         
         end
 
+        // Generate Scatter Plot Info
         if points:GetSize() > 0
             Icon newIcon = NewRegionIcon(0,0,1,1)
             SubdivideQuadrant(chartArea, newIcon, points, 0)
@@ -808,7 +831,7 @@ class TwoVariableChart is Chart
     private action NewRegionIcon (number percentX, number percentY, number percentWidth, number percentHeight) returns Icon
         Icon region
         Color transparent
-        transparent:SetColor(0, 0, 0, 0)
+        transparent:SetColor(0, 0, 1, 0.3)
         region:LoadFilledRectangle(1, 1, transparent)
         region:SetPercentageX(percentX)
         region:SetPercentageY(percentY)
@@ -816,10 +839,8 @@ class TwoVariableChart is Chart
         region:SetPercentageHeight(percentHeight)
         region:SetFocusable(true)
         region:SetAccessibilityCode(region:parent:Item:ITEM)
-        Color color
-        region:SetBorderColor(color:Blue())
-        region:SetBorderThickness(5)
         LayoutProperties properties = region:GetDefaultLayoutProperties()
+        region:Hide()
         return region
     end
     /*
@@ -850,56 +871,94 @@ class TwoVariableChart is Chart
                 
                 //First point
                 ChartItem firstPointItem
-                firstPointItem:SetContainer(me)
-                firstPointItem:SetDisplayName("Point 1 of " + ps:GetSize() + " at " + math:Round(ps:Get(0):GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) 
-                    + " and " + math:Round(ps:Get(0):GetPercentY() * GetYAxisMaximum(), options:GetTickDigits()))
-                firstPointItem:SetParent(item)
-                item:SetChild(firstPointItem)
-
-                ChartPoint firstPoint = ps:Get(0)
-                firstPoint:SetName(firstPointItem:GetDisplayName())
-                firstPoint:SetParentRegion(region)
-                firstPointItem:SetFocusTarget(firstPoint)
+                ChartItem prevPoint
+                if GetPointsFlag()
+                    firstPointItem:SetContainer(me)
+                    firstPointItem:SetDisplayName(" , 1 of " + ps:GetSize() + " points in this chunk, value of " + math:Round(ps:Get(0):GetPercentY() * GetYAxisMaximum(), 1))
+                    firstPointItem:SetParent(item)
+                    item:SetChild(firstPointItem)
+    
+                    ChartPoint firstPoint = ps:Get(0)
+                    firstPoint:SetDescription(firstPointItem:GetDisplayName())
+                    firstPointItem:SetFocusTarget(firstPoint)
+                    prevPoint = firstPointItem
+                end
 
                 //First Line
+                ChartItem firstLineItem
+                ChartItem prevLine
                 if ls:IsEmpty() = false
-                    ChartItem firstLineItem
                     firstLineItem:SetContainer(me)
-                    firstLineItem:SetParent(firstPointItem)
-                    firstLineItem:SetDisplayName("Line from point 1.")
-                    firstPointItem:SetChild(firstLineItem)
+                    
+                    if GetPointsFlag()
+                        firstLineItem:SetParent(firstPointItem)
+                        firstPointItem:SetChild(firstLineItem)
+                    else
+                        firstLineItem:SetParent(item)
+                        item:SetChild(firstLineItem)
+                        prevLine = firstLineItem
+                    end
 
                     LineSegment firstLine = ls:Get(0)
-                    firstLine:SetName("Line from point 1.")
+                    text lineChange = " "
+                    number start = math:Round(firstLine:GetPoint1():GetPercentY() * GetYAxisMaximum(), 1)
+                    number stop = math:Round(firstLine:GetPoint2():GetPercentY() * GetYAxisMaximum(), 1)
+                    if start > stop
+                        lineChange = ", This line segment is decreasing value from " + start + " to " + stop
+                    elseif start < stop
+                        lineChange = ", This line segment is increasing value from " + start + " to " + stop
+                    else 
+                        lineChange = ", This line segment shows no change with the value remaining at " + start
+                    end
+                    firstLine:SetDescription(" segment between " + firstLine:GetPoint1():GetName() + " and " + firstLine:GetPoint2():GetName() + lineChange)
+                    firstLineItem:SetDisplayName("Line segment between " + firstLine:GetPoint1():GetName() + " and " + firstLine:GetPoint2():GetName() + lineChange)
                     firstLineItem:SetFocusTarget(firstLine)
                 end
 
                 integer i = 1
-                ChartItem prevPoint = firstPointItem
+                
                 repeat while i < ps:GetSize()
                     //points
                     ChartItem pointItem
-                    pointItem:SetContainer(me)
-                    pointItem:SetDisplayName("Point " + (i + 1) + " of " + ps:GetSize() + " at " + math:Round(ps:Get(i):GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) 
-                    + " and " + math:Round(ps:Get(i):GetPercentY() * GetYAxisMaximum(), options:GetTickDigits()))
-                    pointItem:SetParent(item)
-                    pointItem:SetPrevious(prevPoint)
-
-                    ChartPoint point = ps:Get(i)
-                    point:SetName(pointItem:GetDisplayName())
-                    point:SetParentRegion(region)
-                    pointItem:SetFocusTarget(point)
+                    if GetPointsFlag()
+                        pointItem:SetContainer(me)
+                        pointItem:SetDisplayName(" , "+(i+1)+" of " + ps:GetSize() + " points in this chunk, value of " + math:Round(ps:Get(i):GetPercentY() * GetYAxisMaximum(), 1))
+                        pointItem:SetParent(item)
+                        pointItem:SetPrevious(prevPoint)
+        
+                        ChartPoint point = ps:Get(i)
+                        point:SetDescription(pointItem:GetDisplayName())
+                        pointItem:SetFocusTarget(point)
+                    end
 
                     //lines
                     if i < ls:GetSize()
                         ChartItem lineItem
                         lineItem:SetContainer(me)
-                        lineItem:SetDisplayName("Line from point " + (i + 1) + ".")
-                        lineItem:SetParent(pointItem)
-                        pointItem:SetChild(lineItem)
+
+                        if GetPointsFlag()
+                            lineItem:SetParent(pointItem)
+                            pointItem:SetChild(lineItem)
+                        else
+                            lineItem:SetParent(item)
+                            lineItem:SetPrevious(prevLine)
+                            prevLine:SetNext(lineItem)
+                            prevLine = lineItem
+                        end
     
                         LineSegment line = ls:Get(i)
-                        line:SetName("Line from point " + (i + 1) + ".")
+                        text lineChange = " "
+                        number start = math:Round(line:GetPoint1():GetPercentY() * GetYAxisMaximum(), 1)
+                        number stop = math:Round(line:GetPoint2():GetPercentY() * GetYAxisMaximum(), 1)
+                        if start > stop
+                            lineChange = ", This line segment is decreasing value from " + start + " to " + stop
+                        elseif start < stop
+                            lineChange = ", This line segment is increasing value from " + start + " to " + stop
+                        else 
+                            lineChange = ", This line segment shows no change with the value remaining at " + start
+                        end
+                        line:SetDescription(" segment between " + line:GetPoint1():GetName() + " and " + line:GetPoint2():GetName() + lineChange)
+                        lineItem:SetDisplayName("Line segment between " + line:GetPoint1():GetName() + " and " + line:GetPoint2():GetName() + lineChange)
                         lineItem:SetFocusTarget(line)
                     end
 
@@ -907,7 +966,8 @@ class TwoVariableChart is Chart
                     prevPoint = pointItem
                     i = i + 1
                 end
-                prevPoint:SetNext(firstPointItem)              
+                prevPoint:SetNext(firstPointItem)  
+                prevLine:SetNext(firstLineItem)            
             else
                 region:SetDescription(chunkDescription)
             end

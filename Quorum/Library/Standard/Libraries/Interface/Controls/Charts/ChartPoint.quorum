@@ -9,6 +9,7 @@ class ChartPoint is Drawable
     text name = ""
     
     Icon parentRegion = undefined
+    Icon icon
 
     on create
         SetFocusable(true)
@@ -45,5 +46,13 @@ class ChartPoint is Drawable
 
     action GetParentRegion returns Icon
         return parentRegion
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetIcon returns Icon
+        return icon
     end
 end
