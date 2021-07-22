@@ -53,6 +53,8 @@ use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Transforms.DataTupleComparison
+use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+use Libraries.Interface.Controls.Charts.BoxPlot
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2601,6 +2603,34 @@ class DataFrame
         selection:CopyTo(cast(ColumnInput, creator))
 
         return cast(ViolinChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a BoxPlot from the current column selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+        Multiple columns will result in multiple plots of different colors labeled along the 
+        the x-axis. If a factor is given, the plots will be grouped based by that factor.
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BoxPlot
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        BoxPlot chart = frame:BoxPlot()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action BoxPlot returns BoxPlot
+        BoxPlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(BoxPlot, CreateChart(creator))
     end
 
     /*
