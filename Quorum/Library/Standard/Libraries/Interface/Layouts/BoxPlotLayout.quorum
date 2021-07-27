@@ -95,7 +95,6 @@ class BoxPlotLayout is ChartLayout
         if plotGroups:GetSize() > 0
             integer panelwidth = cast(integer, chartArea:GetWidth())/plotGroups:GetSize()
             integer height = cast(integer, chartArea:GetHeight())
-            integer line = cast(integer, height * 0.01)
             number dataScale = chart:GetYMaximum()/height
 
             integer i = 0
@@ -108,11 +107,11 @@ class BoxPlotLayout is ChartLayout
                 group:GetItem():LoadRectangle(panelwidth,height,invis)
                 group:GetItem():SetPosition(startpanelw,0)
 
-                //integer panelSize = group:GetSize()
                 if group:GetSize() > 0
                     integer width = cast(integer, panelwidth/group:GetSize())
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
+                    integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
 
                     integer k = 0
                     repeat while k < group:GetSize()
@@ -218,10 +217,10 @@ class BoxPlotLayout is ChartLayout
                             integer outlierIndex = 0
                             integer j = 11
                             repeat while outlierIndex < outliers:GetSize() and j < item:GetSize()
-                                integer radius = line
                                 number y = outliers:Get(outlierIndex)
+                                integer radius = line/2
                                 item:Get(j):LoadFilledCircle(radius, darkColor)
-                                item:Get(j):SetPosition(startw+center-radius, cast(integer, y/dataScale)-radius)
+                                item:Get(j):SetPosition(startw+center-radius, cast(integer, y/dataScale))
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1
                             end

@@ -1,7 +1,7 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.System.File
-use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Interface.Controls.Charts.ViolinPlot
 use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
 use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Containers.Array
@@ -13,56 +13,59 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Vector
-use Libraries.Interface.Layouts.BoxPlotLayout
+use Libraries.Interface.Layouts.ViolinPlotLayout
 
 /*
-    The BoxPlotChartWriter class is part of the set of writers that allow for Charts
+    The ViolinPlotWriter class is part of the set of writers that allow for Charts
     to save their representation in the form ScalableVectorGraphics. This class will write out
     all of the necessary text needed to write out an SVG file that will contain the chart.
 
-    Attribute: Author Benjamin Murphy & Shyann Calhoun
+    Attribute: Author Gabriel Contreras
 
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Charts.BoxPlotCreator
-    use Libraries.Interface.Controls.Charts.BoxPlot
-    use Libraries.Game.Game
-    use Libraries.System.File
-    
-    class Main is Game
-        action Main
-            StartGame()
-        end
-    
-        action CreateGame
-            DataFrame frame
-            frame:Load("Data/Data.csv")
-            BoxPlotCreator creator
-            creator:AddColumn(2)
-        
-            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
-            chart:SetPercentageWidth(1)
-            chart:SetPercentageHeight(1)
-            chart:SetTitle("Sample Title")
-            chart:SetXAxisTitle("X-axis Variable")
-            chart:SetYAxisTitle("Y-axis Variable")
-            Add(chart)
-    
-            File f
-            f:SetPath("Data/chart.svg")
-            svgtxt = chart:ConvertToScalableVectorGraphics()
-            f:Write(svgtxt)
-        end
-    end
+    use Libraries.Interface.Controls.Charts.ViolinPlot
+    use Libraries.Interface.Controls.Charts.ViolinPlotWriter
+
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ViolinPlot chart = frame:ViolinPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    ViolinPlotWriter writer
+    output writer:WriteOutChart(chart)
 */
-class BoxPlotWriter
+class ViolinPlotWriter
     private number axisPointX = 15
     private number axisPointY = 85
     private number axisLength = 75
 
+/*
+    This action writes out the ViolinPlot by grabbing necessary information from the chart and it will then return
+    all of the necessary text needed to write out an SVG file that will contain the chart.
 
-    action WriteOutChart(BoxPlot chart) returns text
+    Attribute: Parameter chart The chart that will be used to create an SVG
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinPlot
+    use Libraries.Interface.Controls.Charts.ViolinPlotWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    ViolinPlot chart = frame:ViolinPlot()
+    chart:Display()
+
+    ViolinPlotWriter writer
+    output writer:WriteOutChart(chart)
+*/
+    action WriteOutChart(ViolinPlot chart) returns text
 
         ScalableVectorGraphics chartCanvas
         chartCanvas:SetSize(700,600)
@@ -93,7 +96,8 @@ class BoxPlotWriter
         yAxisLabel:SetFontSize("18pt")
         chartCanvas:Add(yAxisLabel)
 
-        AddBoxes(chartCanvas, chart)
+
+        AddViolins(chartCanvas, chart)
         AddXLabels(chartCanvas, chart)
         AddYLabels(chartCanvas, chart)
 
@@ -132,8 +136,9 @@ class BoxPlotWriter
     /*
         This action adds the content of the BarChart
     */
-    private action AddBoxes(ScalableVectorGraphics canvas, BoxPlot chart)
-        BoxPlotLayout layout
+    private action AddViolins(ScalableVectorGraphics canvas, ViolinPlot chart)
+        //this is needed for calculations so this will probably change if stuff is moved around 
+        ViolinPlotLayout layout
 
         Array<PlotGroup> groups = chart:GetPlotGroups()
         if groups:GetSize() > 0
@@ -167,60 +172,56 @@ class BoxPlotWriter
                         //Give each chart an alloted section  
                         integer startW = width*k + startpanelw
     
-                                            //Left IQR
-                        Rectangle first 
-                        first:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale + lineH, "%")
-                        first:SetPosition(axisPointX + startW + size, axisPointY - upperQuartile/dataScale, "%")
-            
-                        //CenterLine
+                        //even though lines could be used here rectangles are used for translation purposes
+                        Rectangle first
+                        first:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale, "%")
+                        first:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - upperQuartile/dataScale, "%")
                         Rectangle second
-                        second:SetSize(lineH, (max-upperQuartile)/dataScale, "%")
-                        second:SetPosition(axisPointX + startW + center, axisPointY - max/dataScale, "%")
-            
+                        second:SetSize(lineH, (max-min)/dataScale, "%")
+                        second:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - max/dataScale, "%")
                         Rectangle third
-                        third:SetSize(lineH, (lowerQuartile-min)/dataScale, "%")
-                        third:SetPosition(axisPointX + startW + center, axisPointY -lowerQuartile/dataScale, "%")
-            
-                        //Max
+                        third:SetSize(lineH*4, lineH, "%")
+                        third:SetPosition(axisPointX + startW+(width-lineH*4)/2,axisPointY - max/dataScale, "%")
                         Rectangle fourth
-                        fourth:SetSize(center+lineH, lineH, "%")
-                        fourth:SetPosition(axisPointX + startW + size,axisPointY - max/dataScale, "%")
-                        
-                        //Upper Quartile
+                        fourth:SetSize(lineH, lineH, "%")
+                        fourth:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - upperQuartile/dataScale, "%")
+                        Circle dot
+                        dot:SetRadius(lineH/2, "%")
+                        dot:SetFill("white")
+                        dot:SetPosition(axisPointX + startW+(width-lineH)/2 + lineH/2,axisPointY - median/dataScale, "%")
                         Rectangle fifth
-                        fifth:SetSize(center+lineH, lineH, "%")
-                        fifth:SetPosition(axisPointX + startW+ size, axisPointY - upperQuartile/dataScale, "%")
-                        
-                        //Lower Quartile
+                        fifth:SetSize(lineH, lineH, "%")
+                        fifth:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - lowerQuartile/dataScale - lineH, "%")
                         Rectangle sixth
-                        sixth:SetSize(center+lineH, lineH,"%")
-                        sixth:SetPosition(axisPointX+ startW + size,axisPointY - lowerQuartile/dataScale, "%")
+                        sixth:SetSize(lineH*4, lineH, "%")
+                        sixth:SetPosition(axisPointX + startW+(width-lineH*4)/2,axisPointY - min/dataScale - lineH, "%")
                         
-                        //Min
-                        Rectangle seventh
-                        seventh:SetSize(center+lineH, lineH, "%")
-                        seventh:SetPosition(axisPointX + startW + size,axisPointY - min/dataScale - lineH, "%")
-                        
-                        //Right IQR
-                        Rectangle eighth
-                        eighth:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale + lineH, "%")
-                        eighth:SetPosition(axisPointX + startW + size + center, axisPointY - upperQuartile/dataScale, "%")
-                        
-                        //Median
-                        Rectangle ninth
-                        ninth:SetSize(center+lineH, lineH, "%")
-                        ninth:SetPosition(axisPointX + startW + size,axisPointY - median/dataScale, "%")
-                        
+                        //bandWidth will be auto set to a value according the height of the chart
+                        number bandWidth = chart:GetYMaximum()*0.015
+                        Array<number> estimates = layout:EstimateDensity(bandWidth,dataScale,plot:GetData(),chart:GetWindowingAction())
+                        integer nextPixel = cast(integer, min/dataScale)+1
+                        number maxEstimate = estimates:Get(estimates:GetSize()-1)
+                        number estimateScale = maxEstimate/(width/2)
+                        integer index = 0
+                        repeat while index < estimates:GetSize()-1
+                            number estimate = estimates:Get(index)
+                            number pixW = (estimate/estimateScale)*0.75
+                            number pixH = height - nextPixel
+                            Line tempLine
+                            tempLine:SetPoints(axisPointX + startW + width/2-pixW,axisPointY - axisLength + pixH,axisPointX + startW + width/2+pixW, axisPointY - axisLength + pixH, "%")
+                            tempLine:SetStroke("blue")
+                            tempLine:SetStrokeWidth(6)
+                            canvas:Add(tempLine)
+                            nextPixel = nextPixel + 1
+                            index = index + 1
+                        end
                         canvas:Add(first)
                         canvas:Add(second)
                         canvas:Add(third)
                         canvas:Add(fourth)
+                        canvas:Add(dot)
                         canvas:Add(fifth)
                         canvas:Add(sixth)
-                        canvas:Add(seventh)
-                        canvas:Add(eighth)
-                        canvas:Add(ninth)
-                        
                         k = k + 1
                     end 
                 end  
@@ -232,7 +233,7 @@ class BoxPlotWriter
     /*
         This action adds the labels on the x axis
     */
-    private action AddXLabels(ScalableVectorGraphics canvas, BoxPlot chart)
+    private action AddXLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
         integer i = 0
         Array<text> xLabelText = chart:GetXAxisLabels()
         integer total = chart:GetPlotGroups():GetSize()
@@ -249,18 +250,18 @@ class BoxPlotWriter
     end
 
     /*
-        This action adds the labels on the y axis
+        This action the labels on the y axis
     */
-    private action AddYLabels(ScalableVectorGraphics canvas, BoxPlot chart)
+    private action AddYLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
         number scaleNum = 0//chart:GetYAxisMinimum()
         
-        number scaleWidth = (chart:GetYMaximum()) / (chart:GetYIncrementCount() - 1)
-        number scaleDivWidth = axisLength / (chart:GetYIncrementCount() - 1)
+        number scaleWidth = (chart:GetYMaximum()) / (chart:GetYTickCount()- 1)
+        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
         // scale
         Math math
         i = 0
         //output chart:GetYMax()
-        repeat while i < chart:GetYIncrementCount()
+        repeat while i < chart:GetYTickCount()
             Label scaleLabel
             Line scaleTick
             

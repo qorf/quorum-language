@@ -1,0 +1,281 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ViolinPlot
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Texture
+use Libraries.Compute.Vector
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Analysis.UnivariateAction
+use Libraries.Interface.Controls.Charts.PlotGroup
+use Libraries.Interface.Controls.Charts.Plot
+use Libraries.Containers.HashTable
+
+/*
+    This is the layout class for Violin Chart. This class is responsible for 
+    positioning all chart area components of the Violin chart. Generally,
+    layout classes such as this are behind the scenes and we do not need to interact
+    with them directly.
+
+    Attribute: Author Silafu Yiliyaer & Manuel Martinez
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinPlot
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ViolinPlot chart = frame:ViolinPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+*/
+
+class ViolinPlotLayout is ChartLayout
+    private Math math
+
+    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
+        integer width = cast(integer, horizontalContainer:GetWidth())
+        integer height = cast(integer, horizontalContainer:GetHeight())
+        
+        Array<ControlLabel> labels = chart:GetXLabels()
+        integer space = cast(integer, width/labels:GetSize())
+        integer labelY = height - cast(integer, labels:Get(0):GetHeight())
+        integer i = 0
+        repeat while i < labels:GetSize()
+            Label currentLabel = labels:Get(i)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+            integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
+            currentLabel:SetPosition(labelX, labelY)
+            i = i + 1
+        end
+        ControlLabel axisLabel = chart:GetXLabel()
+        axisLabel:SetPositionOnBaseLine(true)
+        axisLabel:SetX(cast(integer, width / 2 - axisLabel:GetWidth() / 2))
+        axisLabel:SetY(cast(integer, height / 2 - axisLabel:GetHeight()))
+    end
+
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+
+        ViolinPlot chart = cast(ViolinPlot, control)
+        Array <PlotGroup> plotGroups = chart:GetPlotGroups()
+        Control chartArea = chart:GetChartArea()
+        Color invis
+        invis:SetColor(0,0,0,0)
+        Color white
+        white:SetColor(1,1,1,1)
+        Color black
+        black:SetColor(0,0,0,1)
+
+        // These calculate the necessary dimensions of the violinplots
+        if plotGroups:GetSize() > 0
+            integer panelwidth = cast(integer, chartArea:GetWidth())/plotGroups:GetSize()
+            integer height = cast(integer, chartArea:GetHeight())
+            number dataScale = chart:GetYMaximum()/height
+
+            integer i = 0
+            repeat while i < plotGroups:GetSize()
+                PlotGroup group = plotGroups:Get(i)
+
+                //Give each group an alloted section  
+                integer startpanelw = panelwidth*i
+                //Outer box
+                group:GetItem():LoadRectangle(panelwidth,height,invis)
+                group:GetItem():SetPosition(startpanelw,0)
+
+                //integer panelSize = group:GetSize()
+                if group:GetSize() > 0
+                    integer width = cast(integer, panelwidth/group:GetSize())
+                    integer center = cast(integer, width/2) 
+                    integer size = cast(integer, width/4)
+                    integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
+
+                    integer k = 0
+                    repeat while k < group:GetSize()
+                        Plot plot = group:Get(k)
+
+                        number median = plot:GetInfoAt(0)
+                        number lowerQuartile = plot:GetInfoAt(1)
+                        number upperQuartile = plot:GetInfoAt(2)
+                        number minimum = plot:GetInfoAt(3)
+                        number maximum = plot:GetInfoAt(4)
+            
+                        //Give each chart an alloted section  
+                        integer startw = width*k + startpanelw
+    
+                        /* Indices for items of individual violin plot
+                            0: PLOT AREA (ENTIRE REGION)
+                            1: MINIMUM LINE
+                            2: LOWER WHISKER
+                            3: INTERQUARTILE RANGE
+                            4: RIGHT BORDER OF IQR
+                            5: LEFT BORDER OF IQR
+                            6: Q1 LINE
+                            7: MEDIAN LINE
+                            8: Q3 LINE
+                            9: UPPER WHISKER    
+                            10: MAXIMUM LINE 
+                            11: PIXEL DENSITY MAP
+                        */
+                        
+                        //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
+                        Array<Drawable> item = plot:GetItems()
+                        Color plotColor = plot:GetIcon():GetColor()
+
+                        integer radius = line/2
+
+                        //Outer box
+                        item:Get(0):LoadRectangle(width,height,invis)
+                        item:Get(0):SetPosition(startw,0)
+            
+                        //Minimum
+                        item:Get(1):LoadFilledRectangle(line, line, black)
+                        item:Get(1):SetPosition(startw+center,cast(integer, minimum/dataScale))
+
+                        // If Min and Q1 are the same.. position min so that they are both visible.
+                        if cast(integer, minimum/dataScale) = cast(integer, lowerQuartile/dataScale)
+                            item:Get(1):SetPosition(startw+center,cast(integer, minimum/dataScale)-line)
+                        end
+            
+                        //Lower Whisker
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, black)
+                        item:Get(2):SetPosition(startw+center,cast(integer, minimum/dataScale))
+            
+                        //IQR Region
+                        item:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), black)
+                        item:Get(3):SetPosition(startw+center-radius,cast(integer, lowerQuartile/dataScale)+line)
+            
+//                        //Right IQR line not necessary in violin plot
+//                        item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
+//                        item:Get(4):SetPosition(startw+center,cast(integer, lowerQuartile/dataScale))
+//            
+//                        //Left IQR line not necessary in violin plot
+//                        item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
+//                        item:Get(5):SetPosition(startw+center,cast(integer, lowerQuartile/dataScale))
+            
+                        //Q1
+                        item:Get(6):LoadFilledRectangle(line, line, black)
+                        item:Get(6):SetPosition(startw+center,cast(integer, lowerQuartile/dataScale))
+            
+                        //Median
+                        item:Get(7):LoadFilledCircle(radius, white)
+                        item:Get(7):SetPosition(startw+center,cast(integer, median/dataScale))
+            
+                        // If Median and Q1 are the same.. position median so that they are both visible.
+                        if cast(integer, median/dataScale) = cast(integer, lowerQuartile/dataScale)
+                            item:Get(7):SetPosition(startw+center,cast(integer, median/dataScale)+line)
+                        end
+
+                        // If Median and Q3 are the same.. position median so that they are both visible.
+                        if cast(integer, median/dataScale) = cast(integer, upperQuartile/dataScale)+line
+                            item:Get(7):SetPosition(startw+center,cast(integer, median/dataScale)-line)
+                        end
+            
+                        //Q3
+                        item:Get(8):LoadFilledRectangle(line, line, black)
+                        item:Get(8):SetPosition(startw+center,cast(integer, upperQuartile/dataScale)+line)
+            
+                        
+                        //Upper Whisker
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), black)
+                        item:Get(9):SetPosition(startw+center,cast(integer, upperQuartile/dataScale))
+            
+                        //Max
+                        item:Get(10):LoadFilledRectangle(line, line, black)
+                        item:Get(10):SetPosition(startw+center,cast(integer, maximum/dataScale)-line)
+
+                        // If Max and Q3 are the same.. position max so that they are both visible.
+                        if cast(integer, maximum/dataScale) = cast(integer, upperQuartile/dataScale)+line
+                            item:Get(10):SetPosition(startw+center,cast(integer, maximum/dataScale)+line)
+                        end
+
+                        // Vioiln kernel density area
+                        Format format
+                        PixelMap pixelMap
+                        pixelMap:CreatePixelMap(width,height,format)
+
+                        Vector data = plot:GetData()
+
+                        number bandWidth = chart:GetYMaximum()*0.015
+
+                        Array <number> estimates = EstimateDensity(bandWidth, dataScale, data, chart:GetWindowingAction())
+
+                        integer nextPixel = cast(integer, minimum/dataScale)+1
+                        number maxEstimate = estimates:Get(estimates:GetSize()-1)
+                        number estimateScale = maxEstimate/(center)
+                        integer index = 0
+                        repeat while index < estimates:GetSize()-1
+                            number estimate = estimates:Get(index)
+                            integer pixW = cast(integer, (estimate/estimateScale)*0.75)
+                            integer pixH = height - nextPixel
+                            pixelMap:DrawLine(center-pixW, pixH, center+pixW, pixH, plotColor)
+                            pixelMap:SetPixel(center-pixW, pixH, black)
+                            pixelMap:SetPixel(center+pixW, pixH, black)
+                            nextPixel = nextPixel + 1
+                            index = index + 1
+                        end
+
+                        Texture texture
+                        texture:LoadFromPixelMap(pixelMap)
+                        item:Get(11):SetPosition(startw+radius, 0)
+                        item:Get(11):Load(texture)
+                    
+                        k = k + 1
+                    end 
+                end  
+                i = i + 1
+            end
+        end
+    end
+
+    /*    
+    KDE: Kernel density esstimation
+    It is a method that finds out the normal distribution of a give set of data
+    It use kernel functions to calculate the probability of every single data point
+    We have: simplest kernel,Gaussian kernel,triangular kernel,parabolic(Epanechnikov) kernel,triweight kernel,
+             tricube kernel,cosine kernel,logistic kernel,sigmoid kernel,silverman kernel
+    By default, it uses Gaussian kernel which is smother than other kernel functions
+    We put this functions here because the distributions at each value is scaled based on the pixel height of the chart
+
+    Parameters: bandWidth is a number that represent the interval, the bigger the number, the flatter the graph will be
+                dataScale indicates how data grow from min to max base on pixel height
+                kernalFunction indicates what kernel function to use
+    */         
+      
+    action EstimateDensity(number bandWidth,number dataScale,Vector dataset,UnivariateAction window) returns Array<number>
+
+        number min = cast(integer,dataset:Get(0))
+        number max = cast(integer,dataset:Get(dataset:GetSize()-1))
+        number largest = 0.00000001
+        Array<number> estimates
+        repeat while min <= max
+            integer index = 0
+            number sum = 0
+            repeat while index < dataset:GetSize()
+                number cal = (min - dataset:Get(index))/bandWidth
+                sum = sum + window:Calculate(cal)
+                index = index+1
+            end
+
+            number estimate = sum/(dataset:GetSize()*bandWidth)
+            if largest < estimate
+                largest = estimate
+            end 
+
+            estimates:Add(estimate)
+            min = min + dataScale  
+        end 
+        estimates:Add(largest)
+        return estimates
+    end
+end

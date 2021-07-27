@@ -1,7 +1,7 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Layouts.BoxPlotLayout
+use Libraries.Interface.Layouts.ViolinPlotLayout
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Interface.Item
 use Libraries.Game.Graphics.Font
@@ -14,51 +14,47 @@ use Libraries.Compute.Math
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Analysis.UnivariateAction
 use Libraries.Compute.Statistics.WindowingActions.NormalDistributionAction
-use Libraries.Interface.Controls.Charts.BoxPlotWriter 
-use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+use Libraries.Interface.Controls.Charts.ViolinPlotWriter
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Gradient
-use Libraries.Interface.Controls.Charts.PlotGroup
-use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Charts.Series
-
 
 /*
-    Attribute: Author Christian Castillo
-
+    Attribute: Author Silafu Yiliyaer
     Attribute: Example
 
+    Attribute: Example
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Charts.BoxPlotCreator
-    use Libraries.Interface.Controls.Charts.BoxPlot
-    use Libraries.Game.Game
+    use Libraries.Interface.Controls.Charts.ViolinPlot
     
-    class Main is Game
-        action Main
-            StartGame()
-        end
-    
-        action CreateGame
-            DataFrame frame
-            frame:Load("Data/Data.csv")
-            BoxPlotCreator creator
-            creator:AddColumn(2)
-        
-            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
-            chart:SetPercentageWidth(1)
-            chart:SetPercentageHeight(1)
-            chart:SetTitle("Sample Title")
-            chart:SetXAxisTitle("X-axis Variable")
-            chart:SetYAxisTitle("Y-axis Variable")
-            Add(chart)
-        end
-    end
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ViolinPlot chart = frame:ViolinPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
 */
 
-class BoxPlot is Chart
+class ViolinPlot is Chart
     // The root ChartItem.
     private ChartItem summary
+    // How many ticks are set along the y axis and max value on y axis.
+    private integer yTicks = 0
+    private number yMaximum = 0
+    
+    //initial size of x and y axis
+    private integer tickLength = 10
+    private integer tickWidth = 3
+
+    //bandWidth is a scale option for distribution graph
+    //the bigger the value, the flatter the distribution graph will be
+    private integer bandWidth = 0
+
+    //labels that is shown on the x axis
+    private Array<text> xAxisLabels
+
+    UnivariateAction windowingAction = undefined
 
     // The series of the plot. Only used when a factor is used
     Array<Series> seriesList
@@ -67,145 +63,13 @@ class BoxPlot is Chart
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
-
+    
     ChartOptions options
 
-    boolean showOutliers = true
     boolean hasGroups = true
 
-    // How many ticks are set along the y axis and max value on y axis.
-    private integer yIncrements = 0 //increments in the y axis
-    private number yMaximum = 0 // the maximum value in y axis
-    
-    // Initial size of x and y axis
-    private integer IntervalLength = 10
-    private integer IntervalWidth = 30
-
-    // Labels that is shown on the x axis
-    private Array<text> xAxisLabels
-
-   // SetYAxisTitle("Speed of Cars miles per hour")
-    public text xTitle = ""
-    public text yTitle = ""
-
-    // Panels
-    Control TitlePanel
-    Control AreaOfChart
-    Control VerticalTitlePanel
-    Control HorizontalTitlePanel
-    
-    //Gets the TitlePanel
-    action GetTitlePanel returns Control
-        return TitlePanel
-    end
-
-    // Gets the AreaOfChart
-    action GetChartA returns Control
-        return AreaOfChart
-    end
-
-    // Gets the HorizontalTitlePanel
-     action GetHorizontalTitlePanel returns Control
-        return HorizontalTitlePanel
-    end
-
-    // Gets the VerticalTitlePanel
-    action GetVerticalTitlePanel returns Control
-        return VerticalTitlePanel
-    end
-
-    // Sets the labels along the x axis
-    action SetXAxisLabels(Array<text> label)
-        xAxisLabels = label
-    end
-  
-    // Returns the labels
-    action GetXAxisLabels returns Array<text>
-        return xAxisLabels
-    end
-    
-    // Sets how many increments in y-axis
-    action SetYIncrementCount(integer increments)
-        yIncrements = increments
-    end
-   
-    // Returns number of increments on the y axis
-    action GetYIncrementCount returns integer
-        return yIncrements
-    end
-
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
-     end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
-    end
-
-    /*
-    Flag used to hide all the outliers.
-    */
-    action HideOutliers()
-        showOutliers = false
-    end
-
-    /*
-    Returns the value of the showOutlier flag.
-    */
-    action GetOutliersFlag() returns boolean
-        return showOutliers
-    end
-
-     /*
-    Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through plot groups
-    */
-    action HasGroups(boolean flag)
-        hasGroups = flag
-    end
-
-    /*
-    Appends a plotgroup.
-    */
-    action AddPlotGroup(PlotGroup group)
-        plotGroups:Add(group)
-    end
-   
-    /*
-        Returns an array of all the plot groups
-    */
-    action GetPlotGroups returns Array<PlotGroup>
-        return plotGroups
-    end
-
-     /*
-    Returns an array of all the series sets 
-    */
-    action GetSeriesList returns Array<Series>
-        return seriesList
-    end
-
-    action AddSeries(Series series)
-        seriesList:Add(series)
-    end
-
-    /*
-        Gets the default selection color (highlighting)
-    */
-    action GetHighlightColor returns Color
-        return highlightColor
-    end
-
-    /*
-        Sets the default selection color (highlighting)
-    */
-    action SetHighlightColor(Color color)
-        me:highlightColor = color
-    end
-
     on create
-        BoxPlotLayout layout
+        ViolinPlotLayout layout
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -226,35 +90,15 @@ class BoxPlot is Chart
         properties:SetBackgroundColor(gradient)
         properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
-        SetName("Box Plot")
+        SetName("Violin Plot")
 
         SetInputGroup("Chart")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        NormalDistributionAction window
+        windowingAction = window
     end
-
-    /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the chart. Also the highest level of the information tree
-    of  the chart.
-    */
-    action GenerateSummary returns text
-        text lineText = "Groups"
-        text plotText = "box plots"
-        if xAxisLabels:GetSize() = 1
-            linetext = "Group"
-            plotText = "box plot"
-        end
-        if hasGroups
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        else
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        end
-        return GetDescription()
-    end // end of GenerateSummary
 
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
@@ -285,69 +129,59 @@ class BoxPlot is Chart
         end
     end
 
-
-    /*
-        This action loads the graphics to the game, and associates those graphics to their verbal descriptions.
-    */
     action LoadGraphics(LayoutProperties properties)
-
         DisposeDrawables()
         parent:Chart:LoadGraphics(properties)
         if properties = undefined
             return now
         end
         
-        //Sets the base format of boxplot chart
-        Control vertical = GetVerticalPanel()
-        Control horizontal = GetHorizontalPanel()
+        Array<Drawable> xTickDrawables = GetXTicks()
+        Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<ControlLabel> xLabels = GetXLabels()
+        Array<ControlLabel> yLabels = GetScaleLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
-
-        // Gets the increments of the axes of the chart
-        Array<Drawable> drawable_Xincrements = GetXTicks()
-        Array<Drawable> drawable_Yincrements = GetScaleTicks()
-        
-        //Gets the labels of the axes
-        Array<ControlLabel> x_Labels = GetXLabels()
-        Array<ControlLabel> y_Labels = GetScaleLabels()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
 
         //Adding Tick and labels on Y axis
-        if yIncrements not= 0 and drawable_Yincrements:IsEmpty()
-            number space = yMaximum/ (yIncrements - 1)
-            number curr = 0
-            repeat until drawable_Yincrements:GetSize() = yIncrements
-                Drawable Increment
-                Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
-                drawable_Yincrements:Add(Increment)
-                vertical:Add(Increment)
-
+        if yTicks not= 0 and yTickDrawables:IsEmpty()
+            number space = yMaximum/(yTicks-1)
+            number current = 0
+            repeat until yTickDrawables:GetSize() = yTicks
+                Drawable tick
+                tick:LoadFilledRectangle(tickLength,tickWidth)
+                yTickDrawables:Add(tick)
+                verticalPanel:Add(tick)
+                
                 ControlLabel label
-                label:SetFontSize(GetFontSize())
+                label:SetFontSize(GetFontSize() - 5)
                 label:SetFocusable(true)
                 label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(curr + " ")
-                label:SetName(curr + " ")
-                vertical:Add(label)
-                y_Labels:Add(label)
-                curr = curr + space
-            end //end of repeat statement
-        end // end of if statement
+                label:SetText(current+"")
+                label:SetName(current+"")
+                verticalPanel:Add(label)
+                yLabels:Add(label)
+                current = current + space
+            end
+        end
 
-        //Add Labels on X axis
-        integer count = 0
-        repeat while count < xAxisLabels:GetSize()
+        //Adding labels on X axis(violin plot only have labels on x axis)
+        integer cnt = 0
+        repeat while cnt < xAxisLabels:GetSize()
             ControlLabel label
+            label:SetFontSize(GetFontSize() - 5)
             label:SetFocusable(true)
-            label:SetFontSize(GetFontSize())
             label:SetAccessibilityCode(parent:Item:ITEM)
-            label:SetName(xAxisLabels:Get(count))
-            label:SetText(xAxisLabels:Get(count))
-            horizontal:Add(label)
-            x_Labels:Add(label)
-            count = count + 1
+            label:SetText(xAxisLabels:Get(cnt))
+            label:SetName(xAxisLabels:Get(cnt))
+            horizontalPanel:Add(label)
+            xLabels:Add(label)
+            cnt = cnt + 1
         end
 
         // add drawables per each boxplot to the chart
@@ -389,11 +223,11 @@ class BoxPlot is Chart
                 firstQuartileLine:SetFocusable(true)
                 firstQuartileLine:SetAccessibilityCode(0)
                 // Median Line (denser)
-                Drawable medianLine
-                medianLine:SetName("The Median value is " + median + "  ")
-                medianLine:SetDescription("Median")
-                medianLine:SetFocusable(true)
-                medianLine:SetAccessibilityCode(0)
+                Drawable medianDot
+                medianDot:SetName("The Median value is " + median + "  ")
+                medianDot:SetDescription("Median")
+                medianDot:SetFocusable(true)
+                medianDot:SetAccessibilityCode(0)
                 // Upper Quartile Line Q3
                 Drawable thirdQuartileLine
                 thirdQuartileLine:SetName("The upper quartile value is " + thirdQ + " ")
@@ -410,26 +244,31 @@ class BoxPlot is Chart
                 maximumLine:SetAccessibilityCode(0)
                 // Plot Area Outline Panel
                 Icon plotArea
-                plotArea:SetName(group:Get(k):GetName() + " box plot")
+                plotArea:SetName(group:Get(k):GetName() + " violin plot")
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
+
+
+                // Voilin plot density map
+                Drawable denisty
     
-    
+                // Add to chart
+                chartArea:Add(denisty)
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
                 chartArea:Add(upperWhisker)
-
                 chartArea:Add(minimumLine)
                 chartArea:Add(firstQuartileLine)
-                chartArea:Add(medianLine)
                 chartArea:Add(thirdQuartileLine)
                 chartArea:Add(maximumLine)
-                chartArea:Add(interQuartileRange)  //Place on top of others
+                chartArea:Add(interQuartileRange)
+                chartArea:Add(medianDot)
                 chartArea:Add(plotArea)
-                //Add the outliers
     
-                /* Indices for items of individual box plot
+
+                // Add to plot
+                /* Indices for items of individual violin plot
                     0: PLOT AREA (ENTIRE REGION)
                     1: MINIMUM LINE
                     2: LOWER WHISKER
@@ -441,7 +280,7 @@ class BoxPlot is Chart
                     8: Q3 LINE
                     9: UPPER WHISKER    
                     10: MAXIMUM LINE 
-                    11+: OUTLIER POINTS
+                    11: PIXEL DENSITY MAP
                 */
                 plot:AddItem(plotArea)
                 plot:AddItem(minimumLine)      
@@ -450,34 +289,18 @@ class BoxPlot is Chart
                 plot:AddItem(rightBorder)
                 plot:AddItem(leftBorder)
                 plot:AddItem(firstQuartileLine)
-                plot:AddItem(medianLine)
+                plot:AddItem(medianDot)
                 plot:AddItem(thirdQuartileLine)
                 plot:AddItem(upperWhisker)
                 plot:AddItem(maximumLine)
-                //Add the outliers
+                plot:AddItem(denisty)
     
-    
-                if GetOutliersFlag()
-                    // Outliers ++
-                    Array <number> outliers = plot:GetOutliers()
-                    integer j = 0
-                    repeat while j < outliers:GetSize()
-                        Drawable outlier
-                        outlier:SetName(""+outliers:Get(j))
-                        outlier:SetDescription("Outlier")
-                        outlier:SetFocusable(true)
-                        outlier:SetAccessibilityCode(0)
-                        chartArea:Add(outlier)
-                        plot:AddItem(outlier)
-                        j = j + 1
-                    end
-                end
                 k = k + 1
             end
 
             // Area covering entire group panel
             Icon panel
-            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " box plots.")
+            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " violin plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)
@@ -501,24 +324,41 @@ class BoxPlot is Chart
                 i = i + 1
             end
         end
-
-
         if IsShowingLegend()
             Add(GetLegend())
         end
+    end
 
-    end // end of loadGraphics
-           
+        /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the chart. Also the highest level of the information tree
+    of  the chart.
+    */
+    action GenerateSummary returns text
+        text lineText = "Groups"
+        text plotText = "violin plots"
+        if xAxisLabels:GetSize() = 1
+            linetext = "Group"
+            plotText = "violin plot"
+        end
+        if hasGroups
+            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        else
+            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        end
+        return GetDescription()
+    end // end of GenerateSummary
 
-    /* 
+    /*
     Creates the accessibility information for the chart area.
     */
     action GenerateInfoTree
         if GetDefaultLayoutProperties():NeedsRendering()
             return now //we haven't loaded graphics yet, so bail.
         end
-        
-                //NOTE: These nodes implement a cheap form of ordinality might need changing
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
         ChartItem chartArea//not to be confused with panel
@@ -535,11 +375,11 @@ class BoxPlot is Chart
         yAxis:SetDisplayName("Vertical Axis")
         yAxis:SetFocusTarget(GetYLabel())
 
-        chartArea:SetDisplayName("Box Plot")
+        chartArea:SetDisplayName("Violin Plot")
         if hasGroups
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " groups")
         else
-            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " box plots")
+            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots")
         end
         chartArea:SetFocusTarget(me:GetChartArea())
         xAxis:SetContainer(me)        
@@ -562,54 +402,43 @@ class BoxPlot is Chart
             GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
         end
 
-       // Makes control labels for y axis
-        Array<ControlLabel> y_Labels = GetScaleLabels()
-        ChartItem y_Prev
-    
+        Array<ControlLabel> yLabels = GetScaleLabels()
+        ChartItem yPrevious
         integer i = 0
-    
-        repeat while i < y_Labels:GetSize()
+        repeat while i < yLabels:GetSize()
             ChartItem next
             if i = 0
                 yAxis:SetChild(next)
             else
-                next:SetPrevious(y_Prev)
-                y_Prev:SetNext(next)
+                next:SetPrevious(yPrevious)
+                yPrevious:SetNext(next)   
             end
-        
-            next:SetDisplayName(y_Labels:Get(i):GetText())
-            next:SetFocusTarget(y_Labels:Get(i))
             next:SetContainer(me)
+            next:SetDisplayName(yLabels:Get(i):GetText())
             next:SetParent(yAxis)
-            
-            y_Prev = next
-        
-            i = i + 1 
-        end //end of repeat loop
+            next:SetFocusTarget(yLabels:Get(i))
+            yPrevious = next
+            i = i + 1
+        end
 
-
-        //Makes control labels for x axis      
-        Array<ControlLabel> x_Labels = GetXLabels()
-        ChartItem x_Prev
-        integer j = 0
-        repeat while j < x_Labels:GetSize()
+        Array<ControlLabel> xLabels = GetXLabels()
+        ChartItem xPrevious
+        i = 0
+        repeat while i < xLabels:GetSize()
             ChartItem next
-            if j =0
+            if i = 0
                 xAxis:SetChild(next)
             else
-                next:SetPrevious(x_Prev)
-                x_Prev:SetNext(next)
+                next:SetPrevious(xPrevious)
+                xPrevious:SetNext(next)   
             end
-            
-            next:SetDisplayName(x_Labels:Get(j):GetText())
-            next:SetFocusTarget(x_Labels:Get(j))
             next:SetContainer(me)
+            next:SetDisplayName(xLabels:Get(i):GetText())
             next:SetParent(xAxis)
-           
-            x_Prev = next
-
-            j = j + 1
-        end // end of loop
+            next:SetFocusTarget(xLabels:Get(i))
+            xPrevious = next
+            i = i + 1
+        end
         
         if hasGroups
             //Plot Groups
@@ -784,10 +613,11 @@ class BoxPlot is Chart
         
         ChartSelection selection = GetSelection()
         selection:Set(summary)
-            
-    end //end of Genarate infotree
-   
-
+    end
+    
+    /*
+    This will execute when an item in violin chart lose selection
+    */
     action LostSelection(ChartItem ci)
         if ci = undefined
             return now
@@ -842,6 +672,119 @@ class BoxPlot is Chart
             end            
         end
     end
+    
+    /*
+    This sets how many ticks on the y-axis
+    */
+    action SetYTickCount(integer ticks)
+        yTicks = ticks
+    end
+
+    /*
+    This retuns total number of ticks on the y-axis
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+    
+    /*
+    This sets how many labels on x-axis
+    */
+    action SetXAxisLabels(Array<text> label)
+        xAxisLabels = label
+    end
+
+    /*
+    This returns how many labels on x-axis
+    */
+    action GetXAxisLabels returns Array<text>
+        return xAxisLabels
+    end
+
+    // Sets the maximum in y axis
+    action SetYMaximum(number max)
+        yMaximum = max
+     end
+    
+    // Get the maximum in y axis
+    action GetYMaximum returns number
+        return yMaximum
+    end
+
+    /*
+    This sets what kind of kernel function to use to calculate the normal distributions
+    */
+    action SetWindowingAction(UnivariateAction act)
+        me:windowingAction = act
+    end
+
+    /*
+    This gets what kind of kernel function that is used to calculate the normal distributions
+    */
+    action GetWindowingAction returns UnivariateAction
+        return me:windowingAction
+    end
+
+    /*
+    This sets the inteval size to calculate the normal distributions
+    */
+    action SetBandWidth(integer value)
+        bandWidth = value
+    end
+
+    /*
+    This returns the inteval size to calculate the normal distributions
+    */
+    action GetBandWidth returns integer
+        return bandWidth
+    end
+
+     /*
+    Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through plot groups
+    */
+    action HasGroups(boolean flag)
+        hasGroups = flag
+    end
+
+    /*
+    Appends a new plotgroup.
+    */
+    action AddPlotGroup(PlotGroup group)
+        plotGroups:Add(group)
+    end
+   
+    /*
+    Returns an array of all the plot groups
+    */
+    action GetPlotGroups returns Array<PlotGroup>
+        return plotGroups
+    end
+
+     /*
+    Returns an array of all the series sets 
+    */
+    action GetSeriesList returns Array<Series>
+        return seriesList
+    end
+
+    action AddSeries(Series series)
+        seriesList:Add(series)
+    end
+
+    /*
+        Gets the default selection color (highlighting)
+    */
+    action GetHighlightColor returns Color
+        return highlightColor
+    end
+
+    /*
+        Sets the default selection color (highlighting)
+    */
+    action SetHighlightColor(Color color)
+        me:highlightColor = color
+    end
+
     /* 
         This action converts this chart to a text value that contains information 
         for a scalable vector graphics file. This is useful for saving charts to disk.
@@ -850,7 +793,7 @@ class BoxPlot is Chart
         Attribute: Returns the Scalable Vector Graphics (SVG) text.
     */
     action ConvertToScalableVectorGraphics returns text
-        BoxPlotWriter writer
+        ViolinPlotWriter writer
         return writer:WriteOutChart(me)
     end
 

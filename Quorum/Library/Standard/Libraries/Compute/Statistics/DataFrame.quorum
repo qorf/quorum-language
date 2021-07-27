@@ -42,8 +42,8 @@ use Libraries.Language.Compile.Interpreter.Result
 use Libraries.Language.Compile.Interpreter.RuntimeBlock
 use Libraries.Compute.Statistics.Charts.LineChartCreator
 use Libraries.Interface.Controls.Charts.LineChart
-use Libraries.Compute.Statistics.Charts.ViolinChartCreator
-use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Compute.Statistics.Charts.ViolinPlotCreator
+use Libraries.Interface.Controls.Charts.ViolinPlot
 use Libraries.Compute.Statistics.Transforms.CrossTab
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
@@ -2580,7 +2580,7 @@ class DataFrame
     end
     
     /*
-        This action creates a ViolinChart from the current column selection in the DataFrame.
+        This action creates a ViolinPlot from the current column selection in the DataFrame.
         By default, it uses all columns as separate values in the selection as the chart area. 
         Factors have no impact on this action.
 
@@ -2588,21 +2588,22 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Interface.Controls.Charts.ViolinChart
+        use Libraries.Interface.Controls.Charts.ViolinPlot
         
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(1)
-        ViolinChart chart = frame:ViolinChart()
+        ViolinPlot chart = frame:ViolinPlot()
         chart:SetTitle("My Awesome Title")
         chart:SetXAxisTitle("Time")
         chart:Display()
     */
-    action ViolinChart returns ViolinChart
-        ViolinChartCreator creator
+    action ViolinPlot returns ViolinPlot
+        ViolinPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
 
-        return cast(ViolinChart, CreateChart(creator))
+        return cast(ViolinPlot, CreateChart(creator))
     end
 
     /*
