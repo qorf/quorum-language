@@ -45,7 +45,8 @@ class ViolinPlotLayout is ChartLayout
     action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
         integer width = cast(integer, horizontalContainer:GetWidth())
         integer height = cast(integer, horizontalContainer:GetHeight())
-        
+        integer yLabelOffset = 0        
+
         Array<ControlLabel> labels = chart:GetXLabels()
         integer space = cast(integer, width/labels:GetSize())
         integer labelY = height - cast(integer, labels:Get(0):GetHeight())
@@ -55,14 +56,24 @@ class ViolinPlotLayout is ChartLayout
             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
             end
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+
             integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
             currentLabel:SetPosition(labelX, labelY)
             i = i + 1
         end
-        ControlLabel axisLabel = chart:GetXLabel()
-        axisLabel:SetPositionOnBaseLine(true)
-        axisLabel:SetX(cast(integer, width / 2 - axisLabel:GetWidth() / 2))
-        axisLabel:SetY(cast(integer, height / 2 - axisLabel:GetHeight()))
+
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = height
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
 
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -93,12 +104,17 @@ class ViolinPlotLayout is ChartLayout
                 group:GetItem():LoadRectangle(panelwidth,height,invis)
                 group:GetItem():SetPosition(startpanelw,0)
 
-                //integer panelSize = group:GetSize()
                 if group:GetSize() > 0
                     integer width = cast(integer, panelwidth/group:GetSize())
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
-                    integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
+
+                    number linePercent = (0.005)*group:GetSize()*plotGroups:GetSize()
+                    if linePercent > 0.05
+                        linePercent = 0.05
+                    end
+
+                    integer line = cast(integer, width * linePercent)
 
                     integer k = 0
                     repeat while k < group:GetSize()
@@ -130,7 +146,8 @@ class ViolinPlotLayout is ChartLayout
                         
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
                         Array<Drawable> item = plot:GetItems()
-                        Color plotColor = plot:GetIcon():GetColor()
+                        Color darkColor = black:Copy()
+                        Color lightColor = plot:GetIcon():GetColor()
 
                         integer radius = line/2
 
@@ -139,7 +156,7 @@ class ViolinPlotLayout is ChartLayout
                         item:Get(0):SetPosition(startw,0)
             
                         //Minimum
-                        item:Get(1):LoadFilledRectangle(line, line, black)
+                        item:Get(1):LoadFilledRectangle(line, line, darkColor)
                         item:Get(1):SetPosition(startw+center,cast(integer, minimum/dataScale))
 
                         // If Min and Q1 are the same.. position min so that they are both visible.
@@ -148,11 +165,11 @@ class ViolinPlotLayout is ChartLayout
                         end
             
                         //Lower Whisker
-                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, black)
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, darkColor)
                         item:Get(2):SetPosition(startw+center,cast(integer, minimum/dataScale))
             
                         //IQR Region
-                        item:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), black)
+                        item:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
                         item:Get(3):SetPosition(startw+center-radius,cast(integer, lowerQuartile/dataScale)+line)
             
 //                        //Right IQR line not necessary in violin plot
@@ -164,7 +181,7 @@ class ViolinPlotLayout is ChartLayout
 //                        item:Get(5):SetPosition(startw+center,cast(integer, lowerQuartile/dataScale))
             
                         //Q1
-                        item:Get(6):LoadFilledRectangle(line, line, black)
+                        item:Get(6):LoadFilledRectangle(line, line, darkColor)
                         item:Get(6):SetPosition(startw+center,cast(integer, lowerQuartile/dataScale))
             
                         //Median
@@ -182,16 +199,16 @@ class ViolinPlotLayout is ChartLayout
                         end
             
                         //Q3
-                        item:Get(8):LoadFilledRectangle(line, line, black)
+                        item:Get(8):LoadFilledRectangle(line, line, darkColor)
                         item:Get(8):SetPosition(startw+center,cast(integer, upperQuartile/dataScale)+line)
             
                         
                         //Upper Whisker
-                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), black)
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
                         item:Get(9):SetPosition(startw+center,cast(integer, upperQuartile/dataScale))
             
                         //Max
-                        item:Get(10):LoadFilledRectangle(line, line, black)
+                        item:Get(10):LoadFilledRectangle(line, line, darkColor)
                         item:Get(10):SetPosition(startw+center,cast(integer, maximum/dataScale)-line)
 
                         // If Max and Q3 are the same.. position max so that they are both visible.
@@ -206,11 +223,11 @@ class ViolinPlotLayout is ChartLayout
 
                         Vector data = plot:GetData()
 
-                        number bandWidth = chart:GetYMaximum()*0.015
+                        number bandWidth = chart:GetYMaximum()*0.03
 
                         Array <number> estimates = EstimateDensity(bandWidth, dataScale, data, chart:GetWindowingAction())
 
-                        integer nextPixel = cast(integer, minimum/dataScale)+1
+                        integer nextPixel = cast(integer, data:Get(0)/dataScale)+1
                         number maxEstimate = estimates:Get(estimates:GetSize()-1)
                         number estimateScale = maxEstimate/(center)
                         integer index = 0
@@ -218,9 +235,9 @@ class ViolinPlotLayout is ChartLayout
                             number estimate = estimates:Get(index)
                             integer pixW = cast(integer, (estimate/estimateScale)*0.75)
                             integer pixH = height - nextPixel
-                            pixelMap:DrawLine(center-pixW, pixH, center+pixW, pixH, plotColor)
-                            pixelMap:SetPixel(center-pixW, pixH, black)
-                            pixelMap:SetPixel(center+pixW, pixH, black)
+                            pixelMap:DrawLine(center-pixW, pixH, center+pixW, pixH, lightColor)
+                            pixelMap:SetPixel(center-pixW, pixH, darkColor)
+                            pixelMap:SetPixel(center+pixW, pixH, darkColor)
                             nextPixel = nextPixel + 1
                             index = index + 1
                         end

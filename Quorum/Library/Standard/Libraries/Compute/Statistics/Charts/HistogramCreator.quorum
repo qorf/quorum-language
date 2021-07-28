@@ -228,6 +228,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         chart:SetYTickSteps(ticks)
         Legend legend
         chart:SetMaxBarValue(maxFrequency)
+        chart:SetYMaximum(maxFrequency)
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
         return chart

@@ -171,6 +171,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer min = countMin
         integer stepCounter = 0
 
+        Series series
+        series:SetName(" ")
+
         //make chart
         i = 0
         repeat while i < labels:GetSize()
@@ -183,15 +186,15 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetName(labels:GetAsText(i))
                 bar:SetValue(valueForName)
                 group:AddBar(bar)
+                series:AddItem(bar:GetIcon())
                 chart:AddBarGroup(group)
             end
             i = i + 1
         end 
         Legend legend
-        Series series
-        series:SetName(" ")
         chart:AddSeries(series)
         chart:SetMaxBarValue(max)
+        chart:SetYMaximum(max)
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
         SetTicks(chart)
@@ -300,7 +303,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < groupKeyArray:GetSize()
-            chart:AddBarGroup(groupFactor:GetValue(groupKeyArray:Get(i)))
+            BarGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
+            chart:AddBarGroup(group)
             i = i + 1
         end    
         
@@ -321,6 +325,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
         chart:SetMaxBarValue(max)
+        chart:SetYMaximum(max)
         SetTicks(chart)
         SetScale(chart, min, max)
         return chart
@@ -403,6 +408,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         chart:AddSeries(series)
         chart:SetMaxBarValue(sumMax)
+        chart:SetYMaximum(sumMax)
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor:GetHeader())
         chart:SetLegend(legend)
@@ -488,6 +494,7 @@ private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, Dat
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor2:GetHeader())
         chart:SetMaxBarValue(sumMax)
+        chart:SetYMaximum(sumMax)
         chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, sumMin, sumMax)

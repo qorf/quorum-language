@@ -43,12 +43,16 @@ class TwoVariableChartLayout is ChartLayout
         originPointX = 0
         originPointY = originPointY - tickHeight
         integer labelHeight = 0
+        integer yLabelOffset = 0
+
         Array<ControlLabel> xLabels = chart:GetXLabels()
         if not xLabels:IsEmpty()
             Label currentLabel = xLabels:Get(0)
             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
             end
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+
             labelHeight = currentLabel:GetLineHeight()
             integer i = 0
             repeat while i < xLabels:GetSize()
@@ -63,12 +67,17 @@ class TwoVariableChartLayout is ChartLayout
             end
         end
 
-        //This is the X axis title label.
-        originPointY = originPointY - labelHeight
-        ControlLabel axisLabel = chart:GetXLabel()
-        axisLabel:SetPositionOnBaseLine(true)
-        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth() / 2.0 - axisLabel:GetWidth() / 2.0))
-        axisLabel:SetY(cast(integer, (originPointY - axisLabel:GetHeight()) / 2.0))
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = cast(integer, horizontalContainer:GetHeight())
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
 
 end

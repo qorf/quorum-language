@@ -60,6 +60,7 @@ class BoxPlotLayout is ChartLayout
     action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
         integer width = cast(integer, horizontalContainer:GetWidth())
         integer height = cast(integer, horizontalContainer:GetHeight())
+        integer yLabelOffset = 0
         
         Array<ControlLabel> labels = chart:GetXLabels()
         integer space = cast(integer, width/labels:GetSize())
@@ -70,14 +71,23 @@ class BoxPlotLayout is ChartLayout
             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
             end
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+
             integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
             currentLabel:SetPosition(labelX, labelY)
             i = i + 1
         end
-        ControlLabel axisLabel = chart:GetXLabel()
-        axisLabel:SetPositionOnBaseLine(true)
-        axisLabel:SetX(cast(integer, width / 2 - axisLabel:GetWidth() / 2))
-        axisLabel:SetY(cast(integer, height / 2 - axisLabel:GetHeight()))
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = height
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
     
     /*
@@ -111,7 +121,14 @@ class BoxPlotLayout is ChartLayout
                     integer width = cast(integer, panelwidth/group:GetSize())
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
-                    integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
+                    //integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
+
+                    number linePercent = (0.005)*group:GetSize()*plotGroups:GetSize()
+                    if linePercent > 0.05
+                        linePercent = 0.05
+                    end
+
+                    integer line = cast(integer, width * linePercent)
 
                     integer k = 0
                     repeat while k < group:GetSize()
@@ -218,9 +235,9 @@ class BoxPlotLayout is ChartLayout
                             integer j = 11
                             repeat while outlierIndex < outliers:GetSize() and j < item:GetSize()
                                 number y = outliers:Get(outlierIndex)
-                                integer radius = line/2
+                                integer radius = line
                                 item:Get(j):LoadFilledCircle(radius, darkColor)
-                                item:Get(j):SetPosition(startw+center-radius, cast(integer, y/dataScale))
+                                item:Get(j):SetPosition(startw+center-(radius/2), cast(integer, y/dataScale)-radius)
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1
                             end
