@@ -101,7 +101,17 @@ class BarChart is SharedBarChartParent
         return GetDescription()
     end
     
-    
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        BarChartWriter writer
+        return writer:WriteOutChart(me)
+    end
 
 end
 

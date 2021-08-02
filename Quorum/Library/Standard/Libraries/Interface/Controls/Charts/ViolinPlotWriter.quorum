@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Vector
 use Libraries.Interface.Layouts.ViolinPlotLayout
+use Libraries.Game.Graphics.Color
 
 /*
     The ViolinPlotWriter class is part of the set of writers that allow for Charts
@@ -139,26 +140,44 @@ class ViolinPlotWriter
     private action AddViolins(ScalableVectorGraphics canvas, ViolinPlot chart)
         //this is needed for calculations so this will probably change if stuff is moved around 
         ViolinPlotLayout layout
+        boolean split = chart:GetSplitFlag()
 
-        Array<PlotGroup> groups = chart:GetPlotGroups()
-        if groups:GetSize() > 0
-            number total = groups:GetSize()
-            number panelwidth = axisLength/total
+        Array <PlotGroup> plotGroups = chart:GetPlotGroups()
+        integer groups = plotGroups:GetSize()
+        if groups > 0 and axisLength > 0 // To eliminate divide by zero
+            number panelwidth = axisLength/groups
             number height = axisLength
             number dataScale = chart:GetYMaximum()/height
 
             integer i = 0
-            repeat while i < groups:GetSize()
-                PlotGroup group = groups:Get(i)
+            repeat while i < groups
+                PlotGroup group = plotGroups:Get(i)
+                integer plots = group:GetSize()
 
                 //Give each group an alloted section  
                 integer startpanelw = cast(integer, panelwidth*i)
 
-                if group:GetSize() > 0
-                    integer width = cast(integer, panelwidth/group:GetSize())
+                if plots > 0
+                    if split
+                        if plots = 2
+                            plots = 1 // changing the width and line percent for this plot to use 1 section instead of two
+                        else
+                            split = false
+                        end
+                    end
+
+                    integer width = cast(integer, panelwidth/plots)
                     integer center = cast(integer, width/2) 
+                    integer centerOffset = center
                     integer size = cast(integer, width/4)
-                    integer lineH = cast(integer, width * (0.005)*group:GetSize()*groups:GetSize())
+                    number linePercent = (0.005)*plots*groups
+                    if linePercent > 0.05
+                        linePercent = 0.05
+                    end
+
+                    integer line = cast(integer, width * linePercent)
+                    integer midline = line/2
+                    line = midline*2
 
                     integer k = 0
                     repeat while k < group:GetSize()
@@ -170,31 +189,55 @@ class ViolinPlotWriter
                         number max = plot:GetInfoAt(4)
             
                         //Give each chart an alloted section  
-                        integer startW = width*k + startpanelw
+                        integer startw = width*k + startpanelw
+                        integer centerline = center - midline //This is to center the vertical lines over the very middle of the plot area
+                        if split
+                            centerline = center - line
+                        end
+                        integer x = startw + centerline
     
                         //even though lines could be used here rectangles are used for translation purposes
+                        // IQR Region
                         Rectangle first
-                        first:SetSize(lineH, (upperQuartile-lowerQuartile)/dataScale, "%")
-                        first:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - upperQuartile/dataScale, "%")
+                        first:SetSize(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), "%")
+                        first:SetPosition(axisPointX + startw + (center - line), axisPointY - cast(integer, lowerQuartile/dataScale)-midline, "%")
+                        first:SetFill("black")
+
+                        // Whisker
                         Rectangle second
-                        second:SetSize(lineH, (max-min)/dataScale, "%")
-                        second:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - max/dataScale, "%")
+                        second:SetSize(line, cast(integer, (max-min)/dataScale), "%")
+                        second:SetPosition(axisPointX + x, axisPointY - cast(integer, max/dataScale)-midline, "%")
+                        second:SetFill("black")
+
+                        // Maximum
                         Rectangle third
-                        third:SetSize(lineH*4, lineH, "%")
-                        third:SetPosition(axisPointX + startW+(width-lineH*4)/2,axisPointY - max/dataScale, "%")
+                        third:SetSize(line, line, "%")
+                        third:SetPosition(axisPointX + x, axisPointY - cast(integer, max/dataScale)-midline, "%")
+                        third:SetFill("black")
+
+                        // Q1
                         Rectangle fourth
-                        fourth:SetSize(lineH, lineH, "%")
-                        fourth:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - upperQuartile/dataScale, "%")
+                        fourth:SetSize(line, line, "%")
+                        fourth:SetPosition(axisPointX + x, axisPointY - cast(integer, upperQuartile/dataScale)-midline, "%")     
+                        fourth:SetFill("black")
+
+                        // Median
                         Circle dot
-                        dot:SetRadius(lineH/2, "%")
+                        dot:SetRadius(midline, "%")
+                        dot:SetPosition(axisPointX + x, axisPointY - cast(integer, median/dataScale)-midline, "%")
                         dot:SetFill("white")
-                        dot:SetPosition(axisPointX + startW+(width-lineH)/2 + lineH/2,axisPointY - median/dataScale, "%")
+
+                        // Q3
                         Rectangle fifth
-                        fifth:SetSize(lineH, lineH, "%")
-                        fifth:SetPosition(axisPointX + startW+(width-lineH)/2,axisPointY - lowerQuartile/dataScale - lineH, "%")
+                        fifth:SetSize(line, line, "%")
+                        fifth:SetPosition(axisPointX + x, axisPointY - cast(integer, lowerQuartile/dataScale)-midline, "%")
+                        fifth:SetFill("black")
+
+                        // Minimum
                         Rectangle sixth
-                        sixth:SetSize(lineH*4, lineH, "%")
-                        sixth:SetPosition(axisPointX + startW+(width-lineH*4)/2,axisPointY - min/dataScale - lineH, "%")
+                        sixth:SetSize(line, line, "%")
+                        sixth:SetPosition(axisPointX + x, axisPointY - cast(integer, min/dataScale)-midline, "%")
+                        sixth:SetFill("black")
                         
                         //bandWidth will be auto set to a value according the height of the chart
                         number bandWidth = chart:GetYMaximum()*0.015
@@ -205,10 +248,10 @@ class ViolinPlotWriter
                         integer index = 0
                         repeat while index < estimates:GetSize()-1
                             number estimate = estimates:Get(index)
-                            number pixW = (estimate/estimateScale)*0.75
+                            number pixW = cast(integer, (estimate/estimateScale)*0.75)
                             number pixH = height - nextPixel
                             Line tempLine
-                            tempLine:SetPoints(axisPointX + startW + width/2-pixW,axisPointY - axisLength + pixH,axisPointX + startW + width/2+pixW, axisPointY - axisLength + pixH, "%")
+                            tempLine:SetPoints(axisPointX + center-pixW, axisPointY - axisLength + pixH,axisPointX + center+pixW, axisPointY - axisLength + pixH, "%")
                             tempLine:SetStroke("blue")
                             tempLine:SetStrokeWidth(6)
                             canvas:Add(tempLine)
