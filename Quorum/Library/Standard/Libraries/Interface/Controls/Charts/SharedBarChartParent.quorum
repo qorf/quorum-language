@@ -624,12 +624,6 @@ class SharedBarChartParent is Chart
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
 
-        if isStacked
-            yTicks:Empty()
-            yLabels:Empty()
-        end
-
-
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
             yLabels:SetSize(GetYTickSteps())

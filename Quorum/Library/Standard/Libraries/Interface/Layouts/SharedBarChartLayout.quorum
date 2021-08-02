@@ -11,6 +11,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.BarGroup
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.ChartOptions
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
@@ -102,9 +103,25 @@ class SharedBarChartLayout is ChartLayout
                         chart:SetMaxBarValue(sum)
                         chart:SetYMaximum(sum)
                         chart:SetScaleMaximum(sum)
-                        // The y axis needs to be redrawn... not sure how.
                     end
                     i = i + 1
+                end
+                // Y-axis labels renamed with new max
+                Array<ControlLabel> yLabels = chart:GetScaleLabels()
+                number maxScale = chart:GetYMaximum()
+                integer steps = chart:GetYTickSteps()
+                if steps > 1
+                    number scaleWidth = cast(number, maxScale / (steps - 1))
+                    number scaleNum = 0
+                    ChartOptions chartOptions
+                    i = 0
+                    repeat while i < yLabels:GetSize()        
+                        text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
+                        yLabels:Get(i):SetText(scaleText)
+                        yLabels:Get(i):SetName(scaleText + " " + (i + 1) + " of " + steps)
+                        scaleNum = scaleNum + scaleWidth
+                        i = i + 1
+                    end
                 end
             end
 
