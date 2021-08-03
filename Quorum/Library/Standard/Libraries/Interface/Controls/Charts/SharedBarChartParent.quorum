@@ -30,10 +30,12 @@ class SharedBarChartParent is Chart
     Array<text> barNames
     Array<BarGroup> barGroups
     boolean hasBarGroups = true
+    boolean isStacked = false
     Array<Series> seriesList
 
     integer yTickSteps = 2
     integer xTickSteps = -1
+    private number yMaximum = 0 // the maximum value in y axis
     number maxScale = 1
     number minScale = 0
 
@@ -120,6 +122,20 @@ class SharedBarChartParent is Chart
     */
     action HasBarGroups(boolean flag)
         hasBarGroups = flag
+    end
+
+    /*
+        Sets a flag that will stack bars inside each group if set to true.
+    */
+    action IsStacked(boolean flag)
+        isStacked = flag
+    end
+
+     /*
+        Returns stacked flag 
+    */
+    action GetStackedFlag() returns boolean
+        return isStacked
     end
 
     //Made private to avoid issues with using this before AddBar
@@ -318,6 +334,16 @@ class SharedBarChartParent is Chart
 
     action SetMaxBarValue(number max)
          maxBarValue = max
+    end
+
+    // Sets the maximum in y axis
+    action SetYMaximum(number max)
+        yMaximum = max
+     end
+    
+    // Get the maximum in y axis
+    action GetYMaximum returns number
+        return yMaximum
     end
 
     /*
@@ -598,7 +624,6 @@ class SharedBarChartParent is Chart
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
 
-
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
             yLabels:SetSize(GetYTickSteps())
@@ -612,7 +637,7 @@ class SharedBarChartParent is Chart
                 yTicks:Set(i, tick)
                 verticalPanel:Add(yTicks:Get(i))
 
-                //make the labels for each scale tick (auto based on max)
+               //make the labels for each scale tick (auto based on max)
                 ChartOptions chartOptions
                 Math math
                 text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
@@ -684,8 +709,7 @@ class SharedBarChartParent is Chart
                 integer j = 0
                 
                 if hasBarGroups
-                    Icon barGroupIcon = barGroups:Get(i):GetIcon()
-                    barGroupIcon:LoadFilledRectangle(cast(integer, GetBarWidth() * barGroups:Get(i):GetSize()), cast(integer, GetChartArea():GetHeight()), barColor)
+                    Icon barGroupIcon = barGroups:Get(i):GetIcon() 
                     barGroupIcon:SetName("Bar Group " + (i + 1))
                     barGroupIcon:SetFocusable(true)
                     barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
@@ -696,10 +720,7 @@ class SharedBarChartParent is Chart
 
                 repeat while j < barGroups:Get(i):GetSize()
                     //make bars
-                    number height = GetBarHeight(barGroups:Get(i), j)
-                    number width = GetBarWidth()
                     Icon temp = barGroups:Get(i):Get(j):GetIcon()
-                    temp:LoadFilledRectangle(cast(integer, width), cast(integer, height), barColor)
                     if hasBarGroups
                         temp:SetName("Bar Group " + (i + 1) + ", Bar " + (j + 1))
                     else

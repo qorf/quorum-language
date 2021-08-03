@@ -3,59 +3,58 @@ package Libraries.Compute.Statistics.Charts
 use Libraries.Compute.Statistics.DataFrameChartCreator
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Math
 use Libraries.Compute.Vector
-use Libraries.Interface.Controls.Charts.all
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Interface.Controls.Charts.ViolinPlot
+use Libraries.Compute.Statistics.Analysis.UnivariateAction
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Containers.HashTable
+use Libraries.Containers.Support.Comparison
 use Libraries.Interface.Controls.Charts.PlotGroup
 use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Icon
-use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
+use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Containers.HashTable
 
 /*
-    This class is used to create a box plot of data in a DataFrame.
-    It calculates the median and the lower and upper quartiles,
-    it also finds the maximum and minimum values.
+    This class is used to create a Violin Chart from columns(at most 3) of data in a DataFrame.
+    It combines a box and whisker graph and a normal distribution graph. The max value on 
+    y-axis is based on the max value of all columns. X-axis is devided equally to holds at most 3 
+    violin chart with labels of each column.
 
-    Attribute: Authors Benjamin Murphy & Shyann Calhoun
-
+    Attribute: Author Silafu Yiliyaer
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Charts.BoxPlotCreator
-    use Libraries.Interface.Controls.Charts.BoxPlot
-    use Libraries.Game.Game
-    
-    class Main is Game
-        action Main
-            StartGame()
-        end
-    
-        action CreateGame
-            DataFrame frame
-            frame:Load("Data/Data.csv")
-            BoxPlotCreator creator
-            creator:AddColumn(2)
-        
-            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
-            chart:SetPercentageWidth(1)
-            chart:SetPercentageHeight(1)
-            chart:SetTitle("Sample Title")
-            chart:SetXAxisTitle("X-axis Variable")
-            chart:SetYAxisTitle("Y-axis Variable")
-            Add(chart)
-        end
-    end
-*/
+    use Libraries.Compute.Statistics.Charts.ViolinPlotCreator
 
-class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
-    //x ticks to mark numbers along the x axis
-    private integer yTicks = 5   
+    //Create a ViolinPlot and set some properties
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    ViolinPlotCreator creator
+    creator:AddColumn(1)
+
+    SigmoidAction act
+    creator:SetWindowingAction(act)
+
+    ViolinPlot chart = frame:CreateChart(creator)
+    chart:SetTitle("Violin Chart")
+    chart:SetYAxisTitle("Y-values")
+    chart:SetXAxisTitle("X-Values")
+    chart:SetBandWidth(10)
+*/
+class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
+    private integer bandWidth = 0
+    //y axis tick number, by defalut is 5
+    private integer yTicks = 5
+    UnivariateAction window = undefined
 
     Comparison comparison = undefined
 
@@ -66,26 +65,27 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         elseif GetColumnSize() > 0 and GetFactorSize() = 1
             return CreateChartWithFactor(frame)
         else
-            alert("BoxPlotCreator does not support the number of column/factors that were selected.")
-            alert("Please include at least one numerical column. Box Plots can support at most one factor.")
+            alert("ViolinPlotCreator does not support the number of column/factors that were selected.")
+            alert("Please include at least one numerical column. Violin Plots can support at most one factor.")
         end
 
         return undefined
     end
 
     action CreateChartWithoutFactor(DataFrame frame) returns Chart
-        BoxPlot chart
+        ViolinPlot chart
         ChartOptions options
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
             chart:SetYAxisTitle("Total "+frame:GetColumn(GetColumn(0)):GetHeader())
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         Array<text> columnNames
         number largest = 0
+
         integer i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn columnFrame = frame:GetColumn(GetColumn(i))
@@ -121,22 +121,26 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
             i=i+1 
         end
+
+        //Use the default windowing action (Kernel) if undefined
+        if window not= undefined
+            chart:SetWindowingAction(window)
+        end
         chart:SetXAxisLabels(columnNames)
-        chart:SetYIncrementCount(yTicks)
+        chart:SetYTickCount(yTicks)
         chart:SetYMaximum(largest)
         chart:HasGroups(false)
         return chart
     end
 
-
     action CreateChartWithFactor(DataFrame frame) returns Chart
-        BoxPlot chart
+        ViolinPlot chart
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
             chart:SetYAxisTitle("Total "+frame:GetColumn(GetColumn(0)):GetHeader())
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         HashTable<text, Series> seriesFactor //The series of plots within the panel
@@ -277,12 +281,36 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             chart:HasGroups(false)
         end
 
-        chart:SetYIncrementCount(yTicks)
+        //Use the default windowing action (Kernel) if undefined
+        if window not= undefined
+            chart:SetWindowingAction(window)
+        end
+        chart:SetYTickCount(yTicks)
         chart:SetYMaximum(largest)
         chart:SetXAxisLabels(groupKeyArray)
         return chart
     end
+
+    /*
+    This action returns how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Returns The number of ticks along the Y axis of the LineChart.
+    */
+    action GetYTickCount returns integer
+        return yTicks
+    end
+
+    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
+    By default, this value is 5.
+
+    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
+    */
+    action SetYTickCount(integer yTicks)
+        me:yTicks = yTicks
+    end
     
+
     /*
     This action returns the five number summary of a dataset as an array, in the order median, lower quartile, upper quartile, smallest, largest. 
     It also excludes outliers in the set as smallest and largest.
@@ -360,24 +388,11 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         return myData
     end
 
-    /*
-    This action returns how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the Y axis of the LineChart.
-    */
-    action GetYTickCount returns integer
-        return yTicks
+    action GetWindowingAction returns UnivariateAction
+        return window
     end
 
-    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
-    */
-    action SetYTickCount(integer yTicks)
-        me:yTicks = yTicks
+    action SetWindowingAction(UnivariateAction window)
+        me:window = window
     end
-
 end
-

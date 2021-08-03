@@ -1,0 +1,71 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Plot
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Drawable
+
+/*
+The PlotGroup class is a data structure that stores information for each 
+group (array) of plots at a certain tick or by a certain factor marked 
+by its label. This class also contains an Icon that is used for accessibility.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.BarGroup
+class Main
+   action Main
+      //make group
+      PlotGroup group
+      //add a plot
+      Plot plot
+      group:AddPlot(plot)
+      //get a plot set its data
+      group:Get(0):SetData(Vector v)
+   end
+end
+*/
+
+class PlotGroup
+    Array<Plot> plots
+    Drawable item = undefined
+    Icon icon
+    text name = ""
+
+    action AddPlot(Plot newPlot)
+        plots:Add(newPlot)
+    end
+
+    action GetName() returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetItem() returns Drawable
+        return item
+    end
+
+    action SetItem(Drawable item)
+        me:item = item
+    end
+
+    action GetIcon() returns Icon
+        return icon
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetSize() returns integer
+        return plots:GetSize()
+    end
+
+    action Get(integer i) returns Plot
+        return plots:Get(i)
+    end
+
+end

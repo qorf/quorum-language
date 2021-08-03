@@ -182,9 +182,9 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         ChartPoint point
                         point:SetPercentX((x - xMin) / (xMax - xMin))
                         point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
+
                         if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
-                            point:SetColor(options:GetColorFromPalette(i-1))
                             seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
                         end
                         chart:Add(point)
@@ -261,9 +261,9 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         ChartPoint point
                         point:SetPercentX((x - xMin) / (xMax - xMin))
                         point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
+
                         if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
-                            point:SetColor(options:GetColorFromPalette(i-1))
                             seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
                         end
                         chart:Add(point)
@@ -356,9 +356,9 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         ChartPoint point
                         point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
                         point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
+
                         if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
-                            point:SetColor(options:GetColorFromPalette(i-1))
                             seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
                         end
                         chart:Add(point)
@@ -436,9 +436,9 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         ChartPoint point
                         point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
                         point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
+
                         if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):SetColor(options:GetColorFromPalette(i-1))
-                            point:SetColor(options:GetColorFromPalette(i-1))
                             seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
                         end
                         chart:Add(point)
@@ -468,6 +468,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetXAxisMinimum(xAxisMinimum)
         chart:SetYTickCount(yTicks)
         chart:SetXTickCount(xTicks)
+        chart:Populate()
         return chart
     end
 

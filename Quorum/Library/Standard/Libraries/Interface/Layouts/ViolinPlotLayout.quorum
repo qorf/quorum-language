@@ -1,0 +1,423 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ViolinPlot
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Texture
+use Libraries.Compute.Vector
+use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Analysis.UnivariateAction
+use Libraries.Interface.Controls.Charts.PlotGroup
+use Libraries.Interface.Controls.Charts.Plot
+use Libraries.Containers.HashTable
+
+/*
+    This is the layout class for Violin Chart. This class is responsible for 
+    positioning all chart area components of the Violin chart. Generally,
+    layout classes such as this are behind the scenes and we do not need to interact
+    with them directly.
+
+    Attribute: Author Silafu Yiliyaer & Manuel Martinez
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ViolinPlot
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ViolinPlot chart = frame:ViolinPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+*/
+
+class ViolinPlotLayout is ChartLayout
+    private Math math
+
+    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
+        integer width = cast(integer, horizontalContainer:GetWidth())
+        integer height = cast(integer, horizontalContainer:GetHeight())
+        integer yLabelOffset = 0        
+
+        Array<ControlLabel> labels = chart:GetXLabels()
+        integer space = cast(integer, width/labels:GetSize())
+        integer labelY = height - cast(integer, labels:Get(0):GetHeight())
+        integer i = 0
+        repeat while i < labels:GetSize()
+            Label currentLabel = labels:Get(i)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+
+            integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
+            currentLabel:SetPosition(labelX, labelY)
+            i = i + 1
+        end
+
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = height
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+    end
+
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+
+        ViolinPlot chart = cast(ViolinPlot, control)
+        boolean split = chart:GetSplitFlag()
+        Array <PlotGroup> plotGroups = chart:GetPlotGroups()
+        Control chartArea = chart:GetChartArea()
+        Color invis
+        invis:SetColor(0,0,0,0)
+        Color white
+        white:SetColor(1,1,1,1)
+        Color black
+        black:SetColor(0,0,0,1)
+
+        // These calculate the necessary dimensions of the violinplots
+        if plotGroups:GetSize() > 0
+            integer panelwidth = cast(integer, chartArea:GetWidth()/plotGroups:GetSize())
+            integer height = cast(integer, chartArea:GetHeight())
+            number dataScale = chart:GetYMaximum()/height
+
+            integer i = 0
+            repeat while i < plotGroups:GetSize()
+                PlotGroup group = plotGroups:Get(i)
+
+                //Give each group an alloted section  
+                integer startpanelw = panelwidth*i
+                //Outer box
+                group:GetItem():LoadRectangle(panelwidth,height,invis)
+                group:GetItem():SetPosition(startpanelw,0)
+
+                if group:GetSize() > 0
+                    integer groups = plotGroups:GetSize()
+                    integer plots = group:GetSize()
+
+                    if split
+                        if plots = 2
+                            plots = 1 // changing the width and line percent for this plot to use 1 section instead of two
+                        else
+                            output "Violin plot can only be split using two plots. " + group:GetName() + " has " + plots + " plots."
+                            split = false
+                        end
+                    end
+
+                    integer width = cast(integer, panelwidth/plots)
+                    integer center = cast(integer, width/2) 
+                    integer centerOffset = center
+                    integer size = cast(integer, width/4)
+                    number linePercent = (0.005)*plots*groups
+                    if linePercent > 0.05
+                        linePercent = 0.05
+                    end
+
+                    integer line = cast(integer, width * linePercent)
+                    integer midline = line/2
+                    line = midline*2
+
+                    integer k = 0
+                    repeat while k < plots
+                        Plot plot = group:Get(k)
+                        Plot plot2
+                        if split
+                            plot2 = group:Get(k+1)
+                            centerOffset = center-line/2
+                        end
+
+                        number median = plot:GetInfoAt(0)
+                        number lowerQuartile = plot:GetInfoAt(1)
+                        number upperQuartile = plot:GetInfoAt(2)
+                        number minimum = plot:GetInfoAt(3)
+                        number maximum = plot:GetInfoAt(4)
+            
+                        //Give each chart an alloted section  
+                        integer startw = (center*2)*k + startpanelw
+    
+                        /* Indices for items of individual violin plot
+                            0: PLOT AREA (ENTIRE REGION)
+                            1: MINIMUM LINE
+                            2: LOWER WHISKER
+                            3: INTERQUARTILE RANGE
+                            4: RIGHT BORDER OF IQR
+                            5: LEFT BORDER OF IQR
+                            6: Q1 LINE
+                            7: MEDIAN LINE
+                            8: Q3 LINE
+                            9: UPPER WHISKER    
+                            10: MAXIMUM LINE 
+                            11: PIXEL DENSITY MAP
+                        */
+                        
+                        //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
+                        Array<Drawable> item = plot:GetItems()
+                        Color darkColor = black:Copy()
+                        Color lightColor = plot:GetIcon():GetColor()
+                        Color lightColor2 = lightColor:Copy()
+
+                        //Outer box
+                        if split 
+                            item:Get(0):LoadRectangle(center,height,invis)
+                            item:Get(0):SetPosition(startw,0)
+                        else 
+                            item:Get(0):LoadRectangle(width,height,invis)
+                            item:Get(0):SetPosition(startw,0)
+                        end
+    
+                        integer centerline = center - midline //This is to center the vertical lines over the very middle of the plot area
+                        if split
+                            centerline = center - line
+                        end
+                        integer x = startw + centerline
+            
+                        //Minimum
+                        item:Get(1):LoadFilledRectangle(line, line, darkColor)
+                        item:Get(1):SetPosition(x ,cast(integer, minimum/dataScale)-midline)
+            
+                        //Lower Whisker
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+midline, darkColor)
+                        item:Get(2):SetPosition(x ,cast(integer, minimum/dataScale)-midline)
+            
+                        //IQR Region
+                        item:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                        item:Get(3):SetPosition(startw + (center - line), cast(integer, lowerQuartile/dataScale)-midline)
+            
+                        //Right IQR line not necessary in violin plot (Index 5)
+            
+                        //Left IQR line not necessary in violin plot (Index 5)
+            
+                        //Q1
+                        item:Get(6):LoadFilledRectangle(line, line, darkColor)
+                        item:Get(6):SetPosition(x ,cast(integer, lowerQuartile/dataScale)-midline)
+            
+                        //Median
+                        item:Get(7):LoadFilledCircle(midline, white)
+                        item:Get(7):SetPosition(x ,cast(integer, median/dataScale)-midline)
+            
+                        //Q3
+                        item:Get(8):LoadFilledRectangle(line, line, darkColor)
+                        item:Get(8):SetPosition(x ,cast(integer, upperQuartile/dataScale)-midline)
+            
+                        
+                        //Upper Whisker
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale)+midline, darkColor)
+                        item:Get(9):SetPosition(x ,cast(integer, upperQuartile/dataScale)-midline)
+            
+                        //Max
+                        item:Get(10):LoadFilledRectangle(line, line, darkColor)
+                        item:Get(10):SetPosition(x ,cast(integer, maximum/dataScale)-midline)
+        
+                        if split
+                            median = plot2:GetInfoAt(0)
+                            lowerQuartile = plot2:GetInfoAt(1)
+                            upperQuartile = plot2:GetInfoAt(2)
+                            minimum = plot2:GetInfoAt(3)
+                            maximum = plot2:GetInfoAt(4)
+
+                            Array<Drawable> item2 = plot2:GetItems()
+                            lightColor2 = plot2:GetIcon():GetColor()
+                            x = startw + center
+                            
+                            //Outer box
+                            item2:Get(0):LoadRectangle(center,height,invis)
+                            item2:Get(0):SetPosition(x ,0)
+            
+                            //Minimum
+                            item2:Get(1):LoadFilledRectangle(line, line, darkColor)
+                            item2:Get(1):SetPosition(x ,cast(integer, minimum/dataScale))
+                
+                            //Lower Whisker
+                            item2:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, darkColor)
+                            item2:Get(2):SetPosition(x ,cast(integer, minimum/dataScale))
+                
+                            //IQR Region
+                            //Move other iqr over
+                            item:Get(3):SetPosition(startw + (center - line*2),item:Get(3):GetY())
+
+                            item2:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                            item2:Get(3):SetPosition(x ,cast(integer, lowerQuartile/dataScale)+line)
+            
+                            //Q1
+                            item2:Get(6):LoadFilledRectangle(line, line, darkColor)
+                            item2:Get(6):SetPosition(x ,cast(integer, lowerQuartile/dataScale))
+                
+                            //Median
+                            //Move other median over
+                            item:Get(7):SetPosition(startw + (center - line - midline),item:Get(7):GetY())
+
+                            item2:Get(7):LoadFilledCircle(midline, white)
+                            item2:Get(7):SetPosition(x + midline,cast(integer, median/dataScale))
+                
+                            //Q3
+                            item2:Get(8):LoadFilledRectangle(line, line, darkColor)
+                            item2:Get(8):SetPosition(x ,cast(integer, upperQuartile/dataScale)+line)
+                            
+                            //Upper Whisker
+                            item2:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
+                            item2:Get(9):SetPosition(x ,cast(integer, upperQuartile/dataScale))
+                
+                            //Max
+                            item2:Get(10):LoadFilledRectangle(line, line, darkColor)
+                            item2:Get(10):SetPosition(x ,cast(integer, maximum/dataScale)-line)
+    
+                        end
+
+
+                        // Vioiln kernel density area
+                        Format format
+                        PixelMap pixelMap
+                        pixelMap:CreatePixelMap(width,height,format)
+                        number bandWidth = chart:GetYMaximum()*0.03
+                        
+                        Vector data = plot:GetData()
+                        Vector data2
+                        number dataMin = data:Get(0)
+                        number dataMax = data:Get(data:GetSize()-1)
+                        
+                        Array <number> estimates
+                        Array <number> estimates2
+                        
+                        number maxEstimate = 0.0
+                        number estimateScale = 0.0
+                        number maxEstimate2 = 0.0
+                        number estimateScale2 = 0.0
+                       
+                        if split 
+                            data2 = plot2:GetData()
+                            number data2Min = data2:Get(0)
+                            number data2Max = data2:Get(data2:GetSize()-1)
+                            if data2Min < dataMin
+                                dataMin = data2Min
+                            else
+                                data2Min = dataMin
+                            end
+                            if data2Max > dataMax
+                                dataMax = data2Max
+                            else
+                                data2Max = dataMax
+                            end
+
+                            estimates2 = EstimateDensity(bandWidth, dataScale, data2, data2Min, data2Max, chart:GetWindowingAction())
+                            maxEstimate2 = estimates2:Get(estimates2:GetSize()-1)
+                            estimateScale2 = maxEstimate2/(center)       
+                        end
+
+                        estimates = EstimateDensity(bandWidth, dataScale, data, dataMin, dataMax, chart:GetWindowingAction())
+                        maxEstimate = estimates:Get(estimates:GetSize()-1)
+                        estimateScale = maxEstimate/(center)
+                        integer nextPixel = cast(integer, dataMin/dataScale)+1
+
+                        integer index = 0
+                        repeat while index < estimates:GetSize()-1
+                            number estimate = estimates:Get(index)
+                            integer pixW = cast(integer, (estimate/estimateScale)*0.75)
+                            integer pixH = height - nextPixel
+                            pixelMap:DrawLine(center-pixW, pixH, center, pixH, lightColor)
+                            pixelMap:SetPixel(center-pixW, pixH, darkColor)
+
+                            if split
+                                estimate = estimates2:Get(index)
+                                pixW = cast(integer, (estimate/estimateScale2)*0.75)
+                            end
+                            pixelMap:DrawLine(center, pixH, center+pixW, pixH, lightColor2)
+                            pixelMap:SetPixel(center+pixW, pixH, darkColor)
+                            nextPixel = nextPixel + 1
+                            index = index + 1
+                        end
+
+                        Texture texture
+                        texture:LoadFromPixelMap(pixelMap)
+                        item:Get(11):SetPosition(startw, 0)
+                        item:Get(11):Load(texture)
+                    
+                        k = k + 1
+                    end 
+                end  
+                i = i + 1
+            end
+        end
+    end
+
+    /*    
+    KDE: Kernel density esstimation
+    It is a method that finds out the normal distribution of a give set of data
+    It use kernel functions to calculate the probability of every single data point
+    We have: simplest kernel,Gaussian kernel,triangular kernel,parabolic(Epanechnikov) kernel,triweight kernel,
+             tricube kernel,cosine kernel,logistic kernel,sigmoid kernel,silverman kernel
+    By default, it uses Gaussian kernel which is smother than other kernel functions
+    We put this functions here because the distributions at each value is scaled based on the pixel height of the chart
+
+    Parameters: bandWidth is a number that represent the interval, the bigger the number, the flatter the graph will be
+                dataScale indicates how data grow from min to max base on pixel height
+                kernalFunction indicates what kernel function to use
+    */         
+      
+    action EstimateDensity(number bandWidth,number dataScale, Vector dataset, UnivariateAction window) returns Array<number>
+
+        number min = cast(integer,dataset:Get(0))
+        number max = cast(integer,dataset:Get(dataset:GetSize()-1))
+        number largest = 0.00000001
+        Array<number> estimates
+        repeat while min <= max
+            integer index = 0
+            number sum = 0
+            repeat while index < dataset:GetSize()
+                number cal = (min - dataset:Get(index))/bandWidth
+                sum = sum + window:Calculate(cal)
+                index = index+1
+            end
+
+            number estimate = sum/(dataset:GetSize()*bandWidth)
+            if largest < estimate
+                largest = estimate
+            end 
+
+            estimates:Add(estimate)
+            min = min + dataScale  
+        end 
+        estimates:Add(largest)
+        return estimates
+    end
+
+    action EstimateDensity(number bandWidth,number dataScale, Vector dataset, number min, number max, UnivariateAction window) returns Array<number>
+
+        //number min = cast(integer,dataset:Get(0))
+        //number max = cast(integer,dataset:Get(dataset:GetSize()-1))
+        number largest = 0.00000001
+        Array<number> estimates
+        repeat while min <= max
+            integer index = 0
+            number sum = 0
+            repeat while index < dataset:GetSize()
+                number cal = (min - dataset:Get(index))/bandWidth
+                sum = sum + window:Calculate(cal)
+                index = index+1
+            end
+
+            number estimate = sum/(dataset:GetSize()*bandWidth)
+            if largest < estimate
+                largest = estimate
+            end 
+
+            estimates:Add(estimate)
+            min = min + dataScale  
+        end 
+        estimates:Add(largest)
+        return estimates
+    end
+end

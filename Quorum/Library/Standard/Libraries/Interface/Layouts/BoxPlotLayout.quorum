@@ -3,6 +3,8 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Interface.Controls.Charts.PlotGroup
+use Libraries.Interface.Controls.Charts.Plot
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.LayoutProperties
@@ -58,6 +60,7 @@ class BoxPlotLayout is ChartLayout
     action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
         integer width = cast(integer, horizontalContainer:GetWidth())
         integer height = cast(integer, horizontalContainer:GetHeight())
+        integer yLabelOffset = 0
         
         Array<ControlLabel> labels = chart:GetXLabels()
         integer space = cast(integer, width/labels:GetSize())
@@ -68,14 +71,23 @@ class BoxPlotLayout is ChartLayout
             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
             end
+            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
+
             integer labelX = space*i+cast(integer, (space-currentLabel:GetWidth())/2)
             currentLabel:SetPosition(labelX, labelY)
             i = i + 1
         end
-        ControlLabel axisLabel = chart:GetXLabel()
-        axisLabel:SetPositionOnBaseLine(true)
-        axisLabel:SetX(cast(integer, width / 2 - axisLabel:GetWidth() / 2))
-        axisLabel:SetY(cast(integer, height / 2 - axisLabel:GetHeight()))
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = height
+        Label axisLabel = chart:GetXLabel()
+        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
+        if axisY < 1
+            axisY = 1
+        end
+        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
+        axisLabel:SetY(cast(integer, axisY))
+        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
     
     /*
@@ -84,90 +96,157 @@ class BoxPlotLayout is ChartLayout
       action LayoutChartContent(Chart control, Control chartAreaContainer)
 
         BoxPlot chart = cast(BoxPlot, control)
-        Array<Array<number>> info = chart:GetChartInfo()
-        Array<Array<Drawable>> items = chart:GetChartItems()
-        Array<Vector> data = chart:GetDataSets()
+        Array <PlotGroup> plotGroups = chart:GetPlotGroups()
         Control chartArea = chart:GetChartArea()
         Color invis
         invis:SetColor(0,0,0,0)
 
         // These calculate the necessary dimensions of the boxplots
-        integer infoSize = info:GetSize()
-        integer width = cast(integer, chartArea:GetWidth())/infoSize
-        integer height = cast(integer, chartArea:GetHeight())
-        integer line = cast(integer, height * 0.005)
-        integer center = cast(integer, width/2) 
-        integer size = cast(integer, width/4)
-        
-        number dataScale = chart:GetYMaximum()/height
-        integer i = 0
+        if plotGroups:GetSize() > 0
+            integer panelwidth = cast(integer, chartArea:GetWidth())/plotGroups:GetSize()
+            integer height = cast(integer, chartArea:GetHeight())
+            number dataScale = chart:GetYMaximum()/height
 
-        repeat while i < infoSize
+            integer i = 0
+            repeat while i < plotGroups:GetSize()
+                PlotGroup group = plotGroups:Get(i)
 
-            Array<number> itemInfo = info:Get(i)
-            number median = itemInfo:Get(0)
-            number lowerQuartile = itemInfo:Get(1)
-            number upperQuartile = itemInfo:Get(2)
-            number minimum = itemInfo:Get(3)
-            number maximum = itemInfo:Get(4)
+                //Give each group an alloted section  
+                integer startpanelw = panelwidth*i
+                //Outer box
+                group:GetItem():LoadRectangle(panelwidth,height,invis)
+                group:GetItem():SetPosition(startpanelw,0)
 
-            //Give each chart an alloted section  
-            integer startw = width*i
+                if group:GetSize() > 0
+                    integer width = cast(integer, panelwidth/group:GetSize())
+                    integer center = cast(integer, width/2) 
+                    integer size = cast(integer, width/4)
+                    //integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
+
+                    number linePercent = (0.005)*group:GetSize()*plotGroups:GetSize()
+                    if linePercent > 0.05
+                        linePercent = 0.05
+                    end
+
+                    integer line = cast(integer, width * linePercent)
+
+                    integer k = 0
+                    repeat while k < group:GetSize()
+                        Plot plot = group:Get(k)
+                        number median = plot:GetInfoAt(0)
+                        number lowerQuartile = plot:GetInfoAt(1)
+                        number upperQuartile = plot:GetInfoAt(2)
+                        number minimum = plot:GetInfoAt(3)
+                        number maximum = plot:GetInfoAt(4)
             
-            //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
-            Array<Drawable> item = items:Get(i)
-
-            //Right IQR line
-            item:Get(0):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line)
-            item:Get(0):SetPosition(startw+size+center,cast(integer, lowerQuartile/dataScale))
-
-            //Center line
-            item:Get(1):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line)
-            item:Get(1):SetPosition(startw+center,cast(integer, minimum/dataScale))
-
-            item:Get(2):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale)+line)
-            item:Get(2):SetPosition(startw+center,cast(integer, upperQuartile/dataScale))
-
-            //Minimum
-            item:Get(3):LoadFilledRectangle(center+line, line)
-            item:Get(3):SetPosition(startw+size,cast(integer, minimum/dataScale))
-
-            //Lower quartile
-            item:Get(4):LoadFilledRectangle(center+line, line)
-            item:Get(4):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
-
-            //Median
-            item:Get(5):LoadFilledRectangle(center+line, line)
-            item:Get(5):SetPosition(startw+size,cast(integer, median/dataScale))
-
-            //Upper quartile
-            item:Get(6):LoadFilledRectangle(center+line, line)
-            item:Get(6):SetPosition(startw+size,cast(integer, upperQuartile/dataScale))
-
-            //Left IQR line
-            item:Get(7):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line)
-            item:Get(7):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
-
-            //Max
-            item:Get(8):LoadFilledRectangle(center+line, line)
-            item:Get(8):SetPosition(startw+size,cast(integer, maximum/dataScale))
-
-            //Outer box
-            item:Get(9):LoadRectangle(width,height,invis)
-            item:Get(9):SetPosition(startw,0)
-
-            Format formate
-            PixelMap pixelMap
-            pixelMap:CreatePixelMap(width,height,formate)
-
-            Texture texture
-            texture:LoadFromPixelMap(pixelMap)
-            item:Get(10):SetPosition(startw,0)
-            item:Get(10):Load(texture)
-            
-               i=i+1
-        end
-
-    end
+                        //Give each chart an alloted section  
+                        integer startw = width*k + startpanelw
     
+                        /* Indices for items of individual box plot
+                            0: PLOT AREA (ENTIRE REGION)
+                            1: MINIMUM LINE
+                            2: LOWER WHISKER
+                            3: INTERQUARTILE RANGE
+                            4: RIGHT BORDER OF IQR
+                            5: LEFT BORDER OF IQR
+                            6: Q1 LINE
+                            7: MEDIAN LINE
+                            8: Q3 LINE
+                            9: UPPER WHISKER    
+                            10: MAXIMUM LINE 
+                            11+: OUTLIER POINTS
+                        */
+                        
+                        //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
+                        Array<Drawable> item = plot:GetItems()
+                        Color darkColor = plot:GetIcon():GetColor()
+                        Color lightColor = darkColor:Copy()
+                        lightColor:SetAlpha(0.3)
+    
+                        //Outer box
+                        item:Get(0):LoadRectangle(width,height,invis)
+                        item:Get(0):SetPosition(startw,0)
+            
+                        //Minimum
+                        item:Get(1):LoadFilledRectangle(center+line, line, darkColor)
+                        item:Get(1):SetPosition(startw+size,cast(integer, minimum/dataScale))
+
+                        // If Min and Q1 are the same.. position min so that they are both visible.
+                        if cast(integer, minimum/dataScale) = cast(integer, lowerQuartile/dataScale)
+                            item:Get(1):SetPosition(startw+size,cast(integer, minimum/dataScale)-line)
+                        end
+            
+                        //Lower Whisker
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, darkColor)
+                        item:Get(2):SetPosition(startw+center,cast(integer, minimum/dataScale))
+            
+                        //IQR Region
+                        item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
+                        item:Get(3):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+            
+                        //Right IQR line
+                        item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
+                        item:Get(4):SetPosition(startw+size+center,cast(integer, lowerQuartile/dataScale))
+            
+                        //Left IQR line
+                        item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
+                        item:Get(5):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+            
+                        //Q1
+                        item:Get(6):LoadFilledRectangle(center+line, line, darkColor)
+                        item:Get(6):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+            
+                        //Median
+                        item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
+                        item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale))
+            
+                        // If Median and Q1 are the same.. position median so that they are both visible.
+                        if cast(integer, median/dataScale) = cast(integer, lowerQuartile/dataScale)
+                            item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale)+line)
+                        end
+
+                        // If Median and Q3 are the same.. position median so that they are both visible.
+                        if cast(integer, median/dataScale) = cast(integer, upperQuartile/dataScale)
+                            item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale)-line)
+                        end
+            
+                        //Q3
+                        item:Get(8):LoadFilledRectangle(center+line, line, darkColor)
+                        item:Get(8):SetPosition(startw+size,cast(integer, upperQuartile/dataScale))
+            
+                        
+                        //Upper Whisker
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale)+line, darkColor)
+                        item:Get(9):SetPosition(startw+center,cast(integer, upperQuartile/dataScale))
+            
+                        //Max
+                        item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
+                        item:Get(10):SetPosition(startw+size,cast(integer, maximum/dataScale))
+
+                        // If Max and Q3 are the same.. position max so that they are both visible.
+                        if cast(integer, maximum/dataScale) = cast(integer, upperQuartile/dataScale)
+                            item:Get(10):SetPosition(startw+size,cast(integer, maximum/dataScale)+line)
+                        end
+            
+                        if chart:GetOutliersFlag()
+                            //Outliers
+                            Array <number> outliers = plot:GetOutliers()
+                            integer outlierIndex = 0
+                            integer j = 11
+                            repeat while outlierIndex < outliers:GetSize() and j < item:GetSize()
+                                number y = outliers:Get(outlierIndex)
+                                integer radius = line
+                                item:Get(j):LoadFilledCircle(radius, darkColor)
+                                item:Get(j):SetPosition(startw+center-(radius/2), cast(integer, y/dataScale)-radius)
+                                outlierIndex = outlierIndex + 1
+                                j = j + 1
+                            end
+                        end
+                        k = k + 1
+                    end 
+                end  
+                i = i + 1
+            end
+        end
+    end
 end
