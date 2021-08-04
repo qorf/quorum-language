@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
 
 class TwoVariableChartLayout is ChartLayout
 
@@ -15,12 +16,14 @@ class TwoVariableChartLayout is ChartLayout
     action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
         originPointX = 0
         originPointY = cast(integer, horizontalContainer:GetHeight())
+        Color color
 
         // This is the ticks on the X axis
         number scaleDivWidth = 0
         integer tickHeight = 0
         integer tickWidth = 0
         Array<Drawable> ticks = chart:GetXTicks()
+        Array<Drawable> lines = chart:GetXGridlines()
         if not ticks:IsEmpty()
             
             Drawable axis = chart:GetXAxis()            
@@ -34,6 +37,12 @@ class TwoVariableChartLayout is ChartLayout
             repeat while i < ticks:GetSize()
                 currentTick = ticks:Get(i)
                 currentTick:SetPosition(cast(integer, tickX), tickY)
+                if chart:IsShowingXGridLines() and i < lines:GetSize()
+                    integer x = cast(integer, currentTick:GetWidth()/2)
+                    Drawable currentLine = lines:Get(i)
+                    currentLine:SetPosition(cast(integer, tickX+x), 0)
+                    currentLine:LoadFilledRectangle(x, cast(integer, chart:GetChartArea():GetHeight()), color:LightGray())
+                end
                 tickX = tickX + scaleDivWidth
                 i = i + 1
             end

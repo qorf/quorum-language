@@ -247,6 +247,8 @@ class TwoVariableChart is Chart
         
         Array<Drawable> xTickDrawables = GetXTicks()
         Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<Drawable> yGridlines = GetYGridlines()
+        Array<Drawable> xGridlines = GetXGridlines()
         Array<ControlLabel> xLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -260,6 +262,12 @@ class TwoVariableChart is Chart
                     tick:LoadFilledRectangle(tickWidth, tickLength)
                     horizontalPanel:Add(tick)
                     xTickDrawables:Add(tick)
+
+                    if IsShowingXGridLines()
+                        Drawable gridline
+                        xGridlines:Add(gridline)
+                        chartArea:Add(gridline)
+                    end
 
                     ControlLabel label
                     label:SetFontSize(GetFontSize() - 5)
@@ -309,6 +317,12 @@ class TwoVariableChart is Chart
                     tick:LoadFilledRectangle(tickLength, tickWidth)
                     verticalPanel:Add(tick)
                     yTickDrawables:Add(tick)
+
+                    if IsShowingYGridLines()
+                        Drawable gridline
+                        yGridlines:Add(gridline)
+                        chartArea:Add(gridline)
+                    end
 
                     ControlLabel label
                     label:SetFontSize(GetFontSize() - 5)
@@ -364,22 +378,26 @@ class TwoVariableChart is Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
+                integer j = 0
+                repeat while j < lines:Get(i):GetLines():GetSize()
+                    LineSegment line = lines:Get(i):GetLines():Get(j)
+                    chartArea:Add(line)
+                    Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
+                    chartArea:Add(lineIcon)
+                    j = j + 1
+                end
                 if lines:Get(i):GetPointsFlag()
-                    integer j = 0
+                    j = 0
                     repeat while j < lines:Get(i):GetPoints():GetSize()
+                        ChartPoint point = lines:Get(i):GetPoints():Get(j)
+                        chartArea:Add(point)
                         Icon pointIcon = lines:Get(i):GetPoints():Get(j):GetIcon()
-                        GetChartArea():Add(pointIcon)
+                        chartArea:Add(pointIcon)
                         j = j + 1
                     end
                 end
 
-                integer j = 0
-                repeat while j < lines:Get(i):GetLines():GetSize()
-                    Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
-                    GetChartArea():Add(lineIcon)
-                    j = j + 1
-                end
-                GetChartArea():Add(lines:Get(i))
+                chartArea:Add(lines:Get(i))
                 i = i + 1
             end
         end
@@ -388,6 +406,8 @@ class TwoVariableChart is Chart
         if points:GetSize() > 0
             integer i = 0
             repeat while i < points:GetSize()
+                ChartPoint point = points:Get(i)
+                chartArea:Add(point)
                 Icon pointIcon = points:Get(i):GetIcon()
                 GetChartArea():Add(pointIcon)
                 i = i + 1

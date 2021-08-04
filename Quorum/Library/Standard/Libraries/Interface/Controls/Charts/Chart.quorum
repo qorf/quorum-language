@@ -62,6 +62,8 @@ class Chart is Control
     Legend legend
     boolean showLegend = false
     boolean grayscale = false
+    boolean showYGridLines = false
+    boolean showXGridLines = false
     boolean treeNeedsUpdate = true
     ChartSelection selection
     text xName = ""
@@ -82,9 +84,11 @@ class Chart is Control
     Control chartArea
 
     Array<ControlLabel> scaleLabels
+    Array<ControlLabel> xLabels
     Array<Drawable> scaleTicks
     Array<Drawable> xTicks
-    Array<ControlLabel> xLabels
+    Array<Drawable> yGridlines
+    Array<Drawable> xGridlines
 
     number xAxisSizeOffset = 0.75
     number yAxisSizeOffset = 0.75
@@ -179,6 +183,24 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
+    action GetYGridlines returns Array<Drawable>
+        return yGridlines
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetXGridlines returns Array<Drawable>
+        return xGridlines
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
     action GetScaleLabels returns Array<ControlLabel>
         return scaleLabels
     end
@@ -199,6 +221,10 @@ class Chart is Control
     */
     action GetXLabels returns Array<ControlLabel>
         return xLabels
+    end
+
+    action SetXLabels(Array<ControlLabel> newLabels)
+        xLabels = newLabels
     end
 
     action SetName(text name)
@@ -778,7 +804,6 @@ class Chart is Control
 
     /*
         This action states to turn on the legend. 
-
         Attribute: Parameter true if the legend should be shown.
     */
     action ShowLegend(boolean show)
@@ -787,15 +812,59 @@ class Chart is Control
 
     /*
         This action states to turn on the legend. 
-
         Attribute: Returns true if the legend is shown.
     */
     action IsShowingLegend returns boolean
         return showLegend
     end
 
-    action UseGrayScale(boolean usegray)
-        grayscale = usegray
+    /*
+        This action states to turn on the gridlines. 
+
+        Attribute: Parameter true if the horizontal gridlines should be shown.
+    */
+    action ShowYGridLines(boolean show)
+        showYGridLines = show
+    end
+
+    /*
+        This action states to turn on the horizontal gridlines.
+ 
+        Attribute: Returns true if the horizon gridlines are shown.
+    */
+    action IsShowingYGridLines returns boolean
+        return showYGridLines
+    end
+
+    /*
+        This action states to turn on the gridlines.
+ 
+        Attribute: Parameter true if the gridlines should be shown.
+    */
+    action ShowXGridLines(boolean show)
+        showXGridLines = show
+    end
+
+    /*
+        This action states to turn on the gridlines.
+
+        Attribute: Returns true if the veritcal gridlines are shown.
+    */
+    action IsShowingXGridLines returns boolean
+        return showXGridLines
+    end
+
+    /*
+        This action states to turn on the gridlines. 
+    */
+    action ShowAllGridLines()
+        showYGridLines = true
+        showXGridLines = true
+    end
+
+
+    action ShowGrayScale(boolean show)
+        grayscale = show
     end
 
     action IsGrayScale returns boolean

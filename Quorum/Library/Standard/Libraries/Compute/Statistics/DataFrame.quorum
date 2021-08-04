@@ -2414,6 +2414,7 @@ class DataFrame
     action Histogram returns Histogram
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
 
         return cast(Histogram, CreateChart(creator))
     end
@@ -2438,22 +2439,23 @@ class DataFrame
         chart:Display()
     */
     action Histogram(integer binWidth) returns Histogram
-        if not IsSingleColumnSelection()
-            alert("Can only conduct this calculation on a single column")
-        end
-
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
         creator:SetBinWidth(binWidth)
+        creator:BinWidthIsNumber(false)
 
-        DataFrameColumn col = GetColumn(selection:GetColumn(0))
-        
-        Histogram histogram = cast(Histogram, CreateChart(creator))
-        //set a default title.
-        if col:GetHeader() not= undefined
-            histogram:SetXAxisTitle(col:GetHeader())
-        end
-        return histogram
+        return cast(Histogram, CreateChart(creator))
+    end
+
+    action Histogram(number binWidth) returns Histogram
+        HistogramCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+        creator:SetBinWidth(binWidth)
+        creator:BinWidthIsNumber(true)
+
+        return cast(Histogram, CreateChart(creator))
     end
 
     /*

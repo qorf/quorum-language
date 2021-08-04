@@ -616,6 +616,7 @@ class SharedBarChartParent is Chart
         Array<Icon> bars = GetBars()
         Array<Drawable> barTicks = GetXTicks()
         Array<Drawable> yTicks = GetScaleTicks()
+        Array<Drawable> yGridlines = GetYGridlines()
         Array<ControlLabel> barLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -636,6 +637,12 @@ class SharedBarChartParent is Chart
                 tick:LoadFilledRectangle(10, 3)
                 yTicks:Set(i, tick)
                 verticalPanel:Add(yTicks:Get(i))
+
+                if IsShowingYGridLines()
+                    Drawable gridline
+                    yGridlines:Add(gridline)
+                    chartArea:Add(gridline)
+                end
 
                //make the labels for each scale tick (auto based on max)
                 ChartOptions chartOptions

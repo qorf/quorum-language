@@ -18,6 +18,7 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Charts.ColumnToTextArray
 use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class is used to create a histogram for use in an application. By default, it uses 
@@ -50,19 +51,25 @@ use Libraries.Containers.Support.Comparison
 
     //we might then add this chart to a game.
 */
-class HistogramCreator is DataFrameChartCreator, ColumnInput
+class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
     private integer valueColumn = -1
     private integer ticks = 5
     number binWidthOverride = -1
+    boolean decimalScale = false
+
     Comparison comparison = undefined
     
     action Create(DataFrame frame) returns Chart
         Histogram chart
+        if GetFactorSize() > 0
+            alert("HistogramCreator does not support factors.")
+        end
+
         chart:SetYAxisTitle("Count")
+        chart:SetXAxisTitle("Range")
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        boolean decimalScale = false
         number min = 10000000.0
         number max = 0.0
 
@@ -80,6 +87,10 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         integer n = 0
         repeat while n < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(n))
+           if not column:IsNumberColumn()
+                alert("HistogramCreator does not support text columns. " + column:GetHeader() + " is a text column.")
+                return undefined
+            end
             if(column:GetSize() > columnSize)
                 columnSize = column:GetSize()
             end
@@ -100,12 +111,17 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         integer numberOfBins = cast(integer, math:SquareRoot(columnSize)) + 1
 
         // Take range and divide it amongst bins and round up to get the default bin width
-        number binWidth = 0.0
-        if max <= 1
-            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 0.01
-            decimalScale = true
+        number binWidth = 0.0 
+        if binWidthOverride > 0.0
+            binWidth = binWidthOverride
+            numberOfBins = cast(integer, max/binWidth) + 1
         else
-            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
+            if max <= 2.5
+                binWidth = ((max - min)  / (cast(number, numberOfBins))) + 0.01
+                decimalScale = true
+            else
+                binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
+            end
         end
 
         Array<integer> count
@@ -274,5 +290,13 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
     /* Manually changes the bin width. */
     action SetBinWidth(number binWidthOverride)
         me:binWidthOverride = binWidthOverride
+    end
+
+    /* 
+        Boolean to see if binwidth is a number or integer, helps with clean x labels 
+        Example a bin width of 1 (integer) would produce a label [1-2] and a bin width of 1.0 would produce [1.0-2.0]
+    */
+    action BinWidthIsNumber(boolean flag)
+        decimalScale = flag
     end
 end

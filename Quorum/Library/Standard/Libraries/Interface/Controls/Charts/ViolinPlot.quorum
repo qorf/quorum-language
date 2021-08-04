@@ -139,6 +139,7 @@ class ViolinPlot is Chart
         
         Array<Drawable> xTickDrawables = GetXTicks()
         Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<Drawable> yGridlines = GetYGridlines()
         Array<ControlLabel> xLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -150,7 +151,7 @@ class ViolinPlot is Chart
         end
 
         //Adding Tick and labels on Y axis
-        if yTicks not= 0 and yTickDrawables:IsEmpty()
+        if yTicks > 1 and yTickDrawables:IsEmpty()
             number space = yMaximum/(yTicks-1)
             number current = 0
             repeat until yTickDrawables:GetSize() = yTicks
@@ -158,6 +159,12 @@ class ViolinPlot is Chart
                 tick:LoadFilledRectangle(tickLength,tickWidth)
                 yTickDrawables:Add(tick)
                 verticalPanel:Add(tick)
+
+                if IsShowingYGridLines()
+                    Drawable gridline
+                    yGridlines:Add(gridline)
+                    chartArea:Add(gridline)
+                end
                 
                 ControlLabel label
                 label:SetFontSize(GetFontSize() - 5)
@@ -185,7 +192,7 @@ class ViolinPlot is Chart
             cnt = cnt + 1
         end
 
-        // add drawables per each boxplot to the chart
+        // add drawables per each plot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
