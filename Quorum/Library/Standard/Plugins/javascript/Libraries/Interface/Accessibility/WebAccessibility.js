@@ -25,7 +25,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-roledescription", item.GetDescription());
+            element.setAttribute("aria-description", item.GetDescription());
         }
         console.log("Description Changed");
     };
@@ -167,9 +167,14 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         para.id = id;       //sets the item's id to the item's HashCode value
 
         switch(item.GetAccessibilityCode()){
-            //CUSTOM
+            //ITEM or CUSTOM
+            case 0:
             case 1:
-                para.setAttribute("aria-roledescription","custom");
+                para.setAttribute("aria-roledescription","");
+                let accessibleParent = item.GetAccessibleParent();
+                if (accessibleParent != undefined) {
+                    parent = accessibleParent.GetHashCode();
+                }
                 break;
             //CHECKBOX
             case 2:
@@ -195,7 +200,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         parent = parentGroup.GetHashCode();
                     }
                 }
-                para.setAttribute("aria-checked", false);
+                para.setAttribute("aria-checked", radioButton.GetToggleState());
                 break;
             //BUTTON
             case 4:
@@ -228,7 +233,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         menuGroup.id = id + "-submenu";
                         menuGroup.setAttribute("role", "menu");
                         para.appendChild(menuGroup);
-                        // there is no event to change this so it will always say collapsed 
+                        para.setAttribute("aria-haspopup", true);
                         para.setAttribute("aria-expanded", menuItem.IsOpen());
                     }
                     //attach to proper parent
@@ -392,6 +397,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 //    system action MenuChanged(MenuChangeEvent event)
     this.MenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
         console.log("Menu Changed");
+        var menuItemID = event.GetMenuItem().GetHashCode();
+        if (elementList[menuItemID] != null) {
+            var element = document.getElementById(menuItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeChanged(TreeChangeEvent event)
