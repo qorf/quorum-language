@@ -66,6 +66,11 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
+        let progressbarID = event.GetProgessBar().GetHashCode();
+        if(elementList[progressbarID] != null) {
+            let element = document.getElementById(progressbarID);
+            element.setAttribute("aria-valuenow", event.GetOldValue());
+        }
         console.log("Progress bar updated");
     };
 
@@ -146,8 +151,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
-        
-       var canvas = document.getElementById(currentIDECanvas_$Global_);
 
        //replace this code with item appropriate material
         var id = item.GetHashCode();
@@ -171,9 +174,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             case 0:
             case 1:
                 para.setAttribute("aria-roledescription","");
-                let accessibleParent = item.GetAccessibleParent();
+                // should be an accessible parent but that won't work
+                let accessibleParent = item.GetParent();
                 if (accessibleParent != undefined) {
-                    parent = accessibleParent.GetHashCode();
+                    let parentID = accessibleParent.GetHashCode();
+                    if (elementList[parentID] != null) {
+                        parent = parentID;
+                    }
                 }
                 break;
             //CHECKBOX
@@ -199,8 +206,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         // attach to radiogroup
                         parent = parentGroup.GetHashCode();
                     }
+                    para.setAttribute("aria-checked", radioButton.GetToggleState());
                 }
-                para.setAttribute("aria-checked", radioButton.GetToggleState());
                 break;
             //BUTTON
             case 4:
@@ -301,10 +308,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //TABLE
             case 15:
                 role = "table";
+                // if cells get added after the spreadsheet is added this could cause issues
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Spreadsheet")) {
+                    let spreadsheet = global_CheckCast(item, "Libraries.Interface.Controls.Spreadsheet");
+                    for (let i = 0; i < spreadsheet.GetColumnsSize(); i++) {
+                        let row = document.createElement(elementType);
+                        row.id =id+"-row-"+i;
+                        row.setAttribute("role","row");
+                        para.appendChild(row);
+                    }
+                }
                 break;
             //CELL
             case 16:
                 role = "cell";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Cell")) {
+                    let cell = global_CheckCast(item, "Libraries.Interface.Controls.Cell");
+                    let spreadsheet = global_CheckCast(cell.GetSpreadsheet(), "Libraries.Interface.Controls.Spreadsheet");
+                    if(spreadsheet != undefined) {
+                        let position = spreadsheet.GetCellCoordinates$quorum_Libraries_Interface_Controls_Cell(cell);
+                        let rowNum = position.GetFirstValue();
+                        parent = spreadsheet.GetHashCode()+"-row-"+rowNum.GetValue();
+                    }
+                }
                 break;
             //TEXT_FIELD
             case 17:
@@ -348,7 +374,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //PROGRESS_BAR
             case 23:
-                role = "progressbar"
+                role = "progressbar";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.ProgressBar")) {
+                    let progressbar = global_CheckCast(item, "Libraries.Interface.Controls.ProgressBar");
+                    para.setAttribute("aria-valuemin", progressbar.GetMinimum());
+                    para.setAttribute("aria-valuemax", progressbar.GetMaximum());
+                    para.setAttribute("aria-valuenow", progressbar.GetValue());
+                }
                 break;
             //TREE_TABLE_CELL
             case 24:
