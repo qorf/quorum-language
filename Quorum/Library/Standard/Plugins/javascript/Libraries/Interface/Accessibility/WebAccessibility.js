@@ -66,10 +66,10 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
-        let progressbarID = event.GetProgessBar().GetHashCode();
+        let progressbarID = event.GetProgressBar().GetHashCode();
         if(elementList[progressbarID] != null) {
             let element = document.getElementById(progressbarID);
-            element.setAttribute("aria-valuenow", event.GetOldValue());
+            element.setAttribute("aria-valuenow", event.GetNewValue());
         }
         console.log("Progress bar updated");
     };
@@ -368,6 +368,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //DIALOG
             case 21:
                 role = "dialog";
+                // dialogs are accessible parents so as long as their children are added properly dialogs will be announced
                 break;
             //POPUP_MENU
             case 22:
@@ -393,6 +394,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             default:
                 // do nothing?
+        }
+
+        if (parent == undefined) {
+            let accessibleParent = item.GetAccessibleParent();
+            if (accessibleParent != undefined) {
+                let parentID = accessibleParent.GetHashCode();
+                if (elementList[parentID] != null) {
+                    parent = parentID;
+                }
+            }
         }
 
         para.setAttribute("role",role);
