@@ -35,7 +35,7 @@ class SharedBarChartParent is Chart
 
     integer yTickSteps = 2
     integer xTickSteps = -1
-    private number yMaximum = 0 // the maximum value in y axis
+    private number yMaximum = 0.0 // the maximum value in y axis
     number maxScale = 1
     number minScale = 0
 
@@ -624,6 +624,10 @@ class SharedBarChartParent is Chart
         Control chartArea = GetChartArea()
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
+
+        if GetYMaximum() = 0.0
+            SetYMaximum(maxScale)
+        end
 
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())

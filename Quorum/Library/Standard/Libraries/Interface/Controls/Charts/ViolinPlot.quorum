@@ -323,7 +323,6 @@ class ViolinPlot is Chart
                 series:SetColor(options:GetColorFromPalette(i))
                 series:GetLabel():SetFocusable(true)
                 series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                series:GetItem(i):SetColor(series:GetColor())
                 integer j = 0
                 repeat while j < series:GetSize()
                     series:GetItem(j):SetColor(series:GetColor())

@@ -144,18 +144,18 @@ class ChartLine is Drawable
         repeat while i < points:GetSize()-1
             integer j = 0
             repeat while j < points:GetSize()-i-1
-                if points:Get(j):GetPercentX() > points:Get(j+1):GetPercentX()
+                if points:Get(j):GetValueX() > points:Get(j+1):GetValueX()
                     ChartPoint point
-                    point:SetPercentX(points:Get(j):GetPercentX())
-                    point:SetPercentY(points:Get(j):GetPercentY())
+                    point:SetValueX(points:Get(j):GetValueX())
+                    point:SetValueY(points:Get(j):GetValueY())
                     point:SetName(points:Get(j):GetName())
 
-                    points:Get(j):SetPercentX(points:Get(j+1):GetPercentX())
-                    points:Get(j):SetPercentY(points:Get(j+1):GetPercentY())
+                    points:Get(j):SetValueX(points:Get(j+1):GetValueX())
+                    points:Get(j):SetValueY(points:Get(j+1):GetValueY())
                     points:Get(j):SetName(points:Get(j+1):GetName())
 
-                    points:Get(j+1):SetPercentX(point:GetPercentX())
-                    points:Get(j+1):SetPercentY(point:GetPercentY())
+                    points:Get(j+1):SetValueX(point:GetValueX())
+                    points:Get(j+1):SetValueY(point:GetValueY())
                     points:Get(j+1):SetName(point:GetName())
                 end
                 j = j + 1 
@@ -170,12 +170,12 @@ class ChartLine is Drawable
         number minY = 1.0
         i = 0
         repeat while i < points:GetSize()
-            if points:Get(i):GetPercentY() > maxY
-                maxY = points:Get(i):GetPercentY()
+            if points:Get(i):GetValueY() > maxY
+                maxY = points:Get(i):GetValueY()
                 lineMax = points:Get(i)
             end
-            if points:Get(i):GetPercentY() < minY
-                minY = points:Get(i):GetPercentY()
+            if points:Get(i):GetValueY() < minY
+                minY = points:Get(i):GetValueY()
                 lineMin = points:Get(i)
             end
             i = i + 1

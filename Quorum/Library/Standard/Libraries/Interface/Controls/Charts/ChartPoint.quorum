@@ -6,6 +6,8 @@ use Libraries.Interface.Controls.Icon
 class ChartPoint is Drawable
     number percentX = 0
     number percentY = 0
+    number valueX = 0
+    number valueY = 0
     text name = ""
     
     Icon parentRegion = undefined
@@ -38,6 +40,22 @@ class ChartPoint is Drawable
 
     action SetPercentY(number percentY)
         me:percentY = percentY
+    end
+
+    action GetValueX returns number
+        return valueX
+    end
+
+    action SetValueX(number valueX)
+        me:valueX = valueX
+    end
+
+    action GetValueY returns number
+        return valueY
+    end
+
+    action SetValueY(number valueY)
+        me:valueY = valueY
     end
 
     action SetParentRegion(Icon region)

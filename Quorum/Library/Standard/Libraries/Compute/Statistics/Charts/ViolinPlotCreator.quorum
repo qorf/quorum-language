@@ -112,10 +112,13 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             plot:SetInfo(Calculations(dataset))
             plot:SetName(columnFrame:GetHeader())
 
-            Icon icon = plot:GetIcon()        
-            icon:SetColor(options:GetColorFromPalette(0)) // default color when no factor
+            Series series
+            series:SetName(columnFrame:GetHeader())
+            series:AddItem(plot:GetIcon())
+
             group:AddPlot(plot)
             chart:AddPlotGroup(group)
+            chart:AddSeries(series)
 
             columnNames:Add(columnFrame:GetHeader()) 
 
@@ -126,6 +129,9 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         if window not= undefined
             chart:SetWindowingAction(window)
         end
+        Legend legend
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
         chart:SetXAxisLabels(columnNames)
         chart:SetYTickCount(yTicks)
         chart:SetYMaximum(largest)

@@ -56,7 +56,8 @@ class LineChartLayout is TwoVariableChartLayout
                     point:LoadFilledCircle(radius, lines:Get(i):GetColor())
                     pointIcon:LoadFilledCircle(radius+2, chart:GetHighlightColor()) //Slightly denser when highlighted
                 end
-
+                point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
+                point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))
                 integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
