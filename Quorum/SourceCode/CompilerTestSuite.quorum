@@ -18,6 +18,7 @@ use Libraries.Testing.Tester
 use Libraries.System.Process
 use Libraries.System.ProcessEvent
 use Libraries.System.ProcessListener
+use Libraries.System.Properties
 
 class CompilerTestSuite is ProcessListener
     integer total = 0
@@ -34,6 +35,9 @@ class CompilerTestSuite is ProcessListener
     Library library
     Tester tester
     text javascriptStandardLibraryText = ""
+    constant text NODE_MAC = "/usr/local/bin/node"
+    constant text NODE_WINDOWS = "C:\Program Files\nodejs\bin"
+    text nodeLocation = undefined
     
 
     CompilerProfiler summaryProfiler
@@ -114,12 +118,17 @@ class CompilerTestSuite is ProcessListener
         output "Scanning Standard Library"
         library:Scan()
 
-        File jsStandardLibrary
-        jsStandardLibrary:SetWorkingDirectory(compiler:GetStandardLibraryFolder():GetParentDirectory():GetAbsolutePath())
-        jsStandardLibrary:SetPath("Compiled/Run/QuorumStandardLibrary.js")
-
-        output "Reading JavaScript Standard Library"
-        javascriptStandardLibraryText = jsStandardLibrary:Read()
+        nodeLocation = FindNode()
+        if nodeLocation not= undefined
+            output "Reading JavaScript Standard Library"
+            File jsStandardLibrary
+            jsStandardLibrary:SetWorkingDirectory(compiler:GetStandardLibraryFolder():GetParentDirectory():GetAbsolutePath())
+            jsStandardLibrary:SetPath("Compiled/Run/QuorumStandardLibrary.js")
+            javascriptStandardLibraryText = jsStandardLibrary:Read()
+        else
+            output "Cannot find Node.js. Turning off JavaScript testing."
+            testJavaScript = false
+        end
         output "Loading Complete"
         output ""
     end
@@ -128,8 +137,27 @@ class CompilerTestSuite is ProcessListener
         return ": " + tester:GetPassingSize() + "/" + tester:GetSize()
     end
 
+    private action FindNode returns text
+        text location = undefined
+        
+        Properties prop
+        if prop:IsWindows()
+            File nodeLoc
+            nodeLoc:SetAbsolutePath(NODE_WINDOWS)
+            if nodeLoc:Exists()
+                location = NODE_WINDOWS
+            end
+        elseif prop:IsMac()
+            File nodeLoc
+            nodeLoc:SetAbsolutePath(NODE_MAC)
+            if nodeLoc:Exists()
+                location = NODE_MAC
+            end
+        end
+        return location
+    end
+
     action Main
-        output ""
         output "Testing"
         DateTime date
         start = date:GetEpochTime()
@@ -414,7 +442,7 @@ console.log(OuTpUt_$tRiNg_);
 
         //now run the output file in Node.js
         Process process
-        process:SetName("/usr/local/bin/node")
+        process:SetName(nodeLocation)
         
         File processDirectory
         processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
