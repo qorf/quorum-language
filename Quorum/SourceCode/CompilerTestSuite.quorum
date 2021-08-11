@@ -312,6 +312,8 @@ class CompilerTestSuite is ProcessListener
             end
             repeat n times
                 if lines:Get(i) not= reply:Get(i)
+                    //leaving this here as it is convenient for testing.
+                    //output "Line '" + lines:Get(i) + "'" + "Answer '" + reply:Get(i) + "'"
                     result:passed = false
                 end
                 i = i + 1
