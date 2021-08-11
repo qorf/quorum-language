@@ -137,7 +137,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         
         chart:AddSeries(series)
-        chart:SetYMaximum(max)
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
@@ -153,12 +152,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         chart:SetYAxisTitle("Total")
         chart:SetXAxisTitle("Group")
-        if columns = 1
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader())
-            chart:HasBarGroups(false)
-        elseif columns > 1
-            chart:HasBarGroups(true)
-        end
 
         HashTable<text, Series> seriesFactor
         HashTable<text, BarGroup> groupFactor
@@ -227,11 +220,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         Legend legend
-        chart:SetYMaximum(yMax)
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, yMin, yMax)
+        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         return chart
     end
 
@@ -361,7 +354,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
-        chart:SetYMaximum(max)
         SetTicks(chart)
         SetScale(chart, min, max)
         return chart
@@ -424,8 +416,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         Legend legend
         chart:AddSeries(series)
-        chart:SetMaxBarValue(sumMax)
-        chart:SetYMaximum(sumMax)
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor:GetHeader())
         chart:SetLegend(legend)
@@ -514,8 +504,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor2:GetHeader())
-        chart:SetMaxBarValue(sumMax)
-        chart:SetYMaximum(sumMax)
         chart:SetLegend(legend)
         SetTicks(chart)
         SetScale(chart, sumMin, sumMax)
@@ -628,6 +616,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
 
     private action SetScale(BarChart chart, number min, number max)
+        chart:SetYAxisMinimum(min)
+        chart:SetYAxisMaximum(max)
         if max not= maxScale:GetMinimumValue()
             chart:SetScaleMaximum(max)
         else
@@ -644,10 +634,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     private action SetTicks(BarChart chart)
         if xSteps not= -1
             chart:SetXTickSteps(xSteps)
-        end
-
-        if ySteps not= -1
-            chart:SetYTickSteps(ySteps)
         end
     end
 

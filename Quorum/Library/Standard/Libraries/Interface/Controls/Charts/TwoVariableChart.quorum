@@ -254,8 +254,10 @@ class TwoVariableChart is Chart
         
         Array<Drawable> xTickDrawables = GetXTicks()
         Array<Drawable> yTickDrawables = GetScaleTicks()
-        Array<Drawable> yGridlines = GetYGridlines()
-        Array<Drawable> xGridlines = GetXGridlines()
+        Array<Drawable> yGridlines = GetMajorYGridlines()
+        Array<Drawable> xGridlines = GetMajorXGridlines()
+        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
+        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
         Array<ControlLabel> xLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -263,6 +265,12 @@ class TwoVariableChart is Chart
         Control chartArea = GetChartArea()
 
         
+        // If text x-axis is being used then this will stop the manually interval changing.
+        if xLabelsOverride not= undefined
+            xAxisMinimum = 0
+            xAxisMaximum = xLabelsOverride:GetSize()-1
+        end
+
         number scaleNum = xAxisMinimum
         number scaleWidth = xAxisCalculateScaleWidth()
 
@@ -275,10 +283,19 @@ class TwoVariableChart is Chart
                     horizontalPanel:Add(tick)
                     xTickDrawables:Add(tick)
 
-                    if IsShowingXGridLines()
+                    if IsShowingMajorXGridLines()
                         Drawable gridline
                         xGridlines:Add(gridline)
                         chartArea:Add(gridline)
+                    end
+                    if IsShowingMinorXGridLines()
+                        integer j = 0
+                        repeat while j < 5
+                            Drawable gridline
+                            xMinorGridlines:Add(gridline)
+                            chartArea:Add(gridline)
+                            j = j + 1
+                        end
                     end
 
                     ControlLabel label
@@ -333,10 +350,19 @@ class TwoVariableChart is Chart
                     verticalPanel:Add(tick)
                     yTickDrawables:Add(tick)
 
-                    if IsShowingYGridLines()
+                    if IsShowingMajorYGridLines()
                         Drawable gridline
                         yGridlines:Add(gridline)
                         chartArea:Add(gridline)
+                    end
+                    if IsShowingMinorYGridLines()
+                        integer j = 0
+                        repeat while j < 5
+                            Drawable gridline
+                            yMinorGridlines:Add(gridline)
+                            chartArea:Add(gridline)
+                            j = j + 1
+                        end
                     end
 
                     ControlLabel label
@@ -507,7 +533,7 @@ class TwoVariableChart is Chart
             end
             if tickSkips not= 1.0
                 number i = xAxisMinimum
-                repeat while i <= xAxisMaximum
+                repeat while i < xAxisMaximum
                     i = i + tickSkips
                 end
                 xAxisMaximum = math:Round(i, 2)
@@ -558,7 +584,7 @@ class TwoVariableChart is Chart
             end
             if tickSkips not= 1.0
                 number i = yAxisMinimum
-                repeat while i <= yAxisMaximum
+                repeat while i < yAxisMaximum
                     i = i + tickSkips
                 end
                 yAxisMaximum = math:Round(i, 2) 

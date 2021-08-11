@@ -233,11 +233,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             xAxisMaximum = groupKeyArray:GetSize()-1
         end
 
-        if numericalFactor 
-            xTicks = cast(integer, xAxisMaximum-xAxisMinimum)+1
-        else
+        if not numericalFactor 
             chart:OverrideXLabelsWithText(groupKeyArray)
-            xTicks = groupKeyArray:GetSize()
         end
 
         i = 0
@@ -280,85 +277,4 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:Populate()
         return chart
     end
-
-//    /*
-//    This action returns how many scale ticks should be used along the X axis of the LineChart.
-//    By default, this value is 5.
-//
-//    Attribute: Returns The number of ticks along the X axis of the LineChart.
-//    */
-//    action GetXTickCount returns integer
-//        return xTicks
-//    end
-//
-//    /*
-//    This action sets how many scale ticks should be used along the X axis of the LineChart.
-//    By default, this value is 5.
-//
-//    Attribute: Parameter xTicks How many ticks should be used along the X axis of the LineChart.
-//    */
-//    action SetXTickCount(integer xTicks)
-//        me:xTicks = xTicks
-//    end
-//
-//    /*
-//    This action returns how many scale ticks should be used along the Y axis of the LineChart.
-//    By default, this value is 5.
-//
-//    Attribute: Returns The number of ticks along the Y axis of the LineChart.
-//    */
-//    action GetYTickCount returns integer
-//        return yTicks
-//    end
-//
-//    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
-//    By default, this value is 5.
-//
-//    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
-//    */
-//    action SetYTickCount(integer yTicks)
-//        me:yTicks = yTicks
-//    end
-//
-//    /*
-//    This action returns the minimum value on the Y axis, if one has been manually set. If no value
-//    has been set, the minimum Y axis value will be determined from the minimum value of the dataset
-//    used during the Create action. If no value has been set, this returns 0. To determine if a value
-//    has been manually set, use the "GetManualYAxisMinimum" action.
-//
-//    Attribute: Returns The minimum value to be used for the Y axis, or 0 if no value has been manually set.
-//    */
-//    action GetYAxisMinimum returns number
-//        return yAxisMinimum
-//    end
-//
-//    /*
-//    This action manually sets the minimum value to present on the Y axis of the LineChart.
-//
-//    Attribute: Parameter yAxisMinimum The minimum value to present on the Y axis of the LineChart.
-//    */
-//    action SetYAxisMinimum(number yAxisMinimum)
-//        me:yAxisMinimum = yAxisMinimum
-//    end
-//
-//    /*
-//    This action returns the maximum value on the Y axis, if one has been manually set. If no value
-//    has been set, the maximum Y axis value will be determined from the maximum value of the dataset
-//    used during the Create action. If no value has been set, this returns 1. To determine if a value
-//    has been manually set, use the "GetManualYAxisMaximum" action.
-//
-//    Attribute: Returns The maximum value to be used for the Y axis, or 1 if no value has been manually set.
-//    */
-//    action GetYAxisMaximum returns number
-//        return yAxisMaximum
-//    end
-//
-//    /*
-//    This action manually sets the maximum value to present on the Y axis of the LineChart.
-//
-//    Attribute: Parameter yAxisMaximum The maximum value to present on the Y axis of the LineChart.
-//    */
-//    action SetYAxisMaximum(number yAxisMaximum)
-//        me:yAxisMaximum = yAxisMaximum
-//    end
 end

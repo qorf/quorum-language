@@ -61,9 +61,11 @@ use Libraries.Interface.Views.LabelBoxView
 class Chart is Control
     Legend legend
     boolean showLegend = false
-    boolean grayscale = false
-    boolean showYGridLines = false
-    boolean showXGridLines = false
+    boolean showGrayscale = false
+    boolean showMajorYGridLines = false
+    boolean showMajorXGridLines = false
+    boolean showMinorYGridLines = false
+    boolean showMinorXGridLines = false
     boolean treeNeedsUpdate = true
     ChartSelection selection
     text xName = ""
@@ -87,8 +89,10 @@ class Chart is Control
     Array<ControlLabel> xLabels
     Array<Drawable> scaleTicks
     Array<Drawable> xTicks
-    Array<Drawable> yGridlines
-    Array<Drawable> xGridlines
+    Array<Drawable> majorYGridlines
+    Array<Drawable> majorXGridlines
+    Array<Drawable> minorYGridlines
+    Array<Drawable> minorXGridlines
 
     number xAxisSizeOffset = 0.75
     number yAxisSizeOffset = 0.75
@@ -183,17 +187,20 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetYGridlines returns Array<Drawable>
-        return yGridlines
+    action GetMajorYGridlines returns Array<Drawable>
+        return majorYGridlines
     end
 
-    /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-    */
-    action GetXGridlines returns Array<Drawable>
-        return xGridlines
+    action GetMajorXGridlines returns Array<Drawable>
+        return majorXGridlines
+    end
+    
+    action GetMinorYGridlines returns Array<Drawable>
+        return minorYGridlines
+    end
+
+    action GetMinorXGridlines returns Array<Drawable>
+        return minorXGridlines
     end
 
     /*
@@ -819,56 +826,109 @@ class Chart is Control
     end
 
     /*
-        This action states to turn on the gridlines. 
-
-        Attribute: Parameter true if the horizontal gridlines should be shown.
-    */
-    action ShowYGridLines(boolean show)
-        showYGridLines = show
-    end
-
-    /*
-        This action states to turn on the horizontal gridlines.
- 
-        Attribute: Returns true if the horizon gridlines are shown.
-    */
-    action IsShowingYGridLines returns boolean
-        return showYGridLines
-    end
-
-    /*
-        This action states to turn on the gridlines.
- 
-        Attribute: Parameter true if the gridlines should be shown.
-    */
-    action ShowXGridLines(boolean show)
-        showXGridLines = show
-    end
-
-    /*
-        This action states to turn on the gridlines.
-
-        Attribute: Returns true if the veritcal gridlines are shown.
-    */
-    action IsShowingXGridLines returns boolean
-        return showXGridLines
-    end
-
-    /*
-        This action states to turn on the gridlines. 
+        The gridline actions to customize which gridlines are visible
+        No option to customize density or color at this time.
     */
     action ShowAllGridLines()
-        showYGridLines = true
-        showXGridLines = true
+        showMajorYGridLines = true
+        showMajorXGridLines = true
+        showMinorYGridLines = true
+        showMinorXGridLines = true
+    end
+    action HideAllGridLines()
+        showMajorYGridLines = false
+        showMajorXGridLines = false
+        showMinorYGridLines = false
+        showMinorXGridLines = false
+    end
+
+    action ShowAllXGridLines()
+        showMajorXGridLines = true
+        showMinorXGridLines = true
+    end
+    action HideAllXGridLines()
+        showMajorXGridLines = false
+        showMinorXGridLines = false
+    end
+
+    action ShowAllYGridLines()
+        showMajorYGridLines = true
+        showMinorYGridLines = true
+    end
+    action HideAllYGridLines()
+        showMajorYGridLines = false
+        showMinorYGridLines = false
+    end
+
+    action ShowMajorGridLines()
+        showMajorYGridLines = true
+        showMajorXGridLines = true
+    end
+    action HideMajorGridLines()
+        showMajorYGridLines = false
+        showMajorXGridLines = false
+    end
+
+    action ShowMinorGridLines()
+        showMinorYGridLines = true
+        showMinorXGridLines = true
+    end
+    action HideMinorGridLines()
+        showMinorYGridLines = false
+        showMinorXGridLines = false
+    end
+
+    action ShowMinorYGridLines()
+        showMinorYGridLines = true
+    end
+    action HideMinorYGridLines()
+        showMinorYGridLines = false
+    end
+
+    action ShowMinorXGridLines()
+        showMinorXGridLines = true
+    end
+    action HideMinorXGridLines()
+        showMinorXGridLines = false
+    end
+
+    action ShowMajorYGridLines()
+        showMajorYGridLines = true
+    end
+    action HideMajorYGridLines()
+        showMajorYGridLines = false
+    end
+
+    action ShowMajorXGridLines()
+        showMajorXGridLines = true
+    end
+    action HideMajorXGridLines()
+        showMajorXGridLines = false
+    end
+
+    action IsShowingMajorXGridLines returns boolean
+        return showMajorXGridLines
+    end
+
+    action IsShowingMajorYGridLines returns boolean
+        return showMajorYGridLines
+    end
+
+    action IsShowingMinorXGridLines returns boolean
+        return showMinorXGridLines
+    end
+
+    action IsShowingMinorYGridLines returns boolean
+        return showMinorYGridLines
     end
 
 
     action ShowGrayScale(boolean show)
-        grayscale = show
+        showGrayscale = show
     end
 
     action IsGrayScale returns boolean
-        return grayscale
+        return showGrayscale
     end
 
     /*

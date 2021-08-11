@@ -35,9 +35,13 @@ class SharedBarChartParent is Chart
 
     integer yTickSteps = 2
     integer xTickSteps = -1
-    private number yMaximum = 0.0 // the maximum value in y axis
+    number yTickInterval = -1
+    // Default uses best interval by range to graph, if tick count is set, it overrides this.
+    boolean yIntervalBasedOnTickCount = false
     number maxScale = 1
     number minScale = 0
+    number yAxisMaximum = 0.0 // the maximum value in y axis
+    number yAxisMinimum = 0.0
 
     //Not implemented for now, but is a placeholder for future implementation
     number minTick = 0
@@ -48,6 +52,7 @@ class SharedBarChartParent is Chart
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
     Control controlHighlight
+    Math math
     
    
     action LostSelection(ChartItem ci)
@@ -123,8 +128,7 @@ class SharedBarChartParent is Chart
     action HasBarGroups(boolean flag)
         hasBarGroups = flag
     end
-
-    /*
+     /*
         Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
     */
     action HasBarGroups returns boolean
@@ -160,9 +164,17 @@ class SharedBarChartParent is Chart
     end
 
     /*
-        Appends a bargroup to end of the Bar Chart.
+        Appends a bargroup to end of the Bar Chart. 
+        If any bars in the bar group are bigger than the y max, ymax increases
     */
     action AddBarGroup(BarGroup group)
+        integer i = 0
+        repeat while i < group:GetSize()
+            if group:Get(i):GetValue() > yAxisMaximum
+                yAxisMaximum = group:Get(i):GetValue()
+            end
+            i = i + 1
+        end
         barGroups:Add(group)
         numberOfGroups = numberOfGroups + 1
     end
@@ -237,6 +249,7 @@ class SharedBarChartParent is Chart
     */
     action SetYTickSteps(integer steps)
         yTickSteps = steps
+        yIntervalBasedOnTickCount = true
     end
 
     /*
@@ -244,6 +257,18 @@ class SharedBarChartParent is Chart
     */
     action GetYTickSteps returns integer
         return yTickSteps
+    end
+
+    action SetYTickInterval(number set)
+        yTickInterval = set
+    end
+
+    action SetYTickInterval(integer set)
+        yTickInterval = cast(number, set)
+    end
+
+    action GetYTickInterval() returns number
+        return yTickInterval
     end
 
     /*
@@ -343,14 +368,86 @@ class SharedBarChartParent is Chart
          maxBarValue = max
     end
 
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
+    // Y-Axis min/max 
+    action SetYAxisMaximum(number max)
+        yAxisMaximum = max
      end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+    action SetYAxisMinimum(number min)
+        yAxisMinimum = min
+     end
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
+    end
+
+    /*
+        This action takes a range of data and returns a decent interval, this is only the default.
+        The user can choose any interval they wish and set it manually.  
+    */
+    action CalculateBestTickInterval(number range) returns number
+        number tickSkips = 0
+        if range <= 2.5
+            if range > 1.5
+                tickSkips = 0.5
+            else
+                tickSkips = 0.1
+            end
+        else
+            if range > 5000
+                tickSkips = 1000
+            elseif range > 2500
+                tickSkips = 500
+            elseif range > 1000
+                tickSkips = 250
+            elseif range > 500
+                tickSkips = 100
+            elseif range > 200
+                tickSkips = 50
+            elseif range > 100
+                tickSkips = 20
+            elseif range > 50
+                tickSkips = 10
+            elseif range > 20
+                tickSkips = 5
+            elseif range > 10
+                tickSkips = 2
+            else
+                tickSkips = 1
+            end
+        end
+        return tickSkips
+    end
+
+    action yAxisCalculateScaleWidth() returns number
+        number yRange = yAxisMaximum-yAxisMinimum
+        number scaleWidth = 0.0
+        // Calculating intervals and/or number of ticks
+        if yIntervalBasedOnTickCount
+            if yTickSteps > 1
+                SetYTickInterval(math:Round(yRange / cast(number, yTickSteps-1), 2))
+                yAxisMaximum = cast(number, yTickSteps-1) * GetYTickInterval() + yAxisMinimum
+            end
+        end
+        // Numerical y-scale (number intervals)
+        number tickSkips = GetYTickInterval()
+        if tickSkips = -1
+            tickSkips = CalculateBestTickInterval(yRange)
+        end
+        if tickSkips not= 1.0
+            number i = yAxisMinimum
+            repeat while i < yAxisMaximum
+                i = i + tickSkips
+            end
+            yAxisMaximum = math:Round(i, 2) 
+            yTickSteps = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
+            scaleWidth = tickSkips
+        else
+            yTickSteps = cast(integer, yRange) + 1
+            scaleWidth = yRange / (yTickSteps - 1)
+        end 
+        return scaleWidth
     end
 
     /*
@@ -501,9 +598,9 @@ class SharedBarChartParent is Chart
         //scale
         ChartItem genericScaleNode
         genericScaleNode:SetContainer(me)
-        genericScaleNode:SetDisplayName("The scale has " + yTickSteps + " tick marks and goes from 0.0  to " + maxScale)
+        genericScaleNode:SetDisplayName("The scale has " + yTickSteps + " tick marks and goes from 0.0  to " + yAxisMaximum)
         genericScaleNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from 0.0 to " + maxScale)
+        yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from 0.0 to " + yAxisMaximum)
         ChartItem firstScale
         firstScale:SetContainer(me)
         Array<ControlLabel> scaleLabels = GetScaleLabels()
@@ -623,7 +720,10 @@ class SharedBarChartParent is Chart
         Array<Icon> bars = GetBars()
         Array<Drawable> barTicks = GetXTicks()
         Array<Drawable> yTicks = GetScaleTicks()
-        Array<Drawable> yGridlines = GetYGridlines()
+        Array<Drawable> yGridlines = GetMajorYGridlines()
+        Array<Drawable> xGridlines = GetMajorXGridlines()
+        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
+        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
         Array<ControlLabel> barLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -632,15 +732,29 @@ class SharedBarChartParent is Chart
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
 
-        if GetYMaximum() = 0.0
-            SetYMaximum(maxScale)
+        // If stacked, we need to adjust the maximum y value to the full stack
+        if GetStackedFlag()
+            integer i = 0
+            repeat while i < barGroups:GetSize()
+                number sum = 0
+                integer j = 0
+                repeat while j < barGroups:Get(i):GetSize()
+                    sum = sum + barGroups:Get(i):Get(j):GetValue()
+                    j = j + 1
+                end
+                if sum > yAxisMaximum
+                    yAxisMaximum = sum
+                end
+                i = i + 1
+            end
         end
+
+        number scaleNum = 0
+        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick steps
 
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
             yLabels:SetSize(GetYTickSteps())
-            number scaleWidth = maxScale / (yTickSteps - 1)
-            number scaleNum = 0
             integer i = 0
             repeat while i < yTickSteps
                 //make the ticks that will be on the scale
@@ -649,10 +763,19 @@ class SharedBarChartParent is Chart
                 yTicks:Set(i, tick)
                 verticalPanel:Add(yTicks:Get(i))
 
-                if IsShowingYGridLines()
+                if IsShowingMajorYGridLines()
                     Drawable gridline
                     yGridlines:Add(gridline)
                     chartArea:Add(gridline)
+                end
+                if IsShowingMinorYGridLines()
+                    integer j = 0
+                    repeat while j < 5
+                        Drawable gridline
+                        yMinorGridlines:Add(gridline)
+                        chartArea:Add(gridline)
+                        j = j + 1
+                    end
                 end
 
                //make the labels for each scale tick (auto based on max)
@@ -755,7 +878,6 @@ class SharedBarChartParent is Chart
                 end
                 i = i + 1
             end
-
             ApplySeriesColor()
             
             if IsShowingLegend()
@@ -780,7 +902,6 @@ class SharedBarChartParent is Chart
             i = i + 1
         end
     end
-
 
     private action GetBarHeight(BarGroup group, integer index) returns number
         integer thickness = cast(integer, GetWidth()*0.001) + 3
@@ -831,7 +952,7 @@ class SharedBarChartParent is Chart
                     temp = barGroups:Get(i):Get(j):GetIcon()
                     number height = GetBarHeight(barGroups:Get(i), j, GetHeight()*0.75)
                     number width = GetBarWidth(GetWidth()*0.75)
-                    temp:SetSize(width, height)
+//                    temp:SetSize(width, height)
                     j = j + 1
                 end
                 i = i + 1

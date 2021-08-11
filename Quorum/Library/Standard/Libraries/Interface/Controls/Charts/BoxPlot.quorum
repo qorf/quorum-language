@@ -305,7 +305,10 @@ class BoxPlot is Chart
         // Gets the increments of the axes of the chart
         Array<Drawable> drawable_Xincrements = GetXTicks()
         Array<Drawable> drawable_Yincrements = GetScaleTicks()
-        Array<Drawable> yGridlines = GetYGridlines()
+        Array<Drawable> yGridlines = GetMajorYGridlines()
+        Array<Drawable> xGridlines = GetMajorXGridlines()
+        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
+        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
         
         //Gets the labels of the axes
         Array<ControlLabel> x_Labels = GetXLabels()
@@ -325,10 +328,19 @@ class BoxPlot is Chart
                 drawable_Yincrements:Add(Increment)
                 vertical:Add(Increment)
 
-                if IsShowingYGridLines()
+                if IsShowingMajorYGridLines()
                     Drawable gridline
                     yGridlines:Add(gridline)
                     chartArea:Add(gridline)
+                end
+                if IsShowingMinorYGridLines()
+                    integer j = 0
+                    repeat while j < 5
+                        Drawable gridline
+                        yMinorGridlines:Add(gridline)
+                        chartArea:Add(gridline)
+                        j = j + 1
+                    end
                 end
 
                 ControlLabel label

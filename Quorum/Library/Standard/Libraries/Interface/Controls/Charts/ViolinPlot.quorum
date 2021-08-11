@@ -139,7 +139,10 @@ class ViolinPlot is Chart
         
         Array<Drawable> xTickDrawables = GetXTicks()
         Array<Drawable> yTickDrawables = GetScaleTicks()
-        Array<Drawable> yGridlines = GetYGridlines()
+        Array<Drawable> yGridlines = GetMajorYGridlines()
+        Array<Drawable> xGridlines = GetMajorXGridlines()
+        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
+        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
         Array<ControlLabel> xLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -160,10 +163,19 @@ class ViolinPlot is Chart
                 yTickDrawables:Add(tick)
                 verticalPanel:Add(tick)
 
-                if IsShowingYGridLines()
+                if IsShowingMajorYGridLines()
                     Drawable gridline
                     yGridlines:Add(gridline)
                     chartArea:Add(gridline)
+                end
+                if IsShowingMinorYGridLines()
+                    integer j = 0
+                    repeat while j < 5
+                        Drawable gridline
+                        yMinorGridlines:Add(gridline)
+                        chartArea:Add(gridline)
+                        j = j + 1
+                    end
                 end
                 
                 ControlLabel label

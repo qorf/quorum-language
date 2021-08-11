@@ -31,25 +31,47 @@ class ChartLayout is Layout
         //This is the ticks on the Y axis
         number scaleDivWidth = 0.0
         Array<Drawable> ticks = chart:GetScaleTicks()
-        Array<Drawable> lines = chart:GetYGridlines()
+        Array<Drawable> lines = chart:GetMajorYGridlines()
+        Array<Drawable> minorlines = chart:GetMinorYGridlines()
+
         if not ticks:IsEmpty()
             
             Drawable axis = chart:GetYAxis()
             scaleDivWidth = (axis:GetHeight() - ticks:Get(0):GetHeight()) / (ticks:GetSize() - 1)
+            number minorScaleDivWidth = scaleDivWidth/5.0
             
             Drawable currentTick = ticks:Get(0)
             integer tickX = originPointX - cast(integer, currentTick:GetWidth() - axis:GetWidth())
-            number tickY = originPointY// - cast(integer, currentTick:GetHeight()/2)
+            number tickY = originPointY
+
             integer i = 0
+            integer j = 0
             repeat while i < ticks:GetSize()
                 currentTick = ticks:Get(i)
                 currentTick:SetPosition(tickX, cast(integer, tickY))
-                if chart:IsShowingYGridLines() and i < lines:GetSize()
-                    integer y = cast(integer, currentTick:GetHeight()/2)
-                    Drawable currentLine = lines:Get(i)
-                    currentLine:SetPosition(0, cast(integer, tickY+y))
-                    currentLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()), y, color:LightGray())
+
+                Drawable majorLine
+                if chart:IsShowingMajorYGridLines() and i < lines:GetSize() and i > 0 // Don't do the bottom-most gridline
+                    majorLine = lines:Get(i)
                 end
+                integer thin = cast(integer, currentTick:GetHeight()*0.75)
+                majorLine:SetPosition(cast(integer, axis:GetWidth()), cast(integer, tickY+(thin/2)))
+                majorLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()-axis:GetWidth()), thin, color:LightGray())
+
+                if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
+                    integer thinner = cast(integer, majorLine:GetHeight()/2)
+                    number minorY = majorLine:GetY() + minorScaleDivWidth
+
+                    repeat while j < (i+1)*5 and minorY < axis:GetHeight()
+                        // Split five ways
+                        Drawable minorLine = minorlines:Get(j)
+                        minorLine:SetPosition(cast(integer, axis:GetWidth()), cast(integer, minorY+thinner))
+                        minorLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()-axis:GetWidth()), thinner, color:LightGray())
+                        j = j + 1
+                        minorY = minorY + minorScaleDivWidth
+                    end
+                end
+
                 tickY = tickY + scaleDivWidth
                 i = i + 1
             end

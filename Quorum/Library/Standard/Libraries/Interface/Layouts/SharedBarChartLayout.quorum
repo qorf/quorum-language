@@ -89,45 +89,10 @@ class SharedBarChartLayout is ChartLayout
             integer barHeight = 0
             integer groupWidth = 0               // width of entire group
             integer groupHeight = 0              // height of entire group
-            
-            // If stacked, we need to adjust the maximum bar value and the max y value to the full stack
-            if stacked
-                integer i = 0
-                repeat while i < barGroups:GetSize()
-                    number sum = 0
-                    integer j = 0
-                    repeat while j < barGroups:Get(i):GetSize()
-                        sum = sum + barGroups:Get(i):Get(j):GetValue()
-                        j = j + 1
-                    end
-                    if sum > chart:GetYMaximum()
-                        chart:SetMaxBarValue(sum)
-                        chart:SetYMaximum(sum)
-                        chart:SetScaleMaximum(sum)
-                    end
-                    i = i + 1
-                end
-                // Y-axis labels renamed with new max
-                Array<ControlLabel> yLabels = chart:GetScaleLabels()
-                number maxScale = chart:GetYMaximum()
-                integer steps = chart:GetYTickSteps()
-                if steps > 1
-                    number scaleWidth = cast(number, maxScale / (steps - 1))
-                    number scaleNum = 0
-                    ChartOptions chartOptions
-                    i = 0
-                    repeat while i < yLabels:GetSize()        
-                        text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
-                        yLabels:Get(i):SetText(scaleText)
-                        yLabels:Get(i):SetName(scaleText + " " + (i + 1) + " of " + steps)
-                        scaleNum = scaleNum + scaleWidth
-                        i = i + 1
-                    end
-                end
-            end
 
-            
-            number dataScale = chart:GetYMaximum()/height
+            number yAxisMaximum = chart:GetYAxisMaximum()
+            number yAxisMinimum = chart:GetYAxisMinimum()
+            number dataScale = yAxisMaximum/height
 
             integer i = 0
             repeat while i < barGroups:GetSize()
@@ -138,7 +103,7 @@ class SharedBarChartLayout is ChartLayout
                     currentBar:SetWidth(barWidth)
                     // Set bar height (percentage)
                     barHeight = cast(integer,(barGroups:Get(i):Get(j):GetValue())/dataScale)
-                    number percent = barGroups:Get(i):Get(j):GetValue()/chart:GetYMaximum()
+                    number percent = barGroups:Get(i):Get(j):GetValue()/yAxisMaximum
                     barGroups:Get(i):Get(j):SetHeight(percent)
 
                     //Find max height for barGroup Icon
