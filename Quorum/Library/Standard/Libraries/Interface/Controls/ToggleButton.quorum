@@ -1,6 +1,6 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Views.ToggleView
@@ -47,7 +47,7 @@ class ToggleButton is Button
             end
         end
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:ToggleButtonToggled(me)
         end

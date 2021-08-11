@@ -59,10 +59,13 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     boolean manualYAxisMaximum = false
 
     action Create(DataFrame frame) returns Chart
-        if GetColumnSize() > 1 and GetFactorSize() = 0
-            return CreateChart(frame)
-        elseif GetColumnSize() > 1 and GetFactorSize() > 0
-            alert("Factors cannot be used for scatter plots at this time.")
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        if columns > 1 and factors = 0
+            return CreateChart(frame, false)
+        elseif columns = 2 and factors = 1
+            return CreateChart(frame, true)
         else
             alert("ScatterPlotCreator does not support the number of column/factors that were selected.")
         end
@@ -70,16 +73,41 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return undefined
     end
 
-    action CreateChart(DataFrame frame) returns Chart
+    action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         ScatterPlot chart
         boolean numericalXData = true
         boolean numericalYData = true
+        boolean numericalFactor = false
         integer columns = GetColumnSize()
+
         HashTable<text, Series> seriesFactor
+        HashTable<number, text> numberForText //Used to later sort
         HashTable<text, number> xLabels //Used for non-numerical data
         HashTable<text, number> yLabels //Used for non-numerical data
         Vector xVector
         Vector yVector
+
+        DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
+        if useFactor
+            factor = frame:GetColumn(GetFactor(0))
+            if factor:IsNumberColumn()
+                numericalFactor = true
+            end
+            integer i = 0 
+            repeat while i < factor:GetSize()
+                if not factor:IsUndefined(i)
+                    if(not seriesFactor:HasKey(factor:GetAsText(i)))
+                        Series series
+                        series:SetName(factor:GetAsText(i))
+                        seriesFactor:Add(factor:GetAsText(i), series)
+                        if numericalFactor
+                            numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
+                        end
+                    end
+                end
+                i = i + 1 
+            end
+        end
 
         // The first column will default to the x-axis
         DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
@@ -108,10 +136,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 numericalYData = false
             end
 
-            if(not seriesFactor:HasKey(dfy:GetHeader()))
-                Series series
-                series:SetName(dfy:GetHeader())
-                seriesFactor:Add(dfy:GetHeader(), series)
+            if not useFactor
+                if(not seriesFactor:HasKey(dfy:GetHeader()))
+                    Series series
+                    series:SetName(dfy:GetHeader())
+                    seriesFactor:Add(dfy:GetHeader(), series)
+                end
             end
 
             i = i + 1
@@ -120,14 +150,8 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetXAxisTitle(dfx:GetHeader())
         if columns = 2
             chart:SetYAxisTitle(frame:GetColumn(GetColumn(1)):GetHeader())
-        end
-
-        // Sort the series
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
         else
-            seriesKeyArray:Sort(comparison)
+            chart:SetYAxisTitle("Total")
         end
 
         number xMin = GetXAxisMinimum()
@@ -176,7 +200,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = dfx:GetAsNumber(j)
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
@@ -184,8 +208,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         point:SetPercentY((y - yMin) / (yMax - yMin))
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -255,7 +285,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
@@ -263,8 +293,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         point:SetPercentY((y - yMin) / (yMax - yMin))
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -350,7 +386,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
@@ -358,8 +394,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -430,7 +472,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = dfx:GetAsNumber(j)
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
@@ -438,8 +480,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -451,15 +499,38 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             chart:OverrideYLabelsWithText(yLabelTextArray)
         end
 
-        // Add all the series to the chart
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
+        // Sort and add the series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if numericalFactor
+            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
+            if comparison = undefined
+                numberKeyArray:Sort()
+            else
+                numberKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < numberKeyArray:GetSize()
+                chart:AddSeries(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
+                i = i + 1
+            end
+        else
+            if comparison = undefined
+                seriesKeyArray:Sort()
+            else
+                seriesKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < seriesKeyArray:GetSize()
+                chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+                i = i + 1
+            end
+        end 
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
+        if useFactor
+            legend:SetName(factor:GetHeader())
+        end
         chart:SetLegend(legend)
 
         chart:SetYAxisMaximum(yAxisMaximum)

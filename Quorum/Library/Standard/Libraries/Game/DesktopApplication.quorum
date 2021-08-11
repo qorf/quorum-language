@@ -5,7 +5,9 @@ use Libraries.System.DateTime
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Accessibility
 use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility.MacAccessibility
 
 /*
 This is an internal class used by the Game class to manage several resources
@@ -30,7 +32,12 @@ class DesktopApplication is Application
         GameStateManager manager
         if manager:GetOperatingSystem():Contains("Windows 10") and game:GetDesktopConfiguration():enableAccessibility
             AccessibilityManager accessibility
-            game:SetAccessibilityManager(accessibility)
+            game:SetAccessibility(accessibility)
+        elseif manager:GetOperatingSystem():Contains("Mac OS X") and game:GetDesktopConfiguration():enableAccessibility
+            //turned off for 9.0, as it is blank. Should be enabled again
+            //once the implementation is complete.
+            MacAccessibility mac
+            game:SetAccessibility(mac)
         end
 
         MainLoop()
@@ -118,7 +125,7 @@ class DesktopApplication is Application
        
         display:Destroy()
        
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Shutdown()
         end

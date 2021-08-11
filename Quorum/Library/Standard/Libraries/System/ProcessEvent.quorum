@@ -1,0 +1,70 @@
+package Libraries.System
+
+use Libraries.Containers.Array
+
+/*
+    This class represents an event that happened while using a process. There are four 
+    kinds, a process starting, stopping, output through standard out, or output through
+    standard error. The event code needs to be checked in order to use the event.
+*/
+class ProcessEvent 
+    text name = ""
+    text out = ""
+    public constant integer START_EVENT = 0
+    public constant integer STOP_EVENT = 1
+    public constant integer OUTPUT_EVENT = 2
+    public constant integer ERROR_EVENT = 3
+    integer eventCode = START_EVENT
+    integer exit = -1
+    
+    action GetEventCode returns integer
+        return eventCode
+    end
+
+    action SetEventCode(integer code)
+        eventCode = code
+    end
+
+    Array<text> parameters = undefined
+    Process process = undefined
+
+    action GetProcess returns Process
+        return process
+    end
+
+    action SetProcess(Process process)
+        me:process = process
+    end
+
+    action GetName returns text
+        return me:name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetParameters returns Array<text>
+        return me:parameters
+    end
+
+    action SetParameters(Array<text> flags)
+        me:parameters = flags
+    end
+
+    action GetOutput returns text
+        return out
+    end
+
+    action SetOutput(text out)
+        me:out = out
+    end
+
+    action GetExit returns integer
+        return exit
+    end
+
+    action SetExit(integer exit)
+        me:exit = exit
+    end
+end

@@ -305,6 +305,7 @@ class BoxPlot is Chart
         // Gets the increments of the axes of the chart
         Array<Drawable> drawable_Xincrements = GetXTicks()
         Array<Drawable> drawable_Yincrements = GetScaleTicks()
+        Array<Drawable> yGridlines = GetYGridlines()
         
         //Gets the labels of the axes
         Array<ControlLabel> x_Labels = GetXLabels()
@@ -323,6 +324,12 @@ class BoxPlot is Chart
                 Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
                 drawable_Yincrements:Add(Increment)
                 vertical:Add(Increment)
+
+                if IsShowingYGridLines()
+                    Drawable gridline
+                    yGridlines:Add(gridline)
+                    chartArea:Add(gridline)
+                end
 
                 ControlLabel label
                 label:SetFontSize(GetFontSize())
@@ -492,7 +499,6 @@ class BoxPlot is Chart
                 series:SetColor(options:GetColorFromPalette(i))
                 series:GetLabel():SetFocusable(true)
                 series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                series:GetItem(i):SetColor(series:GetColor())
                 integer j = 0
                 repeat while j < series:GetSize()
                     series:GetItem(j):SetColor(series:GetColor())

@@ -2,7 +2,7 @@ package Libraries.Game
 
 use Libraries.Interface.Item
 use Libraries.Interface.Item3D
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.ResizeEvent
@@ -234,7 +234,7 @@ class Layer3D is Layer
         EnableItemLighting(item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -291,7 +291,7 @@ class Layer3D is Layer
         items:Add(index, item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -349,7 +349,7 @@ class Layer3D is Layer
         items:AddToFront(item)
         newItemAdded = true
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Add(item)
         end
@@ -464,7 +464,7 @@ class Layer3D is Layer
         items:Remove(item)
         DisableItemLighting(item)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -527,7 +527,7 @@ class Layer3D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -591,7 +591,7 @@ class Layer3D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -654,7 +654,7 @@ class Layer3D is Layer
 
         item:SetLayer(undefined)
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:Remove(item)
         end
@@ -962,7 +962,7 @@ class Layer3D is Layer
             item:SetLayer(undefined)
             DisableItemLighting(oldItem)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(item)
             end
@@ -978,7 +978,7 @@ class Layer3D is Layer
             newItemAdded = true
             EnableItemLighting(item)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(item)
             end
@@ -2730,15 +2730,12 @@ class Layer3D is Layer
         end
 
         i = 0
-        //output "In Solve physics in Layer3D, joint count is: " + joints:GetSize()
         repeat joints:GetSize() times
             Joint3D joint = joints:Get(i)
             joint:SetInCollisionGroup(false)
-            //output "This is the joint with itemA as " + joint:GetItemA():GetDescription()
             i = i + 1
         end
 
-        //output "The total number of objects in this layer is: " + items:GetSize()
         i = 0
         repeat items:GetSize() times
             

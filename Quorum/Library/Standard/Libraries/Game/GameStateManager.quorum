@@ -7,7 +7,7 @@ use Libraries.Game.GameInput
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Item
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -90,19 +90,19 @@ shared class GameStateManager
     end
 
     /*
-    This action sets the AccessibilityManager to be used across the Game.
+    This action sets the Accessibility to be used across the Game.
     */
-    action SetAccessibilityManager(AccessibilityManager accessibility)
-        GetGame():SetAccessibilityManager(accessibility)
+    action SetAccessibility(Accessibility accessibility)
+        GetGame():SetAccessibility(accessibility)
     end
 
     /*
     This action returns the AccessibilityManager that is being used across the Game.
     */
-    action GetAccessibilityManager returns AccessibilityManager
+    action GetAccessibility returns Accessibility
         Game game = GetGame()
         if game not= undefined
-            return game:GetAccessibilityManager()
+            return game:GetAccessibility()
         else
             return undefined
         end

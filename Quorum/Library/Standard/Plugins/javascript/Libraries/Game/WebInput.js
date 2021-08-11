@@ -1053,10 +1053,25 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_ = true;
     }
     
+    var lastWidth = 0;
+    var lastHeight = 0;
+    
     this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents)
     {
-        // Resize events currently aren't being captured by the system, so there
-        // are no events to return for it.
+        // We manually construct the resize events here.
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight)
+        {
+            lastWidth = display.clientWidth;
+            lastHeight = display.clientHeight;
+            display.width = display.clientWidth;
+            display.height = display.clientHeight;
+            
+            var quorumEvent = new quorum_Libraries_Interface_Events_ResizeEvent_();
+            quorumEvent.SetWidth$quorum_integer(lastWidth);
+            quorumEvent.SetHeight$quorum_integer(lastHeight);
+            resizeEvents.Add$quorum_Libraries_Language_Object(quorumEvent);
+        }
         
         for (var i = 0; i < plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.length; i++)
         {

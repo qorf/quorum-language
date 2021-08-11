@@ -38,8 +38,9 @@ use Libraries.Interface.Controls.ProgressBar
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Accessibility
 
-class AccessibilityManager 
+class AccessibilityManager is Accessibility
 
     private boolean debugOutput = false
     GameStateManager manager

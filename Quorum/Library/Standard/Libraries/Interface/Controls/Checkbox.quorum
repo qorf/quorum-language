@@ -4,7 +4,7 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Layouts.FlowLayout
@@ -100,7 +100,7 @@ class Checkbox is ToggleButton
             end
         end
 
-        AccessibilityManager accessibility = parent:ToggleButton:manager:GetAccessibilityManager()
+        Accessibility accessibility = parent:ToggleButton:manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:ToggleButtonToggled(me)
         end

@@ -9,6 +9,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Compute.BitwiseOperations
+use Libraries.Language.Errors.CastError
 use Libraries.Interface.Item
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
@@ -702,22 +703,28 @@ class DesktopInput is GameInput
             return false
         end
 
-        if elder is Item2D
-            Item2D item = cast(Item2D, younger)
-            repeat while item not= undefined
-                if item:Equals(elder)
-                    return true
+        check
+            if elder is Item2D
+                Item2D item = cast(Item2D, younger)
+                repeat while item not= undefined
+                    if item:Equals(elder)
+                        return true
+                    end
+                    item = item:GetParent()
                 end
-                item = item:GetParent()
-            end
-        else // Assume that both items are Item3D
-            Item3D item = cast(Item3D, younger)
-            repeat while item not= undefined
-                if item:Equals(elder)
-                    return true
+            else // Assume that both items are Item3D
+                Item3D item = cast(Item3D, younger)
+                repeat while item not= undefined
+                    if item:Equals(elder)
+                        return true
+                    end
+                    item = item:GetParent()
                 end
-                item = item:GetParent()
             end
+        detect error is CastError
+            // A cast error occurs if one item is an Item2D and the other is an Item3D.
+            // We always consider Item2Ds and Item3Ds to be unrelated to each other.
+            return false
         end
 
         return false

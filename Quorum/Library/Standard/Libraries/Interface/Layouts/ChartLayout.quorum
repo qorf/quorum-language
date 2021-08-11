@@ -26,10 +26,12 @@ class ChartLayout is Layout
     action LayoutVerticalAxis(Chart chart, Control vertContainer)
         originPointX = cast(integer, vertContainer:GetWidth())
         originPointY = 0
+        Color color
 
         //This is the ticks on the Y axis
         number scaleDivWidth = 0.0
         Array<Drawable> ticks = chart:GetScaleTicks()
+        Array<Drawable> lines = chart:GetYGridlines()
         if not ticks:IsEmpty()
             
             Drawable axis = chart:GetYAxis()
@@ -42,6 +44,12 @@ class ChartLayout is Layout
             repeat while i < ticks:GetSize()
                 currentTick = ticks:Get(i)
                 currentTick:SetPosition(tickX, cast(integer, tickY))
+                if chart:IsShowingYGridLines() and i < lines:GetSize()
+                    integer y = cast(integer, currentTick:GetHeight()/2)
+                    Drawable currentLine = lines:Get(i)
+                    currentLine:SetPosition(0, cast(integer, tickY+y))
+                    currentLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()), y, color:LightGray())
+                end
                 tickY = tickY + scaleDivWidth
                 i = i + 1
             end

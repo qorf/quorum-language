@@ -1,0 +1,32 @@
+package Libraries.System
+
+/*
+    Classes can listen to the result of an executing process and its events. A Listener
+    must be added to a process and then the Run action will be automatically called.
+*/
+class ProcessListener
+
+    /*
+        An event that is fired whenever the process starts.
+    */
+    action ProcessStarted(ProcessEvent event)
+    end
+
+    /*
+        An event that is fired whenever the process stops.
+    */
+    action ProcessStopped(ProcessEvent event)
+    end
+
+    /*
+        An event that is fired whenever the process outputs to standard out.
+    */
+    action Output(ProcessEvent event)
+    end
+
+    /*
+        An event that is fired whenever the process outputs to standard error.
+    */
+    action Error(ProcessEvent event)
+    end
+end

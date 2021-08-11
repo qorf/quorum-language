@@ -3,7 +3,7 @@ package Libraries.Game
 use Libraries.Game.Application
 use Libraries.Game.Game
 use Libraries.Game.WebConfiguration
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility.WebAccessibility
 use Libraries.Game.GameStateManager
 
 class WebApplication is Application
@@ -15,15 +15,12 @@ class WebApplication is Application
         GameStateManager manager
         // The code below initializes accessibility for the web.
         // As it's not yet finished, it's commented out for now.
-        /*
+        
         if manager:GetOperatingSystem():Contains("Web Browser")
-            output "Initializing Web accessibility."
-            AccessibilityManager accessibility
-            game:SetAccessibilityManager(accessibility)
-        else
-            output "Didn't initialize Web accessibility."
+            WebAccessibility accessibility
+            game:SetAccessibility(accessibility)
         end
-        */
+        
         parent:Application:Setup(game)
         SetGame(game)
 

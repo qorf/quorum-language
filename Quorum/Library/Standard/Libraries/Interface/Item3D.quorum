@@ -64,7 +64,25 @@ class Item3D is Item
     number offsetX = 0
     number offsetY = 0
     number offsetZ = 0
+    number scaleX = 1
+    number scaleY = 1
+    number scaleZ = 1
+
+    // A matrix that contains the rotational component of the item. Stored separately from the main
+    // transform so that independent rotation and scale can be stored and recalculated without order-of-operations issues.
+    Matrix4 rotationMatrix
+
+    // A worker matrix used for one-off calculations.
+    Matrix4 workerMatrix
+
+    // The fully computed transform that describes the translation, scaling, and rotation of the item.
     Matrix4 transform
+
+    // If this is true, the transform needs to be recomputed before it can be used.
+    // The transform only needs to be recomputed if the scaling or rotation change.
+    // Translation changes can be safely applied without recomputing the entire transform.
+    boolean transformDirty = true
+
     Math math
     Layer3D layer = undefined
 
@@ -964,7 +982,62 @@ class Item3D is Item
         Matrix4 matrix = myItem:GetTransform()
     */
     action GetTransform returns Matrix4
+        if transformDirty
+            RecalculateTransform()
+        end
+
         return transform
+    end
+
+    private action RecalculateTransform
+        workerMatrix:IdentityMatrix()
+        workerMatrix:Scale(scaleX, scaleY, scaleZ)
+        transform:Set(rotationMatrix)
+        transform:Multiply(workerMatrix)
+        transform:SetTranslation(x, y, z)
+    end
+
+    /*
+    This action will return the Matrix4 containing the rotations applied
+    to the Item3D. The values inside the Matrix are used during transform
+    calculations, so they shouldn't be changed unless you know what you're doing!
+
+    Attribute: Returns The Matrix4 used by this item to store and calculate rotations.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Compute.Matrix4
+        Item3D myItem
+        Matrix4 matrix = myItem:GetRotationTransform()
+    */
+    action GetRotationTransform returns Matrix4
+        return rotationMatrix
+    end
+
+    /*
+    This action copies the values of the provided Matrix4 into this item's
+    rotation transform, effectively allowing you to copy rotations from one
+    object to another.
+
+    Attribute: Parameter source The source rotation matrix to copy into this item.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Matrix4
+
+    Item3D item1
+    item1:Rotate(1, 0, 1, 45)
+    Matrix4 rotation = item1:GetRotationTransform()
+
+    // Copy the rotation from item1 into a new Item, item2
+    Item3D item2
+    item2:SetRotationTransform(rotation)
+    */
+    action SetRotationTransform(Matrix4 source)
+        rotationMatrix:Set(source)
+        transformDirty = true
     end
 
     /*  
@@ -994,7 +1067,7 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(newItem)
             end
@@ -1027,7 +1100,7 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(newItem)
             end
@@ -1073,7 +1146,7 @@ class Item3D is Item
         if layer not= undefined
             layer:DisableItemLighting(removed)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(removed)
             end
@@ -1122,7 +1195,7 @@ class Item3D is Item
         if layer not= undefined
             layer:DisableItemLighting(temp)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Remove(temp)
             end
@@ -1220,7 +1293,7 @@ class Item3D is Item
             if layer not= undefined
                 layer:DisableItemLighting(oldItem)
                 
-                AccessibilityManager accessibility = manager:GetAccessibilityManager()
+                Accessibility accessibility = manager:GetAccessibility()
                 if accessibility not= undefined
                     accessibility:Remove(oldItem)
                 end
@@ -1236,7 +1309,7 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
 
-            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
                 accessibility:Add(newItem)
             end
@@ -1463,23 +1536,24 @@ class Item3D is Item
 
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
-        transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
+        rotationMatrix:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
+        transformDirty = true
         if updateTransform
             if shape not= undefined
                 Vector3 scale
                 shape:GetLocalScaling(scale)
                 Matrix3 tempMatrix
-                tempMatrix:row0column0 = transform:row0column0 / scale:GetX()
-                tempMatrix:row0column1 = transform:row0column1 / scale:GetX()
-                tempMatrix:row0column2 = transform:row0column2 / scale:GetX()
+                tempMatrix:row0column0 = rotationMatrix:row0column0 / scale:GetX()
+                tempMatrix:row0column1 = rotationMatrix:row0column1 / scale:GetX()
+                tempMatrix:row0column2 = -rotationMatrix:row0column2 / scale:GetX()
 
-                tempMatrix:row1column0 = transform:row1column0 / scale:GetY()
-                tempMatrix:row1column1 = transform:row1column1 / scale:GetY()
-                tempMatrix:row1column2 = transform:row1column2 / scale:GetY()
+                tempMatrix:row1column0 = rotationMatrix:row1column0 / scale:GetY()
+                tempMatrix:row1column1 = rotationMatrix:row1column1 / scale:GetY()
+                tempMatrix:row1column2 = -rotationMatrix:row1column2 / scale:GetY()
 
-                tempMatrix:row2column0 = transform:row2column0 / scale:GetZ()
-                tempMatrix:row2column1 = transform:row2column1 / scale:GetZ()
-                tempMatrix:row2column2 = transform:row2column2 / scale:GetZ()
+                tempMatrix:row2column0 = -rotationMatrix:row2column0 / scale:GetZ()
+                tempMatrix:row2column1 = -rotationMatrix:row2column1 / scale:GetZ()
+                tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
                 collisionTransform:GetBasis():Set(tempMatrix)
             end
         end
@@ -1615,64 +1689,12 @@ class Item3D is Item
     */
     action RotateChildren(Vector3 vector, number degrees)
         if not children:IsEmpty()
-
-//            integer counter = 0
-//            number radians = math:DegreesToRadians(degrees)
-//            number cos = math:Cosine(radians)
-//            number sin = math:Sine(radians)
-//            Item3D child = undefined
-
             Vector3 globalOffset = GetGlobalPosition()
-//            Vector3 rotation
-//            Vector3 temp
-//            Vector3 vector3
-//            vector3:Set(vector)
-//            vector3:Scale(-1, -1, -1)
-//            vector3:Normalize()
 
             Array<Item3D> allChildren
             GetAllChildren(allChildren)
 
             RotateItemArray(allChildren, globalOffset, vector, degrees)
-
-            /*
-            We store the offsets we'll be using before manipulating anything.
-            This ensures we use the original data, and there's no risk of using
-            data that's been modified on the fly (e.g., updating a parent item
-            will affect the position of the child item).
-            */
-//            Array<Vector3> localOffsets
-//            repeat allChildren:GetSize() times
-//                Vector3 newLocalOffset = allChildren:Get(counter):GetGlobalPosition()
-//                localOffsets:Add(newLocalOffset)
-//                counter = counter + 1
-//            end
-//
-//            counter = 0
-//
-//            /*
-//            Set the children's offset using Rodrigues' Rotation Formula.
-//            */
-//            repeat allChildren:GetSize() times
-//                child = allChildren:Get(counter)
-//                //Vector3 localOffset = child:GetGlobalPosition()
-//                Vector3 localOffset = localOffsets:Get(counter)
-//                localOffset:Subtract(globalOffset)
-//                
-//                temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
-//                rotation = localOffset:Scale(cos)
-//                rotation:Add(temp)
-//                temp:Set(vector3)
-//                temp:Scale((1 - cos) * temp:DotProduct(localOffset))
-//                rotation:Add(temp)
-//                
-//                rotation:Add(globalOffset):Subtract(child:GetPosition())
-//
-//                child:SetOffset(rotation)
-//                child:Rotate(vector, degrees, false)
-//
-//                counter = counter + 1
-//            end
         end
     end
 
@@ -1940,6 +1962,61 @@ class Item3D is Item
 
     end
 
+    action SetYawPitchRoll(number yaw, number pitch, number roll)
+        Quaternion angles
+        angles:SetEulerAngles(yaw, pitch, roll)
+        rotationMatrix:IdentityMatrix()
+        rotationMatrix:Rotate(angles)
+        transformDirty = true
+
+        if updateTransform
+            if shape not= undefined
+                Vector3 scale
+                shape:GetLocalScaling(scale)
+                Matrix3 tempMatrix
+                tempMatrix:row0column0 = rotationMatrix:row0column0 / scale:GetX()
+                tempMatrix:row0column1 = rotationMatrix:row0column1 / scale:GetX()
+                tempMatrix:row0column2 = -rotationMatrix:row0column2 / scale:GetX()
+
+                tempMatrix:row1column0 = rotationMatrix:row1column0 / scale:GetY()
+                tempMatrix:row1column1 = rotationMatrix:row1column1 / scale:GetY()
+                tempMatrix:row1column2 = -rotationMatrix:row1column2 / scale:GetY()
+
+                tempMatrix:row2column0 = -rotationMatrix:row2column0 / scale:GetZ()
+                tempMatrix:row2column1 = -rotationMatrix:row2column1 / scale:GetZ()
+                tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
+                collisionTransform:GetBasis():Set(tempMatrix)
+            end
+        end
+    end
+
+    action GetYaw returns number
+        Quaternion angles
+        // The "true" value indicates that the Quaternion should be normalized
+        // when bringing in the values. The "GetYaw" function requires a
+        // normalized Quaternion.
+        angles:SetFromMatrix(true, rotationMatrix)
+        return angles:GetYaw()
+    end
+
+    action GetPitch returns number
+        Quaternion angles
+        // The "true" value indicates that the Quaternion should be normalized
+        // when bringing in the values. The "GetPitch" function requires a
+        // normalized Quaternion.
+        angles:SetFromMatrix(true, rotationMatrix)
+        return angles:GetPitch()
+    end
+
+    action GetRoll returns number
+        Quaternion angles
+        // The "true" value indicates that the Quaternion should be normalized
+        // when bringing in the values. The "GetRoll" function requires a
+        // normalized Quaternion.
+        angles:SetFromMatrix(true, rotationMatrix)
+        return angles:GetRoll()
+    end
+
     /*
     This action will scale the Item3D by the values of the given Vector3. If the 
     Item3D has any children items, they will also be scaled, and their offsets 
@@ -1982,18 +2059,10 @@ class Item3D is Item
 
     */
     action Scale(Vector3 vector, boolean scaleChildren)
-        //transform:Scale(vector)
-        transform:row0column0 = transform:row0column0 * vector:GetX()
-        transform:row0column1 = transform:row0column1 * vector:GetX()
-        transform:row0column2 = transform:row0column2 * vector:GetX()
-
-        transform:row1column0 = transform:row1column0 * vector:GetY()
-        transform:row1column1 = transform:row1column1 * vector:GetY()
-        transform:row1column2 = transform:row1column2 * vector:GetY()
-
-        transform:row2column0 = transform:row2column0 * vector:GetZ()
-        transform:row2column1 = transform:row2column1 * vector:GetZ()
-        transform:row2column2 = transform:row2column2 * vector:GetZ()
+        scaleX = scaleX * vector:GetX()
+        scaleY = scaleY * vector:GetY()
+        scaleZ = scaleZ * vector:GetZ()
+        transformDirty = true
 
         if shape not= undefined
             shape:Scale(vector)
@@ -2068,6 +2137,68 @@ class Item3D is Item
         Vector3 vector
         vector:Set(scaleX, scaleY, scaleZ)
         Scale(vector, scaleChildren)
+    end
+
+    action SetScaleX(number scale)
+        SetScale(scale, scaleY, scaleZ, true)
+    end
+
+    action SetScaleX(number scale, boolean scaleChildren)
+        SetScale(scale, scaleY, scaleZ, scaleChildren)
+    end
+
+    action GetScaleX returns number
+        return scaleX
+    end
+
+    action SetScaleY(number scale)
+        SetScale(scaleX, scale, scaleZ, true)
+    end
+
+    action SetScaleY(number scale, boolean scaleChildren)
+        SetScale(scaleX, scale, scaleZ, scaleChildren)
+    end
+
+    action GetScaleY returns number
+        return scaleY
+    end
+
+    action SetScaleZ(number scale)
+        SetScale(scaleX, scaleY, scale, true)
+    end
+
+    action SetScaleZ(number scale, boolean scaleChildren)
+        SetScale(scaleX, scaleY, scale, scaleChildren)
+    end
+
+    action GetScaleZ returns number
+        return scaleZ
+    end
+
+    action SetScale(number scaleX, number scaleY, number scaleZ)
+        SetScale(scaleX, scaleY, scaleZ, true)
+    end
+
+    action SetScale(number scaleX, number scaleY, number scaleZ, boolean scaleChildren)
+        me:scaleX = scaleX
+        me:scaleY = scaleY
+        me:scaleZ = scaleZ
+        transformDirty = true
+
+        if shape not= undefined
+            Vector3 temp
+            shape:GetLocalScaling(temp)
+            temp:Set(scaleX / temp:GetX(), scaleY / temp:GetY(), scaleZ / temp:GetZ())
+            shape:Scale(temp)
+        end
+
+        if scaleChildren and not children:IsEmpty()
+            ScaleChildren(scaleX, scaleY, scaleZ)
+        end
+    end
+
+    private action ScaleChildren(number newScaleX, number newScaleY, number newScaleZ)
+
     end
 
     /*
@@ -3195,25 +3326,40 @@ class Item3D is Item
         //    to a right- (left-) handed coordinate system, change the signs of
         //    m02, m12, m20, m21.
         // Source: http://answers.unity3d.com/storage/temp/12048-lefthandedtorighthanded.pdf
-        Matrix4 matrix
+        Matrix4 matrix = rotationMatrix
         matrix:IdentityMatrix()
-        matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
-        matrix:row0column1 = tempMatrix:row0column1 * vector:GetX()
-        matrix:row0column2 = -tempMatrix:row0column2 * vector:GetX()
+//        matrix:row0column0 = tempMatrix:row0column0// * vector:GetX()
+//        matrix:row0column1 = tempMatrix:row0column1// * vector:GetX()
+//        matrix:row0column2 = -tempMatrix:row0column2// * vector:GetX()
+//
+//        matrix:row1column0 = tempMatrix:row1column0// * vector:GetY()
+//        matrix:row1column1 = tempMatrix:row1column1// * vector:GetY()
+//        matrix:row1column2 = -tempMatrix:row1column2// * vector:GetY()
+//
+//        matrix:row2column0 = -tempMatrix:row2column0// * vector:GetZ()
+//        matrix:row2column1 = -tempMatrix:row2column1// * vector:GetZ()
+//        matrix:row2column2 = tempMatrix:row2column2// * vector:GetZ()
 
-        matrix:row1column0 = tempMatrix:row1column0 * vector:GetY()
-        matrix:row1column1 = tempMatrix:row1column1 * vector:GetY()
-        matrix:row1column2 = -tempMatrix:row1column2 * vector:GetY()
+        matrix:row0column0 = tempMatrix:row0column0
+        matrix:row0column1 = tempMatrix:row0column1
+        matrix:row0column2 = -tempMatrix:row0column2
 
-        matrix:row2column0 = -tempMatrix:row2column0 * vector:GetZ()
-        matrix:row2column1 = -tempMatrix:row2column1 * vector:GetZ()
-        matrix:row2column2 = tempMatrix:row2column2 * vector:GetZ()
+        matrix:row1column0 = tempMatrix:row1column0
+        matrix:row1column1 = tempMatrix:row1column1
+        matrix:row1column2 = -tempMatrix:row1column2
 
-        matrix:row0column3 = collisionTransform:GetOrigin():GetX()
-        matrix:row1column3 = collisionTransform:GetOrigin():GetY()
-        matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
+        matrix:row2column0 = -tempMatrix:row2column0
+        matrix:row2column1 = -tempMatrix:row2column1
+        matrix:row2column2 = tempMatrix:row2column2
 
-        transform:Set(matrix)
+//        matrix:row0column3 = collisionTransform:GetOrigin():GetX()
+//        matrix:row1column3 = collisionTransform:GetOrigin():GetY()
+//        matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
+//
+//        matrix:Scale(vector)
+
+//        transform:Set(matrix)
+        transformDirty = true
 
         me:x = collisionTransform:GetOrigin():GetX()
         me:y = collisionTransform:GetOrigin():GetY()
@@ -3438,5 +3584,15 @@ class Item3D is Item
         rectangle:SetRectangle(minX, minY, maxX - minX, maxY - minY)
 
         return rectangle
+    end
+
+    /*
+    This action returns true if the item has been added to a Layer, or
+    false otherwise.
+
+    Attribute: Returns True if the item is on a Layer, or false otherwise.
+    */
+    action IsOnLayer returns boolean
+        return layer not= undefined
     end
 end

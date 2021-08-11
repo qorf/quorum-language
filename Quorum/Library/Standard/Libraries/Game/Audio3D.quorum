@@ -3,6 +3,7 @@ package Libraries.Game
 use Libraries.Sound.Audio
 use Libraries.Interface.Item3D
 use Libraries.Compute.Vector3
+use Libraries.System.File
 
 class Audio3D is Item3D, Audio
 
@@ -15,6 +16,26 @@ class Audio3D is Item3D, Audio
     number oldY = 0
     number oldZ = 0
     number oldSeconds = 0
+
+    /*
+    The audio file that this audio was loaded from. Will be undefined if the
+    audio hasn't been loaded yet or if it was loaded with AudioSamples.
+    */
+    File sourceFile = undefined
+
+    action Load(File file)
+        sourceFile = file
+        parent:Audio:Load(file)
+    end
+
+    /*
+    This action returns the source file that was loaded into this Audio3D.
+    This value will be undefined if the audio hasn't been loaded yet or if
+    the audio was loaded using AudioSamples.
+    */
+    action GetSourceFile returns File
+        return sourceFile
+    end
 
     /*
     This action will update the Audio3D, ensuring that its velocity is
@@ -369,5 +390,25 @@ class Audio3D is Item3D, Audio
     */
     private action UpdateAudioPosition
         parent:Audio:SetPosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+    end
+
+    /*
+    Returns the currently set pitch. The default pitch value is 1.0.
+
+    Attribute: Returns The currently set pitch value.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the sound at 75% of its normal pitch.
+    audio:SetPitch(0.75)
+    // We can get the pitch value back using GetPitch().
+    output "The audio is playing at " + audio:GetPitch() + " of its normal pitch value."
+    */
+    action GetPitch returns number
+        return parent:Audio:GetPitch()
     end
 end

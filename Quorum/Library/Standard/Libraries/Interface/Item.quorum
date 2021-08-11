@@ -2,7 +2,7 @@ package Libraries.Interface
 
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Interface.AccessibilityManager
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -132,13 +132,65 @@ class Item
     end
 
     /*
-    This action is used internally to allow the Item class to pass actions to
-    children.
+    This action is used to retrieve the children of this Item
+    as Items. This makes it possible to retrieve or iterate
+    over the children without having to perform casting.
+
+    Attribute: Parameter index The index of the child to retrieve from the child array.
+    Attribute: Returns The child item at the given index.
+    Attribute: Example
+    use Libraries.Interface.Item
+
+    Item parentItem
+
+    Item child1
+    child1:SetName("First")
+    parentItem:Add(child1)
+
+    Item child2
+    child2:SetName("Second")
+    parentItem:Add(child2)
+
+    Item child3
+    child3:SetName("Third")
+    parentItem:Add(child3)
+
+    integer counter = 0
+    repeat while counter < item:GetItemCount()
+        Item child = parentItem:GetChildAsItem(counter)
+        output child:GetName()
+        counter = counter + 1
+    end
     */
-    private blueprint action GetChildAsItem(integer index) returns Item
+    blueprint action GetChildAsItem(integer index) returns Item
 
     /*
     This action will return the total number of children this Item has.
+
+    Attribute: Returns The number of children items this Item has.
+    Attribute: Example
+    use Libraries.Interface.Item
+
+    Item parentItem
+
+    Item child1
+    child1:SetName("First")
+    parentItem:Add(child1)
+
+    Item child2
+    child2:SetName("Second")
+    parentItem:Add(child2)
+
+    Item child3
+    child3:SetName("Third")
+    parentItem:Add(child3)
+
+    integer counter = 0
+    repeat while counter < item:GetItemCount()
+        Item child = parentItem:GetChildAsItem(counter)
+        output child:GetName()
+        counter = counter + 1
+    end
     */
     blueprint action GetItemCount returns integer
 
@@ -160,6 +212,14 @@ class Item
         parentItem:Empty()
     */
     blueprint action Empty
+
+    /*
+    This action returns true if the item has been added to a Layer, or
+    false otherwise.
+
+    Attribute: Returns True if the item is on a Layer, or false otherwise.
+    */
+    blueprint action IsOnLayer returns boolean
 
     /*
     This action sets whether or not this Item accepts mouse input.
@@ -765,7 +825,7 @@ class Item
     action SetName(text newName)
         name = newName
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:NameChanged(me)
         end
@@ -797,7 +857,7 @@ class Item
     action SetDescription(text newDescription)
         description = newDescription
 
-        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        Accessibility accessibility = manager:GetAccessibility()
         if accessibility not= undefined
             accessibility:DescriptionChanged(me)
         end

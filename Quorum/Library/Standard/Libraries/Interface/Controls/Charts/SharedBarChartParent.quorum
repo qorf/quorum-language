@@ -35,7 +35,7 @@ class SharedBarChartParent is Chart
 
     integer yTickSteps = 2
     integer xTickSteps = -1
-    private number yMaximum = 0 // the maximum value in y axis
+    private number yMaximum = 0.0 // the maximum value in y axis
     number maxScale = 1
     number minScale = 0
 
@@ -501,14 +501,14 @@ class SharedBarChartParent is Chart
         //scale
         ChartItem genericScaleNode
         genericScaleNode:SetContainer(me)
-        genericScaleNode:SetDisplayName("The scale has " + yTickSteps + " tick marks and goes from " + minScale  + "  to " + maxScale)
+        genericScaleNode:SetDisplayName("The scale has " + yTickSteps + " tick marks and goes from 0.0  to " + maxScale)
         genericScaleNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from " + minScale + " to " + maxScale)
+        yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from 0.0 to " + maxScale)
         ChartItem firstScale
         firstScale:SetContainer(me)
         Array<ControlLabel> scaleLabels = GetScaleLabels()
         if numberOfBars > 0
-            firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
+            //firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
             firstScale:SetParent(yAxis)
             firstScale:SetFocusTarget(scaleLabels:Get(0))
             yAxis:SetChild(firstScale)
@@ -519,7 +519,7 @@ class SharedBarChartParent is Chart
         repeat while i < scaleLabels:GetSize()
             ChartItem scaleNode
             scaleNode:SetContainer(me)
-            scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
+            //scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
             scaleNode:SetParent(yAxis)
             scaleNode:SetPrevious(previous)
             scaleNode:SetFocusTarget(scaleLabels:Get(i))
@@ -623,6 +623,7 @@ class SharedBarChartParent is Chart
         Array<Icon> bars = GetBars()
         Array<Drawable> barTicks = GetXTicks()
         Array<Drawable> yTicks = GetScaleTicks()
+        Array<Drawable> yGridlines = GetYGridlines()
         Array<ControlLabel> barLabels = GetXLabels()
         Array<ControlLabel> yLabels = GetScaleLabels()
         Control horizontalPanel = GetHorizontalPanel()
@@ -630,6 +631,10 @@ class SharedBarChartParent is Chart
         Control chartArea = GetChartArea()
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
+
+        if GetYMaximum() = 0.0
+            SetYMaximum(maxScale)
+        end
 
         if yTicks:IsEmpty() and yLabels:IsEmpty()
             yTicks:SetSize(GetYTickSteps())
@@ -643,6 +648,12 @@ class SharedBarChartParent is Chart
                 tick:LoadFilledRectangle(10, 3)
                 yTicks:Set(i, tick)
                 verticalPanel:Add(yTicks:Get(i))
+
+                if IsShowingYGridLines()
+                    Drawable gridline
+                    yGridlines:Add(gridline)
+                    chartArea:Add(gridline)
+                end
 
                //make the labels for each scale tick (auto based on max)
                 ChartOptions chartOptions
@@ -699,7 +710,7 @@ class SharedBarChartParent is Chart
                     barGroups:Get(i):SetName(name:GetValue())
                 end
                 tempLabel:SetText(name:GetValue())
-                tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + numberOfBars)
+                tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + xTickSteps)
                 tempLabel:SetFocusable(true)
                 tempLabel:SetAccessibilityCode(parent:Item:ITEM)
                 tempLabel:SetFont(GetFont():Copy())

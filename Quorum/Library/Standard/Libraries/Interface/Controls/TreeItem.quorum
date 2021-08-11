@@ -124,9 +124,21 @@ class TreeItem is Control
     end
 
     action Remove(TreeItem item)
+        if item:IsSelected()
+            if item:IsOpen()
+                item:Close()
+            end
+
+            item:SelectionDown()
+        end
+
         panel:Remove(item)
 
         if panel:GetChildren():IsEmpty()
+            if IsOpen()
+                Close()
+            end
+
             HideExpandButton()
         end
 
@@ -557,5 +569,9 @@ class TreeItem is Control
         end
 
         return path:GetFromEnd() = me
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
     end
 end

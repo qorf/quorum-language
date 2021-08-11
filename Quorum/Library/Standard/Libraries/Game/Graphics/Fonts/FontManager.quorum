@@ -113,6 +113,15 @@ class FontManager
         end
     end
 
+    /*
+        This oddly tricky action is tricky because of apple and bugs in the JDK. Specifically,
+        in JDK 8, java reports the version number of the OS as 10.16 for Big Sur. But
+        for JDK 11, it is correctly 11.4. Further, Apple stores files before catalina
+        for fonts in a different location compared to after, so we need to know this.
+        The safest solution appears to be to check if the number is greater than 11. If it
+        is, it either goes to hogwarts or is reliably greater than catalina. If the number
+        is 10, then being greater than 10 and 15 is probably safe. 
+    */
     private action IsMacCatalinaOrGreater returns boolean
         Properties properties
         text version = properties:GetOperatingSystemVersion()
@@ -125,7 +134,18 @@ class FontManager
                 integer left = cast(integer, split:Get(0))
 
                 integer right = cast(integer, split:Get(1))
-                if left >= 10 and right >= 15
+                if left >= 11
+                    return true
+                elseif left >= 10 and right >= 15
+                    return true
+                else
+                    return false
+                end
+            //this is just paranoid and I don't know if there's a case like this
+            //but we are going to guard for it anyway.
+            elseif split:GetSize() = 1
+                integer left = cast(integer, split:Get(0))
+                if left >= 11
                     return true
                 else
                     return false

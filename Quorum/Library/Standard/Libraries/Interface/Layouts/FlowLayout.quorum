@@ -130,9 +130,6 @@ class FlowLayout is Layout
                         containerHeight = font:GetLineHeight() + containerBorder + topPadding + bottomPadding
 
                         if container:GetHeight() not= containerHeight
-                            if containerProperties:IsSnappingToPixels()
-                                containerHeight = cast(integer, containerHeight)
-                            end
                             container:SetHeight(containerHeight)
                         end
                     end
@@ -196,9 +193,6 @@ class FlowLayout is Layout
 
                     totalWidthPercentage = 1.0 - totalWidthPercentage
                     containerWidth = totalWidthOffset / totalWidthPercentage
-                    if containerProperties:IsSnappingToPixels()
-                        containerWidth = cast(integer, containerWidth)
-                    end
 
                     container:SetWidth(containerWidth)
                 end
@@ -220,9 +214,6 @@ class FlowLayout is Layout
             repeat while centerCounter < items:GetSize()
                 Item2D lineItem = items:Get(centerCounter)
                 number destination = nextY + (currentY - lineItem:GetHeight()) / 2.0
-                if containerProperties:IsSnappingToPixels()
-                    destination = cast(integer, destination)
-                end
 
                 lineItem:SetY(destination)
                 centerCounter = centerCounter + 1
@@ -271,9 +262,6 @@ class FlowLayout is Layout
                     elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                         // Setting the height will trigger a resize.
                         number setHeight = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
-                        if properties:IsSnappingToPixels()
-                            setHeight = cast(integer, setHeight)
-                        end
                         control:SetHeight(setHeight)
                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                         if properties:GetFont() not= undefined
@@ -299,9 +287,6 @@ class FlowLayout is Layout
                         repeat while centerCounter < itemIndex
                             Item2D lineItem = allItems:Get(centerCounter)
                             number destination = (currentY - nextY) - (lineItem:GetHeight() / 2.0)
-                            if properties:IsSnappingToPixels()
-                                destination = cast(integer, destination)
-                            end
 
                             lineItem:SetY(destination)
                             centerCounter = centerCounter + 1
@@ -325,9 +310,6 @@ class FlowLayout is Layout
                         // Set the control's width and allow it to set its own height via its contents.
                         // Setting the width triggers its layout to resize.
                         shouldSetSize = false
-                        if properties:IsSnappingToPixels()
-                            width = cast(integer, width)
-                        end
                         control:SetWidth(width)
                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                         Font font = properties:GetFont()
@@ -349,11 +331,6 @@ class FlowLayout is Layout
                     end
 
                     if shouldSetSize
-                        if properties:IsSnappingToPixels()
-                            width = cast(integer, width)
-                            height = cast(integer, height)
-                        end
-
                         control:SetSize(width, height)
                     end
                 end
@@ -366,11 +343,6 @@ class FlowLayout is Layout
 
                 number targetY = currentY - control:GetHeight() - topPadding
 
-                if properties:IsSnappingToPixels()
-                    x = cast(integer, x)
-                    targetY = cast(integer, targetY)
-                end
-
                 control:SetPosition(x, targetY)
                 x = x + control:GetWidth() + rightPadding
             end
@@ -379,9 +351,6 @@ class FlowLayout is Layout
 
     private action VerticalFitContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
-            if containerProperties:IsSnappingToPixels()
-                nextY = cast(integer, nextY)
-            end
             container:SetHeight(-nextY)
 
             /*

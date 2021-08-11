@@ -167,6 +167,10 @@ class BooleanColumn is DataFrameColumn
         return Copy(0, rows:GetSize(), sort, unique)
     end
 
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsBoolean(to,column:GetAsBoolean(from))
+    end
+
     private action CalculateValueCount(Array<Boolean> values) returns HashTable<boolean,integer>
         HashTable<boolean, integer> hash
         i = 0

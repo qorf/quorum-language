@@ -195,6 +195,10 @@ class IntegerColumn is DataFrameColumn
         return Copy(0, rows:GetSize(), sort, unique)
     end
 
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsInteger(to,column:GetAsInteger(from))
+    end
+
     private action CalculateValueCount(Array<Integer> values) returns HashTable<integer,integer>
         HashTable<integer, integer> hash
         i = 0

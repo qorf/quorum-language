@@ -85,6 +85,8 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
 
         Array<text> columnNames
+        HashTable<text, Series> seriesFactor
+
         number largest = 0
         integer i = 0
         repeat while i < GetColumnSize()
@@ -112,15 +114,21 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             plot:SetInfo(Calculations(dataset))
             plot:SetName(columnFrame:GetHeader())
 
-            Icon icon = plot:GetIcon()        
-            icon:SetColor(options:GetColorFromPalette(0)) // default color when no factor
+            Series series
+            series:SetName(columnFrame:GetHeader())
+            series:AddItem(plot:GetIcon())
+
             group:AddPlot(plot)
             chart:AddPlotGroup(group)
+            chart:AddSeries(series)
 
             columnNames:Add(columnFrame:GetHeader()) 
 
             i=i+1 
         end
+        Legend legend
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
         chart:SetXAxisLabels(columnNames)
         chart:SetYIncrementCount(yTicks)
         chart:SetYMaximum(largest)

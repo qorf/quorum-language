@@ -337,7 +337,7 @@ class MaterialLexer
         j = index + 1
         repeat while j < value:GetSize() and not done
             char2 = value:GetCharacter(j)
-            boolean alpha = IsAlphaNumeric(char2)
+            boolean alpha = IsAlphaNumericOrSlash(char2)
             if alpha
                 other = other + char2
             else
@@ -348,6 +348,16 @@ class MaterialLexer
         end
 
         return other
+    end
+
+    private action IsAlphaNumericOrSlash(text char) returns boolean
+        if IsAlphaNumeric(char)
+            return true
+        elseif char = "/" or char = "\"
+            return true
+        end
+
+        return false
     end
 
     private action IsAlphaNumeric(text char) returns boolean

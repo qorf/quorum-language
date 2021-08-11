@@ -23,6 +23,7 @@ class CheckboxView is ToggleView, Drawable
 
     on create
         checkColor = checkColor:White()
+        SetName("CheckboxView")
     end
 
     action Initialize(integer size, LayoutProperties properties)
@@ -39,6 +40,7 @@ class CheckboxView is ToggleView, Drawable
         center:SetPosition(borderThickness, borderThickness)
 
         center:Hide()
+        center:SetName("Checkmark")
 
         Add(center)
     end
