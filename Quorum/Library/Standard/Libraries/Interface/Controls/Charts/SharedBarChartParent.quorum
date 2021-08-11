@@ -125,6 +125,13 @@ class SharedBarChartParent is Chart
     end
 
     /*
+        Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
+    */
+    action HasBarGroups returns boolean
+        return hasBarGroups
+    end
+
+    /*
         Sets a flag that will stack bars inside each group if set to true.
     */
     action IsStacked(boolean flag)
@@ -738,23 +745,28 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
 
-            i = 0
-            repeat while i < seriesList:GetSize()
-                Series series = seriesList:Get(i)
-                series:SetColor(options:GetColorFromPalette(i))
-                series:GetLabel():SetFocusable(true)
-                series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                integer j = 0
-                repeat while j < series:GetSize()
-                    series:GetItem(j):SetColor(series:GetColor())
-                    j = j + 1
-                end
-                i = i + 1
-            end
+            ApplySeriesColor()
             
             if IsShowingLegend()
                 Add(GetLegend())
             end
+        end
+    end
+
+    action ApplySeriesColor()
+        ChartOptions options
+        i = 0
+        repeat while i < seriesList:GetSize()
+            Series series = seriesList:Get(i)
+            series:SetColor(options:GetColorFromPalette(i))
+            series:GetLabel():SetFocusable(true)
+            series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
+            integer j = 0
+            repeat while j < series:GetSize()
+                series:GetItem(j):SetColor(series:GetColor())
+                j = j + 1
+            end
+            i = i + 1
         end
     end
 
