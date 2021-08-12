@@ -107,27 +107,22 @@ class TwoVariableChart is Chart
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    Icon icon1 = temp:GetPoint1():GetIcon()
-                    icon1:Hide()
-                    Icon icon2 = temp:GetPoint2():GetIcon()
-                    icon2:Hide()
+                    temp:GetPoint1():GetIcon():Hide()
+                    temp:GetPoint2():GetIcon():Hide()
                 end
-                Icon icon = temp:GetIcon()
-                icon:Hide()
+                temp:GetIcon():Hide()
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
                 integer i = 0
                 if GetPointsFlag()
                     repeat while i < temp:GetPoints():GetSize()
-                        ChartPoint point = temp:GetPoints():Get(i)
-                        point:GetIcon():Hide()
+                        temp:GetPoints():Get(i):GetIcon():Hide()
                         i = i + 1
                     end
                 end
                 i = 0
                 repeat while i < temp:GetLines():GetSize()
-                    Icon icon = temp:GetLines():Get(i):GetIcon()
-                    icon:Hide()
+                    temp:GetLines():Get(i):GetIcon():Hide()
                     i = i + 1
                 end
             elseif target is Icon
@@ -137,7 +132,7 @@ class TwoVariableChart is Chart
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
                     temp:SetView2D(view)
                 end
@@ -164,27 +159,22 @@ class TwoVariableChart is Chart
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    Icon icon1 = temp:GetPoint1():GetIcon()
-                    icon1:Show()
-                    Icon icon2 = temp:GetPoint2():GetIcon()
-                    icon2:Show()
+                    temp:GetPoint1():GetIcon():Show()
+                    temp:GetPoint2():GetIcon():Show()
                 end
-                Icon icon = temp:GetIcon()
-                icon:Show()
+                temp:GetIcon():Show()
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
                 integer i = 0
                 if GetPointsFlag()
                     repeat while i < temp:GetPoints():GetSize()
-                        ChartPoint point = temp:GetPoints():Get(i)
-                        point:GetIcon():Show()
+                        temp:GetPoints():Get(i):GetIcon():Show()
                         i = i + 1
                     end
                 end
                 i = 0
                 repeat while i < temp:GetLines():GetSize()
-                    Icon icon = temp:GetLines():Get(i):GetIcon()
-                    icon:Show()
+                    temp:GetLines():Get(i):GetIcon():Show()
                     i = i + 1
                 end
             elseif target is Icon
@@ -195,7 +185,7 @@ class TwoVariableChart is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end

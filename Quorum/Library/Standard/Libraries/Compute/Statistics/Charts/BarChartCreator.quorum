@@ -308,9 +308,36 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = i + 1
         end
+        // Sort and add the series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
 
-        // Bar Groups
+        // Sort the bars within each group to match series legend display
         Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+        i = 0
+        repeat while i < groupKeyArray:GetSize()
+            BarGroup group
+            group:SetName(groupKeyArray:Get(i))
+            integer j = 0
+            repeat while j < seriesKeyArray:GetSize()
+                text barKey = groupKeyArray:Get(i) + " " + seriesKeyArray:Get(j)
+                group:AddBar(barFactor:GetValue(barKey))
+                j = j + 1
+            end
+            groupFactor:Set(groupKeyArray:Get(i), group)
+            i = i + 1
+        end
+
+        // Sort the bar groups within the chart
         if numerical
             Array<number> numberKeyArray = numberForText:CopyToKeyArray()
             if comparison = undefined
@@ -337,19 +364,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 i = i + 1
             end  
         end  
-        
-        // Series
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())

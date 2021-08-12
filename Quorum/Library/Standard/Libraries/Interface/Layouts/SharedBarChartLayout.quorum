@@ -12,6 +12,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.BarGroup
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.Bar
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
@@ -68,6 +69,10 @@ class SharedBarChartLayout is ChartLayout
             if stacked 
                 betweenBarPadding = 0
             end
+            if chart:RemoveGaps() //Histograms do not have gaps in order to portray continuous ranges
+                betweenGroupPadding = 1
+                betweenBarPadding = 0
+            end
 
             // Total white space alloted for inner chart area
             totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(numberOfGroups-1)))
@@ -98,13 +103,19 @@ class SharedBarChartLayout is ChartLayout
             repeat while i < barGroups:GetSize()
                 integer j = 0
                 repeat while j < barGroups:Get(i):GetSize()
-                    currentBar = barGroups:Get(i):Get(j):GetIcon()
-                    // Set bar width
-                    currentBar:SetWidth(barWidth)
+                    Bar bar 
+                    // We want to stack from last to first so it keeps the same order as the legend display
+                    if stacked
+                        bar = barGroups:Get(i):Get(barGroups:Get(i):GetSize()-1-j)
+                    else
+                        bar = barGroups:Get(i):Get(j)
+                    end
+                    currentBar = bar:GetIcon()
+                    barHeight = cast(integer,(bar:GetValue())/dataScale)
+
                     // Set bar height (percentage)
-                    barHeight = cast(integer,(barGroups:Get(i):Get(j):GetValue())/dataScale)
-                    number percent = barGroups:Get(i):Get(j):GetValue()/yAxisMaximum
-                    barGroups:Get(i):Get(j):SetHeight(percent)
+                    number percent = bar:GetValue()/yAxisMaximum
+                    bar:SetHeight(percent)
 
                     //Find max height for barGroup Icon
                     if(barHeight > groupHeight)
@@ -120,6 +131,7 @@ class SharedBarChartLayout is ChartLayout
                     end
                     j = j + 1
                 end
+
                 // Creating Bar Group Icon
                 Icon newIcon = barGroups:Get(i):GetIcon()
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()

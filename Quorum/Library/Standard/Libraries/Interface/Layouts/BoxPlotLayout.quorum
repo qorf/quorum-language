@@ -100,13 +100,16 @@ class BoxPlotLayout is ChartLayout
         Control chartArea = chart:GetChartArea()
         Color invis
         invis:SetColor(0,0,0,0)
+        number percent = 0.0
+        number yMax = chart:GetYAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
 
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
             integer panelwidth = cast(integer, chartArea:GetWidth())/plotGroups:GetSize()
             integer height = cast(integer, chartArea:GetHeight())
-            number dataScale = chart:GetYMaximum()/height
-
+            number dataScale = (yMax-yMin)/height
+            
             integer i = 0
             repeat while i < plotGroups:GetSize()
                 PlotGroup group = plotGroups:Get(i)
@@ -121,7 +124,6 @@ class BoxPlotLayout is ChartLayout
                     integer width = cast(integer, panelwidth/group:GetSize())
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
-                    //integer line = cast(integer, width * (0.005)*group:GetSize()*plotGroups:GetSize())
 
                     number linePercent = (0.005)*group:GetSize()*plotGroups:GetSize()
                     if linePercent > 0.05
@@ -129,6 +131,8 @@ class BoxPlotLayout is ChartLayout
                     end
 
                     integer line = cast(integer, width * linePercent)
+                    integer halfline = cast(integer, line/2)
+                    line = halfline*2
 
                     integer k = 0
                     repeat while k < group:GetSize()
@@ -161,72 +165,56 @@ class BoxPlotLayout is ChartLayout
                         Array<Drawable> item = plot:GetItems()
                         Color darkColor = plot:GetIcon():GetColor()
                         Color lightColor = darkColor:Copy()
-                        lightColor:SetAlpha(0.3)
+                        lightColor:SetAlpha(0.5)
     
                         //Outer box
                         item:Get(0):LoadRectangle(width,height,invis)
                         item:Get(0):SetPosition(startw,0)
             
                         //Minimum
+                        percent = (minimum - yMin)/(yMax-yMin) // used for 1-2
                         item:Get(1):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(1):SetPosition(startw+size,cast(integer, minimum/dataScale))
-
-                        // If Min and Q1 are the same.. position min so that they are both visible.
-                        if cast(integer, minimum/dataScale) = cast(integer, lowerQuartile/dataScale)
-                            item:Get(1):SetPosition(startw+size,cast(integer, minimum/dataScale)-line)
-                        end
+                        item:Get(1):SetPosition(startw+size,cast(integer, percent*height)-halfline)
             
                         //Lower Whisker
-                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, darkColor)
-                        item:Get(2):SetPosition(startw+center,cast(integer, minimum/dataScale))
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale), darkColor)
+                        item:Get(2):SetPosition(startw+center, cast(integer, percent*height))
             
                         //IQR Region
+                        percent = (lowerQuartile - yMin)/(yMax-yMin) // used for 3-6
                         item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
-                        item:Get(3):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+                        item:Get(3):SetPosition(startw+size, cast(integer, percent*height)-halfline)
             
                         //Right IQR line
-                        item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
-                        item:Get(4):SetPosition(startw+size+center,cast(integer, lowerQuartile/dataScale))
+                        item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                        item:Get(4):SetPosition(startw+size+center, cast(integer, percent*height))
             
                         //Left IQR line
-                        item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, darkColor)
-                        item:Get(5):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+                        item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                        item:Get(5):SetPosition(startw+size, cast(integer, percent*height))
             
                         //Q1
                         item:Get(6):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(6):SetPosition(startw+size,cast(integer, lowerQuartile/dataScale))
+                        item:Get(6):SetPosition(startw+size, cast(integer, percent*height)-halfline)
             
                         //Median
+                        percent = (median - yMin)/(yMax-yMin) // used for 7
                         item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale))
-            
-                        // If Median and Q1 are the same.. position median so that they are both visible.
-                        if cast(integer, median/dataScale) = cast(integer, lowerQuartile/dataScale)
-                            item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale)+line)
-                        end
-
-                        // If Median and Q3 are the same.. position median so that they are both visible.
-                        if cast(integer, median/dataScale) = cast(integer, upperQuartile/dataScale)
-                            item:Get(7):SetPosition(startw+size,cast(integer, median/dataScale)-line)
-                        end
+                        item:Get(7):SetPosition(startw+size, cast(integer, percent*height)-halfline)
             
                         //Q3
+                        percent = (upperQuartile - yMin)/(yMax-yMin) // used for 8-9
                         item:Get(8):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(8):SetPosition(startw+size,cast(integer, upperQuartile/dataScale))
+                        item:Get(8):SetPosition(startw+size, cast(integer, percent*height)-halfline)
             
-                        
                         //Upper Whisker
-                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale)+line, darkColor)
-                        item:Get(9):SetPosition(startw+center,cast(integer, upperQuartile/dataScale))
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
+                        item:Get(9):SetPosition(startw+center, cast(integer, percent*height))
             
                         //Max
+                        percent = (maximum - yMin)/(yMax-yMin) // used for 10
                         item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(10):SetPosition(startw+size,cast(integer, maximum/dataScale))
-
-                        // If Max and Q3 are the same.. position max so that they are both visible.
-                        if cast(integer, maximum/dataScale) = cast(integer, upperQuartile/dataScale)
-                            item:Get(10):SetPosition(startw+size,cast(integer, maximum/dataScale)+line)
-                        end
+                        item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
             
                         if chart:GetOutliersFlag()
                             //Outliers
@@ -235,9 +223,10 @@ class BoxPlotLayout is ChartLayout
                             integer j = 11
                             repeat while outlierIndex < outliers:GetSize() and j < item:GetSize()
                                 number y = outliers:Get(outlierIndex)
+                                percent = (y - yMin)/(yMax-yMin)
                                 integer radius = line
                                 item:Get(j):LoadFilledCircle(radius, darkColor)
-                                item:Get(j):SetPosition(startw+center-(radius/2), cast(integer, y/dataScale)-radius)
+                                item:Get(j):SetPosition(startw+center-halfline, cast(integer, percent*height)-line)
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1
                             end

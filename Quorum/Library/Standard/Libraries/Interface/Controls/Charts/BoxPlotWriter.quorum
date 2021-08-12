@@ -140,7 +140,7 @@ class BoxPlotWriter
             number total = groups:GetSize()
             number panelwidth = axisLength/total
             number height = axisLength
-            number dataScale = chart:GetYMaximum()/height
+            number dataScale = chart:GetYAxisMaximum()/height
 
             integer i = 0
             repeat while i < groups:GetSize()
@@ -254,7 +254,7 @@ class BoxPlotWriter
     private action AddYLabels(ScalableVectorGraphics canvas, BoxPlot chart)
         number scaleNum = 0//chart:GetYAxisMinimum()
         
-        number scaleWidth = (chart:GetYMaximum()) / (chart:GetYIncrementCount() - 1)
+        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYIncrementCount() - 1)
         number scaleDivWidth = axisLength / (chart:GetYIncrementCount() - 1)
         // scale
         Math math

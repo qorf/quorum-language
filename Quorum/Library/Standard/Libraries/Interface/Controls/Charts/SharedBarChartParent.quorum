@@ -31,6 +31,7 @@ class SharedBarChartParent is Chart
     Array<BarGroup> barGroups
     boolean hasBarGroups = true
     boolean isStacked = false
+    boolean removeGaps = false // Histograms typically do not have spacing between bars
     Array<Series> seriesList
 
     integer yTickSteps = 2
@@ -133,6 +134,19 @@ class SharedBarChartParent is Chart
     */
     action HasBarGroups returns boolean
         return hasBarGroups
+    end
+
+    /*
+        Sets a flag that's used by layout to remove gaps for histograms
+    */
+    action RemoveGaps(boolean flag)
+        removeGaps = flag
+    end
+     /*
+        Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
+    */
+    action RemoveGaps returns boolean
+        return removeGaps
     end
 
     /*

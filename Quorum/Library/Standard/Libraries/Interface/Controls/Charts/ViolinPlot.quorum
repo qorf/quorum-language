@@ -41,7 +41,11 @@ class ViolinPlot is Chart
     private ChartItem summary
     // How many ticks are set along the y axis and max value on y axis.
     private integer yTicks = 0
-    private number yMaximum = 0
+    private number yAxisMaximum = 0
+    private number yAxisMinimum = 0
+    number yTickInterval = -1
+    // Default uses best interval by range to graph, if tick count is set, it overrides this.
+    boolean yIntervalBasedOnTickCount = false
     
     //initial size of x and y axis
     private integer tickLength = 10
@@ -65,6 +69,7 @@ class ViolinPlot is Chart
     Color previousColor = undefined
     
     ChartOptions options
+    Math math
 
     boolean hasGroups = true
     boolean splitPlot = false
@@ -153,10 +158,13 @@ class ViolinPlot is Chart
             SetHighlightColor(options:GetSelectionColor())
         end
 
+        number scaleNum = yAxisMinimum
+        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick increments
+
         //Adding Tick and labels on Y axis
         if yTicks > 1 and yTickDrawables:IsEmpty()
-            number space = yMaximum/(yTicks-1)
-            number current = 0
+//            number space = yAxisMaximum/(yTicks-1)
+//            number current = 0
             repeat until yTickDrawables:GetSize() = yTicks
                 Drawable tick
                 tick:LoadFilledRectangle(tickLength,tickWidth)
@@ -178,15 +186,17 @@ class ViolinPlot is Chart
                     end
                 end
                 
+                ChartOptions chartOptions
+                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
                 ControlLabel label
                 label:SetFontSize(GetFontSize() - 5)
                 label:SetFocusable(true)
                 label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(current+"")
-                label:SetName(current+"")
+                label:SetText(scaleText)
+                label:SetName(scaleText)
                 verticalPanel:Add(label)
                 yLabels:Add(label)
-                current = current + space
+                scaleNum = scaleNum + scaleWidth
             end
         end
 
@@ -347,8 +357,76 @@ class ViolinPlot is Chart
             Add(GetLegend())
         end
     end
+    /*
+        This action takes a range of data and returns a decent interval, this is only the default.
+        The user can choose any interval they wish and set it manually.  
+    */
+    action CalculateBestTickInterval(number range) returns number
+        number tickSkips = 0
+        if range <= 2.5
+            if range > 1.5
+                tickSkips = 0.5
+            else
+                tickSkips = 0.1
+            end
+        else
+            if range > 5000
+                tickSkips = 1000
+            elseif range > 2500
+                tickSkips = 500
+            elseif range > 1000
+                tickSkips = 250
+            elseif range > 500
+                tickSkips = 100
+            elseif range > 200
+                tickSkips = 50
+            elseif range > 100
+                tickSkips = 20
+            elseif range > 50
+                tickSkips = 10
+            elseif range > 20
+                tickSkips = 5
+            elseif range > 10
+                tickSkips = 2
+            else
+                tickSkips = 1
+            end
+        end
+        return tickSkips
+    end
 
-        /*
+    action yAxisCalculateScaleWidth() returns number
+        number yRange = yAxisMaximum-yAxisMinimum
+        number scaleWidth = 0.0
+        // Calculating intervals and/or number of ticks
+        if yIntervalBasedOnTickCount
+            if yTicks > 1
+                SetYTickInterval(math:Round(yRange / cast(number, yTicks-1), 2))
+                yAxisMaximum = cast(number, yTicks-1) * GetYTickInterval() + yAxisMinimum
+            end
+        end
+        // Numerical y-scale (number intervals)
+        number tickSkips = GetYTickInterval()
+        if tickSkips = -1
+            tickSkips = CalculateBestTickInterval(yRange)
+        end
+        if tickSkips not= 1.0
+            number i = yAxisMinimum
+            repeat while i < yAxisMaximum
+                i = i + tickSkips
+            end
+            yAxisMaximum = math:Round(i, 2) 
+            yTicks = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
+            scaleWidth = tickSkips
+        else
+            yTicks = cast(integer, yRange) + 1
+            scaleWidth = yRange / (yTicks - 1)
+        end 
+        return scaleWidth
+    end
+
+
+    /*
     This is called by GenerateInfoTree to generate the summary that is heard when
     you first focus on the chart. Also the highest level of the information tree
     of  the chart.
@@ -649,13 +727,14 @@ class ViolinPlot is Chart
                 temp:LostSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(0)
                 temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
                     temp:SetView2D(view)
                 end
@@ -676,6 +755,7 @@ class ViolinPlot is Chart
                 temp:GainedSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(-1)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())
             elseif target is Control
@@ -684,7 +764,7 @@ class ViolinPlot is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end
@@ -720,14 +800,31 @@ class ViolinPlot is Chart
         return xAxisLabels
     end
 
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
+    // Sets value between y-ticks
+    action SetYTickInterval(number set)
+        yTickInterval = set
+    end
+
+    action SetYTickInterval(integer set)
+        yTickInterval = cast(number, set)
+    end
+
+    action GetYTickInterval() returns number
+        return yTickInterval
+    end
+
+    // y Axis min and max
+    action SetYAxisMaximum(number max)
+        yAxisMaximum = max
      end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+    action SetYAxisMinimum(number min)
+        yAxisMinimum = min
+    end
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
     end
 
     /*

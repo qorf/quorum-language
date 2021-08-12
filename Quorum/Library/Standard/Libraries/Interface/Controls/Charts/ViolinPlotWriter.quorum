@@ -147,7 +147,7 @@ class ViolinPlotWriter
         if groups > 0 and axisLength > 0 // To eliminate divide by zero
             number panelwidth = axisLength/groups
             number height = axisLength
-            number dataScale = chart:GetYMaximum()/height
+            number dataScale = chart:GetYAxisMaximum()/height
 
             integer i = 0
             repeat while i < groups
@@ -240,7 +240,7 @@ class ViolinPlotWriter
                         sixth:SetFill("black")
                         
                         //bandWidth will be auto set to a value according the height of the chart
-                        number bandWidth = chart:GetYMaximum()*0.015
+                        number bandWidth = chart:GetYAxisMaximum()*0.015
                         Array<number> estimates = layout:EstimateDensity(bandWidth,dataScale,plot:GetData(),chart:GetWindowingAction())
                         integer nextPixel = cast(integer, min/dataScale)+1
                         number maxEstimate = estimates:Get(estimates:GetSize()-1)
@@ -298,7 +298,7 @@ class ViolinPlotWriter
     private action AddYLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
         number scaleNum = 0//chart:GetYAxisMinimum()
         
-        number scaleWidth = (chart:GetYMaximum()) / (chart:GetYTickCount()- 1)
+        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
         number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
         // scale
         Math math

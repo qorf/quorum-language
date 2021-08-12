@@ -88,12 +88,15 @@ class ViolinPlotLayout is ChartLayout
         white:SetColor(1,1,1,1)
         Color black
         black:SetColor(0,0,0,1)
+        number percent = 0.0
+        number yMax = chart:GetYAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
 
         // These calculate the necessary dimensions of the violinplots
         if plotGroups:GetSize() > 0
             integer panelwidth = cast(integer, chartArea:GetWidth()/plotGroups:GetSize())
             integer height = cast(integer, chartArea:GetHeight())
-            number dataScale = chart:GetYMaximum()/height
+            number dataScale = (yMax-yMin)/height
 
             integer i = 0
             repeat while i < plotGroups:GetSize()
@@ -186,16 +189,18 @@ class ViolinPlotLayout is ChartLayout
                         integer x = startw + centerline
             
                         //Minimum
+                        percent = (minimum - yMin)/(yMax-yMin) // used for 1-2
                         item:Get(1):LoadFilledRectangle(line, line, darkColor)
-                        item:Get(1):SetPosition(x ,cast(integer, minimum/dataScale)-midline)
+                        item:Get(1):SetPosition(x ,cast(integer, percent*height)-midline)
             
                         //Lower Whisker
-                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+midline, darkColor)
-                        item:Get(2):SetPosition(x ,cast(integer, minimum/dataScale)-midline)
+                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale), darkColor)
+                        item:Get(2):SetPosition(x ,cast(integer, percent*height))
             
                         //IQR Region
+                        percent = (lowerQuartile - yMin)/(yMax-yMin) // used for 3-6
                         item:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
-                        item:Get(3):SetPosition(startw + (center - line), cast(integer, lowerQuartile/dataScale)-midline)
+                        item:Get(3):SetPosition(startw + (center - line), cast(integer, percent*height)-midline)
             
                         //Right IQR line not necessary in violin plot (Index 5)
             
@@ -203,24 +208,27 @@ class ViolinPlotLayout is ChartLayout
             
                         //Q1
                         item:Get(6):LoadFilledRectangle(line, line, darkColor)
-                        item:Get(6):SetPosition(x ,cast(integer, lowerQuartile/dataScale)-midline)
+                        item:Get(6):SetPosition(x ,cast(integer, percent*height)-midline)
             
                         //Median
+                        percent = (median - yMin)/(yMax-yMin) // used for 7
                         item:Get(7):LoadFilledCircle(midline, white)
-                        item:Get(7):SetPosition(x ,cast(integer, median/dataScale)-midline)
+                        item:Get(7):SetPosition(x ,cast(integer, percent*height)-midline)
             
                         //Q3
+                        percent = (upperQuartile - yMin)/(yMax-yMin) // used for 8-9
                         item:Get(8):LoadFilledRectangle(line, line, darkColor)
-                        item:Get(8):SetPosition(x ,cast(integer, upperQuartile/dataScale)-midline)
+                        item:Get(8):SetPosition(x ,cast(integer, percent*height)-midline)
             
                         
                         //Upper Whisker
-                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale)+midline, darkColor)
-                        item:Get(9):SetPosition(x ,cast(integer, upperQuartile/dataScale)-midline)
+                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
+                        item:Get(9):SetPosition(x ,cast(integer, percent*height))
             
                         //Max
+                        percent = (maximum - yMin)/(yMax-yMin) // used for 10
                         item:Get(10):LoadFilledRectangle(line, line, darkColor)
-                        item:Get(10):SetPosition(x ,cast(integer, maximum/dataScale)-midline)
+                        item:Get(10):SetPosition(x ,cast(integer, percent*height)-midline)
         
                         if split
                             median = plot2:GetInfoAt(0)
@@ -238,42 +246,47 @@ class ViolinPlotLayout is ChartLayout
                             item2:Get(0):SetPosition(x ,0)
             
                             //Minimum
+                            percent = (minimum - yMin)/(yMax-yMin) // used for 1-2
                             item2:Get(1):LoadFilledRectangle(line, line, darkColor)
-                            item2:Get(1):SetPosition(x ,cast(integer, minimum/dataScale))
+                            item2:Get(1):SetPosition(x ,cast(integer, percent*height))
                 
                             //Lower Whisker
                             item2:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale)+line, darkColor)
-                            item2:Get(2):SetPosition(x ,cast(integer, minimum/dataScale))
+                            item2:Get(2):SetPosition(x ,cast(integer, percent*height))
                 
                             //IQR Region
                             //Move other iqr over
                             item:Get(3):SetPosition(startw + (center - line*2),item:Get(3):GetY())
 
+                            percent = (lowerQuartile - yMin)/(yMax-yMin) // used for 3-6
                             item2:Get(3):LoadFilledRectangle(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
-                            item2:Get(3):SetPosition(x ,cast(integer, lowerQuartile/dataScale)+line)
+                            item2:Get(3):SetPosition(x ,cast(integer, percent*height)+line)
             
                             //Q1
                             item2:Get(6):LoadFilledRectangle(line, line, darkColor)
-                            item2:Get(6):SetPosition(x ,cast(integer, lowerQuartile/dataScale))
+                            item2:Get(6):SetPosition(x ,cast(integer, percent*height))
                 
                             //Median
                             //Move other median over
                             item:Get(7):SetPosition(startw + (center - line - midline),item:Get(7):GetY())
 
+                            percent = (median - yMin)/(yMax-yMin) // used for 7
                             item2:Get(7):LoadFilledCircle(midline, white)
-                            item2:Get(7):SetPosition(x + midline,cast(integer, median/dataScale))
+                            item2:Get(7):SetPosition(x + midline,cast(integer, percent*height))
                 
                             //Q3
+                            percent = (upperQuartile - yMin)/(yMax-yMin) // used for 8-9
                             item2:Get(8):LoadFilledRectangle(line, line, darkColor)
-                            item2:Get(8):SetPosition(x ,cast(integer, upperQuartile/dataScale)+line)
+                            item2:Get(8):SetPosition(x ,cast(integer, percent*height)+line)
                             
                             //Upper Whisker
                             item2:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
-                            item2:Get(9):SetPosition(x ,cast(integer, upperQuartile/dataScale))
+                            item2:Get(9):SetPosition(x ,cast(integer, percent*height))
                 
                             //Max
+                            percent = (maximum - yMin)/(yMax-yMin) // used for 10
                             item2:Get(10):LoadFilledRectangle(line, line, darkColor)
-                            item2:Get(10):SetPosition(x ,cast(integer, maximum/dataScale)-line)
+                            item2:Get(10):SetPosition(x ,cast(integer, percent*height)-line)
     
                         end
 
@@ -282,7 +295,11 @@ class ViolinPlotLayout is ChartLayout
                         Format format
                         PixelMap pixelMap
                         pixelMap:CreatePixelMap(width,height,format)
-                        number bandWidth = chart:GetYMaximum()*0.03
+                        number bandWidth = chart:GetBandWidth()
+                        if bandWidth = 0
+                            bandWidth = chart:GetYAxisMaximum()*0.03
+                            chart:SetBandWidth(cast(integer, bandWidth))
+                        end
                         
                         Vector data = plot:GetData()
                         Vector data2
@@ -320,7 +337,8 @@ class ViolinPlotLayout is ChartLayout
                         estimates = EstimateDensity(bandWidth, dataScale, data, dataMin, dataMax, chart:GetWindowingAction())
                         maxEstimate = estimates:Get(estimates:GetSize()-1)
                         estimateScale = maxEstimate/(center)
-                        integer nextPixel = cast(integer, dataMin/dataScale)+1
+                        percent = (dataMin - yMin)/(yMax-yMin)
+                        integer nextPixel = cast(integer, percent*height)
 
                         integer index = 0
                         repeat while index < estimates:GetSize()-1

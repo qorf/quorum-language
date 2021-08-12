@@ -62,6 +62,7 @@ class LineChartLayout is TwoVariableChartLayout
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
                 pointIcon:SetPosition(x-2, y-2) // -2 to make up for denser icon
+                pointIcon:SetZ(-1)
                 pointIcon:Hide()
                 j = j + 1
             end
@@ -108,6 +109,7 @@ class LineChartLayout is TwoVariableChartLayout
                 line:SetPoint1(a)
                 line:SetPoint2(b)
                 line:SetName("Line segment between point " + (j+1) + " and " + (j+2) + ".")
+                lineIcon:SetZ(-1)
                 lineIcon:Hide()
                 j = j + 1
             end

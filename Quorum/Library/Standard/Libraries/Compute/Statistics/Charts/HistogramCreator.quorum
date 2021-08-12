@@ -65,7 +65,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             alert("HistogramCreator does not support factors.")
         end
 
-        chart:SetYAxisTitle("Count")
+        chart:SetYAxisTitle("Frequency")
         chart:SetXAxisTitle("Range")
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
@@ -244,6 +244,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetYAxisMaximum(maxFrequency)
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
+        chart:RemoveGaps(true)
         return chart
     end
 

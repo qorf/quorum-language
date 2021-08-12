@@ -204,8 +204,10 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         number x = dfx:GetAsNumber(j)
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
-                        point:SetPercentX((x - xMin) / (xMax - xMin))
-                        point:SetPercentY((y - yMin) / (yMax - yMin))
+//                        point:SetPercentX((x - xMin) / (xMax - xMin))
+//                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
                         if useFactor
@@ -289,8 +291,10 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
-                        point:SetPercentX((x - xMin) / (xMax - xMin))
-                        point:SetPercentY((y - yMin) / (yMax - yMin))
+//                        point:SetPercentX((x - xMin) / (xMax - xMin))
+//                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
                         if useFactor
@@ -390,8 +394,10 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
-                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
-                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+//                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
+//                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
                         if useFactor
@@ -476,8 +482,10 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         number x = dfx:GetAsNumber(j)
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
-                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
-                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+//                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
+//                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
                         if useFactor
@@ -537,8 +545,8 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)
         chart:SetXAxisMinimum(xAxisMinimum)
-        chart:SetYTickCount(yTicks)
-        chart:SetXTickCount(xTicks)
+//        chart:SetYTickCount(yTicks)
+//        chart:SetXTickCount(xTicks)
         chart:Populate()
         return chart
     end

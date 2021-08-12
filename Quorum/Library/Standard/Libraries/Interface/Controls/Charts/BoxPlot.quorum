@@ -69,13 +69,18 @@ class BoxPlot is Chart
     Color previousColor = undefined
 
     ChartOptions options
+    Math math
 
     boolean showOutliers = true
     boolean hasGroups = true
 
     // How many ticks are set along the y axis and max value on y axis.
     private integer yIncrements = 0 //increments in the y axis
-    private number yMaximum = 0 // the maximum value in y axis
+    private number yAxisMaximum = 0 // the maximum value in y axis
+    private number yAxisMinimum = 0 // the maximum value in y axis
+    number yTickInterval = -1
+    // Default uses best interval by range to graph, if tick count is set, it overrides this.
+    boolean yIntervalBasedOnTickCount = false
     
     // Initial size of x and y axis
     private integer IntervalLength = 10
@@ -134,14 +139,31 @@ class BoxPlot is Chart
         return yIncrements
     end
 
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
+    // Sets value between y-ticks
+    action SetYTickInterval(number set)
+        yTickInterval = set
+    end
+
+    action SetYTickInterval(integer set)
+        yTickInterval = cast(number, set)
+    end
+
+    action GetYTickInterval() returns number
+        return yTickInterval
+    end
+
+    // y Axis min and max
+    action SetYAxisMaximum(number max)
+        yAxisMaximum = max
      end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
+    action GetYAxisMaximum returns number
+        return yAxisMaximum
+    end
+    action SetYAxisMinimum(number min)
+        yAxisMinimum = min
+    end
+    action GetYAxisMinimum returns number
+        return yAxisMinimum
     end
 
     /*
@@ -318,10 +340,11 @@ class BoxPlot is Chart
             SetHighlightColor(options:GetSelectionColor())
         end
 
+        number scaleNum = yAxisMinimum
+        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick increments
+
         //Adding Tick and labels on Y axis
         if yIncrements not= 0 and drawable_Yincrements:IsEmpty()
-            number space = yMaximum/ (yIncrements - 1)
-            number curr = 0
             repeat until drawable_Yincrements:GetSize() = yIncrements
                 Drawable Increment
                 Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
@@ -343,15 +366,18 @@ class BoxPlot is Chart
                     end
                 end
 
+                ChartOptions chartOptions
+                Math math
+                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
                 ControlLabel label
                 label:SetFontSize(GetFontSize())
                 label:SetFocusable(true)
                 label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(curr + " ")
-                label:SetName(curr + " ")
+                label:SetText(scaleText)
+                label:SetName(scaleText)
                 vertical:Add(label)
                 y_Labels:Add(label)
-                curr = curr + space
+                scaleNum = scaleNum + scaleWidth
             end //end of repeat statement
         end // end of if statement
 
@@ -526,7 +552,74 @@ class BoxPlot is Chart
         end
 
     end // end of loadGraphics
-           
+    
+    /*
+        This action takes a range of data and returns a decent interval, this is only the default.
+        The user can choose any interval they wish and set it manually.  
+    */
+    action CalculateBestTickInterval(number range) returns number
+        number tickSkips = 0
+        if range <= 2.5
+            if range > 1.5
+                tickSkips = 0.5
+            else
+                tickSkips = 0.1
+            end
+        else
+            if range > 5000
+                tickSkips = 1000
+            elseif range > 2500
+                tickSkips = 500
+            elseif range > 1000
+                tickSkips = 250
+            elseif range > 500
+                tickSkips = 100
+            elseif range > 200
+                tickSkips = 50
+            elseif range > 100
+                tickSkips = 20
+            elseif range > 50
+                tickSkips = 10
+            elseif range > 20
+                tickSkips = 5
+            elseif range > 10
+                tickSkips = 2
+            else
+                tickSkips = 1
+            end
+        end
+        return tickSkips
+    end
+
+    action yAxisCalculateScaleWidth() returns number
+        number yRange = yAxisMaximum-yAxisMinimum
+        number scaleWidth = 0.0
+        // Calculating intervals and/or number of ticks
+        if yIntervalBasedOnTickCount
+            if yIncrements > 1
+                SetYTickInterval(math:Round(yRange / cast(number, yIncrements-1), 2))
+                yAxisMaximum = cast(number, yIncrements-1) * GetYTickInterval() + yAxisMinimum
+            end
+        end
+        // Numerical y-scale (number intervals)
+        number tickSkips = GetYTickInterval()
+        if tickSkips = -1
+            tickSkips = CalculateBestTickInterval(yRange)
+        end
+        if tickSkips not= 1.0
+            number i = yAxisMinimum
+            repeat while i < yAxisMaximum
+                i = i + tickSkips
+            end
+            yAxisMaximum = math:Round(i, 2) 
+            yIncrements = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
+            scaleWidth = tickSkips
+        else
+            yIncrements = cast(integer, yRange) + 1
+            scaleWidth = yRange / (yIncrements - 1)
+        end 
+        return scaleWidth
+    end
 
     /* 
     Creates the accessibility information for the chart area.
@@ -818,13 +911,14 @@ class BoxPlot is Chart
                 temp:LostSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(0)
                 temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
                     temp:SetView2D(view)
                 end
@@ -845,6 +939,7 @@ class BoxPlot is Chart
                 temp:GainedSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(-1)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())
             elseif target is Control
@@ -853,7 +948,7 @@ class BoxPlot is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end
