@@ -1713,8 +1713,18 @@ class ClassOpcode is QuorumOpcode
         if clazz:IsProgramStartingClass()
             convertedSource = convertedSource + "var $starter;"
             convertedSource = convertedSource + "function Start(){" + EOL
-            convertedSource = convertedSource + "$starter = new " + 
-                clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+
+            if clazz:IsStatic()
+                convertedSource = convertedSource + "$starter = " +
+                    "(global_Get_Shared_Class(" + quote + clazz:GetStaticKey() + quote +
+                    ") == null ? global_Add_Shared_Class("+quote+clazz:GetStaticKey()+quote+
+                    ", new "+clazz:ConvertStaticKeyToUnderScore()+"()) : global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+"));"
+                    + EOL
+            else
+                convertedSource = convertedSource + "$starter = new " + 
+                    clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+            end
+            
             convertedSource = convertedSource + "$starter.Main();" + EOL
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
             convertedSource = convertedSource + "}" + EOL

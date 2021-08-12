@@ -38,7 +38,11 @@ class CompilerTestSuite is ProcessListener
     constant text NODE_MAC = "/usr/local/bin/node"
     constant text NODE_WINDOWS = "C:\Program Files\nodejs\node.exe"
     text nodeLocation = undefined
-    
+    boolean javascriptError = false
+    text javascriptOutput = ""
+    text javascriptErrorOutput = ""
+    integer javascriptExitCode = -1
+    constant text JAVASCRIPT_DELIMITER = NODE_MAC:GetCarriageReturn()
 
     CompilerProfiler summaryProfiler
     Math math
@@ -458,11 +462,18 @@ console.log(OuTpUt_$tRiNg_);
         //now Run it
         process:Run()  
 
-        Array<text> lines = javascriptOutput:Split("<br />")  
+//        i = 0
+//        repeat while i < javascriptOutput:GetSize()
+//            output javascriptOutput:GetUnicodeInteger(i)
+//            i = i + 1
+//        end
+
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
         if lines not= undefined
             result:lines = lines
         end
 
+        
         if javascriptError
             result:ranWithoutError = false
         else 
@@ -473,10 +484,7 @@ console.log(OuTpUt_$tRiNg_);
         return result
     end
 
-    boolean javascriptError = false
-    text javascriptOutput = ""
-    text javascriptErrorOutput = ""
-    integer javascriptExitCode = -1
+    
     action ProcessStarted(ProcessEvent event)
         javascriptError = false
         javascriptOutput = ""
@@ -489,12 +497,12 @@ console.log(OuTpUt_$tRiNg_);
     end
 
     action Output(ProcessEvent event)
-        javascriptOutput = javascriptOutput + event:GetOutput()
+        javascriptOutput = javascriptOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
     end
 
     action Error(ProcessEvent event)
         javascriptError = true
-        javascriptErrorOutput = javascriptErrorOutput + event:GetOutput()
+        javascriptErrorOutput = javascriptErrorOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
     end
 
     action TestFail(Array<File> files)
