@@ -66,22 +66,31 @@ class RunLibrary
             library:Write()
             output "Finished"
         else 
+            integer useErrors = 0
+            output ""
             output "I cannot compile the standard library until the following errors are fixed:"
             i = 1
             Iterator<CompilerError> iterator = errors:GetIterator()
             repeat while iterator:HasNext()
                 CompilerError error = iterator:Next()
-                if error:GetFile() = undefined
-                    a = 5
-                end
-                text message = i + ": " 
+                CompilerErrorType type = error:GetCompilerErrorType()
+            
+                text message = "" 
                 if error:GetFile() not= undefined
                     message = error:GetFile():GetFileName() + " "
                 end
-                message = message + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
-                output message
-                i = i + 1
+                
+                if type:GetCurrentType() not= type:MISSING_USE
+                    message = i + ": " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                    i = i + 1
+                    output message
+                else
+                    useErrors = useErrors + 1
+                end
             end
+
+            output ""
+            output "Total Errors: " + errors:GetErrorAmount() + " with " + useErrors + " use errors."
         end
     end
 end
