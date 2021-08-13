@@ -1,40 +1,17 @@
 function plugins_quorum_Libraries_Containers_Array_() {
     this.array_ = [];
     this.size = 0;
-    this.capacity = 10;
-    this.autoResize = true;
-       
-    this.QuickSetSize = function (value) {
-        this.size = value;
-        if(value > this.capacity) {
-            this.capacity = this.capacity * 2;
-        }
-    };
+    this.resizable = true;
+    this.DEFAULT_CAPACITY = 10;
+    this.capacity = this.DEFAULT_CAPACITY;
+    this.DEFAULT_RESIZE = 2;
 
     this.SetNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
-        if (index >= 0 && index < this.array_.length) {
-            this.array_[index] = value;
-        } else {
-        }
+        this.array_[index] = value;
     };
 
     this.GetNative$quorum_integer = function (index) {
-        if (index >= 0 && index < this.array_.length) {
-            return this.array_[index];
-        } else {
-        }
-    };
-
-    this.AddNative$quorum_Libraries_Language_Object = function (value) {
-        this.array_.push(value);
-        this.QuickSetSize(this.size + 1);
-    };
-
-    
-
-    this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
-        this.array_.splice(index, 0, value);
-        this.QuickSetSize(this.size + 1);
+        return this.array_[index];
     };
 
     this.SetSizeNative$quorum_integer = function (size) {
@@ -55,16 +32,57 @@ function plugins_quorum_Libraries_Containers_Array_() {
             }
             this.array_ = array2_;
         }
-        this.QuickSetSize(size);
+        this.size = size;
         this.capacity = size;
     };
-    
+
     this.SetSizeNoFillNative$quorum_integer = function (size) {
         this.SetSizeNative$quorum_integer(size); //should this be the same in JS mode?
+    };
+    
+    this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
+        if(this.size + 1 >= this.capacity && this.resizable) {
+            this.capacity = this.capacity * this.DEFAULT_RESIZE;
+        } else if(this.size + 1 >= this.capacity && !this.resizable) {
+            throw "Array Index Out of Bounds at " + index;
+        }
+        this.size = this.size + 1;
+        this.array_.splice(index, 0, value);
+    };
+
+    this.AddNative$quorum_Libraries_Language_Object = function (value) {
+        if(this.size >= this.capacity && this.resizable) {
+            this.capacity = this.capacity * this.DEFAULT_RESIZE;
+        }
+        this.size = this.size + 1;
+        this.array_.push(value);
+    };
+
+    this.RemoveAtNative$quorum_integer = function (index) {
+        var value = this.array_.splice(index, 1);
+        value = value[0];
+        this.size = this.size - 1;
+        return value;
     };
 
     this.GetMaxSize = function () {
         return this.capacity;
+    };
+
+    this.SetMaxSize$quorum_integer = function (size) {
+        if(this.capacity > size) {
+            var array2_ = [];
+            if(this.size > size) {
+                this.size = size;
+            }
+            for(i = 0; i < this.size; i++) {
+                array2_.push(this.array_[i]);
+            }
+            this.array_ = array2_;
+            this.capacity = size;
+        } else if(this.capacity < size) {
+            this.capacity = size;
+        }
     };
 
     this.GetSize = function () {
@@ -72,23 +90,21 @@ function plugins_quorum_Libraries_Containers_Array_() {
     };
 
     this.GetAutoResize = function () {
-        return this.autoResize;
+        return this.resizable;
     };
 
     this.SetAutoResize$quorum_boolean = function (resize) {
-        this.autoResize = resize;
+        this.resizable = resize;
     };
 
-    this.SetMaxSize$quorum_integer = function (size) {
-        if(this.array_.length > size) {
-            var array2_ = [];
-            for(i = 0; i < size; i++) {
-                array2_.push(this.array_[i]);
-            }
-            this.array_ = array2_;
-            this.capacity = size;
-        } else if(this.array_.length < size) {
-            this.capacity = size;
+    this.IsEmpty = function () {
+        return this.size == 0;
+    };
+
+    this.ClearContents$quorum_integer$quorum_integer = function (start, stop)
+    {
+        for (var i = start; i < stop; i++) {
+            this.array_[i] = null;
         }
     };
 
@@ -102,29 +118,6 @@ function plugins_quorum_Libraries_Containers_Array_() {
             Empty();
         } else {
             this.size = 0;
-        }
-    };
-
-    this.IsEmpty = function () {
-        return this.size == 0;
-    };
-
-    this.RemoveAtNative$quorum_integer = function (index) {
-        if (index >= 0 && index <= this.array_.length) {
-            var value = this.array_.splice(index, 1);
-            value = value[0];
-            this.QuickSetSize(this.size - 1);
-            return value;
-        } else {
-        }
-    };
-    
-    this.ClearContents$quorum_integer$quorum_integer = function (start, stop)
-    {
-        for (var i = start; i < stop; i++) {
-            if (i >= this.array_.length)
-                return;
-            this.array_[i] = null;
         }
     };
 }

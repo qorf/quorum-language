@@ -29,6 +29,8 @@ class CompilerTestSuite is ProcessListener
     integer javaScriptPassed = 0
     integer passed = 0
     integer failed = 0
+    integer previousPass = 0
+    integer previousTotal = 0
     
     boolean testBytecode = false
     boolean testJavaScript = true
@@ -138,7 +140,16 @@ class CompilerTestSuite is ProcessListener
     end
 
     private action GetCurrentTestPassText returns text
-        return ": " + tester:GetPassingSize() + "/" + tester:GetSize()
+        integer currentPass = tester:GetPassingSize()
+        integer currentTotal = tester:GetSize()
+
+        integer passThisTest = currentPass - previousPass
+        integer totalThisTest = currentTotal - previousTotal
+
+        previousPass = tester:GetPassingSize()
+        previousTotal = tester:GetSize()
+
+        return ": " + passThisTest + "/" + totalThisTest
     end
 
     private action FindNode returns text
@@ -228,8 +239,8 @@ class CompilerTestSuite is ProcessListener
         randomChecks:Test()
         output randomChecks:GetName() + GetCurrentTestPassText()
 
-        tableChecks:Test()
-        output tableChecks:GetName() + GetCurrentTestPassText()
+         tableChecks:Test()
+         output tableChecks:GetName() + GetCurrentTestPassText()
 
         bitwiseChecks:Test()
         output bitwiseChecks:GetName() + GetCurrentTestPassText()
