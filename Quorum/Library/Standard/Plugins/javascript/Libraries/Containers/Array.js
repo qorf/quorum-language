@@ -1,7 +1,15 @@
 function plugins_quorum_Libraries_Containers_Array_() {
     this.array_ = [];
-    this.maxSize = 10; /*this value is ignored, but it makes the behavior similar to other targets*/
+    this.size = 0;
+    this.capacity = 10;
     this.autoResize = true;
+       
+    this.QuickSetSize = function (value) {
+        this.size = value;
+        if(value > this.capacity) {
+            this.capacity = this.capacity * 2;
+        }
+    };
 
     this.SetNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
         if (index >= 0 && index < this.array_.length) {
@@ -19,42 +27,48 @@ function plugins_quorum_Libraries_Containers_Array_() {
 
     this.AddNative$quorum_Libraries_Language_Object = function (value) {
         this.array_.push(value);
-        if (this.array_.length >= this.maxSize) {
-            this.maxSize = this.maxSize * 2;
-        }
+        this.QuickSetSize(this.size + 1);
     };
 
+    
+
     this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
-        if (index >= 0 && index <= this.array_.length) {
-            this.array_.splice(index, 0, value);
-            if (this.array_.length >= this.maxSize) {
-                this.maxSize = this.maxSize * 2;
-            }
-        } else {
-        }
+        this.array_.splice(index, 0, value);
+        this.QuickSetSize(this.size + 1);
     };
 
     this.SetSizeNative$quorum_integer = function (size) {
-        var value = this.GetSize();
-        for (i = value; i < size; i++) {
-            this.array_.push(null);
+        if(this.array_.length > size) {
+            var array2_ = [];
+            for(i = 0; i < size; i++) {
+                array2_.push(this.array_[i]);
+            }
+            this.array_ = array2_;
+        } else if(this.array_.length < size) {
+            var array2_ = [];
+            for(i = 0; i < size; i++) {
+                if(i < this.array_.length) {
+                    array2_.push(this.array_[i]);
+                } else {
+                    array2_.push(null);
+                }
+            }
+            this.array_ = array2_;
         }
+        this.QuickSetSize(size);
+        this.capacity = size;
     };
     
     this.SetSizeNoFillNative$quorum_integer = function (size) {
-        this.array_ = [];
-        var value = this.GetSize();
-        for (i = value; i < size; i++) {
-            this.array_.push(null);
-        } //In JavaScript mode, you have to fill it, I think
+        this.SetSizeNative$quorum_integer(size); //should this be the same in JS mode?
     };
 
     this.GetMaxSize = function () {
-        return this.maxSize;
+        return this.capacity;
     };
 
     this.GetSize = function () {
-        return this.array_.length;
+        return this.size;
     };
 
     this.GetAutoResize = function () {
@@ -66,25 +80,40 @@ function plugins_quorum_Libraries_Containers_Array_() {
     };
 
     this.SetMaxSize$quorum_integer = function (size) {
-        this.maxSize = size;
+        if(this.array_.length > size) {
+            var array2_ = [];
+            for(i = 0; i < size; i++) {
+                array2_.push(this.array_[i]);
+            }
+            this.array_ = array2_;
+            this.capacity = size;
+        } else if(this.array_.length < size) {
+            this.capacity = size;
+        }
     };
 
     this.Empty = function () {
         this.array_.length = 0;
+        this.size = 0;
     };
     
     this.Empty$quorum_boolean = function (value) {
-        this.array_.length = 0;
+        if(value) {
+            Empty();
+        } else {
+            this.size = 0;
+        }
     };
 
     this.IsEmpty = function () {
-        return this.array_.length == 0;
+        return this.size == 0;
     };
 
     this.RemoveAtNative$quorum_integer = function (index) {
         if (index >= 0 && index <= this.array_.length) {
             var value = this.array_.splice(index, 1);
             value = value[0];
+            this.QuickSetSize(this.size - 1);
             return value;
         } else {
         }
@@ -98,82 +127,4 @@ function plugins_quorum_Libraries_Containers_Array_() {
             this.array_[i] = null;
         }
     };
-}
-
-function plugins_quorum_Libraries_Containers_Integer32BitArray_() {
-    this.array_ = null;
-
-    this.Get$quorum_integer = function(index)
-    {
-        if(this.array_ === null || index > this.array_.length || index < 0) 
-        {
-            //throw new InvalidLocationError();
-        }
-        else
-        {
-            return this.array_[index];
-        }
-    };
-
-    this.Set$quorum_integer$quorum_integer = function(index, value) 
-    {
-        if(this.array_ === null || index > this.array_.length || index < 0) 
-        {
-            //throw new InvalidLocationError();
-        }
-        else
-        {
-            this.array_[index] = value;
-        }
-    };
-
-    this.GetSize = function()
-    {
-        return this.array_.length;
-    };
-    
-    this.SetSize$quorum_integer = function(size)
-    {
-        this.array_ = new Int32Array(size);
-    };
-
-}
-
-function plugins_quorum_Libraries_Containers_Number32BitArray_() {
-    this.array_ = null;
-
-    this.Get$quorum_integer = function(index)
-    {
-        if(this.array_ === null || index > this.array_.length || index < 0) 
-        {
-            //throw new InvalidLocationError();
-        }
-        else
-        {
-            return this.array_[index];
-        }
-    };
-
-    this.Set$quorum_integer$quorum_number = function(index, value) 
-    {
-        if(this.array_ === null || index > this.array_.length || index < 0) 
-        {
-            //throw new InvalidLocationError();
-        }
-        else
-        {
-            this.array_[index] = value;
-        }
-    };
-
-    this.GetSize = function()
-    {
-        return this.array_.length;
-    };
-    
-    this.SetSize$quorum_integer = function(size)
-    {
-        this.array_ = new Float32Array(size);
-    };
-
 }
