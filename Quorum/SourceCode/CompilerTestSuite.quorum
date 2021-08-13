@@ -32,7 +32,7 @@ class CompilerTestSuite is ProcessListener
     integer previousPass = 0
     integer previousTotal = 0
     
-    boolean testBytecode = false
+    boolean testBytecode = true
     boolean testJavaScript = true
     Library library
     Tester tester
@@ -239,8 +239,8 @@ class CompilerTestSuite is ProcessListener
         randomChecks:Test()
         output randomChecks:GetName() + GetCurrentTestPassText()
 
-         tableChecks:Test()
-         output tableChecks:GetName() + GetCurrentTestPassText()
+        tableChecks:Test()
+        output tableChecks:GetName() + GetCurrentTestPassText()
 
         bitwiseChecks:Test()
         output bitwiseChecks:GetName() + GetCurrentTestPassText()
