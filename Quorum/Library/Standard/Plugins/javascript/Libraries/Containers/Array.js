@@ -120,4 +120,77 @@ function plugins_quorum_Libraries_Containers_Array_() {
             this.size = 0;
         }
     };
-}
+};
+
+function plugins_quorum_Libraries_Containers_Number32BitArray_() {
+    this.array_ = null;
+
+    this.Get$quorum_integer = function(index)
+    {
+        return this.array_[index];
+    };
+
+    this.Set$quorum_integer$quorum_number = function(index, value) 
+    {
+        this.array_[index] = value;
+    };
+
+    this.GetSize = function()
+    {
+        return this.array_.length;
+    };
+    
+    this.SetSize$quorum_integer = function(size)
+    {
+        this.array_ = new Float32Array(size);
+    };
+
+};
+
+function plugins_quorum_Libraries_Containers_Number64BitArray_() {
+    this.array_ = null;
+
+    this.Get$quorum_integer = function(index)
+    {
+        return this.array_[index];
+    };
+
+    this.Set$quorum_integer$quorum_number = function(index, value) 
+    {
+        this.array_[index] = value;
+    };
+
+    this.GetSize = function()
+    {
+        return this.array_.length;
+    };
+    
+    this.SetSize$quorum_integer = function(size)
+    {
+        this.array_ = new Float64Array(size);
+    };
+};
+
+function plugins_quorum_Libraries_Containers_Integer32BitArray_() {
+    this.array_ = null;
+
+    this.Get$quorum_integer = function(index)
+    {
+        return this.array_[index];
+    };
+
+    this.Set$quorum_integer$quorum_number = function(index, value) 
+    {
+        this.array_[index] = value;
+    };
+
+    this.GetSize = function()
+    {
+        return this.array_.length;
+    };
+    
+    this.SetSize$quorum_integer = function(size)
+    {
+        this.array_ = new Int32Array(size);
+    };
+};
