@@ -38,7 +38,11 @@ class ProgressBar is Control
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
         Font font
-        font:LoadFont("Arial")
+        if (font:IsFontAvailable("Arial"))
+            font:LoadFont("Arial")
+        else
+            font = GetDefaultFont()
+        end
         properties:SetFont(font)
         properties:SetFontSize(16)
 

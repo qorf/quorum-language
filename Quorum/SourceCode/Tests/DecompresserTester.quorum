@@ -9,6 +9,10 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
+/*
+    Note that the compression libraries are not supported in JavaScript mode. Therefore the tests are not
+    included in the test suite.
+*/
 class DecompresserTester
     CompilerTestSuite suite = undefined
     text path = "Library/Tests/Decompresser/"
@@ -44,7 +48,7 @@ class DecompresserTester
         files:Add(main)
         results:Add(0, "success")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action DecompressZip
@@ -55,7 +59,7 @@ class DecompresserTester
         files:Add(main)
         results:Add(0, "success")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
 end

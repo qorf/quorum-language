@@ -121,7 +121,10 @@ public class Array {
     public void SetMaxSize(int size) {
         if(array.length > size) {
             Object_[] newArray = new Object_[size];
-            for(int i = 0; i < size; i++) {
+            if(this.size > size) {
+                this.size = size;
+            }
+            for(int i = 0; i < this.size; i++) {
                 newArray[i] = array[i];
             }
             array = newArray;

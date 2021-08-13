@@ -36,11 +36,22 @@ class CreateObjectOpcode is QuorumOpcode
     action WriteJavaScript returns text
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text quote = EOL:GetDoubleQuote()
         text result = ""
         if variable:IsField()
-            result = "this." + variable:GetJavaScriptName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+            result = "this." + variable:GetJavaScriptName()
         else
-            result = "var " + variable:GetJavaScriptName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+            result = "var " + variable:GetJavaScriptName()
+        end
+
+        if clazz:IsStatic()
+            result = result + " = " +
+            "(global_Get_Shared_Class(" +quote+ clazz:GetStaticKey()+ quote+
+            ") == null ? global_Add_Shared_Class("+quote +clazz:GetStaticKey() + quote +
+            ", new "+clazz:ConvertStaticKeyToUnderScore()+"()) : global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+"));"
+            + EOL
+        else
+            result = result + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
         end
         
         return result

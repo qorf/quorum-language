@@ -25,7 +25,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-roledescription", item.GetDescription());
+            element.setAttribute("aria-description", item.GetDescription());
         }
         console.log("Description Changed");
     };
@@ -66,6 +66,11 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
+        let progressbarID = event.GetProgressBar().GetHashCode();
+        if(elementList[progressbarID] != null) {
+            let element = document.getElementById(progressbarID);
+            element.setAttribute("aria-valuenow", event.GetNewValue());
+        }
         console.log("Progress bar updated");
     };
 
@@ -146,8 +151,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (item.GetAccessibilityCode() == -1) {
             return;
         }
-        
-       var canvas = document.getElementById(currentIDECanvas_$Global_);
 
        //replace this code with item appropriate material
         var id = item.GetHashCode();
@@ -167,9 +170,18 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         para.id = id;       //sets the item's id to the item's HashCode value
 
         switch(item.GetAccessibilityCode()){
-            //CUSTOM
+            //ITEM or CUSTOM
+            case 0:
             case 1:
-                para.setAttribute("aria-roledescription","custom");
+                para.setAttribute("aria-roledescription","");
+                // should be an accessible parent but that won't work
+                let accessibleParent = item.GetParent();
+                if (accessibleParent != undefined) {
+                    let parentID = accessibleParent.GetHashCode();
+                    if (elementList[parentID] != null) {
+                        parent = parentID;
+                    }
+                }
                 break;
             //CHECKBOX
             case 2:
@@ -194,8 +206,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         // attach to radiogroup
                         parent = parentGroup.GetHashCode();
                     }
+                    para.setAttribute("aria-checked", radioButton.GetToggleState());
                 }
-                para.setAttribute("aria-checked", false);
                 break;
             //BUTTON
             case 4:
@@ -228,7 +240,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         menuGroup.id = id + "-submenu";
                         menuGroup.setAttribute("role", "menu");
                         para.appendChild(menuGroup);
-                        // there is no event to change this so it will always say collapsed 
+                        para.setAttribute("aria-haspopup", true);
                         para.setAttribute("aria-expanded", menuItem.IsOpen());
                     }
                     //attach to proper parent
@@ -296,10 +308,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //TABLE
             case 15:
                 role = "table";
+                // if cells get added after the spreadsheet is added this could cause issues
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Spreadsheet")) {
+                    let spreadsheet = global_CheckCast(item, "Libraries.Interface.Controls.Spreadsheet");
+                    for (let i = 0; i < spreadsheet.GetColumnsSize(); i++) {
+                        let row = document.createElement(elementType);
+                        row.id =id+"-row-"+i;
+                        row.setAttribute("role","row");
+                        para.appendChild(row);
+                    }
+                }
                 break;
             //CELL
             case 16:
                 role = "cell";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Cell")) {
+                    let cell = global_CheckCast(item, "Libraries.Interface.Controls.Cell");
+                    let spreadsheet = global_CheckCast(cell.GetSpreadsheet(), "Libraries.Interface.Controls.Spreadsheet");
+                    if(spreadsheet != undefined) {
+                        let position = spreadsheet.GetCellCoordinates$quorum_Libraries_Interface_Controls_Cell(cell);
+                        let rowNum = position.GetFirstValue();
+                        parent = spreadsheet.GetHashCode()+"-row-"+rowNum.GetValue();
+                    }
+                }
                 break;
             //TEXT_FIELD
             case 17:
@@ -337,13 +368,20 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //DIALOG
             case 21:
                 role = "dialog";
+                // dialogs are accessible parents so as long as their children are added properly dialogs will be announced
                 break;
             //POPUP_MENU
             case 22:
                 break;
             //PROGRESS_BAR
             case 23:
-                role = "progressbar"
+                role = "progressbar";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.ProgressBar")) {
+                    let progressbar = global_CheckCast(item, "Libraries.Interface.Controls.ProgressBar");
+                    para.setAttribute("aria-valuemin", progressbar.GetMinimum());
+                    para.setAttribute("aria-valuemax", progressbar.GetMaximum());
+                    para.setAttribute("aria-valuenow", progressbar.GetValue());
+                }
                 break;
             //TREE_TABLE_CELL
             case 24:
@@ -356,6 +394,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             default:
                 // do nothing?
+        }
+
+        if (parent == undefined) {
+            let accessibleParent = item.GetAccessibleParent();
+            if (accessibleParent != undefined) {
+                let parentID = accessibleParent.GetHashCode();
+                if (elementList[parentID] != null) {
+                    parent = parentID;
+                }
+            }
         }
 
         para.setAttribute("role",role);
@@ -392,6 +440,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 //    system action MenuChanged(MenuChangeEvent event)
     this.MenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
         console.log("Menu Changed");
+        var menuItemID = event.GetMenuItem().GetHashCode();
+        if (elementList[menuItemID] != null) {
+            var element = document.getElementById(menuItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeChanged(TreeChangeEvent event)

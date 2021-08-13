@@ -2922,6 +2922,13 @@ class QuorumParser
         DocumentationContext document = CheckForDocumentation()
         ParseContext context =  Or()
         if context = undefined
+            //if the literal is still undefined, then the next token was unexpected.
+            if not IsValid() 
+                SendDefaultError(textEndedError + " an expression. ")
+                return undefined
+            end
+            Token next = tokenIterator:GetCurrent()
+            SendDefaultError("Found '" + next:value + "' which is not a valid expression. An expression is something like 10, the name of a variable, or text. ")
             return undefined
         end
         context:SetDocumentation(document)
@@ -3746,6 +3753,7 @@ class QuorumParser
         elseif current:category = constants:LEFT_PAREN
             literal = Parenthesis()
         end
+
         return literal
     end
 
