@@ -174,14 +174,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             case 0:
             case 1:
                 para.setAttribute("aria-roledescription","");
-                // should be an accessible parent but that won't work
-                let accessibleParent = item.GetParent();
-                if (accessibleParent != undefined) {
-                    let parentID = accessibleParent.GetHashCode();
-                    if (elementList[parentID] != null) {
-                        parent = parentID;
-                    }
-                }
                 break;
             //CHECKBOX
             case 2:
@@ -300,10 +292,23 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //TAB
             case 13:
                 role = "tab";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Tab")) {
+                    let tab = global_CheckCast(item, "Libraries.Interface.Controls.Tab");
+                    let tabpane = tab.GetTabPane();
+                    if (tabpane != undefined) {
+                        parent = tabpane.GetHashCode()+"-tablist";
+                    }
+                }
                 break;
             //TAB_PANE
             case 14:
                 role = "tabpanel";
+                let tablist = document.createElement(elementType);
+                tablist.id = id + "-tablist";
+                tablist.role = "tablist";
+                //probably shouldn't be attached to the tab panel so adding directly to canvas
+                let canvas = document.getElementById(currentIDECanvas_$Global_);
+                canvas.appendChild(tablist);
                 break;
             //TABLE
             case 15:
@@ -325,6 +330,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 if (global_InstanceOf(item,"Libraries.Interface.Controls.Cell")) {
                     let cell = global_CheckCast(item, "Libraries.Interface.Controls.Cell");
                     let spreadsheet = global_CheckCast(cell.GetSpreadsheet(), "Libraries.Interface.Controls.Spreadsheet");
+                    para.innerHTML = cell.GetText();
                     if(spreadsheet != undefined) {
                         let position = spreadsheet.GetCellCoordinates$quorum_Libraries_Interface_Controls_Cell(cell);
                         let rowNum = position.GetFirstValue();
@@ -364,6 +370,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //TREE_TABLE
             case 20:
                 role = "treegrid";
+                let rowgroup = document.createElement(elementType);
+                rowgroup.id = id+"-rowgroup";
+                rowgroup.setAttribute("role", "rowgroup");
+                para.appendChild(rowgroup);
                 break;
             //DIALOG
             case 21:
@@ -385,6 +395,38 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TREE_TABLE_CELL
             case 24:
+                role = "gridcell";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeTableCell")) {
+                    let treecell = global_CheckCast(item, "Libraries.Interface.Controls.TreeTableCell");
+                    let treeTableID = undefined;
+                    if (treecell.GetTreeTable() != undefined) {
+                        treeTableID = treecell.GetTreeTable().GetHashCode() + "-rowgroup"
+                    }
+                    let treeTableRow = treecell.GetRow();
+                    if (treeTableRow != undefined && treeTableID != undefined) {
+                        let rowID = treeTableRow.GetHashCode();
+                        let row = document.getElementById(rowID);
+                        // if the row is not in the DOM make a new row
+                        if (row == undefined) {
+                            row = document.createElement(elementType);
+                            row.id = treeTableRow.GetHashCode();
+                            row.setAttribute("role", "row");
+                            let tableElement = document.getElementById(treeTableID);
+                            if (tableElement != undefined) {
+                                tableElement.appendChild(row);
+                            }
+                        }
+                        parent = rowID;
+                        //check if this is an expandable cell
+                        if (!treeTableRow.IsEmpty()) {
+                            let column = treecell.GetColumn();
+                            if (column != undefined && column.IsFirstColumn()) {
+                                para.setAttribute("aria-expanded", treeTableRow.IsExpanded());
+                            }
+                        }
+                    }
+                    para.innerHTML = treecell.GetText();
+                }
                 break;
             //GROUP
             case 25:
@@ -429,11 +471,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if( elementList[id] == null ) {
             return;
         }
-        //if it wasn't accessible it was never in the DOM
-        if( elementList[id] != null ) {
-            document.getElementById(item.GetHashCode()).remove();
+        let element = document.getElementById(id);
+        if (element != null) { //if the parent was removed then this would come up null
+            element.remove();
         }
-        console.log(elementList[item.GetHashCode()], " has been removed.");
+        console.log(elementList[id], " has been removed.");
         elementList[id] = null;
     };
     
@@ -468,6 +510,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 //    system action TreeTableChanged(TreeTableChangeEvent event)
     this.TreeTableChanged$quorum_Libraries_Interface_Events_TreeTableChangeEvent = function(event) {
         console.log("TreeTable Changed");
+        let cells = event.GetTreeTableCells();
+        for(let i = 0; i< cells.GetSize(); i++) {
+            let cell = cells.Get$quorum_integer(i).GetHashCode();
+            let element = document.getElementById(cell);
+            if (element != undefined && element.hasAttribute("aria-expanded")) {
+                if (event.GetEventType() == 1) {  //OPENED
+                    element.setAttribute("aria-expanded", true);
+                } else if (event.GetEventType() == 2) {   //CLOSED
+                    element.setAttribute("aria-expanded", false);
+                }
+                break;
+            }
+        }
     };
     
 //    system action ControlActivated(ControlActivationEvent event)
