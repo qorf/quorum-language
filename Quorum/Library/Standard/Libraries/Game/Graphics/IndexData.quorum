@@ -14,6 +14,11 @@ class IndexData is Disposable
 
     blueprint action SetIndices(Integer32BitArray indices, integer offset, integer count)
 
+    /*
+    Sets the beginning (inclusive) and ending (exclusive) indices of this IndexData.
+    */
+    blueprint action SetIndexRange(integer startIndex, integer endIndex)
+
     blueprint action Bind
 
     blueprint action Unbind

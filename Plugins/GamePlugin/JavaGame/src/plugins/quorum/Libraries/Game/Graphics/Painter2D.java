@@ -20,18 +20,12 @@ import quorum.Libraries.Game.GameDisplay_;
 public class Painter2D 
 {
     public java.lang.Object me_ = null;
-    
-    private Mesh_ mesh;
+ /*   
     
     final static int SPRITE_SIZE = 20;
     
-    int index = 0;
     float inverseTexWidth = 0;
     float inverseTexHeight = 0;
-    
-    private final Matrix4_ transformMatrix = new Matrix4();
-    private final Matrix4_ projectionMatrix = new Matrix4();
-    private final Matrix4_ combinedMatrix = new Matrix4();
     
     // Used for ApplyCamera.
     private final static Matrix4_ calcMatrix = new Matrix4();
@@ -46,7 +40,7 @@ public class Painter2D
 
     /*
     Resources used for the font shader.
-    */
+    *
     private ShaderProgram fontShader;
     private boolean useFontShader = false;
     
@@ -62,101 +56,7 @@ public class Painter2D
         // constructor in Quorum, however, will call LoadDefaultPainter().
     }
     
-    public void LoadDefaultPainter(Mesh_ quorumMesh)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        SetColor(quorumBatch.color);
-        
-        mesh = quorumMesh;
-
-        if (GameStateManager.display == null)
-            throw new GameRuntimeError("I couldn't create the Painter2D because the display hasn't been initialized!");
-        
-        projectionMatrix.SetToOrthographic2D(0, 0, GameStateManager.display.GetWidth(), GameStateManager.display.GetHeight());
-        
-        shader = CreateDefaultShader();
-        fontShader = CreateFontShader();
-        ownsShader = true;
-    }
     
-    /** Returns a new instance of the default shader used by Painter2D for GL2 when no shader is specified. */
-    static public ShaderProgram CreateDefaultShader () 
-    {
-	String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-		+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-		+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-		+ "uniform mat4 u_projTrans;\n" //
-		+ "varying vec4 v_color;\n" //
-		+ "varying vec2 v_texCoords;\n" //
-		+ "\n" //
-		+ "void main()\n" //
-		+ "{\n" //
-		+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-		+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
-		+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-		+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-		+ "}\n";
-	String fragmentShader = "#ifdef GL_ES\n" //
-		+ "#define LOWP lowp\n" //
-		+ "precision mediump float;\n" //
-		+ "#else\n" //
-		+ "#define LOWP \n" //
-		+ "#endif\n" //
-		+ "varying LOWP vec4 v_color;\n" //
-		+ "varying vec2 v_texCoords;\n" //
-		+ "uniform sampler2D u_texture;\n" //
-		+ "void main()\n"//
-		+ "{\n" //
-		+ "  gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" //
-		+ "}";
-
-	ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
-	if (shader.IsCompiled() == false)
-            throw new IllegalArgumentException("Error compiling default shader: " + shader.GetLog());
-	return shader;
-    }
-    
-    /** Returns a new instance of the shader used by the Painter2D for fonts. */
-    static public ShaderProgram CreateFontShader () 
-    {
-	String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-		+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-		+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-		+ "uniform mat4 u_projTrans;\n" //
-		+ "varying vec4 v_color;\n" //
-		+ "varying vec2 v_texCoords;\n" //
-		+ "\n" //
-		+ "void main()\n" //
-		+ "{\n" //
-		+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-		+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
-		+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-		+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-		+ "}\n";
-	String fragmentShader = "#ifdef GL_ES\n" //
-		+ "#define LOWP lowp\n" //
-		+ "precision mediump float;\n" //
-		+ "#else\n" //
-		+ "#define LOWP \n" //
-		+ "#endif\n" //
-		+ "varying LOWP vec4 v_color;\n" //
-		+ "varying vec2 v_texCoords;\n" //
-                + "uniform vec4 u_fontColor;\n"
-		+ "uniform sampler2D u_texture;\n" //
-		+ "void main()\n"//
-		+ "{\n" //
-                + "  vec4 compute = texture2D(u_texture, v_texCoords);\n"
-                + "  compute.a = compute.a * u_fontColor.a;\n"
-                + "  compute.rgb = u_fontColor.rgb;\n"
-		+ "  gl_FragColor = v_color * compute;\n" //
-		+ "}";
-
-	ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
-	if (shader.IsCompiled() == false)
-            throw new IllegalArgumentException("Error compiling font shader: " + shader.GetLog());
-	return shader;
-    }
     
     public void Begin()
     {
@@ -188,7 +88,7 @@ public class Painter2D
             GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_SCISSOR_TEST);
         }
     }
-    
+
     public void SystemEnd()
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
@@ -216,22 +116,6 @@ public class Painter2D
             customShader.End();
         else
             shader.End();
-    }
-    
-    public void SetColor(quorum.Libraries.Game.Graphics.Color_ newColor)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        quorumBatch.color = newColor;
-        colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
-    }
-    
-    public void SetColor(double r, double g, double b, double a)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        quorumBatch.color.SetColor(r, g, b, a);
-        colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
     }
         
     public void SystemDraw(quorum.Libraries.Game.Graphics.Drawable_ drawable)
@@ -499,7 +383,7 @@ public class Painter2D
         values between -1 and 1. We want to adjust the range to 0 to 1 and then
         use the display's width and height to find the actual pixel values
         the clip point will apply to.
-        */
+        *
         clipPoint.Multiply(combinedMatrix);
         int x = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth());
         int y = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight());

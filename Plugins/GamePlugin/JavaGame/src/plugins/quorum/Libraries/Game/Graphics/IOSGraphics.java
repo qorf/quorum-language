@@ -10,6 +10,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import org.robovm.apple.foundation.Foundation;
 import org.robovm.apple.foundation.NSString;
+import quorum.Libraries.Containers.Number32BitArray;
+import quorum.Libraries.Containers.Number32BitArray_;
+import quorum.Libraries.Language.Types.Integer_;
 
 public class IOSGraphics implements GraphicsManager
 {
@@ -28,6 +31,218 @@ public class IOSGraphics implements GraphicsManager
     
     // MUST BE CALLED BEFORE USING ANY OTHER METHOD OF THIS CLASS.
     public static native void init( );	
+    
+    public int CreateShaderID(int shaderType)
+    {
+        return glCreateShader(shaderType);
+    }
+
+    public void SetShaderCode(int shaderID, String source)
+    {
+        glShaderSource(shaderID, source);
+    }
+
+    public void CompileShader(int shaderID)
+    {
+        glCompileShader(shaderID);
+    }
+
+    public boolean GetShaderCompileStatus(int shaderID)
+    {
+        IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        glGetShaderiv(shaderID, GraphicsManager.GL_COMPILE_STATUS, intbuf);
+
+        int compiled = intbuf.get(0);
+        return compiled != 0;
+    }
+
+    public String GetShaderInfoLog(int shaderID)
+    {
+        return glGetShaderInfoLog(shaderID);
+    }
+    
+    public int CreateShaderProgramID()
+    {
+        return glCreateProgram();
+    }
+
+    public void AttachShader(int programID, int shaderID)
+    {
+        glAttachShader(programID, shaderID);
+    }
+
+    public void LinkShaderProgram(int programID)
+    {
+        glLinkProgram(programID);
+    }
+    
+    public boolean GetProgramLinkStatus(int programID)
+    {
+        IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        glGetProgramiv(programID, GraphicsManager.GL_LINK_STATUS, intbuf);
+
+        int linked = intbuf.get(0);
+        return linked != 0;
+    }
+
+    public String GetProgramInfoLog(int programID)
+    {
+        return glGetProgramInfoLog(programID);
+    }
+    
+    public void UseShaderProgram(int programID)
+    {
+        glUseProgram(programID);
+    }
+    
+    public void DeleteShaderProgram(int programID)
+    {
+        glDeleteProgram(programID);
+    }
+    
+    public void EnableProperty(int property)
+    {
+        glEnable(property);
+    }
+
+    public void DisableProperty(int property)
+    {
+        glDisable(property);
+    }
+
+    public void SetDepthMask(boolean mask)
+    {
+        glDepthMask(mask);
+    }
+
+    public void SetDepthFunction(int function)
+    {
+        glDepthFunc(function);
+    }
+    
+    public int GetUniformCount(int programID)
+    {
+        IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_UNIFORMS, params);
+        return params.get(0);
+    }
+
+    public String GetUniformInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
+    {
+        IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        params.put(0, 1);
+        IntBuffer typeBuffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        typeBuffer.clear();
+        
+        String name = glGetActiveUniform(programID, index, params, typeBuffer);
+        int value = glGetUniformLocation(programID, name);
+        location.SetValue(value);
+        type.SetValue(typeBuffer.get(0));
+        size.SetValue(params.get(0));
+        return name;
+    }
+    
+    public int GetInputCount(int programID)
+    {
+        IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_ATTRIBUTES, params);
+        return params.get(0);
+    }
+
+    public String GetInputInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
+    {
+        IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        params.put(0, 1);
+        IntBuffer typeBuffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
+        typeBuffer.clear();
+        
+        String name = glGetActiveAttrib(programID, index, params, typeBuffer);
+        int value = glGetAttribLocation(programID, name);
+        location.SetValue(value);
+        type.SetValue(typeBuffer.get(0));
+        size.SetValue(params.get(0));
+        return name;
+    }
+    
+    public void SetUniform(int uniformID, int value)
+    {
+        glUniform1i(uniformID, value);
+    }
+    
+    public void SetUniform(int uniformID, int value1, int value2)
+    {
+        glUniform2i(uniformID, value1, value2);
+    }
+
+    public void SetUniform(int uniformID, int value1, int value2, int value3)
+    {
+        glUniform3i(uniformID, value1, value2, value3);
+    }
+
+    public void SetUniform(int uniformID, int value1, int value2, int value3, int value4)
+    {
+        glUniform4i(uniformID, value1, value2, value3, value4);
+    }
+
+    public void SetUniform(int uniformID, double value)
+    {
+        glUniform1f(uniformID, (float)value);
+    }
+
+    public void SetUniform(int uniformID, double value1, double value2)
+    {
+        glUniform2f(uniformID, (float)value1, (float)value2);
+    }
+
+    public void SetUniform(int uniformID, double value1, double value2, double value3)
+    {
+        glUniform3f(uniformID, (float)value1, (float)value2, (float)value3);
+    }
+
+    public void SetUniform(int uniformID, double value1, double value2, double value3, double value4)
+    {
+        glUniform4f(uniformID, (float)value1, (float)value2, (float)value3, (float)value4);
+    }
+    
+    public void SetUniformArray(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    {
+        glUniform1fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+
+    public void SetUniformVector2Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    {
+        glUniform2fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+
+    public void SetUniformVector3Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    {
+        glUniform3fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+
+    public void SetUniformVector4Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    {
+        glUniform4fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+
+    public void SetUniformMatrix4Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
+    {
+        glUniformMatrix4fv(uniformID, matrixCount, transpose, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+
+    public void SetUniformMatrix3Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
+    {
+        glUniformMatrix3fv(uniformID, matrixCount, transpose, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
+    
+    public void SetVertexInputInformation(int inputID, int size, int type, boolean normalize, int stride, int offset)
+    {
+        glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
+    }
+    
+    public void SetPixelClipping(int x, int y, int width, int height)
+    {
+        glScissor(x, y, width, height);
+    }
 
     public native void glActiveTexture ( int texture );
 

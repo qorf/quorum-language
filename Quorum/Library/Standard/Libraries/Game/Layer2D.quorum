@@ -2832,4 +2832,13 @@ class Layer2D is Layer
         camera:Move((width - GetViewportWidth()) / 2.0, (height - GetViewportHeight()) / 2.0, 0)
         SetViewport(x, y, width, height)
     end
+
+    action GetPainter returns Painter2D
+        return painter
+    end
+
+    action SetPainter(Painter2D painter)
+        me:painter = painter
+    end
+
 end

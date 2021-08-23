@@ -61,4 +61,12 @@ public class IndexData
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }
+    
+    /*
+    Sets the beginning (inclusive) and ending (exclusive) indices of this IndexData.
+    */
+    public void SetIndexRange(int startIndex, int endIndex)
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
 }

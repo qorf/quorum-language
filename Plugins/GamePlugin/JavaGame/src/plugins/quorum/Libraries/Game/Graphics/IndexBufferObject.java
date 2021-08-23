@@ -57,6 +57,12 @@ public class IndexBufferObject extends IndexData
         return empty ? 0 : buffer.capacity();
     }
 
+    @Override
+    public void SetIndexRange(int start, int end)
+    {
+        buffer.position(start);
+        buffer.limit(end);
+    }
 	
     public void SetIndices(int offset, int count) 
     {

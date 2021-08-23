@@ -7,6 +7,13 @@ use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Item2DDepthComparison
 use Libraries.Containers.Integer32BitArray
 use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Compute.Matrix4
+use Libraries.Game.GameStateManager
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Shaders.DefaultVertexShader2D
+use Libraries.Game.Graphics.Shaders.DefaultFragmentShader2D
+use Libraries.Compute.Vector3
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -55,10 +62,17 @@ class Painter2D
     Texture lastTexture = undefined
 
     private boolean drawing = false
+    integer drawIndex = 0
+    number inverseTextureWidth = 0
+    number inverseTextureHeight = 0
 
     private Color color
+    private number colorValue = 0
+    boolean blendingDisabled = false
 
     private Number32BitArray vertices
+
+    GameStateManager manager
 
     /*
     An array used to store incoming Drawables and sort them by depth.
@@ -80,6 +94,10 @@ class Painter2D
     number clipY2 = 0
     number clipWidth = 0
     number clipHeight = 0
+    boolean isClipping = false
+
+    // A vector used for calculating points via the combined view/projection matrix.
+    Vector3 clipPoint
 
     /*
     Whether or not the Painter is currently processing an Item which is
@@ -89,6 +107,17 @@ class Painter2D
 
     //used in End
     integer lastSortedArraySize = -1
+
+    // The default shader program used by this Painter if an Item doesn't have a custom program.
+    ShaderProgram defaultProgram = undefined
+
+    // The reusable mesh, used to render quads in bulk.
+    Mesh mesh
+
+    // Transform, projection, and combined transform-projection matrices. Allows us to translate world coordinates to screen coordinates.
+    Matrix4 transformMatrix
+    Matrix4 projectionMatrix
+    Matrix4 combinedMatrix
 
     on create
         color = color:White()
@@ -132,7 +161,10 @@ class Painter2D
 
         end
     */
-    system action SetColor(Color newColor)
+    action SetColor(Color newColor)
+        color = newColor
+        colorValue = color:EncodeColorAsNumber()
+    end
 
     /*
     This action will set a color filter on the painter, causing all Drawables
@@ -170,7 +202,10 @@ class Painter2D
 
         end
     */
-    system action SetColor(number red, number green, number blue, number alpha)
+    action SetColor(number red, number green, number blue, number alpha)
+        color:SetColor(red, green, blue, alpha)
+        colorValue = color:EncodeColorAsNumber()
+    end
 
     /*
     This action returns the current color filter on the Painter2D. The default
@@ -260,7 +295,9 @@ class Painter2D
 
         end
     */
-    system action IsBlendingEnabled returns boolean
+    action IsBlendingEnabled returns boolean
+        return not blendingDisabled
+    end
 
     /*
     Initializes the Painter2D with default settings. The Painter2D can not be used
@@ -288,8 +325,6 @@ class Painter2D
         end
     */
     private action LoadDefaultPainter
-        Mesh mesh
-        
         VertexAttributes attributes
         Array<VertexAttribute> array
         
@@ -330,10 +365,30 @@ class Painter2D
 
         mesh:SetIndices(indices)
 
-        LoadDefaultPainter(mesh)
+        GameDisplay display = manager:GetGameDisplay()
+
+        if display = undefined
+            alert("I couldn't create the Painter2D because the display hasn't been initialized!")
+        end
+
+        projectionMatrix:SetToOrthographic2D(0, 0, display:GetWidth(), display:GetHeight())
+
+        defaultProgram = CreateDefaultShaders()
+        /*
+        fontShader = CreateFontShader();
+        ownsShader = true;
+        */
     end
 
-    private system action LoadDefaultPainter(Mesh mesh)
+    private action CreateDefaultShaders returns ShaderProgram
+        DefaultVertexShader2D vertexShader
+        DefaultFragmentShader2D fragmentShader
+        ShaderProgram program
+        program:Add(vertexShader)
+        program:Add(fragmentShader)
+        program:Compile()
+        return program
+    end
 
     /*
     Activates this Painter2D so it may draw items. If the Painter2D is already
@@ -360,7 +415,59 @@ class Painter2D
 
         end
     */
-    system action Begin
+    action Begin
+        if IsDrawing()
+            alert("This painter is already drawing! Call End() before calling Begin() again.")
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(graphics:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(graphics:GL_LEQUAL)
+        graphics:DisableProperty(graphics:GL_CULL_FACE)
+
+        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
+        defaultProgram:Begin()
+
+        SetupMatrices()
+        drawing = true
+
+        if isClipping
+            UpdateClipping()
+            graphics:EnableProperty(graphics:GL_SCISSOR_TEST)
+        else
+            graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+        end
+    end
+
+    private action SetupMatrices
+        combinedMatrix:Set(projectionMatrix):Multiply(transformMatrix)
+
+        defaultProgram:SetUniformMatrix("u_projTrans", combinedMatrix)
+        defaultProgram:SetUniform("u_texture", 0)
+
+        /*
+        TO-DO: Review this code. May need to adjust this for the use of custom shaders.
+
+        combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
+        
+        if (useFontShader)
+        {
+            fontShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            fontShader.SetUniform("u_texture", 0);
+        }
+        else if (customShader != null) 
+        {
+            customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            customShader.SetUniform("u_texture", 0);
+        }
+        else 
+        {
+            shader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            shader.SetUniform("u_texture", 0);
+        }
+        */
+    end
 
     /*
     Deactivates this Painter2D. A deactivated Painter2D can not draw. If the Painter2D
@@ -390,6 +497,10 @@ class Painter2D
         end
     */
     action End
+        if not IsDrawing()
+            alert("This painter isn't drawing yet! Call Begin() before calling End().")
+        end
+
         integer counter = 0
         repeat while counter < sortingArray:GetSize()
             Item2D item = sortingArray:Get(counter)
@@ -404,7 +515,26 @@ class Painter2D
             counter = counter + 1
         end
 
-        SystemEnd()
+        if drawIndex > 0
+            Flush()
+        end
+
+        lastTexture = undefined
+        drawing = false
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:SetDepthMask(true)
+        if IsBlendingEnabled()
+            graphics:DisableProperty(graphics:GL_BLEND)
+        end
+
+        if isClipping
+            graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+        end
+
+        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
+        defaultProgram:End()
+
 
         integer current = sortingArray:GetSize()
         sortingArray:Empty(false)
@@ -414,8 +544,6 @@ class Painter2D
         end
         lastSortedArraySize = current
     end
-
-    private system action SystemEnd
 
     /*
     Draws a Drawable on the screen. A Painter2D must be activated with Begin()
@@ -462,10 +590,48 @@ class Painter2D
             return now
         end
 
-        SystemDraw(drawable)
+        if not IsDrawing()
+            alert("Painter2D:Begin() must be called before Draw.")
+        end
+
+        integer verticesLength = GetVertices():GetSize()
+        if drawable:GetTexture() not= lastTexture
+            SwitchTexture(drawable:GetTexture())
+        elseif verticesLength - drawIndex < drawable:DRAWABLE_SIZE
+            Flush()
+        end
+
+        // This will update the vertices stored in the Drawable. These vertices
+        // will be used when Flush() is called (which is when the actual drawing
+        // occurs).
+        drawable:PrepareVertices()
+
+        if drawable:UsingCustomTint() = false
+            integer i = drawable:C1
+            repeat while i < drawable:DRAWABLE_SIZE
+                drawable:SetVertex(i, colorValue)
+                i = i + drawable:VERTEX_SIZE
+            end
+        end
+
+        integer counter = 0
+        repeat while counter < drawable:DRAWABLE_SIZE
+            SetVertex(drawIndex, drawable:GetVertex(counter))
+            drawIndex = drawIndex + 1
+            counter = counter + 1
+        end
     end
 
-    private system action SystemDraw(Drawable drawable)
+    private action SwitchTexture(Texture texture)
+        Flush()
+
+        // TO-DO: Evaluate if this needs to be modified for multiple shaders
+        // Also evaluate if this needs to perform shader swapping for font shading (probably not here?)
+
+        lastTexture = texture
+        inverseTextureWidth = 1.0 / texture:GetWidth()
+        inverseTextureHeight = 1.0 / texture:GetHeight()
+    end
 
     /*
     This action is used to determine if the Painter is currently custom drawing
@@ -500,19 +666,74 @@ class Painter2D
 
         end
     */
-    system action Dispose
+    action Dispose
+        mesh:Dispose()
+        defaultProgram:Dispose()
+    end
 
     /*
     This action forces the Painter2D to immediately draw all images it has stored
     inside of it that are awaiting processing.
     */
-    system action Flush
+    action Flush
+        if drawIndex = 0
+            return now
+        end
+
+        // The count is equal to the index dividied by DRAWABLE_SIZE, multiplied by 6 (because we render each quad as 2 triangles of 3 vertices each).
+        // TO-DO: If a custom shader wants to send extra vertex information, then DRAWABLE_SIZE will be wrong.
+        // This needs to be updated to a value retrieved from a mapping.
+        integer count = (drawIndex / 24) * 6
+
+        lastTexture:Bind()
+        
+        mesh:SetVertices(GetVertices())
+        mesh:GetIndexData():SetIndexRange(0, count)
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        if blendingDisabled
+            graphics:DisableProperty(graphics:GL_BLEND)
+        else
+            graphics:EnableProperty(graphics:GL_BLEND)
+        end
+
+        // TO-DO: Evaluate if a call to "glBlendFunc" is necessary here
+        /*
+        if (blendingDisabled)
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+        else
+        {
+            GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
+            if (blendSourceFunction != -1)
+                GameStateManager.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
+        }
+        */
+
+        mesh:Render(defaultProgram, graphics:GL_TRIANGLES, 0, count)
+
+        drawIndex = 0
+    end
 
     /*
     This action will set the Painter2D to render objects on the screen relative
     to the given camera.
     */
-    system action ApplyCamera(Camera camera)
+    action ApplyCamera(Camera camera)
+        SetProjectionMatrix(camera:GetCombinedMatrix())
+    end
+
+    action SetProjectionMatrix(Matrix4 matrix)
+        if IsDrawing()
+            Flush()
+        end
+
+        projectionMatrix:Set(matrix)
+
+        if IsDrawing()
+            SetupMatrices()
+        end
+    end
 
     /*
     This action gives the plugins a shortcut to conveniently set a single index
@@ -539,7 +760,25 @@ class Painter2D
 
     Attribute: Parameter clip True to enable clipping, false to disable clipping.
     */
-    system action SetClipping(boolean clip)
+    action SetClipping(boolean clip)
+        if clip = isClipping
+            return now
+        end
+
+        isClipping = clip
+
+        if drawing
+            UpdateClipping()
+
+            GraphicsManager graphics = manager:GetGameGraphics()
+
+            if clip
+                graphics:EnableProperty(graphics:GL_SCISSOR_TEST)
+            else
+                graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+            end
+        end
+    end
 
     /*
     The IsClipping action returns whether or not the Painter is currently
@@ -547,7 +786,9 @@ class Painter2D
 
     Attribute: Returns True to enable clipping, false to disable clipping.
     */
-    system action IsClipping returns boolean
+    action IsClipping returns boolean
+        return isClipping
+    end
 
     /*
     The GetClipX action returns the x coordinate (in world coordinates) of the
@@ -656,6 +897,68 @@ class Painter2D
         end
     end
 
-    private system action UpdateClipping
+    private action UpdateClipping
+        if IsDrawing() = false or IsClipping() = false
+            return now
+        end
+
+        Flush()
+
+        GameDisplay display = manager:GetGameDisplay()
+
+        clipPoint:Set(GetClipX(), GetClipY(), 0)
+
+        /*
+        The result of the multiplication will produce a vector containing
+        values between -1 and 1. We want to adjust the range to 0 to 1 and then
+        use the display's width and height to find the actual pixel values
+        the clip point will apply to.
+        */
+        clipPoint:Multiply(combinedMatrix)
+        integer x = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
+        integer y = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        
+        clipPoint:Set(GetClipX2(), GetClipY2(), 0)
+        
+        clipPoint:Multiply(combinedMatrix)
+        integer x2 = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
+        integer y2 = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        
+        integer width = 0
+        integer height = 0
+        
+        if (x2 >= x)
+            width = x2 - x
+        else
+            width = x - x2
+            x = x2
+        end
+        
+        if (y2 >= y)
+            height = y2 - y
+        else
+            height = y - y2
+            y = y2
+        end
+        
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:SetPixelClipping(x, y, width, height)
+    end
+
+    action IsBlendingDisabled returns boolean
+        return blendingDisabled
+    end
+
+    action SetDefaultShaderProgram(ShaderProgram program)
+        if drawing
+            alert("I can't change the default shader program because I'm already drawing. Call End() before changing the default shader.")
+        end
+
+        defaultProgram = program
+    end
+
+    action GetDefaultShaderProgram returns ShaderProgram
+        return defaultProgram
+    end
 
 end

@@ -30,6 +30,7 @@ import quorum.Libraries.Game.Graphics.VertexAttribute_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Containers.Number32BitArray_;
+import quorum.Libraries.Game.Graphics.Shaders.ShaderProgram_;
 
 
 /** <p>
@@ -222,6 +223,114 @@ public class VertexArray extends VertexData
         isBound = false;
     }
 
+    /** Binds this VertexData for rendering via glDrawArrays or glDrawElements. */
+    public void Bind(ShaderProgram_ shader)
+    {
+        Bind(shader, null);
+    }
+
+    /** Binds this VertexData for rendering via glDrawArrays or glDrawElements.
+     * @param locations array containing the attribute locations. */
+    public void Bind(ShaderProgram_ shader, int[] locations)
+    {
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
+        final int numAttributes = attributes.GetSize();
+        byteBuffer.limit(buffer.limit() * 4);
+        if (locations == null) 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final VertexAttribute_ attribute = attributes.GetAttribute(i);
+                final int location = shader.GetInputLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+                if (location < 0)
+                    continue;
+
+                gl.glEnableVertexAttribArray(location);
+
+                if (attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_() == GraphicsManager.GL_FLOAT) 
+                {
+                    buffer.position(attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4);
+                    gl.glVertexAttribPointer(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                        attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(),
+                        buffer);
+                }
+                else
+                {
+                    byteBuffer.position(attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+                    gl.glVertexAttribPointer(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                        attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(),
+                        byteBuffer);
+                }
+            }
+        } 
+        else 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final VertexAttribute_ attribute = attributes.GetAttribute(i);
+                final int location = locations[i];
+                if (location < 0)
+                    continue;
+
+                gl.glEnableVertexAttribArray(location);
+
+                if (attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_() == GraphicsManager.GL_FLOAT) 
+                {
+                    buffer.position(attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4);
+                    gl.glVertexAttribPointer(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                        attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(), buffer);
+                }
+                else 
+                {
+                    byteBuffer.position(attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+                    gl.glVertexAttribPointer(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), 
+                        attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                        attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(),
+                        byteBuffer);
+                }
+            }
+        }
+        isBound = true;
+    }
+
+    /** Unbinds this VertexData. */
+    public void Unbind(ShaderProgram_ shader)
+    {
+        Unbind(shader, null);
+    }
+
+    /** Unbinds this VertexData.
+     * @param locations array containing the attribute locations. */
+    public void Unbind(ShaderProgram_ shader, int[] locations)
+    {
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
+        final int numAttributes = attributes.GetSize();
+        if (locations == null) 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                gl.glDisableVertexAttribArray(shader.GetInputLocation(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_()));
+            }
+        }
+        else 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final int location = locations[i];
+                if (location >= 0)
+                    gl.glDisableVertexAttribArray(location);
+            }
+        }
+        isBound = false;
+    }
+    
     @Override
     public VertexAttributes_ GetAttributes() 
     {

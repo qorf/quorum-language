@@ -57,6 +57,194 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         gl.texParameterf(targetTexture, parameterType, parameterValue);
     };
     
+    this.CreateShaderID$quorum_integer = function(shaderType)
+    {
+        return this.glCreateShader(shaderType);
+    };
+
+    this.SetShaderCode$quorum_integer$quorum_text = function(shaderID, source)
+    {
+        this.glShaderSource(shaderID, source);
+    };
+
+    this.CompileShader$quorum_integer = function(shaderID)
+    {
+        this.glCompileShader(shaderID);
+    };
+
+    this.GetShaderCompileStatus$quorum_integer = function(shaderID)
+    {
+        return this.glGetShaderiv(shaderID, gl.COMPILE_STATUS) != 0;
+    };
+
+    this.GetShaderInfoLog$quorum_integer = function(shaderID)
+    {
+        return this.glGetShaderInfoLog(shaderID);
+    };
+    
+   this.CreateShaderProgramID = function()
+    {
+        return this.glCreateProgram();
+    };
+
+    this.AttachShader$quorum_integer$quorum_integer = function(programID, shaderID)
+    {
+        this.glAttachShader(programID, shaderID);
+    };
+
+    this.LinkShaderProgram$quorum_integer = function(programID)
+    {
+        this.glLinkProgram(programID);
+    };
+    
+    this.GetProgramLinkStatus$quorum_integer = function(programID)
+    {
+        return this.glGetProgramiv(programID, gl.LINK_STATUS) != 0;
+    };
+
+    this.GetProgramInfoLog$quorum_integer = function(programID)
+    {
+        return this.glGetProgramInfoLog(programID);
+    };
+    
+    this.UseShaderProgram$quorum_integer = function(programID)
+    {
+        return this.glUseProgram(programID);
+    };
+    
+    this.DeleteShaderProgram$quorum_integer = function(programID)
+    {
+        this.glDeleteProgram(programID);
+    };
+    
+    this.EnableProperty$quorum_integer = function(property)
+    {
+        this.glEnable(property);
+    };
+
+    this.DisableProperty$quorum_integer = function(property)
+    {
+        this.glDisable(property);
+    };
+
+    this.SetDepthMask$quorum_boolean = function(mask)
+    {
+        this.glDepthMask(mask);
+    };
+
+    this.SetDepthFunction$quorum_integer = function(func)
+    {
+        this.glDepthFunc(func);
+    };
+    
+    this.GetUniformCount$quorum_integer = function(programID)
+    {
+        return glGetProgramiv(programID, gl.ACTIVE_UNIFORMS);
+    };
+
+    this.GetUniformInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer = function(programID, index, location, size, type)
+    {
+        var info = this.glGetActiveUniform(programID, index);
+        location.SetValue$quorum_integer(this.glGetUniformLocation(programID, info.name));
+        type.SetValue$quorum_integer(info.type);
+        size.SetValue$quorum_integer(info.size);
+        return info.name;
+    };
+    
+    this.GetUniformCount$quorum_integer = function(programID)
+    {
+        return glGetProgramiv(programID, gl.ACTIVE_ATTRIBUTES);
+    };
+
+    this.GetUniformInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer = function(programID, index, location, size, type)
+    {
+        var info = this.glGetActiveAttrib(programID, index);
+        location.SetValue$quorum_integer(this.glGetAttribLocation(programID, info.name));
+        type.SetValue$quorum_integer(info.type);
+        size.SetValue$quorum_integer(info.size);
+        return info.name;
+    };
+    
+    this.SetUniform$quorum_integer$quorum_integer = function(uniformID, value)
+    {
+        this.glUniform1i(uniformID, value);
+    };
+    
+    this.SetUniform$quorum_integer$quorum_integer$quorum_integer = function(uniformID, value1, value2)
+    {
+        this.glUniform2i(uniformID, value1, value2);
+    };
+
+    this.SetUniform$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(uniformID, value1, value2, value3)
+    {
+        this.glUniform3i(uniformID, value1, value2, value3);
+    };
+
+    this.SetUniform$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(uniformID, value1, value2, value3, value4)
+    {
+        this.glUniform4i(uniformID, value1, value2, value3, value4);
+    };
+
+    this.SetUniform$quorum_integer$quorum_number = function(uniformID, value)
+    {
+        this.glUniform1f(uniformID, value);
+    };
+
+    this.SetUniform$quorum_integer$quorum_number$quorum_number = function(uniformID, value1, value2)
+    {
+        this.glUniform2f(uniformID, value1, value2);
+    };
+
+    this.SetUniform$quorum_integer$quorum_number$quorum_number$quorum_number = function(uniformID, value1, value2, value3)
+    {
+        this.glUniform3f(uniformID, value1, value2, value3);
+    };
+
+    this.SetUniform$quorum_integer$quorum_number$quorum_number$quorum_number = function(uniformID, value1, value2, value3, value4)
+    {
+        this.glUniform4f(uniformID, value1, value2, value3, value4);
+    };
+    
+    this.SetUniformArray$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
+    {
+        this.glUniform1fv(uniformID, array.array_, length, startIndex);
+    };
+
+    this.SetUniformVector2Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
+    {
+        this.glUniform2fv(uniformID, array.array_, length, startIndex);
+    };
+
+    this.SetUniformVector3Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
+    {
+        this.glUniform3fv(uniformID, array.array_, length, startIndex);
+    };
+
+    this.SetUniformVector4Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
+    {
+        this.glUniform4fv(uniformID, array.array_, length, startIndex);
+    };
+
+    this.SetUniformMatrix4Array$quorum_integer$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_boolean = function(uniformID, matrixCount, array, startIndex, transpose)
+    {
+        this.glUniformMatrix4fv(uniformID, transpose, array.array_);
+    };
+
+    this.SetUniformMatrix3Array$quorum_integer$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_boolean = function(uniformID, matrixCount, array, startIndex, transpose)
+    {
+        this.glUniformMatrix3fv(uniformID, transpose, array.array_);
+    };
+    
+    this.SetVertexInputInformation$quorum_integer$quorum_integer$quorum_integer$quorum_boolean$quorum_integer$quorum_integer = function(inputID, size, type, normalize, stride, offset)
+    {
+        this.glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
+    };
+    
+    this.SetPixelClipping$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height)
+    {
+        this.glScissor(x, y, width, height);
+    };
+    
     // Expected parameters: integer, integer
     this.glBindTexture = function(target, texture)
     {

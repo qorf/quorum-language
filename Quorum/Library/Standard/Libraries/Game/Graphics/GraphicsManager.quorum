@@ -2,6 +2,10 @@ package Libraries.Game.Graphics
 
 use Libraries.Game.Graphics.DesktopGraphics
 use Libraries.Game.Graphics.IOSGraphics
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Containers.Number32BitArray
 
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
@@ -13,6 +17,23 @@ class GraphicsManager
   /* Note: Currently adding constants as they are needed. Hex values
            need to be translated to integers */
 
+    public constant integer GL_POINTS = 0
+    public constant integer GL_LINES = 1
+    public constant integer GL_LINE_LOOP = 2
+    public constant integer GL_LINE_STRIP = 3
+    public constant integer GL_TRIANGLES = 4
+    public constant integer GL_TRIANGLE_STRIP = 5
+    public constant integer GL_TRIANGLE_FAN = 6
+    public constant integer GL_NEVER = 512
+    public constant integer GL_LESS = 513
+    public constant integer GL_EQUAL = 514
+    public constant integer GL_LEQUAL = 515
+    public constant integer GL_GREATER = 516
+    public constant integer GL_NOTEQUAL = 517
+    public constant integer GL_GEQUAL = 518
+    public constant integer GL_ALWAYS = 519
+    public constant integer GL_BLEND = 3042
+    public constant integer GL_SCISSOR_TEST = 3089
     public constant integer GL_NEAREST = 9728
     public constant integer GL_LINEAR = 9729
     public constant integer GL_LINEAR_MIPMAP_LINEAR = 9987
@@ -28,6 +49,12 @@ class GraphicsManager
     public constant integer GL_TEXTURE_MIN_FILTER = 10241
     public constant integer GL_TEXTURE_WRAP_S = 10242
     public constant integer GL_TEXTURE_WRAP_T = 10243
+    public constant integer GL_FRAGMENT_SHADER = 35632
+    public constant integer GL_VERTEX_SHADER = 35633
+    public constant integer GL_CULL_FACE = 2884
+    public constant integer GL_DEPTH_TEST = 2929
+    
+    
   
     /*
     The last coordinates that were used to set the drawing region via the
@@ -89,5 +116,257 @@ class GraphicsManager
     identified by the given targetTexture ID using the given parameterValue. 
     */
     blueprint action SetTextureParameter(integer targetTexture, integer parameterType, integer parameterValue)
+
+    /*
+    This action returns log information for the given shader, or the empty string if no log information is available.
+    Typically this is used to get error information from a shader.
+    */
+    blueprint action GetShaderInfoLog(integer shaderID) returns text
+
+    /*
+    This action makes a new shader of the requested type (e.g., FRAGMENT_SHADER or VERTEX_SHADER from the Shader class)
+    using the given source code. If the shader code successfully compiles, this action will return an integer ID
+    representing that shader. If the shader can't be created or it does not successfully compile, this will alert an error.
+    */
+    blueprint action CreateShader(integer shaderType, text sourceCode) returns integer
+
+    /*
+    This action returns log information for a shader program, or the empty string if no log information is available.
+    Typically this is used to get error information from a shader program.
+    */
+    blueprint action GetProgramInfoLog(integer programID) returns text
+
+    /*
+    This action takes an ordered array of compiled shaders (at minimum 1 vertex shader and 1 fragment shader). These
+    shaders are combined together into a shader program, and an ID for that program is returned. If this process fails
+    due to an error, this action will alert an error.
+    */
+    blueprint action CreateShaderProgram(Array<Shader> shaders) returns integer
+
+    /*
+    This action tells the graphics system to render content using the shader program indicated by the provided ID.
+    */
+    blueprint action UseShaderProgram(integer programID)
+
+    /*
+    This action instructs the rendering system to delete the native resources allocated to a shader. After deleting
+    a shader, it can't be used by the rendering system unless it's recompiled.
+    */
+    blueprint action DeleteShader(integer shaderID)
+
+    /*
+    This action instructs the rendering system to delete the native resources allocated to a shader program. After deleting
+    a shader program, it can't be used by the rendering system unless it's reloaded. Deleting a program doesn't automatically
+    delete the shaders attached to it -- those must also be deleted manually.
+    */
+    blueprint action DeleteShaderProgram(integer programID)
+
+    /*
+    This action enables a rendering property in the native rendering system. For example, enabling GL_BLEND will make
+    OpenGL blend together pixel fragments (necessary for proper transparency).
+    */
+    blueprint action EnableProperty(integer property)
+
+    /*
+    This action disables a rendering property in the native rendering system. Any property which can be enabled by EnableProperty
+    can also be disabled using this action.
+    */
+    blueprint action DisableProperty(integer property)
+
+    /*
+    This action enables or disables writing to the depth buffer.
+    */
+    blueprint action SetDepthMask(boolean mask)
+
+    /*
+    This action sets the function used to determine if a new value should overwrite an old value in the depth buffer. For example,
+    a value of GL_LESS ensures that new values will overwrite old values in the depth buffer if they have a lower relative Z value
+    than the previous value.
+    */
+    blueprint action SetDepthFunction(integer function)
+
+    /*
+    This action takes the ID of a compiled shader program and 3 empty HashTables. All three HashTables will be given the names of the uniforms as keys, and
+    the HashTables will store a corresponding integer value representing the uniform's location ID, byte size, or type ID (as an OpenGL constant), respectively.
+    This action also returns an array containing all of the names of the uniforms in this program.
+    */
+    blueprint action GetUniformTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+
+    /*
+    This action takes the ID of a compiled shader program and 3 empty HashTables. All three HashTables will be given the names of the inputs as keys, and
+    the HashTables will store a corresponding integer value representing the input's location ID, byte size, or type ID (as an OpenGL constant), respectively.
+    This action also returns an array containing all of the names of the inputs in this program.
+    */
+    blueprint action GetInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, integer value)
+    
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, integer value1, integer value2)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, integer value1, integer value2, integer value3)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, integer value1, integer value2, integer value3, integer value4)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, number value)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, number value1, number value2)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, number value1, number value2, number value3)
+
+    /*
+    This action sets the value of a shader "uniform" variable to the given input values.
+    The uniform is identified by a unique ID that is generated when a shader program using
+    that uniform is compiled and linked.
+    */
+    blueprint action SetUniform(integer uniformID, number value1, number value2, number value3, number value4)
+    
+    /*
+    This action sets the values of a shader "uniform" array variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
+    */
+    blueprint action SetUniformArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+
+    /*
+    This action sets the values of an array of Vector2's in a shader "uniform" array variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
+    */
+    blueprint action SetUniformVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+
+    /*
+    This action sets the values of an array of Vector3's in a shader "uniform" array variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
+    */
+    blueprint action SetUniformVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+
+    /*
+    This action sets the values of an array of Vector4's in a shader "uniform" array variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
+    */
+    blueprint action SetUniformVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+
+    /*
+    This action sets the value of a Matrix4 shader "uniform" variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. The array is assumed to provide
+    the matrix in column-major order, unless the transpose flag is set to true, in which case it will be assumed to be
+    row-major instead. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
+    */
+    action SetUniformMatrix4(integer uniformID, Number32BitArray array, boolean transpose)
+        SetUniformMatrix4Array(uniformID, 1, array, 0, transpose)
+    end
+
+    /*
+    This action sets the value of an array of Matrix4's in a shader "uniform" variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. The array is assumed to provide
+    the matrix in column-major order, unless the transpose flag is set to true, in which case it will be assumed to be
+    row-major instead.
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter matrixCount How many matrices should be set in the uniform. Each matrix requires 16 sequential values from the source array.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
+    */
+    blueprint action SetUniformMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+
+    /*
+    This action sets the value of a Matrix3 shader "uniform" variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. The array is assumed to provide
+    the matrix in column-major order, unless the transpose flag is set to true, in which case it will be assumed to be
+    row-major instead. 
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
+    */
+    action SetUniformMatrix3(integer uniformID, Number32BitArray array, boolean transpose)
+        SetUniformMatrix3Array(uniformID, 1, array, 0, transpose)
+    end
+
+    /*
+    This action sets the value of an array of Matrix3's in a shader "uniform" variable. The uniform is identified by a unique ID
+    that is generated when a shader program using the uniform is compiled and linked. The array is assumed to provide
+    the matrix in column-major order, unless the transpose flag is set to true, in which case it will be assumed to be
+    row-major instead.
+
+    Attribute: Parameter uniformID An integer ID that represents a uniform in a linked shader program.
+    Attribute: Parameter matrixCount How many matrices should be set in the uniform. Each matrix requires 9 sequential values from the source array.
+    Attribute: Parameter array A typed array containing the values to copy to the uniform.
+    Attribute: Parameter startIndex The first index of the array to begin copying.
+    Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
+    */
+    blueprint action SetUniformMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+
+    /*
+    This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
+
+    Attribute: Parameter inputID An ID that describes a vertex input.
+    Attribute: Parameter size How many bytes from the array are needed to set a single instance of the input value in the shader. Must be between 1 and 4.
+    Attribute: Parameter type A constant value representing the type of data, such as GL_INT.
+    Attribute: Parameter normalize If set to true, fixed-point data values will be normalized when passed down to the system. If set to false, the values will be passed down without modification.
+    Attribute: Parameter stride How many bytes of data separate each instance of data meant to be used for this input. If this value is 0, it's assumed that there is no additional data interleaved between data used for this input.
+    Attribute: Parameter offset The index of the first element of this input's data in the input buffer, or in other words, how many bytes of data appear before the first instance of input data for this input.
+    */
+    blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
+
+    blueprint action SetPixelClipping(integer x, integer y, integer width, integer height)
 
 end

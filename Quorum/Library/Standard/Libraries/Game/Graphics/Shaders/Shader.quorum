@@ -1,0 +1,57 @@
+package Libraries.Game.Graphics.Shaders
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+
+class Shader
+
+    // The constants listed below are equal to the OpenGL constants for shader types.
+
+    // This type constant is used to indicate that the shader is a fragment shader.
+    public constant integer FRAGMENT_SHADER = 35632
+
+    // This type constant is used to indicate that the shader is a vertex shader.
+    public constant integer VERTEX_SHADER = 35633
+    
+    GameStateManager manager
+
+    integer type = 0
+    text code = ""
+
+    integer shaderID = -1
+    boolean compiled = false
+
+    action GetType returns integer
+        return type
+    end
+
+    action SetType(integer type)
+        me:type = type
+    end
+
+    action GetCode returns text
+        return code
+    end
+
+    action SetCode(text code)
+        me:code = code
+    end
+
+    action Compile
+        if IsCompiled()
+            return now
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        shaderID = graphics:CreateShader(type, code)
+
+        compiled = true
+    end
+
+    action IsCompiled returns boolean
+        return compiled
+    end
+
+    action GetID returns integer
+        return shaderID
+    end
+end

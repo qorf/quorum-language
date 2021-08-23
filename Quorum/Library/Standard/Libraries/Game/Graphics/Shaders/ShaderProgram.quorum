@@ -1,0 +1,472 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Color
+
+class ShaderProgram
+
+    /* 
+    TO-DO: Add shader programs to a shared shader resource, and do the following:
+    * Register shaders and programs so they can be reused across different items
+    * Make it possible to invalidate/reload shaders on context loss (mobile platforms especially)
+
+    */
+
+    // The ordered array of shaders in this program
+    Array<Shader> shaders
+
+    // The integer handle provided by the rendering system for this shader program.
+    // This value is -1 if it hasn't been loaded yet.
+    integer programHandle = -1
+
+    GameStateManager manager
+
+    boolean compiled = false
+
+    // Resources related to the uniforms in this program.
+    Array<text> uniformNames = undefined
+    HashTable<text, integer> uniformLocations
+    HashTable<text, integer> uniformSizes
+    HashTable<text, integer> uniformTypes
+
+    // Resources related to the inputs/attributes in this program.
+    Array<text> inputNames = undefined
+    HashTable<text, integer> inputLocations
+    HashTable<text, integer> inputSizes
+    HashTable<text, integer> inputTypes
+
+    // Reusable arrays used to convert matrix values to a format usable by the rendering system.
+    Number32BitArray matrix3Array
+    Number32BitArray matrix4Array
+
+    on create
+        matrix3Array:SetSize(9)
+        matrix4Array:SetSize(16)
+    end
+
+
+
+    action Add(Shader shader)
+        shaders:Add(shader)
+    end
+
+    action Remove(Shader shader)
+        shaders:Remove(shader)
+    end
+
+    action GetIterator returns Iterator<Shader>
+        return shaders:GetIterator()
+    end
+
+    /*
+    This action returns a unique ID representing this shader program. This is provided by
+    the rendering system once the program has been compiled. If this program hasn't been
+    compiled yet, this value will be -1.
+    */
+    action GetID returns integer
+        return programHandle
+    end
+
+    action IsCompiled returns boolean
+        return compiled
+    end
+
+    action Compile
+        if compiled
+            return now
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        integer counter = 0
+        repeat while counter < shaders:GetSize()
+            Shader shader = shaders:Get(counter)
+            if shader:IsCompiled() = false
+                shader:Compile()
+            end
+
+            counter = counter + 1
+        end
+
+        programHandle = graphics:CreateShaderProgram(shaders)
+
+        FetchUniforms()
+        FetchInputs()
+
+        compiled = true
+    end
+
+    private action FetchUniforms
+        GraphicsManager graphics = manager:GetGameGraphics()
+        uniformNames = graphics:GetUniformTables(GetID(), uniformLocations, uniformSizes, uniformTypes)
+    end
+
+    private action FetchInputs
+        GraphicsManager graphics = manager:GetGameGraphics()
+        inputNames = graphics:GetInputTables(GetID(), inputLocations, inputSizes, inputTypes)
+    end
+
+    action Begin
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:UseShaderProgram(GetID())
+    end
+
+    action End
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:UseShaderProgram(0)
+    end
+
+    action Dispose
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:UseShaderProgram(0)
+
+        repeat while shaders:IsEmpty() = false
+            Shader shader = shaders:RemoveFromFront()
+            graphics:DeleteShader(shader:GetID())
+        end
+
+        graphics:DeleteShaderProgram(GetID())
+
+        // TO-DO: Do whatever cleanup is needed in the shared shader resource area
+    end
+
+    private action CheckManaged
+        // TO-DO: Check if the program needs to be recompiled due to a context loss
+    end
+
+    action GetUniformLocation(text name) returns integer
+        return uniformLocations:GetValue(name)
+    end
+
+    action GetUniformSize(text name) returns integer
+        return uniformSizes:GetValue(name)
+    end
+
+    action GetUniformType(text name) returns integer
+        return uniformTypes:GetValue(name)
+    end
+
+    action GetUniformNames returns Iterator<text>
+        return uniformNames:GetIterator()
+    end
+
+    action HasUniform(text name) returns boolean
+        return uniformNames:Has(name)
+    end
+
+    action GetInputLocation(text name) returns integer
+        return inputLocations:GetValue(name)
+    end
+
+    action GetInputSize(text name) returns integer
+        return inputSizes:GetValue(name)
+    end
+
+    action GetInputType(text name) returns integer
+        return inputTypes:GetValue(name)
+    end
+
+    action GetInputNames returns Iterator<text>
+        return inputNames:GetIterator()
+    end
+
+    action HasInput(text name) returns boolean
+        return inputNames:Has(name)
+    end
+
+    action SetUniform(text name, integer value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value)
+    end
+
+    action SetUniform(integer uniformID, integer value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value)
+    end
+
+    action SetUniform(text name, integer value1, integer value2)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2)
+    end
+
+    action SetUniform(integer uniformID, integer value1, integer value2)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2)
+    end
+
+    action SetUniform(text name, integer value1, integer value2, integer value3)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2, value3)
+    end
+
+    action SetUniform(integer uniformID, integer value1, integer value2, integer value3)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2, value3)
+    end
+
+    action SetUniform(text name, integer value1, integer value2, integer value3, integer value4)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2, value3, value4)
+    end
+
+    action SetUniform(integer uniformID, integer value1, integer value2, integer value3, integer value4)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2, value3, value4)
+    end
+
+    action SetUniform(text name, number value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value)
+    end
+
+    action SetUniform(integer uniformID, number value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value)
+    end
+
+    action SetUniform(text name, number value1, number value2)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2)
+    end
+
+    action SetUniform(integer uniformID, number value1, number value2)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2)
+    end
+
+    action SetUniform(text name, number value1, number value2, number value3)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2, value3)
+    end
+
+    action SetUniform(integer uniformID, number value1, number value2, number value3)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2, value3)
+    end
+
+    action SetUniform(text name, number value1, number value2, number value3, number value4)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniform(location, value1, value2, value3, value4)
+    end
+
+    action SetUniform(integer uniformID, number value1, number value2, number value3, number value4)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniform(uniformID, value1, value2, value3, value4)
+    end
+
+    action SetUniformArray(text name, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniformArray(location, values, startIndex, length)
+    end
+
+    action SetUniformArray(integer uniformID, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformArray(uniformID, values, startIndex, length)
+    end
+
+    action SetUniformVector2Array(text name, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniformVector2Array(location, values, startIndex, length / 2)
+    end
+
+    action SetUniformVector2Array(integer uniformID, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformVector2Array(uniformID, values, startIndex, length / 2)
+    end
+
+    action SetUniformVector3Array(text name, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniformVector3Array(location, values, startIndex, length / 3)
+    end
+
+    action SetUniformVector3Array(integer uniformID, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformVector3Array(uniformID, values, startIndex, length / 3)
+    end
+
+    action SetUniformVector4Array(text name, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetUniformLocation(name)
+        graphics:SetUniformVector4Array(location, values, startIndex, length / 4)
+    end
+
+    action SetUniformVector4Array(integer uniformID, Number32BitArray values, integer startIndex, integer length)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformVector4Array(uniformID, values, startIndex, length / 4)
+    end
+
+    action SetUniformMatrix(text name, Matrix3 matrix)
+        SetUniformMatrix(GetUniformLocation(name), matrix, false)
+    end
+
+    action SetUniformMatrix(text name, Matrix3 matrix, boolean transpose)
+        SetUniformMatrix(GetUniformLocation(name), matrix, transpose)
+    end
+
+    action SetUniformMatrix(integer uniformID, Matrix3 matrix)
+        SetUniformMatrix(uniformID, matrix, false)
+    end
+
+    action SetUniformMatrix(integer uniformID, Matrix3 matrix, boolean transpose)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformMatrix3(uniformID, MatrixToArray(matrix), transpose)
+    end
+
+    action SetUniformMatrix(text name, Matrix4 matrix)
+        SetUniformMatrix(GetUniformLocation(name), matrix, false)
+    end
+
+    action SetUniformMatrix(text name, Matrix4 matrix, boolean transpose)
+        SetUniformMatrix(GetUniformLocation(name), matrix, transpose)
+    end
+
+    action SetUniformMatrix(integer uniformID, Matrix4 matrix)
+        SetUniformMatrix(uniformID, matrix, false)
+    end
+
+    action SetUniformMatrix(integer uniformID, Matrix4 matrix, boolean transpose)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformMatrix4(uniformID, MatrixToArray(matrix), transpose)
+    end
+
+    action SetUniformMatrix3(integer uniformID, Number32BitArray matrix)
+        SetUniformMatrix3(uniformID, matrix, false)
+    end
+
+    action SetUniformMatrix3(integer uniformID, Number32BitArray matrix, boolean transpose)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformMatrix4(uniformID, matrix, transpose)
+    end
+
+    action SetUniformMatrix4(integer uniformID, Number32BitArray matrix)
+        SetUniformMatrix4(uniformID, matrix, false)
+    end
+
+    action SetUniformMatrix4(integer uniformID, Number32BitArray matrix, boolean transpose)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetUniformMatrix4(uniformID, matrix, transpose)
+    end
+
+    action SetUniform(text name, Vector2 values)
+        SetUniform(name, values:GetX(), values:GetY())
+    end
+
+    action SetUniform(integer uniformID, Vector2 values)
+        SetUniform(uniformID, values:GetX(), values:GetY())
+    end
+
+    action SetUniform(text name, Vector3 values)
+        SetUniform(name, values:GetX(), values:GetY(), values:GetZ())
+    end
+
+    action SetUniform(integer uniformID, Vector3 values)
+        SetUniform(uniformID, values:GetX(), values:GetY(), values:GetZ())
+    end
+
+    action SetUniform(text name, Color color)
+        SetUniform(name, color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha())
+    end
+
+    action SetUniform(integer uniformID, Color color)
+        SetUniform(uniformID, color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha())
+    end
+
+    action SetInput(text name, integer size, integer type, boolean normalize, integer stride, integer offset)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer id = GetInputLocation(name)
+        if id = -1
+            return now
+        end
+
+        graphics:SetVertexInputInformation(id, size, type, normalize, stride, offset)
+    end
+
+    action SetInput(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetVertexInputInformation(inputID, size, type, normalize, stride, offset)
+    end
+
+    private action MatrixToArray(Matrix3 matrix) returns Number32BitArray
+        matrix3Array:Set(0, matrix:row0column0)
+        matrix3Array:Set(1, matrix:row1column0)
+        matrix3Array:Set(2, matrix:row2column0)
+        matrix3Array:Set(3, matrix:row0column1)
+        matrix3Array:Set(4, matrix:row1column1)
+        matrix3Array:Set(5, matrix:row2column1)
+        matrix3Array:Set(6, matrix:row0column2)
+        matrix3Array:Set(7, matrix:row1column2)
+        matrix3Array:Set(8, matrix:row2column2)
+        return matrix3Array
+    end
+
+    private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
+        matrix4Array:Set(0, matrix:row0column0)
+        matrix4Array:Set(1, matrix:row1column0)
+        matrix4Array:Set(2, matrix:row2column0)
+        matrix4Array:Set(3, matrix:row3column0)
+        matrix4Array:Set(4, matrix:row0column1)
+        matrix4Array:Set(5, matrix:row1column1)
+        matrix4Array:Set(6, matrix:row2column1)
+        matrix4Array:Set(7, matrix:row3column1)
+        matrix4Array:Set(8, matrix:row0column2)
+        matrix4Array:Set(9, matrix:row1column2)
+        matrix4Array:Set(10, matrix:row2column2)
+        matrix4Array:Set(11, matrix:row3column2)
+        matrix4Array:Set(12, matrix:row0column3)
+        matrix4Array:Set(13, matrix:row1column3)
+        matrix4Array:Set(14, matrix:row2column3)
+        matrix4Array:Set(15, matrix:row3column3)
+        return matrix4Array
+    end
+end

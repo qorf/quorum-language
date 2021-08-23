@@ -43,6 +43,13 @@ public class IndexArray extends IndexData
         buffer.flip();
         byteBuffer.flip();
     }
+    
+    @Override
+    public void SetIndexRange(int start, int end)
+    {
+        buffer.position(start);
+        buffer.limit(end);
+    }
 
     /** @return the number of indices currently stored in this buffer */
     @Override

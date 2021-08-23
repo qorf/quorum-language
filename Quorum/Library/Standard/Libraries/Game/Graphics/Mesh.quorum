@@ -13,6 +13,7 @@ use Libraries.Game.Graphics.IndexBufferObject
 use Libraries.Game.Graphics.VertexBufferObject
 use Libraries.Game.Graphics.IndexArray
 use Libraries.Game.Graphics.VertexArray
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 
 class Mesh is Disposable
 
@@ -189,4 +190,8 @@ class Mesh is Disposable
     are maintained so that they can be reloaded in case of context loss.
     */
     private system action RemoveReloadableMesh
+
+    system action Render(ShaderProgram program, integer type, integer offset, integer count)
+
+    system action Render(ShaderProgram program, integer type, integer offset, integer count, boolean autoBind)
 end

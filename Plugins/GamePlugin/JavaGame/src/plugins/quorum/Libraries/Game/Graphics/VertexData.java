@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import quorum.Libraries.Game.Graphics.Shaders.ShaderProgram_;
 //import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
 import quorum.Libraries.Game.Graphics.VertexAttributes_;
@@ -63,6 +64,32 @@ public class VertexData
     /** Unbinds this VertexData.
      * @param locations array containing the attribute locations. */
     public void Unbind(ShaderProgram shader, int[] locations)
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+    
+    /** Binds this VertexData for rendering via glDrawArrays or glDrawElements. */
+    public void Bind(ShaderProgram_ shader)
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+
+    /** Binds this VertexData for rendering via glDrawArrays or glDrawElements.
+     * @param locations array containing the attribute locations. */
+    public void Bind(ShaderProgram_ shader, int[] locations)
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+
+    /** Unbinds this VertexData. */
+    public void Unbind(ShaderProgram_ shader)
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+
+    /** Unbinds this VertexData.
+     * @param locations array containing the attribute locations. */
+    public void Unbind(ShaderProgram_ shader, int[] locations)
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }
