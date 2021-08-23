@@ -15,8 +15,12 @@ use Libraries.Language.Compile.Test.MatrixTester
 use Libraries.Language.Compile.CompilerProfiler
 use Libraries.Testing.Test
 use Libraries.Testing.Tester
+use Libraries.System.Process
+use Libraries.System.ProcessEvent
+use Libraries.System.ProcessListener
+use Libraries.System.Properties
 
-class CompilerTestSuite
+class CompilerTestSuite is ProcessListener
     integer total = 0
     integer totalBytecode = 0
     integer totalJavaScript = 0
@@ -25,11 +29,22 @@ class CompilerTestSuite
     integer javaScriptPassed = 0
     integer passed = 0
     integer failed = 0
+    integer previousPass = 0
+    integer previousTotal = 0
     
     boolean testBytecode = true
-    boolean testJavaScript = false
+    boolean testJavaScript = true
     Library library
     Tester tester
+    text javascriptStandardLibraryText = ""
+    constant text NODE_MAC = "/usr/local/bin/node"
+    constant text NODE_WINDOWS = "C:\Program Files\nodejs\node.exe"
+    text nodeLocation = undefined
+    boolean javascriptError = false
+    text javascriptOutput = ""
+    text javascriptErrorOutput = ""
+    integer javascriptExitCode = -1
+    constant text JAVASCRIPT_DELIMITER = NODE_MAC:GetCarriageReturn()
 
     CompilerProfiler summaryProfiler
     Math math
@@ -62,8 +77,7 @@ class CompilerTestSuite
     ByteArrayTester byteArrayChecks
     ScienceTester scienceChecks
 
-    on create
-        output "Starting Test Suite:"
+    on create        
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         typeChecksGenerated:SetCompilerTestSuite(me)
@@ -103,19 +117,62 @@ class CompilerTestSuite
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
         Compiler compiler
+        output "Starting Test Suite: " + compiler:GetVersion()
         library:SetLocation(compiler:GetStandardLibraryFolder())
         library:SetCachingLibraryOpcodes(true)
         library:SetOutputFolder(outputLocation)
         output "Scanning Standard Library"
         library:Scan()
+
+        nodeLocation = FindNode()
+        if nodeLocation not= undefined
+            output "Reading JavaScript Standard Library"
+            File jsStandardLibrary
+            jsStandardLibrary:SetWorkingDirectory(compiler:GetStandardLibraryFolder():GetParentDirectory():GetAbsolutePath())
+            jsStandardLibrary:SetPath("Compiled/Run/QuorumStandardLibrary.js")
+            javascriptStandardLibraryText = jsStandardLibrary:Read()
+        else
+            output "Cannot find Node.js. Turning off JavaScript testing."
+            testJavaScript = false
+        end
+        output "Loading Complete"
+        output ""
     end
 
     private action GetCurrentTestPassText returns text
-        return ": " + tester:GetPassingSize() + "/" + tester:GetSize()
+        integer currentPass = tester:GetPassingSize()
+        integer currentTotal = tester:GetSize()
+
+        integer passThisTest = currentPass - previousPass
+        integer totalThisTest = currentTotal - previousTotal
+
+        previousPass = tester:GetPassingSize()
+        previousTotal = tester:GetSize()
+
+        return ": " + passThisTest + "/" + totalThisTest
+    end
+
+    private action FindNode returns text
+        text location = undefined
+        
+        Properties prop
+        if prop:IsWindows()
+            File nodeLoc
+            nodeLoc:SetAbsolutePath(NODE_WINDOWS)
+            if nodeLoc:Exists()
+                location = NODE_WINDOWS
+            end
+        elseif prop:IsMac()
+            File nodeLoc
+            nodeLoc:SetAbsolutePath(NODE_MAC)
+            if nodeLoc:Exists()
+                location = NODE_MAC
+            end
+        end
+        return location
     end
 
     action Main
-        output ""
         output "Testing"
         DateTime date
         start = date:GetEpochTime()
@@ -244,24 +301,7 @@ class CompilerTestSuite
         CompilerTestResult result
         check            
             result = RunTestFile(files)
-            result:Check(result:ranWithoutError, true)
-            if result:ranWithoutError
-                Array<text> lines = result:lines
-                Iterator<text> lineIt = lines:GetIterator()
-                integer n = lines:GetSize()
-                integer i = 0
-                result:passed = true
-                if lines:GetSize() not= reply:GetSize()
-                    result:passed = false
-                end
-                repeat n times
-                    if lines:Get(i) not= reply:Get(i)
-                       result:passed = false
-                    end
-                    i = i + 1
-                end
-                result:Check(result:passed, true)
-            end
+            TestResult(result, reply)
         detect e
             text message = e:GetErrorMessage()
             result:SetErrorMessage(message)
@@ -272,15 +312,55 @@ class CompilerTestSuite
         tester:Add(result)
     end
 
+    private action TestResult(CompilerTestResult result, Array<text> reply)
+        result:Check(result:ranWithoutError, true)
+        if result:ranWithoutError
+            Array<text> lines = result:lines
+            Iterator<text> lineIt = lines:GetIterator()
+            integer n = lines:GetSize()
+            integer i = 0
+            result:passed = true
+            if lines:GetSize() not= reply:GetSize()
+                result:passed = false
+            else
+                result:passed = true
+            end
+            repeat n times
+                if lines:Get(i) not= reply:Get(i)
+                    //leaving this here as it is convenient for testing.
+                    //output "Line '" + lines:Get(i) + "'" + "Answer '" + reply:Get(i) + "'"
+                    result:passed = false
+                end
+                i = i + 1
+            end
+            result:Check(result:passed, true)
+        end
+    end
+
+    action TestJavaScript(Array<File> files, Array<text> reply)
+        if testJavaScript = false
+            return now
+        end
+        CompilerTestResult result
+        check
+            result = RunJavaScriptTestFile(files)
+            TestResult(result, reply)
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isJavaScriptTest = true
+        Add(result)
+        tester:Add(result)
+    end
+
     private action GetDefaultCompiler returns Compiler
         Compiler defaultCompiler
         File root
         root:SetPath("Output")
         defaultCompiler:SetOutputFolder(root)
         defaultCompiler:SetOutputSpeech(false) //don't speak while in test mode
-
-        //File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        //compiler:SetStandardLibraryFolder(standardLibraryFolder)
         return defaultCompiler
     end
 
@@ -313,36 +393,7 @@ class CompilerTestSuite
         return result
     end
 
-    action TestJavaScript(Array<File> files, Array<text> reply)
-        if testJavaScript = false
-            return now
-        end
-        CompilerTestResult result
-        check
-            result = RunJavaScriptTestFile(files)
-            if result:ranWithoutError
-                Array<text> lines = result:lines
-                Iterator<text> lineIt = lines:GetIterator()
-                integer n = lines:GetSize()
-                integer i = 0
-                result:passed = true
-                result:SetPassed(true)
-                repeat n times
-                    if lines:Get(i) not= reply:Get(i)
-                        result:passed = false
-                        result:SetPassed(false)
-                    end
-                    i = i + 1
-                end
-            end
-        detect e
-            text message = e:GetErrorMessage()
-            result:errorMessage = message
-            result:stackTrace = e:GetStackTrace()
-        end
-        result:isJavaScriptTest = true
-        Add(result)
-    end
+    
 
     action RunJavaScriptTestFile(Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
@@ -373,6 +424,85 @@ class CompilerTestSuite
         end
         result:SetName(testFile:GetPath())
         return result
+    end
+
+    system action RunClassFile(File file) returns CompilerTestResult
+
+    action RunJavaScript(text script) returns CompilerTestResult
+        CompilerTestResult result
+        result:isJavaScriptTest = true
+
+        //First merge the script with the standard library
+        File root
+        root:SetPath("Output")
+
+        File outFile
+        outFile:SetWorkingDirectory(root:GetAbsolutePath())
+        outFile:SetPath("Run/Result.js")
+
+        text resultText = javascriptStandardLibraryText + "
+" + script 
++ "
+Start();
+console.log(OuTpUt_$tRiNg_);
+"
+        if outFile:Exists()
+            outFile:Delete()
+        end
+
+        outFile:GetParentDirectory():CreateDirectories()
+        outFile:Write(resultText)
+
+        //now run the output file in Node.js
+        Process process
+        process:SetName(nodeLocation)
+        
+        File processDirectory
+        processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
+        process:SetDirectory(processDirectory)
+
+        Array<text> flags
+        flags:Add("Result.js")
+
+        process:SetParameters(flags)
+        process:AddListener(me)
+        //now Run it
+        process:Run()  
+
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        if lines not= undefined
+            result:lines = lines
+        end
+        
+        if javascriptError
+            result:ranWithoutError = false
+        else 
+            result:ranWithoutError = true
+        end
+        result:returnCode = javascriptExitCode
+        
+        return result
+    end
+
+    
+    action ProcessStarted(ProcessEvent event)
+        javascriptError = false
+        javascriptOutput = ""
+        javascriptErrorOutput = ""
+        javascriptExitCode = -1
+    end
+
+    action ProcessStopped(ProcessEvent event)
+        javascriptExitCode = event:GetExit()
+    end
+
+    action Output(ProcessEvent event)
+        javascriptOutput = javascriptOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
+    end
+
+    action Error(ProcessEvent event)
+        javascriptError = true
+        javascriptErrorOutput = javascriptErrorOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
     end
 
     action TestFail(Array<File> files)
@@ -509,9 +639,6 @@ class CompilerTestSuite
             //use TestJavaScriptFail instead
         return result
     end
-
-    system action RunClassFile(File file) returns CompilerTestResult
-    system action RunJavaScript(text script) returns CompilerTestResult
 
     action RunTest(text source) returns CompilerTestResult
         CompilerTestResult result = undefined

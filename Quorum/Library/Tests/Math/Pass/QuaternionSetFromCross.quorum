@@ -13,19 +13,19 @@ class QuaternionSetFromCross
 
         quaternion:SetFromCross(first, second)
 
-        number x = quaternion:GetX()
-        number y = quaternion:GetY()
-        number z = quaternion:GetZ()
-        number w = quaternion:GetW()
+        number x = quaternion:GetX() + 0.0
+        number y = quaternion:GetY() + 0.0
+        number z = quaternion:GetZ() + 0.0
+        number w = quaternion:GetW() + 0.0
 
         output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
 
         quaternion:SetFromCross(2, 3, 4, 5, 7, 1)
 
-        x = quaternion:GetX()
-        y = quaternion:GetY()
-        z = quaternion:GetZ()
-        w = quaternion:GetW()
+        x = quaternion:GetX() + 0.0
+        y = quaternion:GetY() + 0.0
+        z = quaternion:GetZ() + 0.0
+        w = quaternion:GetW() + 0.0
 
         output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"        
     end

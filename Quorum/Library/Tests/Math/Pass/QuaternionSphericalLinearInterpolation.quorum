@@ -1,5 +1,6 @@
 use Libraries.Compute.Quaternion
 use Libraries.Containers.Array
+use Libraries.Compute.Math
 
 class QuaternionSphericalLinearInterpolation 
     action Main
@@ -11,10 +12,12 @@ class QuaternionSphericalLinearInterpolation
 
         quaternion:SphericalLinearInterpolation(endQuaternion, 0.5)
 
-        number x = quaternion:GetX()
-        number y = quaternion:GetY()
-        number z = quaternion:GetZ()
-        number w = quaternion:GetW()
+        Math math
+        constant integer ROUND = 16
+        number x = math:Round(quaternion:GetX(), ROUND)
+        number y = math:Round(quaternion:GetY(), ROUND)
+        number z = math:Round(quaternion:GetZ(), ROUND)
+        number w = math:Round(quaternion:GetW(), ROUND)
 
         output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
 
@@ -38,10 +41,10 @@ class QuaternionSphericalLinearInterpolation
 
         quaternion1:SphericalLinearInterpolation(quaternions)
 
-        x = quaternion1:GetX()
-        y = quaternion1:GetY()
-        z = quaternion1:GetZ()
-        w = quaternion1:GetW()
+        x = math:Round(quaternion1:GetX(), ROUND)
+        y = math:Round(quaternion1:GetY(), ROUND)
+        z = math:Round(quaternion1:GetZ(), ROUND)
+        w = math:Round(quaternion1:GetW(), ROUND)
 
         output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
 
@@ -66,10 +69,10 @@ class QuaternionSphericalLinearInterpolation
 
         quaternion1:SphericalLinearInterpolation(quaternions2, weights)
 
-        x = quaternion1:GetX()
-        y = quaternion1:GetY()
-        z = quaternion1:GetZ()
-        w = quaternion1:GetW()
+        x = math:Round(quaternion1:GetX(), ROUND)
+        y = math:Round(quaternion1:GetY(), ROUND)
+        z = math:Round(quaternion1:GetZ(), ROUND)
+        w = math:Round(quaternion1:GetW(), ROUND)
 
         output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"        
     end

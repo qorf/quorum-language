@@ -20,6 +20,7 @@ class InheritanceTester
         path = passPath
         AssignmentParentVariable()
         AssignToParentsVariable()
+        ButtonName()
         CallInheritedAction()
         CallInheritedActionFieldAssignment()
         CallMethodCallingBlueprint()
@@ -110,6 +111,17 @@ class InheritanceTester
         results:Add(1, "5")
         results:Add(2, "117")
         results:Add(3, "117")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ButtonName 
+        Array<File> files
+        Array<Text> results
+        File main
+        main:SetPath(path + "ButtonName.quorum")
+        files:Add(main)
+        results:Add(0, "Unnamed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

@@ -92,7 +92,7 @@ Number.prototype.IsNotANumber$NumberPrimitive = function() {
 };
 //ystem action GetHex() returns text
 Number.prototype.GetHex$NumberPrimitive = function() {
-  return "";
+  return this.valueOf().toString(16);
 };
 //system action GetHashCode() returns integer
 Number.prototype.GetHashCode$NumberPrimitive = function() {

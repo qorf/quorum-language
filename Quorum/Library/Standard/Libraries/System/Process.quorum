@@ -111,6 +111,10 @@ class Process
     system action SetDirectory(File folder)
     system action Cancel
 
+    system action SetMonitorWaitTime(integer time)
+    
+    system action GetMonitorWaitTime returns integer
+
     action ToText returns text
         return name
     end
