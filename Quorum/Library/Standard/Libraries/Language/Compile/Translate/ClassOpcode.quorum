@@ -1731,16 +1731,13 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
             convertedSource = convertedSource + "}" + EOL
 
-            Class isParentGame = clazz:GetParentClass("Libraries.Game.Game")
-            if isParentGame not= undefined
-                convertedSource = convertedSource + "function Stop(){" + EOL
-                convertedSource = convertedSource + "if ($starter != null) { " + EOL
-                convertedSource = convertedSource + "$starter.Exit();" + EOL
-                convertedSource = convertedSource + "}" + EOL
-                convertedSource = convertedSource + "}" + EOL
-            else
-                convertedSource = convertedSource + "function Stop() {}" + EOL
-            end
+            convertedSource = convertedSource + "function Stop(){" + EOL
+            convertedSource = convertedSource + "   var manager = new quorum_Libraries_Game_GameStateManager_();" + EOL
+            convertedSource = convertedSource + "   var game = manager.GetGame();" + EOL
+            convertedSource = convertedSource + "   if ((game != null)) {" + EOL
+            convertedSource = convertedSource + "   game.Exit();" + EOL
+            convertedSource = convertedSource + "   }" + EOL
+            convertedSource = convertedSource + "}" + EOL
         end
 
         
