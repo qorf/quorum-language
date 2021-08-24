@@ -45,8 +45,10 @@ use Libraries.Interface.Controls.Charts.Legend
     chart:Display(2000,1000)
 */
 class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    number maxScale = maxScale:GetMinimumValue()
-    number minScale = maxScale:GetMaximumValue()
+    number maxScale = 0
+    number minScale = 0
+    maxScale = maxScale:GetMinimumValue()
+    minScale = maxScale:GetMaximumValue()
     integer xSteps = -1
     integer ySteps = 5
     Comparison comparison = undefined
