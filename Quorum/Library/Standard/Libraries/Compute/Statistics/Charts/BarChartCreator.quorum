@@ -45,8 +45,8 @@ use Libraries.Interface.Controls.Charts.Legend
     chart:Display(2000,1000)
 */
 class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    number maxScale = maxScale:GetMinimumValue()
-    number minScale = maxScale:GetMaximumValue()
+//    number maxScale = maxScale:GetMinimumValue()
+//    number minScale = maxScale:GetMaximumValue()
     integer xSteps = -1
     integer ySteps = 5
     Comparison comparison = undefined
@@ -630,19 +630,20 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
 
     private action SetScale(BarChart chart, number min, number max)
+        chart:SetOrientation("vertical")
         chart:SetYAxisMinimum(min)
         chart:SetYAxisMaximum(max)
-        if max not= maxScale:GetMinimumValue()
-            chart:SetScaleMaximum(max)
-        else
-            chart:SetScaleMaximum(max)
-        end
-
-        if min not= maxScale:GetMaximumValue()
-            chart:SetScaleMinimum(min)
-        else
-            chart:SetScaleMaximum(min)
-        end
+//        if max not= maxScale:GetMinimumValue()
+//            chart:SetScaleMaximum(max)
+//        else
+//            chart:SetScaleMaximum(max)
+//        end
+//
+//        if min not= maxScale:GetMaximumValue()
+//            chart:SetScaleMinimum(min)
+//        else
+//            chart:SetScaleMaximum(min)
+//        end
     end
 
     private action SetTicks(BarChart chart)

@@ -76,7 +76,7 @@ class Histogram is SharedBarChartParent
         of  the chart.
     */
     action GenerateSummary returns text
-        SetDescription("Histogram, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetScaleMaximum() + 
+        SetDescription("Histogram, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetYAxisMaximum() + 
             ". Use the arrow keys to navigate the chart.")
         return GetDescription()
     end

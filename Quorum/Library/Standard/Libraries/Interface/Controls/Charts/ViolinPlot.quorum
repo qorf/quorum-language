@@ -143,13 +143,13 @@ class ViolinPlot is Chart
         end
         
         Array<Drawable> xTickDrawables = GetXTicks()
-        Array<Drawable> yTickDrawables = GetScaleTicks()
+        Array<Drawable> yTickDrawables = GetYTicks()
         Array<Drawable> yGridlines = GetMajorYGridlines()
         Array<Drawable> xGridlines = GetMajorXGridlines()
         Array<Drawable> yMinorGridlines = GetMinorYGridlines()
         Array<Drawable> xMinorGridlines = GetMinorXGridlines()
         Array<ControlLabel> xLabels = GetXLabels()
-        Array<ControlLabel> yLabels = GetScaleLabels()
+        Array<ControlLabel> yLabels = GetYLabels()
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
@@ -499,7 +499,7 @@ class ViolinPlot is Chart
             GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
         end
 
-        Array<ControlLabel> yLabels = GetScaleLabels()
+        Array<ControlLabel> yLabels = GetYLabels()
         ChartItem yPrevious
         integer i = 0
         repeat while i < yLabels:GetSize()

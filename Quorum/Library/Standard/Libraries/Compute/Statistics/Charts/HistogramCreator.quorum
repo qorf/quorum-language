@@ -243,6 +243,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         chart:SetYAxisMaximum(maxFrequency)
         legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetOrientation("vertical")
         chart:SetLegend(legend)
         chart:RemoveGaps(true)
         return chart

@@ -31,6 +31,7 @@ class SharedBarChartParent is Chart
     Array<BarGroup> barGroups
     boolean hasBarGroups = true
     boolean isStacked = false
+    boolean isHorizontal = false
     boolean removeGaps = false // Histograms typically do not have spacing between bars
     Array<Series> seriesList
 
@@ -39,10 +40,12 @@ class SharedBarChartParent is Chart
     number yTickInterval = -1
     // Default uses best interval by range to graph, if tick count is set, it overrides this.
     boolean yIntervalBasedOnTickCount = false
-    number maxScale = 1
-    number minScale = 0
+//    number maxScale = 1
+//    number minScale = 0
     number yAxisMaximum = 0.0 // the maximum value in y axis
     number yAxisMinimum = 0.0
+    number xAxisMaximum = 0.0 // the maximum value in y axis
+    number xAxisMinimum = 0.0
 
     //Not implemented for now, but is a placeholder for future implementation
     number minTick = 0
@@ -55,6 +58,8 @@ class SharedBarChartParent is Chart
     Control controlHighlight
     Math math
     
+    // The default orientation for bar charts and histograms is vertical
+    text defaultOrientation = "vertical"
    
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -101,7 +106,7 @@ class SharedBarChartParent is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetBarSelectionColor())
                     temp:SetView2D(view)
                 end
@@ -163,6 +168,13 @@ class SharedBarChartParent is Chart
         return isStacked
     end
 
+     /*
+        Returns horizontal flag 
+    */
+    action GetHorizontalFlag() returns boolean
+        return isHorizontal
+    end
+
     //Made private to avoid issues with using this before AddBar
     private action SetNumberOfBars(integer bars)
         numberOfBars = bars
@@ -170,12 +182,12 @@ class SharedBarChartParent is Chart
         barNames:SetSize(numberOfBars)
     end
 
-    /*
-        Appends a bar to end of the Bar Chart. NOTE: Height is a percentage
-    */
-    action AddBar(text name, number height)
-        SetBar(numberOfBars+1, name, height)
-    end
+//    /*
+//        Appends a bar to end of the Bar Chart. NOTE: Height is a percentage
+//    */
+//    action AddBar(text name, number height)
+//        SetBar(numberOfBars+1, name, height)
+//    end
 
     /*
         Appends a bargroup to end of the Bar Chart. 
@@ -191,6 +203,7 @@ class SharedBarChartParent is Chart
         end
         barGroups:Add(group)
         numberOfGroups = numberOfGroups + 1
+        xAxisMaximum = xAxisMaximum + 1.0
     end
 
     /*
@@ -284,36 +297,6 @@ class SharedBarChartParent is Chart
     action GetYTickInterval() returns number
         return yTickInterval
     end
-
-    /*
-        Sets the maxiumum value that will appear at the top of the scale. Note 
-        that the other values of the scale will be affected by the maximum.
-    */
-    action SetScaleMaximum(number max)
-        maxScale = max
-    end
-
-    /*
-        Returns the maxiumum value of the scale.
-    */
-    action GetScaleMaximum returns number
-        return maxScale
-    end
-
-    /*
-        Sets the maxiumum value that will appear at the top of the scale. Note 
-        that the other values of the scale will be affected by the maximum.
-    */
-    action SetScaleMinimum(number max)
-        minScale = max
-    end
-
-    /*
-        Returns the maxiumum value of the scale.
-    */
-    action GetScaleMinimum returns number
-        return minScale
-    end
     
     /*
         Sets the default color for the bars
@@ -385,15 +368,29 @@ class SharedBarChartParent is Chart
     // Y-Axis min/max 
     action SetYAxisMaximum(number max)
         yAxisMaximum = max
-     end
+    end
     action GetYAxisMaximum returns number
         return yAxisMaximum
     end
     action SetYAxisMinimum(number min)
         yAxisMinimum = min
-     end
+    end
     action GetYAxisMinimum returns number
         return yAxisMinimum
+    end
+
+    // X-Axis min/max 
+    action SetXAxisMaximum(number max)
+        xAxisMaximum = max
+    end
+    action GetXAxisMaximum returns number
+        return xAxisMaximum
+    end
+    action SetXAxisMinimum(number min)
+        xAxisMinimum = min
+    end
+    action GetXAxisMinimum returns number
+        return xAxisMinimum
     end
 
     /*
@@ -617,7 +614,7 @@ class SharedBarChartParent is Chart
         yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from 0.0 to " + yAxisMaximum)
         ChartItem firstScale
         firstScale:SetContainer(me)
-        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        Array<ControlLabel> scaleLabels = GetYLabels()
         if numberOfBars > 0
             //firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
             firstScale:SetParent(yAxis)
@@ -733,18 +730,44 @@ class SharedBarChartParent is Chart
         
         Array<Icon> bars = GetBars()
         Array<Drawable> barTicks = GetXTicks()
-        Array<Drawable> yTicks = GetScaleTicks()
-        Array<Drawable> yGridlines = GetMajorYGridlines()
-        Array<Drawable> xGridlines = GetMajorXGridlines()
-        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
-        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
+        Array<Drawable> scaleTicks = GetYTicks()
+        Array<Drawable> scaleGridlines = GetMajorYGridlines()
+        Array<Drawable> barGridlines = GetMajorXGridlines()
+        Array<Drawable> scaleMinorGridlines = GetMinorYGridlines()
+        Array<Drawable> barMinorGridlines = GetMinorXGridlines()
         Array<ControlLabel> barLabels = GetXLabels()
-        Array<ControlLabel> yLabels = GetScaleLabels()
-        Control horizontalPanel = GetHorizontalPanel()
-        Control verticalPanel = GetVerticalPanel()
+        Array<ControlLabel> scaleLabels = GetYLabels()
+        Control barPanel = GetHorizontalPanel()
+        Control scalePanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
         Array<text> barNames = GetBarNames()
         CalculateNumberOfBars()
+
+        // Check for orientation change
+        // If horizontal ticks and labels need to be added to opposite axis.
+        text orientation = GetOrientation()
+        if defaultOrientation not= orientation
+            text tempTitle = GetXLabel():GetText()
+            GetXLabel():SetText(GetYLabel():GetText())
+            GetXLabel():SetName(GetYLabel():GetText())
+            GetYLabel():SetText(tempTitle)
+            GetYLabel():SetName(tempTitle)
+            if orientation = "horizontal"
+                isHorizontal = true
+                barTicks = GetYTicks()
+                scaleTicks = GetXTicks()
+                barLabels = GetYLabels()
+                scaleLabels = GetXLabels()        
+                scaleGridlines = GetMajorXGridlines()
+                barGridlines = GetMajorYGridlines()
+                scaleMinorGridlines = GetMinorXGridlines()
+                barMinorGridlines = GetMinorYGridlines()
+                barPanel = GetVerticalPanel()
+                scalePanel = GetHorizontalPanel()
+            else
+                isHorizontal = false
+            end
+        end   
 
         // If stacked, we need to adjust the maximum y value to the full stack
         if GetStackedFlag()
@@ -766,27 +789,27 @@ class SharedBarChartParent is Chart
         number scaleNum = 0
         number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick steps
 
-        if yTicks:IsEmpty() and yLabels:IsEmpty()
-            yTicks:SetSize(GetYTickSteps())
-            yLabels:SetSize(GetYTickSteps())
+        if scaleTicks:IsEmpty() and scaleLabels:IsEmpty()
+            scaleTicks:SetSize(GetYTickSteps())
+            scaleLabels:SetSize(GetYTickSteps())
             integer i = 0
             repeat while i < yTickSteps
                 //make the ticks that will be on the scale
                 Drawable tick
                 tick:LoadFilledRectangle(10, 3)
-                yTicks:Set(i, tick)
-                verticalPanel:Add(yTicks:Get(i))
+                scaleTicks:Set(i, tick)
+                scalePanel:Add(scaleTicks:Get(i))
 
                 if IsShowingMajorYGridLines()
                     Drawable gridline
-                    yGridlines:Add(gridline)
+                    scaleGridlines:Add(gridline)
                     chartArea:Add(gridline)
                 end
                 if IsShowingMinorYGridLines()
                     integer j = 0
                     repeat while j < 5
                         Drawable gridline
-                        yMinorGridlines:Add(gridline)
+                        scaleMinorGridlines:Add(gridline)
                         chartArea:Add(gridline)
                         j = j + 1
                     end
@@ -803,8 +826,8 @@ class SharedBarChartParent is Chart
                 tempLabel:SetName(scaleText + " " + (i + 1) + " of " + yTickSteps)
                 tempLabel:SetFocusable(true)
                 tempLabel:SetAccessibilityCode(parent:Item:ITEM)
-                yLabels:Set(i, tempLabel)
-                verticalPanel:Add(yLabels:Get(i))
+                scaleLabels:Set(i, tempLabel)
+                scalePanel:Add(scaleLabels:Get(i))
                 scaleNum = scaleNum + scaleWidth
                 i = i + 1
             end
@@ -834,7 +857,7 @@ class SharedBarChartParent is Chart
                 Drawable tick
                 tick:LoadFilledRectangle(3, 15)
                 barTicks:Set(i, tick)
-                horizontalPanel:Add(barTicks:Get(i))
+                barPanel:Add(barTicks:Get(i))
 
                 //Make the labels
                 ControlLabel tempLabel
@@ -854,7 +877,7 @@ class SharedBarChartParent is Chart
                 tempLabel:SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
                 barLabels:Set(i, tempLabel)
                 
-                horizontalPanel:Add(barLabels:Get(i))
+                barPanel:Add(barLabels:Get(i))
                 i = i + 1
             end
 
@@ -917,61 +940,10 @@ class SharedBarChartParent is Chart
         end
     end
 
-    private action GetBarHeight(BarGroup group, integer index) returns number
-        integer thickness = cast(integer, GetWidth()*0.001) + 3
-        number height = 0
-        check
-            height = GetChartArea():GetHeight() * group:Get(index):GetHeight()
-        detect e
-            height = 0
-            group:Get(index):SetHeight(0.0)
-        end
-        number thickHeight = height + thickness/2
-        return thickHeight
-    end    
-
-    action GetBarWidth returns number
-        number width = (GetChartArea():GetWidth()/(bars:GetSize() + 1))* 0.7 
-        return width
-    end
-
-    private action GetBarHeight(BarGroup group, integer index, number chartAreaHeight) returns number
-        integer thickness = cast(integer, GetWidth()*0.001) + 3
-        number height = 0
-        check
-            height = cast(integer, (chartAreaHeight - GetXAxis():GetHeight())) * group:Get(index):GetHeight()
-        detect e
-            height = 0
-            group:Get(index):SetHeight(0.0)
-        end
-        number thickHeight = height// + thickness/2
-        return thickHeight
-    end
-    
-    action GetBarWidth(number chartAreaWidth) returns number
-        number width = (chartAreaWidth/(bars:GetSize() + 1))* 0.7 
-        return width
-    end
-
     /*
         This action is called whenever the window is resized.
     */
     action Resize
-        if not bars:IsEmpty()
-            integer i = 0
-            Icon temp
-            repeat while i < barGroups:GetSize()
-                integer j = 0
-                repeat while j < barGroups:Get(i):GetSize()
-                    temp = barGroups:Get(i):Get(j):GetIcon()
-                    number height = GetBarHeight(barGroups:Get(i), j, GetHeight()*0.75)
-                    number width = GetBarWidth(GetWidth()*0.75)
-//                    temp:SetSize(width, height)
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        end
         parent:Chart:Resize()
     end
 end

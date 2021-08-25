@@ -326,7 +326,7 @@ class BoxPlot is Chart
 
         // Gets the increments of the axes of the chart
         Array<Drawable> drawable_Xincrements = GetXTicks()
-        Array<Drawable> drawable_Yincrements = GetScaleTicks()
+        Array<Drawable> drawable_Yincrements = GetYTicks()
         Array<Drawable> yGridlines = GetMajorYGridlines()
         Array<Drawable> xGridlines = GetMajorXGridlines()
         Array<Drawable> yMinorGridlines = GetMinorYGridlines()
@@ -334,7 +334,7 @@ class BoxPlot is Chart
         
         //Gets the labels of the axes
         Array<ControlLabel> x_Labels = GetXLabels()
-        Array<ControlLabel> y_Labels = GetScaleLabels()
+        Array<ControlLabel> y_Labels = GetYLabels()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
@@ -674,7 +674,7 @@ class BoxPlot is Chart
         end
 
        // Makes control labels for y axis
-        Array<ControlLabel> y_Labels = GetScaleLabels()
+        Array<ControlLabel> y_Labels = GetYLabels()
         ChartItem y_Prev
     
         integer i = 0

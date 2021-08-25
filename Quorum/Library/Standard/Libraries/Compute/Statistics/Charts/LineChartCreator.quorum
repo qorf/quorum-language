@@ -270,6 +270,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
 
+        chart:SetOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)

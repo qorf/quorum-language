@@ -68,7 +68,7 @@ class BarChart is SharedBarChartParent
     of  the chart.
     */
     private action GenerateSummary returns text
-        SetDescription("Bar Chart, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetScaleMaximum() + 
+        SetDescription("Bar Chart, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetYAxisMaximum() + 
             ". Use the arrow keys to navigate the chart.")
         return GetDescription()
     end

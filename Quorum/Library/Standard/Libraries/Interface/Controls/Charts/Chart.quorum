@@ -70,6 +70,8 @@ class Chart is Control
     ChartSelection selection
     text xName = ""
     text yName = ""
+    // Chart Orientation
+    text orientation = "horizontal"
 
     Drawable backgroundD = undefined
     Drawable xAxis = undefined
@@ -146,6 +148,36 @@ class Chart is Control
         me:yAxisSizeOffset = value
     end
 
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    /*
+    These actions are used to get and set the orientation. The default will
+    be set on creation of each chart but can be changed afterwards manually
+    or the user can call FlipOrientation().
+    */
+    action GetOrientation returns text
+        return orientation
+    end
+
+    action SetOrientation(text orient)
+        text newOrientation = orient:ToLowerCase()
+        if newOrientation = "horizontal" or newOrientation = "vertical"
+            orientation = newOrientation
+        else
+            alert("Orientation can only by vertical or horizontal")
+        end
+    end
+
+    action FlipOrientation()
+        if orientation = "horizontal"
+            orientation = "vertical"
+        else
+            orientation = "horizontal"
+        end
+    end
+
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -178,7 +210,7 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetScaleTicks returns Array<Drawable>
+    action GetYTicks returns Array<Drawable>
         return scaleTicks
     end
 
@@ -208,7 +240,7 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetScaleLabels returns Array<ControlLabel>
+    action GetYLabels returns Array<ControlLabel>
         return scaleLabels
     end
 
@@ -554,9 +586,9 @@ class Chart is Control
             chartArea:SetView2D(chartAreaView)
         end
         Array<Drawable> barTicks = GetXTicks()
-        Array<Drawable> scaleTicks = GetScaleTicks()
+        Array<Drawable> scaleTicks = GetYTicks()
         Array<ControlLabel> barLabels = GetXLabels()
-        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        Array<ControlLabel> scaleLabels = GetYLabels()
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
 
@@ -632,9 +664,9 @@ class Chart is Control
         Control horizontalPanel = GetHorizontalPanel()
         Control verticalPanel = GetVerticalPanel()
         Control chartArea = GetChartArea()
-        Array<Drawable> scaleTicks = GetScaleTicks()
+        Array<Drawable> scaleTicks = GetYTicks()
         Array<ControlLabel> barLabels = GetXLabels()
-        Array<ControlLabel> scaleLabels = GetScaleLabels()
+        Array<ControlLabel> scaleLabels = GetYLabels()
 
         horizontalPanel:SetSize(GetWidth()*xAxisSizeOffset, GetHeight()*0.15)
         verticalPanel:SetSize(GetWidth()*0.15, GetHeight()*yAxisSizeOffset)

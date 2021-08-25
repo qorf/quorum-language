@@ -30,7 +30,7 @@ class ChartLayout is Layout
 
         //This is the ticks on the Y axis
         number scaleDivWidth = 0.0
-        Array<Drawable> ticks = chart:GetScaleTicks()
+        Array<Drawable> ticks = chart:GetYTicks()
         Array<Drawable> lines = chart:GetMajorYGridlines()
         Array<Drawable> minorlines = chart:GetMinorYGridlines()
 
@@ -84,7 +84,7 @@ class ChartLayout is Layout
         number labelMinimumX = originPointX
 
         integer maxYLabelOffset = 0
-        Array<ControlLabel> scaleLabels = chart:GetScaleLabels()
+        Array<ControlLabel> scaleLabels = chart:GetYLabels()
         if not scaleLabels:IsEmpty()
             Label currentLabel = scaleLabels:Get(0)
             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()

@@ -52,7 +52,6 @@ class Legend is Control
         properties:SetBorderThickness(2)
         SetName("Legend")
 
-//        SetInputGroup("Button")
         SetDescription("Legend")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
@@ -96,6 +95,10 @@ class Legend is Control
             ControlView content = cast(ControlView, GetView2D())
             content:SetText(name)
         end
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
     end
     
     /*
