@@ -999,9 +999,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             Location useLocation
             useLocation:SetLocation(context:objectLocation)
             variable:AddUseLocation(useLocation)
+            //the right hand side has been processed, so we can safely set this here.
+            variable:SetFirstAssignment(false)
         end
-
-
+        
         //this is an assignment to a field in a parent
         if theParent not= undefined
             //get the full static key of the parent
@@ -1311,6 +1312,8 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
             end
             var:SetIsDefined(true)
+            //the right hand side has been processed, so we can safely set this here.
+            var:SetFirstAssignment(false)
         end
 
         Type left = var:GetType()
@@ -1383,6 +1386,11 @@ class QuorumBytecodeListener is QuorumSourceListener
         useLocation:SetLocation(context:variableLocation)
         variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
+
+        if name = "NOT_ACCESSIBLE"
+            a = 5
+        end
+        variable:SetFirstAssignment(false)
         if isInAlwaysBlock
             variable:SetDefinedInAlwaysBlock(true)
         end
@@ -1632,6 +1640,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         useLocation:SetLocation(context:variableLocation)
         variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
+        variable:SetFirstAssignment(false)
         Type left = variable:GetType()
 
         QuorumOpcode right = opcodeStack:Pop()
@@ -2350,7 +2359,8 @@ class QuorumBytecodeListener is QuorumSourceListener
                             return now
                         end
 
-                        if not variable:IsDefined()
+                        if not variable:IsDefined() 
+                            or (variable:IsField() and variable:IsFirstAssignment() and not isInAction)
                             CompilerError error
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found " + name + ", but it must be defined first.")
@@ -2387,6 +2397,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     //check if this variable has been defined.
                     //if it hasn't, it is an error
                     if not variable:IsDefined()
+                        or (variable:IsField() and variable:IsFirstAssignment() and not isInAction)
                         CompilerError error
                         error:SetLocation(context:GetLocation())
                         error:SetErrorMessage("Found " + name + ", but it must be defined first.")
@@ -2452,6 +2463,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         end
 
                         if not field:IsDefined()
+                            or (field:IsField() and field:IsFirstAssignment() and not isInAction)
                             CompilerError error
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found the variable " + name + ", but it must be defined first.")

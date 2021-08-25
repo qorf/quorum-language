@@ -25,7 +25,7 @@ class OptionDialog is Dialog
     end
 
     OptionDialogCancelBehavior defaultCancelBehavior
-    Behavior cancelBehavior = cancelBehavior
+    Behavior cancelBehavior = defaultCancelBehavior
     on create
         SetModal(true)
         lineLabel:SetText("Are you sure?")

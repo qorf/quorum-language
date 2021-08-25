@@ -24,6 +24,7 @@ class Variable is Symbol
     boolean definedInAlwaysBlock = false
     HashTable<text, List<Location>> useLocationHash
     Location typeLocation = undefined
+    boolean isFirstAssignment = true
 
     action AddUseLocation(Location location)   
         File file = location:GetFile()
@@ -350,5 +351,13 @@ class Variable is Symbol
 
     action SetParameterLocation(integer int)
         parameterLocation = int
+    end
+
+    action IsFirstAssignment returns boolean
+        return isFirstAssignment
+    end
+
+    action SetFirstAssignment(boolean isFirstAssignment)
+        me:isFirstAssignment = isFirstAssignment
     end
 end
