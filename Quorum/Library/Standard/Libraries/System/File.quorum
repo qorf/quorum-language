@@ -435,7 +435,27 @@ class File
         appDir:SetPath("TextEdit.app")
         output appDir:GetFileExtension() // prints "app" on all systems.
      */
-    system action GetFileExtension returns text
+    action GetFileExtension returns text
+        text value = GetPath()
+        text extension = ""
+        if value = undefined or value:IsEmpty()
+            return ""
+        end
+
+        i = value:GetSize() - 1
+        repeat while i >= 0
+            text ch = value:GetCharacter(i)
+            //we found it
+            if ch = "."
+                return extension
+            else
+                extension = ch + extension
+            end
+            i = i - 1
+        end
+
+        return ""
+    end
 
     /*
         Get the parent directory of this particular File object. The parent

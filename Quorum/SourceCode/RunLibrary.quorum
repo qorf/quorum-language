@@ -81,7 +81,7 @@ class RunLibrary
                 end
                 
                 if type:GetCurrentType() not= type:MISSING_USE
-                    message = i + ": " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                    message = i + ": " + message + ": " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
                     i = i + 1
                     output message
                 else
