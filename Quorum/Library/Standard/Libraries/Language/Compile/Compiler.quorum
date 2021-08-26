@@ -216,11 +216,10 @@ class Compiler
         return codeCompletionhandler:Request(request)
     end
 
-    /* This action tells the compiler under the hood to dispose of resources
-        after the next compile.
-    */
-    //system action Dispose
 
+    /*  Tells the compiler to build a program, given a particular request object. 
+        Request objects may contain files and other information on what is to be built.
+    */
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
         HashTable<text, File> originalFileHash
@@ -341,11 +340,9 @@ class Compiler
             File file = files:Get(i)
             Parser listener
             if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
-                //ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
                 Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             elseif not table:HasFile(file:GetAbsolutePath())
-                //ParseSandbox(file:Read(), listener, table, errors, checker, file)
                 Traverse(file:Read(), listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
@@ -406,7 +403,6 @@ class Compiler
                 repeat while i < standardLibraryFiles:GetSize()
                     File file = standardLibraryFiles:Get(i)
                     QuorumBytecodeListener listener
-                    //ParseSandbox(undefined, listener, standardLibrarySymbolTable, errors, checker, file)
                     Traverse(undefined, listener, standardLibrarySymbolTable, errors, checker, file, result)
                     i = i + 1
                 end
@@ -440,7 +436,6 @@ class Compiler
                 QuorumBytecodeListener listener
 
                 if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
-                    //ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
                     Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true
@@ -451,7 +446,6 @@ class Compiler
                         theOpcodes:Add(op:GetStaticKey(), op)
                     end
                 elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
-                    //ParseSandbox(undefined, listener, table, errors, checker, file)
                     Traverse(undefined, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true

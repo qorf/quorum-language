@@ -216,7 +216,6 @@ class Library
             File file = lib:Get(i)
             Parser listener
             compiler:Traverse(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file, result)
-            //compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
             Lexer luthor = listener:GetLexer()
             if luthor not= undefined
                 text value = file:GetAbsolutePath()
@@ -238,7 +237,6 @@ class Library
                 File file = lib:Get(i)
                 QuorumBytecodeListener listener
                 compiler:Traverse(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file, result)
-                //compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
                 if cacheOpcodes
                     ClassOpcode op = listener:GetClassOpcode()
                     if op not= undefined
