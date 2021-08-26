@@ -204,6 +204,7 @@ class Library
         CompilerErrorManager sandboxCompilerErrorManager
         TypeChecker sandboxTypeChecker
 
+        CompilerResult result
         UpdateListenerLabels("Scanning Standard Library Folder")
         Compiler compiler
         Array<File> lib = CollectQuorumFiles()
@@ -214,7 +215,8 @@ class Library
         repeat lib:GetSize() times
             File file = lib:Get(i)
             Parser listener
-            compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+            compiler:Traverse(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file, result)
+            //compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
             Lexer luthor = listener:GetLexer()
             if luthor not= undefined
                 text value = file:GetAbsolutePath()
@@ -235,8 +237,8 @@ class Library
             repeat while i < lib:GetSize()
                 File file = lib:Get(i)
                 QuorumBytecodeListener listener
-                compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-
+                compiler:Traverse(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file, result)
+                //compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
                 if cacheOpcodes
                     ClassOpcode op = listener:GetClassOpcode()
                     if op not= undefined

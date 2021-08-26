@@ -15,6 +15,8 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.Iterator
+use Libraries.System.DateTime
+use Libraries.Compute.Math
 
 class RunLibrary
     File location = undefined
@@ -44,15 +46,17 @@ class RunLibrary
     text javascriptPlugins = ""
 
     action Main
+        Math math
         Compiler compiler
-
+        DateTime date
+        start = date:GetEpochTime()
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion() + ": Compiling Standard Library"
 
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
-        output "Scanning"
+        scanTime = date:GetEpochTime()
         Library library
         library:outputJavaScript = true
         library:SetCachingLibraryOpcodes(true)
@@ -60,11 +64,26 @@ class RunLibrary
         library:SetOutputFolder(outputLocation)
         CompilerErrorManager errors = library:Scan()
 
-        output "Writing Standard Library"
+
+        finish = date:GetEpochTime()
+        number totalTime = finish - scanTime
+        totalTime = totalTime / 1000.0
+        
+        totalTime = math:Round(totalTime, 3)
+        output "Scanning Complete in " + totalTime + " seconds."
+        
 
         if errors:IsCompilationErrorFree()
+            
+            scanTime = date:GetEpochTime()
             library:Write()
-            output "Finished"
+
+            finish = date:GetEpochTime()
+            totalTime = finish - scanTime
+            totalTime = totalTime / 1000.0
+            
+            totalTime = math:Round(totalTime, 3)
+            output "Writing Standard Library " + totalTime + " seconds."
         else 
             integer useErrors = 0
             output ""
@@ -92,5 +111,13 @@ class RunLibrary
             output ""
             output "Total Errors: " + errors:GetErrorAmount() + " with " + useErrors + " use errors."
         end
+
+        finish = date:GetEpochTime()
+        totalTime = finish - start
+        totalTime = totalTime / 1000.0
+        
+        totalTime = math:Round(totalTime, 3)
+
+        output "Finished in " + totalTime + " seconds."
     end
 end

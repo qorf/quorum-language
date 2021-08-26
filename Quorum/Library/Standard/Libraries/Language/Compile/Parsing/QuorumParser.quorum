@@ -1509,6 +1509,10 @@ class QuorumParser
         end
         Array<ActionCallContext> calls
         ActionCallContext call = ActionCall()
+        //if this is undefined, the parent call does not parse, so return that.
+        if call = undefined
+            return undefined
+        end
         call:traverseAsInitialParent = true //say it's a parent call.
         calls:Add(call)
         context:calls = calls
