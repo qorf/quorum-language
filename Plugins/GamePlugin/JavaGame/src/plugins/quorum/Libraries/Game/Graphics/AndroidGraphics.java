@@ -52,7 +52,7 @@ public class AndroidGraphics implements GraphicsManager
         glCompileShader(shaderID);
     }
 
-    public boolean GetShaderCompileStatus(int shaderID)
+    public boolean IsShaderCompiled(int shaderID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         glGetShaderiv(shaderID, GraphicsManager.GL_COMPILE_STATUS, intbuf);
@@ -61,11 +61,11 @@ public class AndroidGraphics implements GraphicsManager
         return compiled != 0;
     }
 
-    public String GetShaderInfoLog(int shaderID)
+    public String GetShaderLog(int shaderID)
     {
         return glGetShaderInfoLog(shaderID);
     }
-    
+
     public int CreateShaderProgramID()
     {
         return glCreateProgram();
@@ -81,7 +81,7 @@ public class AndroidGraphics implements GraphicsManager
         glLinkProgram(programID);
     }
     
-    public boolean GetProgramLinkStatus(int programID)
+    public boolean IsShaderProgramLinked(int programID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         glGetProgramiv(programID, GraphicsManager.GL_LINK_STATUS, intbuf);
@@ -90,7 +90,7 @@ public class AndroidGraphics implements GraphicsManager
         return linked != 0;
     }
 
-    public String GetProgramInfoLog(int programID)
+    public String GetShaderProgramLog(int programID)
     {
         return glGetProgramInfoLog(programID);
     }
@@ -99,7 +99,12 @@ public class AndroidGraphics implements GraphicsManager
     {
         glUseProgram(programID);
     }
-
+    
+    public void DeleteShader(int shaderID)
+    {
+        glDeleteShader(shaderID);
+    }
+    
     public void DeleteShaderProgram(int programID)
     {
         glDeleteProgram(programID);
@@ -125,14 +130,14 @@ public class AndroidGraphics implements GraphicsManager
         glDepthFunc(function);
     }
     
-    public int GetUniformCount(int programID)
+    public int GetShaderInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_UNIFORMS, params);
         return params.get(0);
     }
 
-    public String GetUniformInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
+    public String GetShaderInputInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         params.put(0, 1);
@@ -147,14 +152,14 @@ public class AndroidGraphics implements GraphicsManager
         return name;
     }
     
-    public int GetInputCount(int programID)
+    public int GetVertexInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_ATTRIBUTES, params);
         return params.get(0);
     }
 
-    public String GetInputInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
+    public String GetVertexInputInformation(int programID, int index, Integer_ location, Integer_ size, Integer_ type)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
         params.put(0, 1);
@@ -169,67 +174,72 @@ public class AndroidGraphics implements GraphicsManager
         return name;
     }
     
-    public void SetUniform(int uniformID, int value)
+    public void SetShaderInput(int uniformID, int value)
     {
         glUniform1i(uniformID, value);
     }
     
-    public void SetUniform(int uniformID, int value1, int value2)
+    public void SetShaderInput(int uniformID, int value1, int value2)
     {
         glUniform2i(uniformID, value1, value2);
     }
 
-    public void SetUniform(int uniformID, int value1, int value2, int value3)
+    public void SetShaderInput(int uniformID, int value1, int value2, int value3)
     {
         glUniform3i(uniformID, value1, value2, value3);
     }
 
-    public void SetUniform(int uniformID, int value1, int value2, int value3, int value4)
+    public void SetShaderInput(int uniformID, int value1, int value2, int value3, int value4)
     {
         glUniform4i(uniformID, value1, value2, value3, value4);
     }
 
-    public void SetUniform(int uniformID, double value)
+    public void SetShaderInput(int uniformID, double value)
     {
         glUniform1f(uniformID, (float)value);
     }
 
-    public void SetUniform(int uniformID, double value1, double value2)
+    public void SetShaderInput(int uniformID, double value1, double value2)
     {
         glUniform2f(uniformID, (float)value1, (float)value2);
     }
 
-    public void SetUniform(int uniformID, double value1, double value2, double value3)
+    public void SetShaderInput(int uniformID, double value1, double value2, double value3)
     {
         glUniform3f(uniformID, (float)value1, (float)value2, (float)value3);
     }
 
-    public void SetUniform(int uniformID, double value1, double value2, double value3, double value4)
+    public void SetShaderInput(int uniformID, double value1, double value2, double value3, double value4)
     {
         glUniform4f(uniformID, (float)value1, (float)value2, (float)value3, (float)value4);
     }
+    
+    public void SetShaderInputArray(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    {
+        glUniform1fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
+    }
 
-    public void SetUniformVector2Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    public void SetShaderInputVector2Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
     {
         glUniform2fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
     }
 
-    public void SetUniformVector3Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    public void SetShaderInputVector3Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
     {
         glUniform3fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
     }
 
-    public void SetUniformVector4Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
+    public void SetShaderInputVector4Array(int uniformID, Number32BitArray_ array, int startIndex, int length)
     {
         glUniform4fv(uniformID, length, ((Number32BitArray)array).plugin_.floats, startIndex);
     }
 
-    public void SetUniformMatrix4Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
+    public void SetShaderInputMatrix4Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
     {
         glUniformMatrix4fv(uniformID, matrixCount, transpose, ((Number32BitArray)array).plugin_.floats, startIndex);
     }
 
-    public void SetUniformMatrix3Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
+    public void SetShaderInputMatrix3Array(int uniformID, int matrixCount, Number32BitArray_ array, int startIndex, boolean transpose)
     {
         glUniformMatrix3fv(uniformID, matrixCount, transpose, ((Number32BitArray)array).plugin_.floats, startIndex);
     }

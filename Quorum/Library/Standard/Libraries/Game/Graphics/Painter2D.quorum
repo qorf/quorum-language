@@ -14,6 +14,7 @@ use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.Shaders.DefaultVertexShader2D
 use Libraries.Game.Graphics.Shaders.DefaultFragmentShader2D
 use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -373,21 +374,33 @@ class Painter2D
 
         projectionMatrix:SetToOrthographic2D(0, 0, display:GetWidth(), display:GetHeight())
 
-        defaultProgram = CreateDefaultShaders()
+        defaultProgram = GetDefaultShaders()
         /*
         fontShader = CreateFontShader();
         ownsShader = true;
         */
     end
 
-    private action CreateDefaultShaders returns ShaderProgram
-        DefaultVertexShader2D vertexShader
-        DefaultFragmentShader2D fragmentShader
-        ShaderProgram program
-        program:Add(vertexShader)
-        program:Add(fragmentShader)
-        program:Compile()
-        return program
+    private action GetDefaultShaders returns ShaderProgram
+        ShaderManager manager
+        if manager:HasShaderProgram(manager:DEFAULT_2D_SHADER_PROGRAM)
+            return manager:GetShaderProgram(manager:DEFAULT_2D_SHADER_PROGRAM)
+        else
+            ShaderProgram default2D
+            default2D:SetName(manager:DEFAULT_2D_SHADER_PROGRAM)
+    
+            DefaultVertexShader2D vertex2D
+            vertex2D:SetName(manager:DEFAULT_2D_VERTEX_SHADER)
+            default2D:Add(vertex2D)
+    
+            DefaultFragmentShader2D fragment2D
+            fragment2D:SetName(manager:DEFAULT_2D_FRAGMENT_SHADER)
+            default2D:Add(fragment2D)
+    
+            // Compiling this program will automatically register it with the manager.
+            default2D:Compile()
+            return default2D
+        end
     end
 
     /*
@@ -443,8 +456,8 @@ class Painter2D
     private action SetupMatrices
         combinedMatrix:Set(projectionMatrix):Multiply(transformMatrix)
 
-        defaultProgram:SetUniformMatrix("u_projTrans", combinedMatrix)
-        defaultProgram:SetUniform("u_texture", 0)
+        defaultProgram:SetShaderInputMatrix("u_projTrans", combinedMatrix)
+        defaultProgram:SetShaderInput("u_texture", 0)
 
         /*
         TO-DO: Review this code. May need to adjust this for the use of custom shaders.

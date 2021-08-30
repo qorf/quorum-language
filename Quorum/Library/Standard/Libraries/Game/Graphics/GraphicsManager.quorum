@@ -121,7 +121,7 @@ class GraphicsManager
     This action returns log information for the given shader, or the empty string if no log information is available.
     Typically this is used to get error information from a shader.
     */
-    blueprint action GetShaderInfoLog(integer shaderID) returns text
+    blueprint action GetShaderLog(integer shaderID) returns text
 
     /*
     This action makes a new shader of the requested type (e.g., FRAGMENT_SHADER or VERTEX_SHADER from the Shader class)
@@ -134,7 +134,7 @@ class GraphicsManager
     This action returns log information for a shader program, or the empty string if no log information is available.
     Typically this is used to get error information from a shader program.
     */
-    blueprint action GetProgramInfoLog(integer programID) returns text
+    blueprint action GetShaderProgramLog(integer programID) returns text
 
     /*
     This action takes an ordered array of compiled shaders (at minimum 1 vertex shader and 1 fragment shader). These
@@ -190,70 +190,70 @@ class GraphicsManager
     the HashTables will store a corresponding integer value representing the uniform's location ID, byte size, or type ID (as an OpenGL constant), respectively.
     This action also returns an array containing all of the names of the uniforms in this program.
     */
-    blueprint action GetUniformTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+    blueprint action GetShaderInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
 
     /*
     This action takes the ID of a compiled shader program and 3 empty HashTables. All three HashTables will be given the names of the inputs as keys, and
     the HashTables will store a corresponding integer value representing the input's location ID, byte size, or type ID (as an OpenGL constant), respectively.
     This action also returns an array containing all of the names of the inputs in this program.
     */
-    blueprint action GetInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+    blueprint action GetVertexInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, integer value)
+    blueprint action SetShaderInput(integer uniformID, integer value)
     
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, integer value1, integer value2)
+    blueprint action SetShaderInput(integer uniformID, integer value1, integer value2)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, integer value1, integer value2, integer value3)
+    blueprint action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, integer value1, integer value2, integer value3, integer value4)
+    blueprint action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3, integer value4)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, number value)
+    blueprint action SetShaderInput(integer uniformID, number value)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, number value1, number value2)
+    blueprint action SetShaderInput(integer uniformID, number value1, number value2)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, number value1, number value2, number value3)
+    blueprint action SetShaderInput(integer uniformID, number value1, number value2, number value3)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    blueprint action SetUniform(integer uniformID, number value1, number value2, number value3, number value4)
+    blueprint action SetShaderInput(integer uniformID, number value1, number value2, number value3, number value4)
     
     /*
     This action sets the values of a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -264,7 +264,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    blueprint action SetUniformArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    blueprint action SetShaderInputArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector2's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -275,7 +275,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    blueprint action SetUniformVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    blueprint action SetShaderInputVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector3's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -286,7 +286,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    blueprint action SetUniformVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    blueprint action SetShaderInputVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector4's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -297,7 +297,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    blueprint action SetUniformVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    blueprint action SetShaderInputVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the value of a Matrix4 shader "uniform" variable. The uniform is identified by a unique ID
@@ -309,8 +309,8 @@ class GraphicsManager
     Attribute: Parameter array A typed array containing the values to copy to the uniform.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    action SetUniformMatrix4(integer uniformID, Number32BitArray array, boolean transpose)
-        SetUniformMatrix4Array(uniformID, 1, array, 0, transpose)
+    action SetShaderInputMatrix4(integer uniformID, Number32BitArray array, boolean transpose)
+        SetShaderInputMatrix4Array(uniformID, 1, array, 0, transpose)
     end
 
     /*
@@ -325,7 +325,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    blueprint action SetUniformMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+    blueprint action SetShaderInputMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
 
     /*
     This action sets the value of a Matrix3 shader "uniform" variable. The uniform is identified by a unique ID
@@ -337,8 +337,8 @@ class GraphicsManager
     Attribute: Parameter array A typed array containing the values to copy to the uniform.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    action SetUniformMatrix3(integer uniformID, Number32BitArray array, boolean transpose)
-        SetUniformMatrix3Array(uniformID, 1, array, 0, transpose)
+    action SetShaderInputMatrix3(integer uniformID, Number32BitArray array, boolean transpose)
+        SetShaderInputMatrix3Array(uniformID, 1, array, 0, transpose)
     end
 
     /*
@@ -353,7 +353,7 @@ class GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    blueprint action SetUniformMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+    blueprint action SetShaderInputMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
 
     /*
     This action informs the rendering system of how to interpret elements of vertex input data for a particular input.

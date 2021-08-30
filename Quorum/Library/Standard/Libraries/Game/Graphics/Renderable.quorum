@@ -7,6 +7,7 @@ use Libraries.Language.Object
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 
 class Renderable
     
@@ -28,6 +29,10 @@ class Renderable
 
     public Array<Matrix4> bones = undefined
 
+    public Camera camera = undefined
+
+    public ShaderProgram shaderProgram = undefined
+
     /*
         User definable value, may be undefined.
     */
@@ -42,15 +47,11 @@ class Renderable
         meshPart:Set(renderable:meshPart)
         bones = renderable:bones
         //environment = renderable:environment
-        //shader = renderable:shader
+        shaderProgram = renderable:shaderProgram
         //userData = renderable:userData
-
-        SetNative(renderable)
 
         return me
     end
-
-    private system action SetNative(Renderable renderable)
 
     action UsesBlending returns boolean
         return material:HasAttribute(blendingValue)
@@ -120,5 +121,7 @@ class Renderable
     /*
     Gets the camera from the plugin. Used for sorting purposes.
     */
-    private system action GetCamera returns Camera
+    private action GetCamera returns Camera
+        return camera
+    end
 end

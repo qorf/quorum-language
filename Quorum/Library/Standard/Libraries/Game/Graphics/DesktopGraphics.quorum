@@ -60,13 +60,13 @@ class DesktopGraphics is GraphicsManager
     This action returns true if the given shader has been compiled, or false if the shader has not compiled
     (or if compilation was attempted but failed due to an error).
     */
-    system action GetShaderCompileStatus(integer shaderID) returns boolean
+    system action IsShaderCompiled(integer shaderID) returns boolean
 
     /*
     This action returns log information for the given shader, or the empty string if no log information is available.
     Typically this is used to get error information from a shader.
     */
-    system action GetShaderInfoLog(integer shaderID) returns text
+    system action GetShaderLog(integer shaderID) returns text
 
     /*
     This action makes a new shader of the requested type (e.g., FRAGMENT_SHADER or VERTEX_SHADER from the Shader class)
@@ -82,14 +82,14 @@ class DesktopGraphics is GraphicsManager
         SetShaderCode(id, sourceCode)
         CompileShader(id)
         
-        if GetShaderCompileStatus(id) = false
+        if IsShaderCompiled(id) = false
             text typeText = "Unknown"
             if shaderType = parent:GraphicsManager:GL_FRAGMENT_SHADER
                 typeText = "Fragment"
             elseif shaderType = parent:GraphicsManager:GL_VERTEX_SHADER
                 typeText = "Vertex"
             end
-            alert("Error compiling " + typeText + " shader:" + GetShaderInfoLog(id))
+            alert("Error compiling " + typeText + " shader:" + GetShaderLog(id))
         end
 
         return id
@@ -114,13 +114,13 @@ class DesktopGraphics is GraphicsManager
     This action returns true if the given shader program has been linked, or false if the shader has not been linked
     (or if linking was attempted but failed due to an error).
     */
-    system action GetProgramLinkStatus(integer programID) returns boolean
+    system action IsShaderProgramLinked(integer programID) returns boolean
 
     /*
     This action returns log information for a shader program, or the empty string if no log information is available.
     Typically this is used to get error information from a shader program.
     */
-    system action GetProgramInfoLog(integer programID) returns text
+    system action GetShaderProgramLog(integer programID) returns text
 
     /*
     This action takes an ordered array of compiled shaders (at minimum 1 vertex shader and 1 fragment shader). These
@@ -141,8 +141,8 @@ class DesktopGraphics is GraphicsManager
 
         LinkShaderProgram(id)
 
-        if GetProgramLinkStatus(id) = false
-            alert("An error occurred while linking a shader program: " + GetProgramInfoLog(id))
+        if IsShaderProgramLinked(id) = false
+            alert("An error occurred while linking a shader program: " + GetShaderProgramLog(id))
         end
 
         return id
@@ -152,6 +152,19 @@ class DesktopGraphics is GraphicsManager
     This action tells the graphics system to render content using the shader program indicated by the provided ID.
     */
     system action UseShaderProgram(integer programID)
+
+    /*
+    This action instructs the rendering system to delete the native resources allocated to a shader. After deleting
+    a shader, it can't be used by the rendering system unless it's recompiled.
+    */
+    system action DeleteShader(integer shaderID)
+
+    /*
+    This action instructs the rendering system to delete the native resources allocated to a shader program. After deleting
+    a shader program, it can't be used by the rendering system unless it's reloaded. Deleting a program doesn't automatically
+    delete the shaders attached to it -- those must also be deleted manually.
+    */
+    system action DeleteShaderProgram(integer programID)
 
     /*
     This action enables a rendering property in the native rendering system. For example, enabling GL_BLEND will make
@@ -178,11 +191,11 @@ class DesktopGraphics is GraphicsManager
     system action SetDepthFunction(integer function)
 
     /*
-    This action returns the number of "Uniform" variables in a linked program. A uniform is a variable provided to a shader which is
+    This action returns the number of "ShaderInput" variables in a linked program. A uniform is a variable provided to a shader which is
     the same no matter what the shader is processing (e.g., it is the same value for every vertex in a vertex shader or for every
     fragment in a fragment shader).
     */
-    system action GetUniformCount(integer programID) returns integer
+    system action GetShaderInputCount(integer programID) returns integer
 
     /*
     This action queries the rendering system for information about a uniform in the provided program.
@@ -190,15 +203,15 @@ class DesktopGraphics is GraphicsManager
     its type (as identified by an OpenGL constant), using the provided Integer parameters to return the 
     information. This will also directly return the name of the uniform.
     */
-    system action GetUniformInformation(integer programID, integer index, Integer location, Integer size, Integer type) returns text
+    system action GetShaderInputInformation(integer programID, integer index, Integer location, Integer size, Integer type) returns text
 
     /*
     This action takes the ID of a compiled shader program and 3 empty HashTables. All three HashTables will be given the names of the uniforms as keys, and
     the HashTables will store a corresponding integer value representing the uniform's location ID, byte size, or type ID (as an OpenGL constant), respectively.
     This action also returns an array containing all of the names of the uniforms in this program.
     */
-    action GetUniformTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
-        integer size = GetUniformCount(programID)
+    action GetShaderInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+        integer size = GetShaderInputCount(programID)
 
         Array<text> result
         Integer locationValue
@@ -207,7 +220,7 @@ class DesktopGraphics is GraphicsManager
 
         integer counter = 0
         repeat while counter < size
-            text name = GetUniformInformation(programID, counter, locationValue, sizeValue, typeValue)
+            text name = GetShaderInputInformation(programID, counter, locationValue, sizeValue, typeValue)
             locations:Add(name, locationValue:GetValue())
             sizes:Add(name, sizeValue:GetValue())
             types:Add(name, typeValue:GetValue())
@@ -222,7 +235,7 @@ class DesktopGraphics is GraphicsManager
     /*
     This action returns the number of input variables in a linked program.
     */
-    system action GetInputCount(integer programID) returns integer
+    system action GetVertexInputCount(integer programID) returns integer
 
     /*
     This action queries the rendering system for information about an input in the provided program.
@@ -230,15 +243,15 @@ class DesktopGraphics is GraphicsManager
     its type (as identified by an OpenGL constant), using the provided Integer parameters to return the 
     information. This will also directly return the name of the input.
     */
-    system action GetInputInformation(integer programID, integer index, Integer location, Integer size, Integer type) returns text
+    system action GetVertexInputInformation(integer programID, integer index, Integer location, Integer size, Integer type) returns text
 
     /*
     This action takes the ID of a compiled shader program and 3 empty HashTables. All three HashTables will be given the names of the inputs as keys, and
     the HashTables will store a corresponding integer value representing the input's location ID, byte size, or type ID (as an OpenGL constant), respectively.
     This action also returns an array containing all of the names of the inputs in this program.
     */
-    action GetInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
-        integer size = GetInputCount(programID)
+    action GetVertexInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+        integer size = GetVertexInputCount(programID)
 
         Array<text> result
         Integer locationValue
@@ -247,7 +260,7 @@ class DesktopGraphics is GraphicsManager
 
         integer counter = 0
         repeat while counter < size
-            text name = GetInputInformation(programID, counter, locationValue, sizeValue, typeValue)
+            text name = GetVertexInputInformation(programID, counter, locationValue, sizeValue, typeValue)
             locations:Add(name, locationValue:GetValue())
             sizes:Add(name, sizeValue:GetValue())
             types:Add(name, typeValue:GetValue())
@@ -264,56 +277,56 @@ class DesktopGraphics is GraphicsManager
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, integer value1)
+    system action SetShaderInput(integer uniformID, integer value1)
     
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, integer value1, integer value2)
+    system action SetShaderInput(integer uniformID, integer value1, integer value2)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, integer value1, integer value2, integer value3)
+    system action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, integer value1, integer value2, integer value3, integer value4)
+    system action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3, integer value4)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, number value)
+    system action SetShaderInput(integer uniformID, number value)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, number value1, number value2)
+    system action SetShaderInput(integer uniformID, number value1, number value2)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, number value1, number value2, number value3)
+    system action SetShaderInput(integer uniformID, number value1, number value2, number value3)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
-    system action SetUniform(integer uniformID, number value1, number value2, number value3, number value4)
+    system action SetShaderInput(integer uniformID, number value1, number value2, number value3, number value4)
     
     /*
     This action sets the values of a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -324,7 +337,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    system action SetUniformArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    system action SetShaderInputArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector2's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -335,7 +348,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    system action SetUniformVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    system action SetShaderInputVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector3's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -346,7 +359,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    system action SetUniformVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    system action SetShaderInputVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the values of an array of Vector4's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -357,7 +370,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
-    system action SetUniformVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
+    system action SetShaderInputVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
 
     /*
     This action sets the value of an array of Matrix4's in a shader "uniform" variable. The uniform is identified by a unique ID
@@ -371,7 +384,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    system action SetUniformMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+    system action SetShaderInputMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
 
     /*
     This action sets the value of an array of Matrix3's in a shader "uniform" variable. The uniform is identified by a unique ID
@@ -385,7 +398,7 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter startIndex The first index of the array to begin copying.
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
-    system action SetUniformMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
+    system action SetShaderInputMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
 
     /*
     This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
@@ -400,4 +413,5 @@ class DesktopGraphics is GraphicsManager
     system action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
 
     system action SetPixelClipping(integer x, integer y, integer width, integer height)
+
 end

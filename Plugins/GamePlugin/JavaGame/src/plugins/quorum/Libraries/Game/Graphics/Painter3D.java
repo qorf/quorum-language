@@ -36,8 +36,6 @@ public class Painter3D
     
     private Array_ renderables;
     
-    private Camera_ camera;
-    
     /*
     Used to detect if we've rendered the Skybox yet.
     We render the skybox after all opaque objects and before the first
@@ -163,11 +161,11 @@ public class Painter3D
         }
     }
     
-    public void RenderNative(Renderable_ renderable)
-    {
-        renderable.Set_Libraries_Game_Graphics_Renderable__environment_(environment);
-        Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
-        renderPlugin.camera = camera;
-        renderPlugin.shader = shaderProvider.GetShader(renderable);
-    }
+//    public void RenderNative(Renderable_ renderable)
+//    {
+//        renderable.Set_Libraries_Game_Graphics_Renderable__environment_(environment);
+//        Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
+//        renderPlugin.camera = camera;
+//        renderPlugin.shader = shaderProvider.GetShader(renderable);
+//    }
 }

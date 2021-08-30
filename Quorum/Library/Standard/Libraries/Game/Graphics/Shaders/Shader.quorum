@@ -15,6 +15,7 @@ class Shader
     GameStateManager manager
 
     integer type = 0
+    text name = ""
     text code = ""
 
     integer shaderID = -1
@@ -41,6 +42,13 @@ class Shader
             return now
         end
 
+        if name = ""
+            alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
+        end
+
+        ShaderManager shaderManager
+        shaderManager:Register(name, me)
+
         GraphicsManager graphics = manager:GetGameGraphics()
         shaderID = graphics:CreateShader(type, code)
 
@@ -54,4 +62,17 @@ class Shader
     action GetID returns integer
         return shaderID
     end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        if IsCompiled()
+            alert("I can't rename the shader called " + GetName() + " because it has already been compiled. Names can only be changed before the shader is compiled.")
+        end
+
+        me:name = name
+    end
+
 end

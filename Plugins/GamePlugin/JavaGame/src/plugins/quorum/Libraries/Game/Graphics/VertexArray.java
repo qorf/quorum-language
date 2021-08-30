@@ -241,7 +241,7 @@ public class VertexArray extends VertexData
             for (int i = 0; i < numAttributes; i++) 
             {
                 final VertexAttribute_ attribute = attributes.GetAttribute(i);
-                final int location = shader.GetInputLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+                final int location = shader.GetVertexInputLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
                 if (location < 0)
                     continue;
 
@@ -316,7 +316,7 @@ public class VertexArray extends VertexData
         {
             for (int i = 0; i < numAttributes; i++) 
             {
-                gl.glDisableVertexAttribArray(shader.GetInputLocation(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_()));
+                gl.glDisableVertexAttribArray(shader.GetVertexInputLocation(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_()));
             }
         }
         else 

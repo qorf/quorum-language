@@ -1,0 +1,46 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Containers.HashTable
+
+shared class ShaderManager
+
+    public constant text DEFAULT_2D_SHADER_PROGRAM = "Default 2D Shader Program"
+    public constant text DEFAULT_2D_VERTEX_SHADER = "Default 2D Vertex Shader"
+    public constant text DEFAULT_2D_FRAGMENT_SHADER = "Default 2D Fragment Shader"
+
+    HashTable<text, Shader> registeredShaders
+    HashTable<text, ShaderProgram> registeredPrograms
+    
+    action Register(text name, Shader shader)
+        registeredShaders:Add(name, shader)
+    end
+
+    action Register(text name, ShaderProgram program)
+        registeredPrograms:Add(name, program)
+    end
+
+    action HasShader(text name) returns boolean
+        return registeredShaders:HasKey(name)
+    end
+
+    action HasShaderProgram(text name) returns boolean
+        return registeredPrograms:HasKey(name)
+    end
+
+    action GetShader(text name) returns Shader
+        if HasShader(name)
+            return registeredShaders:GetValue(name)
+        else
+            return undefined
+        end
+    end
+
+    action GetShaderProgram(text name) returns ShaderProgram
+        if HasShaderProgram(name)
+            return registeredPrograms:GetValue(name)
+        else
+            return undefined
+        end
+    end
+
+end
