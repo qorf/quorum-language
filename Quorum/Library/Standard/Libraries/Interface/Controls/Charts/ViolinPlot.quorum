@@ -39,24 +39,11 @@ use Libraries.Game.Graphics.Gradient
 class ViolinPlot is Chart
     // The root ChartItem.
     private ChartItem summary
-    // How many ticks are set along the y axis and max value on y axis.
-    private integer yTicks = 0
-    private number yAxisMaximum = 0
-    private number yAxisMinimum = 0
-    number yTickInterval = -1
-    // Default uses best interval by range to graph, if tick count is set, it overrides this.
-    boolean yIntervalBasedOnTickCount = false
-    
-    //initial size of x and y axis
-    private integer tickLength = 10
-    private integer tickWidth = 3
 
     //bandWidth is a scale option for distribution graph
     //the bigger the value, the flatter the distribution graph will be
     private integer bandWidth = 0
 
-    //labels that is shown on the x axis
-    private Array<text> xAxisLabels
 
     UnivariateAction windowingAction = undefined
 
@@ -106,6 +93,29 @@ class ViolinPlot is Chart
         windowingAction = window
     end
 
+    /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the chart. Also the highest level of the information tree
+    of  the chart.
+    */
+    action GenerateSummary returns text
+        text lineText = "Groups"
+        text plotText = "violin plots"
+        if GetGroupPanels():GetSize() = 1
+            linetext = "Group"
+            plotText = "violin plot"
+        end
+        if hasGroups
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        else
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        end
+        return GetDescription()
+    end
+
+
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
         Control chartArea = me:GetChartArea()
@@ -141,80 +151,18 @@ class ViolinPlot is Chart
         if properties = undefined
             return now
         end
-        
-        Array<Drawable> xTickDrawables = GetXTicks()
-        Array<Drawable> yTickDrawables = GetYTicks()
-        Array<Drawable> yGridlines = GetMajorYGridlines()
-        Array<Drawable> xGridlines = GetMajorXGridlines()
-        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
-        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
-        Array<ControlLabel> xLabels = GetXLabels()
-        Array<ControlLabel> yLabels = GetYLabels()
-        Control horizontalPanel = GetHorizontalPanel()
-        Control verticalPanel = GetVerticalPanel()
+
         Control chartArea = GetChartArea()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
 
-        number scaleNum = yAxisMinimum
-        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick increments
-
-        //Adding Tick and labels on Y axis
-        if yTicks > 1 and yTickDrawables:IsEmpty()
-//            number space = yAxisMaximum/(yTicks-1)
-//            number current = 0
-            repeat until yTickDrawables:GetSize() = yTicks
-                Drawable tick
-                tick:LoadFilledRectangle(tickLength,tickWidth)
-                yTickDrawables:Add(tick)
-                verticalPanel:Add(tick)
-
-                if IsShowingMajorYGridLines()
-                    Drawable gridline
-                    yGridlines:Add(gridline)
-                    chartArea:Add(gridline)
-                end
-                if IsShowingMinorYGridLines()
-                    integer j = 0
-                    repeat while j < 5
-                        Drawable gridline
-                        yMinorGridlines:Add(gridline)
-                        chartArea:Add(gridline)
-                        j = j + 1
-                    end
-                end
-                
-                ChartOptions chartOptions
-                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
-                ControlLabel label
-                label:SetFontSize(GetFontSize() - 5)
-                label:SetFocusable(true)
-                label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(scaleText)
-                label:SetName(scaleText)
-                verticalPanel:Add(label)
-                yLabels:Add(label)
-                scaleNum = scaleNum + scaleWidth
-            end
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
         end
 
-        //Adding labels on X axis(violin plot only have labels on x axis)
-        integer cnt = 0
-        repeat while cnt < xAxisLabels:GetSize()
-            ControlLabel label
-            label:SetFontSize(GetFontSize() - 5)
-            label:SetFocusable(true)
-            label:SetAccessibilityCode(parent:Item:ITEM)
-            label:SetText(xAxisLabels:Get(cnt))
-            label:SetName(xAxisLabels:Get(cnt))
-            horizontalPanel:Add(label)
-            xLabels:Add(label)
-            cnt = cnt + 1
-        end
-
-        // add drawables per each plot to the chart
+        // Add drawables for each plot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
@@ -330,13 +278,14 @@ class ViolinPlot is Chart
 
             // Area covering entire group panel
             Icon panel
-            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " violin plots.")
+            panel:SetName(group:GetName() + " group has " + group:GetSize() + " violin plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)
             group:SetItem(panel)
+            GetGroupPanels():Add(panel)
             i = i + 1
-        end//end of loop
+        end
 
         if seriesList:GetSize() > 0
             i = 0
@@ -357,96 +306,7 @@ class ViolinPlot is Chart
             Add(GetLegend())
         end
     end
-    /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually.  
-    */
-    action CalculateBestTickInterval(number range) returns number
-        number tickSkips = 0
-        if range <= 2.5
-            if range > 1.5
-                tickSkips = 0.5
-            else
-                tickSkips = 0.1
-            end
-        else
-            if range > 5000
-                tickSkips = 1000
-            elseif range > 2500
-                tickSkips = 500
-            elseif range > 1000
-                tickSkips = 250
-            elseif range > 500
-                tickSkips = 100
-            elseif range > 200
-                tickSkips = 50
-            elseif range > 100
-                tickSkips = 20
-            elseif range > 50
-                tickSkips = 10
-            elseif range > 20
-                tickSkips = 5
-            elseif range > 10
-                tickSkips = 2
-            else
-                tickSkips = 1
-            end
-        end
-        return tickSkips
-    end
 
-    action yAxisCalculateScaleWidth() returns number
-        number yRange = yAxisMaximum-yAxisMinimum
-        number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if yIntervalBasedOnTickCount
-            if yTicks > 1
-                SetYTickInterval(math:Round(yRange / cast(number, yTicks-1), 2))
-                yAxisMaximum = cast(number, yTicks-1) * GetYTickInterval() + yAxisMinimum
-            end
-        end
-        // Numerical y-scale (number intervals)
-        number tickSkips = GetYTickInterval()
-        if tickSkips = -1
-            tickSkips = CalculateBestTickInterval(yRange)
-        end
-        if tickSkips not= 1.0
-            number i = yAxisMinimum
-            repeat while i < yAxisMaximum
-                i = i + tickSkips
-            end
-            yAxisMaximum = math:Round(i, 2) 
-            yTicks = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
-            scaleWidth = tickSkips
-        else
-            yTicks = cast(integer, yRange) + 1
-            scaleWidth = yRange / (yTicks - 1)
-        end 
-        return scaleWidth
-    end
-
-
-    /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the chart. Also the highest level of the information tree
-    of  the chart.
-    */
-    action GenerateSummary returns text
-        text lineText = "Groups"
-        text plotText = "violin plots"
-        if xAxisLabels:GetSize() = 1
-            linetext = "Group"
-            plotText = "violin plot"
-        end
-        if hasGroups
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        else
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        end
-        return GetDescription()
-    end // end of GenerateSummary
 
     /*
     Creates the accessibility information for the chart area.
@@ -772,61 +632,6 @@ class ViolinPlot is Chart
         end
     end
     
-    /*
-    This sets how many ticks on the y-axis
-    */
-    action SetYTickCount(integer ticks)
-        yTicks = ticks
-    end
-
-    /*
-    This retuns total number of ticks on the y-axis
-    */
-    action GetYTickCount returns integer
-        return yTicks
-    end
-    
-    /*
-    This sets how many labels on x-axis
-    */
-    action SetXAxisLabels(Array<text> label)
-        xAxisLabels = label
-    end
-
-    /*
-    This returns how many labels on x-axis
-    */
-    action GetXAxisLabels returns Array<text>
-        return xAxisLabels
-    end
-
-    // Sets value between y-ticks
-    action SetYTickInterval(number set)
-        yTickInterval = set
-    end
-
-    action SetYTickInterval(integer set)
-        yTickInterval = cast(number, set)
-    end
-
-    action GetYTickInterval() returns number
-        return yTickInterval
-    end
-
-    // y Axis min and max
-    action SetYAxisMaximum(number max)
-        yAxisMaximum = max
-     end
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-    action SetYAxisMinimum(number min)
-        yAxisMinimum = min
-    end
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
     /*
     This sets what kind of kernel function to use to calculate the normal distributions
     */

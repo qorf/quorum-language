@@ -162,7 +162,6 @@ class BarChartWriter
 
         if barGroups:GetSize() > 0
             integer numberOfGroups = barGroups:GetSize()
-            chart:CalculateNumberOfBars()
             integer numberOfBars = chart:GetNumberOfBars()
             boolean stacked = chart:GetStackedFlag()
             if stacked
@@ -273,14 +272,14 @@ class BarChartWriter
         This action the labels on the y axis
     */
     private action AddYLabels(ScalableVectorGraphics canvas, BarChart chart)
-        number scaleNum = chart:GetMinimumTick()
+        number scaleNum = chart:GetYAxisMinimum()
         
-        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickSteps())
-        number scaleDivWidth = axisLength / (chart:GetYTickSteps())
+        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount())
+        number scaleDivWidth = axisLength / (chart:GetYTickCount())
         // scale
         Math math
         i = 0
-        repeat while i < chart:GetYTickSteps() + 1
+        repeat while i < chart:GetYTickCount() + 1
             Label scaleLabel
             Line scaleTick
             

@@ -73,99 +73,6 @@ class BoxPlot is Chart
 
     boolean showOutliers = true
     boolean hasGroups = true
-
-    // How many ticks are set along the y axis and max value on y axis.
-    private integer yIncrements = 0 //increments in the y axis
-    private number yAxisMaximum = 0 // the maximum value in y axis
-    private number yAxisMinimum = 0 // the maximum value in y axis
-    number yTickInterval = -1
-    // Default uses best interval by range to graph, if tick count is set, it overrides this.
-    boolean yIntervalBasedOnTickCount = false
-    
-    // Initial size of x and y axis
-    private integer IntervalLength = 10
-    private integer IntervalWidth = 30
-
-    // Labels that is shown on the x axis
-    private Array<text> xAxisLabels
-
-   // SetYAxisTitle("Speed of Cars miles per hour")
-    public text xTitle = ""
-    public text yTitle = ""
-
-    // Panels
-    Control TitlePanel
-    Control AreaOfChart
-    Control VerticalTitlePanel
-    Control HorizontalTitlePanel
-    
-    //Gets the TitlePanel
-    action GetTitlePanel returns Control
-        return TitlePanel
-    end
-
-    // Gets the AreaOfChart
-    action GetChartA returns Control
-        return AreaOfChart
-    end
-
-    // Gets the HorizontalTitlePanel
-     action GetHorizontalTitlePanel returns Control
-        return HorizontalTitlePanel
-    end
-
-    // Gets the VerticalTitlePanel
-    action GetVerticalTitlePanel returns Control
-        return VerticalTitlePanel
-    end
-
-    // Sets the labels along the x axis
-    action SetXAxisLabels(Array<text> label)
-        xAxisLabels = label
-    end
-  
-    // Returns the labels
-    action GetXAxisLabels returns Array<text>
-        return xAxisLabels
-    end
-    
-    // Sets how many increments in y-axis
-    action SetYIncrementCount(integer increments)
-        yIncrements = increments
-    end
-   
-    // Returns number of increments on the y axis
-    action GetYIncrementCount returns integer
-        return yIncrements
-    end
-
-    // Sets value between y-ticks
-    action SetYTickInterval(number set)
-        yTickInterval = set
-    end
-
-    action SetYTickInterval(integer set)
-        yTickInterval = cast(number, set)
-    end
-
-    action GetYTickInterval() returns number
-        return yTickInterval
-    end
-
-    // y Axis min and max
-    action SetYAxisMaximum(number max)
-        yAxisMaximum = max
-     end
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-    action SetYAxisMinimum(number min)
-        yAxisMinimum = min
-    end
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
     /*
     Flag used to hide all the outliers.
     */
@@ -264,19 +171,20 @@ class BoxPlot is Chart
     action GenerateSummary returns text
         text lineText = "Groups"
         text plotText = "box plots"
-        if xAxisLabels:GetSize() = 1
+        if GetGroupPanels():GetSize() = 1
             linetext = "Group"
             plotText = "box plot"
         end
         if hasGroups
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
             + ". " + "Use the arrow keys to navigate the chart.")
         else
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
             + ". " + "Use the arrow keys to navigate the chart.")
         end
         return GetDescription()
-    end // end of GenerateSummary
+    end
+
 
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
@@ -312,90 +220,22 @@ class BoxPlot is Chart
         This action loads the graphics to the game, and associates those graphics to their verbal descriptions.
     */
     action LoadGraphics(LayoutProperties properties)
-
         DisposeDrawables()
         parent:Chart:LoadGraphics(properties)
         if properties = undefined
             return now
         end
         
-        //Sets the base format of boxplot chart
-        Control vertical = GetVerticalPanel()
-        Control horizontal = GetHorizontalPanel()
         Control chartArea = GetChartArea()
-
-        // Gets the increments of the axes of the chart
-        Array<Drawable> drawable_Xincrements = GetXTicks()
-        Array<Drawable> drawable_Yincrements = GetYTicks()
-        Array<Drawable> yGridlines = GetMajorYGridlines()
-        Array<Drawable> xGridlines = GetMajorXGridlines()
-        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
-        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
-        
-        //Gets the labels of the axes
-        Array<ControlLabel> x_Labels = GetXLabels()
-        Array<ControlLabel> y_Labels = GetYLabels()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
-
-        number scaleNum = yAxisMinimum
-        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick increments
-
-        //Adding Tick and labels on Y axis
-        if yIncrements not= 0 and drawable_Yincrements:IsEmpty()
-            repeat until drawable_Yincrements:GetSize() = yIncrements
-                Drawable Increment
-                Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
-                drawable_Yincrements:Add(Increment)
-                vertical:Add(Increment)
-
-                if IsShowingMajorYGridLines()
-                    Drawable gridline
-                    yGridlines:Add(gridline)
-                    chartArea:Add(gridline)
-                end
-                if IsShowingMinorYGridLines()
-                    integer j = 0
-                    repeat while j < 5
-                        Drawable gridline
-                        yMinorGridlines:Add(gridline)
-                        chartArea:Add(gridline)
-                        j = j + 1
-                    end
-                end
-
-                ChartOptions chartOptions
-                Math math
-                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
-                ControlLabel label
-                label:SetFontSize(GetFontSize())
-                label:SetFocusable(true)
-                label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(scaleText)
-                label:SetName(scaleText)
-                vertical:Add(label)
-                y_Labels:Add(label)
-                scaleNum = scaleNum + scaleWidth
-            end //end of repeat statement
-        end // end of if statement
-
-        //Add Labels on X axis
-        integer count = 0
-        repeat while count < xAxisLabels:GetSize()
-            ControlLabel label
-            label:SetFocusable(true)
-            label:SetFontSize(GetFontSize())
-            label:SetAccessibilityCode(parent:Item:ITEM)
-            label:SetName(xAxisLabels:Get(count))
-            label:SetText(xAxisLabels:Get(count))
-            horizontal:Add(label)
-            x_Labels:Add(label)
-            count = count + 1
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
         end
 
-        // add drawables per each boxplot to the chart
+        // Adding drawables for each boxplot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
@@ -459,7 +299,6 @@ class BoxPlot is Chart
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
     
-    
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
@@ -522,13 +361,14 @@ class BoxPlot is Chart
 
             // Area covering entire group panel
             Icon panel
-            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " box plots.")
+            panel:SetName(group:GetName() + " group has " + group:GetSize() + " box plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)
             group:SetItem(panel)
+            GetGroupPanels():Add(panel)
             i = i + 1
-        end//end of loop
+        end
 
         if seriesList:GetSize() > 0
             i = 0
@@ -545,80 +385,9 @@ class BoxPlot is Chart
                 i = i + 1
             end
         end
-
-
         if IsShowingLegend()
             Add(GetLegend())
         end
-
-    end // end of loadGraphics
-    
-    /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually.  
-    */
-    action CalculateBestTickInterval(number range) returns number
-        number tickSkips = 0
-        if range <= 2.5
-            if range > 1.5
-                tickSkips = 0.5
-            else
-                tickSkips = 0.1
-            end
-        else
-            if range > 5000
-                tickSkips = 1000
-            elseif range > 2500
-                tickSkips = 500
-            elseif range > 1000
-                tickSkips = 250
-            elseif range > 500
-                tickSkips = 100
-            elseif range > 200
-                tickSkips = 50
-            elseif range > 100
-                tickSkips = 20
-            elseif range > 50
-                tickSkips = 10
-            elseif range > 20
-                tickSkips = 5
-            elseif range > 10
-                tickSkips = 2
-            else
-                tickSkips = 1
-            end
-        end
-        return tickSkips
-    end
-
-    action yAxisCalculateScaleWidth() returns number
-        number yRange = yAxisMaximum-yAxisMinimum
-        number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if yIntervalBasedOnTickCount
-            if yIncrements > 1
-                SetYTickInterval(math:Round(yRange / cast(number, yIncrements-1), 2))
-                yAxisMaximum = cast(number, yIncrements-1) * GetYTickInterval() + yAxisMinimum
-            end
-        end
-        // Numerical y-scale (number intervals)
-        number tickSkips = GetYTickInterval()
-        if tickSkips = -1
-            tickSkips = CalculateBestTickInterval(yRange)
-        end
-        if tickSkips not= 1.0
-            number i = yAxisMinimum
-            repeat while i < yAxisMaximum
-                i = i + tickSkips
-            end
-            yAxisMaximum = math:Round(i, 2) 
-            yIncrements = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
-            scaleWidth = tickSkips
-        else
-            yIncrements = cast(integer, yRange) + 1
-            scaleWidth = yRange / (yIncrements - 1)
-        end 
-        return scaleWidth
     end
 
     /* 
@@ -629,7 +398,7 @@ class BoxPlot is Chart
             return now //we haven't loaded graphics yet, so bail.
         end
         
-                //NOTE: These nodes implement a cheap form of ordinality might need changing
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
         ChartItem chartArea//not to be confused with panel
@@ -918,7 +687,7 @@ class BoxPlot is Chart
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
                     view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
                     temp:SetView2D(view)
                 end

@@ -24,42 +24,21 @@ use Libraries.Interface.Views.LabelBoxView
 class SharedBarChartParent is Chart
     private ChartItem summary // root of the tree
     integer numberOfBars = 0
-    integer numberOfGroups = 0
-    number maxBarValue = 0.0
-    Array<number> barHeights
-    Array<text> barNames
+
     Array<BarGroup> barGroups
     boolean hasBarGroups = true
     boolean isStacked = false
-    boolean isHorizontal = false
     boolean removeGaps = false // Histograms typically do not have spacing between bars
     Array<Series> seriesList
 
-    integer yTickSteps = 2
-    integer xTickSteps = -1
-    number yTickInterval = -1
-    // Default uses best interval by range to graph, if tick count is set, it overrides this.
-    boolean yIntervalBasedOnTickCount = false
-//    number maxScale = 1
-//    number minScale = 0
-    number yAxisMaximum = 0.0 // the maximum value in y axis
-    number yAxisMinimum = 0.0
-    number xAxisMaximum = 0.0 // the maximum value in y axis
-    number xAxisMinimum = 0.0
 
-    //Not implemented for now, but is a placeholder for future implementation
-    number minTick = 0
     Color barColor = undefined
     Color barSelectionColor = undefined
-    Array<Icon> bars
 
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
     Control controlHighlight
     Math math
-    
-    // The default orientation for bar charts and histograms is vertical
-    text defaultOrientation = "vertical"
    
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -122,13 +101,6 @@ class SharedBarChartParent is Chart
     end
 
     /*
-        Returns the minimum tick
-    */
-    action GetMinimumTick returns number
-        return minTick
-    end
-
-    /*
         Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
     */
     action HasBarGroups(boolean flag)
@@ -161,141 +133,20 @@ class SharedBarChartParent is Chart
         isStacked = flag
     end
 
-     /*
+    /*
         Returns stacked flag 
     */
     action GetStackedFlag() returns boolean
         return isStacked
     end
 
-     /*
-        Returns horizontal flag 
-    */
-    action GetHorizontalFlag() returns boolean
-        return isHorizontal
-    end
-
-    //Made private to avoid issues with using this before AddBar
-    private action SetNumberOfBars(integer bars)
-        numberOfBars = bars
-        barHeights:SetSize(numberOfBars)
-        barNames:SetSize(numberOfBars)
-    end
-
-//    /*
-//        Appends a bar to end of the Bar Chart. NOTE: Height is a percentage
-//    */
-//    action AddBar(text name, number height)
-//        SetBar(numberOfBars+1, name, height)
-//    end
-
     /*
         Appends a bargroup to end of the Bar Chart. 
         If any bars in the bar group are bigger than the y max, ymax increases
     */
     action AddBarGroup(BarGroup group)
-        integer i = 0
-        repeat while i < group:GetSize()
-            if group:Get(i):GetValue() > yAxisMaximum
-                yAxisMaximum = group:Get(i):GetValue()
-            end
-            i = i + 1
-        end
         barGroups:Add(group)
-        numberOfGroups = numberOfGroups + 1
-        xAxisMaximum = xAxisMaximum + 1.0
-    end
-
-    /*
-        Sets the numberOfBars variable by checking the group size for each BarGroup
-    */
-    action CalculateNumberOfBars
-        numberOfBars = 0
-        integer i = 0
-        repeat while i < barGroups:GetSize()
-            numberOfBars = numberOfBars + barGroups:Get(i):GetSize()
-            i = i + 1
-        end
-    end
-
-    /*
-        Sets the properties of a specific bar. If the index represents a bar 
-        that doesn't exist than it will make it. NOTE: Height is a percentage.
-    */
-    action SetBar(integer bar, text name, number height)
-        SetBarName(bar, name)
-        SetBarHeight(bar, height)
-    end
-
-    /*
-        Sets the height of a specific bar. If the index represents a bar 
-        that doesn't exist than it will make it. NOTE: Height is a percentage.
-    */
-    action SetBarHeight(integer bar, number height)
-        if bar >= numberOfBars
-            SetNumberOfBars(bar)
-        end
-        if height < 0
-            height = 0
-        elseif height > 1.0
-            height = 1.0
-        end
-        barHeights:Set(bar - 1, height)
-        
-    end
-
-    /*
-        Sets the name of a specific bar. If the index represents a bar 
-        that doesn't exist than it will make it.
-    */
-    action SetBarName(integer bar, text name)
-        if bar >= numberOfBars
-            SetNumberOfBars(bar)
-        end
-        if bar <= numberOfBars and bar > 0
-            barNames:Set(bar - 1, name)
-        end
-    end
-
-    /*
-        Sets the number of steps in the scale. 
-    */
-    action SetXTickSteps(integer steps)
-        xTickSteps = steps
-    end
-
-    /*
-        Returns the number of steps in the scale.
-    */
-    action GetXTickSteps returns integer
-        return xTickSteps
-    end
-
-    /*
-        Sets the number of steps in the scale. 
-    */
-    action SetYTickSteps(integer steps)
-        yTickSteps = steps
-        yIntervalBasedOnTickCount = true
-    end
-
-    /*
-        Returns the number of steps in the scale.
-    */
-    action GetYTickSteps returns integer
-        return yTickSteps
-    end
-
-    action SetYTickInterval(number set)
-        yTickInterval = set
-    end
-
-    action SetYTickInterval(integer set)
-        yTickInterval = cast(number, set)
-    end
-
-    action GetYTickInterval() returns number
-        return yTickInterval
+        numberOfBars = numberOfBars + group:GetSize()
     end
     
     /*
@@ -303,6 +154,10 @@ class SharedBarChartParent is Chart
     */
     action SetBarColor(Color color)
         me:barColor = color
+    end
+
+    action GetBarColor() returns Color
+        return me:barColor
     end
 
     /*
@@ -328,15 +183,6 @@ class SharedBarChartParent is Chart
     end
   
     /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-    */
-    action GetBars returns Array<Icon>
-        return bars
-    end
-
-    /*
         Returns an array of all the bar groups
     */
     action GetBarGroups returns Array<BarGroup>
@@ -352,113 +198,6 @@ class SharedBarChartParent is Chart
 
     action AddSeries(Series series)
         seriesList:Add(series)
-    end
-
-    /*
-        Returns the value of the largest bar (used to calculate height percentage of bars)
-    */
-    action GetMaxBarValue() returns number
-         return maxBarValue
-    end
-
-    action SetMaxBarValue(number max)
-         maxBarValue = max
-    end
-
-    // Y-Axis min/max 
-    action SetYAxisMaximum(number max)
-        yAxisMaximum = max
-    end
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-    action SetYAxisMinimum(number min)
-        yAxisMinimum = min
-    end
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
-    // X-Axis min/max 
-    action SetXAxisMaximum(number max)
-        xAxisMaximum = max
-    end
-    action GetXAxisMaximum returns number
-        return xAxisMaximum
-    end
-    action SetXAxisMinimum(number min)
-        xAxisMinimum = min
-    end
-    action GetXAxisMinimum returns number
-        return xAxisMinimum
-    end
-
-    /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually.  
-    */
-    action CalculateBestTickInterval(number range) returns number
-        number tickSkips = 0
-        if range <= 2.5
-            if range > 1.5
-                tickSkips = 0.5
-            else
-                tickSkips = 0.1
-            end
-        else
-            if range > 5000
-                tickSkips = 1000
-            elseif range > 2500
-                tickSkips = 500
-            elseif range > 1000
-                tickSkips = 250
-            elseif range > 500
-                tickSkips = 100
-            elseif range > 200
-                tickSkips = 50
-            elseif range > 100
-                tickSkips = 20
-            elseif range > 50
-                tickSkips = 10
-            elseif range > 20
-                tickSkips = 5
-            elseif range > 10
-                tickSkips = 2
-            else
-                tickSkips = 1
-            end
-        end
-        return tickSkips
-    end
-
-    action yAxisCalculateScaleWidth() returns number
-        number yRange = yAxisMaximum-yAxisMinimum
-        number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if yIntervalBasedOnTickCount
-            if yTickSteps > 1
-                SetYTickInterval(math:Round(yRange / cast(number, yTickSteps-1), 2))
-                yAxisMaximum = cast(number, yTickSteps-1) * GetYTickInterval() + yAxisMinimum
-            end
-        end
-        // Numerical y-scale (number intervals)
-        number tickSkips = GetYTickInterval()
-        if tickSkips = -1
-            tickSkips = CalculateBestTickInterval(yRange)
-        end
-        if tickSkips not= 1.0
-            number i = yAxisMinimum
-            repeat while i < yAxisMaximum
-                i = i + tickSkips
-            end
-            yAxisMaximum = math:Round(i, 2) 
-            yTickSteps = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
-            scaleWidth = tickSkips
-        else
-            yTickSteps = cast(integer, yRange) + 1
-            scaleWidth = yRange / (yTickSteps - 1)
-        end 
-        return scaleWidth
     end
 
     /*
@@ -609,14 +348,13 @@ class SharedBarChartParent is Chart
         //scale
         ChartItem genericScaleNode
         genericScaleNode:SetContainer(me)
-        genericScaleNode:SetDisplayName("The scale has " + yTickSteps + " tick marks and goes from 0.0  to " + yAxisMaximum)
+        genericScaleNode:SetDisplayName("The scale has " + GetYTickCount() + " tick marks and goes from 0.0  to " + GetYAxisMaximum())
         genericScaleNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + yTickSteps + " ticks, from 0.0 to " + yAxisMaximum)
+        yAxis:GetFocusTarget():SetDescription("Scale with " + GetYTickCount() + " ticks, from 0.0 to " + GetYAxisMaximum())
         ChartItem firstScale
         firstScale:SetContainer(me)
         Array<ControlLabel> scaleLabels = GetYLabels()
         if numberOfBars > 0
-            //firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
             firstScale:SetParent(yAxis)
             firstScale:SetFocusTarget(scaleLabels:Get(0))
             yAxis:SetChild(firstScale)
@@ -627,7 +365,6 @@ class SharedBarChartParent is Chart
         repeat while i < scaleLabels:GetSize()
             ChartItem scaleNode
             scaleNode:SetContainer(me)
-            //scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
             scaleNode:SetParent(yAxis)
             scaleNode:SetPrevious(previous)
             scaleNode:SetFocusTarget(scaleLabels:Get(i))
@@ -665,37 +402,11 @@ class SharedBarChartParent is Chart
         selection:Set(summary)
     end
 
-    action GetBarColor returns Color
-        return barColor
-    end
 
     action DisposeDrawables()
         parent:Chart:DisposeDrawables()
 
-        if not bars:IsEmpty()
-            Icon temp = undefined
-            integer i = 0
-            repeat while i< bars:GetSize()
-                temp = bars:Get(i)
-                if temp not= undefined
-                    temp:Dispose()
-                    Remove(temp)
-                    temp = undefined
-                end
-                i = i + 1
-            end
-            bars:Empty()
-        end
-
         GetChartArea():Empty()
-    end
-
-    action GetBarNames returns Array<text>
-        return barNames
-    end
-
-    action GetBarHeights returns Array<number>
-        return barHeights
     end
 
     action GetSummary returns ChartItem
@@ -705,6 +416,7 @@ class SharedBarChartParent is Chart
     action SetSummary(ChartItem summary)
         me:summary = summary
     end
+
 
     /*
     This action is used to load the graphical components of the Control. This is
@@ -718,8 +430,8 @@ class SharedBarChartParent is Chart
             return now
         end
 
+        Control chartArea = GetChartArea()
         ChartOptions options
-        Color color
         if GetBarColor() = undefined
             SetBarColor(options:GetBarColor())
         end
@@ -727,49 +439,12 @@ class SharedBarChartParent is Chart
         if GetBarSelectionColor() = undefined
             SetBarSelectionColor(options:GetSelectionColor())
         end
-        
-        Array<Icon> bars = GetBars()
-        Array<Drawable> barTicks = GetXTicks()
-        Array<Drawable> scaleTicks = GetYTicks()
-        Array<Drawable> scaleGridlines = GetMajorYGridlines()
-        Array<Drawable> barGridlines = GetMajorXGridlines()
-        Array<Drawable> scaleMinorGridlines = GetMinorYGridlines()
-        Array<Drawable> barMinorGridlines = GetMinorXGridlines()
-        Array<ControlLabel> barLabels = GetXLabels()
-        Array<ControlLabel> scaleLabels = GetYLabels()
-        Control barPanel = GetHorizontalPanel()
-        Control scalePanel = GetVerticalPanel()
-        Control chartArea = GetChartArea()
-        Array<text> barNames = GetBarNames()
-        CalculateNumberOfBars()
 
-        // Check for orientation change
-        // If horizontal ticks and labels need to be added to opposite axis.
-        text orientation = GetOrientation()
-        if defaultOrientation not= orientation
-            text tempTitle = GetXLabel():GetText()
-            GetXLabel():SetText(GetYLabel():GetText())
-            GetXLabel():SetName(GetYLabel():GetText())
-            GetYLabel():SetText(tempTitle)
-            GetYLabel():SetName(tempTitle)
-            if orientation = "horizontal"
-                isHorizontal = true
-                barTicks = GetYTicks()
-                scaleTicks = GetXTicks()
-                barLabels = GetYLabels()
-                scaleLabels = GetXLabels()        
-                scaleGridlines = GetMajorXGridlines()
-                barGridlines = GetMajorYGridlines()
-                scaleMinorGridlines = GetMinorXGridlines()
-                barMinorGridlines = GetMinorYGridlines()
-                barPanel = GetVerticalPanel()
-                scalePanel = GetHorizontalPanel()
-            else
-                isHorizontal = false
-            end
-        end   
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
+        end
 
-        // If stacked, we need to adjust the maximum y value to the full stack
+        // If stacked, we need to adjust the maximum value to the full stack
         if GetStackedFlag()
             integer i = 0
             repeat while i < barGroups:GetSize()
@@ -779,147 +454,57 @@ class SharedBarChartParent is Chart
                     sum = sum + barGroups:Get(i):Get(j):GetValue()
                     j = j + 1
                 end
-                if sum > yAxisMaximum
-                    yAxisMaximum = sum
-                end
-                i = i + 1
-            end
-        end
-
-        number scaleNum = 0
-        number scaleWidth = yAxisCalculateScaleWidth() // Get scale width and tick steps
-
-        if scaleTicks:IsEmpty() and scaleLabels:IsEmpty()
-            scaleTicks:SetSize(GetYTickSteps())
-            scaleLabels:SetSize(GetYTickSteps())
-            integer i = 0
-            repeat while i < yTickSteps
-                //make the ticks that will be on the scale
-                Drawable tick
-                tick:LoadFilledRectangle(10, 3)
-                scaleTicks:Set(i, tick)
-                scalePanel:Add(scaleTicks:Get(i))
-
-                if IsShowingMajorYGridLines()
-                    Drawable gridline
-                    scaleGridlines:Add(gridline)
-                    chartArea:Add(gridline)
-                end
-                if IsShowingMinorYGridLines()
-                    integer j = 0
-                    repeat while j < 5
-                        Drawable gridline
-                        scaleMinorGridlines:Add(gridline)
-                        chartArea:Add(gridline)
-                        j = j + 1
+                if GetHorizontalFlag()
+                    if sum > GetXAxisMaximum()
+                        SetXAxisMaximum(sum, true)
+                        LoadXAxis()
+                    end
+                else
+                    if sum > GetYAxisMaximum()
+                        SetYAxisMaximum(sum, true)
+                        LoadYAxis()
                     end
                 end
-
-               //make the labels for each scale tick (auto based on max)
-                ChartOptions chartOptions
-                Math math
-                text scaleText = "" + math:Round(scaleNum, chartOptions:GetTickDigits())
-                ControlLabel tempLabel
-                tempLabel:SetText(scaleText)
-                tempLabel:SetFont(GetFont():Copy())
-                tempLabel:SetFontSize(cast(integer, GetFontSize() * GetYAxisFontSizeOffset()))
-                tempLabel:SetName(scaleText + " " + (i + 1) + " of " + yTickSteps)
-                tempLabel:SetFocusable(true)
-                tempLabel:SetAccessibilityCode(parent:Item:ITEM)
-                scaleLabels:Set(i, tempLabel)
-                scalePanel:Add(scaleLabels:Get(i))
-                scaleNum = scaleNum + scaleWidth
                 i = i + 1
             end
         end
-        
-        if barTicks:IsEmpty() and barLabels:IsEmpty() and bars:IsEmpty()
-            if xTickSteps > numberOfGroups
-                xTickSteps = numberOfGroups
+
+        integer i = 0
+        repeat while i < barGroups:GetSize()
+            integer j = 0
+                         
+            if hasBarGroups
+                Icon barGroupIcon = barGroups:Get(i):GetIcon() 
+                barGroupIcon:SetName("Bar Group " + (i + 1))
+                barGroupIcon:SetFocusable(true)
+                barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
+                barGroupIcon:SetNextFocus(GetNextFocus())
+                barGroupIcon:SetPreviousFocus(GetPreviousFocus())
+                chartArea:Add(barGroupIcon)
             end
+            GetGroupPanels():Add(barGroups:Get(i):GetIcon())
 
-            integer tickJumps = 1
-            if xTickSteps = -1
-                barTicks:SetSize(numberOfGroups)
-                barLabels:SetSize(numberOfGroups)
-                xTickSteps = numberOfGroups
-            else
-                tickJumps = numberOfGroups / xTickSteps
-                barTicks:SetSize(xTickSteps)
-                barLabels:SetSize(xTickSteps)
-                
-            end
-            bars:SetSize(numberOfBars)
-            
-            integer i = 0
-            repeat while i < xTickSteps
-                //Make the ticks
-                Drawable tick
-                tick:LoadFilledRectangle(3, 15)
-                barTicks:Set(i, tick)
-                barPanel:Add(barTicks:Get(i))
-
-                //Make the labels
-                ControlLabel tempLabel
-                
-                Text name
-                name:SetValue(barGroups:Get(i * tickJumps):GetName())
-
-                if name:GetValue() = undefined
-                    name:SetValue("Bar " + (i + 1))
-                    barGroups:Get(i):SetName(name:GetValue())
-                end
-                tempLabel:SetText(name:GetValue())
-                tempLabel:SetName(name:GetValue() + " " + (i + 1) + " of " + xTickSteps)
-                tempLabel:SetFocusable(true)
-                tempLabel:SetAccessibilityCode(parent:Item:ITEM)
-                tempLabel:SetFont(GetFont():Copy())
-                tempLabel:SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
-                barLabels:Set(i, tempLabel)
-                
-                barPanel:Add(barLabels:Get(i))
-                i = i + 1
-            end
-
-            integer barCount = 0
-            i = 0
-            repeat while i < barGroups:GetSize()
-                integer j = 0
-                
+            repeat while j < barGroups:Get(i):GetSize()
+                //make bars
+                Icon temp = barGroups:Get(i):Get(j):GetIcon()
                 if hasBarGroups
-                    Icon barGroupIcon = barGroups:Get(i):GetIcon() 
-                    barGroupIcon:SetName("Bar Group " + (i + 1))
-                    barGroupIcon:SetFocusable(true)
-                    barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
-                    barGroupIcon:SetNextFocus(GetNextFocus())
-                    barGroupIcon:SetPreviousFocus(GetPreviousFocus())
-                    chartArea:Add(barGroupIcon)
+                    temp:SetName("Bar Group " + (i + 1) + ", Bar " + (j + 1))
+                else
+                    temp:SetName("Bar " + (i + 1))
                 end
-
-                repeat while j < barGroups:Get(i):GetSize()
-                    //make bars
-                    Icon temp = barGroups:Get(i):Get(j):GetIcon()
-                    if hasBarGroups
-                        temp:SetName("Bar Group " + (i + 1) + ", Bar " + (j + 1))
-                    else
-                        temp:SetName("Bar " + (barCount + 1))
-                    end
-                    temp:SetFocusable(true)
-                    temp:SetAccessibilityCode(parent:Item:ITEM)
-                    temp:SetNextFocus(GetNextFocus())
-                    temp:SetPreviousFocus(GetPreviousFocus())
-                    bars:Set(barCount, temp)
-                    chartArea:Add(bars:Get(barCount))
-                    j = j + 1
-                    barCount = barCount + 1
-                end
-                i = i + 1
+                temp:SetFocusable(true)
+                temp:SetAccessibilityCode(parent:Item:ITEM)
+                temp:SetNextFocus(GetNextFocus())
+                temp:SetPreviousFocus(GetPreviousFocus())
+                chartArea:Add(temp)
+                j = j + 1
             end
-            ApplySeriesColor()
-            
-            if IsShowingLegend()
-                Add(GetLegend())
-            end
+            i = i + 1
+        end
+        ApplySeriesColor()
+        
+        if IsShowingLegend()
+            Add(GetLegend())
         end
     end
 
@@ -939,7 +524,6 @@ class SharedBarChartParent is Chart
             i = i + 1
         end
     end
-
     /*
         This action is called whenever the window is resized.
     */

@@ -188,6 +188,9 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if(valueForName > max)
                         max = valueForName
                     end
+                    if(valueForName < min)
+                        min = valueForName
+                    end
                 end
                 j = j + 1
             end
@@ -211,7 +214,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 if not useFactor
                     xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
                     numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
-                    numericalFactor = false
+                    chart:UseIntegersOnXAxis(true)
                 else
                     xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
                     numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
@@ -270,7 +273,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
 
-        chart:SetOrientation("horizontal")
+        chart:SetDefaultOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)

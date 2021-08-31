@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Item2D
 
 class TwoVariableChartLayout is ChartLayout
 
@@ -14,100 +15,6 @@ class TwoVariableChartLayout is ChartLayout
         As such, every chart needs to override this with ticks relevant for its own chart type.
     */
     action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
-        originPointX = 0
-        originPointY = cast(integer, horizontalContainer:GetHeight())
-        Color color
-
-        // This is the ticks on the X axis
-        number scaleDivWidth = 0
-        integer tickHeight = 0
-        integer tickWidth = 0
-        Array<Drawable> ticks = chart:GetXTicks()
-        Array<Drawable> lines = chart:GetMajorXGridlines()
-        Array<Drawable> minorlines = chart:GetMinorXGridlines()
-
-        if not ticks:IsEmpty()     
-            Drawable axis = chart:GetXAxis()
-            Drawable currentTick = ticks:Get(0)
-            tickHeight = cast(integer, currentTick:GetHeight())
-            tickWidth = cast(integer, currentTick:GetWidth())
-
-            scaleDivWidth = (axis:GetWidth() - tickWidth) / (ticks:GetSize() - 1)
-            number minorScaleDivWidth = scaleDivWidth/5.0
-            number tickX = originPointX
-            integer tickY = originPointY - tickHeight       
-
-            integer i = 0
-            integer j = 0
-            repeat while i < ticks:GetSize()
-                currentTick = ticks:Get(i)
-                currentTick:SetPosition(cast(integer, tickX), tickY)
-
-                Drawable majorLine
-                if chart:IsShowingMajorXGridLines() and i < lines:GetSize() and i > 0 // Don't do the left-most gridline
-                    majorLine = lines:Get(i)
-                end
-                integer thin = cast(integer, currentTick:GetWidth()*0.75)
-                majorLine:SetPosition(cast(integer, tickX+(thin/2)), cast(integer, axis:GetHeight()))
-                majorLine:LoadFilledRectangle(thin, cast(integer, chart:GetChartArea():GetHeight()-axis:GetHeight()), color:LightGray())
-
-                if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
-                    integer thinner = cast(integer, majorLine:GetWidth()/2)
-                    number minorX = majorLine:GetX() + minorScaleDivWidth
-
-                    repeat while j < (i+1)*5 and minorX < axis:GetWidth()
-                        // Split five ways (4 minor lines)
-                        Drawable minorLine = minorlines:Get(j)
-                        minorLine:SetPosition(cast(integer, minorX+thinner), cast(integer, axis:GetHeight()))
-                        minorLine:LoadFilledRectangle(thinner, cast(integer, chart:GetChartArea():GetHeight()-axis:GetHeight()), color:LightGray())
-                        j = j + 1
-                        minorX = minorX + minorScaleDivWidth
-                    end
-                end
-                tickX = tickX + scaleDivWidth
-                i = i + 1
-            end
-        end
-
-        // This code represents the labels on the X axis 
-        originPointX = 0
-        originPointY = originPointY - tickHeight
-        integer labelHeight = 0
-        integer yLabelOffset = 0
-
-        Array<ControlLabel> xLabels = chart:GetXLabels()
-        if not xLabels:IsEmpty()
-            Label currentLabel = xLabels:Get(0)
-            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-            end
-            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
-
-            labelHeight = currentLabel:GetLineHeight()
-            integer i = 0
-            repeat while i < xLabels:GetSize()
-                currentLabel = xLabels:Get(i)
-                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-                end
-                integer xCurrentLabel = cast(integer, originPointX + (scaleDivWidth * i) - (currentLabel:GetWidth() / 2))
-                integer yCurrentLabel = cast(integer, originPointY - currentLabel:GetLineHeight())
-                currentLabel:SetPosition(xCurrentLabel, yCurrentLabel)
-                i = i + 1
-            end
-        end
-
-        //This is the label itself on the X axis
-        originPointX = 0
-        originPointY = cast(integer, horizontalContainer:GetHeight())
-        Label axisLabel = chart:GetXLabel()
-        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
-        if axisY < 1
-            axisY = 1
-        end
-        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
-        axisLabel:SetY(cast(integer, axisY))
-        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+        parent:ChartLayout:LayoutHorizontalAxis(chart, horizontalContainer)
     end
-
 end

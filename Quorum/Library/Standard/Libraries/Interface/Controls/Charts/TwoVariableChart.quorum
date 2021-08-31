@@ -57,40 +57,6 @@ class TwoVariableChart is Chart
     // How many ticks are set along the x and y axes.
     integer xTicks = 0
     integer yTicks = 0
-    number xTickInterval = -1
-    number yTickInterval = -1
-    // Default uses best interval by range to graph, if tick count is set, it overrides this.
-    boolean xIntervalBasedOnTickCount = false
-    boolean yIntervalBasedOnTickCount = false
-
-    // The minimum and maximum values portrayed in the chart area.
-    number xAxisMinimum = 0
-    number xAxisMaximum = 1
-    number yAxisMinimum = 0
-    number yAxisMaximum = 1
-    boolean overrideXLabels = false
-    boolean overrideYLabels = false
-    Array<number> xTickValues = undefined
-    Array<number> yTickValues = undefined
-    Array<text> xLabelsOverride = undefined
-    Array<text> yLabelsOverride = undefined
-
-    // The default orientation for line charts and scatter plots is horizontal
-    text defaultOrientation = "horizontal"
-
-    action OverrideXLabelsWithText(Array<text> labels)
-        if labels not= undefined
-            xTicks = labels:GetSize()
-        end
-        xLabelsOverride = labels
-    end
-
-    action OverrideYLabelsWithText(Array<text> labels)
-        if labels not= undefined
-            yTicks = labels:GetSize()
-        end
-        yLabelsOverride = labels
-    end
 
     action LostSelection(ChartItem ci)
         if ci = undefined
@@ -244,171 +210,20 @@ class TwoVariableChart is Chart
         if properties = undefined
             return now
         end
-        
-        Array<Drawable> xTickDrawables = GetXTicks()
-        Array<Drawable> yTickDrawables = GetYTicks()
-        Array<Drawable> yGridlines = GetMajorYGridlines()
-        Array<Drawable> xGridlines = GetMajorXGridlines()
-        Array<Drawable> yMinorGridlines = GetMinorYGridlines()
-        Array<Drawable> xMinorGridlines = GetMinorXGridlines()
-        Array<ControlLabel> xLabels = GetXLabels()
-        Array<ControlLabel> yLabels = GetYLabels()
-        Control horizontalPanel = GetHorizontalPanel()
-        Control verticalPanel = GetVerticalPanel()
+
         Control chartArea = GetChartArea()
-
-        // Check for orientation change
-        text orientation = GetOrientation()
-        if defaultOrientation not= orientation
-            flipAxes()
-        end        
-
-        // If text x-axis is being used then this will stop the manually interval changing.
-        if xLabelsOverride not= undefined
-            xAxisMinimum = 0
-            xAxisMaximum = xLabelsOverride:GetSize()-1
-        end
-
-        number scaleNum = xAxisMinimum
-        number scaleWidth = xAxisCalculateScaleWidth()
-
-        if xTickDrawables:GetSize() not= xTicks
-            if xTickDrawables:GetSize() < xTicks
-                integer i = 0
-                repeat while i < xTicks
-                    Drawable tick
-                    tick:LoadFilledRectangle(tickWidth, tickLength)
-                    horizontalPanel:Add(tick)
-                    xTickDrawables:Add(tick)
-
-                    if IsShowingMajorXGridLines()
-                        Drawable gridline
-                        xGridlines:Add(gridline)
-                        chartArea:Add(gridline)
-                    end
-                    if IsShowingMinorXGridLines()
-                        integer j = 0
-                        repeat while j < 5
-                            Drawable gridline
-                            xMinorGridlines:Add(gridline)
-                            chartArea:Add(gridline)
-                            j = j + 1
-                        end
-                    end
-
-                    ControlLabel label
-                    label:SetFontSize(GetFontSize() - 5)
-                    label:SetFocusable(true)
-                    label:SetAccessibilityCode(parent:Item:ITEM)
-                    horizontalPanel:Add(label)
-                    xLabels:Add(label)
-                    i = i + 1
-                end
-            else
-                repeat until xTickDrawables:GetSize() = xTicks - 1
-                    Drawable tick = xTickDrawables:RemoveFromEnd()
-                    horizontalPanel:Remove(tick)
-
-                    ControlLabel label = xLabels:RemoveFromEnd()
-                    horizontalPanel:Remove(label)
-                end
-            end
-
-            if xTicks > 0
-                i = 0
-                repeat while i < xTicks
-                    Drawable tick = xTickDrawables:Get(i)
-                    tick:SetName("X Tick " + (i + 1))
-    
-                    //make the labels for each scale tick (auto based on max)
-                    text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
-                    ControlLabel label = xLabels:Get(i)
-                    if xLabelsOverride = undefined
-                        label:SetText(scaleText)
-                    else
-                        number percent = (i * 1.0) / ((xTicks) * 1.0)
-                        integer index = cast(integer, math:Round(percent * xLabelsOverride:GetSize()))
-                        label:SetText(xLabelsOverride:Get(index))
-                    end
-                    label:SetName(scaleText + " " + (i + 1) + " of " + xTicks)
-                    scaleNum = scaleNum + scaleWidth
-                    i = i + 1
-                end
-            end
-        end
-
-        scaleNum = yAxisMinimum
-        scaleWidth = yAxisCalculateScaleWidth()
-
-        if yTickDrawables:GetSize() not= yTicks
-            if yTickDrawables:GetSize() < yTicks
-                repeat until yTickDrawables:GetSize() = yTicks
-                    Drawable tick
-                    tick:LoadFilledRectangle(tickLength, tickWidth)
-                    verticalPanel:Add(tick)
-                    yTickDrawables:Add(tick)
-
-                    if IsShowingMajorYGridLines()
-                        Drawable gridline
-                        yGridlines:Add(gridline)
-                        chartArea:Add(gridline)
-                    end
-                    if IsShowingMinorYGridLines()
-                        integer j = 0
-                        repeat while j < 5
-                            Drawable gridline
-                            yMinorGridlines:Add(gridline)
-                            chartArea:Add(gridline)
-                            j = j + 1
-                        end
-                    end
-
-                    ControlLabel label
-                    label:SetFontSize(GetFontSize() - 5)
-                    label:SetFocusable(true)
-                    label:SetAccessibilityCode(parent:Item:ITEM)
-                    verticalPanel:Add(label)
-                    yLabels:Add(label)
-                end
-            else
-                repeat until yTickDrawables:GetSize() = yTicks
-                    Drawable tick = yTickDrawables:RemoveFromEnd()
-                    verticalPanel:Remove(tick)
-
-                    ControlLabel label = yLabels:RemoveFromEnd()
-                    verticalPanel:Remove(label)
-                end
-            end
-
-            i = 0
-            repeat while i < yTicks
-                Drawable tick = yTickDrawables:Get(i)
-                tick:SetName("Y Tick " + (i + 1))
-
-                //make the labels for each scale tick (auto based on max)
-                text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
-                ControlLabel label = yLabels:Get(i)
-                if yLabelsOverride = undefined
-                    label:SetText(scaleText)
-                else
-                    //now get the location of the text value to put in
-                    if i = yTicks
-                        label:SetText(yLabelsOverride:Get(yLabelsOverride:GetSize())) 
-                    else
-                        number percent = (i * 1.0) / ((yTicks) * 1.0)
-                        integer index = cast(integer, math:Round(percent * yLabelsOverride:GetSize()))
-                        label:SetText(yLabelsOverride:Get(index))
-                    end
-                end
-                label:SetName(scaleText + " " + (i + 1) + " of " + yTicks)
-                scaleNum = scaleNum + scaleWidth
-                i = i + 1
-            end
-        end
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("horizontal")
+        end
+      
+        // Check for orientation change
+        if OrientationChanged()
+            flipValues()
+        end        
         
         // Line Chart
         if lines:GetSize() > 0
@@ -475,7 +290,7 @@ class TwoVariableChart is Chart
         end
     end
 
-    action flipAxes()
+    action flipValues()
         // Line Chart
         if lines:GetSize() > 0
             integer i = 0
@@ -503,179 +318,8 @@ class TwoVariableChart is Chart
                 i = i + 1
             end
         end
-        number temp = xAxisMaximum
-        xAxisMaximum = yAxisMaximum
-        yAxisMaximum = temp
-
-        temp = xAxisMinimum
-        xAxisMinimum = yAxisMinimum
-        yAxisMinimum = temp
-
-        if xLabelsOverride not= undefined
-            if yLabelsOverride not= undefined
-                Array<text> temps = xLabelsOverride
-                xLabelsOverride = yLabelsOverride
-                yLabelsOverride = temps
-                
-                xTicks = xLabelsOverride:GetSize()
-                yTicks = yLabelsOverride:GetSize()
-            else
-                OverrideYLabelsWithText(xLabelsOverride)
-                xLabelsOverride = undefined
-            end
-        else
-            if yLabelsOverride not= undefined
-                OverrideXLabelsWithText(yLabelsOverride)
-                yLabelsOverride = undefined
-            end
-        end
-
-        text tempTitle = GetXLabel():GetText()
-        GetXLabel():SetText(GetYLabel():GetText())
-        GetXLabel():SetName(GetYLabel():GetText())
-        GetYLabel():SetText(tempTitle)
-        GetYLabel():SetName(tempTitle)
     end
 
-    /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually.  
-    */
-    action CalculateBestTickInterval(number range) returns number
-        number tickSkips = 0
-        if range <= 2.5
-            if range > 1.5
-                tickSkips = 0.5
-            else
-                tickSkips = 0.1
-            end
-        else
-            if range > 5000
-                tickSkips = 1000
-            elseif range > 2500
-                tickSkips = 500
-            elseif range > 1000
-                tickSkips = 250
-            elseif range > 500
-                tickSkips = 100
-            elseif range > 200
-                tickSkips = 50
-            elseif range > 100
-                tickSkips = 20
-            elseif range > 50
-                tickSkips = 10
-            elseif range > 20
-                tickSkips = 5
-            elseif range > 10
-                tickSkips = 2
-            else
-                tickSkips = 1
-            end
-        end
-        return tickSkips
-    end
-
-    action xAxisCalculateScaleWidth() returns number
-        number xRange = xAxisMaximum-xAxisMinimum
-        number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if xIntervalBasedOnTickCount
-            if xTicks > 1
-                SetXTickInterval(math:Round(xRange / cast(number, xTicks-1), 2))
-                xAxisMaximum = cast(number, xTicks-1) * GetXTickInterval() + xAxisMinimum
-            end
-        end
-        // Numerical x-scale (number intervals)
-        if xLabelsOverride = undefined
-            number tickSkips = GetXTickInterval()
-            if tickSkips = -1
-                tickSkips = CalculateBestTickInterval(xRange)
-            end
-            if tickSkips not= 1.0
-                number i = xAxisMinimum
-                repeat while i < xAxisMaximum
-                    i = i + tickSkips
-                end
-                xAxisMaximum = math:Round(i, 2)
-                xTicks = cast(integer, (xAxisMaximum-xAxisMinimum) / tickSkips) + 1
-                scaleWidth = tickSkips
-            else
-                xTicks = cast(integer, xRange) + 1
-                scaleWidth = xRange / (xTicks - 1)
-            end 
-        // Text x-scale (integer intervals only)
-        else
-            number tickSkips = cast(number, cast(integer, GetXTickInterval()))
-            if tickSkips = -1
-                tickSkips = CalculateBestTickInterval(xRange)
-            end
-            if tickSkips > 1 and tickSkips < xLabelsOverride:GetSize()
-                Array <text> labels
-                number i = 0
-                repeat while i < xLabelsOverride:GetSize()
-                    labels:Add(xLabelsOverride:Get(cast(integer, i)))
-                    i = i + tickSkips
-                end
-                xAxisMaximum = i
-                labels:Add(cast(text, cast(integer, xAxisMaximum)))
-                xTicks = labels:GetSize()
-                xLabelsOverride = labels
-            end
-            scaleWidth = xRange / (xTicks - 1)
-        end
-        return scaleWidth
-    end
-
-    action yAxisCalculateScaleWidth() returns number
-        number yRange = yAxisMaximum-yAxisMinimum
-        number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if yIntervalBasedOnTickCount
-            if yTicks > 1
-                SetYTickInterval(math:Round(yRange / cast(number, yTicks-1), 2))
-                yAxisMaximum = cast(number, yTicks-1) * GetYTickInterval() + yAxisMinimum
-            end
-        end
-        // Numerical y-scale (number intervals)
-        if yLabelsOverride = undefined
-            number tickSkips = GetYTickInterval()
-            if tickSkips = -1
-                tickSkips = CalculateBestTickInterval(yRange)
-            end
-            if tickSkips not= 1.0
-                number i = yAxisMinimum
-                repeat while i < yAxisMaximum
-                    i = i + tickSkips
-                end
-                yAxisMaximum = math:Round(i, 2) 
-                yTicks = cast(integer, (yAxisMaximum-yAxisMinimum) / tickSkips) + 1
-                scaleWidth = tickSkips
-            else
-                yTicks = cast(integer, yRange) + 1
-                scaleWidth = yRange / (yTicks - 1)
-            end 
-        // Text y-scale (integer intervals only)
-        else
-            number tickSkips = cast(number, cast(integer, GetYTickInterval()))
-            if tickSkips = -1
-                tickSkips = CalculateBestTickInterval(yRange)
-            end
-            if tickSkips > 1 and tickSkips < yLabelsOverride:GetSize()
-                Array <text> labels
-                number i = 0
-                repeat while i < yLabelsOverride:GetSize()
-                    labels:Add(yLabelsOverride:Get(cast(integer, i)))
-                    i = i + tickSkips
-                end
-                yAxisMaximum = i
-                labels:Add(cast(text, cast(integer, yAxisMaximum)))
-                yTicks = labels:GetSize()
-                yLabelsOverride = labels
-            end
-            scaleWidth = yRange / (yTicks - 1)
-        end
-        return scaleWidth
-    end
 
     /*
         Gets the default selection color (highlighting)
@@ -815,80 +459,6 @@ class TwoVariableChart is Chart
 
     action AddSeries(Series series)
         seriesList:Add(series)
-    end
-
-    action SetXTickCount(integer ticks)
-        xTicks = ticks
-        xIntervalBasedOnTickCount = true
-    end
-
-    action GetXTickCount returns integer
-        return xTicks
-    end
-
-    action SetYTickCount(integer ticks)
-        yTicks = ticks
-        yIntervalBasedOnTickCount = true
-    end
-
-    action GetYTickCount returns integer
-        return yTicks
-    end
-
-    action SetXTickInterval(number set)
-        xTickInterval = set
-    end
-
-    action SetYTickInterval(number set)
-        yTickInterval = set
-    end
-    
-    action SetXTickInterval(integer set)
-        xTickInterval = cast(number, set)
-    end
-
-    action SetYTickInterval(integer set)
-        yTickInterval = cast(number, set)
-    end
-    
-    action GetXTickInterval() returns number
-        return xTickInterval
-    end
-
-    action GetYTickInterval() returns number
-        return yTickInterval
-    end
-
-    action GetXAxisMinimum returns number
-        return xAxisMinimum
-    end
-
-    action SetXAxisMinimum(number xAxisMinimum)
-        me:xAxisMinimum = xAxisMinimum
-    end
-
-    action GetXAxisMaximum returns number
-        return xAxisMaximum
-    end
-
-    action SetXAxisMaximum(number xAxisMaximum)
-        me:xAxisMaximum = xAxisMaximum
-    end
-
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
-    action SetYAxisMinimum(number yAxisMinimum)
-        me:yAxisMinimum = yAxisMinimum
-    end
-
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-
-    action SetYAxisMaximum(number yAxisMaximum)
-        me:yAxisMaximum = yAxisMaximum
     end
 
     /*
@@ -1048,13 +618,13 @@ class TwoVariableChart is Chart
         // y-axis labels
         ChartItem yAxisNode
         yAxisNode:SetContainer(me)
-        yAxisNode:SetDisplayName("The y-axis has " + yTicks + " tick marks and goes from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
+        yAxisNode:SetDisplayName("The y-axis has " + GetYTickCount() + " tick marks and goes from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
         yAxisNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + yTicks + " ticks, from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
+        yAxis:GetFocusTarget():SetDescription("Scale with " + GetYTickCount() + " ticks, from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
         ChartItem firstScale
         firstScale:SetContainer(me)
         Array<ControlLabel> scaleLabels = GetYLabels()
-        if yTicks > 0
+        if GetYTickCount() > 0
             firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
             firstScale:SetParent(yAxis)
             firstScale:SetFocusTarget(scaleLabels:Get(0))
@@ -1078,13 +648,13 @@ class TwoVariableChart is Chart
         // x-axis labels
         ChartItem xAxisNode
         xAxisNode:SetContainer(me)
-        xAxisNode:SetDisplayName("The x-axis has " + xTicks + " tick marks and goes from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
+        xAxisNode:SetDisplayName("The x-axis has " + GetXTickCount() + " tick marks and goes from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
         xAxisNode:SetParent(xAxis)
-        xAxis:GetFocusTarget():SetDescription("Scale with " + xTicks + " ticks, from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
+        xAxis:GetFocusTarget():SetDescription("Scale with " + GetXTickCount() + " ticks, from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
         ChartItem firstXTick
         firstXTick:SetContainer(me)
         Array<ControlLabel> xLabels = GetXLabels()
-        if xTicks > 0
+        if GetXTickCount() > 0
             firstXTick:SetDisplayName(xLabels:Get(0):GetText())
             firstXTick:SetParent(xAxis)
             firstXTick:SetFocusTarget(xLabels:Get(0))
