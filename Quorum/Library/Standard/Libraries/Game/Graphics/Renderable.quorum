@@ -36,7 +36,7 @@ class Renderable
     /*
         User definable value, may be undefined.
     */
-    // public Object userData
+    public Object userData
 
     /*
     Sets this renderable to have all of the same data as the provided renderable.
@@ -46,9 +46,9 @@ class Renderable
         material = renderable:material
         meshPart:Set(renderable:meshPart)
         bones = renderable:bones
-        //environment = renderable:environment
+        environment = renderable:environment
         shaderProgram = renderable:shaderProgram
-        //userData = renderable:userData
+        userData = renderable:userData
 
         return me
     end

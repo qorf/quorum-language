@@ -212,6 +212,7 @@ class Painter3D is Disposable
             end
             // TO-DO: This Render call also doesn't exist yet. In the plugins, this also represents a mapping step (fetches attributes associated with this renderable and sets them in the shader)
 //            currentShader:Render(renderable)
+            currentProgram:Render(renderable)
 
             i = i + 1
         end

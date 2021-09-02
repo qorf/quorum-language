@@ -11,6 +11,7 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Renderable
 
 class ShaderProgram
 
@@ -504,4 +505,18 @@ class ShaderProgram
         matrix4Array:Set(15, matrix:row3column3)
         return matrix4Array
     end
+
+    action Render(Renderable renderable)
+        // TO-DO: Implement this. Also, consider a Render call for Drawables or some other simpler 2D representation?
+        alert("ShaderProgram: Render -- NYI")
+    end
+
+    action GetShaderMapping returns ShaderMapping
+        return shaderMapping
+    end
+
+    action SetShaderMapping(ShaderMapping shaderMapping)
+        me:shaderMapping = shaderMapping
+    end
+
 end
