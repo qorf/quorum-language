@@ -1261,6 +1261,9 @@ class Chart is Control
         // Text x-scale (integer intervals only)
         else
             number tickSkips = 1
+            if xLabelsOverride:GetSize() > 25
+                tickSkips = cast(integer, xLabelsOverride:GetSize()/5)
+            end
             if tickSkips = -1
                 tickSkips = CalculateBestIntervalForRange(xRange)
             end
@@ -1311,7 +1314,7 @@ class Chart is Control
             end 
         // Text x-scale (integer intervals only)
         else
-            number tickSkips = 1
+            number tickSkips = 1 // Edit: perhaps yTickInterval, perhaps not.
             if tickSkips = -1
                 tickSkips = CalculateBestIntervalForRange(yRange)
             end

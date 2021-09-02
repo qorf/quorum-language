@@ -118,6 +118,7 @@ class Legend is Control
         xAxis:SetNext(legendArea)
         legendArea:SetPrevious(xAxis)
         yAxis:SetPrevious(legendArea)
+        legendArea:SetNext(yAxis)
 
         // Legend Entries
         ChartItem firstEntry
