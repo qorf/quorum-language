@@ -69,6 +69,7 @@ use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.CompilerErrorCodes
 
 /*
     This class defines the parser for the Quorum programming language. Individual actions
@@ -83,6 +84,7 @@ class QuorumParser
     TokenIterator<Token> tokenIterator = undefined
     CompilerErrorManager compilerErrorManager = undefined
     CompilerErrorType typeConstants
+    CompilerErrorCodes codes
 
     //These constants are for detecting 
     constant integer NONE = 0
@@ -191,6 +193,14 @@ class QuorumParser
     */
     private action SendDefaultError(text message)
         CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+        SetCompilerErrorLocation(error)
+        error:SetErrorMessage(message)
+        SendToCompilerErrorManager(error)
+    end
+
+    private action SendDefaultError(text message, integer code)
+        CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+        error:SetCode(code)
         SetCompilerErrorLocation(error)
         error:SetErrorMessage(message)
         SendToCompilerErrorManager(error)
@@ -467,7 +477,7 @@ class QuorumParser
 
         //A class was requested, but there is no input.
         if not IsValid() 
-            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses, codes:PARSER_FULL_CLASS_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -479,7 +489,7 @@ class QuorumParser
         end
 
         if not IsValid() 
-            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+            SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses, codes:PARSER_FULL_CLASS_ENDED_BEFORE_CLASS)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -487,7 +497,7 @@ class QuorumParser
             tokenIterator:Next()
 
             if not IsValid() 
-                SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses)
+                SendDefaultError(textEndedError + " a class declaration. " + moreInformationClasses, codes:PARSER_FULL_CLASS_ENDED_BEFORE_ID)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -499,7 +509,7 @@ class QuorumParser
                 context:className = next:value
             else //this is an error. We expected an ID.
                 SendDefaultError("A name was expected, but the next value was "
-                + next:value + ". " + identifierMessage + " " + moreInformationClasses)
+                + next:value + ". " + identifierMessage + " " + moreInformationClasses, codes:PARSER_FULL_CLASS_BAD_ID)
                 return undefined
             end
 
@@ -535,7 +545,7 @@ class QuorumParser
             context:statements = statements
 
             if not IsValid() 
-                SendDefaultError(textEndedError + " the end of a class. " + moreInformationClasses)
+                SendDefaultError(textEndedError + " the end of a class. " + moreInformationClasses, codes:PARSER_FULL_CLASS_ENDED_END)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -548,7 +558,7 @@ class QuorumParser
             else //ironically, this would be an error, but if a user missed this, is it really a big deal?
                 SendDefaultError("Classes must be completed with the word 'end,' " 
                 + "but the next value was " 
-                + next:value + ". " + moreInformationClasses)
+                + next:value + ". " + moreInformationClasses, codes:PARSER_FULL_CLASS_BAD_END)
                 return undefined 
             end
             //process any generics, inheritance, and statements, if there are any
@@ -564,7 +574,7 @@ class QuorumParser
     action GenericDeclaration returns GenericDeclarationContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a generic. " 
-            + moreInformationGenerics)
+            + moreInformationGenerics, codes:PARSER_GENERIC_DECLARATION_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -590,7 +600,7 @@ class QuorumParser
                             tokens:Add(next:value)
                             next = tokenIterator:Next()
                         else //this is a syntax error
-                            SendDefaultError("Expected a name. " + moreInformationGenerics)
+                            SendDefaultError("Expected a name. " + moreInformationGenerics, codes:PARSER_GENERIC_DECLARATION_BAD_ID)
                             return undefined
                         end
                     end
@@ -600,7 +610,7 @@ class QuorumParser
                     context:SetLastToken(last)
                     SetLocation(context)
                 else //This is a syntax error
-                    SendDefaultError("Expected > (greater than). " + moreInformationGenerics)
+                    SendDefaultError("Expected > (greater than). " + moreInformationGenerics, codes:PARSER_GENERIC_DECLARATION_BAD_GREATER)
                     done = true
                     return undefined
                 end
@@ -620,7 +630,7 @@ class QuorumParser
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a sub-class using inheritance. " 
-            + moreInformationInheritance)
+            + moreInformationInheritance, codes:PARSER_INHERITANCE_DECLARATION_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -638,7 +648,7 @@ class QuorumParser
 
             if not IsValid() 
                 SendDefaultError(textEndedError + " while expecting either a comma or the end of a class. " 
-                + moreInformationInheritance)
+                + moreInformationInheritance, codes:PARSER_INHERITANCE_DECLARATION_ENDED_COMMA)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -654,7 +664,7 @@ class QuorumParser
 
                 if not IsValid() 
                     SendDefaultError(textEndedError + " while expecting either a comma or the end of a class. " 
-                    + moreInformationInheritance)
+                    + moreInformationInheritance, codes:PARSER_INHERITANCE_DECLARATION_ENDED_SECOND_COMMA)
                     return undefined 
                 end
                 next = tokenIterator:GetCurrent()
@@ -676,7 +686,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
         QualifiedNameContext name = QualifiedName() //cannot be undefined
         if name = undefined //this is an error
-            SendDefaultError("Expected a name sequence." + qualifiedNameExample)
+            SendDefaultError("Expected a name sequence." + qualifiedNameExample, codes:PARSER_INHERITANCE_STATEMENT_NAME_SEQUENCE)
             return undefined
         end
         context:SetFirstToken(name:GetFirstToken())
@@ -712,7 +722,7 @@ class QuorumParser
     action GenericStatement returns GenericContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a generic statement. " 
-            + moreInformationGenerics)
+            + moreInformationGenerics, codes:PARSER_GENERIC_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -729,14 +739,14 @@ class QuorumParser
             contexts:Add(decl)
             if decl = undefined
                 SendDefaultError("Missing type after the < (less than). " 
-                + moreInformationGenerics)
+                + moreInformationGenerics, codes:PARSER_GENERIC_STATEMENT_BAD_TYPE)
                 return undefined 
             else
             types:Add(decl:type)
             end
             if not IsValid() 
                 SendDefaultError(textEndedError + " while creating a generic, after the < (less than). " 
-                + moreInformationGenerics)
+                + moreInformationGenerics, codes:PARSER_GENERIC_STATEMENT_ENDED_COMMA)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -749,7 +759,7 @@ class QuorumParser
                     types:Add(decl:type)
                     next = tokenIterator:GetCurrent()
                 else
-                    SendDefaultError("Expected an assignment declaration. " + moreInformationGenerics)
+                    SendDefaultError("Expected an assignment declaration. " + moreInformationGenerics, codes:PARSER_GENERIC_STATEMENT_BAD_TYPE_AFTER_COMMA)
                     return undefined
                 end
             end
@@ -760,7 +770,7 @@ class QuorumParser
             next = tokenIterator:GetCurrent()
             if next:category not= constants:GREATER
                 SendDefaultError(" Expecting > (greater than). " 
-                + moreInformationGenerics)
+                + moreInformationGenerics, codes:PARSER_GENERIC_STATEMENT_BAD_GREATER)
                 return undefined 
             end
             context:SetLastToken(next)
@@ -801,7 +811,7 @@ class QuorumParser
         else //it isn't one of these, so it has to be a qualified name
             QualifiedNameContext nameContext = QualifiedName() //cannot be undefined
             if nameContext = undefined //this is an error
-                SendDefaultError("Expected a qualified name." + qualifiedNameExample)
+                SendDefaultError("Expected a qualified name." + qualifiedNameExample, codes:PARSER_ASSIGNMENT_DECLARATION_BAD_TYPE)
                 return undefined
             end
             QualifiedName name = nameContext:name
@@ -836,7 +846,7 @@ class QuorumParser
     action ClassStatement returns ClassStatementsContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while trying to process statements in a class. " 
-            + moreInformationClasses)
+            + moreInformationClasses, codes:PARSER_CLASS_STATEMENT_ENDED_START)
             return undefined 
         end
 
@@ -858,7 +868,7 @@ class QuorumParser
             end
         else //this is an error
             SendDefaultError(" Expecting either an action or a statement. This might include a Main action, statements like output or repeat, "
-            + "or others. " + moreInformationClasses)
+            + "or others. " + moreInformationClasses, codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT)
             return undefined 
         end
 
@@ -871,7 +881,7 @@ class QuorumParser
     action ActionDeclaration returns ParseContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an action. " 
-            + moreInformationActions)
+            + moreInformationActions, codes:PARSER_ACTION_DECLARATION_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -886,14 +896,14 @@ class QuorumParser
 
             if not IsValid() 
                 SendDefaultError(textEndedError + " while creating an action. " 
-                + moreInformationActions)
+                + moreInformationActions, codes:PARSER_ACTION_DECLARATION_ENDED_CREATE)
                 return undefined 
             end
             next = tokenIterator:Next()
             if next:category = constants:CREATE
                 next = tokenIterator:Next() //skip it
             else //this is an error
-                SendDefaultError("Expected the value 'create' any number of statements and then 'end'.")
+                SendDefaultError("Expected the value 'create' any number of statements and then 'end'.", codes:PARSER_ACTION_DECLARATION_BAD_CREATE)
                 return undefined 
             end
 
@@ -902,7 +912,7 @@ class QuorumParser
             context:block = block
             if not IsValid() 
                 SendDefaultError(textEndedError + " while trying to end an action. " 
-                + moreInformationActions)
+                + moreInformationActions, codes:PARSER_ACTION_DECLARATION_ENDED_CREATE_END)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -911,7 +921,7 @@ class QuorumParser
                 SetLocation(context)
                 tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected 'end' at the end of a constructor. " + CalculateMatchedBracesMessage())
+                SendDefaultError("Expected 'end' at the end of a constructor. " + CalculateMatchedBracesMessage(), codes:PARSER_ACTION_DECLARATION_BAD_CREATE_END)
                 return undefined 
             end
             return context
@@ -968,14 +978,14 @@ class QuorumParser
             
             if not IsValid() 
                 SendDefaultError(textEndedError + " while trying to create an action. " 
-                + moreInformationActions)
+                + moreInformationActions, codes:PARSER_ACTION_DECLARATION_ENDED_END)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
             if next:category = constants:END //advance the token
                 context:SetLastToken(tokenIterator:Next())
             else //this is an error
-                SendDefaultError("Expected 'end' at the end of an action. " + CalculateMatchedBracesMessage())
+                SendDefaultError("Expected 'end' at the end of an action. " + CalculateMatchedBracesMessage(), codes:PARSER_ACTION_DECLARATION_BAD_END)
                 return undefined 
             end
         end
@@ -1061,7 +1071,7 @@ class QuorumParser
     action Statement returns StatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a statement. " 
-                + moreInformationStatement)
+                + moreInformationStatement, codes:PARSER_STATEMENT_ENDED_START)
             return undefined 
         end
         StatementContext context
@@ -1104,7 +1114,7 @@ class QuorumParser
             elseif type = NORMAL_ASSIGNMENT
                 statement = NormalAssignment()
             else
-                SendDefaultError(unknownStatement + moreInformationStatement)
+                SendDefaultError(unknownStatement + moreInformationStatement, codes:PARSER_STATEMENT_BAD)
                 return undefined
             end
 
@@ -1126,7 +1136,7 @@ class QuorumParser
                 next = tokenIterator:Next()
                 return true
             else //this is an error
-                SendDefaultError("Expected : (colon) after 'me'. " + moreInformationMe)
+                SendDefaultError("Expected : (colon) after 'me'. " + moreInformationMe, codes:PARSER_SKIP_ME_BAD_COLON)
             end
         end
         return false
@@ -1141,7 +1151,7 @@ class QuorumParser
                 next = tokenIterator:Next()
                 return true
             else //this is an error
-                SendDefaultError("Expected : (colon) after 'parent'. " + moreInformationParent)
+                SendDefaultError("Expected : (colon) after 'parent'. " + moreInformationParent, codes:PARSER_SKIP_PARENT_BAD_COLON)
             end
         end
         return false
@@ -1190,7 +1200,7 @@ class QuorumParser
         context:isField = hasMe
 
         if not IsValid() 
-            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment)
+            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment, codes:PARSER_NO_TYPE_ASSIGNMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1199,13 +1209,13 @@ class QuorumParser
             context:name = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected a name. " + moreInformationAssignment)
+            SendDefaultError("Expected a name. " + moreInformationAssignment, codes:PARSER_NO_TYPE_ASSIGNMENT_BAD_ID)
         end
         
         if next:category = constants:EQUALITY
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected = (equals sign). " + moreInformationAssignment)
+            SendDefaultError("Expected = (equals sign). " + moreInformationAssignment, codes:PARSER_NO_TYPE_ASSIGNMENT_BAD_EQUALS)
             return undefined
         end
 
@@ -1231,7 +1241,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
         boolean hasParent = SkipParent() //error if false
         if not hasParent //this is an error
-            SendDefaultError("Expected parent: (parent then a colon). " + moreInformationParent)
+            SendDefaultError("Expected parent: (parent then a colon). " + moreInformationParent, codes:PARSER_PARENT_ASSIGNMENT_BAD_PARENT_COLON)
         end
 
         QualifiedNameContext nameContext = QualifiedName()
@@ -1243,20 +1253,20 @@ class QuorumParser
         if next:category = constants:COLON
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("expected : (colon). " + moreInformationParent)
+            SendDefaultError("expected : (colon). " + moreInformationParent, codes:PARSER_PARENT_ASSIGNMENT_BAD_COLON)
         end
 
         if next:category = constants:ID
             context:name = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected a name. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier, codes:PARSER_PARENT_ASSIGNMENT_BAD_ID)
         end
         
         if next:category = constants:EQUALITY
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected = (equals sign). " + moreInformationParent)
+            SendDefaultError("Expected = (equals sign). " + moreInformationParent, codes:PARSER_PARENT_ASSIGNMENT_BAD_EQUALS)
         end
 
         ParseContext expression = Expression()
@@ -1279,7 +1289,7 @@ class QuorumParser
         context:SetDocumentation(CheckForDocumentation())
 
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment)
+            SendDefaultError(textEndedError + " while creating an assignment without a type. " + moreInformationAssignment, codes:PARSER_OBJECT_ASSIGNMENT_ENDED_START)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -1289,14 +1299,14 @@ class QuorumParser
             context:object = next:value
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected a name. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier, codes:PARSER_OBJECT_ASSIGNMENT_BAD_ID)
             return undefined
         end
         
         if next:category = constants:COLON //skip it, but it has to be there.
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected : (colon). " + moreInformationAssignment)
+            SendDefaultError("Expected : (colon). " + moreInformationAssignment, codes:PARSER_OBJECT_ASSIGNMENT_BAD_COLON)
             return undefined
         end
 
@@ -1313,7 +1323,7 @@ class QuorumParser
             if next:category = constants:COLON //skip it, but it has to be there.
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected : (colon). " + moreInformationParent)
+                SendDefaultError("Expected : (colon). " + moreInformationParent, codes:PARSER_OBJECT_ASSIGNMENT_BAD_PARENT_COLON)
                 return undefined
             end
         end
@@ -1324,14 +1334,14 @@ class QuorumParser
             SetLocationToToken(context:variableLocation, next)
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected a name. " + moreInformationIdentifier)
+            SendDefaultError("Expected a name. " + moreInformationIdentifier, codes:PARSER_OBJECT_ASSIGNMENT_BAD_PARENT_ID)
             return undefined
         end
         
         if next:category = constants:EQUALITY
             next = tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected = (equals sign). " + moreInformationIdentifier)
+            SendDefaultError("Expected = (equals sign). " + moreInformationIdentifier, codes:PARSER_OBJECT_ASSIGNMENT_BAD_EQUALS)
             return undefined
         end
 
@@ -1368,7 +1378,7 @@ class QuorumParser
         end
 
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while creating an assignment. " + moreInformationAssignment)
+            SendDefaultError(textEndedError + " while creating an assignment. " + moreInformationAssignment, codes:PARSER_NORMAL_ASSIGNMENT_ENDED_START)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -1390,7 +1400,7 @@ class QuorumParser
         context:declaration = declaration
         context:leftHandSide = declaration:type
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while expecting a name. " + moreInformationAssignment)
+            SendDefaultError(textEndedError + " while expecting a name. " + moreInformationAssignment, codes:PARSER_NORMAL_ASSIGNMENT_ENDED_ID)
             return undefined
         end
         next = tokenIterator:GetCurrent()
@@ -1402,6 +1412,7 @@ class QuorumParser
             next = tokenIterator:Next()
         else //error
             CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+            error:SetCode(codes:PARSER_NORMAL_ASSIGNMENT_BAD_ID)
             if declaration:type not= undefined
                 text key = declaration:type:GetStaticKey()
                 error:SetErrorMessage("The type '" + key + 
@@ -1429,9 +1440,9 @@ class QuorumParser
             if context:hasRightHandSide
                 if IsValid()
                     Token invalidToken = tokenIterator:GetCurrent()
-                    SendDefaultError("Invalid Expression at " + invalidToken:value)
+                    SendDefaultError("Invalid Expression at " + invalidToken:value, codes:PARSER_NORMAL_ASSIGNMENT_ENDED_EXPRESSION)
                 else
-                    SendDefaultError("Invalid Expression")
+                    SendDefaultError("Invalid Expression", codes:PARSER_NORMAL_ASSIGNMENT_BAD_EXPRESSION)
                 end
             end
             return undefined
@@ -1448,7 +1459,7 @@ class QuorumParser
     */
     action ParentVariableSoloActionCall returns ParentVariableFunctionCallContext
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationParentCall)
+            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationParentCall, codes:PARSER_PARENT_SOLO_ACTION_CALL_ENDED_START)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -1462,7 +1473,7 @@ class QuorumParser
             if next:category = constants:COLON
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall, codes:PARSER_PARENT_SOLO_ACTION_CALL_BAD_COLON)
                 return undefined
             end
         end
@@ -1475,7 +1486,7 @@ class QuorumParser
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected a name. " + moreInformationIdentifier)
+                SendDefaultError("Expected a name. " + moreInformationIdentifier, codes:PARSER_PARENT_SOLO_ACTION_CALL_BAD_ID_COLON)
                 return undefined
             end
         end
@@ -1485,7 +1496,7 @@ class QuorumParser
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall, codes:PARSER_PARENT_SOLO_ACTION_CALL_BAD_PARENT_COLON)
                 return undefined
             end
 
@@ -1500,11 +1511,11 @@ class QuorumParser
             if next:category = constants:COLON //this is an object call
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected : (colon). " + moreInformationParentCall)
+                SendDefaultError("Expected : (colon). " + moreInformationParentCall, codes:PARSER_PARENT_SOLO_ACTION_CALL_BAD_TYPE_COLON)
                 return undefined
             end
         else //this is an error
-            SendDefaultError("Expected parent: (parent followed by a colon). " + moreInformationParentCall)
+            SendDefaultError("Expected parent: (parent followed by a colon). " + moreInformationParentCall, codes:PARSER_PARENT_SOLO_ACTION_CALL_BAD_PARENT)
             return undefined
         end
         Array<ActionCallContext> calls
@@ -1538,7 +1549,7 @@ class QuorumParser
     */
     action VariableSoloActionCall returns VariableFunctionCallContext
         if not IsValid() //this is an error
-            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationActionCall)
+            SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_ENDED_START)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -1552,7 +1563,7 @@ class QuorumParser
             if next:category = constants:COLON
                 next = tokenIterator:Next()
             else //this is an error
-                SendDefaultError("Expected colon after me. " + moreInformationActionCall)
+                SendDefaultError("Expected colon after me. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_COLON)
                 return undefined
             end
         end
@@ -1566,7 +1577,7 @@ class QuorumParser
                 tokenIterator:Next()
 
                 if not IsValid() //this is an error
-                    SendDefaultError(textEndedError + " while calling an action. " + moreInformationActionCall)
+                    SendDefaultError(textEndedError + " while calling an action. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_ID)
                     return undefined
                 end
                 tokenIterator:Next()
@@ -1621,7 +1632,7 @@ class QuorumParser
     action ReturnStatement returns ReturnContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a return statement. " 
-            + moreInformationReturn)
+            + moreInformationReturn, codes:PARSER_RETURN_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1632,7 +1643,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected return. " + moreInformationReturn)
+            SendDefaultError("Expected return. " + moreInformationReturn, codes:PARSER_RETURN_STATEMENT_BAD_RETURN)
             return undefined
         end
 
@@ -1661,7 +1672,7 @@ class QuorumParser
     action RepeatStatement returns LoopContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a repeat statement. " 
-            + moreInformationRepeat)
+            + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1672,7 +1683,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected repeat. " + moreInformationRepeat)
+            SendDefaultError("Expected repeat. " + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_BAD_REPEAT)
             return undefined
         end
 
@@ -1696,15 +1707,14 @@ class QuorumParser
 
         if not context:isWhile and not context:isUntil and not context:isTimes
             SendDefaultError("Repeat statements must either use while, until, or times, as opposed to " 
-                + next:value + moreInformationRepeat)
-            return undefined
+                + next:value + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_BAD_REPEAT_KIND)
         end
 
         context:block = Block()
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while ending a repeat statement. " 
-            + moreInformationRepeat)
+            + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_BLOCK_END)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -1713,7 +1723,7 @@ class QuorumParser
             context:SetLastToken(tokenIterator:Next())
             SetLocation(context)
         else //otherwise this is an error
-            SendDefaultError("Expected end at the end of a repeat. " + CalculateMatchedBracesMessage())
+            SendDefaultError("Expected end at the end of a repeat. " + CalculateMatchedBracesMessage(), codes:PARSER_REPEAT_STATEMENT_BAD_END)
                 return undefined 
         end
         return context
@@ -1725,7 +1735,7 @@ class QuorumParser
     action CheckStatement returns CheckContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check statement. " 
-            + moreInformationCheck)
+            + moreInformationCheck, codes:PARSER_CHECK_STATEMENT_ENDED_START)
             return undefined 
         end
         if not tokenIterator:IsValid() return undefined end
@@ -1765,7 +1775,8 @@ class QuorumParser
         elseif next:category = constants:ALWAYS //there are no detect blocks
             alwaysContext = AlwaysStatement()
         else //this is an error. You have to have one or the other
-            SendDefaultError("Expected either a detect or an always block. Check statements must have one or the other. " + moreInformationCheck)
+            SendDefaultError("Expected either a detect or an always block. Check statements must have one or the other. " + moreInformationCheck
+                , codes:PARSER_CHECK_STATEMENT_BAD_DETECT_OR_ALWAYS)
             return undefined 
         end
 
@@ -1774,7 +1785,7 @@ class QuorumParser
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while ending a check statement. " 
-            + moreInformationCheck)
+            + moreInformationCheck, codes:PARSER_CHECK_STATEMENT_ENDED_END)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -1783,7 +1794,7 @@ class QuorumParser
             context:SetLastToken(tokenIterator:Next())
             SetLocation(context)
         else
-            SendDefaultError("Expected end at the end of a check. " + CalculateMatchedBracesMessage())
+            SendDefaultError("Expected end at the end of a check. " + CalculateMatchedBracesMessage(), codes:PARSER_CHECK_STATEMENT_BAD_END)
             return undefined 
         end
         return context
@@ -1795,7 +1806,7 @@ class QuorumParser
     action DetectStatement returns DetectStatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check-detect statement. " 
-            + moreInformationCheck)
+            + moreInformationCheck, codes:PARSER_DETECT_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1806,7 +1817,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected 'detect'. " + moreInformationCheck)
+            SendDefaultError("Expected 'detect'. " + moreInformationCheck, codes:PARSER_DETECT_STATEMENT_BAD_DETECT)
             return undefined 
         end
 
@@ -1814,7 +1825,7 @@ class QuorumParser
             context:name = next:value
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected 'detect'. " + moreInformationIdentifier)
+            SendDefaultError("Expected 'detect'. " + moreInformationIdentifier, codes:PARSER_DETECT_STATEMENT_BAD_ID)
             return undefined 
         end
         
@@ -1833,7 +1844,7 @@ class QuorumParser
 
             if not IsValid() 
                 SendDefaultError(textEndedError + " while processing a check-detect statement. " 
-                + moreInformationCheck)
+                + moreInformationCheck, codes:PARSER_DETECT_STATEMENT_ENDED_OR)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -1865,7 +1876,7 @@ class QuorumParser
     action AlwaysStatement returns AlwaysStatementContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a check statement containing an always block. " 
-            + moreInformationCheck)
+            + moreInformationCheck, codes:PARSER_ALWAYS_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1876,7 +1887,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected always " + moreInformationCheck)
+            SendDefaultError("Expected always " + moreInformationCheck, codes:PARSER_ALWAYS_STATEMENT_BAD_ALWAYS)
             return undefined 
         end
         //There has to be a block
@@ -1896,7 +1907,7 @@ class QuorumParser
     action IfStatement returns IfContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an if statement. " 
-            + moreInformationIf)
+            + moreInformationIf, codes:PARSER_IF_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -1907,7 +1918,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected if, not " + next:value + "." + moreInformationIf)
+            SendDefaultError("Expected if, not " + next:value + "." + moreInformationIf, codes:PARSER_IF_STATEMENT_BAD_IF)
             return undefined 
         end
         
@@ -1920,7 +1931,7 @@ class QuorumParser
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an if statement. " 
-            + moreInformationIf)
+            + moreInformationIf, codes:PARSER_IF_STATEMENT_ENDED_ELSE_IF)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -1931,7 +1942,7 @@ class QuorumParser
             ParseContext expression = Expression()
             if expression = undefined //no expression, so kill it, because you have to
                 SendDefaultError("The elseif was missing its expression. " 
-                + moreInformationIf)
+                + moreInformationIf, codes:PARSER_IF_STATEMENT_BAD_ELSE_IF_EXPRESSION)
                 return undefined 
             end
             BlockContext block = Block()
@@ -1939,7 +1950,7 @@ class QuorumParser
             elseIfBlocks:Add(block)
             if not IsValid() 
                 SendDefaultError(textEndedError + " while creating an elseif statement. " 
-                + moreInformationIf)
+                + moreInformationIf, codes:PARSER_IF_STATEMENT_ENDED_BLOCK)
                 return undefined 
             end
             next = tokenIterator:GetCurrent()
@@ -1950,7 +1961,7 @@ class QuorumParser
         
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an else statement. " 
-            + moreInformationIf)
+            + moreInformationIf, codes:PARSER_IF_STATEMENT_ENDED_ELSE)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -1963,7 +1974,7 @@ class QuorumParser
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while ending an if statement. " 
-            + moreInformationIf)
+            + moreInformationIf, codes:PARSER_IF_STATEMENT_ENDED_LAST_END)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -1972,7 +1983,7 @@ class QuorumParser
             SetLocation(context)
             next = tokenIterator:Next()
         else //otherwise this is an error
-            SendDefaultError("Expected end at the end of an if statement. " + CalculateMatchedBracesMessage())
+            SendDefaultError("Expected end at the end of an if statement. " + CalculateMatchedBracesMessage(), codes:PARSER_IF_STATEMENT_BAD_END)
             return undefined 
         end
         return context
@@ -1984,7 +1995,7 @@ class QuorumParser
     action OutputStatement returns OutputContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an output statement. " 
-            + moreInformationOutput)
+            + moreInformationOutput, codes:PARSER_OUTPUT_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -2004,7 +2015,7 @@ class QuorumParser
             end
             return context
         else 
-            SendDefaultError("Expected output, received " + next:value + "." + moreInformationOutput)
+            SendDefaultError("Expected output, received " + next:value + "." + moreInformationOutput, codes:PARSER_OUTPUT_STATEMENT_BAD_OUTPUT)
             return undefined 
         end
         return undefined
@@ -2016,7 +2027,7 @@ class QuorumParser
     action SayStatement returns SayContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a say statement. " 
-            + moreInformationSay)
+            + moreInformationSay, codes:PARSER_SAY_STATEMENT_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -2035,7 +2046,7 @@ class QuorumParser
             end
             return context
         else
-            SendDefaultError("Expected 'say', received " + next:value + "." + moreInformationSay)
+            SendDefaultError("Expected 'say', received " + next:value + "." + moreInformationSay, codes:PARSER_SAY_STATEMENT_BAD_OUTPUT)
             return undefined 
         end
         return undefined
@@ -2047,7 +2058,7 @@ class QuorumParser
     action AlertStatement returns AlertContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an alert statement. " 
-            + moreInformationAlert)
+            + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_ENDED_START)
             return undefined 
         end
         Token current = tokenIterator:GetCurrent()
@@ -2074,7 +2085,7 @@ class QuorumParser
     
                     if not IsValid() 
                         SendDefaultError(textEndedError + " while creating an alert statement. " 
-                        + moreInformationAlert)
+                        + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_ENDED_PAREN)
                         return undefined 
                     end
                     next = tokenIterator:GetCurrent()
@@ -2084,12 +2095,12 @@ class QuorumParser
                         tokenIterator:Next()
                         return context
                     else //this is an error. There needs to be a paren at the end of the expression
-                        SendDefaultError("Expected ) (right paren) " + current:value + "." + moreInformationAlert)
+                        SendDefaultError("Expected ) (right paren) " + current:value + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_RIGHT_PAREN)
                         return undefined
                     end
                 end
             else //this is an error
-                SendDefaultError("Expected ( (left paren), received " + current:value + "." + moreInformationAlert)
+                SendDefaultError("Expected ( (left paren), received " + current:value + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN)
                 return undefined 
             end
         end
@@ -2102,7 +2113,7 @@ class QuorumParser
     action ActionShared returns ActionContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating an action declaration. " 
-            + moreInformationActions)
+            + moreInformationActions, codes:PARSER_ACTION_SHARED_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -2113,7 +2124,7 @@ class QuorumParser
             context:SetFirstToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected action, received " + next:value + "." + moreInformationActions)
+            SendDefaultError("Expected action, received " + next:value + "." + moreInformationActions, codes:PARSER_ACTION_SHARED_BAD_ACTION)
             return undefined 
         end
 
@@ -2122,7 +2133,7 @@ class QuorumParser
             context:SetLastToken(next)
             next = tokenIterator:Next()
         else //an error
-            SendDefaultError("Expected action, received " + next:value + "." + moreInformationIdentifier)
+            SendDefaultError("Expected action, received " + next:value + "." + moreInformationIdentifier, codes:PARSER_ACTION_SHARED_BAD_ID)
             return undefined 
         end
 
@@ -2172,7 +2183,7 @@ class QuorumParser
                     context:SetLastToken(next)
                     next = tokenIterator:Next()
                 else //this is an error
-                    SendDefaultError("Expected ) (right paren), received " + next:value + "." + moreInformationActions)
+                    SendDefaultError("Expected ) (right paren), received " + next:value + "." + moreInformationActions, codes:PARSER_ACTION_SHARED_BAD_RIGHT_PAREN)
                     return undefined 
                 end
             end
@@ -2204,7 +2215,7 @@ class QuorumParser
     action FormalParameter returns FormalParameterContext
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a parameter for an action. " 
-            + moreInformationActions)
+            + moreInformationActions, codes:PARSER_FORMAL_PARAMETER_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -2223,7 +2234,7 @@ class QuorumParser
 
         if not IsValid() 
             SendDefaultError(textEndedError + " while creating a parameter name for an action. " 
-            + moreInformationActions)
+            + moreInformationActions, codes:PARSER_FORMAL_PARAMETER_ENDED_ID)
             return undefined 
         end
         next = tokenIterator:GetCurrent()
@@ -2234,7 +2245,7 @@ class QuorumParser
             SetLocation(context)
             tokenIterator:Next()
         else //this is an error
-            SendDefaultError("Expected a name, received " + next:value + "." + moreInformationIdentifier)
+            SendDefaultError("Expected a name, received " + next:value + "." + moreInformationIdentifier, codes:PARSER_FORMAL_PARAMETER_BAD_ID)
             return undefined 
         end
         return context
@@ -2248,19 +2259,20 @@ class QuorumParser
                 Token token = tokenIterator:GetCurrent()
                 if token not= undefined
                     SendDefaultError("An assignment statement was expected, but " + token:value
-                        + "does not start a valid assignment" )
+                        + "does not start a valid assignment", codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_ASSIGN)
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found"
+                        , codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_NO_TOKEN)
                 end
             else
                 compilerErrorManager:Add(statementError)
                 statementError = undefined
             end
         elseif type = VARIABLE_SOLO_ACTION_CALL
-            SendDefaultError("Cannot call action in a field block. Did you mean an assignment statement?")
+            SendDefaultError("Cannot call action in a field block. Did you mean an assignment statement?", codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_ACTION)
             return undefined
         elseif type = PARENT_VARIABLE_SOLO_ACTION_CALL
-            SendDefaultError("Cannot call parent action in a field block. Did you mean an assignment statement?")
+            SendDefaultError("Cannot call parent action in a field block. Did you mean an assignment statement?", codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_PARENT)
             return undefined
         elseif type = NO_TYPE_ASSIGNMENT
             statement = NoTypeAssignment()
@@ -2275,9 +2287,9 @@ class QuorumParser
                 Token token = tokenIterator:GetCurrent()
                 if token not= undefined
                     SendDefaultError("An assignment statement was expected, but " + token:value
-                        + "does not start a valid assignment" )
+                        + "does not start a valid assignment", codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_UNKOWN_TOKEN)
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found", codes:PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_UNKOWN_NO_TOKEN)
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2298,9 +2310,9 @@ class QuorumParser
                 Token token = tokenIterator:GetCurrent()
                 if token not= undefined
                     SendDefaultError("An assignment statement was expected, but " + token:value
-                        + "does not start a valid assignment" )
+                        + "does not start a valid assignment", codes:PARSER_ASSIGNMENT_STATEMENT_BAD_ASSIGN)
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found", codes:PARSER_ASSIGNMENT_STATEMENT_BAD_NO_TOKEN)
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2323,9 +2335,9 @@ class QuorumParser
                 Token token = tokenIterator:GetCurrent()
                 if token not= undefined
                     SendDefaultError("An assignment statement was expected, but " + token:value
-                        + "does not start a valid assignment" )
+                        + "does not start a valid assignment", codes:PARSER_ASSIGNMENT_STATEMENT_BAD_UNKOWN_TOKEN)
                 else
-                    SendDefaultError("An assignment statement was expected, but no valid value could be found" )
+                    SendDefaultError("An assignment statement was expected, but no valid value could be found", codes:PARSER_ASSIGNMENT_STATEMENT_BAD_UNKOWN_NO_TOKEN)
                 end
             else
                 compilerErrorManager:Add(statementError)
@@ -2365,6 +2377,7 @@ class QuorumParser
         TokenIterator<Token> copy = tokenIterator:Copy()
         if not copy:IsValid() 
             statementError = CreateCompilerError(textEndedError + " a statement.")
+            statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_ENDED_START)
             SetCompilerErrorLocation(statementError, copy:Look(-1), undefined)
             return NONE 
         end
@@ -2377,6 +2390,7 @@ class QuorumParser
             next = copy:Next()
             if next:category not= constants:COLON
                 statementError = CreateCompilerError("Expected colon after me. " + moreInformationMe)
+                statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_COLON)
                 SetCompilerErrorLocation(statementError, next, undefined)
                 return NONE
             else 
@@ -2401,6 +2415,7 @@ class QuorumParser
             next = copy:Next()
             if next:category not= constants:COLON
                 statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
+                statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_PARENT_COLON)
                 SetCompilerErrorLocation(statementError, next, undefined)
                 return NONE
             else 
@@ -2411,6 +2426,7 @@ class QuorumParser
                 next = copy:GetCurrent()
                 if next:category not= constants:COLON
                     statementError = CreateCompilerError("Expected colon after qualified name. " + moreInformationParent)
+                    statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_TYPE_COLON)
                     SetCompilerErrorLocation(statementError, next, undefined)
                     return NONE
                 else 
@@ -2428,6 +2444,7 @@ class QuorumParser
                         end
                     else 
                         statementError = CreateCompilerError("Expected identifier after parent name. " + moreInformationParent)
+                        statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_PARENT_ID)
                         SetCompilerErrorLocation(statementError, next, undefined)
                         return NONE
                     end
@@ -2446,6 +2463,7 @@ class QuorumParser
                 statementError = CreateCompilerError(textEndedError + " an identifier. "
                     + "You could try calling an action with parens (), setting it to a value with = (equals) "
                     + "or other options." )
+                statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_POST_ID)
                 return NONE
             end
             //If this is a . or another ID, it must be the object case (e.g., Type name)
@@ -2476,6 +2494,7 @@ class QuorumParser
                     //get rid of the colon, if it exists
                     if next:category not= constants:COLON
                         statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
+                        statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_ID_PARENT_COLON)
                         SetCompilerErrorLocation(statementError, next, undefined)
                         return NONE
                     else
@@ -2496,6 +2515,7 @@ class QuorumParser
                         statementError = CreateCompilerError(textEndedError + " an identifier. "
                             + "You could try calling an action with parens (), setting it to a value with = (equals) "
                             + "or other options." )
+                        statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_ID_PARENT_COLON_ID)
                         return NONE
                     end
                     if next:category = constants:EQUALITY
@@ -2513,16 +2533,19 @@ class QuorumParser
                     statementError = CreateCompilerError("Possible spelling error in output. Did you mean "
                         + "'" + constants:OUTPUT_TEXT + " " + GetDisplay(next) + "'"
                         + " instead of '" + GetDisplay(idToken) + " " + GetDisplay(next) + "'?")
+                    statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_OUTPUT)
                 elseif IsSayMisspelling(idToken)
                     statementError = CreateCompilerError("Possible spelling error in say. Did you mean "
                         + "'" + constants:SAY_TEXT + " " + GetDisplay(next) + "'"
                         + " instead of '" + GetDisplay(idToken) + " " + GetDisplay(next) + "'?")
+                    statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_SAY)
                 else
                     statementError = CreateCompilerError("An identifier was observed, but it is not clear " 
                         + "what statement is being requested. If an action call is desired, the identifier should "
                         + "be followed by a left paren (, whereas an assignment might include next the equals sign "
                         + "=. More information about statements can be found on the Introduction to Quorum section "
                         + "of the Quorum reference page.")
+                    statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_UNKNOWN)
                 end
 
                 SetCompilerErrorLocation(statementError, idToken, next)
@@ -2577,6 +2600,7 @@ class QuorumParser
 
         if next:category not= constants:ID
             statementError = CreateCompilerError("Expected identifier. " + qualifiedNameExample)
+            statementError:SetCode(codes:PARSER_PROCESS_QUALIFIED_NAME_BAD_ID)
             return false
         end
 
@@ -2588,6 +2612,7 @@ class QuorumParser
                 return false
             else
                 statementError = CreateCompilerError("Expected identifier. " + qualifiedNameExample)
+                statementError:SetCode(codes:PARSER_PROCESS_QUALIFIED_NAME_BAD_PERIOD_ID)
             end
             if not tokens:HasNext() return true end
             next = tokens:Next()
@@ -2689,7 +2714,7 @@ class QuorumParser
     action NoClass returns NoClassDeclarationContext
         NoClassDeclarationContext context
         if not IsValid() 
-            SendDefaultError(textEndedError + " the end of a class declaration. " + moreInformationClasses)
+            SendDefaultError(textEndedError + " the end of a class declaration. " + moreInformationClasses, codes:PARSER_NO_CLASS_ENDED_START)
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
@@ -2744,7 +2769,7 @@ class QuorumParser
                         + next:value + " was found instead. Valid statements might start with words like output, "
                         + "to put information on the screen, repeat, to start a loop, or if, to ask the computer "
                         + "to make a decision. More info " 
-                        + "at https://quorumlanguage.com/reference.html")
+                        + "at https://quorumlanguage.com/reference.html", codes:PARSER_NO_CLASS_BAD_UNKNOWN_STATEMENT)
                     else
                         compilerErrorManager:Add(statementError)
                         statementError = undefined
@@ -2783,6 +2808,7 @@ class QuorumParser
         //If Uses is called, we are expecting at least one use statement.
         if next:category not= constants:USE
             CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+            error:SetCode(codes:PARSER_USES_BAD_USE)
             SetCompilerErrorLocation(error)
             error:SetErrorMessage("A use statement was expected, but the token received was "
             + next:value)
@@ -2816,7 +2842,7 @@ class QuorumParser
 
         if not IsValid()
             SendDefaultError(textEndedError + " a package statement. The next token needs to look like " +
-            "a web address. For example, the line of code might be package Libraries.Containers.")
+            "a web address. For example, the line of code might be package Libraries.Containers.", codes:PARSER_PACKAGE_ENDED_START)
             return undefined
         end
 
@@ -2835,7 +2861,7 @@ class QuorumParser
             end
         else
             SendDefaultError("A package statement was expected, but the value received was "
-            + next:value)
+            + next:value, codes:PARSER_PACKAGE_BAD_PACKAGE)
             return undefined
         end
         return context
@@ -2866,7 +2892,7 @@ class QuorumParser
             end
         else
             SendDefaultError("A use statement was expected, but the value received was "
-            + next:value)
+            + next:value, codes:PARSER_USE_BAD_USE)
             return undefined
         end
         return context
@@ -2877,7 +2903,7 @@ class QuorumParser
     */
     action QualifiedName returns QualifiedNameContext
         if not IsValid() 
-            SendDefaultError(textEndedError + " a name sequence. " + qualifiedNameExample)
+            SendDefaultError(textEndedError + " a name sequence. " + qualifiedNameExample, codes:PARSER_QUALIFIED_NAME_ENDED_START)
             return undefined
         end
         Token next = tokenIterator:GetCurrent()
@@ -2901,10 +2927,10 @@ class QuorumParser
                         + " After the period another name is needed"
                     if IsValid()
                         SendDefaultError(intro + ", but the value received was "
-                        + next:value + ". " + qualifiedNameExample)
+                        + next:value + ". " + qualifiedNameExample, codes:PARSER_QUALIFIED_NAME_BAD_PERIOD_ID)
                     else
                         SendDefaultError(intro + ", but the text ended. "
-                        + qualifiedNameExample)
+                        + qualifiedNameExample, codes:PARSER_QUALIFIED_NAME_ENDED_PERIOD)
                     end
                     return undefined
                 end
@@ -2912,7 +2938,7 @@ class QuorumParser
             end
         else 
             SendDefaultError("A name sequence was expected, but the value received was "
-            + next:value + ". " + qualifiedNameExample)
+            + next:value + ". " + qualifiedNameExample, codes:PARSER_QUALIFIED_NAME_BAD_ID)
             return undefined 
         end
         SetLocation(context)
@@ -2928,11 +2954,12 @@ class QuorumParser
         if context = undefined
             //if the literal is still undefined, then the next token was unexpected.
             if not IsValid() 
-                SendDefaultError(textEndedError + " an expression. ")
+                SendDefaultError(textEndedError + " an expression. ", codes:PARSER_EXPRESSION_ENDED_START)
                 return undefined
             end
             Token next = tokenIterator:GetCurrent()
-            SendDefaultError("Found '" + next:value + "' which is not a valid expression. An expression is something like 10, the name of a variable, or text. ")
+            SendDefaultError("Found '" + next:value + "' which is not a valid expression. An expression is something like 10, the name of a variable, or text. "
+                , codes:PARSER_EXPRESSION_BAD_TOKEN)
             return undefined
         end
         context:SetDocumentation(document)
@@ -3277,12 +3304,12 @@ class QuorumParser
                     SetLocation(context)
                     return context
                 else //this is an error. There needs to be a paren at the end of the expression
-                    SendDefaultError("Expected ) (right paren) " + moreInformationInput)
+                    SendDefaultError("Expected ) (right paren) " + moreInformationInput, codes:PARSER_INPUT_BAD_RIGHT_PAREN)
                     return undefined 
                 end
             end
         else //this is an error
-            SendDefaultError("Expected ( (left paren) " + moreInformationInput)
+            SendDefaultError("Expected ( (left paren) " + moreInformationInput, codes:PARSER_INPUT_BAD_LEFT_PAREN)
             return undefined 
         end
 
@@ -3300,7 +3327,7 @@ class QuorumParser
             context:SetFirstToken(current)
             current = tokenIterator:Next()
         else
-            SendDefaultError("Expected cast " + moreInformationCast)
+            SendDefaultError("Expected cast " + moreInformationCast, codes:PARSER_CAST_BAD_CAST)
             return undefined 
         end
 
@@ -3320,7 +3347,7 @@ class QuorumParser
             if current:category = constants:COMMA
                 current = tokenIterator:Next()
             else
-                SendDefaultError("Expected , (comma) " + moreInformationCast)
+                SendDefaultError("Expected , (comma) " + moreInformationCast, codes:PARSER_CAST_BAD_COMMA)
                 return undefined 
             end
 
@@ -3337,11 +3364,11 @@ class QuorumParser
                 tokenIterator:Next()
                 return context
             else //it's not a right paren, it's an error, Jim
-                SendDefaultError("Expected ) (right paren) " + moreInformationCast)
+                SendDefaultError("Expected ) (right paren) " + moreInformationCast, codes:PARSER_CAST_BAD_RIGHT_PAREN)
                 return undefined 
             end
         else //this is an error
-            SendDefaultError("Expected ( (left paren) " + moreInformationCast)
+            SendDefaultError("Expected ( (left paren) " + moreInformationCast, codes:PARSER_CAST_BAD_LEFT_PAREN)
             return undefined 
         end
 
@@ -3362,7 +3389,7 @@ class QuorumParser
         check
             context:value = cast(integer, val)
         detect e
-            SendDefaultError("Integer value of " + val + " is not valid")
+            SendDefaultError("Integer value of " + val + " is not valid", codes:PARSER_INTEGER_PARSE)
         end
         tokenIterator:Next()
         return context
@@ -3382,7 +3409,7 @@ class QuorumParser
         check
             context:value = cast(number, val)
         detect e
-            SendDefaultError("Number value of " + val + " is not valid")
+            SendDefaultError("Number value of " + val + " is not valid", codes:PARSER_NUMBER_PARSE)
         end
         tokenIterator:Next()
         return context
@@ -3445,7 +3472,7 @@ class QuorumParser
         if not IsValid() return undefined end
         Token next = tokenIterator:GetCurrent()
         if next:category not= constants:RIGHT_PAREN //this is an error
-            SendDefaultError("Expected ) (right paren) ")
+            SendDefaultError("Expected ) (right paren) ", codes:PARSER_PARENTHESIS_BAD_RIGHT_PAREN)
             return undefined 
         else
             context:SetLastToken(next)
@@ -3493,7 +3520,7 @@ class QuorumParser
                 next = tokenIterator:Next() //get rid of the paren
                 if next = undefined
                     SendDefaultError(textEndedError + " a right paren or " +
-                        "a list of expressions to pass to the action. ")
+                        "a list of expressions to pass to the action. ", codes:PARSER_ACTION_CALL_BAD_EXPRESSION_LIST)
                     return undefined
                 end
                 //if this is a right paren, there's no expression list to parse, so just end it
@@ -3524,7 +3551,7 @@ class QuorumParser
                     SetLocation(context)
                     tokenIterator:Next()
                 else
-                    SendDefaultError("Expected ) (right paren) " + moreInformationActionCall)
+                    SendDefaultError("Expected ) (right paren) " + moreInformationActionCall, codes:PARSER_ACTION_CALL_BAD_RIGHT_PAREN)
                     return undefined 
                 end
             else //this ID is followed by something not allowed in ActionCall
@@ -3644,7 +3671,7 @@ class QuorumParser
                 current = tokenIterator:Next()
                 hasMe = true
             else //otherwise it's an error
-                SendDefaultError("Unexpected end of text in action or parent call")
+                SendDefaultError("Unexpected end of text in action or parent call", codes:PARSER_ACTION_OR_PARENT_ACTION_CALL_BAD_COLON)
                 return undefined 
             end
         end
@@ -3662,7 +3689,7 @@ class QuorumParser
             elseif next:category = constants:COLON
                 Token nextNext = tokenIterator:LookAhead(2)
                 if nextNext = undefined //if there isn't a token past the colon, it's an error
-                    SendDefaultError("Unexpected end of text in action or parent call")
+                    SendDefaultError("Unexpected end of text in action or parent call", codes:PARSER_ACTION_OR_PARENT_ACTION_CALL_BAD_LEFT_PAREN)
                     return undefined 
                 end
 
