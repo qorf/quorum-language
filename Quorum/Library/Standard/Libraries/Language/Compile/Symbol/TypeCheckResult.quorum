@@ -4,6 +4,7 @@ use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class TypeCheckResult 
     public Type result
@@ -12,6 +13,7 @@ class TypeCheckResult
     public text errorMessage = ""
     public CompilerErrorType errorType = undefined
     QuorumOpcode opcode = undefined
+    CompilerErrorCodes codes
 
     action GetQuorumOpcode returns QuorumOpcode
         if opcode = undefined
@@ -27,6 +29,7 @@ class TypeCheckResult
     action GetCompilerError(Location location) returns CompilerError
         if errorType not= undefined
             CompilerError error
+            error:SetCode(codes:TYPE_CHECK_RESULT)
             error:SetLocation(location)
             error:SetErrorMessage(errorMessage)
             error:SetCompilerErrorType(errorType)

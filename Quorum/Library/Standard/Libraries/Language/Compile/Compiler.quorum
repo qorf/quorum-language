@@ -14,6 +14,7 @@ use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Compiler
     public constant number VERSION = 9.0
@@ -50,6 +51,7 @@ class Compiler
     boolean writeJavaScriptToDisk = true
     CodeCompletionHandler codeCompletionhandler
     DocumentationGenerator documentationGenerator
+    CompilerErrorCodes compilerCodes
 
     Library standardLibrary
 
@@ -309,6 +311,7 @@ class Compiler
 
         if isInvalidCompile
             CompilerError error
+            error:SetCode(compilerCodes:COMPILER_BAD_FILES)
             text message = ""
             if files = undefined
                 message = "I cannot compile an array of files that is passed to me undefined"
@@ -524,6 +527,7 @@ class Compiler
                         and not isMissingBuildFile
 
                         CompilerError error
+                        error:SetCode(compilerCodes:COMPILER_MISSING_FILE)
                         CompilerErrorType t
                         t:SetCurrentType(t:MISSING_FILE)
                         error:SetCompilerErrorType(t)
@@ -992,6 +996,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
 
     private action AddMainError(File starter, SymbolTable table, CompilerErrorManager errors)
         CompilerError error
+        error:SetCode(compilerCodes:COMPILER_BAD_STARTING_POINT)
         text message = "I noticed that the class " + starter:GetPath() 
             +   " was specified as the starting point for this program, " 
             + "but it does not have an action named Main. " 
@@ -1318,6 +1323,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
         end
         if not processedClass
             CompilerError error
+            error:SetCode(compilerCodes:COMPILER_BAD_PACKAGE)
             error:SetErrorMessage("I noticed a package named " + value + 
                 " was referenced, but I cannot find any record of it.")
             error:SetLocation(name)

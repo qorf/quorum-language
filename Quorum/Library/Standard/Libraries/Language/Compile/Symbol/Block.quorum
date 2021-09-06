@@ -7,6 +7,7 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Block is Location
     HashTable<text, Variable> variables
@@ -31,6 +32,7 @@ class Block is Location
     public constant integer CHECK = 6
     public constant integer DETECT = 7
     public constant integer ALWAYS = 8
+    CompilerErrorCodes codes
 
     integer blockType = -1
 
@@ -127,6 +129,7 @@ class Block is Location
     action Add(Variable variable) returns CompilerError
         if HasVariableExceptField(variable:GetStaticKey())
             CompilerError error
+            error:SetCode(codes:BLOCK_DUPLICATE_VARIABLE)
             error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
             CompilerErrorType errorType
@@ -196,6 +199,7 @@ class Block is Location
     action SetExceptionVariable(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
             CompilerError error
+            error:SetCode(codes:BLOCK_DUPLICATE_VARIABLE_EXCEPTIONS)
             error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
             CompilerErrorType errorType

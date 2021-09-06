@@ -1,0 +1,458 @@
+package Libraries.Language.Compile
+
+shared class CompilerErrorCodes
+    /*
+
+
+        Lexer
+
+
+    */
+    public constant integer LEXER_INVALID_CHARACTER = 0
+    public constant integer LEXER_MINUS = 1
+    public constant integer LEXER_PERIOD = 2
+    public constant integer LEXER_EXPONENT = 3
+
+    /*
+
+
+        Parser
+
+
+    */
+
+    /* Parser Errors. FullClass Rule. */
+    public constant integer PARSER_FULL_CLASS_ENDED_START = 4
+    public constant integer PARSER_FULL_CLASS_ENDED_BEFORE_CLASS = 5
+    public constant integer PARSER_FULL_CLASS_ENDED_BEFORE_ID = 6
+    public constant integer PARSER_FULL_CLASS_ENDED_END = 7
+
+    public constant integer PARSER_FULL_CLASS_BAD_ID = 8
+    public constant integer PARSER_FULL_CLASS_BAD_END = 9
+
+    /* Parser Errors. GenericDeclaration Rule. */
+    public constant integer PARSER_GENERIC_DECLARATION_ENDED_START = 10
+    public constant integer PARSER_GENERIC_DECLARATION_BAD_ID = 11
+    public constant integer PARSER_GENERIC_DECLARATION_BAD_GREATER = 12
+
+    /* Parser Errors. IneritanceDeclaration Rule. */
+    public constant integer PARSER_INHERITANCE_DECLARATION_ENDED_START = 13
+    public constant integer PARSER_INHERITANCE_DECLARATION_ENDED_COMMA = 14
+    public constant integer PARSER_INHERITANCE_DECLARATION_ENDED_SECOND_COMMA = 15
+
+    /* Parser Errors. InheritanceStatement Rule. */
+    public constant integer PARSER_INHERITANCE_STATEMENT_NAME_SEQUENCE = 16
+
+    /* Parser Errors. GenericStatement Rule. */
+    public constant integer PARSER_GENERIC_STATEMENT_ENDED_START = 17
+    public constant integer PARSER_GENERIC_STATEMENT_ENDED_COMMA = 18
+    
+    public constant integer PARSER_GENERIC_STATEMENT_BAD_TYPE = 19
+    public constant integer PARSER_GENERIC_STATEMENT_BAD_TYPE_AFTER_COMMA = 20
+    public constant integer PARSER_GENERIC_STATEMENT_BAD_GREATER = 21
+
+    /* Parser Errors. AssignmentDeclaration Rule. */
+    public constant integer PARSER_ASSIGNMENT_DECLARATION_BAD_TYPE = 22
+
+    /* Parser Errors. ClassStatement Rule. */
+    public constant integer PARSER_CLASS_STATEMENT_ENDED_START = 23
+    public constant integer PARSER_CLASS_STATEMENT_BAD_STATEMENT = 24
+
+    /* Parser Errors. ActionDeclaration Rule. */
+    public constant integer PARSER_ACTION_DECLARATION_ENDED_START = 25
+    public constant integer PARSER_ACTION_DECLARATION_ENDED_CREATE = 26
+    public constant integer PARSER_ACTION_DECLARATION_ENDED_CREATE_END = 27
+    public constant integer PARSER_ACTION_DECLARATION_ENDED_END = 28
+
+    public constant integer PARSER_ACTION_DECLARATION_BAD_CREATE = 29
+    public constant integer PARSER_ACTION_DECLARATION_BAD_CREATE_END = 30
+    public constant integer PARSER_ACTION_DECLARATION_BAD_END = 31
+
+    /* Parser Errors. Statement Rule. */
+    public constant integer PARSER_STATEMENT_ENDED_START = 32
+
+    public constant integer PARSER_STATEMENT_BAD = 33
+
+    /* Parser Errors. SkipMe Rule. */
+    public constant integer PARSER_SKIP_ME_BAD_COLON = 34
+
+    /* Parser Errors. SkipParent Rule. */
+    public constant integer PARSER_SKIP_PARENT_BAD_COLON = 35
+
+    /* Parser Errors. NoTypeAssignment Rule. */
+    public constant integer PARSER_NO_TYPE_ASSIGNMENT_ENDED_START = 36
+
+    public constant integer PARSER_NO_TYPE_ASSIGNMENT_BAD_ID = 37
+    public constant integer PARSER_NO_TYPE_ASSIGNMENT_BAD_EQUALS = 38
+
+    /* Parser Errors. ParentAssignment Rule. */
+    public constant integer PARSER_PARENT_ASSIGNMENT_BAD_PARENT_COLON = 39
+    public constant integer PARSER_PARENT_ASSIGNMENT_BAD_COLON = 40
+    public constant integer PARSER_PARENT_ASSIGNMENT_BAD_ID = 41
+    public constant integer PARSER_PARENT_ASSIGNMENT_BAD_EQUALS = 42
+
+    /* Parser Errors. ObjectAssignment Rule. */
+    public constant integer PARSER_OBJECT_ASSIGNMENT_ENDED_START = 43
+
+    public constant integer PARSER_OBJECT_ASSIGNMENT_BAD_ID = 44
+    public constant integer PARSER_OBJECT_ASSIGNMENT_BAD_COLON = 45
+    public constant integer PARSER_OBJECT_ASSIGNMENT_BAD_PARENT_COLON = 46
+    public constant integer PARSER_OBJECT_ASSIGNMENT_BAD_PARENT_ID = 47
+    public constant integer PARSER_OBJECT_ASSIGNMENT_BAD_EQUALS = 48
+
+    /* Parser Errors. NormalAssignment Rule. */
+    public constant integer PARSER_NORMAL_ASSIGNMENT_ENDED_START = 49
+    public constant integer PARSER_NORMAL_ASSIGNMENT_ENDED_ID = 50
+    public constant integer PARSER_NORMAL_ASSIGNMENT_ENDED_EXPRESSION = 51
+
+    public constant integer PARSER_NORMAL_ASSIGNMENT_BAD_ID = 52
+    public constant integer PARSER_NORMAL_ASSIGNMENT_BAD_EXPRESSION = 53
+
+    /* Parser Errors. ParentVariableSoloActionCall Rule. */
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_ENDED_START = 54
+
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_BAD_COLON = 55
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_BAD_ID_COLON = 56
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_BAD_PARENT_COLON = 57
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_BAD_TYPE_COLON = 58
+    public constant integer PARSER_PARENT_SOLO_ACTION_CALL_BAD_PARENT = 59
+
+    /* Parser Errors. VariableSoloActionCall Rule. */
+    public constant integer PARSER_VARIABLE_SOLO_ACTION_CALL_ENDED_START = 60
+
+    public constant integer PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_COLON = 61
+    public constant integer PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_ID = 62
+
+    /* Parser Errors. ReturnStatement Rule. */
+    public constant integer PARSER_RETURN_STATEMENT_ENDED_START = 63
+
+    public constant integer PARSER_RETURN_STATEMENT_BAD_RETURN = 64
+
+    /* Parser Errors. RepeatStatement Rule. */
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_START = 65
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_BLOCK_END = 66
+
+    public constant integer PARSER_REPEAT_STATEMENT_BAD_REPEAT = 67
+    public constant integer PARSER_REPEAT_STATEMENT_BAD_REPEAT_KIND = 68
+    public constant integer PARSER_REPEAT_STATEMENT_BAD_END = 69
+
+    /* Parser Errors. CheckStatement Rule. */
+    public constant integer PARSER_CHECK_STATEMENT_ENDED_START = 70
+    public constant integer PARSER_CHECK_STATEMENT_ENDED_END = 71
+
+    public constant integer PARSER_CHECK_STATEMENT_BAD_DETECT_OR_ALWAYS = 72
+    public constant integer PARSER_CHECK_STATEMENT_BAD_END = 73
+
+    /* Parser Errors. DetectStatement Rule. */
+    public constant integer PARSER_DETECT_STATEMENT_ENDED_START = 74
+    public constant integer PARSER_DETECT_STATEMENT_ENDED_OR = 75
+
+    public constant integer PARSER_DETECT_STATEMENT_BAD_DETECT = 76
+    public constant integer PARSER_DETECT_STATEMENT_BAD_ID = 77
+
+    /* Parser Errors. AlwaysStatement Rule. */
+    public constant integer PARSER_ALWAYS_STATEMENT_ENDED_START = 78
+
+    public constant integer PARSER_ALWAYS_STATEMENT_BAD_ALWAYS = 79
+
+    /* Parser Errors. IfStatement Rule. */
+    public constant integer PARSER_IF_STATEMENT_ENDED_START = 80
+    public constant integer PARSER_IF_STATEMENT_ENDED_ELSE_IF = 81
+    public constant integer PARSER_IF_STATEMENT_ENDED_BLOCK = 82
+    public constant integer PARSER_IF_STATEMENT_ENDED_ELSE = 83
+    public constant integer PARSER_IF_STATEMENT_ENDED_LAST_END = 84
+
+    public constant integer PARSER_IF_STATEMENT_BAD_IF = 85
+    public constant integer PARSER_IF_STATEMENT_BAD_ELSE_IF_EXPRESSION = 86
+    public constant integer PARSER_IF_STATEMENT_BAD_END = 87
+
+    /* Parser Errors. OutputStatement Rule. */
+    public constant integer PARSER_OUTPUT_STATEMENT_ENDED_START = 88
+
+    public constant integer PARSER_OUTPUT_STATEMENT_BAD_OUTPUT = 89
+
+    /* Parser Errors. SayStatement Rule. */
+    public constant integer PARSER_SAY_STATEMENT_ENDED_START = 90
+
+    public constant integer PARSER_SAY_STATEMENT_BAD_OUTPUT = 91
+
+    /* Parser Errors. AlertStatement Rule. */
+    public constant integer PARSER_ALERT_STATEMENT_ENDED_START = 92
+    public constant integer PARSER_ALERT_STATEMENT_ENDED_PAREN = 93
+
+    public constant integer PARSER_ALERT_STATEMENT_BAD_RIGHT_PAREN = 94
+    public constant integer PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN = 95
+
+    /* Parser Errors. ActionShared Rule. */
+    public constant integer PARSER_ACTION_SHARED_ENDED_START = 96
+
+    public constant integer PARSER_ACTION_SHARED_BAD_ACTION = 97
+    public constant integer PARSER_ACTION_SHARED_BAD_ID = 98
+    public constant integer PARSER_ACTION_SHARED_BAD_RIGHT_PAREN = 99
+
+    /* Parser Errors. FormalParameter Rule. */
+    public constant integer PARSER_FORMAL_PARAMETER_ENDED_START = 100
+    public constant integer PARSER_FORMAL_PARAMETER_ENDED_ID = 101
+
+    public constant integer PARSER_FORMAL_PARAMETER_BAD_ID = 102
+
+    /* Parser Errors. AssignmentStatementInFieldBlock Rule. */
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_ASSIGN = 103
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_NO_TOKEN = 104
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_ACTION = 105
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_PARENT = 106
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_UNKOWN_NO_TOKEN = 107
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_IN_FIELD_BLOCK_BAD_UNKOWN_TOKEN = 108
+
+    /* Parser Errors. AssignmentStatement Rule. */
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_BAD_ASSIGN = 109
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_BAD_NO_TOKEN = 110
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_BAD_UNKOWN_NO_TOKEN = 111
+    public constant integer PARSER_ASSIGNMENT_STATEMENT_BAD_UNKOWN_TOKEN = 112
+
+    /* Parser Errors. GetStatementType Rule. */
+    public constant integer PARSER_GET_STATEMENT_TYPE_ENDED_START = 113
+    public constant integer PARSER_GET_STATEMENT_TYPE_POST_ID = 114
+
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_COLON = 115
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_PARENT_COLON = 116
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_TYPE_COLON = 117
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_PARENT_ID = 118
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_ID_PARENT_COLON = 119
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_ID_PARENT_COLON_ID = 120
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_OUTPUT = 121
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_SAY = 122
+    public constant integer PARSER_GET_STATEMENT_TYPE_BAD_UNKNOWN = 123
+
+    /* Parser Errors. ProcessQualifiedName Rule. */
+    public constant integer PARSER_PROCESS_QUALIFIED_NAME_BAD_ID = 124
+    public constant integer PARSER_PROCESS_QUALIFIED_NAME_BAD_PERIOD_ID = 125
+
+    /* Parser Errors. NoClass Rule. */
+    public constant integer PARSER_NO_CLASS_ENDED_START = 126
+
+    public constant integer PARSER_NO_CLASS_BAD_UNKNOWN_STATEMENT = 127
+
+    /* Parser Errors. Uses Rule. */
+    public constant integer PARSER_USES_BAD_USE = 128
+
+    /* Parser Package. Package Rule. */
+    public constant integer PARSER_PACKAGE_ENDED_START = 129
+
+    public constant integer PARSER_PACKAGE_BAD_PACKAGE = 130
+
+    /* Parser Package. Use Rule. */
+    public constant integer PARSER_USE_BAD_USE = 131
+
+    /* Parser QualifiedName. Use Rule. */
+    public constant integer PARSER_QUALIFIED_NAME_ENDED_START = 132
+    public constant integer PARSER_QUALIFIED_NAME_ENDED_PERIOD = 133
+
+    public constant integer PARSER_QUALIFIED_NAME_BAD_ID = 134
+    public constant integer PARSER_QUALIFIED_NAME_BAD_PERIOD_ID = 135
+
+    /* Parser Expression. Use Rule. */
+    public constant integer PARSER_EXPRESSION_ENDED_START = 136
+
+    public constant integer PARSER_EXPRESSION_BAD_TOKEN = 137
+
+    /* Parser Input. Use Rule. */
+    public constant integer PARSER_INPUT_BAD_RIGHT_PAREN = 138
+    public constant integer PARSER_INPUT_BAD_LEFT_PAREN = 139
+
+    /* Parser Cast. Use Rule. */
+    public constant integer PARSER_CAST_BAD_RIGHT_PAREN = 140
+    public constant integer PARSER_CAST_BAD_LEFT_PAREN = 141
+    public constant integer PARSER_CAST_BAD_CAST = 142
+    public constant integer PARSER_CAST_BAD_COMMA = 143
+
+    /* Parser Integer. Use Rule. */
+    public constant integer PARSER_INTEGER_PARSE = 144
+
+    /* Parser Number. Use Rule. */
+    public constant integer PARSER_NUMBER_PARSE = 145
+
+    /* Parser Parenthesis. Use Rule. */
+    public constant integer PARSER_PARENTHESIS_BAD_RIGHT_PAREN = 146
+
+    /* Parser ActionCall. Use Rule. */
+    public constant integer PARSER_ACTION_CALL_BAD_EXPRESSION_LIST = 147
+    public constant integer PARSER_ACTION_CALL_BAD_RIGHT_PAREN = 148
+
+    /* Parser ActionOrParentActionCall. Use Rule. */
+    public constant integer PARSER_ACTION_OR_PARENT_ACTION_CALL_BAD_COLON = 149
+    public constant integer PARSER_ACTION_OR_PARENT_ACTION_CALL_BAD_LEFT_PAREN = 150
+
+
+    /*
+
+
+        Symbol Table
+
+
+    */
+    public constant integer SYMBOL_TABLE_ADD_CLASS = 151
+
+    /*
+
+
+        Parser Listener
+
+
+    */
+    public constant integer PARSER_LISTENER_UNDERSCORE_RULE = 152
+    public constant integer PARSER_LISTENER_DUPLICATE_CONSTRUCTOR = 153
+
+    /*
+
+
+        Class
+
+
+    */
+    public constant integer CLASS_BLUEPRINT_OVERRIDE = 154
+    public constant integer CLASS_MISMATCHED_RETURN_INHERITANCE = 155
+    public constant integer CLASS_DIAMOND_INHERITANCE = 156
+    public constant integer CLASS_ACTION_REDEFINE = 157
+    public constant integer CLASS_MISSING_USE_ALL = 158
+    public constant integer CLASS_MISSING_USE = 159
+    public constant integer CLASS_TEMPLATE_MISMATCH_SIZES = 160
+    public constant integer CLASS_TEMPLATE_MISMATCH_RIGHT_HAS = 161
+    public constant integer CLASS_TEMPLATE_MISMATCH = 162
+    public constant integer CLASS_CLASS_NOT_FOUND = 163
+    public constant integer CLASS_MISSING_PARENT_GENERICS = 164
+    public constant integer CLASS_PARENT_GENERICS_SIZE = 165
+    public constant integer CLASS_PARENT_GENERICS_TYPE_MISMATCH = 166
+    public constant integer CLASS_VARIABLE_GENERICS_SIZE = 167
+    public constant integer CLASS_MISSING_USE_TYPE_RESOLUTION = 168
+    public constant integer CLASS_VARIABLE_GENERICS_SIZE_TYPE_RESOLUTION = 169
+    public constant integer CLASS_MISSING_USE_TYPE_RESOLUTION_NON_GENERIC = 170
+    public constant integer CLASS_VARIABLE_GENERICS_SIZE_TYPE_RESOLUTION_INSIDE_ACTION = 171
+    public constant integer CLASS_MISSING_USE_TYPE_RESOLUTION_NON_GENERIC_INSIDE_ACTION = 172
+    public constant integer CLASS_NAME_DUPLICATE = 173
+    public constant integer CLASS_MY_PARENT_IS_ME = 174
+    public constant integer CLASS_INHERIT_FROM_SHARED = 175
+    public constant integer CLASS_TYPE_REDEFINE = 176
+    public constant integer CLASS_VARIABLE_REDEFINE = 177
+    public constant integer CLASS_MISSING_ACTION = 178
+    public constant integer CLASS_ACTION_UNIQUE_MATCH = 179
+    public constant integer CLASS_ACTION_NOT_FOUND = 180
+    public constant integer CLASS_ACTION_GENERIC_PARAMETER_MISMATCH = 181
+
+
+    /*
+
+
+        Action
+
+
+    */
+    public constant integer ACTION_DUPLICATE_PARAMETER = 182
+
+    /*
+
+
+        Block
+
+
+    */
+    public constant integer BLOCK_DUPLICATE_VARIABLE = 183
+    public constant integer BLOCK_DUPLICATE_VARIABLE_EXCEPTIONS = 184
+
+
+    /*
+
+
+        Type Check Result
+
+
+    */
+    public constant integer TYPE_CHECK_RESULT = 185
+
+
+    /*
+
+
+        Quorum Bytecode Listener
+
+
+    */
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_ALERT = 186
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_OUTPUT = 187
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_SAY = 188
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_LOOP_TYPE = 189
+    public constant integer QUORUM_BYTECODE_LISTENER_REPEAT_NOT_INTEGER = 190
+    public constant integer QUORUM_BYTECODE_LISTENER_REPEAT_NOT_BOOLEAN = 191
+    public constant integer QUORUM_BYTECODE_LISTENER_CLASS_NOT_FOUND = 192
+    public constant integer QUORUM_BYTECODE_LISTENER_CLASS_MUST_INHERIT_ERROR = 193
+    public constant integer QUORUM_BYTECODE_LISTENER_CLASS_JUMP_DUPLICATE = 194
+    public constant integer QUORUM_BYTECODE_LISTENER_IF_TYPE_UNKNOWN = 195
+    public constant integer QUORUM_BYTECODE_LISTENER_IF_TYPE_NOT_BOOLEAN = 196
+    public constant integer QUORUM_BYTECODE_LISTENER_ELSE_IF_TYPE_UNKNOWN = 197
+    public constant integer QUORUM_BYTECODE_LISTENER_ELSE_IF_TYPE_NOT_BOOLEAN = 198
+    public constant integer QUORUM_BYTECODE_LISTENER_CANNOT_FIND_PARENT = 199
+    public constant integer QUORUM_BYTECODE_LISTENER_CANNOT_FIND_PARENT_VARIABLE = 200
+    public constant integer QUORUM_BYTECODE_LISTENER_CONSTANT_REASSIGNMENT = 201
+    public constant integer QUORUM_BYTECODE_LISTENER_PARENT_CONSTANT_REASSIGNMENT = 202
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_FIELD = 203
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_PRIMITIVE_ASSIGNMENT = 204
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_FIELD_OBJECT = 205
+    public constant integer QUORUM_BYTECODE_LISTENER_GENERIC_MISMATCH = 206
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_PARENT = 207
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_PARENT_VARIABLE = 208
+    public constant integer QUORUM_BYTECODE_LISTENER_PARENT_CONSTANT_REASSIGNMENT_EXIT_PARENT_ASSIGNMENT = 209
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_ASSIGNMENT = 210
+    public constant integer QUORUM_BYTECODE_LISTENER_PRIMITIVE_INFER = 211
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_CLASS = 212
+    public constant integer QUORUM_BYTECODE_LISTENER_CREATE_ABSTRACT = 213
+    public constant integer QUORUM_BYTECODE_LISTENER_CONSTANT_REASSIGNMENT_EXIT_NO_TYPE_ASSIGNMENT = 214
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_NO_TYPE = 215
+
+    public constant integer QUORUM_BYTECODE_LISTENER_CALL_PRIVATE = 216
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_GENERIC_AT_INDEX = 217
+    public constant integer QUORUM_BYTECODE_LISTENER_TYPE_UNKNOWN = 218
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_PARENT_ADAPT = 219
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_PRIMITIVE_CALL = 220
+    public constant integer QUORUM_BYTECODE_LISTENER_VARIABLE_NOT_DEFINED = 221
+    public constant integer QUORUM_BYTECODE_LISTENER_VARIABLE_NOT_DEFINED_FIELDS = 222
+    public constant integer QUORUM_BYTECODE_LISTENER_FIELD_PRIVATE = 223
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_EXIT_ACTION = 224
+    public constant integer QUORUM_BYTECODE_LISTENER_BAD_INPUT = 225
+    public constant integer QUORUM_BYTECODE_LISTENER_PRIMITIVE_INFER_NO_TYPE_ASSIGNMENT = 226
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_NO_SKIP = 227
+    public constant integer QUORUM_BYTECODE_LISTENER_MISSING_PARENT_ADAPT_HAS_FIELD = 228
+    public constant integer QUORUM_BYTECODE_LISTENER_PARENT_FIELD_PRIVATE = 229
+    public constant integer QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION = 230
+    public constant integer QUORUM_BYTECODE_LISTENER_VARIABLE_MISSING = 231
+    public constant integer QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION_AGAIN = 232
+    public constant integer QUORUM_BYTECODE_LISTENER_CLASS_MISSING_IN_ALWAYS = 233
+    public constant integer QUORUM_BYTECODE_LISTENER_GENERIC_CRASH_PREVENT = 234
+
+
+    /*
+
+
+        Compiler
+
+
+    */
+    public constant integer COMPILER_BAD_FILES = 235
+    public constant integer COMPILER_MISSING_FILE = 236
+    public constant integer COMPILER_BAD_STARTING_POINT = 237
+    public constant integer COMPILER_BAD_PACKAGE = 238
+
+    /* The highest value + 1 */
+    private constant integer HIGHEST = COMPILER_BAD_PACKAGE + 1
+
+    action IsValid(integer code) returns boolean
+        if code < 0
+            return false
+        end
+
+        if code >= HIGHEST
+            return false
+        end
+
+        return true
+    end
+end

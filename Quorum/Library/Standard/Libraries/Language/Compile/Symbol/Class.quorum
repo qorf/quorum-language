@@ -18,6 +18,7 @@ use Libraries.Language.Compile.Translate.ActionCallOpcode
 use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.Hints.GetterGenerationHint
 use Libraries.Language.Compile.Hints.SetterGenerationHint
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Class is Symbol
     QualifiedName packageName
@@ -55,6 +56,7 @@ class Class is Symbol
     text staticKeyUnderscores = ""
     text staticKeySlashes = ""
     boolean staticClass = false
+    CompilerErrorCodes codes
 
     on create
         QualifiedName object
@@ -279,6 +281,7 @@ class Class is Symbol
                 //as that wouldn't make any sense.
                 if not act:IsBlueprint() and baseAction:IsBlueprint()
                     CompilerError error
+                    error:SetCode(codes:CLASS_BLUEPRINT_OVERRIDE)
                     CompilerErrorType t
                     t:SetCurrentType(t:INHERITANCE_AMBIGUOUS)
                     error:SetCompilerErrorType(t)
@@ -320,6 +323,7 @@ class Class is Symbol
 
                 if returnKey not= baseReturnKey //this is an error
                     CompilerError error
+                    error:SetCode(codes:CLASS_MISMATCHED_RETURN_INHERITANCE)
                     CompilerErrorType t
                     t:SetCurrentType(t:INHERITANCE_MISSMATCHED_RETURN)
                     error:SetCompilerErrorType(t)
@@ -355,6 +359,7 @@ class Class is Symbol
                     else
 
                        CompilerError error
+                       error:SetCode(codes:CLASS_DIAMOND_INHERITANCE)
                        error:SetErrorMessage("The action " + key + " is defined"
                           +   " in parents " + mom:GetStaticKey() + " and " 
                           + dad:GetStaticKey() + ". Since I cannot determine which action should"
@@ -413,6 +418,7 @@ class Class is Symbol
         end
 
         CompilerError error
+        error:SetCode(codes:CLASS_ACTION_REDEFINE)
         error:SetLineNumber(method:GetLineNumber())
         error:SetFile(method:GetFile())
         error:SetLineNumberEnd(method:GetLineNumber())
@@ -521,6 +527,7 @@ class Class is Symbol
                     end
                 else
                     CompilerError error
+                    error:SetCode(codes:CLASS_MISSING_USE_ALL)
                     error:SetLocation(name)
                     CompilerErrorType type
                     type:SetCurrentType(type:MISSING_USE)
@@ -535,6 +542,7 @@ class Class is Symbol
                     AddValidUse(clazz)
                 else
                     CompilerError error
+                    error:SetCode(codes:CLASS_MISSING_USE)
                     error:SetLocation(name)
                     CompilerErrorType type
                     type:SetCurrentType(type:MISSING_USE)
@@ -724,6 +732,7 @@ class Class is Symbol
         //if these do not match, it's an error
         if lsize not= rsize
             CompilerError error
+            error:SetCode(codes:CLASS_TEMPLATE_MISMATCH_SIZES)
             error:SetLocation(me)
             CompilerErrorType t
             t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -746,6 +755,7 @@ class Class is Symbol
                 rval = right:GetValue(lkey)
                 if lval not= rval
                     CompilerError error
+                    error:SetCode(codes:CLASS_TEMPLATE_MISMATCH_RIGHT_HAS)
                     error:SetLocation(me)
                     CompilerErrorType t
                     t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -761,6 +771,7 @@ class Class is Symbol
                 end
             else
                 CompilerError error
+                error:SetCode(codes:CLASS_TEMPLATE_MISMATCH)
                 error:SetLocation(me)
                 CompilerErrorType t
                 t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -822,6 +833,7 @@ class Class is Symbol
                     newParentGenerics:Set(key, theTypes)
                 else 
                     CompilerError error
+                    error:SetCode(codes:CLASS_CLASS_NOT_FOUND)
                     error:SetLocation(me)
                     error:SetErrorMessage("I could not locate a class named " + key
                         + " from the class " + GetStaticKey() + "."
@@ -851,6 +863,7 @@ class Class is Symbol
                 if types not= undefined
                     if not types:IsEmpty() //the class has no generics, but the user tried to specify them
                         CompilerError error
+                        error:SetCode(codes:CLASS_MISSING_PARENT_GENERICS)
                         error:SetLocation(me)
                         error:SetErrorMessage("I noticed there were generics specified for "
                             + "the parent " + next:GetStaticKey() + ", but this class "
@@ -876,6 +889,7 @@ class Class is Symbol
                     parentSize = next:GetNumberGenerics()
                     if baseSize not= parentSize
                         CompilerError error
+                        error:SetCode(codes:CLASS_PARENT_GENERICS_SIZE)
                         error:SetLocation(me)
                         error:SetErrorMessage("I noticed there were generics specified for "
                             + "the parent " + next:GetStaticKey() + ", but this class "
@@ -904,6 +918,7 @@ class Class is Symbol
                             //other than a valid name
                             if baseType:IsPrimitive() or (not baseType:IsPrimitive() and baseType:GetStaticKey() not= baseType:OBJECT_KEY)
                                 CompilerError error
+                                error:SetCode(codes:CLASS_PARENT_GENERICS_TYPE_MISMATCH)
                                 error:SetLocation(me)
                                 CompilerErrorType t
                                 t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -1088,6 +1103,7 @@ class Class is Symbol
                     //check to see if the number of generics matches with the class
                     if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
                         CompilerError error
+                        error:SetCode(codes:CLASS_VARIABLE_GENERICS_SIZE)
                         error:SetLocation(location)
                         CompilerErrorType t
                         t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -1109,6 +1125,7 @@ class Class is Symbol
                 end
             else
                 CompilerError error
+                error:SetCode(codes:CLASS_MISSING_USE_TYPE_RESOLUTION)
                 error:SetLocation(location)
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_USE)
@@ -1243,6 +1260,7 @@ class Class is Symbol
                     //check to see if the number of generics matches with the class
                     if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
                         CompilerError error
+                        error:SetCode(codes:CLASS_VARIABLE_GENERICS_SIZE_TYPE_RESOLUTION)
                         error:SetLocation(variable)
                         CompilerErrorType t
                         t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -1264,6 +1282,7 @@ class Class is Symbol
                 end
             else
                 CompilerError error
+                error:SetCode(codes:CLASS_MISSING_USE_TYPE_RESOLUTION_NON_GENERIC)
                 error:SetLocation(variable)
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_USE)
@@ -1299,6 +1318,7 @@ class Class is Symbol
                     //check to see if the number of generics matches with the class
                     if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
                         CompilerError error
+                        error:SetCode(codes:CLASS_VARIABLE_GENERICS_SIZE_TYPE_RESOLUTION_INSIDE_ACTION)
                         error:SetLocation(act)
                         CompilerErrorType t
                         t:SetCurrentType(t:MISMATCHED_TEMPLATES)
@@ -1320,6 +1340,7 @@ class Class is Symbol
                 end
             else
                 CompilerError error
+                error:SetCode(codes:CLASS_MISSING_USE_TYPE_RESOLUTION_NON_GENERIC_INSIDE_ACTION)
                 error:SetLocation(act)
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_USE)
@@ -1439,6 +1460,7 @@ class Class is Symbol
                 clazz = fromPackage
             else //this is a conflict and a compiler error
                 CompilerError error
+                error:SetCode(codes:CLASS_NAME_DUPLICATE)
                 text a = ""
                 a = a:GetDoubleQuote()
                 error:SetErrorMessage("The name " + a + key + a
@@ -1552,6 +1574,7 @@ class Class is Symbol
             //would make no sense
             if next:IsResolvingParents()
                 CompilerError error
+                error:SetCode(codes:CLASS_MY_PARENT_IS_ME)
                 text a = ""
                 a = a:GetDoubleQuote()
                 error:SetErrorMessage("The parent name " + a + next:GetStaticKey() + a + 
@@ -1571,6 +1594,7 @@ class Class is Symbol
             //allowing it could be confusing for users and more studies are required.
             if next:IsStatic()
                 CompilerError error
+                error:SetCode(codes:CLASS_INHERIT_FROM_SHARED)
                 text a = ""
                 a = a:GetDoubleQuote()
                 error:SetErrorMessage("The parent " + a + next:GetStaticKey() + a + 
@@ -1751,6 +1775,7 @@ class Class is Symbol
             if other:GetStaticKey() not= clazz:GetStaticKey()
                 Class defined = validUses:GetValue(name)
                 CompilerError error
+                error:SetCode(codes:CLASS_TYPE_REDEFINE)
                 CompilerErrorType type
                 type:SetCurrentType(type:USE_AMBIGUOUS)
                 error:SetCompilerErrorType(type)
@@ -1832,6 +1857,7 @@ class Class is Symbol
     action Add(Variable variable) returns CompilerError
         if fields:HasKey(variable:GetStaticKey())
             CompilerError error
+            error:SetCode(codes:CLASS_VARIABLE_REDEFINE)
             CompilerErrorType type
             type:SetCurrentType(type:DUPLICATE)
             error:SetCompilerErrorType(type)
@@ -2178,6 +2204,7 @@ class Class is Symbol
         if named:IsEmpty()
             resolution:isResolved = false
             CompilerError error
+            error:SetCode(codes:CLASS_MISSING_ACTION)
             error:SetLocation(call)
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_METHOD)
@@ -2336,7 +2363,7 @@ class Class is Symbol
             resolution:resolvedAction = undefined
             resolution:isResolved = false
             CompilerError error
-
+            error:SetCode(codes:CLASS_ACTION_UNIQUE_MATCH)
             text value = "I could not find an action that uniquely matches with the name '" + 
                 call:name + "' in the class '" + me:GetStaticKey() + "' The reason is because the actions "
 
@@ -2361,6 +2388,7 @@ class Class is Symbol
             resolution:resolvedAction = undefined
             resolution:isResolved = false
             CompilerError error
+            error:SetCode(codes:CLASS_ACTION_NOT_FOUND)
             error:SetLocation(call)
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_METHOD)
@@ -2486,6 +2514,7 @@ class Class is Symbol
                     if index not= -1
                         if index >= numGenerics 
                             CompilerError error
+                            error:SetCode(codes:CLASS_ACTION_GENERIC_PARAMETER_MISMATCH)
                             error:SetLocation(call)
                             CompilerErrorType errorType
                             errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
