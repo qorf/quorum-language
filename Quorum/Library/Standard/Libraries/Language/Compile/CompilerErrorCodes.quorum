@@ -452,9 +452,10 @@ shared class CompilerErrorCodes
     public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_WHILE = 242
     public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_UNTIL = 243
     public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_TIMES = 244
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_EXPRESSION = 245
 
     /* The highest value + 1 */
-    private constant integer HIGHEST = PARSER_REPEAT_STATEMENT_ENDED_POST_TIMES + 1
+    private constant integer HIGHEST = PARSER_REPEAT_STATEMENT_ENDED_POST_EXPRESSION + 1
 
     action IsValid(integer code) returns boolean
         if code < 0

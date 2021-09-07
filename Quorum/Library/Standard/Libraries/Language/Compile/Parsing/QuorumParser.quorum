@@ -1684,6 +1684,11 @@ class QuorumParser
         if next:category = constants:REPEAT
             context:SetFirstToken(next)
             next = tokenIterator:Next()
+            if next = undefined
+                SendDefaultError(textEndedError + " while creating a repeat statement. " 
+                + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_POST_REPEAT)
+                return undefined 
+            end
         else //an error
             SendDefaultError("Expected repeat. " + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_BAD_REPEAT)
             return undefined
@@ -1691,9 +1696,19 @@ class QuorumParser
 
         if next:category = constants:WHILE
             next = tokenIterator:Next()
+            if next = undefined
+                SendDefaultError(textEndedError + " while creating a repeat statement. " 
+                + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_POST_WHILE)
+                return undefined 
+            end
             context:isWhile = true
         elseif next:category = constants:UNTIL
             next = tokenIterator:Next()
+            if next = undefined
+                SendDefaultError(textEndedError + " while creating a repeat statement. " 
+                + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_POST_UNTIL)
+                return undefined 
+            end
             context:isUntil = true
         end
 
@@ -1701,8 +1716,15 @@ class QuorumParser
         if context:expression = undefined
             return undefined
         end
+
+        if not IsValid() 
+                SendDefaultError(textEndedError + " while creating a repeat statement. " 
+                + moreInformationRepeat, codes:PARSER_REPEAT_STATEMENT_ENDED_POST_EXPRESSION)
+                return undefined 
+            end
         next = tokenIterator:GetCurrent()
         if next:category = constants:TIMES
+            //we don't need to check this one, just advance it, because block will manage it.
             next = tokenIterator:Next()
             context:isTimes = true
         end
@@ -2410,13 +2432,14 @@ class QuorumParser
         if next:category = constants:ME
             hasMe = true
             next = copy:Next()
-            if next:category not= constants:COLON
+            if next = undefined or next:category not= constants:COLON
                 statementError = CreateCompilerError("Expected colon after me. " + moreInformationMe)
                 statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_COLON)
                 SetCompilerErrorLocation(statementError, next, undefined)
                 return NONE
             else 
                 next = copy:Next()
+                if next = undefined return NONE end
             end
         end
 
@@ -2435,7 +2458,7 @@ class QuorumParser
         elseif next:category = constants:PARENT 
             
             next = copy:Next()
-            if next:category not= constants:COLON
+            if next = undefined or next:category not= constants:COLON
                 statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
                 statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_PARENT_COLON)
                 SetCompilerErrorLocation(statementError, next, undefined)
@@ -2446,7 +2469,7 @@ class QuorumParser
 
             if ProcessQualifiedName(copy)
                 next = copy:GetCurrent()
-                if next:category not= constants:COLON
+                if next = undefined or next:category not= constants:COLON
                     statementError = CreateCompilerError("Expected colon after qualified name. " + moreInformationParent)
                     statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_TYPE_COLON)
                     SetCompilerErrorLocation(statementError, next, undefined)
@@ -2457,7 +2480,7 @@ class QuorumParser
                     //we have ruled out anything but ParentVariableSoloFunctionCall
                     //so we return that and let the system attempt to process that. It does not 
                     //guarantee that this will parse, but it does mean all other options are off the table
-                    if next:category = constants:ID
+                    if next not= undefined and next:category = constants:ID
                         next = copy:Next()
                         if next:category = constants:EQUALITY
                             return PARENT_ASSIGNMENT
@@ -2514,7 +2537,7 @@ class QuorumParser
                     //we don't care about the values here, so process them out
                     next = copy:Next()
                     //get rid of the colon, if it exists
-                    if next:category not= constants:COLON
+                    if next = undefined or next:category not= constants:COLON
                         statementError = CreateCompilerError("Expected colon after parent. " + moreInformationParent)
                         statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_ID_PARENT_COLON)
                         SetCompilerErrorLocation(statementError, next, undefined)
@@ -2531,7 +2554,7 @@ class QuorumParser
                     end
                 end
 
-                if next:category = constants:ID
+                if next not= undefined and next:category = constants:ID
                     next = copy:Next()
                     if next = undefined
                         statementError = CreateCompilerError(textEndedError + " an identifier. "
@@ -2549,6 +2572,8 @@ class QuorumParser
                             return VARIABLE_SOLO_ACTION_CALL
                         end
                     end
+                else //some unknown state
+                    return NONE
                 end
             else
                 if IsOutputMisspelling(idToken)
