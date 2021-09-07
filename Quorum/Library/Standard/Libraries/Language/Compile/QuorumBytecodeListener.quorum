@@ -496,7 +496,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if type = undefined
             return now //This cannot be determined, but the error has been issued already.
         end
-        if type:IsPrimitive()
+        if type:IsPrimitive() and currentBlockOpcode not= undefined
             OutputOpcode out
             out:SetLocation(context:GetLocation())
             out:SetOpcode(op)
@@ -526,7 +526,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now //This cannot be determined, but the error has been issued already.
         end
 
-        if type:IsPrimitive()
+        if type:IsPrimitive() and currentBlockOpcode not= undefined
             SayOpcode out
             out:SetLocation(context:GetLocation())
             hasSayStatement = true
@@ -2481,7 +2481,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 ActionCallOpcode code = stack:Get(stack:GetSize() - 1)
                 
                 Type type = code:GetType()
-                if not type:IsPrimitive() //if it is, again previous phase will catch this
+                if type not= undefined and not type:IsPrimitive() //if it is, again previous phase will catch this
                     text staticKey = type:GetStaticKey()
                     Class clazz = table:GetClass(staticKey)
                     
@@ -2623,12 +2623,13 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     private action HasAlreadyReturnedFromBlock(Location location)
-        if currentBlock:HasReturnThisBlock()
+        if currentBlock not= undefined and currentBlock:HasReturnThisBlock()
             //first check if we've already issued an error.
             //if we already have, there's no need to issue another one.
             //if we haven't, issue the error and then set the value in the block
             if not currentBlock:HasIssuedReturnError()
                 CompilerError e
+                e:SetCode(codes:QUORUM_BYTECODE_BLOCK_RETURN)
                 e:SetErrorMessage("This statement would not execute, because we have already returned from the action.")
                 CompilerErrorType t
                 t:SetCurrentType(t:UNREACHABLE)
@@ -2946,7 +2947,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcode:SetType(type)
         QuorumOpcode op = opcodeStack:Pop()
 
-        if op = undefined
+        if op = undefined or op:GetType() = undefined
             return now
         end
 

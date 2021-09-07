@@ -441,8 +441,20 @@ shared class CompilerErrorCodes
     public constant integer COMPILER_BAD_STARTING_POINT = 237
     public constant integer COMPILER_BAD_PACKAGE = 238
 
+    /*
+        These errors all were found after the initial pass. They are in a different spot, but ultimately this does not matter
+        much, as they are just arbitrary codes.
+
+    */
+    public constant integer PARSER_START_EMPTY_FILE = 239
+    public constant integer QUORUM_BYTECODE_BLOCK_RETURN = 240
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_REPEAT = 241
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_WHILE = 242
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_UNTIL = 243
+    public constant integer PARSER_REPEAT_STATEMENT_ENDED_POST_TIMES = 244
+
     /* The highest value + 1 */
-    private constant integer HIGHEST = COMPILER_BAD_PACKAGE + 1
+    private constant integer HIGHEST = PARSER_REPEAT_STATEMENT_ENDED_POST_TIMES + 1
 
     action IsValid(integer code) returns boolean
         if code < 0
