@@ -1649,7 +1649,7 @@ class QuorumParser
             return undefined
         end
 
-        if next:category = constants:NOW
+        if next not= undefined and next:category = constants:NOW
             context:isReturnNow = true
             next = tokenIterator:Next()
             context:SetLastToken(next)
