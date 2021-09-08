@@ -32,12 +32,10 @@ bool Item::HasUiaFocus() const noexcept
 void Item::SetQuorumFocus()
 {
 	const auto oldFocus = m_root->GetQuorumFocus();
-
 	if (oldFocus == this)
 	{
 		return;
 	}
-
 
 	m_root->SetQuorumFocus(this);
 	NotifyFocusGained();
@@ -51,6 +49,7 @@ void Item::SetQuorumFocus()
 void Item::NotifyFocusGained()
 {
 	const auto uiaFocusItem = m_root->GetUiaFocus();
+
 	if (uiaFocusItem && IsReadyForEvents())
 	{
 		const auto provider = uiaFocusItem->GetProviderSimple();
