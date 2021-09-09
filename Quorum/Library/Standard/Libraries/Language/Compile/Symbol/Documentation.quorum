@@ -122,8 +122,8 @@ class Documentation is Location
 
     action ParseDocumentation(text docs)
         text value = docs:Trim()
-        if value:GetSize() >= 2 //make sure there is enough space in the text, otherwise it's in the wrong format
-            value = value:GetSubtext(2, value:GetSize())
+        if value:GetSize() >= 4 //make sure there is enough space in the text, otherwise it's in the wrong format
+            value = value:GetSubtext(2, value:GetSize() - 2)
             value = value:Trim()
         else
             return now
