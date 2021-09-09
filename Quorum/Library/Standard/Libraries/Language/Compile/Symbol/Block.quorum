@@ -163,10 +163,10 @@ class Block is Location
             parentBlock = parentBlock:GetParentBlock()
         end //it isn't in any of the parent blocks, check the action and class
 
-        if parentAction = undefined
-            a = 5
+        if parentAction not= undefined
+            variable = parentAction:GetParameter(key)
         end
-        variable = parentAction:GetParameter(key)
+
         if variable not= undefined
             return true
         end
@@ -296,7 +296,10 @@ class Block is Location
             parentBlock = parentBlock:GetParentBlock()
         end //it isn't in any of the parent blocks, check the action and class
 
-        variable = parentAction:GetParameter(key)
+        if parentAction not= undefined
+            variable = parentAction:GetParameter(key)
+        end
+
         if variable not= undefined
             return variable
         end

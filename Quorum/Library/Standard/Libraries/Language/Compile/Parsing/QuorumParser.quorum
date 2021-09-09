@@ -347,6 +347,8 @@ class QuorumParser
             //having one isn't required, but if there is one, see if we've found an error so far
             if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
                 return true //if it's not, return false
+            else
+                return false
             end
             return true
         end
@@ -401,7 +403,7 @@ class QuorumParser
             Array<UseContext> uses = Uses()
             context:uses = uses
 
-            if not tokenIterator:IsValid() return context end
+            if not IsValid() return context end
             next = tokenIterator:GetCurrent()
 
             //If this is declared, but returns undefined
@@ -766,7 +768,7 @@ class QuorumParser
 
             context:generics = types
             context:genericContexts = contexts
-            if not tokenIterator:IsValid() return undefined end
+            if not IsValid() return undefined end
             next = tokenIterator:GetCurrent()
             if next:category not= constants:GREATER
                 SendDefaultError(" Expecting > (greater than). " 
@@ -1007,8 +1009,8 @@ class QuorumParser
         end
 
         repeat while IsStatement()
-            ParseContext parse = Statement()
-            if parse not= undefined
+            StatementContext parse = Statement()
+            if parse not= undefined and parse:statement not= undefined
                 statements:Add(parse)
             else //we hit a compiler error
                 return undefined
@@ -1773,7 +1775,7 @@ class QuorumParser
         end
 
         BlockContext checkBlock = Block()
-        if not tokenIterator:IsValid() return undefined end
+        if not IsValid() return undefined end
         next = tokenIterator:GetCurrent()
 
         context:blockContext = checkBlock
@@ -1783,14 +1785,14 @@ class QuorumParser
             repeat while next:category = constants:DETECT
                 DetectStatementContext detectStatement = DetectStatement()
                 detectContexts:Add(detectStatement)
-                if not tokenIterator:IsValid() 
+                if not IsValid() 
                     return undefined 
                 else
                     next = tokenIterator:GetCurrent()
                 end
             end
 
-            if not tokenIterator:IsValid() return undefined end
+            if not IsValid() return undefined end
             next = tokenIterator:GetCurrent()
             if next:category = constants:ALWAYS
                 alwaysContext = AlwaysStatement()
@@ -1844,7 +1846,7 @@ class QuorumParser
             return undefined 
         end
 
-        if next:category = constants:ID
+        if next not= undefined and next:category = constants:ID
             context:name = next:value
             next = tokenIterator:Next()
         else //an error
@@ -2807,20 +2809,12 @@ class QuorumParser
                 if IsActionDeclaration()
                     ParseContext behavior = ActionDeclaration()
                     actions:Add(behavior)
-                elseif IsStatement()
-                    ParseContext statement = Statement()
-                    statements:Add(statement)
                 else //this is an error
-                    if statementError = undefined
-                        SendDefaultError("A statement or action was expected to be declared, but the value "
-                        + next:value + " was found instead. Valid statements might start with words like output, "
-                        + "to put information on the screen, repeat, to start a loop, or if, to ask the computer "
-                        + "to make a decision. More info " 
-                        + "at https://quorumlanguage.com/reference.html", codes:PARSER_NO_CLASS_BAD_UNKNOWN_STATEMENT)
-                    else
-                        compilerErrorManager:Add(statementError)
-                        statementError = undefined
-                    end
+                    SendDefaultError("An action was expected, but the value "
+                        + next:value + " was found instead. Actions might start with words like action, "
+                        + "blueprint, or system and can be public or private. "
+                        + "More info " 
+                        + "at https://quorumlanguage.com/tutorials/language/actions.html", codes:PARSER_NO_CLASS_BAD_UNKNOWN_STATEMENT)
                     return undefined
                 end
 

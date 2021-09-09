@@ -274,6 +274,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                             clazz:AddUseLocation(returnLocation:CreateLocationCopy())
                         else 
                             CompilerError e
+                            e:SetCode(codes:QUORUM_BYTECODE_ACTION_HEADER_NO_CLASS)
                             e:SetErrorMessage("Could not find the class  " + returnKey +
                                 " used in the return statement.")
                             CompilerErrorType t
@@ -382,6 +383,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         //either in a top level block or all appropriate sub-blocks
         if not returnType:IsVoid() and not satisfied
             CompilerError e
+            e:SetCode(codes:QUORUM_BYTECODE_EXIT_ACTION_MISSING_RETURN)
             e:SetErrorMessage("The action " + currentAction:GetStaticKey() +
                 " is missing a return statement.")
             CompilerErrorType t
@@ -548,9 +550,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterBlock(BlockContext context)
-        if currentBlock = undefined
+        if currentBlock = undefined 
             currentBlock = currentAction:GetBlock()
-            blockPositionStack:Push(0)
+            blockPositionStack:Push(0)  
         else 
             integer value = blockPositionStack:Pop()
             if value < currentBlock:GetSubBlockSize()
@@ -1847,7 +1849,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
             
         end
-        currentBlockOpcode:Add(ops)
+        if currentBlockOpcode not= undefined
+            currentBlockOpcode:Add(ops)
+        end
     end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
@@ -2306,6 +2310,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 integer a = 4
                 if classToMakeCallOn = undefined
                     CompilerError classNotFoundError
+                    classNotFoundError:SetCode(codes:QUORUM_BYTECODE_EXIT_ACTION_CALL_NO_CLASS)
                     classNotFoundError:SetLocation(context:GetLocation())
                     classNotFoundError:SetErrorMessage("Could not find the class " + resolvedKey)
                     CompilerErrorType errorType
@@ -2485,8 +2490,12 @@ class QuorumBytecodeListener is QuorumSourceListener
                     text staticKey = type:GetStaticKey()
                     Class clazz = table:GetClass(staticKey)
                     
+                    
                     //get a field.
-                    Variable field = clazz:GetVariable(name)
+                    Variable field = undefined
+                    if clazz not= undefined
+                        field = clazz:GetVariable(name)
+                    end
                     if field not= undefined
                     
                         //if the field is in another class, make sure that it is public
@@ -2557,6 +2566,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitReturnStatement(ReturnContext context) 
         recentStatementWasReturn = true
+        if currentAction = undefined
+            return now
+        end
         Type type = currentAction:GetReturnType()
         if type = undefined
             return now
@@ -2615,7 +2627,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitStatement(StatementContext context) 
         if recentStatementWasReturn
-            currentBlock:SetReturnThisBlock(true)
+            if currentBlock not= undefined
+                currentBlock:SetReturnThisBlock(true)
+            end
             recentStatementWasReturn = false
         else
             HasAlreadyReturnedFromBlock(context:GetLocation())
