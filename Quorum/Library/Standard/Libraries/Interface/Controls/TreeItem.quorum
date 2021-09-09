@@ -533,6 +533,8 @@ class TreeItem is Control
             SetTreeItemContent(defaultContents)
             defaultContents:SetFontSize(properties:GetFontSize())
             defaultContents:SetInterfaceScale(properties:GetInterfaceScale())
+        else
+            contents:GetDefaultLayoutProperties():SetRenderingFlag(true)
         end
 
         TreeLayout panelLayout = GetPanelLayout()
