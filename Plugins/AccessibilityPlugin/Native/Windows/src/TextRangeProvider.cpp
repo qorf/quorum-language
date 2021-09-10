@@ -1,4 +1,5 @@
 #include <strsafe.h>
+#include <iostream>
 
 #include "TextRangeProvider.h"
 
@@ -240,7 +241,7 @@ IFACEMETHODIMP TextRangeProvider::GetEnclosingElement(_Outptr_result_maybenull_ 
 IFACEMETHODIMP TextRangeProvider::GetText(int maxLength, _Out_ BSTR* retVal) noexcept try
 {
 	*retVal = nullptr;
-
+	
 	int startPosition = m_range.begin;
 	int length = m_range.end - startPosition;
 
@@ -252,6 +253,10 @@ IFACEMETHODIMP TextRangeProvider::GetText(int maxLength, _Out_ BSTR* retVal) noe
 	if (length <= 0)
 	{
 		*retVal = wil::make_bstr(L"").release();
+	}
+	else if (startPosition + length > m_control->GetSize())
+	{
+		// Do nothing. This check is present to prevent a crash due to an over-sized index.
 	}
 	else
 	{

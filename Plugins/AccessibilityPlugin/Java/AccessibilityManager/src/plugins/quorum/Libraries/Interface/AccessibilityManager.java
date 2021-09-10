@@ -482,6 +482,12 @@ public class AccessibilityManager
             case TREE_ITEM:
                 wasRemoved = RemoveTreeItemNative(itemToRemove);
                 break;
+            case TABLE:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
+            case CELL:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
             default:
                 wasRemoved = RemoveNative(itemToRemove);
                 break;

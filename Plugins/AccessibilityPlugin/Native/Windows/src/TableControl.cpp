@@ -3,6 +3,7 @@
 #include "CellControl.h"
 #include "CellProvider.h"
 #include "ControlTImpl.h"
+#include <iostream>
 
 TableControl::TableControl(JNIEnv* env, std::wstring&& name, std::wstring&& description, jobject jItem) : ControlT(env, std::move(name), std::move(description), jItem)
 {

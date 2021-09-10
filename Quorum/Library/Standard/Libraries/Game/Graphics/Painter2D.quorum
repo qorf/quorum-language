@@ -458,7 +458,7 @@ class Painter2D
 
         // If the clip width or height is negative, then the drawing region is
         // empty. Don't bother drawing it.
-        if clipWidth < 0 or clipHeight < 0
+        if IsClipping() and (clipWidth < 0 or clipHeight < 0)
             return now
         end
 
