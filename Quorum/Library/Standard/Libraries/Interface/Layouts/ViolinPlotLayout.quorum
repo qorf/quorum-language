@@ -42,10 +42,6 @@ use Libraries.Containers.HashTable
 class ViolinPlotLayout is ChartLayout
     private Math math
 
-    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
-        parent:ChartLayout:LayoutHorizontalAxis(chart, horizontalContainer)
-    end
-
     action LayoutChartContent(Chart control, Control chartAreaContainer)
         ViolinPlot chart = cast(ViolinPlot, control)
         boolean split = chart:GetSplitFlag()
@@ -155,7 +151,7 @@ class ViolinPlotLayout is ChartLayout
                         */
                         
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
-                        Array<Drawable> item = plot:GetItems() 
+                        Array<Drawable> item = plot:GetPlotItems() 
                         Color darkColor = black:Copy()
                         Color lightColor = plot:GetIcon():GetColor()
                         Color lightColor2 = lightColor:Copy()
@@ -232,7 +228,7 @@ class ViolinPlotLayout is ChartLayout
                             minimum = plot2:GetInfoAt(3)
                             maximum = plot2:GetInfoAt(4)
 
-                            Array<Drawable> item2 = plot2:GetItems()
+                            Array<Drawable> item2 = plot2:GetPlotItems()
                             lightColor2 = plot2:GetIcon():GetColor()
                             x = startw + center
                             

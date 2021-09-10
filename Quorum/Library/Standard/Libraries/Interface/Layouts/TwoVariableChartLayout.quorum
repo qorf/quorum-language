@@ -10,11 +10,4 @@ use Libraries.Interface.Item2D
 
 class TwoVariableChartLayout is ChartLayout
 
-    /*
-        Chart layouts do not have a way to determine the ticks of a subclass because charts are very different in style.
-        As such, every chart needs to override this with ticks relevant for its own chart type.
-    */
-    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
-        parent:ChartLayout:LayoutHorizontalAxis(chart, horizontalContainer)
-    end
 end

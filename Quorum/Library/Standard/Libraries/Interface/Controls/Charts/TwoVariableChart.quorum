@@ -68,32 +68,46 @@ class TwoVariableChart is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:LostSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                if points:GetSize() > 0
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        Drawable item = temp:GetItemAt(i)
+                        item:SetColor(previousColor)
+                        item:SetZ(0)
+                        i = i + 1
+                    end
+                else
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
+                        line:SetColor(previousColor)
+                        line:BringForward(false)
+                        i = i + 1
+                    end
+                end
+                temp:GetLabel():LostSelection()
             elseif target is ChartPoint
                 if GetPointsFlag()
                     ChartPoint temp = cast(ChartPoint, target)
-                    temp:GetIcon():Hide()
+                    temp:SetColor(previousColor)
+                    temp:SetZ(0)
                 end
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    temp:GetPoint1():GetIcon():Hide()
-                    temp:GetPoint2():GetIcon():Hide()
+                    temp:GetPoint1():SetColor(previousColor)
+                    temp:GetPoint2():SetColor(previousColor)
+                    temp:GetPoint1():SetZ(0)
+                    temp:GetPoint2():SetZ(0)
                 end
-                temp:GetIcon():Hide()
+                temp:SetColor(previousColor)
+                temp:SetZ(0)
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
-                integer i = 0
-                if GetPointsFlag()
-                    repeat while i < temp:GetPoints():GetSize()
-                        temp:GetPoints():Get(i):GetIcon():Hide()
-                        i = i + 1
-                    end
-                end
-                i = 0
-                repeat while i < temp:GetLines():GetSize()
-                    temp:GetLines():Get(i):GetIcon():Hide()
-                    i = i + 1
-                end
+                temp:SetColor(previousColor)
+                temp:BringForward(false)
             elseif target is Icon
                 target:Hide()
             elseif target is Control
@@ -120,32 +134,50 @@ class TwoVariableChart is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:GainedSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                if points:GetSize() > 0
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        Drawable item = temp:GetItemAt(i)
+                        item:SetColor(GetHighlightColor())
+                        item:SetZ(-1)
+                        i = i + 1
+                    end
+                else
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
+                        line:SetColor(GetHighlightColor())
+                        line:BringForward(true)
+                        i = i + 1
+                    end
+                end
+                temp:GetLabel():GainedSelection()
             elseif target is ChartPoint
                 if GetPointsFlag()
                     ChartPoint temp = cast(ChartPoint, target)
-                    temp:GetIcon():Show()
+                    previousColor = temp:GetColor()
+                    temp:SetColor(GetHighlightColor())
+                    temp:SetZ(-1)
                 end
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
-                    temp:GetPoint1():GetIcon():Show()
-                    temp:GetPoint2():GetIcon():Show()
+                    temp:GetPoint1():SetColor(GetHighlightColor())
+                    temp:GetPoint2():SetColor(GetHighlightColor())
+                    temp:GetPoint1():SetZ(-1)
+                    temp:GetPoint2():SetZ(-1)
                 end
-                temp:GetIcon():Show()
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
+                temp:SetZ(-1)
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
-                integer i = 0
-                if GetPointsFlag()
-                    repeat while i < temp:GetPoints():GetSize()
-                        temp:GetPoints():Get(i):GetIcon():Show()
-                        i = i + 1
-                    end
-                end
-                i = 0
-                repeat while i < temp:GetLines():GetSize()
-                    temp:GetLines():Get(i):GetIcon():Show()
-                    i = i + 1
-                end
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
+                temp:BringForward(true)
             elseif target is Icon
                 target:Show()
             elseif target is Control
@@ -274,10 +306,10 @@ class TwoVariableChart is Chart
             integer j = 0
             repeat while j < series:GetSize()
                 if lines:GetSize() > 0
-                    ChartLine cline = cast(ChartLine, series:GetItem(j))
+                    ChartLine cline = cast(ChartLine, series:GetItemAt(j))
                     cline:SetColor(series:GetColor())
                 else
-                    ChartPoint cpoint = cast(ChartPoint, series:GetItem(j))
+                    ChartPoint cpoint = cast(ChartPoint, series:GetItemAt(j))
                     cpoint:SetColor(series:GetColor())
                 end
                 j = j + 1
@@ -482,19 +514,17 @@ class TwoVariableChart is Chart
         //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
-        ChartItem chartArea//not to be confused with panel
-        //Level 1 top level
+        ChartItem chartArea //not to be confused with panels
+        
+        // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(yAxis)
-        summary:SetChild(yAxis)
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-    
-        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
-        xAxis:SetDisplayName("Horizontal Axis")
-        xAxis:SetFocusTarget(GetXLabel())
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(GetYLabel())
+        chartArea:SetFocusTarget(me:GetChartArea())
+        chartArea:SetParent(summary)
+        chartArea:SetContainer(me)
 
         text lineText = "lines"
         text pointText = "points"
@@ -504,7 +534,6 @@ class TwoVariableChart is Chart
         if points:GetSize() = 1
             linetext = "point"
         end
-        
         if lines:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
             me:GetChartArea():SetDescription("with" + lines:GetSize() + " " + lineText + ".")
@@ -512,24 +541,16 @@ class TwoVariableChart is Chart
             chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
             me:GetChartArea():SetDescription("with" + points:GetSize() + " " + pointText + ".")
         end
-        chartArea:SetFocusTarget(me:GetChartArea())
-        xAxis:SetContainer(me)        
-        yAxis:SetContainer(me)
-        chartArea:SetContainer(me)
-
-        yAxis:SetNext(chartArea)
-        chartArea:SetNext(xAxis)
-        xAxis:SetPrevious(chartArea)
-        yAxis:SetPrevious(xAxis)
-
-        chartArea:SetPrevious(yAxis)
-        xAxis:SetParent(summary)
-        yAxis:SetParent(summary)
-        chartArea:SetParent(summary)
-
-        // Legend Area
+    
+        // If any of these are not showing the tree will skip them in the navigation        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingXAxis()
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
         // Generate Line Chart Info
@@ -612,66 +633,6 @@ class TwoVariableChart is Chart
         if points:GetSize() > 0
             Icon newIcon = NewRegionIcon(0,0,1,1)
             SubdivideQuadrant(chartArea, newIcon, points, 0)
-        end
-
-        // y-axis labels
-        ChartItem yAxisNode
-        yAxisNode:SetContainer(me)
-        yAxisNode:SetDisplayName("The y-axis has " + GetYTickCount() + " tick marks and goes from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
-        yAxisNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + GetYTickCount() + " ticks, from " + GetYAxisMinimum() + " to " + GetYAxisMaximum())
-        ChartItem firstScale
-        firstScale:SetContainer(me)
-        Array<ControlLabel> scaleLabels = GetYLabels()
-        if GetYTickCount() > 0
-            firstScale:SetDisplayName(scaleLabels:Get(0):GetText())
-            firstScale:SetParent(yAxis)
-            firstScale:SetFocusTarget(scaleLabels:Get(0))
-            yAxis:SetChild(firstScale)
-        end
-
-        i = 1
-        ChartItem previous = firstScale
-        repeat while i < scaleLabels:GetSize()
-            ChartItem scaleNode
-            scaleNode:SetContainer(me)
-            scaleNode:SetDisplayName(scaleLabels:Get(i):GetText())
-            scaleNode:SetParent(yAxis)
-            scaleNode:SetPrevious(previous)
-            scaleNode:SetFocusTarget(scaleLabels:Get(i))
-            previous:SetNext(scaleNode)
-            previous = scaleNode
-            i = i + 1
-        end
-
-        // x-axis labels
-        ChartItem xAxisNode
-        xAxisNode:SetContainer(me)
-        xAxisNode:SetDisplayName("The x-axis has " + GetXTickCount() + " tick marks and goes from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
-        xAxisNode:SetParent(xAxis)
-        xAxis:GetFocusTarget():SetDescription("Scale with " + GetXTickCount() + " ticks, from " + GetXAxisMinimum() + " to " + GetXAxisMaximum())
-        ChartItem firstXTick
-        firstXTick:SetContainer(me)
-        Array<ControlLabel> xLabels = GetXLabels()
-        if GetXTickCount() > 0
-            firstXTick:SetDisplayName(xLabels:Get(0):GetText())
-            firstXTick:SetParent(xAxis)
-            firstXTick:SetFocusTarget(xLabels:Get(0))
-            xAxis:SetChild(firstXTick)
-        end
-
-        i = 1
-        previous = firstXTick
-        repeat while i < xLabels:GetSize()
-            ChartItem xNode
-            xNode:SetContainer(me)
-            xNode:SetDisplayName(xLabels:Get(i):GetText())
-            xNode:SetParent(xAxis)
-            xNode:SetPrevious(previous)
-            xNode:SetFocusTarget(xLabels:Get(i))
-            previous:SetNext(xNode)
-            previous = xNode
-            i = i + 1
         end
 
         ChartSelection selection = GetSelection()

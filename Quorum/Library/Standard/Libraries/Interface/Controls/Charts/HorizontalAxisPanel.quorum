@@ -1,0 +1,610 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Controls.Control
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.System.File
+use Libraries.Interface.Views.ImageControlView
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.Icon
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Compute.Math
+
+
+class HorizontalAxisPanel is Control
+    ChartOptions options
+    Math math
+
+    Drawable axis = undefined
+    ControlLabel title = undefined
+    Array <ControlLabel> labels
+    Array <text> overrideLabels = undefined
+    Array <Drawable> ticks
+    Array <Drawable> majorlines
+    Array <Drawable> minorlines
+
+    boolean tickCountOverride = false
+
+    integer minorlinecount = 5
+    integer tickCount = 0
+    integer tickLength = 15
+    integer tickWidth = 3
+    integer titleFontSize = 0
+    integer labelFontSize = 0
+    number tickinterval = -1.0
+    number min = 0.0
+    number max = 0.0
+    number sumOfLabelHeights = 0
+    number sumOfLabelWidths = 0
+    number widestLabel = 0
+
+    text titleText = ""
+    text numberformat = "number"
+
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        Font font = GetDefaultFont()
+        properties:SetFont(font)
+        properties:SetFontSize(GetDefaultFontSize())
+
+        Color color
+        Gradient gradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+
+        properties:SetBackgroundColor(color:White())
+        properties:SetBorderColor(color:Black())
+        SetName("x axis")
+
+        SetDescription("x axis")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    /*
+        Generates the tree of ChartItems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
+        xAxis:SetDisplayName("Horizontal Axis")
+        xAxis:SetFocusTarget(me) //xAxis:SetFocusTarget(<xAxisTitle>)
+        xAxis:SetParent(summary)
+        me:SetDescription(", ticks")
+        xAxis:SetContainer(chart)
+
+        chartArea:SetNext(xAxis)
+        xAxis:SetPrevious(chartArea)
+        if chart:IsShowingYAxis()
+            xAxis:SetNext(yAxis)
+            yAxis:SetPrevious(xAxis)
+        else
+            xAxis:SetNext(chartArea)   
+            chartArea:SetPrevious(xAxis)   
+        end
+
+        // Labels
+        ChartItem firstLabel
+        firstLabel:SetContainer(chart)
+        if labels:GetSize() > 0
+            xAxis:SetChild(firstLabel)
+            firstLabel:SetDisplayName(labels:Get(0):GetText())
+            firstLabel:SetParent(xAxis)
+            firstLabel:SetFocusTarget(labels:Get(0))
+        end
+
+        i = 1
+        ChartItem previousLabel = firstLabel
+        repeat while i < labels:GetSize()
+            ChartItem labelNode
+            labelNode:SetContainer(chart)
+            labelNode:SetDisplayName(labels:Get(i):GetText())
+            labelNode:SetParent(xAxis)
+            labelNode:SetFocusTarget(labels:Get(i))
+            previousLabel:SetNext(labelNode)
+            labelNode:SetPrevious(previousLabel)
+            previousLabel = labelNode
+            i = i + 1
+        end
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        parent:Control:LoadGraphics(properties)
+    end
+    action LoadAxis(Chart chart, LayoutProperties properties)
+        DisposeDrawables()
+        if properties = undefined
+            return now
+        end
+
+        if GetTitleLabel() = undefined 
+            Item2D labelAnchor
+            ControlLabel newLabel
+            SetTitleLabel(newLabel)
+            newLabel:SetFont(properties:GetFont())
+            newLabel:SetText(GetTitleText())
+            newLabel:SetName(GetTitleText())
+            newLabel:SetDescription("Horizontal axis")
+            newLabel:SetFocusable(true)
+            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            labelAnchor:Add(GetTitleLabel())
+            Add(labelAnchor)
+        end
+
+        if GetAxis() = undefined
+            Drawable line
+            SetAxis(line)
+            Add(line)
+        end
+
+        if overrideLabels not= undefined
+            max = 0
+            max = overrideLabels:GetSize()-1
+        end
+
+        number scaleNum = min
+        number scaleWidth = CalculateScaleWidth(chart)
+
+        if ticks:GetSize() not= tickCount
+            
+            if ticks:GetSize() < tickCount
+                integer i = 0
+                repeat while i < tickCount
+                    Drawable tick
+                    tick:LoadFilledRectangle(tickWidth, tickLength)
+                    Add(tick)
+                    ticks:Add(tick)
+
+                    if chart:IsShowingMajorXGridLines()
+                        Drawable gridline
+                        majorlines:Add(gridline)
+                        chart:GetChartArea():Add(gridline)
+                    end
+                    if chart:IsShowingMinorXGridLines()
+                        integer j = 0
+                        repeat while j < minorlinecount
+                            Drawable gridline
+                            minorlines:Add(gridline)
+                            chart:GetChartArea():Add(gridline)
+                            j = j + 1
+                        end
+                    end
+
+                    Item2D labelAnchor
+                    ControlLabel label
+                    label:SetFontSize(GetFontSize() - 5)
+                    label:SetFocusable(true)
+                    label:SetAccessibilityCode(parent:Item:ITEM)
+                    labels:Add(label)
+                    labelAnchor:Add(label)
+                    Add(labelAnchor)
+                    i = i + 1
+                end
+            else
+                repeat until ticks:GetSize() = tickCount - 1
+                    Drawable tick = ticks:RemoveFromEnd()
+                    Remove(tick)
+
+                    ControlLabel label = labels:RemoveFromEnd()
+                    Remove(label)
+                end
+            end
+
+            number sumOfLabelWidths = 0
+            number sumOfLabelHeights = 0
+            number widestLabel = 0.0
+            if tickCount > 0
+                i = 0
+                repeat while i < tickCount
+                    Drawable tick = ticks:Get(i)
+                    tick:SetName("X Tick " + (i + 1))
+    
+                    //make the labels for each scale tick (auto based on max)
+                    text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
+                    if UseIntegers() and not tickCountOverride
+                        scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
+                    end
+                    ControlLabel label = labels:Get(i)
+                    if overrideLabels = undefined
+                        label:SetText(scaleText)
+                    else
+                        number percent = (i * 1.0) / (tickCount * 1.0)
+                        integer index = cast(integer, math:Round(percent * overrideLabels:GetSize()))
+                        label:SetText(overrideLabels:Get(index))
+                    end
+                    label:SetName(scaleText + " " + (i + 1) + " of " + tickCount)
+                    number labelHeight = label:GetHeight()
+                    number labelWidth = label:GetWidth()
+                    if labelWidth > widestLabel
+                        widestLabel = labelWidth
+                    end
+                    sumOfLabelHeights = sumOfLabelHeights + labelHeight
+                    sumOfLabelWidths = sumOfLabelWidths + labelWidth
+                    scaleNum = scaleNum + scaleWidth
+                    i = i + 1
+                end
+            end
+        end
+    end
+
+    action CalculateScaleWidth(Chart chart) returns number
+        number range = max-min
+        number scaleWidth = 0.0
+        // Calculating intervals and/or number of ticks
+        if tickCountOverride
+            if tickCount > 1
+                tickinterval = (math:Round(range / cast(number, tickCount-1), 2))
+                max = cast(number, tickCount-1) * tickinterval + min
+                range = max-min
+            end
+            scaleWidth = tickinterval
+        end
+
+        // Numerical scale (number intervals)
+        if overrideLabels = undefined
+            number tickSkips = tickinterval
+            if tickSkips = -1
+                tickSkips = chart:CalculateBestIntervalForRange(range)
+            end
+            if tickSkips not= 1.0
+                number i = min
+                repeat while i < max
+                    i = i + tickSkips
+                end
+                max = math:Round(i, 2)
+                range = max-min
+                tickCount = (cast(integer, range / tickSkips) + 1)
+                scaleWidth = tickSkips
+            else
+                tickCount = (cast(integer, range) + 1)
+                scaleWidth = range / (tickCount - 1)
+            end 
+
+        // Text scale (integer intervals only)
+        else
+            tickCount = overrideLabels:GetSize()
+            if tickCount > 1
+                scaleWidth = range / (tickCount - 1)
+            else
+                scaleWidth = range / 1
+            end
+        end
+        return scaleWidth
+    end
+
+
+    action DisposeDrawables()
+        if title not= undefined
+            title:Dispose()
+            Remove(title)
+            title = undefined
+        end
+
+        if axis not= undefined
+            axis:Dispose()
+            Remove(axis)
+            axis = undefined
+        end
+
+        if not ticks:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < ticks:GetSize()
+                temp = ticks:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            ticks:Empty()
+        end
+
+        if not majorlines:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < majorlines:GetSize()
+                temp = majorlines:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            majorlines:Empty()
+        end
+
+        if not minorlines:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < minorlines:GetSize()
+                temp = minorlines:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            minorlines:Empty()
+        end
+
+        if not labels:IsEmpty()
+            ControlLabel temp = undefined
+            integer i = 0
+            repeat while i < labels:GetSize()
+                temp = labels:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            labels:Empty()
+        end
+        Empty()
+    end
+
+
+    /*
+    These actions control the title on the axis.
+
+    Attribute: Label for horizontal panel.
+    */
+
+    action GetTitleFontSize returns integer
+        return titleFontSize
+    end
+
+    action SetTitleFontSize(integer size)
+        titleFontSize = size
+    end
+
+    action SetTitleLabel(ControlLabel title)
+        me:title = title
+    end
+
+    action SetTitleText(text name)
+        titleText = name
+    end    
+
+    action GetTitleLabel() returns ControlLabel
+        return title
+    end
+
+    action GetTitleText() returns text
+        return titleText
+    end
+
+    action SetName(text name)
+        parent:Item2D:SetName(name)
+        
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+
+        if defaultProperties not= undefined
+            defaultProperties:SetLabelText(name)
+        end
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:SetText(name)
+        end
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+
+    Attribute: Array of major and minor gridlines and number of minor gridlines
+    */
+    action GetMinorGridlineCount returns integer
+        return minorlinecount
+    end
+
+    action SetMinorGridlineCount(integer count)
+        minorlinecount = count
+    end
+
+    action GetMinorGridlines returns Array<Drawable>
+        return minorlines
+    end
+
+    action GetMajorGridlines returns Array<Drawable>
+        return majorlines
+    end
+
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetTicks returns Array<Drawable>
+        return ticks
+    end
+
+    // This is used when the user manually sets the number of ticks.
+    action SetTickCountOverride(integer ticks)
+        if overrideLabels = undefined
+            tickCount = ticks
+            tickCountOverride = true
+        end
+    end
+
+    action SetTickCount(integer ticks)
+        tickCount = ticks
+    end
+
+    action GetTickCount() returns integer
+        return tickCount
+    end
+
+    // This cannot change an interval on a text-scale.
+    action SetTickInterval(number set)
+        if overrideLabels = undefined
+            tickinterval = set
+        end
+    end
+
+    action GetTickInterval() returns number
+        return tickinterval
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+
+    Attribute: The tick labels for the axis
+    */
+    action GetLabels returns Array<ControlLabel>
+        return labels
+    end
+
+    action SetLabels(Array<ControlLabel> newLabels)
+        labels = newLabels
+    end
+
+    action GetLabelFontSize returns integer
+        return labelFontSize
+    end
+
+    action SetLabelFontSize(integer size)
+        labelFontSize = size
+    end
+
+    action GetWidestLabel returns number
+        return widestLabel
+    end
+
+    action SetWidestLabel(number width)
+        widestLabel = width
+    end
+
+    action GetSumOfLabelWidths returns number
+        return sumOfLabelWidths
+    end
+
+    action SetSumOfLabelWidths(number newSum)
+        sumOfLabelWidths = newSum
+    end
+
+    action GetSumOfLabelHeights returns number
+        return sumOfLabelHeights
+    end
+
+    action SetSumOfLabelHeights(number newSum)
+        sumOfLabelHeights = newSum
+    end
+
+    action SetOverrideLabels(Array <text> textLabels)
+        if labels not= undefined
+            overrideLabels = textLabels
+        end
+    end  
+
+    action GetOverrideLabels() returns Array <text>
+        return overrideLabels
+    end  
+
+    action UseTextLabelOverride() returns boolean
+        if overrideLabels = undefined
+            return false
+        else
+            return true
+        end
+    end  
+
+    /*
+    These actions control whether decimal numbers or integers are shown
+    along the x-axis (if the axis is numerical not text)
+    All values are stored in number format but can be 
+    read or used as integer format if UseInteger() returns true.
+
+    Attribute: Text that is either "integer" or "number"
+    */
+    action SetNumberFormat(text format)
+        numberformat = format
+    end
+
+    action GetNumberFormat() returns text
+        return numberformat
+    end
+
+    action UseIntegers() returns boolean
+        if numberformat = "integer"
+            return true
+        else
+            return false
+        end
+    end
+    
+    /*
+    These actions control the minimum and maximum horizontal scale.
+    These values are used in all charts regardless if axis is showing 
+    or not in order to scale the items to the right location.
+    */
+    action GetMinimum returns number
+        return min
+    end
+
+    action GetMaximum returns number
+        return max
+    end
+
+    action SetMinimum(number min)
+        me:min = min
+    end
+
+    action SetMaximum(number max)
+        me:max = max
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetAxis returns Drawable
+        return axis
+    end
+
+    action SetAxis(Drawable line)
+        axis = line
+    end
+end

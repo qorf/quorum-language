@@ -117,6 +117,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 Series series
                 series:SetName(columnFrame:GetHeader())
                 series:AddItem(plot:GetIcon())
+                series:AddItem(plot)
                 seriesFactor:Add(columnFrame:GetHeader(), series)
 
                 PlotGroup group
@@ -285,6 +286,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
                 if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
                     seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
+                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
                 end
                 if groupFactor:HasKey(groupKeyArray:Get(i))
                     groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)

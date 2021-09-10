@@ -54,13 +54,6 @@ use Libraries.Compute.Math
 
 class BoxPlotLayout is ChartLayout
     /*
-        This action lays out the axis labels on the horizontal
-    */
-    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
-        parent:ChartLayout:LayoutHorizontalAxis(chart, horizontalContainer)
-    end
-
-    /*
         This action determines the layout of the chart area
     */
       action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -150,7 +143,7 @@ class BoxPlotLayout is ChartLayout
                         */
                         
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
-                        Array<Drawable> item = plot:GetItems()
+                        Array<Drawable> item = plot:GetPlotItems()
                         Color darkColor = plot:GetIcon():GetColor()
                         Color lightColor = darkColor:Copy()
                         lightColor:SetAlpha(0.5)

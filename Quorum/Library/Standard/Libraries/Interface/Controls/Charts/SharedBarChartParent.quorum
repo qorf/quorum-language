@@ -33,7 +33,7 @@ class SharedBarChartParent is Chart
 
 
     Color barColor = undefined
-    Color barSelectionColor = undefined
+    Color highlightColor = undefined
 
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
@@ -49,6 +49,15 @@ class SharedBarChartParent is Chart
         if target not= undefined and target is ControlLabel
             ControlLabel temp = cast(ControlLabel, target)
             temp:LostSelection()
+        elseif target not= undefined and target is Series
+            Series temp = cast(Series, target)
+            integer i = 0
+            repeat while i < temp:GetSize()
+                Drawable item = temp:GetItemAt(i)
+                item:SetColor(previousColor)
+                i = i + 1
+            end
+            temp:GetLabel():LostSelection()
         elseif target not= undefined and target is Icon
             Icon temp = cast(Icon, target)
             temp:SetColor(previousColor)
@@ -74,11 +83,21 @@ class SharedBarChartParent is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:GainedSelection()
+            elseif target not= undefined and target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Drawable item = temp:GetItemAt(i)
+                    item:SetColor(GetHighlightColor())
+                    i = i + 1
+                end
+                temp:GetLabel():GainedSelection()
             elseif target is Icon
                 Color c
                 Icon temp = cast(Icon, target)
                 previousColor = temp:GetColor()
-                temp:SetColor(GetBarSelectionColor())
+                temp:SetColor(GetHighlightColor())
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -86,7 +105,7 @@ class SharedBarChartParent is Chart
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
                     view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(properties:GetBackgroundColor(), GetBarSelectionColor())
+                    view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end
             end            
@@ -163,15 +182,15 @@ class SharedBarChartParent is Chart
     /*
         Gets the default selection color (highlighting) for the bars
     */
-    action GetBarSelectionColor returns Color
-        return barSelectionColor
+    action GetHighlightColor() returns Color
+        return highlightColor
     end
 
     /*
         Sets the default selection color (highlighting) for the bars
     */
-    action SetBarSelectionColor(Color color)
-        me:barSelectionColor = color
+    action SetHighlightColor(Color color)
+        me:highlightColor = color
     end
 
     /*
@@ -212,40 +231,29 @@ class SharedBarChartParent is Chart
         //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
-        ChartItem chartArea//not to be confused with panel
-        //Level 1 top level
+        ChartItem chartArea //not to be confused with panels
+        
+        // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(yAxis)
-        summary:SetChild(yAxis)
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-    
-        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
-        xAxis:SetDisplayName("Horizontal Axis")
-        xAxis:SetFocusTarget(GetXLabel())
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(GetYLabel())
-        
         chartArea:SetDisplayName("Chart Area " + numberOfBars + " bars")
         chartArea:SetFocusTarget(me:GetChartArea())
-        me:GetChartArea():SetDescription(numberOfBars + " bars")
-        xAxis:SetContainer(me)        
-        yAxis:SetContainer(me)
-        chartArea:SetContainer(me)
-
-        yAxis:SetNext(chartArea)
-        chartArea:SetNext(xAxis)
-        xAxis:SetPrevious(chartArea)
-        yAxis:SetPrevious(xAxis)
-
-        chartArea:SetPrevious(yAxis)
-        xAxis:SetParent(summary)
-        yAxis:SetParent(summary)
         chartArea:SetParent(summary)
-
-        // Legend Area
+        chartArea:SetContainer(me)
+        me:GetChartArea():SetDescription(numberOfBars + " bars")
+    
+        // If any of these are not showing the tree will skip them in the navigation        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingXAxis()
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
         if hasBarGroups
@@ -344,59 +352,6 @@ class SharedBarChartParent is Chart
             end
         end
 
-        //scale
-        ChartItem genericScaleNode
-        genericScaleNode:SetContainer(me)
-        genericScaleNode:SetDisplayName("The scale has " + GetYTickCount() + " tick marks and goes from 0.0  to " + GetYAxisMaximum())
-        genericScaleNode:SetParent(yAxis)
-        yAxis:GetFocusTarget():SetDescription("Scale with " + GetYTickCount() + " ticks, from 0.0 to " + GetYAxisMaximum())
-        ChartItem firstScale
-        firstScale:SetContainer(me)
-        Array<ControlLabel> scaleLabels = GetYLabels()
-        if numberOfBars > 0
-            firstScale:SetParent(yAxis)
-            firstScale:SetFocusTarget(scaleLabels:Get(0))
-            yAxis:SetChild(firstScale)
-        end
-
-        i = 1
-        ChartItem previous = firstScale
-        repeat while i < scaleLabels:GetSize()
-            ChartItem scaleNode
-            scaleNode:SetContainer(me)
-            scaleNode:SetParent(yAxis)
-            scaleNode:SetPrevious(previous)
-            scaleNode:SetFocusTarget(scaleLabels:Get(i))
-            previous:SetNext(scaleNode)
-            previous = scaleNode
-            i = i + 1
-        end
-
-        //x axis labels
-        Array<ControlLabel> xLabels = GetXLabels()
-        ChartItem firstLabel
-        firstLabel:SetContainer(me)
-        if numberOfBars > 0
-            xAxis:SetChild(firstLabel)
-            firstLabel:SetDisplayName(xLabels:Get(0):GetName())
-            firstLabel:SetParent(xAxis)
-            firstLabel:SetFocusTarget(xLabels:Get(0))
-        end
-
-        i = 1
-        ChartItem previousLabel = firstLabel
-        repeat while i < xLabels:GetSize()
-            ChartItem labelNode
-            labelNode:SetContainer(me)
-            labelNode:SetDisplayName(xLabels:Get(i):GetName())
-            labelNode:SetParent(chartArea)
-            labelNode:SetFocusTarget(xLabels:Get(i))
-            previousLabel:SetNext(labelNode)
-            labelNode:SetPrevious(previousLabel)
-            previousLabel = labelNode
-            i = i + 1
-        end
-
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
@@ -424,23 +379,8 @@ class SharedBarChartParent is Chart
     */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
-        parent:Chart:LoadGraphics(properties)
         if properties = undefined
             return now
-        end
-
-        Control chartArea = GetChartArea()
-        ChartOptions options
-        if GetBarColor() = undefined
-            SetBarColor(options:GetBarColor())
-        end
-
-        if GetBarSelectionColor() = undefined
-            SetBarSelectionColor(options:GetSelectionColor())
-        end
-
-        if GetDefaultOrientation() = undefined
-            SetDefaultOrientation("vertical")
         end
 
         // If stacked, we need to adjust the maximum value to the full stack
@@ -453,25 +393,31 @@ class SharedBarChartParent is Chart
                     sum = sum + barGroups:Get(i):Get(j):GetValue()
                     j = j + 1
                 end
-                if GetHorizontalFlag()
-                    if sum > GetXAxisMaximum()
-                        SetXAxisMaximum(sum, true)
-                        LoadXAxis()
-                    end
-                else
-                    if sum > GetYAxisMaximum()
-                        SetYAxisMaximum(sum, true)
-                        LoadYAxis()
-                    end
+                if sum > GetYAxisMaximum()
+                    SetYAxisMaximum(sum)
                 end
                 i = i + 1
             end
         end
 
+        parent:Chart:LoadGraphics(properties)
+        Control chartArea = GetChartArea()
+        ChartOptions options
+        if GetBarColor() = undefined
+            SetBarColor(options:GetBarColor())
+        end
+
+        if GetHighlightColor() = undefined
+            SetHighlightColor(options:GetSelectionColor())
+        end
+
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
+        end
+
         integer i = 0
         repeat while i < barGroups:GetSize()
-            integer j = 0
-                         
+            integer j = 0                 
             if hasBarGroups
                 Icon barGroupIcon = barGroups:Get(i):GetIcon() 
                 barGroupIcon:SetName("Bar Group " + (i + 1))
@@ -517,7 +463,7 @@ class SharedBarChartParent is Chart
             series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
             integer j = 0
             repeat while j < series:GetSize()
-                series:GetItem(j):SetColor(series:GetColor())
+                series:GetItemAt(j):SetColor(series:GetColor())
                 j = j + 1
             end
             i = i + 1

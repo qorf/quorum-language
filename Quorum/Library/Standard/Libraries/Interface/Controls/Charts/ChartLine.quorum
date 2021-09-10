@@ -115,7 +115,33 @@ class ChartLine is Drawable
         me:lineColor = lineColor
         integer i = 0
         repeat while i < points:GetSize()
-        points:Get(i):SetColor(lineColor)
+            points:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+    end
+
+    /*
+    Sets/changes the z value for this line.
+    True will bring forward, false will move it back.
+    */
+    action BringForward(boolean show)
+        integer value = 0
+        if show
+            value = -1
+        end
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetZ(value)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetZ(value)
             i = i + 1
         end
     end

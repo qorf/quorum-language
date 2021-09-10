@@ -214,7 +214,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 if not useFactor
                     xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
                     numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
-                    chart:UseIntegersOnXAxis(true)
+                    chart:SetXAxisNumberFormat("integer")
                 else
                     xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
                     numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))

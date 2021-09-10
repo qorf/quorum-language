@@ -39,9 +39,7 @@ class SharedBarChartLayout is ChartLayout
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
         
-        Drawable axis = chart:GetXAxis()
-        number axisHeight = axis:GetHeight()
-        number height = chartArea:GetHeight()-axisHeight
+        number height = chartArea:GetHeight()
         number width = chartArea:GetWidth()
 
         integer currentXPosition = 0
@@ -64,14 +62,12 @@ class SharedBarChartLayout is ChartLayout
                 numberOfBars = numberOfGroups
             end
             if horizontal
-                axis = chart:GetYAxis()
-                axisHeight = axis:GetWidth()
                 width = chartArea:GetHeight()
-                height = chartArea:GetWidth()-axisHeight
+                height = chartArea:GetWidth()
                 rangeMax = xMax
                 rangeMin = xMin
             end
-            currentYPosition = cast(integer, axisHeight)
+            currentYPosition = 0
 
             // Space on each side of the inner chart (5%)
             outerEdgePadding = cast(integer, ((width * 0.05) / 2))
@@ -191,7 +187,7 @@ class SharedBarChartLayout is ChartLayout
                         newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
                     end
                 end
-                currentYPosition = cast(integer, axisHeight)
+                currentYPosition = 0
                 groupHeight = 0
                 groupX = currentXPosition
                 i = i + 1

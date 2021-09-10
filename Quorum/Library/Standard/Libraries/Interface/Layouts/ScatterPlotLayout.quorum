@@ -29,20 +29,15 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
         i = 0
         repeat while i < points:GetSize()
-            Icon pointIcon = points:Get(i):GetIcon()
             ChartPoint point = points:Get(i)
             
             point:LoadFilledCircle(radius, points:Get(i):GetColor())
-            pointIcon:LoadFilledCircle(radius+2, chart:GetHighlightColor()) //Slightly denser when highlighted
 
             point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
             point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))
             integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
             integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
             point:SetPosition(x, y)
-            pointIcon:SetPosition(x-2, y-2) // -2 to make up for denser icon
-            pointIcon:SetZ(-1)
-            pointIcon:Hide()
             i = i + 1
         end
     end
