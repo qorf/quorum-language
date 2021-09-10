@@ -26,13 +26,14 @@ class Main
 end
 */
 
-class Plot
+class Plot is Drawable
     Vector data
     Array <number> info
     Array <number> outliers
     Array <Drawable> items
+    Series series
     Icon icon
-    Color color
+    Color plotcolor
     text name = ""
 
     /* Indices info of individual plot values (info)
@@ -67,12 +68,12 @@ class Plot
     end
 
     action SetColor(Color color)
-        icon:SetColor(color)
-        me:color = color
+//        icon:SetColor(color)
+        plotcolor = color
     end
-    
+
     action GetColor() returns Color
-        return color
+        return plotcolor
     end
 
     action GetIcon() returns Icon
@@ -128,7 +129,7 @@ class Plot
         items:Add(item)
     end
     
-    action GetItems() returns Array<Drawable> 
+    action GetPlotItems() returns Array<Drawable> 
         return items
     end
 end

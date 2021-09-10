@@ -1,5 +1,6 @@
 package Libraries.Data.Formats.ScalableVectorGraphics
 
+use Libraries.Game.Graphics.Color
 /*
     The ScalableVectorGraphicsObject class represents all of the global attributes
     that SVG objects can have. Note that because this class
@@ -36,6 +37,14 @@ class ScalableVectorGraphicsObject
     private text fill = ""
     private text stroke = ""
     private text strokeWidth = ""
+
+    //aria-related attributes
+    private text role = ""
+    private text ariaActiveDescendant = ""
+    private text ariaLabel = ""
+    private text ariaDescription = ""
+    private text ariaRoleDescription = ""
+    
 
     //helper attributes
     private boolean isContainer = false
@@ -74,6 +83,21 @@ class ScalableVectorGraphicsObject
         end
         if strokeWidth not= ""
             result = result + " stroke-width="+dq+strokeWidth+dq
+        end
+        if role not= ""
+            result = result + " role="+dq+role+dq
+        end
+        if ariaActiveDescendant not= ""
+            result = result + " aria-activedescendant="+dq+ariaActiveDescendant+dq
+        end
+        if ariaLabel not= ""
+            result = result + " aria-label="+dq+ariaLabel+dq
+        end
+        if ariaDescription not= ""
+            result = result + " aria-description="+dq+ariaDescription+dq
+        end
+        if ariaRoleDescription not= ""
+            result = result + " aria-roledescription="+dq+ariaRoleDescription+dq
         end
         return result
     end
@@ -371,6 +395,34 @@ class ScalableVectorGraphicsObject
         me:fill = fill
     end
 
+    
+    /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color used to paint the object
+
+        Attribute: Parameter fill The fill attribute for the object. For shapes and text this will be a color and 
+            color in SVG is defined by the CSS data type so this could be defined a keyword, the RGB cubic-coordinate 
+            system, or the HSL cyclindrical-coordinate system.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetFill(blue)
+    */
+    action SetFill(Color fill)
+        if (fill not= undefined)
+            text rgba = "rgba(" + fill:GetRed()*255 + "," + fill:GetGreen()*255 + "," + fill:GetBlue()*255 + "," + fill:GetAlpha()*255 + ")"
+            me:fill = rgba
+        end
+    end
+
     /*
         This action returns the fill of the object.
 
@@ -406,6 +458,34 @@ class ScalableVectorGraphicsObject
     */
     action SetStroke(text stroke)
         me:stroke = stroke
+    end
+
+    /*
+        This action will give a stroke attribute to the SVG element. This attribute defines the color used to paint 
+        the outline of a shape. For shapes like lines that have no fill a stroke must be set so that the line will
+        be visible. 
+
+        Attribute: Parameter stroke The stroke attribute for the object. For shapes and text this will be a color and 
+            color in SVG is defined by the CSS data type so this could be defined a keyword, the RGB cubic-coordinate 
+            system, or the HSL cyclindrical-coordinate system.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+        
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetStroke(blue)
+    */
+    action SetStroke(Color stroke)
+        if (stroke not= undefined)
+            text rgba = "rgba(" + stroke:GetRed()*255 + "," + stroke:GetGreen()*255 + "," + stroke:GetBlue()*255 + "," + stroke:GetAlpha()*255 + ")"
+            me:stroke = rgba
+        end
     end
 
     /*
@@ -476,6 +556,90 @@ class ScalableVectorGraphicsObject
     */
     action GetStrokeWidth returns text
         return strokeWidth
+    end
+
+    /*
+        This action will give a role attribute to the SVG element. This role can be for general use
+        by a web browser.
+
+        Attribute: Parameter role The role name for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetRole("region")
+    */
+    action SetRole(text role)
+        me:role = role
+    end
+
+    action GetRole returns text
+        return role
+    end
+
+    /*
+        This action will give a aria-label attribute to the SVG element. This aria-label can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaLabel The aria-label name for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaLabel("My Circle")
+    */
+    action SetAriaLabel(text ariaLabel)
+        me:ariaLabel = ariaLabel
+    end
+
+    action GetAriaLabel returns text
+        return ariaLabel
+    end
+
+    /*
+        This action will give a aria-description attribute to the SVG element. This aria-description can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaDescription The aria-description for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaDescription("This is a blue circle with a radius of 5.0")
+    */
+    action SetAriaDescription(text ariaDescription)
+        me:ariaDescription = ariaDescription
+    end
+
+    action GetAriaDescription returns text
+        return ariaDescription
+    end
+
+    /*
+        This action will give a aria-roledescription attribute to the SVG element. This aria-roledescription can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaRoleDescription The aria-roledescription for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaRoleDescription("This is a blue circle with a radius of 5.0")
+    */
+    action SetAriaRoleDescription(text ariaRoleDescription)
+        me:ariaRoleDescription = ariaRoleDescription
+    end
+
+    action GetAriaRoleDescription returns text
+        return ariaRoleDescription
     end
 
 end

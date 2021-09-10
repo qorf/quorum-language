@@ -69,81 +69,10 @@ class BoxPlot is Chart
     Color previousColor = undefined
 
     ChartOptions options
+    Math math
 
     boolean showOutliers = true
     boolean hasGroups = true
-
-    // How many ticks are set along the y axis and max value on y axis.
-    private integer yIncrements = 0 //increments in the y axis
-    private number yMaximum = 0 // the maximum value in y axis
-    
-    // Initial size of x and y axis
-    private integer IntervalLength = 10
-    private integer IntervalWidth = 30
-
-    // Labels that is shown on the x axis
-    private Array<text> xAxisLabels
-
-   // SetYAxisTitle("Speed of Cars miles per hour")
-    public text xTitle = ""
-    public text yTitle = ""
-
-    // Panels
-    Control TitlePanel
-    Control AreaOfChart
-    Control VerticalTitlePanel
-    Control HorizontalTitlePanel
-    
-    //Gets the TitlePanel
-    action GetTitlePanel returns Control
-        return TitlePanel
-    end
-
-    // Gets the AreaOfChart
-    action GetChartA returns Control
-        return AreaOfChart
-    end
-
-    // Gets the HorizontalTitlePanel
-     action GetHorizontalTitlePanel returns Control
-        return HorizontalTitlePanel
-    end
-
-    // Gets the VerticalTitlePanel
-    action GetVerticalTitlePanel returns Control
-        return VerticalTitlePanel
-    end
-
-    // Sets the labels along the x axis
-    action SetXAxisLabels(Array<text> label)
-        xAxisLabels = label
-    end
-  
-    // Returns the labels
-    action GetXAxisLabels returns Array<text>
-        return xAxisLabels
-    end
-    
-    // Sets how many increments in y-axis
-    action SetYIncrementCount(integer increments)
-        yIncrements = increments
-    end
-   
-    // Returns number of increments on the y axis
-    action GetYIncrementCount returns integer
-        return yIncrements
-    end
-
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
-     end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
-    end
-
     /*
     Flag used to hide all the outliers.
     */
@@ -242,19 +171,20 @@ class BoxPlot is Chart
     action GenerateSummary returns text
         text lineText = "Groups"
         text plotText = "box plots"
-        if xAxisLabels:GetSize() = 1
+        if GetGroupPanels():GetSize() = 1
             linetext = "Group"
             plotText = "box plot"
         end
         if hasGroups
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
             + ". " + "Use the arrow keys to navigate the chart.")
         else
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
             + ". " + "Use the arrow keys to navigate the chart.")
         end
         return GetDescription()
-    end // end of GenerateSummary
+    end
+
 
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
@@ -263,7 +193,7 @@ class BoxPlot is Chart
         repeat while i < plotGroups:GetSize()
             integer j = 0
             repeat while j < plotGroups:Get(i):GetSize()
-                Array<Drawable> items = plotGroups:Get(i):Get(j):GetItems()
+                Array<Drawable> items = plotGroups:Get(i):Get(j):GetPlotItems()
                 integer k = 0
                 repeat while k < items:GetSize()
                     if items:Get(k) not= undefined
@@ -290,67 +220,22 @@ class BoxPlot is Chart
         This action loads the graphics to the game, and associates those graphics to their verbal descriptions.
     */
     action LoadGraphics(LayoutProperties properties)
-
         DisposeDrawables()
         parent:Chart:LoadGraphics(properties)
         if properties = undefined
             return now
         end
         
-        //Sets the base format of boxplot chart
-        Control vertical = GetVerticalPanel()
-        Control horizontal = GetHorizontalPanel()
         Control chartArea = GetChartArea()
-
-        // Gets the increments of the axes of the chart
-        Array<Drawable> drawable_Xincrements = GetXTicks()
-        Array<Drawable> drawable_Yincrements = GetScaleTicks()
-        
-        //Gets the labels of the axes
-        Array<ControlLabel> x_Labels = GetXLabels()
-        Array<ControlLabel> y_Labels = GetScaleLabels()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
-
-        //Adding Tick and labels on Y axis
-        if yIncrements not= 0 and drawable_Yincrements:IsEmpty()
-            number space = yMaximum/ (yIncrements - 1)
-            number curr = 0
-            repeat until drawable_Yincrements:GetSize() = yIncrements
-                Drawable Increment
-                Increment:LoadFilledRectangle(IntervalLength, IntervalWidth)
-                drawable_Yincrements:Add(Increment)
-                vertical:Add(Increment)
-
-                ControlLabel label
-                label:SetFontSize(GetFontSize())
-                label:SetFocusable(true)
-                label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(curr + " ")
-                label:SetName(curr + " ")
-                vertical:Add(label)
-                y_Labels:Add(label)
-                curr = curr + space
-            end //end of repeat statement
-        end // end of if statement
-
-        //Add Labels on X axis
-        integer count = 0
-        repeat while count < xAxisLabels:GetSize()
-            ControlLabel label
-            label:SetFocusable(true)
-            label:SetFontSize(GetFontSize())
-            label:SetAccessibilityCode(parent:Item:ITEM)
-            label:SetName(xAxisLabels:Get(count))
-            label:SetText(xAxisLabels:Get(count))
-            horizontal:Add(label)
-            x_Labels:Add(label)
-            count = count + 1
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
         end
 
-        // add drawables per each boxplot to the chart
+        // Adding drawables for each boxplot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
@@ -414,7 +299,6 @@ class BoxPlot is Chart
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
     
-    
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
@@ -455,8 +339,7 @@ class BoxPlot is Chart
                 plot:AddItem(upperWhisker)
                 plot:AddItem(maximumLine)
                 //Add the outliers
-    
-    
+
                 if GetOutliersFlag()
                     // Outliers ++
                     Array <number> outliers = plot:GetOutliers()
@@ -477,13 +360,14 @@ class BoxPlot is Chart
 
             // Area covering entire group panel
             Icon panel
-            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " box plots.")
+            panel:SetName(group:GetName() + " group has " + group:GetSize() + " box plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)
             group:SetItem(panel)
+            GetGroupPanels():Add(panel)
             i = i + 1
-        end//end of loop
+        end
 
         if seriesList:GetSize() > 0
             i = 0
@@ -492,23 +376,18 @@ class BoxPlot is Chart
                 series:SetColor(options:GetColorFromPalette(i))
                 series:GetLabel():SetFocusable(true)
                 series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                series:GetItem(i):SetColor(series:GetColor())
                 integer j = 0
                 repeat while j < series:GetSize()
-                    series:GetItem(j):SetColor(series:GetColor())
+                    series:GetItemAt(j):SetColor(series:GetColor())
                     j = j + 1
                 end
                 i = i + 1
             end
         end
-
-
         if IsShowingLegend()
             Add(GetLegend())
         end
-
-    end // end of loadGraphics
-           
+    end
 
     /* 
     Creates the accessibility information for the chart area.
@@ -518,22 +397,20 @@ class BoxPlot is Chart
             return now //we haven't loaded graphics yet, so bail.
         end
         
-                //NOTE: These nodes implement a cheap form of ordinality might need changing
+        //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
-        ChartItem chartArea//not to be confused with panel
-        //Level 1 top level
+        ChartItem chartArea //not to be confused with panels
+        
+        // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(yAxis)
-        summary:SetChild(yAxis)
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-    
-        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
-        xAxis:SetDisplayName("Horizontal Axis")
-        xAxis:SetFocusTarget(GetXLabel())
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(GetYLabel())
+        chartArea:SetFocusTarget(me:GetChartArea())
+        chartArea:SetParent(summary)
+        chartArea:SetContainer(me)
 
         chartArea:SetDisplayName("Box Plot")
         if hasGroups
@@ -541,75 +418,17 @@ class BoxPlot is Chart
         else
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " box plots")
         end
-        chartArea:SetFocusTarget(me:GetChartArea())
-        xAxis:SetContainer(me)        
-        yAxis:SetContainer(me)
-        chartArea:SetContainer(me)
-
-        yAxis:SetNext(chartArea)
-        chartArea:SetNext(xAxis)
-        xAxis:SetPrevious(chartArea)
-        yAxis:SetPrevious(xAxis)
-
-        chartArea:SetPrevious(yAxis)
-        xAxis:SetParent(summary)
-        yAxis:SetParent(summary)
-        yAxis:SetPrevious(summary)
-        chartArea:SetParent(summary)
-
-        // Legend Area
-        if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
+    
+        // If any of these are not showing the tree will skip them in the navigation        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
-
-       // Makes control labels for y axis
-        Array<ControlLabel> y_Labels = GetScaleLabels()
-        ChartItem y_Prev
-    
-        integer i = 0
-    
-        repeat while i < y_Labels:GetSize()
-            ChartItem next
-            if i = 0
-                yAxis:SetChild(next)
-            else
-                next:SetPrevious(y_Prev)
-                y_Prev:SetNext(next)
-            end
-        
-            next:SetDisplayName(y_Labels:Get(i):GetText())
-            next:SetFocusTarget(y_Labels:Get(i))
-            next:SetContainer(me)
-            next:SetParent(yAxis)
-            
-            y_Prev = next
-        
-            i = i + 1 
-        end //end of repeat loop
-
-
-        //Makes control labels for x axis      
-        Array<ControlLabel> x_Labels = GetXLabels()
-        ChartItem x_Prev
-        integer j = 0
-        repeat while j < x_Labels:GetSize()
-            ChartItem next
-            if j =0
-                xAxis:SetChild(next)
-            else
-                next:SetPrevious(x_Prev)
-                x_Prev:SetNext(next)
-            end
-            
-            next:SetDisplayName(x_Labels:Get(j):GetText())
-            next:SetFocusTarget(x_Labels:Get(j))
-            next:SetContainer(me)
-            next:SetParent(xAxis)
-           
-            x_Prev = next
-
-            j = j + 1
-        end // end of loop
+        if IsShowingXAxis()
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingLegend()
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
         
         if hasGroups
             //Plot Groups
@@ -626,7 +445,7 @@ class BoxPlot is Chart
                     integer k = 0
                     repeat while k < plotGroups:Get(0):GetSize()
                         ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(0):Get(k):GetItems() //First plot
+                        Array<Drawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
                         if k = 0
                             firstGroup:SetChild(next_target)
                         else
@@ -688,7 +507,7 @@ class BoxPlot is Chart
                     integer k = 0
                     repeat while k < plotGroups:Get(i):GetSize()
                         ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(i):Get(k):GetItems() //First plot
+                        Array<Drawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
                         if k = 0
                             group:SetChild(next_target)
                         else
@@ -738,7 +557,7 @@ class BoxPlot is Chart
             integer k = 0
             repeat while k < plotGroups:GetSize()
                 ChartItem next_target
-                Array<Drawable> items = plotGroups:Get(k):Get(0):GetItems() //First plot
+                Array<Drawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
                 if k = 0
                     chartArea:SetChild(next_target)
                 else
@@ -798,8 +617,29 @@ class BoxPlot is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:LostSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    integer j = 1
+                    repeat while j < plot:GetPlotItems():GetSize()
+                        Drawable item = plot:GetPlotItems():Get(j)
+                        if j = 3
+                            Color lightColor = previousColor:Copy()
+                            lightColor:SetAlpha(0.5)
+                            item:SetColor(lightColor)
+                        else
+                            item:SetColor(previousColor)
+                        end
+                        j = j + 1
+                    end
+                    i = i + 2
+                end
+                temp:GetLabel():LostSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(0)
                 temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
@@ -825,8 +665,24 @@ class BoxPlot is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:GainedSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    integer j = 1
+                    repeat while j < plot:GetPlotItems():GetSize()
+                        Drawable item = plot:GetPlotItems():Get(j)
+                        item:SetColor(GetHighlightColor())
+                        j = j + 1
+                    end
+                    i = i + 2
+                end
+                temp:GetLabel():GainedSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(-1)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())
             elseif target is Control
@@ -835,7 +691,7 @@ class BoxPlot is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end

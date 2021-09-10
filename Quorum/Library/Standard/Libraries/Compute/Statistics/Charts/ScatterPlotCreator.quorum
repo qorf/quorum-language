@@ -36,9 +36,6 @@ use Libraries.Containers.Support.Comparison
     chart:Display()
 */
 class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    integer xTicks = 5
-    integer yTicks = 5
-
     // The minimum and maximum values portrayed in the chart area.
     number xAxisMinimum = 0
     number xAxisMaximum = 1
@@ -47,22 +44,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     Comparison comparison = undefined
     ChartOptions options
 
-    /*
-    Whether the minimum and maximum values of the chart area have been
-    set manually. Any value that isn't set manually should instead be
-    derived from the data, e.g., the lowest x-value among the data points
-    for the x-minimum value, etc.
-    */
-    boolean manualXAxisMinimum = false
-    boolean manualXAxisMaximum = false
-    boolean manualYAxisMinimum = false
-    boolean manualYAxisMaximum = false
-
     action Create(DataFrame frame) returns Chart
-        if GetColumnSize() > 1 and GetFactorSize() = 0
-            return CreateChart(frame)
-        elseif GetColumnSize() > 1 and GetFactorSize() > 0
-            alert("Factors cannot be used for scatter plots at this time.")
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        if columns > 1 and factors = 0
+            return CreateChart(frame, false)
+        elseif columns = 2 and factors = 1
+            return CreateChart(frame, true)
         else
             alert("ScatterPlotCreator does not support the number of column/factors that were selected.")
         end
@@ -70,16 +59,41 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return undefined
     end
 
-    action CreateChart(DataFrame frame) returns Chart
+    action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         ScatterPlot chart
         boolean numericalXData = true
         boolean numericalYData = true
+        boolean numericalFactor = false
         integer columns = GetColumnSize()
+
         HashTable<text, Series> seriesFactor
+        HashTable<number, text> numberForText //Used to later sort
         HashTable<text, number> xLabels //Used for non-numerical data
         HashTable<text, number> yLabels //Used for non-numerical data
         Vector xVector
         Vector yVector
+
+        DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
+        if useFactor
+            factor = frame:GetColumn(GetFactor(0))
+            if factor:IsNumberColumn()
+                numericalFactor = true
+            end
+            integer i = 0 
+            repeat while i < factor:GetSize()
+                if not factor:IsUndefined(i)
+                    if(not seriesFactor:HasKey(factor:GetAsText(i)))
+                        Series series
+                        series:SetName(factor:GetAsText(i))
+                        seriesFactor:Add(factor:GetAsText(i), series)
+                        if numericalFactor
+                            numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
+                        end
+                    end
+                end
+                i = i + 1 
+            end
+        end
 
         // The first column will default to the x-axis
         DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
@@ -108,10 +122,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 numericalYData = false
             end
 
-            if(not seriesFactor:HasKey(dfy:GetHeader()))
-                Series series
-                series:SetName(dfy:GetHeader())
-                seriesFactor:Add(dfy:GetHeader(), series)
+            if not useFactor
+                if(not seriesFactor:HasKey(dfy:GetHeader()))
+                    Series series
+                    series:SetName(dfy:GetHeader())
+                    seriesFactor:Add(dfy:GetHeader(), series)
+                end
             end
 
             i = i + 1
@@ -120,40 +136,26 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetXAxisTitle(dfx:GetHeader())
         if columns = 2
             chart:SetYAxisTitle(frame:GetColumn(GetColumn(1)):GetHeader())
-        end
-
-        // Sort the series
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
         else
-            seriesKeyArray:Sort(comparison)
+            chart:SetYAxisTitle("Total")
         end
 
-        number xMin = GetXAxisMinimum()
-        number xMax = GetXAxisMaximum()
-        number yMin = GetYAxisMinimum()
-        number yMax = GetYAxisMaximum()
+        number xMin = chart:GetXAxisMinimum()
+        number xMax = chart:GetXAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
+        number yMax = chart:GetYAxisMaximum()
 
         // If everything is numerical
         if numericalXData and numericalYData
             Summarize xSum
             dfx:Calculate(xSum)
-            if GetManualXAxisMinimum() = false
-                xMin = xSum:GetMinimum()
-            end
-            if GetManualXAxisMaximum() = false
-                xMax = xSum:GetMaximum()
-            end
+            xMin = xSum:GetMinimum()
+            xMax = xSum:GetMaximum()
     
             Summarize ySum
             frame:GetColumn(GetColumn(1)):Calculate(ySum)
-            if GetManualYAxisMinimum() = false
-                yMin = ySum:GetMinimum()
-            end
-            if GetManualYAxisMaximum() = false
-                yMax = ySum:GetMaximum()
-            end
+            yMin = ySum:GetMinimum()
+            yMax = ySum:GetMaximum()
     
             i = 1 
             repeat while i < columns
@@ -176,16 +178,22 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = dfx:GetAsNumber(j)
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
-                        point:SetPercentX((x - xMin) / (xMax - xMin))
-                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -231,12 +239,8 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
             Summarize ySum
             frame:GetColumn(GetColumn(1)):Calculate(ySum)
-            if GetManualYAxisMinimum() = false
-                yMin = ySum:GetMinimum()
-            end
-            if GetManualYAxisMaximum() = false
-                yMax = ySum:GetMaximum()
-            end
+            yMin = ySum:GetMinimum()
+            yMax = ySum:GetMaximum()
     
             i = 2 
             repeat while i < columns
@@ -255,16 +259,22 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = dfy:GetAsNumber(j)
                         ChartPoint point
-                        point:SetPercentX((x - xMin) / (xMax - xMin))
-                        point:SetPercentY((y - yMin) / (yMax - yMin))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -350,16 +360,22 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = xLabels:GetValue(dfx:GetAsText(j))
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
-                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
-                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -377,12 +393,8 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         else
             Summarize xSum
             dfx:Calculate(xSum)
-            if GetManualXAxisMinimum() = false
-                xMin = xSum:GetMinimum()
-            end
-            if GetManualXAxisMaximum() = false
-                xMax = xSum:GetMaximum()
-            end
+            xMin = xSum:GetMinimum()
+            xMax = xSum:GetMaximum()
 
             // Get distinct y-axis labels
             i = 1
@@ -430,16 +442,22 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j)
+                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
                         number x = dfx:GetAsNumber(j)
                         number y = yLabels:GetValue(dfy:GetAsText(j))
                         ChartPoint point
-                        point:SetPercentX((x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum))
-                        point:SetPercentY((y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum))
+                        point:SetValueX(x)
+                        point:SetValueY(y)
                         point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
 
-                        if(seriesFactor:HasKey(dfy:GetHeader()))
-                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                        if useFactor
+                            if(seriesFactor:HasKey(factor:GetAsText(j)))
+                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            end
+                        else
+                            if(seriesFactor:HasKey(dfy:GetHeader()))
+                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            end
                         end
                         chart:Add(point)
                     end
@@ -451,256 +469,46 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             chart:OverrideYLabelsWithText(yLabelTextArray)
         end
 
-        // Add all the series to the chart
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
+        // Sort and add the series
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if numericalFactor
+            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
+            if comparison = undefined
+                numberKeyArray:Sort()
+            else
+                numberKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < numberKeyArray:GetSize()
+                chart:AddSeries(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
+                i = i + 1
+            end
+        else
+            if comparison = undefined
+                seriesKeyArray:Sort()
+            else
+                seriesKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < seriesKeyArray:GetSize()
+                chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+                i = i + 1
+            end
+        end 
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
+        if useFactor
+            legend:SetName(factor:GetHeader())
+        end
         chart:SetLegend(legend)
 
+        chart:SetDefaultOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)
         chart:SetXAxisMinimum(xAxisMinimum)
-        chart:SetYTickCount(yTicks)
-        chart:SetXTickCount(xTicks)
         chart:Populate()
         return chart
-    end
-
-    /*
-    This action returns how many scale ticks should be used along the X axis of the ScatterPlot.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the X axis of the ScatterPlot.
-    */
-    action GetXTickCount returns integer
-        return xTicks
-    end
-
-    /*
-    This action sets how many scale ticks should be used along the X axis of the ScatterPlot.
-    By default, this value is 5.
-
-    Attribute: Parameter xTicks How many ticks should be used along the X axis of the ScatterPlot.
-    */
-    action SetXTickCount(integer xTicks)
-        me:xTicks = xTicks
-    end
-
-    /*
-    This action returns how many scale ticks should be used along the Y axis of the ScatterPlot.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the Y axis of the ScatterPlot.
-    */
-    action GetYTickCount returns integer
-        return yTicks
-    end
-
-    /*
-    This action sets how many scale ticks should be used along the Y axis of the ScatterPlot.
-    By default, this value is 5.
-
-    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the ScatterPlot.
-    */
-    action SetYTickCount(integer yTicks)
-        me:yTicks = yTicks
-    end
-
-    /*
-    This action returns the minimum value on the X axis, if one has been manually set. If no value
-    has been set, the minimum X axis value will be determined from the minimum value of the dataset
-    used during the Create action. If no value has been set, this returns 0. To determine if a value
-    has been manually set, use the "GetManualXAxisMinimum" action.
-
-    Attribute: Returns The minimum value to be used for the X axis, or 0 if no value has been manually set.
-    */
-    action GetXAxisMinimum returns number
-        return xAxisMinimum
-    end
-
-    /*
-    This action manually sets the minimum value to present on the X axis of the ScatterPlot.
-
-    Attribute: Parameter xAxisMinimum The minimum value to present on the X axis of the ScatterPlot.
-    */
-    action SetXAxisMinimum(number xAxisMinimum)
-        SetManualXAxisMinimum(true)
-        me:xAxisMinimum = xAxisMinimum
-    end
-
-    /*
-    This action returns the maximum value on the X axis, if one has been manually set. If no value
-    has been set, the maximum X axis value will be determined from the maximum value of the dataset
-    used during the Create action. If no value has been set, this returns 1. To determine if a value
-    has been manually set, use the "GetManualXAxisMaximum" action.
-
-    Attribute: Returns The maximum value to be used for the X axis, or 1 if no value has been manually set.
-    */
-    action GetXAxisMaximum returns number
-        return xAxisMaximum
-    end
-
-    /*
-    This action manually sets the maximum value to present on the X axis of the ScatterPlot.
-
-    Attribute: Parameter xAxisMaximum The maximum value to present on the X axis of the ScatterPlot.
-    */
-    action SetXAxisMaximum(number xAxisMaximum)
-        SetManualXAxisMaximum(true)
-        me:xAxisMaximum = xAxisMaximum
-    end
-
-    /*
-    This action returns the minimum value on the Y axis, if one has been manually set. If no value
-    has been set, the minimum Y axis value will be determined from the minimum value of the dataset
-    used during the Create action. If no value has been set, this returns 0. To determine if a value
-    has been manually set, use the "GetManualYAxisMinimum" action.
-
-    Attribute: Returns The minimum value to be used for the Y axis, or 0 if no value has been manually set.
-    */
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
-    /*
-    This action manually sets the minimum value to present on the Y axis of the ScatterPlot.
-
-    Attribute: Parameter yAxisMinimum The minimum value to present on the Y axis of the ScatterPlot.
-    */
-    action SetYAxisMinimum(number yAxisMinimum)
-        SetManualYAxisMinimum(true)
-        me:yAxisMinimum = yAxisMinimum
-    end
-
-    /*
-    This action returns the maximum value on the Y axis, if one has been manually set. If no value
-    has been set, the maximum Y axis value will be determined from the maximum value of the dataset
-    used during the Create action. If no value has been set, this returns 1. To determine if a value
-    has been manually set, use the "GetManualYAxisMaximum" action.
-
-    Attribute: Returns The maximum value to be used for the Y axis, or 1 if no value has been manually set.
-    */
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-
-    /*
-    This action manually sets the maximum value to present on the Y axis of the ScatterPlot.
-
-    Attribute: Parameter yAxisMaximum The maximum value to present on the Y axis of the ScatterPlot.
-    */
-    action SetYAxisMaximum(number yAxisMaximum)
-        SetManualYAxisMaximum(true)
-        me:yAxisMaximum = yAxisMaximum
-    end
-
-    /*
-    This action returns true if the ScatterPlotCreator is using a manually set
-    minimum value for the X axis, or false otherwise. By default, this returns false.
-
-    Attribute: Returns True if using a manually set minimum X value, or false otherwise.
-    */
-    action GetManualXAxisMinimum returns boolean
-        return manualXAxisMinimum
-    end
-
-    /*
-    This action sets whether or not the creator should automatically determine the minimum
-    value of the X axis from the provided dataset during the Create action. Passing this
-    action the "true" value will make it use the manually set value from SetXAxisMinimum,
-    and using "false" will make it automatically determine the value from the data.
-
-    By default, this value is false. Setting the value manually via SetXAxisMinimum also
-    automatically sets this value, so typically this action is only needed to reset a
-    creator to its default behavior via SetManualXAxisMinimum(false).
-
-    Attribute: Parameter manualXAxisMinimum True to use a manually set X axis minimum value, or false to use the default behavior.
-    */
-    action SetManualXAxisMinimum(boolean manualXAxisMinimum)
-        me:manualXAxisMinimum = manualXAxisMinimum
-    end
-
-    /*
-    This action returns true if the ScatterPlotCreator is using a manually set
-    maximum value for the X axis, or false otherwise. By default, this returns false.
-
-    Attribute: Returns True if using a manually set maximum X value, or false otherwise.
-    */
-    action GetManualXAxisMaximum returns boolean
-        return manualXAxisMaximum
-    end
-
-    /*
-    This action sets whether or not the creator should automatically determine the maximum
-    value of the X axis from the provided dataset during the Create action. Passing this
-    action the "true" value will make it use the manually set value from SetXAxisMaximum,
-    and using "false" will make it automatically determine the value from the data.
-
-    By default, this value is false. Setting the value manually via SetXAxisMaximum also
-    automatically sets this value, so typically this action is only needed to reset a
-    creator to its default behavior via SetManualXAxisMaximum(false).
-
-    Attribute: Parameter manualXAxisMaximum True to use a manually set X axis maximum value, or false to use the default behavior.
-    */
-    action SetManualXAxisMaximum(boolean manualXAxisMaximum)
-        me:manualXAxisMaximum = manualXAxisMaximum
-    end
-
-    /*
-    This action returns true if the ScatterPlotCreator is using a manually set
-    minimum value for the Y axis, or false otherwise. By default, this returns false.
-
-    Attribute: Returns True if using a manually set minimum Y value, or false otherwise.
-    */
-    action GetManualYAxisMinimum returns boolean
-        return manualYAxisMinimum
-    end
-
-    /*
-    This action sets whether or not the creator should automatically determine the minimum
-    value of the Y axis from the provided dataset during the Create action. Passing this
-    action the "true" value will make it use the manually set value from SetYAxisMinimum,
-    and using "false" will make it automatically determine the value from the data.
-
-    By default, this value is false. Setting the value manually via SetYAxisMinimum also
-    automatically sets this value, so typically this action is only needed to reset a
-    creator to its default behavior via SetManualYAxisMinimum(false).
-
-    Attribute: Parameter manualXAxisMinimum True to use a manually set Y axis minimum value, or false to use the default behavior.
-    */
-    action SetManualYAxisMinimum(boolean manualYAxisMinimum)
-        me:manualYAxisMinimum = manualYAxisMinimum
-    end
-
-    /*
-    This action returns true if the ScatterPlotCreator is using a manually set
-    maximum value for the Y axis, or false otherwise. By default, this returns false.
-
-    Attribute: Returns True if using a manually set maximum Y value, or false otherwise.
-    */
-    action GetManualYAxisMaximum returns boolean
-        return manualYAxisMaximum
-    end
-
-    /*
-    This action sets whether or not the creator should automatically determine the maximum
-    value of the Y axis from the provided dataset during the Create action. Passing this
-    action the "true" value will make it use the manually set value from SetYAxisMaximum,
-    and using "false" will make it automatically determine the value from the data.
-
-    By default, this value is false. Setting the value manually via SetYAxisMaximum also
-    automatically sets this value, so typically this action is only needed to reset a
-    creator to its default behavior via SetManualYAxisMaximum(false).
-
-    Attribute: Parameter manualXAxisMaximum True to use a manually set Y axis maximum value, or false to use the default behavior.
-    */
-    action SetManualYAxisMaximum(boolean manualYAxisMaximum)
-        me:manualYAxisMaximum = manualYAxisMaximum
     end
 end

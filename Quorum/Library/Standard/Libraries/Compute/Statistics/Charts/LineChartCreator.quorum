@@ -48,6 +48,7 @@ use Libraries.Containers.Support.Comparison
 class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     integer xTicks = 5
     integer yTicks = 5
+    //integer tickSkips = 1
 
     // The minimum and maximum values portrayed in the chart area.
     number xAxisMinimum = 0
@@ -79,381 +80,205 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         LineChart chart
         integer columns = GetColumnSize()
-        integer factors = GetFactorSize()
+        boolean numericalFactor = false
+
+        HashTable<text, Array<ChartPoint>> groupFactor
+        HashTable<text, Series> seriesFactor
+        HashTable<text, ChartLine> lineFactor
+        HashTable<text, ChartPoint> pointFactor
+        HashTable<number, text> textForNumber
+        
+        
+        number max = 0.0
+        number min = 0.0
 
         chart:SetYAxisTitle("Total")
-        if(columns = 1)
-            chart:SetYAxisTitle("Total "+frame:GetColumn(GetColumn(0)):GetHeader())
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader())
+        DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
+        if useFactor
+            factor = frame:GetColumn(GetFactor(0))
+            chart:SetXAxisTitle(factor:GetHeader())
+            if factor:IsNumberColumn()
+                numericalFactor = true
+                min = factor:GetAsNumber(0) // default min
+            end
+        else
+            chart:SetXAxisTitle("Entry")
+            numericalFactor = true
         end
 
-        number grandMax = 0
-        grandMax = grandMax:GetMinimumValue()
-        number grandMin = grandMax:GetMaximumValue()
-        Array<Summarize> calculations
-        integer largestColumnSize = 0
-
-
-        // Get inital min and max not including factor summation
         integer i = 0
-        repeat while i < columns
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column:GetSize() > largestColumnSize
-                largestColumnSize = column:GetSize()
-            end
-            Summarize calculation
-            column:Calculate(calculation)
-            calculations:Add(calculation)
-            if calculation:GetMaximum() > grandMax
-                grandMax = calculation:GetMaximum()
-            end
-            if calculation:GetMinimum() < grandMin
-                grandMin = calculation:GetMinimum()
+        repeat while i < factor:GetSize()
+            if not factor:IsUndefined(i)
+                text key = factor:GetAsText(i)
+                number value = 0.0
+                if not useFactor
+                    key = ""+i
+                    value = cast(number, i)
+                end
+                if not groupFactor:HasKey(key)
+                    Array <ChartPoint> arr
+                    groupFactor:Add(key, arr)
+                    if numericalFactor
+                        if useFactor
+                            textForNumber:Add(factor:GetAsNumber(i), key)
+                            if factor:GetAsNumber(i) > max
+                                max = factor:GetAsNumber(i)
+                            end
+                            if factor:GetAsNumber(i) < min
+                                min = factor:GetAsNumber(i)
+                            end
+                        else
+                            textForNumber:Add(value, key)
+                            max = value
+                        end
+                    end
+                end
             end
             i = i + 1
         end
-        if grandMax = grandMax:GetMinimumValue() or grandMin = grandMax:GetMaximumValue()
-            alert("DataFrame does not contain valid minimum or maximum values across columns.")
-        end
-
-        HashTable<text, Series> seriesFactor
-        HashTable<text, number> sharedFactor
-        HashTable<text, number> factorXPosition
-        Array<text> xLabels
-        Array<text> factorText
-
-        // This will be used for numerical factor data vs text factor data
-        boolean numericalFactor = false
-        number xMin = 0.0
-        number xMax = 0.0
+        xAxisMaximum = max
+        xAxisMinimum = min
         
-        // Line Chart With Factor
-        if useFactor
-            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
-            if factor:IsNumberColumn()
-                numericalFactor = true
-                xMin = factor:GetAsNumber(0)
-                xMax = xMin
-            end
+        max = 0.0
+        min = 0.0
 
-            chart:SetXAxisTitle(factor:GetHeader())
-            // Get all the distinct factors
-            i = 0
-            repeat while i < factor:GetSize()
-                if not factor:IsUndefined(i)
-                    if(not sharedFactor:HasKey(factor:GetAsText(i)))
-                        number num = 0.0
-                        sharedFactor:Add(factor:GetAsText(i), num)
-                        if numericalFactor
-                            number current = factor:GetAsNumber(i)
-                            factorXPosition:Add(factor:GetAsText(i), current)
-                            if current > xMax
-                                xMax = current
-                            end
-                            if current < xMin
-                                xMin = current
-                            end
-                        end
-                    end
-                    factorText:Add(factor:GetAsText(i))
-                end 
-                i = i + 1
+        i = 0
+        repeat while i < columns
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsNumberColumn()
+                alert("LineChartCreator does not support text columns.")
+                return undefined
             end
-
-            // Sort all x-axis labels if not numerical get new position
-            xLabels = sharedFactor:CopyToKeyArray()
-            if comparison = undefined
-                xLabels:Sort()
-            else
-                xLabels:Sort(comparison)
+            if not seriesFactor:HasKey(column:GetHeader())
+                ChartLine newline
+                newline:SetName(column:GetHeader()) 
+                lineFactor:Add(column:GetHeader(), newline)
+                Series series
+                series:SetName(column:GetHeader())
+                series:AddItem(newline)
+                seriesFactor:Add(column:GetHeader(), series)           
             end
-
-            if not numericalFactor
-                i = 0
-                repeat while i < xLabels:GetSize()
-                    if(not factorXPosition:HasKey(xLabels:Get(i)))
-                        factorXPosition:Add(xLabels:Get(i), cast(number, i))
-                    end
-                    i = i + 1
-                end
-            end
-
-            xTicks = xLabels:GetSize()
-
-            // Default to a max of 10 x-axis labels for numerical. This can be changed, but this way it is legible
-            if numericalFactor
-                if xLabels:GetSize() < 10
-                    xTicks = xLabels:GetSize()
-                else
-                    xTicks = 10
-                end
-                xAxisMinimum = xMin
-                xAxisMaximum = xMax
-                if (xMax - xMin) < 10
-                    xTicks = cast(integer, xMax - xMin) + 1
-                end
-            else
-                xAxisMinimum = 0
-                xAxisMaximum = sharedFactor:GetSize()-1
-            end
-            yAxisMaximum = yAxisMaximum:GetMinimumValue()            
     
-            // Get the overall y axis maximum across all columns including factor summation 
-            i = 0
-            repeat while i < columns
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-                if(not seriesFactor:HasKey(column:GetHeader()))
-                    Series series
-                    series:SetName(column:GetHeader())
-                    seriesFactor:Add(column:GetHeader(), series)
-                end
-                j = 0
-                repeat while j < column:GetSize()
-                    if not column:IsUndefined(j) and not factor:IsUndefined(j)
-                        // Summation of values with the same factor and series
-                        if sharedFactor:HasKey(factor:GetAsText(j))
-                            number value = sharedFactor:GetValue(factor:GetAsText(j))
-                            value = value + column:GetAsNumber(j)
-                            sharedFactor:Set(factor:GetAsText(j), value)
-                            if(value > yAxisMaximum)
-                                yAxisMaximum = value
-                            end
-                            if(value < yAxisMinimum)
-                                yAxisMinimum = value
-                            end
+            number valueForName = 0.0
+            integer j = 0
+            repeat while j < column:GetSize()
+                if not column:IsUndefined(j) and not factor:IsUndefined(j)
+                    valueForName = column:GetAsNumber(j)
+                    text xposition = factor:GetAsText(j)
+                    if not useFactor
+                        xposition = ""+j
+                    end
+                    text pointKey = xposition + " " + column:GetHeader()
+                    if not pointFactor:HasKey(pointKey)
+                        ChartPoint point
+                        point:SetValueY(valueForName)
+                        point:SetName("Point for "+ pointKey)
+                        pointFactor:Add(pointKey, point)
+                        if groupFactor:HasKey(xposition)
+                            groupFactor:GetValue(xposition):Add(point)
                         end
-                    end 
-                    j = j + 1
+                        if lineFactor:HasKey(column:GetHeader())
+                            lineFactor:GetValue(column:GetHeader()):Add(point)
+                        end
+                    else
+                        ChartPoint point = pointFactor:GetValue(pointKey)
+                        valueForName = valueForName + point:GetValueY()
+                        point:SetValueY(valueForName)
+                    end
+                    if(valueForName > max)
+                        max = valueForName
+                    end
+                    if(valueForName < min)
+                        min = valueForName
+                    end
                 end
-                //Reset values to zero for each series
-                j = 0
-                repeat while j < column:GetSize()
-                    if sharedFactor:HasKey(factor:GetAsText(j))
-                        sharedFactor:Set(factor:GetAsText(j), 0.0)
-                    end   
-                    j = j + 1
-                end
-                i = i + 1
+                j = j + 1
             end
-
-
-        // Line Chart Without Factor
-        else 
-            //numericalFactor = true       
-            // Get all the distinct factors
-            i = 0
-            repeat while i < largestColumnSize
-                number num = 0.0
-                text name = " "+ (i+1) +" "
-                sharedFactor:Add(name, num)
-                xLabels:Add(name)
-                factorXPosition:Add(name, cast(number, (i+1)))
-                factorText:Add(name)
-                i = i + 1
-            end
-            
-            if xLabels:GetSize() < 10
-                xTicks = xLabels:GetSize()
-                xAxisMinimum = 0
-                xAxisMaximum = xLabels:GetSize()
+            i = i + 1
+        end
+        yAxisMaximum = max
+        yAxisMinimum = min
+        
+        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+        HashTable<text, number> numberForText
+        if numericalFactor
+            Array<number> numberKeyArray = textForNumber:CopyToKeyArray()
+            Array<text> xLabels
+            if comparison = undefined
+                numberKeyArray:Sort()
             else
-                xTicks = 10
-                if xLabels:GetSize() mod xTicks not= 0
-                   xAxisMaximum = ((xLabels:GetSize() / xTicks) + 1) * xTicks
-                else 
-                    xAxisMaximum = xLabels:GetSize()
-                end
-                xAxisMinimum = 0
+                numberKeyArray:Sort(comparison)
             end
-            yAxisMaximum = grandMax
-            
-            // Get distinct series
             i = 0
-            repeat while i < columns
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-                if(not seriesFactor:HasKey(column:GetHeader()))
-                    Series series
-                    series:SetName(column:GetHeader())
-                    seriesFactor:Add(column:GetHeader(), series)
+            repeat while i < numberKeyArray:GetSize()
+                if not useFactor
+                    xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
+                    numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
+                    chart:SetXAxisNumberFormat("integer")
+                else
+                    xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
+                    numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
                 end
                 i = i + 1
             end
+            groupKeyArray = xLabels
+        else
+            if comparison = undefined
+                groupKeyArray:Sort()
+            else
+                groupKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < groupKeyArray:GetSize()
+                numberForText:Add(groupKeyArray:Get(i), cast(number, i))
+                i = i + 1
+            end
+            xAxisMaximum = groupKeyArray:GetSize()-1
         end
 
-        // Sort the series
+        if not numericalFactor 
+            chart:OverrideXLabelsWithText(groupKeyArray)
+        end
+
+        i = 0
+        repeat while i < groupKeyArray:GetSize()
+            if groupFactor:HasKey(groupKeyArray:Get(i))
+                Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
+                integer j = 0
+                repeat while j < points:GetSize()
+                    ChartPoint point = points:Get(j)
+                    point:SetValueX(numberForText:GetValue(groupKeyArray:Get(i)))
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end  
+
+        // Series
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
         else
             seriesKeyArray:Sort(comparison)
         end
-
-
-        // Go through each column creating points. 
-        // Values with the same factor and series will be summed
-        i = 0
-        repeat while i < columns
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            j = 0
-            repeat while j < column:GetSize()
-                if not column:IsUndefined(j)
-                    // Summation of values with the same factor and series
-                    if sharedFactor:HasKey(factorText:Get(j))
-                        number value = sharedFactor:GetValue(factorText:Get(j))
-                        value = value + column:GetAsNumber(j)
-                        sharedFactor:Set(factorText:Get(j), value)
-                    end
-                end 
-                j = j + 1
-            end
-          
-            ChartLine newLine
-            newLine:SetName(column:GetHeader())
-
-            // Locate the marker for factor on x-axis and plot point there
-            j = 0
-            repeat while j < xLabels:GetSize()
-                if(factorXPosition:HasKey(xLabels:Get(j)))
-                    number x = factorXPosition:GetValue(xLabels:Get(j))
-                    number xp = (x - xAxisMinimum) / (xAxisMaximum - xAxisMinimum)
-                    number y = sharedFactor:GetValue(xLabels:Get(j))
-                    number yp = (y - yAxisMinimum) / (yAxisMaximum - yAxisMinimum)
-                    ChartPoint point
-                    point:SetPercentX(xp)
-                    point:SetPercentY(yp)
-                    point:SetName("Point for "+ xLabels:Get(j))
-                    newLine:Add(point)
-                    sharedFactor:Set(xLabels:Get(j), 0.0) //Reset the values for next series
-                end
-                j = j + 1
-            end
-
-            if(seriesFactor:HasKey(column:GetHeader()))
-                seriesFactor:GetValue(column:GetHeader()):AddItem(newLine)
-            end
-            newLine:SortPoints()
-            chart:AddChartLine(newLine)   
-            i = i + 1
-        end
-
-        // Add all the series to the chart
         i = 0
         repeat while i < seriesKeyArray:GetSize()
             chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
+            chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
-        end
-
-        if not numericalFactor
-            if xTicks > 9
-                Array <text> labels
-                integer gap = xLabels:GetSize() / xTicks
-                if xLabels:GetSize() mod xTicks not= 0
-                   gap = ((xLabels:GetSize() / xTicks) + 1)
-                end
-                i = 0
-                repeat while i < xLabels:GetSize()
-                    labels:Add(xLabels:Get(i))
-                    i = i + gap
-                end
-                labels:Add(cast(text, ((xLabels:GetSize() / xTicks) + 1) * xTicks))
-                chart:OverrideXLabelsWithText(labels)
-            else
-                chart:OverrideXLabelsWithText(xLabels)
-            end
         end
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
 
+        chart:SetDefaultOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)
         chart:SetXAxisMinimum(xAxisMinimum)
-        chart:SetYTickCount(yTicks)
-        chart:SetXTickCount(xTicks)
         chart:Populate()
         return chart
-    end
-
-    /*
-    This action returns how many scale ticks should be used along the X axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the X axis of the LineChart.
-    */
-    action GetXTickCount returns integer
-        return xTicks
-    end
-
-    /*
-    This action sets how many scale ticks should be used along the X axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Parameter xTicks How many ticks should be used along the X axis of the LineChart.
-    */
-    action SetXTickCount(integer xTicks)
-        me:xTicks = xTicks
-    end
-
-    /*
-    This action returns how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the Y axis of the LineChart.
-    */
-    action GetYTickCount returns integer
-        return yTicks
-    end
-
-    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
-    */
-    action SetYTickCount(integer yTicks)
-        me:yTicks = yTicks
-    end
-
-    /*
-    This action returns the minimum value on the Y axis, if one has been manually set. If no value
-    has been set, the minimum Y axis value will be determined from the minimum value of the dataset
-    used during the Create action. If no value has been set, this returns 0. To determine if a value
-    has been manually set, use the "GetManualYAxisMinimum" action.
-
-    Attribute: Returns The minimum value to be used for the Y axis, or 0 if no value has been manually set.
-    */
-    action GetYAxisMinimum returns number
-        return yAxisMinimum
-    end
-
-    /*
-    This action manually sets the minimum value to present on the Y axis of the LineChart.
-
-    Attribute: Parameter yAxisMinimum The minimum value to present on the Y axis of the LineChart.
-    */
-    action SetYAxisMinimum(number yAxisMinimum)
-        me:yAxisMinimum = yAxisMinimum
-    end
-
-    /*
-    This action returns the maximum value on the Y axis, if one has been manually set. If no value
-    has been set, the maximum Y axis value will be determined from the maximum value of the dataset
-    used during the Create action. If no value has been set, this returns 1. To determine if a value
-    has been manually set, use the "GetManualYAxisMaximum" action.
-
-    Attribute: Returns The maximum value to be used for the Y axis, or 1 if no value has been manually set.
-    */
-    action GetYAxisMaximum returns number
-        return yAxisMaximum
-    end
-
-    /*
-    This action manually sets the maximum value to present on the Y axis of the LineChart.
-
-    Attribute: Parameter yAxisMaximum The maximum value to present on the Y axis of the LineChart.
-    */
-    action SetYAxisMaximum(number yAxisMaximum)
-        me:yAxisMaximum = yAxisMaximum
     end
 end

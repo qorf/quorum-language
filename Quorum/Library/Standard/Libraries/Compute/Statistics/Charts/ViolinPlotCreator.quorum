@@ -78,13 +78,16 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
+        chart:SetXAxisTitle("Group")
         if(columns = 1)
-            chart:SetYAxisTitle("Total "+frame:GetColumn(GetColumn(0)):GetHeader())
             chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         Array<text> columnNames
+        HashTable<text, Series> seriesFactor
+        HashTable<text, PlotGroup> groupFactor
         number largest = 0
+        number smallest = 0
 
         integer i = 0
         repeat while i < GetColumnSize()
@@ -101,9 +104,9 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             if largest < sum:GetMaximum()
                 largest = sum:GetMaximum()
             end
-
-            PlotGroup group
-            group:SetName(columnFrame:GetHeader())
+            if smallest > sum:GetMinimum()
+                smallest = sum:GetMinimum()
+            end
 
             Plot plot
             Vector dataset = columnFrame:ConvertToVector()
@@ -112,23 +115,46 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             plot:SetInfo(Calculations(dataset))
             plot:SetName(columnFrame:GetHeader())
 
-            Icon icon = plot:GetIcon()        
-            icon:SetColor(options:GetColorFromPalette(0)) // default color when no factor
-            group:AddPlot(plot)
-            chart:AddPlotGroup(group)
+            if(not seriesFactor:HasKey(columnFrame:GetHeader()))
+                Series series
+                series:SetName(columnFrame:GetHeader())
+                series:AddItem(plot:GetIcon())
+                series:AddItem(plot)
+                seriesFactor:Add(columnFrame:GetHeader(), series)
 
-            columnNames:Add(columnFrame:GetHeader()) 
-
+                PlotGroup group
+                group:SetName(columnFrame:GetHeader())
+                group:AddPlot(plot)
+                groupFactor:Add(columnFrame:GetHeader(), group)
+            end
             i=i+1 
+        end
+
+        // Sort and add
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            chart:AddPlotGroup(groupFactor:GetValue(seriesKeyArray:Get(i)))
+            columnNames:Add(seriesKeyArray:Get(i)) 
+            i = i + 1
         end
 
         //Use the default windowing action (Kernel) if undefined
         if window not= undefined
             chart:SetWindowingAction(window)
         end
-        chart:SetXAxisLabels(columnNames)
-        chart:SetYTickCount(yTicks)
-        chart:SetYMaximum(largest)
+        Legend legend
+        legend:SetSeriesList(chart:GetSeriesList())
+        chart:SetLegend(legend)
+
+        SetScale(chart, smallest, largest, 0, columnNames:GetSize())
+        chart:OverrideXLabelsWithText(columnNames)
         chart:HasGroups(false)
         return chart
     end
@@ -139,16 +165,21 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetYAxisTitle("Total "+frame:GetColumn(GetColumn(0)):GetHeader())
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Per " + frame:GetColumn(GetFactor(0)):GetHeader() + " Violin Plot")
         end
 
+        Array<text> groupNames
         HashTable<text, Series> seriesFactor //The series of plots within the panel
         HashTable<text, PlotGroup> groupFactor
         HashTable<text, HashTable<text, Vector>> dataFactor 
+        HashTable<number, text> numberForText
+        boolean numerical = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
         chart:SetXAxisTitle(factor:GetHeader())
+        if factor:IsNumberColumn()
+            numerical = true
+        end
 
         integer i = 0
         repeat while i < factor:GetSize()
@@ -160,6 +191,9 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 PlotGroup group
                 group:SetName(factor:GetAsText(i))
                 groupFactor:Add(factor:GetAsText(i), group)
+                if numerical
+                    numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
+                end
             end
             integer j = 0
             repeat while j < columns
@@ -217,10 +251,22 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1
         end
 
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+        // Sort and add the series
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
 
+        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
         number largest = 0
+        number smallest = 0
         i = 0
         repeat while i < groupKeyArray:GetSize()
             integer j = 0
@@ -235,9 +281,14 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                     if largest < dataset:Get(dataset:GetSize()-1) //Find largest value to scale y axis
                         largest = dataset:Get(dataset:GetSize()-1)
                     end
-        
+
+                    if smallest > dataset:Get(0) //Find smallest value to scale y axis
+                        smallest = dataset:Get(0)
+                    end        
+
                     if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
                         seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
+                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
                     end
                     if groupFactor:HasKey(groupKeyArray:Get(i))
                         groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
@@ -247,69 +298,62 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1  
         end
 
-        // Plot Groups
-        if comparison = undefined
-            groupKeyArray:Sort()
-        else
-            groupKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < groupKeyArray:GetSize()
-            chart:AddPlotGroup(groupFactor:GetValue(groupKeyArray:Get(i)))
-            i = i + 1
-        end    
-        
-        // Series
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
+        // Sort the plot groups within the chart
+        if numerical
+            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
+            if comparison = undefined
+                numberKeyArray:Sort()
+            else
+                numberKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < numberKeyArray:GetSize()
+                PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
+                chart:AddPlotGroup(group)
+                groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
+                i = i + 1
+            end
+       else
+            if comparison = undefined
+                groupKeyArray:Sort()
+            else
+                groupKeyArray:Sort(comparison)
+            end
+            i = 0
+            repeat while i < groupKeyArray:GetSize()
+                PlotGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
+                chart:AddPlotGroup(group)
+                i = i + 1
+            end
+            groupNames = groupKeyArray
+        end  
 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
 
+        //Use the default windowing action (Kernel) if undefined
+        if window not= undefined
+            chart:SetWindowingAction(window)
+        end
+
+        SetScale(chart, smallest, largest, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         if chart:GetSeriesList():GetSize() > 1
             chart:HasGroups(true)
         else
             chart:HasGroups(false)
         end
-
-        //Use the default windowing action (Kernel) if undefined
-        if window not= undefined
-            chart:SetWindowingAction(window)
-        end
-        chart:SetYTickCount(yTicks)
-        chart:SetYMaximum(largest)
-        chart:SetXAxisLabels(groupKeyArray)
         return chart
     end
 
-    /*
-    This action returns how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Returns The number of ticks along the Y axis of the LineChart.
-    */
-    action GetYTickCount returns integer
-        return yTicks
+    private action SetScale(ViolinPlot chart, number ymin, number ymax, number xmin, number xmax)
+        chart:SetDefaultOrientation("vertical")
+        chart:SetYAxisMinimum(ymin)
+        chart:SetYAxisMaximum(ymax)
+        chart:SetXAxisMinimum(xmin)
+        chart:SetXAxisMaximum(xmax)
     end
-
-    /*   This action sets how many scale ticks should be used along the Y axis of the LineChart.
-    By default, this value is 5.
-
-    Attribute: Parameter yTicks How many ticks should be used along the Y axis of the LineChart.
-    */
-    action SetYTickCount(integer yTicks)
-        me:yTicks = yTicks
-    end
-    
 
     /*
     This action returns the five number summary of a dataset as an array, in the order median, lower quartile, upper quartile, smallest, largest. 

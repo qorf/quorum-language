@@ -1,38 +1,10 @@
 package Libraries.Interface.Controls.Charts
 
-use Libraries.Interface.Controls.Control
-use Libraries.Interface.Accessibility
-use Libraries.Interface.Behaviors.Behavior
-use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Game.GameStateManager
-use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.ColorGroup
-use Libraries.Game.Graphics.Gradient
-use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureRegion
-use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Label
-use Libraries.System.File
-use Libraries.Interface.Views.ImageControlView
-use Libraries.Interface.Views.LabelBoxView
-use Libraries.Interface.Views.ControlView
-use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Controls.Icon
-use Libraries.Containers.Array
-use Libraries.Interface.Events.FocusEvent
-use Libraries.Interface.Controls.List
-use Libraries.Game.InputTable
-use Libraries.Game.InputSet
-use Libraries.Interface.Events.KeyboardEvent
-use Libraries.Interface.Controls.ControlLabel
-use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.BarChartLayout
-use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Compute.Math
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
 
 /*
     The BarChart class is Chart object that inherits from Control and like other
@@ -96,7 +68,7 @@ class BarChart is SharedBarChartParent
     of  the chart.
     */
     private action GenerateSummary returns text
-        SetDescription("Bar Chart, " + GetNumberOfBars() + " bars, " + GetMinimumTick() + " to " + GetScaleMaximum() + 
+        SetDescription("Bar Chart, " + GetNumberOfBars() + " bars, " + GetYAxisMinimum() + " to " + GetYAxisMaximum() + 
             ". Use the arrow keys to navigate the chart.")
         return GetDescription()
     end

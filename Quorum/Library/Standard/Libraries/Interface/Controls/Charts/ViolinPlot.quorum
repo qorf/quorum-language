@@ -39,20 +39,11 @@ use Libraries.Game.Graphics.Gradient
 class ViolinPlot is Chart
     // The root ChartItem.
     private ChartItem summary
-    // How many ticks are set along the y axis and max value on y axis.
-    private integer yTicks = 0
-    private number yMaximum = 0
-    
-    //initial size of x and y axis
-    private integer tickLength = 10
-    private integer tickWidth = 3
 
     //bandWidth is a scale option for distribution graph
     //the bigger the value, the flatter the distribution graph will be
     private integer bandWidth = 0
 
-    //labels that is shown on the x axis
-    private Array<text> xAxisLabels
 
     UnivariateAction windowingAction = undefined
 
@@ -65,6 +56,7 @@ class ViolinPlot is Chart
     Color previousColor = undefined
     
     ChartOptions options
+    Math math
 
     boolean hasGroups = true
     boolean splitPlot = false
@@ -101,6 +93,29 @@ class ViolinPlot is Chart
         windowingAction = window
     end
 
+    /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the chart. Also the highest level of the information tree
+    of  the chart.
+    */
+    action GenerateSummary returns text
+        text lineText = "Groups"
+        text plotText = "violin plots"
+        if GetGroupPanels():GetSize() = 1
+            linetext = "Group"
+            plotText = "violin plot"
+        end
+        if hasGroups
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        else
+            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
+            + ". " + "Use the arrow keys to navigate the chart.")
+        end
+        return GetDescription()
+    end
+
+
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
         Control chartArea = me:GetChartArea()
@@ -108,7 +123,7 @@ class ViolinPlot is Chart
         repeat while i < plotGroups:GetSize()
             integer j = 0
             repeat while j < plotGroups:Get(i):GetSize()
-                Array<Drawable> items = plotGroups:Get(i):Get(j):GetItems()
+                Array<Drawable> items = plotGroups:Get(i):Get(j):GetPlotItems()
                 integer k = 0
                 repeat while k < items:GetSize()
                     if items:Get(k) not= undefined
@@ -136,56 +151,18 @@ class ViolinPlot is Chart
         if properties = undefined
             return now
         end
-        
-        Array<Drawable> xTickDrawables = GetXTicks()
-        Array<Drawable> yTickDrawables = GetScaleTicks()
-        Array<ControlLabel> xLabels = GetXLabels()
-        Array<ControlLabel> yLabels = GetScaleLabels()
-        Control horizontalPanel = GetHorizontalPanel()
-        Control verticalPanel = GetVerticalPanel()
+
         Control chartArea = GetChartArea()
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
 
-        //Adding Tick and labels on Y axis
-        if yTicks not= 0 and yTickDrawables:IsEmpty()
-            number space = yMaximum/(yTicks-1)
-            number current = 0
-            repeat until yTickDrawables:GetSize() = yTicks
-                Drawable tick
-                tick:LoadFilledRectangle(tickLength,tickWidth)
-                yTickDrawables:Add(tick)
-                verticalPanel:Add(tick)
-                
-                ControlLabel label
-                label:SetFontSize(GetFontSize() - 5)
-                label:SetFocusable(true)
-                label:SetAccessibilityCode(parent:Item:ITEM)
-                label:SetText(current+"")
-                label:SetName(current+"")
-                verticalPanel:Add(label)
-                yLabels:Add(label)
-                current = current + space
-            end
+        if GetDefaultOrientation() = undefined
+            SetDefaultOrientation("vertical")
         end
 
-        //Adding labels on X axis(violin plot only have labels on x axis)
-        integer cnt = 0
-        repeat while cnt < xAxisLabels:GetSize()
-            ControlLabel label
-            label:SetFontSize(GetFontSize() - 5)
-            label:SetFocusable(true)
-            label:SetAccessibilityCode(parent:Item:ITEM)
-            label:SetText(xAxisLabels:Get(cnt))
-            label:SetName(xAxisLabels:Get(cnt))
-            horizontalPanel:Add(label)
-            xLabels:Add(label)
-            cnt = cnt + 1
-        end
-
-        // add drawables per each boxplot to the chart
+        // Add drawables for each plot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
@@ -301,13 +278,14 @@ class ViolinPlot is Chart
 
             // Area covering entire group panel
             Icon panel
-            panel:SetName(xAxisLabels:Get(i) + " group has " + group:GetSize() + " violin plots.")
+            panel:SetName(group:GetName() + " group has " + group:GetSize() + " violin plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)
             group:SetItem(panel)
+            GetGroupPanels():Add(panel)
             i = i + 1
-        end//end of loop
+        end
 
         if seriesList:GetSize() > 0
             i = 0
@@ -316,10 +294,9 @@ class ViolinPlot is Chart
                 series:SetColor(options:GetColorFromPalette(i))
                 series:GetLabel():SetFocusable(true)
                 series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                series:GetItem(i):SetColor(series:GetColor())
                 integer j = 0
                 repeat while j < series:GetSize()
-                    series:GetItem(j):SetColor(series:GetColor())
+                    series:GetItemAt(j):SetColor(series:GetColor())
                     j = j + 1
                 end
                 i = i + 1
@@ -330,27 +307,6 @@ class ViolinPlot is Chart
         end
     end
 
-        /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the chart. Also the highest level of the information tree
-    of  the chart.
-    */
-    action GenerateSummary returns text
-        text lineText = "Groups"
-        text plotText = "violin plots"
-        if xAxisLabels:GetSize() = 1
-            linetext = "Group"
-            plotText = "violin plot"
-        end
-        if hasGroups
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + lineText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        else
-            SetDescription(" with " + xAxisLabels:GetSize() + " " + plotText 
-            + ". " + "Use the arrow keys to navigate the chart.")
-        end
-        return GetDescription()
-    end // end of GenerateSummary
 
     /*
     Creates the accessibility information for the chart area.
@@ -362,83 +318,33 @@ class ViolinPlot is Chart
         //NOTE: These nodes implement a cheap form of ordinality might need changing
         ChartItem xAxis
         ChartItem yAxis
-        ChartItem chartArea//not to be confused with panel
-        //Level 1 top level
+        ChartItem chartArea //not to be confused with panels
+        
+        // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(yAxis)
-        summary:SetChild(yAxis)
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-    
-        //Level 2 three main areas of bar chart (maybe 4 if legend is added)
-        xAxis:SetDisplayName("Horizontal Axis")
-        xAxis:SetFocusTarget(GetXLabel())
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(GetYLabel())
-
+        chartArea:SetFocusTarget(me:GetChartArea())
+        chartArea:SetParent(summary)
+        chartArea:SetContainer(me)
         chartArea:SetDisplayName("Violin Plot")
         if hasGroups
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " groups")
         else
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots")
         end
-        chartArea:SetFocusTarget(me:GetChartArea())
-        xAxis:SetContainer(me)        
-        yAxis:SetContainer(me)
-        chartArea:SetContainer(me)
-
-        yAxis:SetNext(chartArea)
-        chartArea:SetNext(xAxis)
-        xAxis:SetPrevious(chartArea)
-        yAxis:SetPrevious(xAxis)
-
-        chartArea:SetPrevious(yAxis)
-        xAxis:SetParent(summary)
-        yAxis:SetParent(summary)
-        yAxis:SetPrevious(summary)
-        chartArea:SetParent(summary)
-
-        // Legend Area
+    
+        // If any of these are not showing the tree will skip them in the navigation        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingXAxis()
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, xAxis, yAxis)
-        end
-
-        Array<ControlLabel> yLabels = GetScaleLabels()
-        ChartItem yPrevious
-        integer i = 0
-        repeat while i < yLabels:GetSize()
-            ChartItem next
-            if i = 0
-                yAxis:SetChild(next)
-            else
-                next:SetPrevious(yPrevious)
-                yPrevious:SetNext(next)   
-            end
-            next:SetContainer(me)
-            next:SetDisplayName(yLabels:Get(i):GetText())
-            next:SetParent(yAxis)
-            next:SetFocusTarget(yLabels:Get(i))
-            yPrevious = next
-            i = i + 1
-        end
-
-        Array<ControlLabel> xLabels = GetXLabels()
-        ChartItem xPrevious
-        i = 0
-        repeat while i < xLabels:GetSize()
-            ChartItem next
-            if i = 0
-                xAxis:SetChild(next)
-            else
-                next:SetPrevious(xPrevious)
-                xPrevious:SetNext(next)   
-            end
-            next:SetContainer(me)
-            next:SetDisplayName(xLabels:Get(i):GetText())
-            next:SetParent(xAxis)
-            next:SetFocusTarget(xLabels:Get(i))
-            xPrevious = next
-            i = i + 1
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         
         if hasGroups
@@ -456,7 +362,7 @@ class ViolinPlot is Chart
                     integer k = 0
                     repeat while k < plotGroups:Get(0):GetSize()
                         ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(0):Get(k):GetItems() //First plot
+                        Array<Drawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
                         if k = 0
                             firstGroup:SetChild(next_target)
                         else
@@ -518,7 +424,7 @@ class ViolinPlot is Chart
                     integer k = 0
                     repeat while k < plotGroups:Get(i):GetSize()
                         ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(i):Get(k):GetItems() //First plot
+                        Array<Drawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
                         if k = 0
                             group:SetChild(next_target)
                         else
@@ -568,7 +474,7 @@ class ViolinPlot is Chart
             integer k = 0
             repeat while k < plotGroups:GetSize()
                 ChartItem next_target
-                Array<Drawable> items = plotGroups:Get(k):Get(0):GetItems() //First plot
+                Array<Drawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
                 if k = 0
                     chartArea:SetChild(next_target)
                 else
@@ -629,8 +535,27 @@ class ViolinPlot is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:LostSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    integer j = 1
+                    repeat while j < 11
+                        Drawable item = plot:GetPlotItems():Get(j)
+                        if j = 7
+                            item:SetColor(1,1,1,1)
+                        else
+                            item:SetColor(0,0,0,1)
+                        end
+                        j = j + 1
+                    end
+                    i = i + 2
+                end
+                temp:GetLabel():LostSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(0)
                 temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
@@ -656,8 +581,23 @@ class ViolinPlot is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:GainedSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    integer j = 1
+                    repeat while j < 11
+                        Drawable item = plot:GetPlotItems():Get(j)
+                        item:SetColor(GetHighlightColor())
+                        j = j + 1
+                    end
+                    i = i + 2
+                end
+                temp:GetLabel():GainedSelection()
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                temp:SetZ(-1)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())
             elseif target is Control
@@ -666,7 +606,7 @@ class ViolinPlot is Chart
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
                     view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
                     temp:SetView2D(view)
                 end
@@ -674,44 +614,6 @@ class ViolinPlot is Chart
         end
     end
     
-    /*
-    This sets how many ticks on the y-axis
-    */
-    action SetYTickCount(integer ticks)
-        yTicks = ticks
-    end
-
-    /*
-    This retuns total number of ticks on the y-axis
-    */
-    action GetYTickCount returns integer
-        return yTicks
-    end
-    
-    /*
-    This sets how many labels on x-axis
-    */
-    action SetXAxisLabels(Array<text> label)
-        xAxisLabels = label
-    end
-
-    /*
-    This returns how many labels on x-axis
-    */
-    action GetXAxisLabels returns Array<text>
-        return xAxisLabels
-    end
-
-    // Sets the maximum in y axis
-    action SetYMaximum(number max)
-        yMaximum = max
-     end
-    
-    // Get the maximum in y axis
-    action GetYMaximum returns number
-        return yMaximum
-    end
-
     /*
     This sets what kind of kernel function to use to calculate the normal distributions
     */

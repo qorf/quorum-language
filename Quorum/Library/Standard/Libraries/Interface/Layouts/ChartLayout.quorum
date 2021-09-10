@@ -17,89 +17,15 @@ use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Game.Graphics.Color
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.HorizontalAxisPanel
+use Libraries.Interface.Controls.Charts.VerticalAxisPanel
 
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
     number yLabelHeight = 0.30
-
-    action LayoutVerticalAxis(Chart chart, Control vertContainer)
-        originPointX = cast(integer, vertContainer:GetWidth())
-        originPointY = 0
-
-        //This is the ticks on the Y axis
-        number scaleDivWidth = 0.0
-        Array<Drawable> ticks = chart:GetScaleTicks()
-        if not ticks:IsEmpty()
-            
-            Drawable axis = chart:GetYAxis()
-            scaleDivWidth = (axis:GetHeight() - ticks:Get(0):GetHeight()) / (ticks:GetSize() - 1)
-            
-            Drawable currentTick = ticks:Get(0)
-            integer tickX = originPointX - cast(integer, currentTick:GetWidth() - axis:GetWidth())
-            number tickY = originPointY// - cast(integer, currentTick:GetHeight()/2)
-            integer i = 0
-            repeat while i < ticks:GetSize()
-                currentTick = ticks:Get(i)
-                currentTick:SetPosition(tickX, cast(integer, tickY))
-                tickY = tickY + scaleDivWidth
-                i = i + 1
-            end
-        end
-
-        //This code represents the labels on the Y axis 
-        originPointX = cast(integer, vertContainer:GetWidth())
-        originPointY = 0
-
-        number labelMinimumX = originPointX
-
-        integer maxYLabelOffset = 0
-        Array<ControlLabel> scaleLabels = chart:GetScaleLabels()
-        if not scaleLabels:IsEmpty()
-            Label currentLabel = scaleLabels:Get(0)
-            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-            end
-
-            maxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
-            integer labelY = cast(integer, originPointY - (currentLabel:GetHeight()/5))
-            integer i = 0
-            repeat while i < scaleLabels:GetSize()
-                currentLabel = scaleLabels:Get(i)
-                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-                end
-                currentLabel:SetPosition(originPointX - currentLabel:GetWidth() - 15 , labelY + scaleDivWidth*i)
-                if currentLabel:GetX() < labelMinimumX
-                    labelMinimumX = currentLabel:GetX()
-                end
-                if currentLabel:GetWidth() + 15 > maxYLabelOffset
-                    MaxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
-                end 
-                i = i + 1
-            end
-        end
-
-        //This is the actual rotated label on the Y axis.
-        originPointX = cast(integer, vertContainer:GetWidth())
-        originPointY = 0
-        ControlLabel axisLabel = chart:GetYLabel()
-        Item2D labelAnchor = axisLabel:GetParent()       
-
-        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
-        number axisLabelWidth = axisLabel:GetWidth()
-        number axisLabelHeight = axisLabel:GetHeight()
-        integer axisX = cast(integer, (labelMinimumX + axisLabelHeight) / 2.0)
-        labelAnchor:SetPosition(axisX, (vertContainer:GetHeight() - axisLabelWidth) / 2.0)
-        labelAnchor:SetRotation(270)
-    end
-
-    /*
-        Chart layouts do not have a way to determine the ticks of a subclass because charts are very different in style.
-        As such, every chart needs to override this with ticks relevant for its own chart type.
-    */
-    action LayoutHorizontalAxis(Chart control, Control horizContainer)
-    end
+    Math math
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         LayoutProperties containerProperties
@@ -117,45 +43,50 @@ class ChartLayout is Layout
                 if items:GetSize() = 0
                     return now
                 end
-                integer barDivWidth = 0
-                integer scaleDivWidth = 0
-                integer xLabelOffset = 0
-                integer MaxYLabelOffset = 0
-                
-                //title
                 Chart chart = cast(Chart, container)
-                Label titleLabel = chart:GetTitleLabel()
-                titleLabel:SetX(cast(integer, containerWidth/2 - titleLabel:GetWidth()/2))
-                titleLabel:SetY(cast(integer, containerHeight - titleLabel:GetHeight()/2 + -containerHeight*0.025))
-
-                //Get Panel Containers
-                Control horizContainer = chart:GetHorizontalPanel()
-                Control vertContainer = chart:GetVerticalPanel()
-                Control chartAreaContainer = chart:GetChartArea()
                 
-                //setting an origin to position containers
-                originPointX = cast(integer, chart:GetWidth()*0.15)
-                originPointY = cast(integer, chart:GetHeight()*0.15)
+                //setting an origin to position containers 
+                originPointX = cast(integer, chart:GetWidth()*chart:GetVerticalPanelWidthPercent())
+                originPointY = cast(integer, chart:GetHeight()*chart:GetHorizontalPanelHeightPercent())
 
-                horizContainer:SetPosition(originPointX, (originPointY - horizContainer:GetHeight()))
-                vertContainer:SetPosition(originPointX - vertContainer:GetWidth(), originPointY)
+                // Title
+                ControlLabel titleLabel = chart:GetTitleLabel()
+                if titleLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    titleLabel:LoadGraphics(titleLabel:GetDefaultLayoutProperties())
+                end
+                number titleAreaWidth = chart:GetChartArea():GetWidth()
+                number titleAreaHeight = containerHeight*0.10 //hardcoded right now.
+                integer titleX = originPointX + cast(integer, titleAreaWidth/2 - titleLabel:GetWidth()/2)
+                integer titleY = originPointY + cast(integer, chart:GetChartArea():GetHeight() + titleAreaHeight/2 - titleLabel:GetHeight()/2)
+                titleLabel:SetPosition(titleX, titleY)
+                
+                //Get Panel Containers
+                HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()
+                VerticalAxisPanel verticalContainer = chart:GetVerticalPanel()
+                Control chartAreaContainer = chart:GetChartArea()
+
+                horizontalContainer:SetPosition(originPointX, (originPointY - horizontalContainer:GetHeight()))
+                verticalContainer:SetPosition(originPointX - verticalContainer:GetWidth(), originPointY)
                 chartAreaContainer:SetPosition(originPointX, originPointY)
                 
-                //label axis
+
                 //panel Chart Area origin
                 originPointX = 0
                 originPointY = 0
-                Drawable axis = undefined
-                axis = chart:GetXAxis()
-                axis:SetPosition(originPointX, originPointY)
-                axis = chart:GetYAxis()
-                axis:SetPosition(originPointX, originPointY)
-    
-                //Layout the horizontal panel
+
                 LayoutChartContent(chart, chartAreaContainer)
-                LayoutHorizontalAxis(chart, horizContainer)
-                LayoutVerticalAxis(chart, vertContainer)
-                LayoutLegend(chart, containerWidth, containerHeight)
+
+                if chart:IsShowingLegend()
+                    LayoutLegend(chart, containerWidth, containerHeight)
+                end
+
+                if chart:IsShowingXAxis()
+                    LayoutHorizontalAxis(chart, horizontalContainer)
+                end
+
+                if chart:IsShowingYAxis()
+                    LayoutVerticalAxis(chart, verticalContainer)
+                end
                 
             end
 
@@ -163,6 +94,318 @@ class ChartLayout is Layout
             ResetLayoutFlags(container)
         end
     end
+
+    action LayoutVerticalAxis(Chart chart, VerticalAxisPanel verticalContainer)
+        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
+        originPointX = cast(integer, verticalContainer:GetWidth())
+        originPointY = 0
+        Color color
+
+        //This is the ticks on the Y axis
+        number groupOffset = 0
+        number scaleDivWidth = 0      
+        integer tickHeight = 0
+        integer tickWidth = 0
+        Array<Drawable> ticks = verticalContainer:GetTicks()
+        Array<Drawable> lines = verticalContainer:GetMajorGridlines()
+        Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
+
+        if not ticks:IsEmpty()
+            Drawable axis = verticalContainer:GetAxis()
+            axis:LoadFilledRectangle(5, cast(integer, chart:GetChartArea():GetHeight()))
+            axis:SetPosition(cast(integer, verticalContainer:GetWidth()-axis:GetWidth()), axis:GetY())
+            if usingGrouping
+                groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetHeight())/2.0
+                originPointY = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+                scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetHeight())
+                chart:HideAllYGridLines()
+            else
+                scaleDivWidth = (axis:GetHeight() - ticks:Get(0):GetHeight()) / (ticks:GetSize() - 1)
+            end
+            
+            number minorScaleDivWidth = scaleDivWidth/verticalContainer:GetMinorGridlineCount()
+            
+            Drawable currentTick = ticks:Get(0)
+            tickHeight = cast(integer, currentTick:GetHeight())
+            tickWidth = cast(integer, currentTick:GetWidth())
+            integer tickX = originPointX - tickWidth //cast(integer, tickWidth + axis:GetWidth())
+            number tickY = originPointY
+
+            integer i = 0
+            integer j = 0
+            repeat while i < ticks:GetSize()
+                if usingGrouping
+                    scaleDivWidth = cast(number, chart:GetGroupPanels():Get(i):GetHeight())
+                end
+                currentTick = ticks:Get(i)
+                currentTick:SetPosition(tickX, cast(integer, tickY))
+
+                Drawable majorLine
+                if chart:IsShowingMajorYGridLines() and i < lines:GetSize()
+                    majorLine = lines:Get(i)
+                end
+                integer thin = cast(integer, currentTick:GetHeight()*0.75)
+                majorLine:SetPosition(0, cast(integer, tickY+(thin/2)))
+                majorLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()), thin, color:LightGray())
+
+                if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
+                    integer thinner = cast(integer, majorLine:GetHeight()/2)
+                    number minorY = majorLine:GetY() + minorScaleDivWidth
+
+                    repeat while j < (i+1)*verticalContainer:GetMinorGridlineCount() and minorY < axis:GetHeight()
+                        // Split five ways
+                        Drawable minorLine = minorlines:Get(j)
+                        minorLine:SetPosition(0, cast(integer, minorY+thinner))
+                        minorLine:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()), thinner, color:LightGray())
+                        j = j + 1
+                        minorY = minorY + minorScaleDivWidth
+                    end
+                end
+
+                tickY = tickY + scaleDivWidth
+                i = i + 1
+            end
+        end
+
+        //This code represents the labels on the Y axis 
+        originPointX = cast(integer, verticalContainer:GetWidth())
+        originPointY = 0
+        if usingGrouping
+            originPointY = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+        end
+        number labelMinimumX = originPointX
+
+        integer maxYLabelOffset = 0
+        Array<ControlLabel> scaleLabels = verticalContainer:GetLabels()
+        if not scaleLabels:IsEmpty()
+            ControlLabel currentLabel = scaleLabels:Get(0)
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+
+            maxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
+            integer labelY = cast(integer, originPointY - (currentLabel:GetHeight()/5))
+            integer i = 0
+            repeat while i < scaleLabels:GetSize()
+                currentLabel = scaleLabels:Get(i) 
+                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                end
+                currentLabel:SetPosition(originPointX - currentLabel:GetWidth() - 15 , labelY + scaleDivWidth*i)
+                if currentLabel:GetX() < labelMinimumX
+                    labelMinimumX = currentLabel:GetX()
+                end
+                if currentLabel:GetWidth() + 15 > maxYLabelOffset
+                    MaxYLabelOffset = cast(integer, currentLabel:GetWidth() + 15)
+                end 
+                i = i + 1
+            end
+        end
+
+        //This is the actual rotated label on the Y axis.
+        originPointX = cast(integer, verticalContainer:GetWidth())
+        originPointY = 0
+        if verticalContainer:GetTitleLabel() not= undefined
+            ControlLabel axisLabel = verticalContainer:GetTitleLabel()
+            Item2D labelAnchor = axisLabel:GetParent()       
+            axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+            number axisLabelWidth = axisLabel:GetWidth()
+            number axisLabelHeight = axisLabel:GetHeight()
+            integer axisX = cast(integer, (labelMinimumX + axisLabelHeight) / 2.0)
+            labelAnchor:SetPosition(axisX, (verticalContainer:GetHeight() - axisLabelWidth) / 2.0)
+            labelAnchor:SetRotation(270)
+        end
+    end
+
+    /*
+        Chart layouts do not have a way to determine the ticks of a subclass because charts are very different in style.
+        As such, every chart needs to override this with ticks relevant for its own chart type.
+    */
+    action LayoutHorizontalAxis(Chart chart, HorizontalAxisPanel horizontalContainer)
+        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and horizontalContainer:UseTextLabelOverride()
+        originPointX = 0
+        originPointY = cast(integer, horizontalContainer:GetHeight())
+        Color color
+
+        // This is the ticks on the X axis
+        number groupOffset = 0
+        number scaleDivWidth = 0      
+        integer tickHeight = 0
+        integer tickWidth = 0
+        Array<Drawable> ticks = horizontalContainer:GetTicks()
+        Array<Drawable> lines = horizontalContainer:GetMajorGridlines()
+        Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
+
+        if not ticks:IsEmpty()    
+            Drawable axis = horizontalContainer:GetAxis()
+            axis:LoadFilledRectangle(cast(integer, chart:GetChartArea():GetWidth()), 5)
+            axis:SetPosition(axis:GetX(), cast(integer, horizontalContainer:GetHeight()-axis:GetHeight()))
+            Drawable currentTick = ticks:Get(0)
+            tickHeight = cast(integer, currentTick:GetHeight())
+            tickWidth = cast(integer, currentTick:GetWidth())
+
+            if usingGrouping
+                groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetWidth())/2.0
+                originPointX = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+                scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetWidth())
+                chart:HideAllXGridLines()
+            else
+                scaleDivWidth = (axis:GetWidth() - tickWidth) / (ticks:GetSize() - 1)
+            end
+            number minorScaleDivWidth = scaleDivWidth/horizontalContainer:GetMinorGridlineCount()
+            number tickX = originPointX
+            integer tickY = originPointY - tickHeight       
+
+            integer i = 0
+            integer j = 0
+            repeat while i < ticks:GetSize()
+                if usingGrouping
+                    scaleDivWidth = cast(number, chart:GetGroupPanels():Get(i):GetWidth())
+                end
+                currentTick = ticks:Get(i)
+                currentTick:SetPosition(cast(integer, tickX), tickY)
+
+                Drawable majorLine
+                if chart:IsShowingMajorXGridLines() and i < lines:GetSize()
+                    majorLine = lines:Get(i)
+                end
+                integer thin = cast(integer, currentTick:GetWidth()*0.75)
+                majorLine:SetPosition(cast(integer, tickX+(thin/2)), 0)
+                majorLine:LoadFilledRectangle(thin, cast(integer, chart:GetChartArea():GetHeight()), color:LightGray())
+
+                if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
+                    integer thinner = cast(integer, majorLine:GetWidth()/2)
+                    number minorX = majorLine:GetX() + minorScaleDivWidth
+
+                    repeat while j < (i+1)*horizontalContainer:GetMinorGridlineCount() and minorX < axis:GetWidth()
+                        // Split five ways (4 minor lines)
+                        Drawable minorLine = minorlines:Get(j)
+                        minorLine:SetPosition(cast(integer, minorX+thinner), 0)
+                        minorLine:LoadFilledRectangle(thinner, cast(integer, chart:GetChartArea():GetHeight()), color:LightGray())
+                        j = j + 1
+                        minorX = minorX + minorScaleDivWidth
+                    end
+                end
+                tickX = tickX + scaleDivWidth
+                i = i + 1
+            end
+        end
+
+        // This code represents the labels on the X axis 
+        originPointX = 0
+        if usingGrouping
+            originPointX = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+        end
+        originPointY = originPointY - tickHeight
+
+        number labelWidth = 0
+        number labelHeight = 0
+        number labelMinimumY = originPointY
+        
+        integer degrees = chart:GetXLabelsRotation() mod 360
+        number xLabelSpace = horizontalContainer:GetSumOfLabelWidths() + horizontalContainer:GetLabels():GetSize()*5 + groupOffset
+        if xLabelSpace > cast(number, chart:GetChartArea():GetWidth()) and not chart:GetRotationOverride()
+            degrees = 315 //If labels overlap, the default will tilt them 45 degrees.
+        end
+        number cos = math:Cosine(math:DegreesToRadians(degrees))
+        number sin = math:Sine(math:DegreesToRadians(degrees))
+
+        integer maxXLabelOffset = 0
+        Array<ControlLabel> xLabels = horizontalContainer:GetLabels()
+        if not xLabels:IsEmpty()
+            ControlLabel currentLabel = xLabels:Get(0)
+            Item2D labelAnchor = currentLabel:GetParent()
+            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+            end
+
+            integer i = 0
+            repeat while i < xLabels:GetSize()
+                currentLabel = xLabels:Get(i)
+                labelAnchor = currentLabel:GetParent()
+                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                end
+                labelWidth = currentLabel:GetWidth()
+                labelHeight = currentLabel:GetHeight()
+
+                integer xCurrentLabel = cast(integer, originPointX + (scaleDivWidth * i) - (labelWidth / 2))
+                integer yCurrentLabel = cast(integer, originPointY - labelHeight)
+                if degrees not= 0
+                    number percent = cast(number, degrees mod 90)/90.0 
+                    integer startx = cast(integer, xCurrentLabel + (labelWidth/2))
+                    integer starty = yCurrentLabel
+                    integer deltaX = 0
+                    integer deltaY = 0                
+
+                    if degrees > 0 and degrees < 90
+                        deltaY = cast(integer, percent*labelHeight)
+                        if (starty - (labelWidth)*sin)  < labelMinimumY
+                            labelMinimumY = (starty - (labelWidth)*sin)
+                        end
+                    elseif degrees = 90
+                        deltaX = cast(integer, -(labelHeight/2))
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - labelWidth) < labelMinimumY
+                            labelMinimumY = (starty - labelWidth)
+                        end
+                    elseif degrees > 90 and degrees < 180
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - (labelWidth)*sin - (labelHeight)*sin)  < labelMinimumY
+                            labelMinimumY = (starty - (labelWidth)*sin - (labelHeight)*sin)
+                        end
+                    elseif degrees = 180
+                        deltaX = cast(integer, (labelWidth/2))
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - labelHeight)  < labelMinimumY
+                            labelMinimumY = (starty - labelHeight)
+                        end
+                    elseif degrees > 180 and degrees < 270
+                        deltaX = cast(integer, -(labelWidth*cos))
+                        deltaY = cast(integer, labelWidth*sin + labelHeight*sin + labelHeight)
+                        if (starty + deltaY + labelHeight*sin)  < labelMinimumY
+                            labelMinimumY = (starty + deltaY + labelHeight*sin) - labelHeight/2
+                        end
+                    elseif degrees = 270
+                        deltaX = cast(integer, (labelHeight/2))
+                        deltaY = cast(integer, -labelWidth + labelHeight)
+                    elseif degrees > 270 and degrees < 360
+                        deltaX = cast(integer, -(labelWidth*cos))
+                        deltaY = cast(integer, labelWidth*sin + labelHeight*sin + labelHeight)
+                        if (starty + deltaY) < labelMinimumY
+                            labelMinimumY = (starty + deltaY - labelHeight/2)
+                        end
+                    end
+
+                    xCurrentLabel = cast(integer, startx + deltaX)
+                    yCurrentLabel = cast(integer, starty + deltaY)
+                end
+                labelAnchor:SetPosition(xCurrentLabel, yCurrentLabel)
+                labelAnchor:SetRotation(degrees)
+                if labelAnchor:GetY() < labelMinimumY
+                    labelMinimumY = labelAnchor:GetY()
+                end
+                i = i + 1
+            end
+        end
+
+        //This is the label itself on the X axis
+        originPointX = 0
+        originPointY = cast(integer, horizontalContainer:GetHeight())
+        if horizontalContainer:GetTitleLabel() not= undefined
+            ControlLabel axisLabel = horizontalContainer:GetTitleLabel()
+            Item2D labelAnchor = axisLabel:GetParent()
+
+            axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+            number axisLabelWidth = axisLabel:GetWidth()
+            number axisLabelHeight = axisLabel:GetHeight()
+            integer axisY = cast(integer, (labelMinimumY/2) - (axisLabelHeight/2))
+            labelAnchor:SetPosition((horizontalContainer:GetWidth() - axisLabelWidth) / 2.0, axisY)
+        end
+    end
+
+
+
 
     // Resets all layout flags for the item and its entire children hierarchy.
     private action ResetLayoutFlags(Item2D item)
