@@ -3,6 +3,7 @@ package Libraries.Data.Formats.ScalableVectorGraphics
 use Libraries.Containers.Array
 use Libraries.Web.Page.Script
 use Libraries.Web.Page.Style
+use Libraries.Web.Page.Division
 
 /*
     The ScalableVectorGraphics class is a ScalableVectorGraphicsObject that defines a
@@ -40,6 +41,7 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
     Array<ScalableVectorGraphicsObject> children
     Array<Script> scripts
     Array<Style> styles
+    Array<Division> divisions
 
     on create
         SetIsContainer(true)
@@ -107,6 +109,11 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
         i = 0
         repeat while i < styles:GetSize()
             result = result + tab + styles:Get(i):Generate() + newLine
+            i = i + 1
+        end
+        i = 0
+        repeat while i < divisions:GetSize()
+            result = result + tab + divisions:Get(i):Generate() + newLine
             i = i + 1
         end
         result = result + GetCloseTag(objectName, IsContainer()) + newLine
@@ -297,6 +304,26 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
     end
 
     /*
+        This action adds a div block to the bottom of the ScalableVectorGraphics.
+
+        Attribute: Parameter div The Division is added to an Array of Divisions that are written at the bottom of the ScalableVectorGraphics.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+        use Libraries.Web.Page.Division
+
+        ScalableVectorGraphics canvas
+        Division div
+        div:SetIdentifier("my-div")
+        div:SetClassAttribute("wrapper-div")
+        canvas:Add(div)
+    */
+    action Add(Division div)
+        divisions:Add(div)
+    end
+
+    /*
         This action removes all of the children, scripts and styles that have been added. 
 
         Attribute: Example
@@ -313,6 +340,7 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
         children:Empty()
         scripts:Empty()
         styles:Empty()
+        divisions:Empty()
     end
 
     /*

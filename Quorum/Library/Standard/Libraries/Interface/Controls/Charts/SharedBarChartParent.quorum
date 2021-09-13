@@ -36,6 +36,7 @@ class SharedBarChartParent is Chart
 
     integer yTickSteps = 2
     integer xTickSteps = -1
+    integer tickJumps = 1
     number yTickInterval = -1
     // Default uses best interval by range to graph, if tick count is set, it overrides this.
     boolean yIntervalBasedOnTickCount = false
@@ -483,7 +484,7 @@ class SharedBarChartParent is Chart
         summary:SetChild(yAxis)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-    
+
         //Level 2 three main areas of bar chart (maybe 4 if legend is added)
         xAxis:SetDisplayName("Horizontal Axis")
         xAxis:SetFocusTarget(GetXLabel())
@@ -811,11 +812,39 @@ class SharedBarChartParent is Chart
         end
         
         if barTicks:IsEmpty() and barLabels:IsEmpty() and bars:IsEmpty()
+            
+            InitLabels()
+            integer i = 0
+            repeat while i < xTickSteps
+                //Make the ticks
+                Drawable tick
+                tick:LoadFilledRectangle(3, 15)
+                barTicks:Set(i, tick)
+                horizontalPanel:Add(barTicks:Get(i))
+
+                horizontalPanel:Add(barLabels:Get(i))
+                i = i + 1
+            end
+            
+            ApplySeriesColor()
+            
+            if IsShowingLegend()
+                Add(GetLegend())
+            end
+        end
+    end
+
+    action InitLabels()
+        Array<Icon> bars = GetBars()
+        Array<Drawable> barTicks = GetXTicks()
+        Array<ControlLabel> barLabels = GetXLabels()
+        Control horizontalPanel = GetHorizontalPanel()
+        Control chartArea = GetChartArea()
+        if barTicks:IsEmpty() and barLabels:IsEmpty() and bars:IsEmpty()
             if xTickSteps > numberOfGroups
                 xTickSteps = numberOfGroups
             end
 
-            integer tickJumps = 1
             if xTickSteps = -1
                 barTicks:SetSize(numberOfGroups)
                 barLabels:SetSize(numberOfGroups)
@@ -830,12 +859,6 @@ class SharedBarChartParent is Chart
             
             integer i = 0
             repeat while i < xTickSteps
-                //Make the ticks
-                Drawable tick
-                tick:LoadFilledRectangle(3, 15)
-                barTicks:Set(i, tick)
-                horizontalPanel:Add(barTicks:Get(i))
-
                 //Make the labels
                 ControlLabel tempLabel
                 
@@ -853,11 +876,9 @@ class SharedBarChartParent is Chart
                 tempLabel:SetFont(GetFont():Copy())
                 tempLabel:SetFontSize(cast(integer, GetFontSize()*GetXAxisFontSizeOffset()))
                 barLabels:Set(i, tempLabel)
-                
-                horizontalPanel:Add(barLabels:Get(i))
+
                 i = i + 1
             end
-
             integer barCount = 0
             i = 0
             repeat while i < barGroups:GetSize()
@@ -891,11 +912,6 @@ class SharedBarChartParent is Chart
                     barCount = barCount + 1
                 end
                 i = i + 1
-            end
-            ApplySeriesColor()
-            
-            if IsShowingLegend()
-                Add(GetLegend())
             end
         end
     end

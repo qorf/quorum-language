@@ -12,6 +12,9 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Game.Graphics.Color
 use Libraries.Web.Page.Script
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
 
 /*
     The BarChartWriter class is part of the set of writers that allow for Charts
@@ -38,131 +41,52 @@ use Libraries.Web.Page.Script
     output writer:WriteOutChart(chart)
 */
 
-class BarChartWriter
-    private number axisPointX = 15
-    private number axisPointY = 85
-    private number axisLength = 75
+class BarChartWriter is ChartWriter
     private number barDivWidth = 0 //(axisLength/(chart:GetNumberOfBars() + 1))
-    private number barWidth = 0//barDivWidth * 0.7
+    private number barWidth = 0
     private number barOffset = 0//(barDivWidth / axisLength) / 2
-
-/*
-    This action writes out the BarChart by grabbing necessary information from the chart and it will then return
-    all of the necessary text needed to write out an SVG file that will contain the chart.
-
-    Attribute: Parameter chart The chart that will be used to create an SVG
-
-    Attribute: Example
-
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Interface.Controls.Charts.BarChart
-    use Libraries.Interface.Controls.Charts.BarChartWriter
     
-    DataFrame frame
-    frame:Load("Data.csv")
-    frame:SetSelectedColumnRange(0,1)
-    BarChart chart = frame:BarChart()
-    chart:Display()
+    private integer outerEdgePadding = 0
+    private integer betweenGroupPadding = 0
+    private integer betweenBarPadding = 0
+    private integer barWidthPercent = 0
 
-    BarChartWriter writer
-    output writer:WriteOutChart(chart)
-*/
     action WriteOutChart(BarChart chart) returns text
-
-        ScalableVectorGraphics chartCanvas
-        chartCanvas:SetSize(700,600)
-
-        Label chartTitle
-        Label xAxisLabel
-        Label yAxisLabel
-    
-        chart:ApplySeriesColor()
-
-        Script script
-        script:SetCode("
-        console.log('End of SVG.');
-        ")
-        chartCanvas:Add(script)
-
-        //start setting stuff
-        AddBackground(chartCanvas)
-        AddAxes(chartCanvas)
-        chartTitle:SetText(chart:GetTitle())
-        chartTitle:SetTextAnchor("middle")
-        chartTitle:SetPosition(50, 5, "%")
-        chartTitle:SetFontSize("18pt")
-        chartCanvas:Add(chartTitle)
-
-        xAxisLabel:SetText(chart:GetXAxisTitle())
-        xAxisLabel:SetTextAnchor("middle")
-        xAxisLabel:SetPosition(50, 95, "%")
-        xAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(xAxisLabel)
-
-        yAxisLabel:SetText(chart:GetYAxisTitle())
-        yAxisLabel:SetTextAnchor("middle")
-        yAxisLabel:SetPosition(5, 50, "%")
-        yAxisLabel:SetTransform("rotate(270, 40,300)")
-        yAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(yAxisLabel)
-
-        barDivWidth = (axisLength/(chart:GetNumberOfBars() + 1))
-        barWidth = barDivWidth * 0.7
-        barOffset = (barDivWidth / axisLength) / 2
-
-        AddBars(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
-
-        return chartCanvas:ToText()
+        return WriteOutChart(cast(Chart,chart))
     end
-
     /*
-        This action adds a white background to the canvas
+        This action adds the content of the BarChart
     */
-    private action AddBackground(ScalableVectorGraphics canvas)
-        Rectangle background
-        background:SetFill("white")
-        background:SetSize(100,100, "%")
-        canvas:Add(background)
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        BarChart barChart
+        barChart = cast(BarChart, chart)
+        AddBars(canvas, barChart)
     end
-
-    /*
-        This action adds the two lines for the x and y axis
-    */
-    private action AddAxes(ScalableVectorGraphics canvas)
-        Line xAxis
-        Line yAxis
-        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
-        xAxis:SetStroke("black")
-        xAxis:SetTabIndex(-1)
-        xAxis:SetStrokeWidth(0.4,"%")
-        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
-        yAxis:SetStroke("black")
-        yAxis:SetTabIndex(-1)
-        yAxis:SetStrokeWidth(0.4,"%")
-
-        canvas:Add(xAxis)
-        canvas:Add(yAxis)
-    end
-
     /*
         This action adds the content of the BarChart
     */
     private action AddBars(ScalableVectorGraphics canvas, BarChart chart)
         
+        chart:ApplySeriesColor()
+        chart:CalculateNumberOfBars()
+        chart:InitLabels()
+
+        number axisLengthX = GetChartAreaWidth()
+        number axisPointX = GetChartAreaPositionX()
+        number axisLengthY = GetChartAreaHeight()
+        number axisPointY = GetChartAreaPositionY()
+
+        barDivWidth = (axisLengthX/(chart:GetNumberOfBars() + 1))
+        barWidth = barDivWidth * 0.7
+        barOffset = (barDivWidth / axisLengthX) / 2
+
         Array<BarGroup> barGroups = chart:GetBarGroups()
-        integer outerEdgePadding = 0
-        integer betweenGroupPadding = 0
-        integer betweenBarPadding = 0
-        integer barWidth = 0
 
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
         if barGroups:GetSize() > 0
             integer numberOfGroups = barGroups:GetSize()
-            chart:CalculateNumberOfBars()
             integer numberOfBars = chart:GetNumberOfBars()
             boolean stacked = chart:GetStackedFlag()
             if stacked
@@ -170,15 +94,15 @@ class BarChartWriter
             end
 
             // Space on each side of the inner chart (5%)
-            outerEdgePadding = cast(integer, ((axisLength * 0.05) / 2))
+            outerEdgePadding = cast(integer, ((axisLengthX * 0.05) / 2))
 
             if barGroups:GetSize() > 1
                 // Space spread evenly between each bar group (10%)
-                betweenGroupPadding = cast(integer, ((axisLength * 0.1) / (numberOfGroups-1)))
+                betweenGroupPadding = cast(integer, ((axisLengthX * 0.1) / (numberOfGroups-1)))
             end
 
             // Space spread evenly between each bar with the bar groups (5%)
-            betweenBarPadding = cast(integer, ((axisLength * 0.05) / (numberOfBars - numberOfGroups+1)))
+            betweenBarPadding = cast(integer, ((axisLengthX * 0.05) / (numberOfBars - numberOfGroups+1)))
             if stacked 
                 betweenBarPadding = 0
             end
@@ -188,8 +112,8 @@ class BarChartWriter
             totalPadding = totalPadding + cast(integer, betweenBarPadding*(numberOfBars - numberOfGroups))
             
             // Remaining non-white space to be evenly divided amongst all bars (80%)
-            remainingArea = cast(integer, (axisLength - totalPadding))
-            barWidth = cast(integer, remainingArea / numberOfBars)
+            remainingArea = cast(integer, (axisLengthX - totalPadding))
+            barWidthPercent = cast(integer, remainingArea / numberOfBars)
         
             number currentXPosition = axisPointX + outerEdgePadding
             // Tracking area of each bar group for group icon
@@ -199,21 +123,26 @@ class BarChartWriter
             number groupWidth = 0               // width of entire group
             number groupHeight = 0              // height of entire group
 
-            number dataScale = chart:GetYAxisMaximum()/axisLength
+            number dataScale = chart:GetYAxisMaximum()/axisLengthY
 
             integer i = 0
             repeat while i < barGroups:GetSize()
                 integer j = 0
                 repeat while j < barGroups:Get(i):GetSize()
                     Rectangle tempBar
-                    tempBar:SetWidth(barWidth, "%")
+                    tempBar:SetWidth(barWidthPercent, "%")
                     number barHeight = barGroups:Get(i):Get(j):GetValue() / dataScale
                     tempBar:SetHeight(barHeight, "%")
-                    tempBar:SetTitle("TBD")// + chart:GetBarHeights():Get(i))
+                    //tempBar:SetTitle("TBD")// + chart:GetBarHeights():Get(i))
                     tempBar:SetPosition(currentXPosition,axisPointY-barHeight, "%")
                     tempBar:SetFill(barGroups:Get(i):Get(j):GetIcon():GetColor())
+                    tempBar:SetID(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                    tempBar:SetTabIndex(-1)
+                    if HasAccessibility()
+
+                    end
                     canvas:Add(tempBar)
-                    currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                    currentXPosition = currentXPosition + barWidthPercent + betweenBarPadding
                     
                     //Find max height for barGroup Icon
                     if(barHeight > groupHeight)
@@ -228,9 +157,14 @@ class BarChartWriter
                     groupWidth = currentXPosition - betweenBarPadding - groupX
                     tempGroup:SetWidth(groupWidth, "%")
                     tempGroup:SetHeight(groupHeight, "%")
-                    tempGroup:SetTitle("TBD")
+                    //tempGroup:SetTitle("TBD")
                     tempGroup:SetPosition(groupX, axisPointY-groupHeight, "%") 
                     tempGroup:SetFill(transparent)
+                    tempGroup:SetID(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                    tempGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+
+                    end
                     canvas:Add(tempGroup)
                     
                     currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
@@ -247,40 +181,81 @@ class BarChartWriter
     /*
         This action the labels on the x axis
     */
-    private action AddXLabels(ScalableVectorGraphics canvas, BarChart chart)
-        integer i = 0
-        repeat while i < chart:GetXLabels():GetSize()
-            Label tempBarLabel
-            Line tempBarTick
+    private action AddXLabels(ScalableVectorGraphics canvas, Chart chart)
+        BarChart barChart
+        barChart = cast(BarChart, chart)
+        Array<ControlLabel> barLabels = chart:GetXLabels()
+        Array<BarGroup> barGroups = barChart:GetBarGroups()
+        integer numberOfGroups = barGroups:GetSize()
+        integer numberOfBars = barChart:GetNumberOfBars()
+        
+        number axisLengthX = GetChartAreaWidth()
+        number axisPointX = GetChartAreaPositionX()
+        number axisLengthY = GetChartAreaHeight()
+        number axisPointY = GetChartAreaPositionY()
 
-            tempBarTick:SetFirstPoint(axisPointX + axisLength*barOffset + barDivWidth*i, axisPointY, "%")
-            tempBarTick:SetSecondPoint(axisPointX + axisLength*barOffset + barDivWidth*i, axisPointY + 3, "%")
-            tempBarTick:SetStroke("black")
-            tempBarTick:SetTabIndex(-1)
-            tempBarTick:SetStrokeWidth(0.25,"%")
-            canvas:Add(tempBarTick)
+        Array<Label> xLabels = GetXLabels()
 
-            tempBarLabel:SetText(chart:GetXLabels():Get(i):GetName())
-            tempBarLabel:SetTextAnchor("middle")
-            tempBarLabel:SetPosition(axisPointX + (i + 1) * barDivWidth, axisPointY + 4, "%")
-            //tempBarLabel:SetTextLength(barWidth, "%")
-            canvas:Add(tempBarLabel)
-            i = i + 1
+        if not barGroups:IsEmpty() and not barLabels:IsEmpty()
+            number currentXPosition = axisPointX + outerEdgePadding
+            integer i = 0
+            repeat while i < barGroups:GetSize()
+                number barGroupWidth = barGroups:Get(i):GetSize() * barWidthPercent + (barGroups:Get(i):GetSize() - 1) * betweenBarPadding
+                number xLabelPosition = currentXPosition + (barGroupWidth / 2)
+                
+                Label tempBarLabel
+                Line tempBarTick
+
+                tempBarTick:SetFirstPoint(xLabelPosition, axisPointY, "%")
+                tempBarTick:SetSecondPoint(xLabelPosition, axisPointY + 3, "%")
+                tempBarTick:SetStroke("black")
+                tempBarTick:SetTabIndex(-1)
+                tempBarTick:SetStrokeWidth(0.25,"%")
+                tempBarTick:SetID(canvas:GetID() + "-" + tempBarTick:GetHashCode())
+                tempBarTick:SetTabIndex(-1)
+
+                tempBarLabel:SetText(chart:GetXLabels():Get(i):GetText())
+                
+                tempBarLabel:SetTextAnchor("middle")
+                tempBarLabel:SetPosition(xLabelPosition, axisPointY + 5, "%")
+                tempBarLabel:SetID(canvas:GetID() + "-" + tempBarLabel:GetHashCode())
+                tempBarLabel:SetTabIndex(-1)
+                xLabels:Add(tempBarLabel)
+                if HasAccessibility()
+                    //BarTick and BarLabel
+                end
+                canvas:Add(tempBarTick)
+                canvas:Add(tempBarLabel)
+
+                currentXPosition = currentXPosition + barGroupWidth + betweenGroupPadding
+
+                i = i + 1
+            end
         end
     end
 
     /*
         This action the labels on the y axis
     */
-    private action AddYLabels(ScalableVectorGraphics canvas, BarChart chart)
-        number scaleNum = chart:GetMinimumTick()
+    private action AddYLabels(ScalableVectorGraphics canvas, Chart chart)
+        BarChart barChart
+        barChart = cast(BarChart, chart)
+        number scaleNum = barChart:GetMinimumTick()
         
-        number scaleWidth = (chart:GetScaleMaximum()) / (chart:GetYTickSteps())
-        number scaleDivWidth = axisLength / (chart:GetYTickSteps())
+        
+        number axisLengthX = GetChartAreaWidth()
+        number axisPointX = GetChartAreaPositionX()
+        number axisLengthY = GetChartAreaHeight()
+        number axisPointY = GetChartAreaPositionY()
+
+        Array<Label> yLabels = GetYLabels()
+        
+        number scaleWidth = (barChart:GetScaleMaximum()) / (barChart:GetYTickSteps())
+        number scaleDivWidth = axisLengthY / (barChart:GetYTickSteps())
         // scale
         Math math
         i = 0
-        repeat while i < chart:GetYTickSteps() + 1
+        repeat while i < barChart:GetYTickSteps() + 1
             Label scaleLabel
             Line scaleTick
             
@@ -296,11 +271,66 @@ class BarChartWriter
             scaleTick:SetStrokeWidth(0.4,"%")
             
             scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
-
-            canvas:Add(scaleLabel)
+            
+            scaleLabel:SetID(canvas:GetID() + "-" + scaleLabel:GetHashCode())
+            scaleTick:SetID(canvas:GetID() + "-" + scaleTick:GetHashCode())
+            scaleLabel:SetTabIndex(-1)
+            scaleTick:SetTabIndex(-1)
+            yLabels:Add(scaleLabel)
+            if HasAccessibility()
+                //ScaleTick and Scalelabel
+            end
+                
             canvas:Add(scaleTick)
-        i = i+1
+            canvas:Add(scaleLabel)
+            i = i + 1
         end
     end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem chartAreaItem)
+        
+        BarChart barChart
+        barChart = cast(BarChart, chart)
+        Array<BarGroup> barGroups = barChart:GetBarGroups()
+
+        UnorderedList barGroupsUL
+        barGroupsUL:AddAttribute("role","group")
+        chartAreaItem:AddNestedTag(barGroupsUL)
+        
+        UnorderedList currentGrouping = barGroupsUL
+        i = 0
+        repeat while i < barGroups:GetSize()
+            if barChart:HasBarGroups()
+                ListItem barGroupNav 
+                barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
+                barGroupNav:AddAttribute("role","treeitem")
+                barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                barGroupNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                barGroupNav:SetTabIndex("-1")
+                barGroupsUL:Add(barGroupNav)
+    
+                
+                UnorderedList barsUL
+                barsUL:AddAttribute("role","group")
+                barGroupNav:AddNestedTag(barsUL)
+                currentGrouping = barsUL
+            end
+            
+            j = 0
+            repeat while j < barGroups:Get(i):GetSize()
+                ListItem barNav 
+                barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
+                barNav:AddAttribute("role","treeitem")
+                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                barNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                barNav:SetTabIndex("-1")
+                currentGrouping:Add(barNav)
+
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
 
 end

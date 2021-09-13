@@ -1,0 +1,439 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Web.Page.Script
+use Libraries.Containers.Array
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.ListItem
+
+class ChartWriter
+    private number axisPointX = 15
+    private number axisPointY = 85
+    private number axisLengthX = 75
+    private number axisLengthY = 75
+    private boolean hasAccessibility = true
+
+    Label chartTitle
+    Label xAxisLabel
+    Label yAxisLabel
+    Line xAxis
+    Line yAxis
+    Rectangle background
+    Rectangle chartArea
+    Array<Label> yLabels
+    Array<Label> xLabels
+    
+
+    /*
+        This action writes out the BarChart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart)
+    */
+    action WriteOutChart(Chart chart) returns text
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(700,600)
+        chartCanvas:SetTabIndex(-1)
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+
+        //start setting stuff
+        AddBackground(chartCanvas, chart)
+        AddChartArea(chartCanvas)
+        AddAxes(chartCanvas, chart)
+        AddChartTitle(chartCanvas, chart)
+        AddChartContent(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+
+        if HasAccessibility()
+            AddAccessibility(chartCanvas, chart)
+        end
+
+        return chartCanvas:ToText()
+    end
+
+    /*
+        This action sets a flag to know if all of the accessibility
+        information should be included. This may be used to reduce
+        the size of the image in cases where it will be used
+        as a flat image such as in a PDF.
+    */
+    action SetHasAccessibility(boolean hasAccessibility)
+        me:hasAccessibility = hasAccessibility
+    end
+
+    action HasAccessibility() returns boolean
+        return hasAccessibility
+    end
+
+    /*
+        This action sets the position (percentage) of the chart area.
+    */
+    action SetChartAreaPosition(number x, number y)
+        axisPointX = x
+        axisPointY = y
+    end
+
+    action SetChartAreaPositionX(number x)
+        axisPointX = x
+    end
+
+    action GetChartAreaPositionX() returns number
+        return axisPointX
+    end
+
+    action SetChartAreaPositionY(number y)
+        axisPointY = y
+    end
+
+    action GetChartAreaPositionY() returns number
+        return axisPointY
+    end
+
+    /*
+        This action sets the width (percentage) of the chart area.
+    */
+    action SetChartAreaWidth(number width)
+        axisLengthX = width
+    end
+
+    action GetChartAreaWidth() returns number
+        return axisLengthX
+    end
+
+    /*
+        This action sets the height (percentage) of the chart area.
+    */
+    action SetChartAreaHeight(number height)
+        axisLengthY = height
+    end
+
+    action GetChartAreaHeight() returns number
+        return axisLengthY
+    end
+
+    /*
+        This action sets the chart title.
+    */
+    action SetChartTitle(Label chartTitle)
+        me:chartTitle = chartTitle
+    end
+
+    action GetChartTitle() returns Label
+        return chartTitle
+    end
+
+    /*
+        This action sets the x axis label.
+    */
+    action SetXAxisLabel(Label xAxisLabel)
+        me:xAxisLabel = xAxisLabel
+    end
+
+    action GetXAxisLabel() returns Label
+        return xAxisLabel
+    end
+
+    /*
+        This action sets the y axis label.
+    */
+    action SetYAxisLabel(Label yAxisLabel)
+        me:yAxisLabel = yAxisLabel
+    end
+
+    action GetYAxisLabel() returns Label
+        return yAxisLabel
+    end
+
+    /*
+        This action sets the x axis line.
+    */
+    action SetXAxis(Line xAxis)
+        me:xAxis = xAxis
+    end
+
+    action GetXAxis() returns Line
+        return xAxis
+    end
+
+    /*
+        This action sets the y axis line.
+    */
+    action SetYAxis(Line yAxis)
+        me:yAxis = yAxis
+    end
+
+    action GetYAxis() returns Line
+        return yAxis
+    end
+
+    /*
+        This action sets the background.
+    */
+    action SetBackground(Rectangle background)
+        me:background = background
+    end
+
+    action GetBackground() returns Rectangle
+        return background
+    end
+
+    /*
+        This action sets the chart area.
+    */
+    action SetChartArea(Rectangle chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea() returns Rectangle
+        return chartArea
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetXLabels(Array<Label> xLabels)
+        me:xLabels = xLabels
+    end
+
+    action GetXLabels() returns Array<Label>
+        return xLabels
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetYLabels(Array<Label> yLabels)
+        me:yLabels = yLabels
+    end
+
+    action GetYLabels() returns Array<Label>
+        return yLabels
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        chartArea:SetPosition(0, 0, "%")
+        background:SetID(canvas:GetID() + "-" + background:GetHashCode())
+        background:SetTabIndex(-1)
+        if HasAccessibility()
+            background:SetAriaLabel(chart:GetTitle())
+            background:SetAriaDescription(chart:GenerateSummary())
+        end
+        canvas:Add(background)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddChartArea(ScalableVectorGraphics canvas)
+        chartArea:SetFill("white")
+        chartArea:SetSize(axisLengthX,axisLengthY, "%")
+        chartArea:SetPosition(axisPointX, axisPointY - axisLengthY, "%")
+        chartArea:SetID(canvas:GetID() + "-" + chartArea:GetHashCode())
+        chartArea:SetTabIndex(-1)
+        if HasAccessibility()
+            
+        end
+        canvas:Add(chartArea)
+    end
+
+    /*
+        This action adds the two lines for the x and y axis
+    */
+    private action AddAxes(ScalableVectorGraphics canvas, Chart chart)
+        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLengthX, axisPointY, "%")
+        xAxis:SetStroke("black")
+        xAxis:SetTabIndex(-1)
+        xAxis:SetStrokeWidth(0.4,"%")
+        xAxis:SetID(canvas:GetID() + "-" + xAxis:GetHashCode())
+
+        xAxisLabel:SetText(chart:GetXAxisTitle())
+        xAxisLabel:SetTextAnchor("middle")
+        xAxisLabel:SetPosition(50, 95, "%")
+        xAxisLabel:SetFontSize("18pt")
+        xAxisLabel:SetID(canvas:GetID() + "-" + xAxisLabel:GetHashCode())
+        xAxisLabel:SetTabIndex(-1)
+
+        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLengthY, "%")
+        yAxis:SetStroke("black")
+        yAxis:SetTabIndex(-1)
+        yAxis:SetStrokeWidth(0.4,"%")
+        yAxis:SetID(canvas:GetID() + "-" + yAxis:GetHashCode())
+
+        yAxisLabel:SetText(chart:GetYAxisTitle())
+        yAxisLabel:SetTextAnchor("middle")
+        yAxisLabel:SetPosition(5, 50, "%")
+        yAxisLabel:SetTransform("rotate(270, 40,300)")
+        yAxisLabel:SetFontSize("18pt")
+        yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
+        yAxisLabel:SetTabIndex(-1)
+        
+        if HasAccessibility()
+            //xAxisLabel:SetAriaLabel()
+            //xAxisLabel:SetAriaDescription()
+            //yAxisLabel:SetAriaLabel()
+            //yAxisLabel:SetAriaDescription("Scale with " + chart:GetYTickSteps() + " ticks, from 0.0 to " + yAxisMaximum)
+        end
+        
+        canvas:Add(xAxis)
+        canvas:Add(xAxisLabel)
+        canvas:Add(yAxis)
+        canvas:Add(yAxisLabel)
+    end
+
+    /*
+        This action adds a chart title to the canvas
+    */
+    private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("middle")
+        chartTitle:SetPosition(50, 5, "%")
+        chartTitle:SetFontSize("18pt")
+        chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
+        chartTitle:SetTabIndex(-1)
+        if HasAccessibility()
+            
+        end
+        canvas:Add(chartTitle)
+    end
+
+    /*
+        This action generates the elements used within the chart area (bars, lines, datapoints, etc). 
+
+        Attribute: Parameter The chart that will be used to create an SVG
+        Attribute: Parameter chart
+    */
+    blueprint action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        This action adds the labels on the x axis
+    */
+    blueprint action AddXLabels(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        This action adds the labels on the y axis
+    */
+    blueprint action AddYLabels(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        Generates the treeview of treeitems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    private action AddAccessibility(ScalableVectorGraphics canvas, Chart chart)
+        //Navigation Wrapper
+        Division div
+        div:SetIdentifier(canvas:GetID() + "-nav")
+        div:SetClassAttribute("svgNavigation")
+        div:AddAttribute("role","application")
+        
+        UnorderedList tree
+        tree:AddAttribute("role","tree")
+        div:AddNestedTag(tree)
+
+        //Level 1
+        ListItem chartItem
+        chartItem:SetIdentifier(background:GetID() + "-nav")
+        chartItem:AddAttribute("role","treeitem")
+        chartItem:AddAttribute("aria-labelledby",background:GetID())
+        chartItem:AddAttribute("aria-describedby",background:GetID())
+        chartItem:SetTabIndex("-1")
+        tree:Add(chartItem)
+
+        ListItem yAxisLabelItem
+        yAxisLabelItem:SetIdentifier(yAxisLabel:GetID() + "-nav")
+        yAxisLabelItem:AddAttribute("role","treeitem")
+        yAxisLabelItem:AddAttribute("aria-labelledby",yAxisLabel:GetID())
+        yAxisLabelItem:AddAttribute("aria-describedby",yAxisLabel:GetID())
+        yAxisLabelItem:SetTabIndex("-1")
+        AddYAxisAccessibility(yAxisLabelItem)
+        tree:Add(yAxisLabelItem)
+
+        ListItem chartAreaItem
+        chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
+        chartAreaItem:AddAttribute("role","treeitem")
+        chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
+        chartAreaItem:AddAttribute("aria-describedby",chartArea:GetID())
+        chartAreaItem:SetTabIndex("-1")
+        AddChartContentAccessibility(canvas, chart, chartAreaItem)
+        tree:Add(chartAreaItem)
+
+        ListItem xAxisLabelItem
+        xAxisLabelItem:SetIdentifier(xAxisLabel:GetID() + "-nav")
+        xAxisLabelItem:AddAttribute("role","treeitem")
+        xAxisLabelItem:AddAttribute("aria-labelledby",xAxisLabel:GetID())
+        xAxisLabelItem:AddAttribute("aria-describedby",xAxisLabel:GetID())
+        xAxisLabelItem:SetTabIndex("-1")
+        AddXAxisAccessibility(xAxisLabelItem)
+        tree:Add(xAxisLabelItem)
+
+        if chart:IsShowingLegend()
+            
+        end
+
+        canvas:Add(div)
+    end
+
+    action AddYAxisAccessibility(ListItem yAxisLabelItem)
+        UnorderedList yAxisGroup
+        yAxisGroup:AddAttribute("role","group")
+        yAxisLabelItem:AddNestedTag(yAxisGroup)
+
+        i = 0
+        repeat while i < yLabels:GetSize()
+            ListItem labelNav 
+            labelNav:SetIdentifier(yLabels:Get(i):GetID() + "-nav")
+            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("aria-labelledby",yLabels:Get(i):GetID())
+            labelNav:AddAttribute("aria-describedby",yLabels:Get(i):GetID())
+            labelNav:SetTabIndex("-1")
+            yAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem chartAreaItem)
+
+    action AddXAxisAccessibility(ListItem xAxisLabelItem)
+        UnorderedList xAxisGroup
+        xAxisGroup:AddAttribute("role","group")
+        xAxisLabelItem:AddNestedTag(xAxisGroup)
+
+        i = 0
+        repeat while i < xLabels:GetSize()
+            ListItem labelNav 
+            labelNav:SetIdentifier(xLabels:Get(i):GetID() + "-nav")
+            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("aria-labelledby",xLabels:Get(i):GetID())
+            labelNav:AddAttribute("aria-describedby",xLabels:Get(i):GetID())
+            labelNav:SetTabIndex("-1")
+            xAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+end
