@@ -240,7 +240,7 @@ class BarChartWriter is ChartWriter
     private action AddYLabels(ScalableVectorGraphics canvas, Chart chart)
         BarChart barChart
         barChart = cast(BarChart, chart)
-        number scaleNum = barChart:GetMinimumTick()
+        number scaleNum = barChart:GetYAxisMinimum()
         
         
         number axisLengthX = GetChartAreaWidth()
@@ -250,12 +250,12 @@ class BarChartWriter is ChartWriter
 
         Array<Label> yLabels = GetYLabels()
         
-        number scaleWidth = (barChart:GetScaleMaximum()) / (barChart:GetYTickSteps())
-        number scaleDivWidth = axisLengthY / (barChart:GetYTickSteps())
+        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetVerticalPanel():GetTickCount())
+        number scaleDivWidth = axisLength / (chart:GetVerticalPanel():GetTickCount())
         // scale
         Math math
         i = 0
-        repeat while i < barChart:GetYTickSteps() + 1
+        repeat while i < chart:GetVerticalPanel():GetTickCount() + 1
             Label scaleLabel
             Line scaleTick
             

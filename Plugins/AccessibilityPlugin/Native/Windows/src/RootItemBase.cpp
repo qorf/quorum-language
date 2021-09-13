@@ -1,4 +1,5 @@
 #include "RootItemBase.h"
+#include <iostream>
 
 RootItemBase::RootItemBase(JNIEnv* env, std::wstring&& controlName, std::wstring&& controlDescription, jobject jItem)
 	: Item(env, std::move(controlName), std::move(controlDescription), jItem)

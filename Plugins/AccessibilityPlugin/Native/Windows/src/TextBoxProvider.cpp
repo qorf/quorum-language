@@ -1,5 +1,6 @@
 #include <UIAutomation.h>
 #include "jni.h"
+#include <iostream>
 
 #include "TextBoxControl.h"
 #include "TextRangeProvider.h"
@@ -40,6 +41,7 @@ IFACEMETHODIMP TextBoxProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY
 	Range caretRange = m_control->GetSelectionRange();
 
 	ITextRangeProvider* selectionRangeProvider = new TextRangeProvider(m_control, caretRange);
+
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
 	{

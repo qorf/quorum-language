@@ -786,10 +786,12 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	CellControl* cellControl = static_cast<CellControl*>(GetItemFromLong(selectedCell));
 	TableControl* spreadsheetControl = cellControl->GetParentTable();
 
-	if (!spreadsheetControl->HasQuorumFocus())
-		spreadsheetControl->SetQuorumFocus();
-
 	spreadsheetControl->SetSelected(cellControl);
+
+	if (!spreadsheetControl->HasQuorumFocus())
+	{
+		spreadsheetControl->SetQuorumFocus();
+	}
 
 	return true;
 }

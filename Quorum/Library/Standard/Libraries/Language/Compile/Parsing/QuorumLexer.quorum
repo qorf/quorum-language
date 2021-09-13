@@ -7,6 +7,7 @@ use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorCodes
 
 /* 
     This is a default class named Main. It has one action, also named Main,
@@ -29,6 +30,7 @@ use Libraries.Language.Compile.CompilerErrorType
 */
 class QuorumLexer is Lexer
     QuorumLexerConstants constants
+    CompilerErrorCodes codes
     integer index = -1
     integer currentLine = 1
     integer currentColumn = -1
@@ -178,6 +180,7 @@ class QuorumLexer is Lexer
                 Add(token)
             elseif not isIgnored //it's not an ignorable character and it's not valid
                 CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
+                error:SetCode(codes:LEXER_INVALID_CHARACTER)
                 SetCompilerErrorLocation(error)
                 error:SetErrorMessage("The symbol '" + currentChar +
                     "' is not valid. Please remove it")
@@ -286,6 +289,7 @@ class QuorumLexer is Lexer
             
             if MatchesFromIndex(ending, j)
                 j = j + CalculateIndexChange(ending)
+                string = string + ending
                 done = true
             else 
                 string = string + char2
@@ -505,6 +509,7 @@ class QuorumLexer is Lexer
                 //This means there was a minus sign, but no digits following it.
                 if digitCount = 0
                     CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
+                    error:SetCode(codes:LEXER_MINUS)
                     SetCompilerErrorLocation(error)
                     error:SetErrorMessage("A minus (-) must be followed by more digits (0-9).")
                     SendToCompilerErrorManager(error)
@@ -539,6 +544,7 @@ class QuorumLexer is Lexer
                     else //stop at the first non-digit
                         if digitCount = 0
                             CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
+                            error:SetCode(codes:LEXER_PERIOD)
                             SetCompilerErrorLocation(error)
                             error:SetErrorMessage("A period (.) must be followed by more digits (0-9).")
                             SendToCompilerErrorManager(error)
@@ -582,6 +588,7 @@ class QuorumLexer is Lexer
                     else //stop at the first non-digit
                         if digitCount = 0
                             CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
+                            error:SetCode(codes:LEXER_EXPONENT)
                             SetCompilerErrorLocation(error)
                             error:SetErrorMessage("An exponent (e) must be followed by more digits (0-9)")
                             SendToCompilerErrorManager(error)

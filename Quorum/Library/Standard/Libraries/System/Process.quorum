@@ -3,20 +3,80 @@ package Libraries.System
 use Libraries.Containers.Array
 use Libraries.System.File
 
+/*
+This class allows us to create a new process on the computer. Essentially, 
+this causes a new running program to be created with its own memory space. 
+We can specify the parameters to be sent to the process and listen to what it is doing. 
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.System.File
+use Libraries.System.Process
+use Libraries.System.ProcessListener
+use Libraries.System.ProcessEvent
+use Libraries.Containers.Array
+
+class RunIt is ProcessListener
+    action Main
+        Process process
+        process:SetName("C:\location\node")
+        
+        File folder
+        folder:SetAbsolutePath("C:\otherlocation")
+        process:SetDirectory(folder)
+        
+        Array<text> flags
+        flags:Add("Result.js")
+        process:AddListener(me)
+        process:Run()
+    end
+
+    action ProcessStarted(ProcessEvent event)
+        output "Started"
+    end
+
+    action ProcessStopped(ProcessEvent event)
+        output "Started"
+    end
+
+    action Output(ProcessEvent event)
+        output "Standard out: " + event:GetOutput()
+    end
+
+    action Error(ProcessEvent event)
+        output "Standard error: " + event:GetOutput()
+    end
+end
+*/
 class Process
     Array<ProcessListener> listeners
     text name = ""
     Array<text> flags
 
+    /*
+        Adds a listener object that can tell us when the process starts, stops, or outputs information.
+
+        Attribute: Parameter listener the listener to get added.
+    */
     action AddListener(ProcessListener listener)
         listeners:Add(listener)
     end
 
+    /*
+        Removes a listener object. This stops us from getting events, but does not change what the process is doing.
+
+        Attribute: Parameter listener the listener to get removed.
+    */
     action Remove(ProcessListener listener)
         listeners:Remove(listener)
     end
 
-    action FireProcessStartedEvent
+    /*
+        Forces the system to claim that a process has started.
+    */
+    private action FireProcessStartedEvent
         i = 0
         repeat while i < listeners:GetSize()
             ProcessListener listener = listeners:Get(i)
@@ -30,7 +90,10 @@ class Process
         end
     end
 
-    action FireProcessStoppedEvent(integer exit)
+    /*
+        Forces the system to claim that a process has stopped.
+    */
+    private action FireProcessStoppedEvent(integer exit)
         i = 0
         repeat while i < listeners:GetSize()
             ProcessListener listener = listeners:Get(i)
@@ -45,7 +108,10 @@ class Process
         end
     end
 
-    action FireProcessErrorEvent(text value)
+    /*
+        Forces the system to claim that a process has output on standard error.
+    */
+    private action FireProcessErrorEvent(text value)
         i = 0
         repeat while i < listeners:GetSize()
             ProcessListener listener = listeners:Get(i)
@@ -60,7 +126,10 @@ class Process
         end
     end
 
-    action FireProcessOutputEvent(text value)
+    /*
+        Forces the system to claim that a process has output on standard out.
+    */
+    private action FireProcessOutputEvent(text value)
         i = 0
         repeat while i < listeners:GetSize()
             ProcessListener listener = listeners:Get(i)
@@ -75,22 +144,47 @@ class Process
         end
     end
 
+    /*
+        Gets the name of the process.
+
+        Attribute: Returns the name of the process.
+    */
     action GetName returns text
         return me:name
     end
 
+    /*
+        Sets the name of the process.
+
+        Attribute: Parameter name the name of the process.
+    */
     action SetName(text name)
         me:name = name
     end
 
+    /*
+        Gets the paramters that are passed to the process.
+
+        Attribute: Returns the parameters of the process.
+    */
     action GetParameters returns Array<text>
         return me:flags
     end
 
+    /*
+        Sets the paramters that are passed to the process.
+
+        Attribute: Parameter flags the parameters of the process.
+    */
     action SetParameters(Array<text> flags)
         me:flags = flags
     end
     
+    /*
+        This action tells the process to begin its execution. If no file is set, then the current working directory in 
+        Quorum (the default in the File class) is used, meaning it will run from wherever the current program is running from. 
+        The name of the program to be run and the flags passed are used to run the program, so these must be set before calling Run.       
+    */
     action Run
         //if no file is set, set this to run by default in the current
         //working directory.
@@ -102,15 +196,66 @@ class Process
         Run(name, flags)
     end
 
+    /*
+        This returns true if the program is still running.
+
+        Attribute: Returns true if still executing.
+    */
     system action IsAlive returns boolean
 
+    /* A private action to send down to the system. */
     private system action Run(text name, Array<text> flags)
 
+    /*
+        This action sends text to a running process on standard input.
+
+        Attribute: Parameter value
+    */
     system action SendInput(text value)
+
+    /*
+        This returns the directory in which the process will be run.
+
+        Attribute: Returns the directory in which to run the process.
+    */
     system action GetDirectory returns File
+
+    /*
+        Sets the directory in which the process will be run.
+
+        Attribute: Parameter folder the directory in which to run the process.
+    */
     system action SetDirectory(File folder)
+
+    /*
+        Terminates the process.
+    */
     system action Cancel
 
+    /*
+        By default, output from the process will be batched and sent to our process approximately every 50 milliseconds.
+        This action allows us to override this value to any amount of milliseconds. For example, we might raise this to 1000
+        if we only need the output from a program every second.
+
+        Attribute: Parameter time the amount of time to wait, in milliseconds, before output it sent to our listeners.
+    */
+    system action SetMonitorWaitTime(integer time)
+    
+    /*
+        By default, output from the process will be batched and sent to our process approximately every 50 milliseconds.
+        This action allows us to override this value to any amount of milliseconds. For example, we might raise this to 1000
+        if we only need the output from a program every second.
+
+        Attribute: Parameter Returns the amount of time to wait, in milliseconds, before output it sent to our listeners.
+    */
+    system action GetMonitorWaitTime returns integer
+
+
+    /* 
+        By default, this returns just the name of the process.
+
+        Attribute: Returns the name of the process
+    */
     action ToText returns text
         return name
     end

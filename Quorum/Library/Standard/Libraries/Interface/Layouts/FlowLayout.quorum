@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.TreeTableColumn
 
 class FlowLayout is Layout
 
@@ -281,7 +282,12 @@ class FlowLayout is Layout
 
                 x = x + leftPadding
 
-                if x + width > containerWidth and singleLine = false
+                /*
+                Because the 2D system will eventually truncate everything down to integers, we only consider the container width to be exceeded
+                if the prospective width is at least 1 whole pixel larger than the container width.
+                This protects us against erroneous overflow due to floating point errors.
+                */
+                if (x + width) >= (cast(integer, containerWidth) + 1) and singleLine = false
                     if verticalCentering
                         integer centerCounter = nextItemToCenter
                         repeat while centerCounter < itemIndex

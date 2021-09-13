@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +35,8 @@ public class Process {
     public boolean cancelled = false;
     QuorumProcessWatcher watch = null;
     java.lang.Process process = null;
+    int exit = -1;
+    int wait = 50;
     
     public void Run(String name, Array_ flags) {
         myProcess = (Process_) me_;
@@ -55,18 +59,13 @@ public class Process {
             watch.setStream(outputStream);
             watch.start();
             
-            int exit = process.waitFor();
-            watch.wasDestroyed = true;
+            exit = process.waitFor();
             cancelled = true;
-            
-            watch.flush();
-            process.destroy();
-            myProcess.FireProcessStoppedEvent(exit);
-            watch = null;
+            watch.GetThread().join();
         } catch (IOException ex) {
-            myProcess.FireProcessErrorEvent(ex.getMessage());
+            watch.sendExceptionToStandardError(ex);
         } catch (InterruptedException ex) {
-            myProcess.FireProcessErrorEvent(ex.getMessage());
+            watch.sendExceptionToStandardError(ex);
         }
     }
     
@@ -75,6 +74,14 @@ public class Process {
             return process.isAlive();
         }
         return false;
+    }
+    
+    public void SetMonitorWaitTime(int time) {
+        wait = time;
+    }
+    
+    public int GetMonitorWaitTime() {
+        return wait;
     }
     
     public void SetDirectory(File_ folder) {
@@ -104,7 +111,6 @@ public class Process {
         BufferedWriter bufferedWriter;
         private Thread blinker = null;
         public boolean running = false;
-        public boolean wasDestroyed = false;
 
         public QuorumProcessWatcher(InputStream in, InputStream errors) {
             inputStream = in;
@@ -132,6 +138,10 @@ public class Process {
                 blinker.start();
             }
         }
+        
+        public Thread GetThread() {
+            return blinker;
+        }
 
         /**
          * This method is used to flush only if a process was destroyed before
@@ -152,9 +162,20 @@ public class Process {
                     }
                 }
             } catch (IOException ex) {
+                sendExceptionToStandardError(ex);
             }
         }
 
+        public void sendExceptionToStandardError(Exception exception) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            exception.printStackTrace(pw);
+            String line = sw.toString();
+            if(myProcess != null) {
+                myProcess.FireProcessErrorEvent(line);
+            }
+        }
+        
         @Override
         public void run() {
             running = true;
@@ -174,15 +195,28 @@ public class Process {
                             myProcess.FireProcessErrorEvent(line);
                         }
                     }
-                    Thread.sleep(50);
+                    Thread.sleep(wait);
                 } catch (IOException ex) {
+                    sendExceptionToStandardError(ex);
                 } catch (InterruptedException ex) {
+                    sendExceptionToStandardError(ex);
                 } 
             }
             
-            boolean alive = process.isAlive();
-            if(alive) {
-                process.destroyForcibly();
+            try {
+                flush();
+                if(inputStream != null) {
+                    inputStream.close();
+                }
+                if(errorStream != null) {
+                    errorStream.close();
+                }
+            } catch (IOException ex) {
+                sendExceptionToStandardError(ex);
+            } finally {
+                process.destroy();
+                myProcess.FireProcessStoppedEvent(exit);
+                watch = null;
             }
         }
 

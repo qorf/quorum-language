@@ -13,6 +13,7 @@ use Libraries.Interface.Controls.Charts.BarGroup
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Item2D
 
 class SharedBarChartLayout is ChartLayout
     integer request = 0
@@ -20,6 +21,7 @@ class SharedBarChartLayout is ChartLayout
     integer betweenGroupPadding = 0
     integer betweenBarPadding = 0
     integer barWidth = 0
+    Math math
 
     /*
         This action will calculate the size and placement of the elements (bars) within the chart 
@@ -34,26 +36,38 @@ class SharedBarChartLayout is ChartLayout
         Control chartArea = chart:GetChartArea()
         originPointX = 0
         originPointY = 0
-        Math math
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
         
-        Drawable axis = chart:GetXAxis()
-        number axisHeight = axis:GetHeight()
-        number axisWidth = axis:GetWidth()
         number height = chartArea:GetHeight()
         number width = chartArea:GetWidth()
 
         integer currentXPosition = 0
         integer currentYPosition = 0
+        number yMax = chart:GetYAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
+        number xMax = chart:GetXAxisMaximum()
+        number xMin = chart:GetXAxisMinimum()
+        number rangeMax = yMax
+        number rangeMin = yMin
+
+        boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
+        boolean stacked = chart:GetStackedFlag()
 
         if barGroups:GetSize() > 0
             integer numberOfGroups = barGroups:GetSize()
             integer numberOfBars = chart:GetNumberOfBars()
-            boolean stacked = chart:GetStackedFlag()
+            
             if stacked
                 numberOfBars = numberOfGroups
             end
+            if horizontal
+                width = chartArea:GetHeight()
+                height = chartArea:GetWidth()
+                rangeMax = xMax
+                rangeMin = xMin
+            end
+            currentYPosition = 0
 
             // Space on each side of the inner chart (5%)
             outerEdgePadding = cast(integer, ((width * 0.05) / 2))
@@ -63,6 +77,8 @@ class SharedBarChartLayout is ChartLayout
                 // Space spread evenly between each bar group (10%)
                 betweenGroupPadding = cast(integer, ((width * 0.1) / (numberOfGroups-1)))
             end
+
+            chart:SetPaddedChartOffset(outerEdgePadding - cast(integer, betweenGroupPadding/2))
 
             // Space spread evenly between each bar with the bar groups (5%)
             betweenBarPadding = cast(integer, ((width * 0.05) / (numberOfBars - numberOfGroups+1)))
@@ -94,56 +110,82 @@ class SharedBarChartLayout is ChartLayout
             integer barHeight = 0
             integer groupWidth = 0               // width of entire group
             integer groupHeight = 0              // height of entire group
-
-            number yAxisMaximum = chart:GetYAxisMaximum()
-            number yAxisMinimum = chart:GetYAxisMinimum()
-            number dataScale = yAxisMaximum/height
-
+        
             integer i = 0
             repeat while i < barGroups:GetSize()
+                BarGroup currentGroup = barGroups:Get(i)
                 integer j = 0
-                repeat while j < barGroups:Get(i):GetSize()
+                repeat while j < currentGroup:GetSize()
                     Bar bar 
-                    // We want to stack from last to first so it keeps the same order as the legend display
+                    // We want to stack/display so it keeps the same order as the legend
                     if stacked
-                        bar = barGroups:Get(i):Get(barGroups:Get(i):GetSize()-1-j)
+                        if horizontal
+                            bar = currentGroup:Get(j)
+                        else
+                            bar = currentGroup:Get(currentGroup:GetSize()-1-j)
+                        end
                     else
-                        bar = barGroups:Get(i):Get(j)
+                        if horizontal
+                            bar = currentGroup:Get(barGroups:Get(i):GetSize()-1-j)
+                        else
+                            bar = currentGroup:Get(j)
+                        end
                     end
+
                     currentBar = bar:GetIcon()
-                    barHeight = cast(integer,(bar:GetValue())/dataScale)
-
-                    // Set bar height (percentage)
-                    number percent = bar:GetValue()/yAxisMaximum
-                    bar:SetHeight(percent)
-
-                    //Find max height for barGroup Icon
-                    if(barHeight > groupHeight)
-                        groupHeight = barHeight
-                    end
-
-                    currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
-                    currentBar:SetPosition(currentXPosition, currentYPosition)
-                    if stacked
-                        currentYPosition = currentYPosition + barHeight
+                    barHeight = cast(integer, ((bar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height)
+                    if barHeight >= 0 
+                        // Set bar height (percentage)
+                        number percent = (bar:GetValue()-rangeMin)/(rangeMax-rangeMin)
+                        bar:SetHeight(percent)
+    
+                        //Find max height for barGroup Icon
+                        if(barHeight > groupHeight)
+                            groupHeight = barHeight
+                        end
+    
+                        if horizontal
+                            currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
+                            currentBar:SetPosition(currentYPosition, currentXPosition)
+                        else
+                            currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
+                            currentBar:SetPosition(currentXPosition, currentYPosition)
+                        end
+                        if stacked
+                            currentYPosition = currentYPosition + barHeight
+                        else
+                            currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                        end
                     else
-                        currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                        if not stacked
+                            currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                        end
                     end
                     j = j + 1
                 end
 
                 // Creating Bar Group Icon
-                Icon newIcon = barGroups:Get(i):GetIcon()
+                Icon newIcon = currentGroup:GetIcon()
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
                 if stacked
-                    newIcon:LoadRectangle(barWidth+6, currentYPosition+3, transparent)
+                    if horizontal 
+                        newIcon:LoadRectangle(currentYPosition+3, barWidth+betweenGroupPadding, transparent)
+                        newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
+                    else
+                        newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition+3, transparent)
+                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
+                    end
                     currentXPosition = currentXPosition + barWidth + betweenGroupPadding
-                    newIcon:SetPosition(groupX-3, 0)
                 else
-                    groupWidth = currentXPosition - betweenBarPadding - groupX
-                    newIcon:LoadRectangle(cast(integer, groupWidth)+6, cast(integer, groupHeight+3), transparent)
+                    groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
                     currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
-                    newIcon:SetPosition(groupX-3, groupY)
+                    if horizontal
+                        newIcon:LoadRectangle(cast(integer, groupHeight)+3, cast(integer, groupWidth), transparent)
+                        newIcon:SetPosition(groupY, groupX-cast(integer, betweenGroupPadding/2))
+                    else
+                        newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight)+3, transparent)
+                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
+                    end
                 end
                 currentYPosition = 0
                 groupHeight = 0
@@ -151,102 +193,5 @@ class SharedBarChartLayout is ChartLayout
                 i = i + 1
             end
         end
-    end
-
-    action LayoutHorizontalAxis(Chart control, Control horizContainer)
-        if not (control is SharedBarChartParent)
-            return now
-        end
-
-        Math math
-        SharedBarChartParent chart = cast(SharedBarChartParent, control)
-        //This is the Ticks on the X Axis
-        Control chartAreaContainer = chart:GetChartArea()
-        originPointX = 0
-        originPointY = cast(integer, horizContainer:GetHeight())
-        number barDivWidth = 0
-        number barOffset = 0.05
-        number xOrig = originPointX + chartAreaContainer:GetWidth()*barOffset
-        Array<Drawable> ticks = chart:GetXTicks()
-
-        Array<BarGroup> barGroups = chart:GetBarGroups()
-        Array<ControlLabel> barLabels = chart:GetXLabels()
-        integer yLabelOffset = 0
-
-        integer numberOfGroups = barGroups:GetSize()
-        integer numberOfBars = chart:GetNumberOfBars()
-        boolean stacked = chart:GetStackedFlag()
-        if stacked
-            numberOfBars = numberOfGroups
-        end
-
-        //bump and label tick bump
-        number bump = numberOfBars / (ticks:GetSize() * 1.0)
-        if not ticks:IsEmpty() and not barGroups:IsEmpty() and not barLabels:IsEmpty()
-
-            Label currentLabel = barLabels:Get(0)
-            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-            end
-
-            yLabelOffset = cast(integer, 15 + currentLabel:GetHeight())
-            integer labelY = originPointY - yLabelOffset
-
-            Drawable axis = chart:GetXAxis()
-            barDivWidth = cast(integer, axis:GetWidth() / (numberOfBars + 1))
-            //adjust bar offset
-            barOffset = (barDivWidth / chartAreaContainer:GetWidth()) / 2 //currently a percentage
-            Drawable currentTick = ticks:Get(0)
-            number tickX = originPointX + chartAreaContainer:GetWidth()*barOffset
-            integer tickY = originPointY - cast(integer, currentTick:GetHeight())
-            number labelX = tickX
-            number barX = outerEdgePadding
-            tickX = barX
-            integer i = 0
-            number centerOffset = 0
-            repeat while i < ticks:GetSize()
-                currentLabel = barLabels:Get(i)
-    
-                
-                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-                end
-                
-
-                currentTick = ticks:Get(i)
-                if stacked
-                    centerOffset = ((barWidth + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) / 2)
-                    tickX = barX + centerOffset
-    
-                    labelX = tickX - (currentLabel:GetWidth()/2)
-                    currentLabel:SetPosition(labelX, labelY)
-    
-                    barX = barX + (barWidth + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) + betweenGroupPadding
-                    currentTick:SetPosition(tickX, tickY)
-                else
-                    centerOffset = (((barGroups:Get(i):GetSize() * barWidth) + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) / 2)
-                    tickX = barX + centerOffset
-    
-                    labelX = tickX - (currentLabel:GetWidth()/2)
-                    currentLabel:SetPosition(labelX, labelY)
-    
-                    barX = barX + ((barGroups:Get(i):GetSize() * barWidth) + ((barGroups:Get(i):GetSize() - 1) * betweenBarPadding)) + betweenGroupPadding
-                    currentTick:SetPosition(tickX, tickY)
-                end
-                i = i + 1
-            end
-        end
-
-        //This is the label itself on the X axis
-        originPointX = 0
-        originPointY = cast(integer, horizContainer:GetHeight())
-        Label axisLabel = chart:GetXLabel()
-        number axisY = originPointY - (yLabelOffset + axisLabel:GetHeight()*1.5)
-        if axisY < 1
-            axisY = 1
-        end
-        axisLabel:SetX(cast(integer, horizContainer:GetWidth()/2 - axisLabel:GetWidth()/2))
-        axisLabel:SetY(cast(integer, axisY))
-        axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
     end
 end

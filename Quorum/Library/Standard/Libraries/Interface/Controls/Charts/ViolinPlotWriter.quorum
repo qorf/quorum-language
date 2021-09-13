@@ -277,54 +277,54 @@ class ViolinPlotWriter
         This action adds the labels on the x axis
     */
     private action AddXLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
-        integer i = 0
-        Array<text> xLabelText = chart:GetXAxisLabels()
-        integer total = chart:GetPlotGroups():GetSize()
-        number space = axisLength/(total)
-        repeat while i < total
-            Label tempLabel
-
-            tempLabel:SetText(chart:GetXAxisLabels():Get(i))
-            tempLabel:SetTextAnchor("middle")
-            tempLabel:SetPosition(axisPointX + (i) * space + space/2, axisPointY + 4, "%")
-            canvas:Add(tempLabel)
-            i = i + 1
-        end
+//        integer i = 0
+//        Array<text> xLabelText = chart:GetXAxisLabels()
+//        integer total = chart:GetPlotGroups():GetSize()
+//        number space = axisLength/(total)
+//        repeat while i < total
+//            Label tempLabel
+//
+//            tempLabel:SetText(chart:GetXAxisLabels():Get(i))
+//            tempLabel:SetTextAnchor("middle")
+//            tempLabel:SetPosition(axisPointX + (i) * space + space/2, axisPointY + 4, "%")
+//            canvas:Add(tempLabel)
+//            i = i + 1
+//        end
     end
 
     /*
         This action the labels on the y axis
     */
     private action AddYLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
-        number scaleNum = 0//chart:GetYAxisMinimum()
-        
-        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
-        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
-        // scale
-        Math math
-        i = 0
-        //output chart:GetYMax()
-        repeat while i < chart:GetYTickCount()
-            Label scaleLabel
-            Line scaleTick
-            
-            scaleLabel:SetTextAnchor("end")
-            scaleLabel:SetText("" + math:Round(scaleNum, 1))
-            scaleLabel:SetFontSize("8pt")
-            scaleNum = scaleNum + scaleWidth
-
-            scaleTick:SetTabIndex(-1)
-            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
-            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
-            scaleTick:SetStroke("black")
-            scaleTick:SetStrokeWidth(0.4,"%")
-            
-            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
-
-            canvas:Add(scaleLabel)
-            canvas:Add(scaleTick)
-        i = i+1
-        end
+//        number scaleNum = 0//chart:GetYAxisMinimum()
+//        
+//        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
+//        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
+//        // scale
+//        Math math
+//        i = 0
+//        //output chart:GetYMax()
+//        repeat while i < chart:GetYTickCount()
+//            Label scaleLabel
+//            Line scaleTick
+//            
+//            scaleLabel:SetTextAnchor("end")
+//            scaleLabel:SetText("" + math:Round(scaleNum, 1))
+//            scaleLabel:SetFontSize("8pt")
+//            scaleNum = scaleNum + scaleWidth
+//
+//            scaleTick:SetTabIndex(-1)
+//            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
+//            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
+//            scaleTick:SetStroke("black")
+//            scaleTick:SetStrokeWidth(0.4,"%")
+//            
+//            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
+//
+//            canvas:Add(scaleLabel)
+//            canvas:Add(scaleTick)
+//        i = i+1
+//        end
     end
 
 end

@@ -28,11 +28,11 @@ end
 class Random
     BitwiseOperations op
     Array<integer> mt
+    integer n = 624                     //degree of recurrence
     integer index = n+1
 
     //coeefficients for MT 19937 algorithm (32-bit)
     integer w = 32                      //word size (bits)
-    integer n = 624                     //degree of recurrence
     integer m = 397                     //middle word offset
     integer r = 31                      //separation point (bits in lower bitmask)
     integer u = 11                      //additional bitshift/mask

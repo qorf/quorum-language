@@ -14,6 +14,7 @@ use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Compiler
     public constant number VERSION = 9.0
@@ -50,6 +51,7 @@ class Compiler
     boolean writeJavaScriptToDisk = true
     CodeCompletionHandler codeCompletionhandler
     DocumentationGenerator documentationGenerator
+    CompilerErrorCodes compilerCodes
 
     Library standardLibrary
 
@@ -124,6 +126,32 @@ class Compiler
         standardLibrary = library
     end
 
+    action Parse(File file, QuorumSourceListener listener) 
+        text source = file:Read()
+        listener:SetFile(file)
+        Parse(source, listener)
+    end
+
+    action Parse(text source, QuorumSourceListener listener)
+        CompilerErrorManager errors = listener:GetCompilerErrorManager()
+        QuorumLexer lexer
+        lexer:SetFile(listener:GetFile())
+        lexer:SetCompilerErrorManager(errors)
+        lexer:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            return now
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if start not= undefined and errors:IsCompilationErrorFree()
+            start:Traverse(listener)
+        end
+    end
+
     action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
         TypeChecker types, File loc)
         listener:SetSymbolTable(table)
@@ -137,18 +165,63 @@ class Compiler
         else 
             Parse(loc, listener)
         end
-        
+    end
+
+    /*
+        This action traverses an abstract syntax tree. If there isn't one, it makes it first.
+    */
+    action Traverse(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
+        TypeChecker types, File loc, CompilerResult result)
+        listener:SetSymbolTable(table)
+        listener:SetCompilerErrorManager(errors)
+        listener:SetTypeChecker(types)
+        listener:SetFile(loc)
+
+        //first check if we already have an abstract syntax tree in this call
+        //we know this is the case if the tree exists and there are no errors.
+        HashTable<text, StartContext> trees = result:trees
+        if trees not= undefined and loc not= undefined
+            StartContext start = trees:GetValue(loc:GetAbsolutePath())
+            if start not= undefined and errors:IsCompilationErrorFree()
+                start:Traverse(listener)
+                return now
+            end
+        end
+
+        //if this is not the case
+        if not (source = undefined)
+            listener:SetSource(source)
+        else 
+            source = loc:Read()
+        end 
+
+        QuorumLexer lexer
+        lexer:SetFile(listener:GetFile())
+        lexer:SetCompilerErrorManager(errors)
+        lexer:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            return now
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if start not= undefined and errors:IsCompilationErrorFree()
+            trees:Add(loc:GetAbsolutePath(), start)
+            start:Traverse(listener)
+        end
     end
     
     action Request(CodeCompletionRequest request) returns CodeCompletionResult
         return codeCompletionhandler:Request(request)
     end
 
-    /* This action tells the compiler under the hood to dispose of resources
-        after the next compile.
-    */
-    //system action Dispose
 
+    /*  Tells the compiler to build a program, given a particular request object. 
+        Request objects may contain files and other information on what is to be built.
+    */
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
         HashTable<text, File> originalFileHash
@@ -174,11 +247,6 @@ class Compiler
 
             end
         end
-
-//      This is leftovers from Antlr. Keeping it for now.
-//        if request:disposeAfterNextCompile
-//            Dispose()
-//        end
 
         Library library = request:library
         CompilerResult result
@@ -243,6 +311,7 @@ class Compiler
 
         if isInvalidCompile
             CompilerError error
+            error:SetCode(compilerCodes:COMPILER_BAD_FILES)
             text message = ""
             if files = undefined
                 message = "I cannot compile an array of files that is passed to me undefined"
@@ -274,10 +343,10 @@ class Compiler
             File file = files:Get(i)
             Parser listener
             if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
-                ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             elseif not table:HasFile(file:GetAbsolutePath())
-                ParseSandbox(file:Read(), listener, table, errors, checker, file)
+                Traverse(file:Read(), listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
             Lexer luthor = listener:GetLexer()
@@ -337,7 +406,7 @@ class Compiler
                 repeat while i < standardLibraryFiles:GetSize()
                     File file = standardLibraryFiles:Get(i)
                     QuorumBytecodeListener listener
-                    ParseSandbox(undefined, listener, standardLibrarySymbolTable, errors, checker, file)
+                    Traverse(undefined, listener, standardLibrarySymbolTable, errors, checker, file, result)
                     i = i + 1
                 end
             end
@@ -370,7 +439,7 @@ class Compiler
                 QuorumBytecodeListener listener
 
                 if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
-                    ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                    Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true
                     end
@@ -380,7 +449,7 @@ class Compiler
                         theOpcodes:Add(op:GetStaticKey(), op)
                     end
                 elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
-                    ParseSandbox(undefined, listener, table, errors, checker, file)
+                    Traverse(undefined, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true
                     end
@@ -458,6 +527,7 @@ class Compiler
                         and not isMissingBuildFile
 
                         CompilerError error
+                        error:SetCode(compilerCodes:COMPILER_MISSING_FILE)
                         CompilerErrorType t
                         t:SetCurrentType(t:MISSING_FILE)
                         error:SetCompilerErrorType(t)
@@ -505,14 +575,6 @@ class Compiler
             elseif request:GetOutputType() = JAVASCRIPT
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
-                //Iterator<Class> iterator = table:GetClasses()
-                //repeat while iterator:HasNext()
-                //    Class value = iterator:Next()
-                //    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
-                //    if op not= undefined
-                //        classOpcodes:Add(op)
-                //    end
-                //end
                 convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
                 result:convertedJavaScript = convertedJavaScript
                 if request:writeJavaScriptToDisk
@@ -934,6 +996,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
 
     private action AddMainError(File starter, SymbolTable table, CompilerErrorManager errors)
         CompilerError error
+        error:SetCode(compilerCodes:COMPILER_BAD_STARTING_POINT)
         text message = "I noticed that the class " + starter:GetPath() 
             +   " was specified as the starting point for this program, " 
             + "but it does not have an action named Main. " 
@@ -1260,6 +1323,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
         end
         if not processedClass
             CompilerError error
+            error:SetCode(compilerCodes:COMPILER_BAD_PACKAGE)
             error:SetErrorMessage("I noticed a package named " + value + 
                 " was referenced, but I cannot find any record of it.")
             error:SetLocation(name)
@@ -1598,36 +1662,6 @@ There are many ways to load canvases and this is provided only as an exemplar.
         
         return undefined
     end
-
-    action Parse(File file, QuorumSourceListener listener) 
-        text source = file:Read()
-        listener:SetFile(file)
-        Parse(source, listener)
-    end
-
-    action Parse(text source, QuorumSourceListener listener)
-        CompilerErrorManager errors = listener:GetCompilerErrorManager()
-        QuorumLexer lexer
-        lexer:SetFile(listener:GetFile())
-        lexer:SetCompilerErrorManager(errors)
-        lexer:Read(source)
-
-        if not errors:IsCompilationErrorFree()
-            return now
-        end
-
-        QuorumParser parser
-        parser:SetCompilerErrorManager(errors)
-        parser:SetLexer(lexer)
-        StartContext start = parser:Start()
-        if start not= undefined and errors:IsCompilationErrorFree()
-            start:Traverse(listener)
-        end
-    end
-
-    //system action ParseNative(File file, QuorumSourceListener listener)
-
-    //system action ParseNative(text source, QuorumSourceListener listener)
 
     action GetName returns text
         return name

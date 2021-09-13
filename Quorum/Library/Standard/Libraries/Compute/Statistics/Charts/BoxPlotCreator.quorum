@@ -86,6 +86,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         HashTable<text, PlotGroup> groupFactor
 
         number largest = 0
+        number smallest = 0
         integer i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn columnFrame = frame:GetColumn(GetColumn(i))
@@ -101,6 +102,9 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             if largest < sum:GetMaximum()
                 largest = sum:GetMaximum()
             end
+            if smallest > sum:GetMinimum()
+                smallest = sum:GetMinimum()
+            end
 
             Plot plot
             Vector dataset = columnFrame:ConvertToVector()
@@ -113,6 +117,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 Series series
                 series:SetName(columnFrame:GetHeader())
                 series:AddItem(plot:GetIcon())
+                series:AddItem(plot)
                 seriesFactor:Add(columnFrame:GetHeader(), series)
 
                 PlotGroup group
@@ -141,8 +146,9 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
-        chart:SetXAxisLabels(columnNames)
-        chart:SetYAxisMaximum(largest)
+
+        SetScale(chart, smallest, largest, 0, columnNames:GetSize())
+        chart:OverrideXLabelsWithText(columnNames)
         chart:HasGroups(false)
         return chart
     end
@@ -258,6 +264,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         // Fill the plot groups
         Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
         number largest = 0
+        number smallest = 0
         i = 0
         repeat while i < groupKeyArray:GetSize()
             integer j = 0
@@ -273,8 +280,13 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                     largest = dataset:Get(dataset:GetSize()-1)
                 end
     
+                if smallest > dataset:Get(0) //Find smallest value to scale y axis
+                    smallest = dataset:Get(0)
+                end    
+
                 if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
                     seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
+                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
                 end
                 if groupFactor:HasKey(groupKeyArray:Get(i))
                     groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
@@ -318,14 +330,22 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
 
+        SetScale(chart, smallest, largest, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         if chart:GetSeriesList():GetSize() > 1
             chart:HasGroups(true)
         else
             chart:HasGroups(false)
         end
-        chart:SetYAxisMaximum(largest)
-        chart:SetXAxisLabels(groupNames)
         return chart
+    end
+
+    private action SetScale(BoxPlot chart, number ymin, number ymax, number xmin, number xmax)
+        chart:SetDefaultOrientation("vertical")
+        chart:SetYAxisMinimum(ymin)
+        chart:SetYAxisMaximum(ymax)
+        chart:SetXAxisMinimum(xmin)
+        chart:SetXAxisMaximum(xmax)
     end
     
     /*

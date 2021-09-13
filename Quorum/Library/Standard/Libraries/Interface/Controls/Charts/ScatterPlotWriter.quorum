@@ -161,10 +161,10 @@ class ScatterPlotWriter
         Math math
         number scaleNum = chart:GetXAxisMinimum()
         
-        number scaleWidth = (chart:GetXAxisMaximum()) / (chart:GetXTickCount()- 1)
-        number scaleDivWidth = axisLength / (chart:GetXTickCount() - 1)
+        number scaleWidth = (chart:GetXAxisMaximum()) / (chart:GetHorizontalPanel():GetTickCount()- 1)
+        number scaleDivWidth = axisLength / (chart:GetHorizontalPanel():GetTickCount() - 1)
         integer i = 0
-        repeat while i < chart:GetXTickCount()
+        repeat while i < chart:GetHorizontalPanel():GetTickCount()
             Label scaleLabel
             Line scaleTick
 
@@ -191,13 +191,13 @@ class ScatterPlotWriter
     private action AddYLabels(ScalableVectorGraphics canvas, ScatterPlot chart)
         number scaleNum = chart:GetYAxisMinimum()
         
-        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
-        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
+        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetVerticalPanel():GetTickCount()- 1)
+        number scaleDivWidth = axisLength / (chart:GetVerticalPanel():GetTickCount() - 1)
         // scale
         Math math
         i = 0
         output chart:GetYAxisMaximum()
-        repeat while i < chart:GetYTickCount()
+        repeat while i < chart:GetVerticalPanel():GetTickCount()
             Label scaleLabel
             Line scaleTick
             

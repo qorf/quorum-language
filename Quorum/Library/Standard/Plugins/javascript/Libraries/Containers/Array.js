@@ -179,7 +179,7 @@ function plugins_quorum_Libraries_Containers_Integer32BitArray_() {
         return this.array_[index];
     };
 
-    this.Set$quorum_integer$quorum_number = function(index, value) 
+    this.Set$quorum_integer$quorum_integer = function(index, value) 
     {
         this.array_[index] = value;
     };

@@ -45,10 +45,6 @@ use Libraries.Interface.Controls.Charts.Legend
     chart:Display(2000,1000)
 */
 class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    number maxScale = maxScale:GetMinimumValue()
-    number minScale = maxScale:GetMaximumValue()
-    integer xSteps = -1
-    integer ySteps = 5
     Comparison comparison = undefined
     integer countMax = 0
     integer countMin = 0
@@ -83,7 +79,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             return CreateChart(factor, column)
 
         elseif columns > 1 and factors = 1
-            //DataFrameColumn factor = frame:GetColumn(GetFactor(0))
             return CreateChart(frame)
 
         elseif columns = 1 and factors = 2
@@ -112,12 +107,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         CalculateCountMinMax(hash)
         integer max = countMax
-        integer min = countMin
+        integer min = 0
         integer stepCounter = 0
 
         Series series
         series:SetName(column:GetHeader())
 
+        Array <text> barNames
         //make chart
         i = 0
         repeat while i < labels:GetSize()
@@ -126,6 +122,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     
                 BarGroup group
                 group:SetName(labels:GetAsText(i))
+                barNames:Add(labels:GetAsText(i))
                 Bar bar
                 bar:SetName(labels:GetAsText(i))
                 bar:SetValue(valueForName)
@@ -140,8 +137,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
-        SetTicks(chart)
-        SetScale(chart, min, max)
+
+        SetScale(chart, min, max, 0, barNames:GetSize())
+        chart:OverrideXLabelsWithText(barNames)
         chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         return chart
     end
@@ -194,15 +192,15 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         // Add Groups
-        Array<text> xLabels = groupFactor:CopyToKeyArray()
+        Array<text> groupNames = groupFactor:CopyToKeyArray()
         if comparison = undefined
-            xLabels:Sort()
+            groupNames:Sort()
         else
-            xLabels:Sort(comparison)
+            groupNames:Sort(comparison)
         end
         i = 0
-        repeat while i < xLabels:GetSize()
-            chart:AddBarGroup(groupFactor:GetValue(xLabels:Get(i)))
+        repeat while i < groupNames:GetSize()
+            chart:AddBarGroup(groupFactor:GetValue(groupNames:Get(i)))
             i = i + 1
         end
 
@@ -222,8 +220,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
-        SetTicks(chart)
-        SetScale(chart, yMin, yMax)
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         return chart
     end
@@ -337,6 +335,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
+        Array <text> groupNames
         // Sort the bar groups within the chart
         if numerical
             Array<number> numberKeyArray = numberForText:CopyToKeyArray()
@@ -349,6 +348,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             repeat while i < numberKeyArray:GetSize()
                 BarGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
                 chart:AddBarGroup(group)
+                groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
                 i = i + 1
             end
         else
@@ -361,6 +361,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             repeat while i < groupKeyArray:GetSize()
                 BarGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
                 chart:AddBarGroup(group)
+                groupNames:Add(groupKeyArray:Get(i))
                 i = i + 1
             end  
         end  
@@ -368,8 +369,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
-        SetTicks(chart)
-        SetScale(chart, min, max)
+        SetScale(chart, min, max, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         return chart
     end
 
@@ -408,6 +409,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         CalculateSumMinMax(groupingFactor)
+        Array <text> groupNames
 
         i = 0
         repeat while i < uniqueFactor:GetSize()
@@ -417,6 +419,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if value not= undefined
                 BarGroup group
                 group:SetName(uniqueFactor:GetAsText(i))
+                groupNames:Add(uniqueFactor:GetAsText(i))
                 Bar bar
                 bar:SetName(uniqueFactor:GetAsText(i))
                 bar:SetValue(value)
@@ -433,8 +436,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor:GetHeader())
         chart:SetLegend(legend)
-        SetTicks(chart)
-        SetScale(chart, sumMin, sumMax)
+        SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         return chart
     end
 
@@ -477,6 +480,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         
         CalculateSumMinMaxTwoFactor(groupingFactor)
 
+        Array <text> groupNames
+
         i = 0
         repeat while i < uniqueFactor1:GetSize()
             HashTable<text, Number> innerHash = groupingFactor:GetValue(uniqueFactor1:GetAsText(i))
@@ -502,6 +507,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             if(group:GetSize() > 0)
                 chart:AddBarGroup(group)
+                groupNames:Add(group:GetName())
             end
             i = i + 1
         end
@@ -519,8 +525,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         legend:SetSeriesList(chart:GetSeriesList())
         legend:SetName(factor2:GetHeader())
         chart:SetLegend(legend)
-        SetTicks(chart)
-        SetScale(chart, sumMin, sumMax)
+        SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         return chart
     end
 
@@ -629,26 +635,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     end
 
 
-    private action SetScale(BarChart chart, number min, number max)
-        chart:SetYAxisMinimum(min)
-        chart:SetYAxisMaximum(max)
-        if max not= maxScale:GetMinimumValue()
-            chart:SetScaleMaximum(max)
-        else
-            chart:SetScaleMaximum(max)
-        end
-
-        if min not= maxScale:GetMaximumValue()
-            chart:SetScaleMinimum(min)
-        else
-            chart:SetScaleMaximum(min)
-        end
-    end
-
-    private action SetTicks(BarChart chart)
-        if xSteps not= -1
-            chart:SetXTickSteps(xSteps)
-        end
+    private action SetScale(BarChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:SetDefaultOrientation("vertical")
+        chart:SetYAxisMinimum(ymin)
+        chart:SetYAxisMaximum(ymax)
+        chart:SetXAxisMinimum(xmin)
+        chart:SetXAxisMaximum(xmax)
     end
 
     
@@ -728,46 +720,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
           
         return values
-    end
-
-    
-
-    action GetYSteps returns integer
-        return ySteps
-    end
-
-    action GetXSteps returns integer
-        return xSteps
-    end
-
-    /*
-        Sets the number of steps in the scale. 
-    */
-    action SetYSteps(integer steps)
-        ySteps = steps
-    end
-    /*
-        Sets the number of steps in the scale. 
-    */
-    action SetXSteps(integer steps)
-        xSteps = steps
-    end
-
-    
-    /*
-        Sets the maxiumum value that will appear at the top of the scale. Note 
-        that the other values of the scale will be affected by the maximum.
-    */
-    action SetScaleMaximum(number max)
-        maxScale = max
-    end
-
-    /*
-        Sets the maxiumum value that will appear at the top of the scale. Note 
-        that the other values of the scale will be affected by the maximum.
-    */
-    action SetScaleMinimum(number min)
-        minScale = min
     end
 
     action GetComparison returns Comparison

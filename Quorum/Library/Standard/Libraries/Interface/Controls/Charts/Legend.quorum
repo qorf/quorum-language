@@ -25,7 +25,6 @@ use Libraries.Interface.Controls.ControlLabel
 
 
 class Legend is Control
-
     ControlLabel title
     Array<Series> seriesList
     Array<text> itemNames
@@ -52,7 +51,6 @@ class Legend is Control
         properties:SetBorderThickness(2)
         SetName("Legend")
 
-//        SetInputGroup("Button")
         SetDescription("Legend")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
@@ -97,42 +95,55 @@ class Legend is Control
             content:SetText(name)
         end
     end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
     
     /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
-    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem xAxis, ChartItem yAxis)
+    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         ChartItem legendArea
         legendArea:SetDisplayName("Legend")
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
-
         me:SetDescription("Legend , " + seriesList:GetSize() + " series")
-        legendArea:SetFocusTarget(me)
         legendArea:SetContainer(chart)
 
-        xAxis:SetNext(legendArea)
-        legendArea:SetPrevious(xAxis)
-        yAxis:SetPrevious(legendArea)
+        if chart:IsShowingXAxis()
+            xAxis:SetNext(legendArea)
+            legendArea:SetPrevious(xAxis)
+        else
+            chartArea:SetNext(legendArea)
+            legendArea:SetPrevious(chartArea)
+        end
+        if chart:IsShowingYAxis()
+            legendArea:SetNext(yAxis)
+            yAxis:SetPrevious(legendArea)
+        else
+            legendArea:SetNext(chartArea)
+            chartArea:SetPrevious(legendArea)
+        end
 
         // Legend Entries
         ChartItem firstEntry
         firstEntry:SetContainer(chart)
         if seriesList:GetSize() > 0
             legendArea:SetChild(firstEntry)
-            seriesList:Get(0):GetLabel():SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
+            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
             firstEntry:SetParent(legendArea)
-            firstEntry:SetFocusTarget(seriesList:Get(0):GetLabel())
+            firstEntry:SetFocusTarget(seriesList:Get(0))
         end
         integer i = 1
         ChartItem previous = firstEntry
         repeat while i < seriesList:GetSize()
             ChartItem entry
             entry:SetContainer(chart)
-            seriesList:Get(i):GetLabel():SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
+            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
             entry:SetParent(legendArea)
-            entry:SetFocusTarget(seriesList:Get(i):GetLabel())
+            entry:SetFocusTarget(seriesList:Get(i))
             previous:SetNext(entry)
             entry:SetPrevious(previous)
             previous = entry
@@ -215,7 +226,6 @@ class Legend is Control
 
         parent:Control:LoadGraphics(properties)
     end
-
     
     private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
         Icon newItemStructure

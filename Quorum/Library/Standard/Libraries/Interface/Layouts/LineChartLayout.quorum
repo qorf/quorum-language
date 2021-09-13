@@ -49,27 +49,21 @@ class LineChartLayout is TwoVariableChartLayout
 
             integer j = 0
             repeat while j < lines:Get(i):GetPoints():GetSize()
-                Icon pointIcon = lines:Get(i):GetPoints():Get(j):GetIcon()
                 ChartPoint point = lines:Get(i):GetPoints():Get(j)
                 
                 if chart:GetPointsFlag()
                     point:LoadFilledCircle(radius, lines:Get(i):GetColor())
-                    pointIcon:LoadFilledCircle(radius+2, chart:GetHighlightColor()) //Slightly denser when highlighted
                 end
                 point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
                 point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))
                 integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
-                pointIcon:SetPosition(x-2, y-2) // -2 to make up for denser icon
-                pointIcon:SetZ(-1)
-                pointIcon:Hide()
                 j = j + 1
             end
 
             j = 0
             repeat while j < lines:Get(i):GetLines():GetSize()
-                Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
                 LineSegment line = lines:Get(i):GetLines():Get(j)
                 ChartPoint a = lines:Get(i):GetPoints():Get(j)
                 ChartPoint b = lines:Get(i):GetPoints():Get(j + 1)
@@ -88,7 +82,6 @@ class LineChartLayout is TwoVariableChartLayout
                 number tanInverse = math:Round(math:RadiansToDegrees(math:InverseTangent(slope)), 2)
 
                 line:LoadFilledRectangle(cast(integer, sideC)+2, LineDensity, lines:Get(i):GetColor())
-                lineIcon:LoadFilledRectangle(cast(integer, sideC)+3, LineDensity+2, chart:GetHighlightColor()) //Slightly denser when highlighted
 
                 number angle = -1.0*tanInverse
 
@@ -100,17 +93,10 @@ class LineChartLayout is TwoVariableChartLayout
                 number offY = math:Sine(math:DegreesToRadians(angle))
                 line:SetCenterY(line:GetCenterY() + offY)
                 line:SetCenterX(line:GetCenterX() - offX)
-
-                lineIcon:SetPosition(x1+radius, y1+radius)
-                lineIcon:SetRotation(angle)
-                lineIcon:SetCenterY(line:GetCenterY())
-                lineIcon:SetCenterX(line:GetCenterX())
      
                 line:SetPoint1(a)
                 line:SetPoint2(b)
                 line:SetName("Line segment between point " + (j+1) + " and " + (j+2) + ".")
-                lineIcon:SetZ(-1)
-                lineIcon:Hide()
                 j = j + 1
             end
             i = i + 1

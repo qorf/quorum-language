@@ -52,8 +52,6 @@ use Libraries.Compute.Statistics.Inputs.FactorInput
     //we might then add this chart to a game.
 */
 class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    private integer valueColumn = -1
-    private integer ticks = 5
     number binWidthOverride = -1
     boolean decimalScale = false
 
@@ -213,6 +211,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             n = n + 1
         end
 
+        Array <text> groupNames
         // Bar Groups
         i = 0
         repeat while i < groupFactor:GetSize()
@@ -223,6 +222,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             if(groupFactor:HasKey(valueDisplay) and floor < max) 
                 chart:AddBarGroup(groupFactor:GetValue(valueDisplay))
+                groupNames:Add(valueDisplay)
             end
             i = i + 1
         end    
@@ -241,43 +241,20 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         Legend legend
-        chart:SetYAxisMaximum(maxFrequency)
         legend:SetSeriesList(chart:GetSeriesList())
         chart:SetLegend(legend)
+        SetScale(chart, 0, maxFrequency, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         chart:RemoveGaps(true)
         return chart
     end
 
-    /*
-        Returns the name of the value column specified.
-    */
-    action GetColumn returns integer
-        return valueColumn
-    end
-
-    /*
-        Sets the name of the name column specified.
-    */
-    action SetColumn(integer column)
-        me:valueColumn = column
-    end
-
-    /*
-        This returns the number of ticks to present on the chart.
-
-        Attribute: Returns the number of ticks    
-    */
-    action GetTicks returns integer
-        return ticks
-    end
-
-    /*
-        This sets the number of ticks to present on the chart.
-
-        Attribute: Parameter ticks the number of ticks    
-    */
-    action SetTicks(integer ticks)
-        me:ticks = ticks
+    private action SetScale(Histogram chart, number ymin, number ymax, number xmin, number xmax)
+        chart:SetDefaultOrientation("vertical")
+        chart:SetYAxisMinimum(ymin)
+        chart:SetYAxisMaximum(ymax)
+        chart:SetXAxisMinimum(xmin)
+        chart:SetXAxisMaximum(xmax)
     end
 
     /* Obtains what the bin width was. */

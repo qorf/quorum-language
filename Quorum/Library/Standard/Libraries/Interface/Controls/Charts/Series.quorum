@@ -29,7 +29,7 @@ class Main
 end
 */
 
-class Series
+class Series is Drawable
     ControlLabel name
     Icon icon
     Color color
@@ -73,7 +73,7 @@ class Series
         items:Add(item)
     end
 
-    action GetItem(integer index) returns Drawable
+    action GetItemAt(integer index) returns Drawable
         return items:Get(index)
     end
 

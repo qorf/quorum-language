@@ -19,13 +19,15 @@ class ProcessListener
     end
 
     /*
-        An event that is fired whenever the process outputs to standard out.
+        An event that is fired whenever the process outputs to standard out. We typically call
+        GetOutput on the event to obtain its output, regardless of whether it came from standard out or error.
     */
     action Output(ProcessEvent event)
     end
 
     /*
-        An event that is fired whenever the process outputs to standard error.
+        An event that is fired whenever the process outputs to standard error. We typically call
+        GetOutput on the event to obtain its output, regardless of whether it came from standard out or error.
     */
     action Error(ProcessEvent event)
     end
