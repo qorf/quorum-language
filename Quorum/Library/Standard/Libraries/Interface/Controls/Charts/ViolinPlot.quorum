@@ -58,7 +58,7 @@ class ViolinPlot is Chart
     ChartOptions options
     Math math
 
-    boolean hasGroups = true
+    boolean hasGroups = false
     boolean splitPlot = false
 
     on create
@@ -675,6 +675,9 @@ class ViolinPlot is Chart
     */
     action AddPlotGroup(PlotGroup group)
         plotGroups:Add(group)
+        if group:GetSize() > 1
+            hasGroups = true
+        end
     end
    
     /*

@@ -39,6 +39,7 @@ class VerticalAxisPanel is Control
     Array <Drawable> minorlines
 
     boolean tickCountOverride = false
+    boolean labelOverridesAreNumbers = false
 
     integer minorlinecount = 5
     integer tickCount = 0
@@ -54,7 +55,7 @@ class VerticalAxisPanel is Control
     number widestLabel = 0
 
     text titleText = ""
-    text numberformat = "number"
+    text numberformat = "integer"
 
     on create
         ManualLayout layout
@@ -167,8 +168,14 @@ class VerticalAxisPanel is Control
             Add(line)
         end
 
+        if UseIntegers()
+            if overrideLabels not= undefined and labelOverridesAreNumbers
+                ChangeOverrideLabelsToIntegers()
+            end
+        end
+
         if overrideLabels not= undefined
-            max = 0
+            min = 0
             max = overrideLabels:GetSize()-1
         end
 
@@ -295,6 +302,9 @@ class VerticalAxisPanel is Control
             else
                 scaleWidth = range / 1
             end
+        end
+        if not CheckIfInteger(scaleWidth)
+            numberFormat = "number"
         end
         return scaleWidth
     end
@@ -544,6 +554,35 @@ class VerticalAxisPanel is Control
         end
     end  
 
+    action ChangeOverrideLabelsToIntegers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            if CheckIfInteger(value)
+                integer val = cast(integer, value)
+                overrideLabels:Set(i, cast(text, val))
+            end
+            i = i + 1
+        end
+    end
+
+    action ChangeOverrideLabelsToNumbers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            overrideLabels:Set(i, cast(text, value))
+            i = i + 1
+        end
+    end
+
+    action NumericalOverrideLabels(boolean flag)
+        labelOverridesAreNumbers = flag
+    end
+
+    action NumericalOverrideLabels() returns boolean
+        return labelOverridesAreNumbers
+    end
+
     /*
     These actions control whether decimal numbers or integers are shown
     along the x-axis (if the axis is numerical not text)
@@ -554,12 +593,22 @@ class VerticalAxisPanel is Control
     */
     action SetNumberFormat(text format)
         numberformat = format
+
+        if overrideLabels not= undefined and labelOverridesAreNumbers 
+            if numberformat = "number"            
+                ChangeOverrideLabelsToNumbers()
+            end
+            if numberformat = "integer"
+                ChangeOverrideLabelsToIntegers()
+            end
+        end
     end
 
     action GetNumberFormat() returns text
         return numberformat
     end
 
+    // This action is used for a number scale axis not a text axis.
     action UseIntegers() returns boolean
         if numberformat = "integer"
             return true
@@ -568,6 +617,15 @@ class VerticalAxisPanel is Control
         end
     end
     
+    action CheckIfInteger(number value) returns boolean
+        integer val = cast(integer, value)
+        if val not= value
+            return false
+        else
+            return true
+        end
+    end
+
     /*
     These actions control the minimum and maximum horizontal scale.
     These values are used in all charts regardless if axis is showing 

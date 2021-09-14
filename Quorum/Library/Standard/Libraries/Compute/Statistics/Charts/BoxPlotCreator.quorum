@@ -84,6 +84,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         Array<text> columnNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
+        boolean numericalGroupName = false // Want to see if the column headers are numbers?
 
         number largest = 0
         number smallest = 0
@@ -149,7 +150,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
         SetScale(chart, smallest, largest, 0, columnNames:GetSize())
         chart:OverrideXLabelsWithText(columnNames)
-        chart:HasGroups(false)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
@@ -332,11 +333,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
         SetScale(chart, smallest, largest, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
-        if chart:GetSeriesList():GetSize() > 1
-            chart:HasGroups(true)
-        else
-            chart:HasGroups(false)
-        end
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 

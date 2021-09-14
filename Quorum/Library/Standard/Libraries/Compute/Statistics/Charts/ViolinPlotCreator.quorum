@@ -86,6 +86,8 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         Array<text> columnNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
+        boolean numericalGroupName = false
+
         number largest = 0
         number smallest = 0
 
@@ -155,7 +157,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         SetScale(chart, smallest, largest, 0, columnNames:GetSize())
         chart:OverrideXLabelsWithText(columnNames)
-        chart:HasGroups(false)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
@@ -339,11 +341,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         SetScale(chart, smallest, largest, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
-        if chart:GetSeriesList():GetSize() > 1
-            chart:HasGroups(true)
-        else
-            chart:HasGroups(false)
-        end
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 

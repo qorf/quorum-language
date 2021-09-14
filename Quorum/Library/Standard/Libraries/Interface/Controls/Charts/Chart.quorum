@@ -249,6 +249,10 @@ class Chart is Control
         horizontalPanel:SetOverrideLabels(verticalPanel:GetOverrideLabels())
         verticalPanel:SetOverrideLabels(templabels)
 
+        boolean tempflag = horizontalPanel:NumericalOverrideLabels()
+        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
+        verticalPanel:NumericalOverrideLabels(tempflag)
+
         text tempTitle = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
         verticalPanel:SetTitleText(tempTitle)
@@ -268,8 +272,18 @@ class Chart is Control
             else
                 tickSkips = 0.1
             end
-        else
-            if range > 5000
+        else //I'm sure a better way to set the default intervals can be produced.
+            if range > 1000000
+                tickSkips = 500000
+            elseif range > 250000
+                tickSkips = 50000
+            elseif range > 50000
+                tickSkips = 10000
+            elseif range > 25000
+                tickSkips = 10000
+            elseif range > 10000
+                tickSkips = 5000
+            elseif range > 5000
                 tickSkips = 1000
             elseif range > 2500
                 tickSkips = 500

@@ -72,7 +72,7 @@ class BoxPlot is Chart
     Math math
 
     boolean showOutliers = true
-    boolean hasGroups = true
+    boolean hasGroups = false
     /*
     Flag used to hide all the outliers.
     */
@@ -99,6 +99,9 @@ class BoxPlot is Chart
     */
     action AddPlotGroup(PlotGroup group)
         plotGroups:Add(group)
+        if group:GetSize() > 1
+            hasGroups = true
+        end
     end
    
     /*

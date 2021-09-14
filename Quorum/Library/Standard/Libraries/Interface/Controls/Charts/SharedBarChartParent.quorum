@@ -26,7 +26,7 @@ class SharedBarChartParent is Chart
     integer numberOfBars = 0
 
     Array<BarGroup> barGroups
-    boolean hasBarGroups = true
+    boolean hasBarGroups = false
     boolean isStacked = false
     boolean removeGaps = false // Histograms typically do not have spacing between bars
     Array<Series> seriesList
@@ -37,7 +37,6 @@ class SharedBarChartParent is Chart
 
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
-    Control controlHighlight
     Math math
    
     action LostSelection(ChartItem ci)
@@ -113,6 +112,39 @@ class SharedBarChartParent is Chart
     end
 
     /*
+        Sorts the bars by size in descending order (only if there are no groups)
+    */
+    action SortByBarSize()
+        if not hasBarGroups
+            Array <text> labels = GetHorizontalPanel():GetOverrideLabels()
+            if labels = undefined
+                labels = GetVerticalPanel():GetOverrideLabels()
+            end
+            if labels not= undefined
+                if labels:GetSize() = barGroups:GetSize()
+                    integer i = barGroups:GetSize()-1
+                    repeat while i >= 0
+                        integer j = (barGroups:GetSize()-1)
+                        repeat while j > (barGroups:GetSize() - 1 - i)
+                            if barGroups:Get(j):Get(0):GetValue() > barGroups:Get(j-1):Get(0):GetValue()
+                                BarGroup temp = barGroups:Get(j)
+                                barGroups:Set(j, barGroups:Get(j-1))
+                                barGroups:Set((j-1), temp)
+    
+                                text tempLabel = labels:Get(j)
+                                labels:Set(j, labels:Get(j-1))
+                                labels:Set((j-1), tempLabel)
+                            end
+                            j = j - 1
+                        end
+                        i = i - 1
+                    end
+                end
+            end
+        end
+    end
+
+    /*
         Returns the number of bars currently added to the Bar Chart
     */
     action GetNumberOfBars returns integer
@@ -166,6 +198,9 @@ class SharedBarChartParent is Chart
     action AddBarGroup(BarGroup group)
         barGroups:Add(group)
         numberOfBars = numberOfBars + group:GetSize()
+        if group:GetSize() > 1
+            hasBarGroups = true
+        end
     end
     
     /*

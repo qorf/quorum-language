@@ -104,6 +104,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetTitle(column:GetHeader())
         chart:SetXAxisTitle(column:GetHeader())
         chart:SetYAxisTitle("Count")
+        boolean numerical = false
 
         CalculateCountMinMax(hash)
         integer max = countMax
@@ -113,6 +114,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Series series
         series:SetName(column:GetHeader())
 
+        if labels:IsNumberColumn()
+            numerical = true
+        end
         Array <text> barNames
         //make chart
         i = 0
@@ -140,7 +144,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         SetScale(chart, min, max, 0, barNames:GetSize())
         chart:OverrideXLabelsWithText(barNames)
-        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -153,6 +157,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         HashTable<text, Series> seriesFactor
         HashTable<text, BarGroup> groupFactor
+        boolean numericalGroupName = false
+
         number yMax = 0
         number yMin = 0
 
@@ -222,7 +228,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetLegend(legend)
         SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
-        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
@@ -371,6 +377,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetLegend(legend)
         SetScale(chart, min, max, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -381,8 +388,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             return undefined
         end
 
+        boolean numerical = false
+        if factor:IsNumberColumn()
+            numerical = true
+        end
+
         Series series
-        series:SetName(" ")
+        series:SetName(factor:GetHeader())
 
         chart:SetTitle(column:GetHeader())
         chart:SetXAxisTitle(factor:GetHeader())
@@ -424,7 +436,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetName(uniqueFactor:GetAsText(i))
                 bar:SetValue(value)
                 group:AddBar(bar)
-                series:SetName(uniqueFactor:GetAsText(i))
                 series:AddItem(bar:GetIcon())
                 chart:AddBarGroup(group)
             end
@@ -434,10 +445,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         chart:AddSeries(series)
         legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName(factor:GetHeader())
+        legend:SetName("Legend")
         chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -446,6 +458,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         if not column:IsNumberColumn()
             alert("BarChartCreator does not support text columns used with factors.")
             return undefined
+        end
+
+        boolean numerical = false
+        if factor1:IsNumberColumn()
+            numerical = true
         end
 
         chart:SetTitle(column:GetHeader())
@@ -527,6 +544,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
