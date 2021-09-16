@@ -151,8 +151,6 @@ class VerticalAxisPanel is Control
             Item2D labelAnchor
             ControlLabel newLabel
             SetTitleLabel(newLabel)
-            newLabel:SetFont(properties:GetFont())
-            newLabel:SetSize(cast(integer, cast(integer, chart:GetWidth()*0.075)*chart:GetVerticalPanelHeightPercent()))
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetDescription("Vertical axis")
@@ -165,7 +163,7 @@ class VerticalAxisPanel is Control
         if GetAxis() = undefined
             Drawable line
             SetAxis(line)
-            Add(line)
+            chart:GetChartArea():Add(line)
         end
 
         if UseIntegers()
@@ -535,7 +533,7 @@ class VerticalAxisPanel is Control
     action SetSumOfLabelHeights(number newSum)
         sumOfLabelHeights = newSum
     end
-
+     
     action SetOverrideLabels(Array <text> textLabels)
         if labels not= undefined
             overrideLabels = textLabels

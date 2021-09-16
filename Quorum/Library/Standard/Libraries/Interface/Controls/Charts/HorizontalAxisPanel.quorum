@@ -154,7 +154,6 @@ class HorizontalAxisPanel is Control
             Item2D labelAnchor
             ControlLabel newLabel
             SetTitleLabel(newLabel)
-            newLabel:SetFont(properties:GetFont())
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetDescription("Horizontal axis")
@@ -167,7 +166,7 @@ class HorizontalAxisPanel is Control
         if GetAxis() = undefined
             Drawable line
             SetAxis(line)
-            Add(line)
+            chart:GetChartArea():Add(line)
         end
 
         if UseIntegers()

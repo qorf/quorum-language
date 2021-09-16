@@ -101,9 +101,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         HashTable<text, integer> hash = CalculateItemCounts(column)
         DataFrameColumn labels = column:Copy(true,true)
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(column:GetHeader())
-        chart:SetYAxisTitle("Count")
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(column:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle("COUNT")
         boolean numerical = false
 
         CalculateCountMinMax(hash)
@@ -152,8 +152,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         BarChart chart
         integer columns = GetColumnSize()
 
-        chart:SetYAxisTitle("Total")
-        chart:SetXAxisTitle("Group")
+        chart:SetYAxisTitle("TOTAL")
+        chart:SetXAxisTitle("GROUP")
 
         HashTable<text, Series> seriesFactor
         HashTable<text, BarGroup> groupFactor
@@ -246,8 +246,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         boolean numerical = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
-        chart:SetYAxisTitle("Total")
-        chart:SetXAxisTitle(factor:GetHeader())
+        chart:SetYAxisTitle("TOTAL")
+        chart:SetXAxisTitle(factor:GetHeader():ToUpperCase())
 
         if factor:IsNumberColumn()
             numerical = true
@@ -396,9 +396,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Series series
         series:SetName(factor:GetHeader())
 
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(factor:GetHeader())
-        chart:SetYAxisTitle(column:GetHeader())
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(factor:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle(column:GetHeader():ToUpperCase())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -445,7 +445,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Legend legend
         chart:AddSeries(series)
         legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName("Legend")
+        legend:SetName("LEGEND")
         chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
@@ -465,9 +465,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             numerical = true
         end
 
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(factor1:GetHeader())
-        chart:SetYAxisTitle(column:GetHeader())
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(factor1:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle(column:GetHeader():ToUpperCase())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -540,7 +540,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName(factor2:GetHeader())
+        legend:SetName(factor2:GetHeader():ToUpperCase())
         chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
