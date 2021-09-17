@@ -20,6 +20,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.HorizontalAxisPanel
 use Libraries.Interface.Controls.Charts.VerticalAxisPanel
+use Libraries.Interface.Controls.Charts.Series
 
 
 class ChartLayout is Layout
@@ -57,17 +58,56 @@ class ChartLayout is Layout
                 number titleAreaWidth = chart:GetChartArea():GetWidth()
                 number titleAreaHeight = containerHeight*0.10 //hardcoded right now.
                 integer titleX = originPointX + cast(integer, titleAreaWidth/2 - titleLabel:GetWidth()/2)
-                integer titleY = originPointY + cast(integer, chart:GetChartArea():GetHeight() + titleAreaHeight/2 - titleLabel:GetHeight()/2)
+                integer titleY = cast(integer, containerHeight- titleAreaHeight/2 - titleLabel:GetHeight()/2)
                 titleLabel:SetPosition(titleX, titleY)
                 
                 //Get Panel Containers
                 HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()
                 VerticalAxisPanel verticalContainer = chart:GetVerticalPanel()
+                Legend legendContainer = chart:GetLegend()
                 Control chartAreaContainer = chart:GetChartArea()
 
-                horizontalContainer:SetPosition(originPointX, (originPointY - horizontalContainer:GetHeight()))
-                verticalContainer:SetPosition(originPointX - verticalContainer:GetWidth(), originPointY)
-                chartAreaContainer:SetPosition(originPointX, originPointY)
+                originPointX = 0
+                originPointY = 0
+
+                if legendContainer:DisplayOnRight() // This is default.. even when legend is not showing.
+                    verticalContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
+                    chartAreaContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+                    legendContainer:SetPosition(originPointX + verticalContainer:GetWidth() + chartAreaContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+
+                    horizontalContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY)
+                    
+                elseif legendContainer:DisplayOnLeft()
+                    if chart:IsShowingYAxis()
+                        legendContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
+                        verticalContainer:SetPosition(originPointX + legendContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+                    else
+                        verticalContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
+                        legendContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+                    end
+
+                    chartAreaContainer:SetPosition(originPointX + legendContainer:GetWidth() + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())                 
+                    horizontalContainer:SetPosition(originPointX + legendContainer:GetWidth() + verticalContainer:GetWidth(), originPointY)
+
+                elseif legendContainer:DisplayOnTop()
+                    verticalContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
+                    chartAreaContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+                    
+                    horizontalContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY)
+                    legendContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight() + verticalContainer:GetHeight())
+
+                else // legendContainer:DisplayOnBottom()
+                    verticalContainer:SetPosition(originPointX, originPointY + legendContainer:GetHeight() + horizontalContainer:GetHeight())
+                    chartAreaContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + legendContainer:GetHeight() + horizontalContainer:GetHeight())
+                    
+                    if chart:IsShowingXAxis()
+                        horizontalContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + legendContainer:GetHeight())
+                        legendContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY)
+                    else
+                        legendContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
+                        horizontalContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY)
+                    end
+                end
                 
 
                 //panel Chart Area origin
@@ -77,7 +117,7 @@ class ChartLayout is Layout
                 LayoutChartContent(chart, chartAreaContainer)
 
                 if chart:IsShowingLegend()
-                    LayoutLegend(chart, containerWidth, containerHeight)
+                    LayoutLegend(chart, legendContainer)
                 end
 
                 if chart:IsShowingXAxis()
@@ -143,7 +183,13 @@ class ChartLayout is Layout
 
                 Drawable majorLine
                 if chart:IsShowingMajorYGridLines() and i < lines:GetSize()
-                    majorLine = lines:Get(i)
+                    if i = 0  // This will not draw the gridline that overlaps with the x-axis
+                        if not chart:IsShowingXAxis()
+                            majorLine = lines:Get(i)
+                        end
+                    else
+                        majorLine = lines:Get(i)
+                    end
                 end
                 integer thin = cast(integer, currentTick:GetHeight()*0.75)
                 majorLine:SetPosition(axis:GetWidth(), cast(integer, tickY+(thin/2)))
@@ -162,7 +208,7 @@ class ChartLayout is Layout
                     end
                 end
 
-                tickY = tickY + scaleDivWidth
+                tickY = tickY + (scaleDivWidth*verticalContainer:GetIntervalOverride())
                 i = i + 1
             end
         end
@@ -188,7 +234,7 @@ class ChartLayout is Layout
                 end
 
                 labelX = cast(integer, originPointX - currentLabel:GetWidth() - (1.5*tickWidth))
-                labelY = cast(integer, originPointY - (currentLabel:GetHeight()/2) + (tickHeight/2)  + (scaleDivWidth*i))
+                labelY = cast(integer, originPointY - (currentLabel:GetHeight()/2) + (tickHeight/2)  + ((scaleDivWidth*verticalContainer:GetIntervalOverride())*i))
 
                 currentLabel:SetPosition(labelX , labelY)
 
@@ -289,7 +335,7 @@ class ChartLayout is Layout
                         minorX = minorX + minorScaleDivWidth
                     end
                 end
-                tickX = tickX + scaleDivWidth
+                tickX = tickX + (scaleDivWidth*horizontalContainer:GetIntervalOverride())
                 i = i + 1
             end
         end
@@ -332,7 +378,7 @@ class ChartLayout is Layout
                 labelWidth = currentLabel:GetWidth()
                 labelHeight = currentLabel:GetHeight()
 
-                integer xCurrentLabel = cast(integer, originPointX + (scaleDivWidth * i) - (labelWidth / 2))
+                integer xCurrentLabel = cast(integer, originPointX + ((scaleDivWidth*horizontalContainer:GetIntervalOverride()) * i) - (labelWidth / 2))
                 integer yCurrentLabel = cast(integer, originPointY - labelHeight)
                 if degrees not= 0
                     number percent = cast(number, degrees mod 90)/90.0 
@@ -371,7 +417,7 @@ class ChartLayout is Layout
                             labelMinimumY = (starty + deltaY + labelHeight*sin) - labelHeight/2
                         end
                     elseif degrees = 270
-                        deltaX = cast(integer, (labelHeight/2))
+                        deltaX = cast(integer, (labelHeight/2) + (tickWidth/2))
                         deltaY = cast(integer, -labelWidth + labelHeight - (0.5*tickHeight))
                     elseif degrees > 270 and degrees < 360
                         deltaX = cast(integer, -(labelWidth*cos))
@@ -410,8 +456,114 @@ class ChartLayout is Layout
         end
     end
 
+    action LayoutLegend(Chart chart, Legend legendContainer)
+        if legendContainer:DisplayOnLeft() or legendContainer:DisplayOnRight()
+            integer originPointX = 0
+            integer originPointY = cast(integer, legendContainer:GetHeight()*0.90)
+        
+            //This code represents the label entries in the legend
+            integer iconX = originPointX
+            integer iconY = originPointY
+    
+            integer labelX = 0
+            integer labelY = 0
+            Array<Series> seriesList = legendContainer:GetSeriesList()
+            if not seriesList:IsEmpty()
+                ControlLabel currentLabel
+                Icon currentIcon
+    
+                integer i = 0
+                repeat while i < seriesList:GetSize()
+                    currentLabel = seriesList:Get(i):GetLabel()
+                    if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                        currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                    end
+    
+                    currentIcon = seriesList:Get(i):GetIcon()
+                    integer iconSize = cast(integer, currentLabel:GetHeight())
+                    currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
+    
+                    iconX = iconSize
+                    iconY = cast(integer, iconY - (1.5*iconSize))
+                    currentIcon:SetPosition(iconX , iconY)
+                    
+                    currentLabel:SetPosition(cast(integer, iconX + (iconSize*1.5)), cast(integer, iconY+(0.5*iconSize)-(currentLabel:GetHeight()/2)))
+                    i = i + 1
+                end
+            end
 
+            //This is the actual title of the legend.      
+            if legendContainer:GetTitleLabel() not= undefined
+                ControlLabel axisLabel = legendContainer:GetTitleLabel()
+                Item2D labelAnchor = axisLabel:GetParent()
+                if axisLabel:GetDefaultLayoutProperties():NeedsRendering()       
+                    axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+                end
+    
+                number axisLabelWidth = axisLabel:GetWidth()
+                number axisLabelHeight = axisLabel:GetHeight()
+    
+                integer titleX = cast(integer, iconX)
+                integer titleY = cast(integer, originPointY)
+    
+                labelAnchor:SetPosition(titleX, titleY)
+            end
+        else //legendContainer:DisplayOnTop() or legendContainer:DisplayOnBottom()
+            integer originPointX = 0
+            integer originPointY = cast(integer, legendContainer:GetHeight()*0.50)
+    
+    
+            //This is the actual title of the legend     
+            if legendContainer:GetTitleLabel() not= undefined
+                ControlLabel axisLabel = legendContainer:GetTitleLabel()
+                Item2D labelAnchor = axisLabel:GetParent()
+                if axisLabel:GetDefaultLayoutProperties():NeedsRendering()       
+                    axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+                end
+    
+                number axisLabelWidth = axisLabel:GetWidth()
+                number axisLabelHeight = axisLabel:GetHeight()
+    
+                integer titleX = cast(integer, originPointX)
+                integer titleY = cast(integer, originPointY - (axisLabelHeight/2))
+    
+                labelAnchor:SetPosition(titleX, titleY)
+                originPointX = originPointX + cast(integer, axisLabelWidth)
+            end    
 
+            //This code represents the label entries in the legend
+            integer iconX = originPointX
+            integer iconY = originPointY
+    
+            integer labelX = 0
+            integer labelY = 0
+            Array<Series> seriesList = legendContainer:GetSeriesList()
+            if not seriesList:IsEmpty()
+                ControlLabel currentLabel
+                Icon currentIcon
+    
+                integer i = 0
+                repeat while i < seriesList:GetSize()
+                    currentLabel = seriesList:Get(i):GetLabel()
+                    if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                        currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                    end
+    
+                    currentIcon = seriesList:Get(i):GetIcon()
+                    integer iconSize = cast(integer, currentLabel:GetHeight())
+                    currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
+    
+                    iconX = cast(integer, iconX + (1.5*iconSize))
+                    iconY = originPointY - cast(integer, currentLabel:GetHeight()/2)
+                    currentIcon:SetPosition(iconX , iconY)
+                    
+                    currentLabel:SetPosition(iconX + (1.5*iconSize), iconY)
+                    iconX = cast(integer, iconX + currentLabel:GetWidth() + (1.5*iconSize))
+                    i = i + 1
+                end
+            end
+        end
+    end
 
     // Resets all layout flags for the item and its entire children hierarchy.
     private action ResetLayoutFlags(Item2D item)
@@ -426,20 +578,6 @@ class ChartLayout is Layout
             ResetLayoutFlags(children:Get(counter))
             counter = counter + 1
         end
-    end
-
-    action LayoutLegend(Chart chart, number containerWidth, number containerHeight)
-        originPointX = cast(integer, chart:GetWidth()*0.15)
-        originPointY = cast(integer, chart:GetHeight()*0.15)
-        Legend legend = chart:GetLegend()
-        if legend = undefined
-            return now
-        end
-
-        number legendOffsetX = 1 - (legend:GetWidth() / containerWidth) - 0.025
-        number legendOffsetY = 0.5 - ((legend:GetHeight() / containerHeight) / 2)
-        legend:SetX(cast(integer, containerWidth * legendOffsetX))
-        legend:SetY(cast(integer, containerHeight * legendOffsetY))
     end
 
     blueprint action LayoutChartContent(Chart chart, Control chartAreaContainer)

@@ -57,6 +57,7 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
             temp:GetLabel():LostSelection()
+            temp:GetIcon():SetColor(previousColor)
         elseif target not= undefined and target is Icon
             Icon temp = cast(Icon, target)
             temp:SetColor(previousColor)
@@ -82,7 +83,7 @@ class SharedBarChartParent is Chart
             if target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:GainedSelection()
-            elseif target not= undefined and target is Series
+            elseif target is Series
                 Series temp = cast(Series, target)
                 previousColor = temp:GetColor()
                 integer i = 0
@@ -92,6 +93,7 @@ class SharedBarChartParent is Chart
                     i = i + 1
                 end
                 temp:GetLabel():GainedSelection()
+                temp:GetIcon():SetColor(GetHighlightColor())
             elseif target is Icon
                 Color c
                 Icon temp = cast(Icon, target)
@@ -481,29 +483,8 @@ class SharedBarChartParent is Chart
             end
             i = i + 1
         end
-        ApplySeriesColor()
-        
-        if IsShowingLegend()
-            Add(GetLegend())
-        end
     end
 
-    action ApplySeriesColor()
-        ChartOptions options
-        i = 0
-        repeat while i < seriesList:GetSize()
-            Series series = seriesList:Get(i)
-            series:SetColor(options:GetColorFromPalette(i))
-            series:GetLabel():SetFocusable(true)
-            series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-            integer j = 0
-            repeat while j < series:GetSize()
-                series:GetItemAt(j):SetColor(series:GetColor())
-                j = j + 1
-            end
-            i = i + 1
-        end
-    end
     /*
         This action is called whenever the window is resized.
     */

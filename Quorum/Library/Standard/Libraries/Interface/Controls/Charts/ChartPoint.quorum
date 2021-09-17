@@ -13,11 +13,6 @@ class ChartPoint is Drawable
     Icon parentRegion = undefined
     Icon icon
 
-    on create
-        SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
-    end
-
     action GetName returns text
         return name
     end

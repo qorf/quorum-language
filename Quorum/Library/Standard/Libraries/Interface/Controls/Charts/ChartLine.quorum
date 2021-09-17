@@ -19,17 +19,10 @@ class ChartLine is Drawable
     Array<ChartPoint> points
     Array<LineSegment> lines
     private boolean showPoints = true
-    private Color lineColor
     ChartPoint lineMax
     ChartPoint lineMin
     ChartPoint lineStart
     ChartPoint lineEnd
-
-    on create
-        lineColor:SetColor(0, 0, 1, 1)
-        SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
-    end
 
     action GetName returns text
         return name
@@ -102,17 +95,9 @@ class ChartLine is Drawable
     end
 
     /*
-    Returns the color for this line.
-    */
-    action GetColor() returns Color
-        return lineColor
-    end
-
-    /*
     Sets/changes the color for this line.
     */
     action SetColor(Color lineColor)
-        me:lineColor = lineColor
         integer i = 0
         repeat while i < points:GetSize()
             points:Get(i):SetColor(lineColor)
@@ -154,8 +139,6 @@ class ChartLine is Drawable
         points:Add(point)
         if points:GetSize() > 1
             LineSegment line
-            line:SetFocusable(true)
-            line:SetAccessibilityCode(parent:Item:CUSTOM)
             line:SetName("Line ")
             lines:Add(line)
         end

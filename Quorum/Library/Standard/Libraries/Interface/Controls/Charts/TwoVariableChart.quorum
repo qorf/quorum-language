@@ -194,42 +194,9 @@ class TwoVariableChart is Chart
         end
     end
     action DisposeDrawables()
-        // For line charts
-        if lines:GetSize() > 0
-            integer i = 0
-            repeat while i < lines:GetSize()
-                integer j = 0
-                repeat while j < lines:Get(i):GetPoints():GetSize()
-                    ChartPoint point = lines:Get(i):GetPoints():Get(j)
-                    if point:GetTexture() not= undefined
-                        point:Dispose()
-                    end
-                    j = j + 1
-                end
-                j = 0
-                repeat while j < lines:Get(i):GetLines():GetSize()
-                    LineSegment line = lines:Get(i):GetLines():Get(j)
-                    if line:GetTexture() not= undefined
-                        line:Dispose()
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        end
-        // For scatter plots
-        if points:GetSize() > 0
-            integer i = 0
-            repeat while i < points:GetSize()
-                ChartPoint point = points:Get(i)
-                if point:GetTexture() not= undefined
-                    point:Dispose()
-                end
-                i = i + 1
-            end
-        end
+        parent:Chart:DisposeDrawables()
 
-        GetLegend():Empty()
+        GetChartArea():Empty()
     end
     /*
     This action is used to load the graphical components of the Control. This is
@@ -261,26 +228,34 @@ class TwoVariableChart is Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
+                lines:Get(i):SetFocusable(true)
+                lines:Get(i):SetAccessibilityCode(parent:Item:ITEM)
+                lines:Get(i):SetNextFocus(GetNextFocus())
+                lines:Get(i):SetPreviousFocus(GetPreviousFocus())
+                chartArea:Add(lines:Get(i))
+
                 integer j = 0
                 repeat while j < lines:Get(i):GetLines():GetSize()
                     LineSegment line = lines:Get(i):GetLines():Get(j)
+                    line:SetFocusable(true)
+                    line:SetAccessibilityCode(parent:Item:ITEM)
+                    line:SetNextFocus(GetNextFocus())
+                    line:SetPreviousFocus(GetPreviousFocus())
                     chartArea:Add(line)
-                    Icon lineIcon = lines:Get(i):GetLines():Get(j):GetIcon()
-                    chartArea:Add(lineIcon)
                     j = j + 1
                 end
                 if lines:Get(i):GetPointsFlag()
                     j = 0
                     repeat while j < lines:Get(i):GetPoints():GetSize()
                         ChartPoint point = lines:Get(i):GetPoints():Get(j)
+                        point:SetFocusable(true)
+                        point:SetAccessibilityCode(parent:Item:ITEM)
+                        point:SetNextFocus(GetNextFocus())
+                        point:SetPreviousFocus(GetPreviousFocus())
                         chartArea:Add(point)
-                        Icon pointIcon = lines:Get(i):GetPoints():Get(j):GetIcon()
-                        chartArea:Add(pointIcon)
                         j = j + 1
                     end
                 end
-
-                chartArea:Add(lines:Get(i))
                 i = i + 1
             end
         end
@@ -290,35 +265,13 @@ class TwoVariableChart is Chart
             integer i = 0
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
+                point:SetFocusable(true)
+                point:SetAccessibilityCode(parent:Item:ITEM)
+                point:SetNextFocus(GetNextFocus())
+                point:SetPreviousFocus(GetPreviousFocus())
                 chartArea:Add(point)
-                Icon pointIcon = points:Get(i):GetIcon()
-                GetChartArea():Add(pointIcon)
                 i = i + 1
             end
-        end
-
-        i = 0
-        repeat while i < seriesList:GetSize()
-            Series series = seriesList:Get(i)
-            series:SetColor(options:GetColorFromPalette(i))
-            series:GetLabel():SetFocusable(true)
-            series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-            integer j = 0
-            repeat while j < series:GetSize()
-                if lines:GetSize() > 0
-                    ChartLine cline = cast(ChartLine, series:GetItemAt(j))
-                    cline:SetColor(series:GetColor())
-                else
-                    ChartPoint cpoint = cast(ChartPoint, series:GetItemAt(j))
-                    cpoint:SetColor(series:GetColor())
-                end
-                j = j + 1
-            end
-            i = i + 1
-        end
-
-        if IsShowingLegend()
-            Add(GetLegend())
         end
     end
 
@@ -455,33 +408,6 @@ class TwoVariableChart is Chart
         return LineDensity
     end
 
-    /*
-    Helper used to add the points and lines of a ChartLine to the chart area.
-    */
-    action Populate()
-        //Line chart
-        integer i = 0
-        repeat while i < lines:GetSize()
-            integer j = 0
-            repeat while j < lines:Get(i):GetLines():GetSize()
-                GetChartArea():Add(lines:Get(i):GetLines():Get(j))
-                j = j + 1
-            end
-            j = 0
-            repeat while j < lines:Get(i):GetPoints():GetSize()
-                GetChartArea():Add(lines:Get(i):GetPoints():Get(j))
-                j = j + 1
-            end
-            i = i + 1
-        end
-
-        //Scatter Plot
-        i = 0
-        repeat while i < points:GetSize()
-            GetChartArea():Add(points:Get(i))
-            i = i + 1
-        end
-    end
     /*
         Returns an array of all the series sets 
     */

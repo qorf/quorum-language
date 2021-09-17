@@ -47,7 +47,8 @@ class HorizontalAxisPanel is Control
     integer tickWidth = 3
     integer titleFontSize = 0
     integer labelFontSize = 0
-    number tickinterval = -1.0
+    number tickinterval = -1.0 //This is used for the numerical label spacing
+    integer intervaloverride = 1 //This is used for the text label spacing
     number min = 0.0
     number max = 0.0
     number sumOfLabelHeights = 0
@@ -216,7 +217,7 @@ class HorizontalAxisPanel is Control
                     labels:Add(label)
                     labelAnchor:Add(label)
                     Add(labelAnchor)
-                    i = i + 1
+                    i = i + intervaloverride
                 end
             else
                 repeat until ticks:GetSize() = tickCount - 1
@@ -233,7 +234,7 @@ class HorizontalAxisPanel is Control
             number widestLabel = 0.0
             if tickCount > 0
                 i = 0
-                repeat while i < tickCount
+                repeat while i < ticks:GetSize() 
                     Drawable tick = ticks:Get(i)
                     tick:SetName("X Tick " + (i + 1))
     
@@ -246,11 +247,9 @@ class HorizontalAxisPanel is Control
                     if overrideLabels = undefined
                         label:SetText(scaleText)
                     else
-                        number percent = (i * 1.0) / (tickCount * 1.0)
-                        integer index = cast(integer, math:Round(percent * overrideLabels:GetSize()))
-                        label:SetText(overrideLabels:Get(index))
+                        label:SetText(overrideLabels:Get(cast(integer, i*intervaloverride)))
                     end
-                    label:SetName(scaleText + " " + (i + 1) + " of " + tickCount)
+                    label:SetName(scaleText + " " + (i + 1) + " of " + labels:GetSize())
                     number labelHeight = label:GetHeight()
                     number labelWidth = label:GetWidth()
                     if labelWidth > widestLabel
@@ -258,7 +257,7 @@ class HorizontalAxisPanel is Control
                     end
                     sumOfLabelHeights = sumOfLabelHeights + labelHeight
                     sumOfLabelWidths = sumOfLabelWidths + labelWidth
-                    scaleNum = scaleNum + scaleWidth
+                    scaleNum = scaleNum + (scaleWidth * intervaloverride)
                     i = i + 1
                 end
             end
@@ -302,9 +301,9 @@ class HorizontalAxisPanel is Control
         else
             tickCount = overrideLabels:GetSize()
             if tickCount > 1
-                scaleWidth = range / (tickCount - 1)
+                scaleWidth = cast(integer, range / (tickCount - 1))
             else
-                scaleWidth = range / 1
+                scaleWidth = cast(integer, range / 1)
             end
         end
         if not CheckIfInteger(scaleWidth)
@@ -483,15 +482,19 @@ class HorizontalAxisPanel is Control
         return tickCount
     end
 
-    // This cannot change an interval on a text-scale.
     action SetTickInterval(number set)
-        if overrideLabels = undefined
-            tickinterval = set
+        tickinterval = set
+        if overrideLabels not= undefined and set >= 1
+            intervaloverride = cast(integer, set)
         end
     end
 
     action GetTickInterval() returns number
         return tickinterval
+    end
+
+    action GetIntervalOverride() returns integer
+        return intervaloverride
     end
 
     /*

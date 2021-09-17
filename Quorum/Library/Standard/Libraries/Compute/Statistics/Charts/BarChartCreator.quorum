@@ -111,6 +111,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer min = 0
         integer stepCounter = 0
 
+        Array <Series> seriesList
         Series series
         series:SetName(column:GetHeader())
 
@@ -137,13 +138,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
         
-        chart:AddSeries(series)
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
+        seriesList:Add(series)
+        
         SetScale(chart, min, max, 0, barNames:GetSize())
         chart:OverrideXLabelsWithText(barNames)
+        chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
@@ -211,6 +210,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         // Add Series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -219,15 +219,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
         SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
@@ -313,6 +311,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
         // Sort and add the series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -321,7 +320,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
@@ -372,11 +371,9 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end  
         end  
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
         SetScale(chart, min, max, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
@@ -393,6 +390,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             numerical = true
         end
 
+        Array <Series> seriesList
         Series series
         series:SetName(factor:GetHeader())
 
@@ -442,13 +440,11 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        Legend legend
-        chart:AddSeries(series)
-        legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName("LEGEND")
-        chart:SetLegend(legend)
+        seriesList:Add(series)
+
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
@@ -529,21 +525,19 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        Array <Series> seriesList
+        Array <text> seriesKeyArray = seriesFactor:CopyToKeyArray()
 
         Legend legend
         i = 0
         repeat while i < uniqueFactor2:GetSize()
-
-            chart:AddSeries(seriesFactor:GetValue(uniqueFactor2:GetAsText(i)))
+            seriesList:Add(seriesFactor:GetValue(uniqueFactor2:GetAsText(i)))
             i = i + 1
         end
 
-        legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName(factor2:GetHeader():ToUpperCase())
-        chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end

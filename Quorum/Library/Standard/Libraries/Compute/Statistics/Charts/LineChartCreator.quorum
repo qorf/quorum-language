@@ -255,6 +255,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end  
 
         // Series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -263,22 +264,18 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
             chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
+        chart:SetSeriesList(seriesList)
         chart:SetDefaultOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)
         chart:SetXAxisMinimum(xAxisMinimum)
-        chart:Populate()
         return chart
     end
 end
