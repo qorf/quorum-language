@@ -197,7 +197,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 Bar bar
                 bar:SetValue(amount)
-                bar:SetName(valueDisplay)
+                bar:SetName(column:GetHeader() + " " + valueDisplay)
                 // If bar is part of a group
                 if(groupFactor:HasKey(valueDisplay))
                     groupFactor:GetValue(valueDisplay):AddBar(bar)

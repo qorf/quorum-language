@@ -181,6 +181,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             Bar bar
             bar:SetValue(sum)
+            bar:SetName(column:GetHeader())
             if not seriesFactor:HasKey(column:GetHeader())
                 Series series
                 series:SetName(column:GetHeader())

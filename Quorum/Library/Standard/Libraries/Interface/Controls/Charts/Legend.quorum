@@ -64,7 +64,6 @@ class Legend is Control
         properties:SetBorderColor(color:Black())
         SetName("legend")
 
-        SetDescription("legend")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
     end
@@ -82,7 +81,7 @@ class Legend is Control
         legendArea:SetDisplayName("Legend")
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
-        me:SetDescription("Legend , " + seriesList:GetSize() + " series")
+        me:SetDescription(" with " + seriesList:GetSize() + " series")
         legendArea:SetContainer(chart)
 
         if chart:IsShowingXAxis()
@@ -105,7 +104,8 @@ class Legend is Control
         firstEntry:SetContainer(chart)
         if seriesList:GetSize() > 0
             legendArea:SetChild(firstEntry)
-            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
+            seriesList:Get(0):SetName(seriesList:Get(0):GetTextName())
+            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
             firstEntry:SetParent(legendArea)
             firstEntry:SetFocusTarget(seriesList:Get(0))
         end
@@ -114,7 +114,8 @@ class Legend is Control
         repeat while i < seriesList:GetSize()
             ChartItem entry
             entry:SetContainer(chart)
-            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
+            seriesList:Get(i):SetName(seriesList:Get(i):GetTextName())
+            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
             entry:SetParent(legendArea)
             entry:SetFocusTarget(seriesList:Get(i))
             previous:SetNext(entry)
@@ -148,7 +149,6 @@ class Legend is Control
             SetTitleLabel(newLabel)
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
-            newLabel:SetDescription("Legend")
             newLabel:SetFocusable(true)
             newLabel:SetAccessibilityCode(parent:Item:ITEM)
             labelAnchor:Add(GetTitleLabel())
@@ -157,23 +157,24 @@ class Legend is Control
                        
         integer i = 0
         repeat while i < seriesList:GetSize()
-                Icon seriesIcon
-                seriesList:Get(i):SetIcon(seriesIcon)
-                if  seriesList:Get(i):GetColor() not= undefined
-                    seriesIcon:SetColor(seriesList:Get(i):GetColor())
-                end
-                Add(seriesIcon)
+            Icon seriesIcon
+            seriesList:Get(i):SetIcon(seriesIcon)
+            if  seriesList:Get(i):GetColor() not= undefined
+                seriesIcon:SetColor(seriesList:Get(i):GetColor())
+            end
+            Add(seriesIcon)
 
-                Item2D labelAnchor
-                ControlLabel newLabel
-                seriesList:Get(i):SetLabel(newLabel)
-                newLabel:SetText(seriesList:Get(i):GetTextName())
-                newLabel:SetName(seriesList:Get(i):GetTextName())
-                newLabel:SetDescription(seriesList:Get(i):GetName() + " " + (i+1) + " of " + seriesList:GetSize() + " series.")
-                newLabel:SetFocusable(true)
-                newLabel:SetAccessibilityCode(parent:Item:ITEM)
-                labelAnchor:Add(seriesList:Get(i):GetLabel())
-                Add(labelAnchor)
+            Item2D labelAnchor
+            ControlLabel newLabel
+            newLabel:SetText(seriesList:Get(i):GetTextName())
+            newLabel:SetName(seriesList:Get(i):GetTextName())
+            seriesList:Get(i):SetLabel(newLabel)
+            seriesList:Get(i):SetFocusable(true)
+            seriesList:Get(i):SetAccessibilityCode(parent:Item:ITEM)
+            
+            labelAnchor:Add(seriesList:Get(i):GetLabel())
+            Add(labelAnchor)
+            Add(seriesList:Get(i))
             i = i + 1
         end
     end
@@ -185,8 +186,6 @@ class Legend is Control
         repeat while i < seriesList:GetSize()
             Series series = seriesList:Get(i)
             series:SetColor(options:GetColorFromPalette(i))
-            series:GetLabel():SetFocusable(true)
-            series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
             integer j = 0
             repeat while j < series:GetSize()
                 series:GetItemAt(j):SetColor(series:GetColor())

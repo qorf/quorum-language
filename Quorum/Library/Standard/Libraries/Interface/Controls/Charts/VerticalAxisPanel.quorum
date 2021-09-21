@@ -79,7 +79,6 @@ class VerticalAxisPanel is Control
         properties:SetBorderColor(color:Black())
         SetName("y axis")
 
-        SetDescription("y axis")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
     end
@@ -89,16 +88,46 @@ class VerticalAxisPanel is Control
     end
 
     /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the x-axis. Also the highest level of the information tree
+    of  the chart.
+    */
+    private action GenerateSummary returns text
+        if labels:GetSize() > 0
+            if titleText not= ""
+                SetName(titleText + " axis")
+            end 
+            if overrideLabels not= undefined
+                if labels:GetSize() = 1
+                    text list = "The label is " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there is, " + overrideLabels:GetSize() + " label. " + list)
+                else
+                    text list = "The labels are "
+                    integer i = 0
+                    repeat while i < labels:GetSize()-1
+                        list = list + labels:Get(i):GetText() + ", "
+                        i = i + 1
+                    end
+                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there are, " + overrideLabels:GetSize() + " labels. " + list)
+                end
+            else
+                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ".")
+            end
+        end
+        return GetDescription()
+    end
+
+    /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         summary:SetChild(yAxis)
         summary:SetNext(yAxis)
+        yAxis:SetFocusTarget(me)
         yAxis:SetParent(summary)
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(me) //yAxis:SetFocusTarget(<yAxisTitle>)
-        me:SetDescription(", ticks")
+        yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
 
         chartArea:SetPrevious(yAxis)
@@ -111,7 +140,6 @@ class VerticalAxisPanel is Control
         firstLabel:SetContainer(chart)
         if labels:GetSize() > 0
             yAxis:SetChild(firstLabel)
-            firstLabel:SetDisplayName(labels:Get(0):GetText())
             firstLabel:SetParent(yAxis)
             firstLabel:SetFocusTarget(labels:Get(0))
         end
@@ -121,7 +149,6 @@ class VerticalAxisPanel is Control
         repeat while i < labels:GetSize()
             ChartItem labelNode
             labelNode:SetContainer(chart)
-            labelNode:SetDisplayName(labels:Get(i):GetText())
             labelNode:SetParent(yAxis)
             labelNode:SetFocusTarget(labels:Get(i))
             previousLabel:SetNext(labelNode)
@@ -243,7 +270,6 @@ class VerticalAxisPanel is Control
                     else
                         label:SetText(overrideLabels:Get(cast(integer, i*intervaloverride)))
                     end
-                    label:SetName(scaleText + " " + (i + 1) + " of " + tickCount)
                     number labelHeight = label:GetHeight()
                     number labelWidth = label:GetWidth()
                     if labelWidth > widestLabel
