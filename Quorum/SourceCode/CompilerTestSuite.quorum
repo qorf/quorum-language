@@ -431,19 +431,10 @@ class CompilerTestSuite is ProcessListener
         CompilerTestResult result
         result:isJavaScriptTest = true
 
-        //First merge the script with the standard library
-        File root
-        root:SetPath("Output")
-
-        File outFile
-        outFile:SetWorkingDirectory(root:GetAbsolutePath())
-        outFile:SetPath("Run/Default.jar")
-
         //now run the output file in Node.js
         Process process
         process:SetName(javaLocation)
         
-        //output file:GetParentDirectory():GetAbsolutePath()
         File processDirectory
         processDirectory:SetAbsolutePath(file:GetParentDirectory():GetAbsolutePath())
         process:SetDirectory(processDirectory)

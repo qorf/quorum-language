@@ -1,0 +1,69 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'plugins.quorum'
+version '10.0'
+
+
+project.ext.lwjglVersion = "3.2.3"
+
+switch (OperatingSystem.current()) {
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = "natives-macos"
+        break
+    case OperatingSystem.WINDOWS:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.contains("64")
+                ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
+                : "natives-windows-x86"
+        break
+}
+
+repositories {
+    mavenCentral()
+    //google()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    //local dependencies
+    compileOnly files('../../Quorum/Library/Compiled/Run/QuorumStandardLibrary.jar')
+    compileOnly files('../GamePlugin/JavaGame/libs/android.jar')
+    compileOnly files('../GamePlugin/JavaGame/libs/robovm-cocoatouch-1.8.0.jar')
+    compileOnly files('../GamePlugin/JavaGame/libs/robovm-objc-1.8.0.jar')
+    compileOnly files('../GamePlugin/JavaGame/libs/robovm-rt-1.8.0.jar')
+
+    //Mobivm dependencies
+    //implementation 'com.mobidevelop.robovm:robovm-compiler:2.3.14'
+
+    //LWJGL dependencies
+    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+
+    implementation "org.lwjgl:lwjgl"
+    implementation "org.lwjgl:lwjgl-bgfx"
+    implementation "org.lwjgl:lwjgl-egl"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.lwjgl:lwjgl-nfd"
+    implementation "org.lwjgl:lwjgl-openal"
+    implementation "org.lwjgl:lwjgl-opengl"
+    implementation "org.lwjgl:lwjgl-opengles"
+    implementation "org.lwjgl:lwjgl-stb"
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+}
+
+test {
+    useJUnitPlatform()
+}
