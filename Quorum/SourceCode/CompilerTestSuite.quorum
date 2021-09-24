@@ -37,6 +37,7 @@ class CompilerTestSuite is ProcessListener
     Library library
     Tester tester
     text javascriptStandardLibraryText = ""
+    text javaLocation = "java"
     constant text NODE_MAC = "/usr/local/bin/node"
     constant text NODE_WINDOWS = "C:\Program Files\nodejs\node.exe"
     text nodeLocation = undefined
@@ -426,7 +427,50 @@ class CompilerTestSuite is ProcessListener
         return result
     end
 
-    system action RunClassFile(File file) returns CompilerTestResult
+    action RunClassFile(File file) returns CompilerTestResult
+        CompilerTestResult result
+        result:isJavaScriptTest = true
+
+        //First merge the script with the standard library
+        File root
+        root:SetPath("Output")
+
+        File outFile
+        outFile:SetWorkingDirectory(root:GetAbsolutePath())
+        outFile:SetPath("Run/Default.jar")
+
+        //now run the output file in Node.js
+        Process process
+        process:SetName(javaLocation)
+        
+        //output file:GetParentDirectory():GetAbsolutePath()
+        File processDirectory
+        processDirectory:SetAbsolutePath(file:GetParentDirectory():GetAbsolutePath())
+        process:SetDirectory(processDirectory)
+
+        Array<text> flags
+        flags:Add("-jar")
+        flags:Add("Default.jar")
+
+        process:SetParameters(flags)
+        process:AddListener(me)
+        //now Run it
+        process:Run()  
+
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        if lines not= undefined
+            result:lines = lines
+        end
+        
+        if javascriptError
+            result:ranWithoutError = false
+        else 
+            result:ranWithoutError = true
+        end
+        result:returnCode = javascriptExitCode
+        
+        return result
+    end
 
     action RunJavaScript(text script) returns CompilerTestResult
         CompilerTestResult result
