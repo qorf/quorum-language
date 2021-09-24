@@ -22,16 +22,30 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Layouts.ManualLayout
 
 
 class Legend is Control
-    ControlLabel title
+    ChartOptions options
+    ControlLabel title = undefined
     Array<Series> seriesList
     Array<text> itemNames
+    boolean displayOnLeft = false
+    boolean displayOnRight = true
+    boolean displayOnTop = false
+    boolean displayOnBottom = false
+
+    text titleText = ""
+    integer titleFontSize = 0
+    integer labelFontSize = 0
+
+    number sumOfLabelHeights = 0
+    number sumOfLabelWidths = 0
+    number widestLabel = 0
 
     on create
-        FlowLayout flowLayout
-        SetLayout(flowLayout)
+        ManualLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
@@ -48,58 +62,16 @@ class Legend is Control
 
         properties:SetBackgroundColor(color:White())
         properties:SetBorderColor(color:Black())
-        properties:SetBorderThickness(2)
-        SetName("Legend")
+        SetName("legend")
 
-        SetDescription("Legend")
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
-    end
-
-    action Add(text entry)
-        itemNames:AddToEnd(entry)
-    end
-
-    action Empty()
-        parent:Control:Empty()
-        itemNames:Empty()
-    end
-
-    action SetSeriesList(Array<Series> seriesList)
-        me:seriesList = seriesList
-    end
-
-    action GetSeriesList() returns Array<Series>
-        return seriesList 
-    end
-
-    action SetTitle(text title)
-        me:title:SetName(title)
-        me:title:SetText(title)
-    end
-    
-    action GetTitle() returns text
-        return title:GetText()
-    end
-
-    action SetName(text name)
-        parent:Item2D:SetName(name)
-        
-        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-
-        if defaultProperties not= undefined
-            defaultProperties:SetLabelText(name)
-        end
-        if GetView2D() is ControlView
-            ControlView content = cast(ControlView, GetView2D())
-            content:SetText(name)
-        end
+        SetAccessibilityCode(parent:Item:CUSTOM)
     end
 
     action IsAccessibleParent returns boolean
         return true
     end
-    
+
     /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
@@ -109,7 +81,7 @@ class Legend is Control
         legendArea:SetDisplayName("Legend")
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
-        me:SetDescription("Legend , " + seriesList:GetSize() + " series")
+        me:SetDescription(" with " + seriesList:GetSize() + " series")
         legendArea:SetContainer(chart)
 
         if chart:IsShowingXAxis()
@@ -132,7 +104,8 @@ class Legend is Control
         firstEntry:SetContainer(chart)
         if seriesList:GetSize() > 0
             legendArea:SetChild(firstEntry)
-            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series, " + seriesList:Get(0):GetName())
+            seriesList:Get(0):SetName(seriesList:Get(0):GetTextName())
+            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
             firstEntry:SetParent(legendArea)
             firstEntry:SetFocusTarget(seriesList:Get(0))
         end
@@ -141,7 +114,8 @@ class Legend is Control
         repeat while i < seriesList:GetSize()
             ChartItem entry
             entry:SetContainer(chart)
-            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series, " + seriesList:Get(i):GetName())
+            seriesList:Get(i):SetName(seriesList:Get(i):GetTextName())
+            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
             entry:SetParent(legendArea)
             entry:SetFocusTarget(seriesList:Get(i))
             previous:SetNext(entry)
@@ -150,82 +124,248 @@ class Legend is Control
             i = i + 1
         end
     end
+
     /*
-    This action is used to load the graphical components of the Control. This is
-    handled automatically by the Game engine as needed, and most users shouldn't
-    need to use this action directly.
+        This action is used to load the graphical components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-
-//        Empty()
         if properties = undefined
             return now
         end
-        ColorGroup background = properties:GetBackgroundColor()
-        ColorGroup border = properties:GetBorderColor()
-        number borderThickness = properties:GetBorderThickness()
-        text labelText = properties:GetLabelText()
-
-        Color color
-        Font font = properties:GetFont()
-
-        View2D view = properties:GetView2D()
-
-        if font not= undefined and labelText not= ""
-            if view = undefined
-                LabelBoxView labelBoxView
-                if background = undefined
-                    background = color:CustomColor(0, 0, 0, 0)
-                end
-                if border = undefined
-                    border = color:CustomColor(0, 0, 0, 0)
-                end
-                
-                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
-                labelBoxView:Initialize(background, border)
-                view = labelBoxView
-                SetView2D(view)
-            end
-            integer i = 0
-            Control titleLabel = MakeTitleEntry(labelText)
-            titleLabel:Resize()
-            number maxWidth = titleLabel:GetWidth()
-            number maxLabel = maxWidth - 21 // 21 for extra padding hardcoded in MakeEntry
-            parent:Item2D:Add(titleLabel)
-
-            // This gets the longest label, so we can calculate how much of a padding is needed to wrap legend
-            repeat while i < seriesList:GetSize()
-                if(seriesList:Get(i):GetLabel():GetWidth() > maxLabel)
-                    maxLabel = seriesList:Get(i):GetLabel():GetWidth()
-                end
-                i = i + 1
-            end
-
-            i = 0
-            integer rightPadding = 0
-            repeat while i < seriesList:GetSize()
-                rightPadding = cast(integer, maxLabel - seriesList:Get(i):GetLabel():GetWidth())
-                Icon newEntry = MakeEntry(seriesList:Get(i), seriesList:Get(i):GetColor(), rightPadding)
-                newEntry:Resize()
-                if(newEntry:GetWidth() > maxWidth)
-                    maxWidth = newEntry:GetWidth()
-                end
-                seriesList:Get(i):SetIcon(newEntry)
-                parent:Item2D:Add(newEntry)
-                i = i + 1
-            end
-
-            SetWidth(maxWidth + 10)
-            SetHeight(600) //it should fill in automatically
-
-        end
-
-        if view not= undefined
-            SetView2D(view)
-        end
-
         parent:Control:LoadGraphics(properties)
     end
+
+    action LoadLegend(Chart chart, LayoutProperties properties)
+        DisposeDrawables()
+        if properties = undefined
+            return now
+        end
+
+        if GetTitleLabel() = undefined 
+            Item2D labelAnchor
+            ControlLabel newLabel
+            SetTitleLabel(newLabel)
+            newLabel:SetText(GetTitleText())
+            newLabel:SetName(GetTitleText())
+            newLabel:SetFocusable(true)
+            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            labelAnchor:Add(GetTitleLabel())
+            Add(labelAnchor)
+        end
+                       
+        integer i = 0
+        repeat while i < seriesList:GetSize()
+            Icon seriesIcon
+            seriesList:Get(i):SetIcon(seriesIcon)
+            if  seriesList:Get(i):GetColor() not= undefined
+                seriesIcon:SetColor(seriesList:Get(i):GetColor())
+            end
+            Add(seriesIcon)
+
+            Item2D labelAnchor
+            ControlLabel newLabel
+            newLabel:SetText(seriesList:Get(i):GetTextName())
+            newLabel:SetName(seriesList:Get(i):GetTextName())
+            seriesList:Get(i):SetLabel(newLabel)
+            seriesList:Get(i):SetFocusable(true)
+            seriesList:Get(i):SetAccessibilityCode(parent:Item:ITEM)
+            
+            labelAnchor:Add(seriesList:Get(i):GetLabel())
+            Add(labelAnchor)
+            Add(seriesList:Get(i))
+            i = i + 1
+        end
+    end
+
+
+    action ApplySeriesColor()
+        ChartOptions options
+        i = 0
+        repeat while i < seriesList:GetSize()
+            Series series = seriesList:Get(i)
+            series:SetColor(options:GetColorFromPalette(i))
+            integer j = 0
+            repeat while j < series:GetSize()
+                series:GetItemAt(j):SetColor(series:GetColor())
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    action DisposeDrawables()
+        if title not= undefined
+            title:Dispose()
+            Remove(title)
+            title = undefined
+        end
+        if not seriesList:IsEmpty()
+            ControlLabel temp = undefined
+            integer i = 0
+            repeat while i < seriesList:GetSize()
+                temp = seriesList:Get(i):GetLabel()
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+        end
+        Empty()
+    end
+
+    /*
+        These actions control the title of the legend.
+
+        Attribute: Label for legend.
+    */
+
+    action GetTitleFontSize returns integer
+        return titleFontSize
+    end
+
+    action SetTitleFontSize(integer size)
+        titleFontSize = size
+    end
+
+    action SetTitleLabel(ControlLabel title)
+        me:title = title
+    end
+
+    action SetTitleText(text name)
+        titleText = name
+    end    
+
+    action GetTitleLabel() returns ControlLabel
+        return title
+    end
+
+    action GetTitleText() returns text
+        return titleText
+    end
+
+    action SetName(text name)
+        parent:Item2D:SetName(name)
+        
+        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+
+        if defaultProperties not= undefined
+            defaultProperties:SetLabelText(name)
+        end
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:SetText(name)
+        end
+    end
+
+    /*
+        This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
+
+        Attribute: The series for the legend
+    */
+    action SetSeriesList(Array<Series> seriesList)
+        me:seriesList = seriesList
+    end
+
+    action GetSeriesList() returns Array<Series>
+        return seriesList 
+    end
+
+    action GetLabelFontSize returns integer
+        return labelFontSize
+    end
+
+    action SetLabelFontSize(integer size)
+        labelFontSize = size
+    end
+
+    action GetWidestLabel returns number
+        return widestLabel
+    end
+
+    action SetWidestLabel(number width)
+        widestLabel = width
+    end
+
+    action GetSumOfLabelWidths returns number
+        return sumOfLabelWidths
+    end
+
+    action SetSumOfLabelWidths(number newSum)
+        sumOfLabelWidths = newSum
+    end
+
+    action GetSumOfLabelHeights returns number
+        return sumOfLabelHeights
+    end
+
+    action SetSumOfLabelHeights(number newSum)
+        sumOfLabelHeights = newSum
+    end
+
+
+    action Add(text entry)
+        itemNames:AddToEnd(entry)
+    end
+
+    action Empty()
+        parent:Control:Empty()
+        itemNames:Empty()
+    end
+
+    /*
+        These actions will be used to place the legend on the chart.
+        The user can adjust this by using the word "left" "right" "top" or "bottom"
+
+        Attribute: Returns true if to be placed in that location
+    */
+    action SetLocation(text location)
+        if location = "left"
+            displayOnLeft = true
+            displayOnRight = false
+            displayOnTop = false
+            displayOnBottom = false
+        elseif location = "right"
+            displayOnLeft = false
+            displayOnRight = true
+            displayOnTop = false
+            displayOnBottom = false
+        elseif location = "top"
+            displayOnLeft = false
+            displayOnRight = false
+            displayOnTop = true
+            displayOnBottom = false
+        elseif location = "bottom"
+            displayOnLeft = false
+            displayOnRight = false
+            displayOnTop = false
+            displayOnBottom = true
+        else
+            //Those are the only options right now.
+        end
+    end
+
+    action DisplayOnLeft returns boolean
+        return displayOnLeft
+    end
+
+    action DisplayOnRight returns boolean
+        return displayOnRight
+    end
+
+    action DisplayOnTop returns boolean
+        return displayOnTop
+    end
+
+    action DisplayOnBottom returns boolean
+        return displayOnBottom
+    end
+
     
     private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
         Icon newItemStructure

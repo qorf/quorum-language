@@ -84,6 +84,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         Array<text> columnNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
+        boolean numericalGroupName = false // Want to see if the column headers are numbers?
 
         number largest = 0
         number smallest = 0
@@ -129,6 +130,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
 
         // Sort and add
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -137,19 +139,16 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             chart:AddPlotGroup(groupFactor:GetValue(seriesKeyArray:Get(i)))
             columnNames:Add(seriesKeyArray:Get(i)) 
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
         SetScale(chart, smallest, largest, 0, columnNames:GetSize())
         chart:OverrideXLabelsWithText(columnNames)
-        chart:HasGroups(false)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
@@ -249,6 +248,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
 
         // Sort and add the series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -257,7 +257,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
@@ -326,17 +326,10 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             groupNames = groupKeyArray
         end  
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
         SetScale(chart, smallest, largest, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
-        if chart:GetSeriesList():GetSize() > 1
-            chart:HasGroups(true)
-        else
-            chart:HasGroups(false)
-        end
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 

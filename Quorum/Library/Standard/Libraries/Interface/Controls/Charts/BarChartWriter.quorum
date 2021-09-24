@@ -58,7 +58,6 @@ class BarChartWriter is ChartWriter
         WriteOutChart(cast(Chart,chart), file)
     end
 
-    
     /*
         This action adds a white background to the canvas
     */
@@ -377,7 +376,7 @@ class BarChartWriter is ChartWriter
             barChart:AdjustStacked()
         end
         parent:ChartWriter:InitWriter(chart)
-        barChart:ApplySeriesColor()
+        barChart:GetLegend():ApplySeriesColor()
         barChart:InitLabels()
     end
 end

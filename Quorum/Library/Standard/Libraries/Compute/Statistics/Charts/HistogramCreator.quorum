@@ -197,7 +197,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 Bar bar
                 bar:SetValue(amount)
-                bar:SetName(valueDisplay)
+                bar:SetName(column:GetHeader() + " " + valueDisplay)
                 // If bar is part of a group
                 if(groupFactor:HasKey(valueDisplay))
                     groupFactor:GetValue(valueDisplay):AddBar(bar)
@@ -228,6 +228,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end    
         
         // Series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -236,15 +237,13 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
         SetScale(chart, 0, maxFrequency, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
         chart:RemoveGaps(true)
         return chart
     end

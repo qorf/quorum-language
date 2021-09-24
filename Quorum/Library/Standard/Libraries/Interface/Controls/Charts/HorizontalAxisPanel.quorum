@@ -39,6 +39,7 @@ class HorizontalAxisPanel is Control
     Array <Drawable> minorlines
 
     boolean tickCountOverride = false
+    boolean labelOverridesAreNumbers = false
 
     integer minorlinecount = 5
     integer tickCount = 0
@@ -46,7 +47,8 @@ class HorizontalAxisPanel is Control
     integer tickWidth = 3
     integer titleFontSize = 0
     integer labelFontSize = 0
-    number tickinterval = -1.0
+    number tickinterval = -1.0 //This is used for the numerical label spacing
+    integer intervaloverride = 1 //This is used for the text label spacing
     number min = 0.0
     number max = 0.0
     number sumOfLabelHeights = 0
@@ -54,7 +56,7 @@ class HorizontalAxisPanel is Control
     number widestLabel = 0
 
     text titleText = ""
-    text numberformat = "number"
+    text numberformat = "integer"
 
     on create
         ManualLayout layout
@@ -77,7 +79,6 @@ class HorizontalAxisPanel is Control
         properties:SetBorderColor(color:Black())
         SetName("x axis")
 
-        SetDescription("x axis")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
     end
@@ -87,14 +88,44 @@ class HorizontalAxisPanel is Control
     end
 
     /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the x-axis. Also the highest level of the information tree
+    of  the chart.
+    */
+    private action GenerateSummary returns text
+        if labels:GetSize() > 0
+            if titleText not= ""
+                SetName(titleText + " axis")
+            end 
+            if overrideLabels not= undefined
+                if labels:GetSize() = 1
+                    text list = "The label is " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there is, " + overrideLabels:GetSize() + " label. " + list)
+                else
+                    text list = "The labels are "
+                    integer i = 0
+                    repeat while i < labels:GetSize()-1
+                        list = list + labels:Get(i):GetText() + ", "
+                        i = i + 1
+                    end
+                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there are, " + overrideLabels:GetSize() + " labels. " + list)
+                end
+            else
+                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ".")
+            end
+        end
+        return GetDescription()
+    end
+
+    /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        xAxis:SetDisplayName("Horizontal Axis")
-        xAxis:SetFocusTarget(me) //xAxis:SetFocusTarget(<xAxisTitle>)
+        xAxis:SetFocusTarget(me)
         xAxis:SetParent(summary)
-        me:SetDescription(", ticks")
+        xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
         chartArea:SetNext(xAxis)
@@ -112,7 +143,6 @@ class HorizontalAxisPanel is Control
         firstLabel:SetContainer(chart)
         if labels:GetSize() > 0
             xAxis:SetChild(firstLabel)
-            firstLabel:SetDisplayName(labels:Get(0):GetText())
             firstLabel:SetParent(xAxis)
             firstLabel:SetFocusTarget(labels:Get(0))
         end
@@ -122,7 +152,6 @@ class HorizontalAxisPanel is Control
         repeat while i < labels:GetSize()
             ChartItem labelNode
             labelNode:SetContainer(chart)
-            labelNode:SetDisplayName(labels:Get(i):GetText())
             labelNode:SetParent(xAxis)
             labelNode:SetFocusTarget(labels:Get(i))
             previousLabel:SetNext(labelNode)
@@ -153,7 +182,6 @@ class HorizontalAxisPanel is Control
             Item2D labelAnchor
             ControlLabel newLabel
             SetTitleLabel(newLabel)
-            newLabel:SetFont(properties:GetFont())
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetDescription("Horizontal axis")
@@ -166,11 +194,17 @@ class HorizontalAxisPanel is Control
         if GetAxis() = undefined
             Drawable line
             SetAxis(line)
-            Add(line)
+            chart:GetChartArea():Add(line)
+        end
+
+        if UseIntegers()
+            if overrideLabels not= undefined and labelOverridesAreNumbers
+                ChangeOverrideLabelsToIntegers()
+            end
         end
 
         if overrideLabels not= undefined
-            max = 0
+            min = 0
             max = overrideLabels:GetSize()-1
         end
 
@@ -244,7 +278,7 @@ class HorizontalAxisPanel is Control
                     labels:Add(label)
                     labelAnchor:Add(label)
                     Add(labelAnchor)
-                    i = i + 1
+                    i = i + intervaloverride
                 end
             else
                 repeat until ticks:GetSize() = tickCount - 1
@@ -261,7 +295,10 @@ class HorizontalAxisPanel is Control
             number widestLabel = 0.0
             if tickCount > 0
                 i = 0
-                repeat while i < tickCount
+                repeat while i < ticks:GetSize() 
+                    Drawable tick = ticks:Get(i)
+                    tick:SetName("X Tick " + (i + 1))
+
                     //make the labels for each scale tick (auto based on max)
                     text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
                     if UseIntegers() and not tickCountOverride
@@ -271,11 +308,9 @@ class HorizontalAxisPanel is Control
                     if overrideLabels = undefined
                         label:SetText(scaleText)
                     else
-                        number percent = (i * 1.0) / (tickCount * 1.0)
-                        integer index = cast(integer, math:Round(percent * overrideLabels:GetSize()))
-                        label:SetText(overrideLabels:Get(index))
+                        scaleText = overrideLabels:Get(cast(integer, i*intervaloverride))
+                        label:SetText(scaleText)
                     end
-                    label:SetName(scaleText + " " + (i + 1) + " of " + tickCount)
                     number labelHeight = label:GetHeight()
                     number labelWidth = label:GetWidth()
                     if labelWidth > widestLabel
@@ -283,7 +318,7 @@ class HorizontalAxisPanel is Control
                     end
                     sumOfLabelHeights = sumOfLabelHeights + labelHeight
                     sumOfLabelWidths = sumOfLabelWidths + labelWidth
-                    scaleNum = scaleNum + scaleWidth
+                    scaleNum = scaleNum + (scaleWidth * intervaloverride)
                     i = i + 1
                 end
             end
@@ -327,10 +362,13 @@ class HorizontalAxisPanel is Control
         else
             tickCount = overrideLabels:GetSize()
             if tickCount > 1
-                scaleWidth = range / (tickCount - 1)
+                scaleWidth = cast(integer, range / (tickCount - 1))
             else
-                scaleWidth = range / 1
+                scaleWidth = cast(integer, range / 1)
             end
+        end
+        if not CheckIfInteger(scaleWidth)
+            numberFormat = "number"
         end
         return scaleWidth
     end
@@ -527,15 +565,19 @@ class HorizontalAxisPanel is Control
         return tickCount
     end
 
-    // This cannot change an interval on a text-scale.
     action SetTickInterval(number set)
-        if overrideLabels = undefined
-            tickinterval = set
+        tickinterval = set
+        if overrideLabels not= undefined and set >= 1
+            intervaloverride = cast(integer, set)
         end
     end
 
     action GetTickInterval() returns number
         return tickinterval
+    end
+
+    action GetIntervalOverride() returns integer
+        return intervaloverride
     end
 
     /*
@@ -603,6 +645,35 @@ class HorizontalAxisPanel is Control
         end
     end  
 
+    action ChangeOverrideLabelsToIntegers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            if CheckIfInteger(value)
+                integer val = cast(integer, value)
+                overrideLabels:Set(i, cast(text, val))
+            end
+            i = i + 1
+        end
+    end
+
+    action ChangeOverrideLabelsToNumbers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            overrideLabels:Set(i, cast(text, value))
+            i = i + 1
+        end
+    end
+
+    action NumericalOverrideLabels(boolean flag)
+        labelOverridesAreNumbers = flag
+    end
+
+    action NumericalOverrideLabels() returns boolean
+        return labelOverridesAreNumbers
+    end
+
     /*
     These actions control whether decimal numbers or integers are shown
     along the x-axis (if the axis is numerical not text)
@@ -613,12 +684,22 @@ class HorizontalAxisPanel is Control
     */
     action SetNumberFormat(text format)
         numberformat = format
+
+        if overrideLabels not= undefined and labelOverridesAreNumbers 
+            if numberformat = "number"            
+                ChangeOverrideLabelsToNumbers()
+            end
+            if numberformat = "integer"
+                ChangeOverrideLabelsToIntegers()
+            end
+        end
     end
 
     action GetNumberFormat() returns text
         return numberformat
     end
 
+    // This action is used for a number scale axis not a text axis.
     action UseIntegers() returns boolean
         if numberformat = "integer"
             return true
@@ -627,6 +708,15 @@ class HorizontalAxisPanel is Control
         end
     end
     
+    action CheckIfInteger(number value) returns boolean
+        integer val = cast(integer, value)
+        if val not= value
+            return false
+        else
+            return true
+        end
+    end
+
     /*
     These actions control the minimum and maximum horizontal scale.
     These values are used in all charts regardless if axis is showing 

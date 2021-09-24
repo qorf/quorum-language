@@ -470,6 +470,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         // Sort and add the series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if numericalFactor
             Array<number> numberKeyArray = numberForText:CopyToKeyArray()
@@ -480,7 +481,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = 0
             repeat while i < numberKeyArray:GetSize()
-                chart:AddSeries(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
+                seriesList:Add(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
                 i = i + 1
             end
         else
@@ -491,24 +492,21 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = 0
             repeat while i < seriesKeyArray:GetSize()
-                chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+                seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
                 i = i + 1
             end
         end 
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
         if useFactor
-            legend:SetName(factor:GetHeader())
+            chart:SetLegendTitle(factor:GetHeader())
         end
-        chart:SetLegend(legend)
 
+        chart:SetSeriesList(seriesList)
         chart:SetDefaultOrientation("horizontal")
         chart:SetYAxisMaximum(yAxisMaximum)
         chart:SetYAxisMinimum(yAxisMinimum)
         chart:SetXAxisMaximum(xAxisMaximum)
         chart:SetXAxisMinimum(xAxisMinimum)
-        chart:Populate()
         return chart
     end
 end

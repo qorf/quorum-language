@@ -58,7 +58,7 @@ class ViolinPlot is Chart
     ChartOptions options
     Math math
 
-    boolean hasGroups = true
+    boolean hasGroups = false
     boolean splitPlot = false
 
     on create
@@ -285,25 +285,6 @@ class ViolinPlot is Chart
             group:SetItem(panel)
             GetGroupPanels():Add(panel)
             i = i + 1
-        end
-
-        if seriesList:GetSize() > 0
-            i = 0
-            repeat while i < seriesList:GetSize()
-                Series series = seriesList:Get(i)
-                series:SetColor(options:GetColorFromPalette(i))
-                series:GetLabel():SetFocusable(true)
-                series:GetLabel():SetAccessibilityCode(parent:Item:ITEM)
-                integer j = 0
-                repeat while j < series:GetSize()
-                    series:GetItemAt(j):SetColor(series:GetColor())
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        end
-        if IsShowingLegend()
-            Add(GetLegend())
         end
     end
 
@@ -675,6 +656,9 @@ class ViolinPlot is Chart
     */
     action AddPlotGroup(PlotGroup group)
         plotGroups:Add(group)
+        if group:GetSize() > 1
+            hasGroups = true
+        end
     end
    
     /*
