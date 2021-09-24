@@ -215,10 +215,7 @@ class VerticalAxisPanel is Control
             if ticks:GetSize() < tickCount
                 integer i = 0
                 repeat while i < tickCount
-                    Drawable tick
-                    tick:LoadFilledRectangle(tickWidth, tickLength)
-                    Add(tick)
-                    ticks:Add(tick)
+                    ticks:Get(i):LoadFilledRectangle(tickWidth, tickLength)
 
                     if chart:IsShowingMajorYGridLines()
                         Drawable gridline
@@ -267,6 +264,10 @@ class VerticalAxisPanel is Control
             if ticks:GetSize() < tickCount
                 integer i = 0
                 repeat while i < tickCount
+                    Drawable tick
+                    Add(tick)
+                    ticks:Add(tick)
+
                     Item2D labelAnchor
                     ControlLabel label
                     label:SetFontSize(GetFontSize() - 5)
@@ -289,14 +290,10 @@ class VerticalAxisPanel is Control
 
             if tickCount > 0
                 i = 0
-<<<<<<< HEAD
-                repeat while i < tickCount
-=======
                 repeat while i < ticks:GetSize()
                     Drawable tick = ticks:Get(i)
                     tick:SetName("Y Tick " + (i + 1))
-    
->>>>>>> 20f8d3d6fa8f0fc41ec44dd5fbc6636506b32bf8
+
                     //make the labels for each scale tick (auto based on max)
                     text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
                     if UseIntegers() and not tickCountOverride
