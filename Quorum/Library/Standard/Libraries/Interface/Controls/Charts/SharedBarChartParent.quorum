@@ -159,6 +159,26 @@ class SharedBarChartParent is Chart
     end
 
     /*
+        Adjust the axis maximum to use stacked values.
+    */
+    action AdjustStacked()
+        
+        integer i = 0
+        repeat while i < barGroups:GetSize()
+            number sum = 0
+            integer j = 0
+            repeat while j < barGroups:Get(i):GetSize()
+                sum = sum + barGroups:Get(i):Get(j):GetValue()
+                j = j + 1
+            end
+            if sum > GetYAxisMaximum()
+                SetYAxisMaximum(sum)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
         Appends a bargroup to end of the Bar Chart. 
         If any bars in the bar group are bigger than the y max, ymax increases
     */
@@ -384,19 +404,7 @@ class SharedBarChartParent is Chart
 
         // If stacked, we need to adjust the maximum value to the full stack
         if GetStackedFlag()
-            integer i = 0
-            repeat while i < barGroups:GetSize()
-                number sum = 0
-                integer j = 0
-                repeat while j < barGroups:Get(i):GetSize()
-                    sum = sum + barGroups:Get(i):Get(j):GetValue()
-                    j = j + 1
-                end
-                if sum > GetYAxisMaximum()
-                    SetYAxisMaximum(sum)
-                end
-                i = i + 1
-            end
+            AdjustStacked()
         end
 
         parent:Chart:LoadGraphics(properties)
@@ -423,6 +431,7 @@ class SharedBarChartParent is Chart
     end
 
     action InitLabels()
+        Control chartArea = GetChartArea()
         integer i = 0
         repeat while i < barGroups:GetSize()
             integer j = 0                 

@@ -564,7 +564,7 @@ class Chart is Control
     end
 
     action GetYLabels returns Array<ControlLabel>
-        return horizontalPanel:GetLabels()
+        return verticalPanel:GetLabels()
     end
 
     action SetYLabels(Array<ControlLabel> newLabels)

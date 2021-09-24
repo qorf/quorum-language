@@ -172,6 +172,8 @@ class VerticalAxisPanel is Control
             max = overrideLabels:GetSize()-1
         end
 
+        InitLabels(chart)
+
         number scaleNum = min
         number scaleWidth = CalculateScaleWidth(chart)
 
@@ -200,6 +202,38 @@ class VerticalAxisPanel is Control
                         end
                     end
 
+                    i = i + 1
+                end
+            else
+                repeat until ticks:GetSize() = tickCount - 1
+                    Drawable tick = ticks:RemoveFromEnd()
+                    Remove(tick)
+
+                    ControlLabel label = labels:RemoveFromEnd()
+                    Remove(label)
+                end
+            end
+
+            if tickCount > 0
+                i = 0
+                repeat while i < tickCount
+                    Drawable tick = ticks:Get(i)
+                    tick:SetName("Y Tick " + (i + 1))
+                    i = i + 1
+                end
+            end
+        end
+    end
+
+    action InitLabels(Chart chart)
+        number scaleNum = min
+        number scaleWidth = CalculateScaleWidth(chart)
+
+        if ticks:GetSize() not= tickCount
+            
+            if ticks:GetSize() < tickCount
+                integer i = 0
+                repeat while i < tickCount
                     Item2D labelAnchor
                     ControlLabel label
                     label:SetFontSize(GetFontSize() - 5)
@@ -223,9 +257,6 @@ class VerticalAxisPanel is Control
             if tickCount > 0
                 i = 0
                 repeat while i < tickCount
-                    Drawable tick = ticks:Get(i)
-                    tick:SetName("Y Tick " + (i + 1))
-    
                     //make the labels for each scale tick (auto based on max)
                     text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
                     if UseIntegers() and not tickCountOverride
@@ -417,6 +448,28 @@ class VerticalAxisPanel is Control
             ControlView content = cast(ControlView, GetView2D())
             content:SetText(name)
         end
+    end
+
+    /*
+    These actions get and set the tick width.
+    */
+    action GetTickWidth returns integer
+        return tickWidth
+    end
+
+    action SetTickWidth(integer tickWidth)
+        me:tickWidth = tickWidth
+    end
+
+    /*
+    These actions get and set the tick length.
+    */
+    action GetTickLength returns integer
+        return tickLength
+    end
+
+    action SetTickLength(integer tickLength)
+        me:tickLength = tickLength
     end
 
     /*
