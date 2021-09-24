@@ -29,18 +29,24 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    //testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    //testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
     //local dependencies
     compileOnly files('../../Quorum/Library/Compiled/Run/QuorumStandardLibrary.jar')
     compileOnly files('../GamePlugin/JavaGame/libs/android.jar')
-    compileOnly files('../GamePlugin/JavaGame/libs/robovm-cocoatouch-1.8.0.jar')
-    compileOnly files('../GamePlugin/JavaGame/libs/robovm-objc-1.8.0.jar')
-    compileOnly files('../GamePlugin/JavaGame/libs/robovm-rt-1.8.0.jar')
+
+    //These dependencies are the old ones used from the older RoboVM. The new ones
+    //should be compiled against instead, but we need to check compatability, and as such
+    //I'm keeping these in for now, commented out, so we can find them if need be.
+    //compileOnly files('../GamePlugin/JavaGame/libs/robovm-cocoatouch-1.8.0.jar')
+    //compileOnly files('../GamePlugin/JavaGame/libs/robovm-objc-1.8.0.jar')
+    //compileOnly files('../GamePlugin/JavaGame/libs/robovm-rt-1.8.0.jar')
 
     //Mobivm dependencies
-    //implementation 'com.mobidevelop.robovm:robovm-compiler:2.3.14'
+    compileOnly 'com.mobidevelop.robovm:robovm-compiler:2.3.14'
+    compileOnly 'com.mobidevelop.robovm:robovm-rt:2.3.14'
+    compileOnly 'com.mobidevelop.robovm:robovm-cocoatouch:2.3.14'
 
     //LWJGL dependencies
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
@@ -62,8 +68,10 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+
+
 }
 
 test {
-    useJUnitPlatform()
+    //useJUnitPlatform()
 }
