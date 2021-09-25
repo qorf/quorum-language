@@ -52,7 +52,8 @@ dependencies {
     //These are old and may need to be updated, but there are
     //likely compatibility issues with new releases and this may not be
     //trivial
-    implementation 'org.ow2.asm:asm-all:4.2'
+    //implementation 'org.ow2.asm:asm-all:4.2'
+    implementation 'org.ow2.asm:asm-all:5.2'
 
     //LWJGL dependencies
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
@@ -74,6 +75,7 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+
 }
 
 test {
