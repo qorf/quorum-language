@@ -27,36 +27,36 @@ import quorum.Libraries.Interface.Item_;
 public class MacAccessibility {
     public java.lang.Object me_ = null;
     
-    static {
-        try
-        {
-            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile;
-            
-            
-            //new M1 macs use 'aarch64'
-            if (System.getProperty("os.arch").contains("x86_64")) {
-                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
-            }
-            else { //this won't work, but is a start
-                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
-            }
-            System.load(nativeFile);
-            long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-            
-            String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
-            InitializeAccessibilityNative(handle, windowTitle);
-//            DesktopDisplay.ForceWindowVisible();
-        }
-        catch (URISyntaxException ex) 
-        {
-            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //this is the NSWindow handle on Mac, I think?
-        
-        
-    }
+//    static {
+//        try
+//        {
+//            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+//            String runLocation = file.getParentFile().getAbsolutePath();
+//            String nativeFile;
+//
+//
+//            //new M1 macs use 'aarch64'
+//            if (System.getProperty("os.arch").contains("x86_64")) {
+//                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
+//            }
+//            else { //this won't work, but is a start
+//                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
+//            }
+//            System.load(nativeFile);
+//            long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+//
+//            String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
+//            InitializeAccessibilityNative(handle, windowTitle);
+////            DesktopDisplay.ForceWindowVisible();
+//        }
+//        catch (URISyntaxException ex)
+//        {
+//            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        //this is the NSWindow handle on Mac, I think?
+//
+//
+//    }
     
     private static native void InitializeAccessibilityNative(long GLFW_WindowHandle, String windowName);
     
