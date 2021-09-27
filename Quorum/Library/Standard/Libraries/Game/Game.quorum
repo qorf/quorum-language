@@ -1324,11 +1324,17 @@ class Game
         mouseOff:SetInputTrigger(mouseOff:FINISH)
         ButtonMouseOffBehavior buttonOffBehavior
         buttonTable:Add(mouseOff, buttonOffBehavior)
-
+        
         InputSet spaceSet
         spaceSet:SetKeyboardInput(keys:SPACE)
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnterSet
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
         ControlActivationBehavior activateBehavior
         buttonTable:Add(spaceSet, activateBehavior)
+        buttonTable:Add(enterSet, activateBehavior)
+        buttonTable:Add(numpadEnterSet, activateBehavior)
 
         InputSet rightClickSet
         rightClickSet:SetMouseInput(mouse:RIGHT)
@@ -1472,7 +1478,6 @@ class Game
         TreeSelectLastBehavior treeSelectLastBehavior
         treeTable:Add(endSet, treeSelectLastBehavior)
 
-        InputSet enterSet
         enterSet:SetKeyboardInput(keys:ENTER)
         TreeActivateBehavior treeActivateBehavior
         treeTable:Add(enterSet, treeActivateBehavior)
