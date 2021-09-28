@@ -8,7 +8,6 @@ plugins {
 group 'plugins.quorum'
 version '10.0'
 
-
 project.ext.lwjglVersion = "3.2.3"
 project.ext.lwjglMac = "natives-macos"
 project.ext.lwjglWindows = "natives-windows"
@@ -116,8 +115,19 @@ jar {
                 "Specification-Version": "10.0",
                 "Class-Path": configurations.runtimeClasspath.collect { "libraries/" + it.getName() }.join(' '))
     }
+    archiveFileName = 'QuorumStandardPlugins.jar'
 }
 
 test {
     //useJUnitPlatform()
+}
+
+task copyToQuorum(type: Copy) {
+    from configurations.runtimeClasspath
+    into '../../Quorum/Library/Compiled/Run/libraries'
+
+    copy {
+        from 'build/libs/QuorumStandardPlugins.jar'
+        into '../../Quorum/Library/Compiled/Run/'
+    }
 }

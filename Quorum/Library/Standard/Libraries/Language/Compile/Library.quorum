@@ -264,7 +264,7 @@ class Library
     action Write
         if hasScannedStandardLibrary
             WriteStandardLibrary()
-            WriteStandardPlugins()
+            //WriteStandardPlugins()
             CopyStandardFiles()
         else
             alert ("I have not yet scanned the standard library. This must be completed before I can write it to disk.")
@@ -288,17 +288,17 @@ class Library
         nativeDeployment:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         nativeDeployment:SetPath("Deploy")
 
-        File lwjglFolder
-        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        lwjglFolder:SetPath("LWJGL")
-
-        File dbus
-        File ev3
-        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        dbus:SetPath("dbusjava.jar")
-
-        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        ev3:SetPath("ev3classes.jar")
+//        File lwjglFolder
+//        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        lwjglFolder:SetPath("LWJGL")
+//
+//        File dbus
+//        File ev3
+//        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        dbus:SetPath("dbusjava.jar")
+//
+//        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        ev3:SetPath("ev3classes.jar")
 
         speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
@@ -306,20 +306,20 @@ class Library
         if nativeDeployment:Exists()
             nativeDeployment:Copy(nativeFolder, true)
         end
-        lwjglFolder:Copy(graphicsFolder, true)
+//        lwjglFolder:Copy(graphicsFolder, true)
         
 
-        File copier
-        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
-        copier:SetPath("dbusjava.jar")
-        if not copier:GetParentDirectory():Exists()
-            copier:GetParentDirectory():CreateDirectories()
-        end
+//        File copier
+//        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
+//        copier:SetPath("dbusjava.jar")
+//        if not copier:GetParentDirectory():Exists()
+//            copier:GetParentDirectory():CreateDirectories()
+//        end
 
-        dbus:Copy(copier, true)
+//        dbus:Copy(copier, true)
 
-        copier:SetPath("ev3classes.jar")
-        ev3:Copy(copier, true)
+//        copier:SetPath("ev3classes.jar")
+//        ev3:Copy(copier, true)
 
         File fontWeb
         fontWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/javascript")
@@ -572,8 +572,9 @@ class Library
         text main = ""
 
         //now write any jar dependencies into the manifest
-        text classpath = GetStandardLibraryClasspath()
-        classpath = classpath + line + "  " + STANDARD_PLUGINS_JAR
+        //Changed in Quorum-10 to allow for the new plugin and dependency system.
+        //text classpath = GetStandardLibraryClasspath()
+        text classpath = "Class-Path: " + STANDARD_PLUGINS_JAR
 
         total = version + created + classpath + line
         return total
