@@ -10,6 +10,9 @@ version '10.0'
 
 
 project.ext.lwjglVersion = "3.2.3"
+project.ext.lwjglMac = "natives-macos"
+project.ext.lwjglWindows = "natives-windows"
+project.ext.lwjglWindows32 = "natives-windows-x86"
 
 switch (OperatingSystem.current()) {
     case OperatingSystem.MAC_OS:
@@ -27,6 +30,8 @@ repositories {
     mavenCentral()
     //google()
 }
+
+
 
 dependencies {
     //testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
@@ -67,15 +72,50 @@ dependencies {
     implementation "org.lwjgl:lwjgl-opengl"
     implementation "org.lwjgl:lwjgl-opengles"
     implementation "org.lwjgl:lwjgl-stb"
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglMac"
 
+    //lwjglWindows64
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglWindows"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglWindows"
+
+    //lwjglWindows32 - should we drop support this release?
+//    runtimeOnly "org.lwjgl:lwjgl::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglWindows32"
+//    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglWindows32"
+
+    //LEGO EV3
+    implementation files('../RobotPlugin/LegoPlugins/libraries/ev3classes.jar')
+    implementation files('../RobotPlugin/LegoPlugins/libraries/dbusjava.jar')
+}
+
+jar {
+    manifest {
+
+        attributes(
+                "Manifest-Version": "1.0",
+                "Created-By": "Quorum",
+                "Specification-Title": "Quorum Programming Language Standard Plugins",
+                "Specification-Version": "10.0",
+                "Class-Path": configurations.runtimeClasspath.collect { "libraries/" + it.getName() }.join(' '))
+    }
 }
 
 test {
