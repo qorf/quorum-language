@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 
 /*
     This class represents the default options any chart will use when displaying information in a chart. These options
@@ -17,115 +18,79 @@ use Libraries.Containers.Array
     output "We have obtained the default bar color on the system."
 */
 shared class ChartOptions
-    Color barColor = undefined
+    Color color
+    number r = 0.0
+    number g = 0.0
+    number b = 0.0
     Color selectionColor = undefined
+    private boolean needToMakePalettes = true
     integer tickDigits = 1
 
-    Array<Color> colorPalette
+    /*
+        See the paper below for more information on these palettes
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+    public constant integer CALM = 0
+    public constant integer EXCITING = 1
+    public constant integer POSITIVE = 2
+    public constant integer NEGATIVE = 3
+    public constant integer SERIOUS = 4
+    public constant integer PLAYFUL = 5
+    public constant integer TRUSTWORTHY = 6
+    public constant integer DISTURBING = 7
+    public constant integer REDGREENFRIENDLY = 8
+    public constant integer BLUEYELLOWFRIENDLY = 9
+    public constant integer GRAYSCALE = 10
+    
+
+    HashTable <integer, Array<Color>> palettes
+    Array<Color> colorPalette = undefined
 
     on create
-        Color color1
-        if barColor = undefined
-            barColor = color1:Navy()
+        if needToMakePalettes
+            BuildDefaultPalettes()
+            needToMakePalettes = false
         end
 
+        // Default selection color is used when focusing on a chart item
         if selectionColor = undefined
-            selectionColor = color1:Blue()
+            selectionColor = color:Blue()
         end
 
-        /*
-            Default colors will be filled with a 10-color color-blind-friendly palette
-            See the website below for more information
-            https://analyticsdemystified.com/excel-tips/data-visualization-that-is-color-blind-friendly-excel-2007/
-        */
-        number r = (54.0/255.0)
-        number g = (94.0/255.0)
-        number b = (150.0/255.0)
-        color1:SetColor(r,g,b,1)
-        colorPalette:Add(color1)
-
-        Color color2
-        r = (153.0/255.0)
-        g = (51.0/255.0)
-        b = (53.0/255.0)
-        color2:SetColor(r,g,b,1)
-        colorPalette:Add(color2)
-
-        Color color3
-        r = (120.0/255.0)
-        g = (151.0/255.0)
-        b = (61.0/255.0)
-        color3:SetColor(r,g,b,1)
-        colorPalette:Add(color3)
-
-        Color color4
-        r = (93.0/255.0)
-        g = (68.0/255.0)
-        b = (125.0/255.0)
-        color4:SetColor(r,g,b,1)
-        colorPalette:Add(color4)
-
-        Color color5
-        r = (54.0/255.0)
-        g = (134.0/255.0)
-        b = (160.0/255.0)
-        color5:SetColor(r,g,b,1)
-        colorPalette:Add(color5)
-
-        Color color6
-        r = (208.0/255.0)
-        g = (112.0/255.0)
-        b = (47.0/255.0)
-        color6:SetColor(r,g,b,1)
-        colorPalette:Add(color6)
-
-        Color color7
-        r = (129.0/255.0)
-        g = (152.0/255.0)
-        b = (198.0/255.0)
-        color7:SetColor(r,g,b,1)
-        colorPalette:Add(color7)
-
-        Color color8
-        r = (196.0/255.0)
-        g = (128.0/255.0)
-        b = (128.0/255.0)
-        color8:SetColor(r,g,b,1)
-        colorPalette:Add(color8)
-
-        Color color9
-        r = (173.0/255.0)
-        g = (196.0/255.0)
-        b = (133.0/255.0)
-        color9:SetColor(r,g,b,1)
-        colorPalette:Add(color9)
-
-        Color color10
-        r = (152.0/255.0)
-        g = (136.0/255.0)
-        b = (176.0/255.0)
-        color10:SetColor(r,g,b,1)
-        colorPalette:Add(color10)
-    end
-
-    /* 
-        This action obtains the default bar color on the system. It is Navy Blue by default.
-
-        Attribute: Returns returns the default bar color, which is Navy Blue unless changed.
-    */
-    action GetBarColor returns Color
-        return barColor
-    end
-
-    action GetColorFromPalette(integer index) returns Color
-        return colorPalette:Get(index mod colorPalette:GetSize())
+        // Default colors will be filled with the TRUSTWORTHY color palette
+        if colorPalette = undefined
+            SetPalette(TRUSTWORTHY)
+        end
     end
 
     action SetPalette(Array<Color> colorPalette)
+        if colorPalette not= undefined and not colorPalette:IsEmpty()
+            me:colorPalette:Empty()
+        end
         me:colorPalette = colorPalette
     end
+
+    action SetPalette(integer x)
+        if palettes:HasKey(x)
+            colorPalette = palettes:GetValue(x)
+        end
+    end
+
+    action SetPalette(Color color, integer shades)
+        colorPalette = MonochromaticPalette(color, shades)
+    end
+
+    action SetPalette(Color colorA, Color colorB, integer shades)
+        colorPalette = InterpolatedPalette(colorA, colorB, shades)
+    end
+
+    action SetPalette(Color colorA, Color colorB, Color colorC, integer shades)
+        colorPalette = InterpolatedPalette(colorA, colorB, colorC, shades)
+    end
+
     /*
         This action uses the weighted RBG grayscale method based on the wavelength GRAYSCALE  = 0.299R + 0.587G + 0.114B
+        It changes the current palette to grayscale. There is also a GRAYSCALE palette that uses an interpolated palette.
     */
     action SetPaletteToGrayScale()
         integer i = 0
@@ -136,14 +101,256 @@ shared class ChartOptions
             i = i + 1
         end
     end
-    /*
-        This action sets the default color for all charts with bars on the system. If a chart is already created,
-        changing this does not necessarily change its defaults, as these are set when graphics are first loaded.
 
-        Attribute: Parameter barColor The default bar color
-    */ 
-    action SetBarColor(Color barColor)
-        me:barColor = barColor
+
+    action GetColorFromPalette(integer index) returns Color
+        return colorPalette:Get(index mod colorPalette:GetSize())
+    end
+
+
+    private action BuildDefaultPalettes()
+        palettes:Add(CALM, CalmPalette())
+        palettes:Add(EXCITING, ExcitingPalette())
+        palettes:Add(POSITIVE, PositivePalette())
+        palettes:Add(NEGATIVE, NegativePalette())
+        palettes:Add(SERIOUS, SeriousPalette())
+        palettes:Add(PLAYFUL, PlayfulPalette())
+        palettes:Add(TRUSTWORTHY, TrustworthyPalette())
+        palettes:Add(DISTURBING, DisturbingPalette())
+        palettes:Add(REDGREENFRIENDLY, RedGreenBlindnessPalette())
+        palettes:Add(BLUEYELLOWFRIENDLY, BlueYellowBlindnessPalette())
+        palettes:Add(GRAYSCALE, GrayScalePalette())
+    end
+
+    private action CalmPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action ExcitingPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action PositivePalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action NegativePalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action SeriousPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action PlayfulPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action TrustworthyPalette() returns Array <Color>
+        Array <Color> palette
+        // Brightest Baby Blue 
+        r = (44.0/255.0)
+        g = (177.0/255.0)
+        b = (239.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Lighter Orange
+        r = (253.0/255.0)
+        g = (155.0/255.0)
+        b = (23.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Purplish
+        r = (133.0/255.0)
+        g = (131.0/255.0)
+        b = (173.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Brightest Yellow
+        r = (239.0/255.0)
+        g = (201.0/255.0)
+        b = (31.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Brightest Green
+        r = (37.0/255.0)
+        g = (183.0/255.0)
+        b = (13.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Darker Teal
+        r = (57.0/255.0)
+        g = (126.0/255.0)
+        b = (123.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Yellowish green
+        r = (170.0/255.0)
+        g = (218.0/255.0)
+        b = (68.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Darker Blue
+        r = (13.0/255.0)
+        g = (91.0/255.0)
+        b = (192.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Darker Orange
+        r = (253.0/255.0)
+        g = (107.0/255.0)
+        b = (7.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Light Baby Blue
+        r = (122.0/255.0)
+        g = (199.0/255.0)
+        b = (237.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Lighter Teal
+        r = (146.0/255.0)
+        g = (194.0/255.0)
+        b = (179.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        // Lighter yellowish green
+        r = (158.0/255.0)
+        g = (211.0/255.0)
+        b = (144.0/255.0)
+        color:SetColor(r,g,b,1)
+        palette:Add(color:Copy())
+
+        return palette
+    end
+
+    private action DisturbingPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    private action RedGreenBlindnessPalette() returns Array <Color>
+        Color gold
+        Color blue
+        gold:SetColor((153.0/255.0),(88.0/255.0),(39.0/255.0),1)
+        blue:SetColor((46.0/255.0),(83.0/255.0),(114.0/255.0),1)
+        return InterpolatedPalette(gold:Copy(), blue:Copy(), 10)
+    end
+
+    private action BlueYellowBlindnessPalette() returns Array <Color>
+        Array <Color> palette
+        return palette
+    end
+
+    /*
+        This action builds an interpolated palette between lightgray and black
+    */
+    private action GrayScalePalette() returns Array <Color>
+        return InterpolatedPalette(color:LightGray(), color:Black(), 10)
+    end
+
+    /*
+        This action builds an interpolated palette between a color and white and produces the passed number of colors for optimal contrast.
+
+        Attribute: Parameters one color and an integer of how many shades to be made.
+    */
+    private action MonochromaticPalette(Color newcolor, integer shades) returns Array <Color>
+        Array <Color> palette
+        r = newcolor:GetRed()
+        g = newcolor:GetGreen()
+        b = newcolor:GetBlue()
+
+        number coefficient = 1.0/(shades+1) // shades + 1 because we don't want it to reach full white
+        number current = 0 
+        // Shades of newcolor
+        integer i = 0
+        repeat while i < shades
+            newcolor:LinearInterpolation(color:White(), current)
+            palette:Add(newcolor:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+
+        return palette
+    end
+
+    /*
+        This action builds an interpolated palette between two colors and produces the passed number of colors for optimal contrast.
+
+        Attribute: Parameters two colors interpolated respectively and an integer of how many colors to be made.
+    */
+    private action InterpolatedPalette(Color colorA, Color colorB, integer shades) returns Array <Color>
+        Array <Color> palette
+        r = colorA:GetRed()
+        g = colorA:GetGreen()
+        b = colorA:GetBlue()
+
+        number coefficient = 1.0/shades // shades + 1 because we don't want it to ever actually just be white
+        number current = 0 
+        // Shades of newcolor
+        integer i = 0
+        repeat while i < shades
+            colorA:LinearInterpolation(colorB, current)
+            palette:Add(colorA:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+
+        return palette
+    end
+
+    /*
+        This action builds an interpolated palette between three colors and produces the passed number of colors for optimal contrast.
+
+        Attribute: Parameters three colors interpolated respectively and an integer of how many colors to be made.
+    */
+    private action InterpolatedPalette(Color colorA, Color colorB, Color colorC, integer shades) returns Array <Color>
+        Array <Color> palette
+        r = colorA:GetRed()
+        g = colorA:GetGreen()
+        b = colorA:GetBlue()
+
+        // First half ColorA to ColorB
+        integer half = shades/2
+        number coefficient = 1.0/half
+        number current = 0 
+        integer i = 0
+        repeat while i < half
+            colorA:LinearInterpolation(colorB, current)
+            palette:Add(colorA:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+
+        // Second half ColorB to ColorC
+        coefficient = 1.0/(shades-half)
+        current = 0 
+        i = 0
+        repeat while i < (shades-half)
+            colorB:LinearInterpolation(colorC, current)
+            palette:Add(colorB:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+
+        return palette
     end
 
     /* 
