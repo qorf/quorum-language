@@ -7,6 +7,7 @@ use Libraries.Interface.Controls.Charts.LineSegment
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Charts.ChartLinePointComparison
 
 /*
     This object class is used to contain the points and lines for each line object in the line chart. It should
@@ -149,28 +150,9 @@ class ChartLine is Drawable
     Very basic bubble sort, can be improved. Used in numerical factor line charts
     */
     action SortPoints()
-        integer i = 0
-        repeat while i < points:GetSize()-1
-            integer j = 0
-            repeat while j < points:GetSize()-i-1
-                if points:Get(j):GetValueX() > points:Get(j+1):GetValueX()
-                    ChartPoint point
-                    point:SetValueX(points:Get(j):GetValueX())
-                    point:SetValueY(points:Get(j):GetValueY())
-                    point:SetName(points:Get(j):GetName())
+        ChartLinePointComparison comparison
+        points:Sort(comparison)
 
-                    points:Get(j):SetValueX(points:Get(j+1):GetValueX())
-                    points:Get(j):SetValueY(points:Get(j+1):GetValueY())
-                    points:Get(j):SetName(points:Get(j+1):GetName())
-
-                    points:Get(j+1):SetValueX(point:GetValueX())
-                    points:Get(j+1):SetValueY(point:GetValueY())
-                    points:Get(j+1):SetName(point:GetName())
-                end
-                j = j + 1 
-            end
-            i = i + 1
-        end
         lineStart = points:Get(0)
         lineEnd = points:Get(points:GetSize()-1)
 

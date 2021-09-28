@@ -313,7 +313,7 @@ class ChartLayout is Layout
                     scaleDivWidth = cast(number, chart:GetGroupPanels():Get(i):GetWidth())
                 end
                 currentTick = ticks:Get(i)
-                currentTick:SetPosition(cast(integer, tickX), tickY)
+                currentTick:SetPosition(cast(integer, tickX-(tickWidth/2)), tickY)
 
                 Drawable majorLine
                 if chart:IsShowingMajorXGridLines() and i < lines:GetSize()

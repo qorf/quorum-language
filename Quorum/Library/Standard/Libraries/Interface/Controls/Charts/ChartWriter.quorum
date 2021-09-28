@@ -459,7 +459,7 @@ class ChartWriter
         number scaleDivWidth = 0         
         number tickStroke = horizontalContainer:GetTickWidth()
         number tickStrokePercent = PixelToPercentWidth(tickStroke)
-        number tickLength = PixelToPercentHeight(horizontalContainer:GetTickLength())
+        number tickLength = PixelToPercentHeight(horizontalContainer:GetTickHeight())
         number axisShift = PixelToPercentHeight(5)
         integer fontSize = 12
         number groupWidth = 0
@@ -696,7 +696,7 @@ class ChartWriter
         //This is the ticks on the Y axis
         number groupOffset = 0
         number scaleDivWidth = 0      
-        number tickStroke = verticalContainer:GetTickLength()
+        number tickStroke = verticalContainer:GetTickHeight()
         number tickStrokePercent = PixelToPercentHeight(tickStroke)
         number tickLength = PixelToPercentWidth(verticalContainer:GetTickWidth())
         number axisShift = PixelToPercentHeight(5)

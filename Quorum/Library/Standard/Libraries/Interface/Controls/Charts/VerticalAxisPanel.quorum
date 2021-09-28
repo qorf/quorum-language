@@ -43,7 +43,7 @@ class VerticalAxisPanel is Control
 
     integer minorlinecount = 5
     integer tickCount = 0
-    integer tickLength = 3
+    integer tickHeight = 3
     integer tickWidth = 15
     integer titleFontSize = 0
     integer labelFontSize = 0
@@ -207,51 +207,26 @@ class VerticalAxisPanel is Control
 
         InitLabels(chart)
 
-        number scaleNum = min
-        number scaleWidth = CalculateScaleWidth(chart)
+        integer i = 0
+        repeat while i < ticks:GetSize()
+            ticks:Get(i):LoadFilledRectangle(tickWidth, tickHeight)
 
-        if ticks:GetSize() not= tickCount
-            
-            if ticks:GetSize() < tickCount
-                integer i = 0
-                repeat while i < tickCount
-                    ticks:Get(i):LoadFilledRectangle(tickWidth, tickLength)
-
-                    if chart:IsShowingMajorYGridLines()
-                        Drawable gridline
-                        majorlines:Add(gridline)
-                        chart:GetChartArea():Add(gridline)
-                    end
-                    if chart:IsShowingMinorYGridLines()
-                        integer j = 0
-                        repeat while j < minorlinecount
-                            Drawable gridline
-                            minorlines:Add(gridline)
-                            chart:GetChartArea():Add(gridline)
-                            j = j + 1
-                        end
-                    end
-
-                    i = i + 1
-                end
-            else
-                repeat until ticks:GetSize() = tickCount - 1
-                    Drawable tick = ticks:RemoveFromEnd()
-                    Remove(tick)
-
-                    ControlLabel label = labels:RemoveFromEnd()
-                    Remove(label)
+            if chart:IsShowingMajorYGridLines()
+                Drawable gridline
+                majorlines:Add(gridline)
+                chart:GetChartArea():Add(gridline)
+            end
+            if chart:IsShowingMinorYGridLines()
+                integer j = 0
+                repeat while j < minorlinecount
+                    Drawable gridline
+                    minorlines:Add(gridline)
+                    chart:GetChartArea():Add(gridline)
+                    j = j + 1
                 end
             end
 
-            if tickCount > 0
-                i = 0
-                repeat while i < tickCount
-                    Drawable tick = ticks:Get(i)
-                    tick:SetName("Y Tick " + (i + 1))
-                    i = i + 1
-                end
-            end
+            i = i + 1
         end
     end
 
@@ -499,14 +474,14 @@ class VerticalAxisPanel is Control
     end
 
     /*
-    These actions get and set the tick length.
+    These actions get and set the tick height.
     */
-    action GetTickLength returns integer
-        return tickLength
+    action GetTickHeight returns integer
+        return tickHeight
     end
 
-    action SetTickLength(integer tickLength)
-        me:tickLength = tickLength
+    action SetTickHeight(integer tickHeight)
+        me:tickHeight = tickHeight
     end
 
     /*

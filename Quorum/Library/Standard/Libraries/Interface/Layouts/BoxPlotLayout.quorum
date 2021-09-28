@@ -57,6 +57,10 @@ class BoxPlotLayout is ChartLayout
         This action determines the layout of the chart area
     */
       action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is BoxPlot)
+            return now
+        end
+
         BoxPlot chart = cast(BoxPlot, control)
         Array <PlotGroup> plotGroups = chart:GetPlotGroups()
         Control chartArea = chart:GetChartArea()

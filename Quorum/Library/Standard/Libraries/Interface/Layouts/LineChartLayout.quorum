@@ -1,25 +1,24 @@
 package Libraries.Interface.Layouts
 
-use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Controls.Charts.ChartLine
+use Libraries.Interface.Controls.Charts.LineSegment
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Interface.Controls.Charts.ChartPoint
-use Libraries.Interface.Controls.Charts.ChartPointComparison
 use Libraries.Compute.Math
-use Libraries.Interface.Controls.Charts.ChartLine
-
-use Libraries.Game.Graphics.Color
-use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.Charts.LineSegment
 
 /*
-    This is the layout class for Line Chart. This class is responsible for 
-    positioning all chart area components of the line chart.
+    This is the layout class for Line Chart. 
+    This class is responsible for loading, coloring and 
+    positioning all chart area components of the linechart chart area.
 
-    Attribute: Author Cody Molisee
+    Attribute: Author Cody Molisee, Hannah Williams
 */
 class LineChartLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)

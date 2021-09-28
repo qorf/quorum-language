@@ -1,24 +1,25 @@
 package Libraries.Interface.Controls.Charts
 
-use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.BarChartLayout
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 
 /*
-    The BarChart class is Chart object that inherits from Control and like other
+    The BarChart class is Chart object that inherits from SharedBarChartParent and like other
     UI elements it is added to the Game class. The Bar Chart is used to represent
     categorical data with rectangular bars that have a height proportional to the 
     data they represent. By default, the chart has no added bars and has a scale 
     that goes from 0 to 1. The title label, axis labels, and scale can be modified, 
     and any number of bars can be added. 
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Gabriel Contreras, Hannah Williams, Tim Kluthe
 
     Attribute: Example
 
     use Libraries.Interface.Controls.Charts
+    use Libraries.Interface.Controls.Charts.BarChart
     use Libraries.Game.Game
 
     class Main is Game
@@ -33,11 +34,9 @@ use Libraries.Game.Graphics.Gradient
     end
 */
 class BarChart is SharedBarChartParent
-    LayoutProperties labelProperties
-
     on create
-        BarChartLayout lay
-        SetLayout(lay)
+        BarChartLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
@@ -63,16 +62,24 @@ class BarChart is SharedBarChartParent
     end
 
     /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the chart. Also the highest level of the information tree
-    of  the chart.
+        This is called by GenerateInfoTree to generate the summary that is heard when
+        you first focus on the chart. Also the highest level of the information tree
+        of  the chart.
     */
     private action GenerateSummary returns text
-        text bartext = " bars."
-        if GetNumberOfBars() = 1
-            bartext = " bar."
+        text grouptext = ""
+        if HasBarGroups()
+            text groups = " groups and "
+            if GetBarGroups():GetSize() = 1
+                groups = " group and "
+            end
+            grouptext = GetBarGroups():GetSize() + groups
         end
-        SetDescription(" with " + GetNumberOfBars() + bartext +  " Use the arrow keys to navigate the chart.")
+        text bartext = GetNumberOfBars() + " bars."
+        if GetNumberOfBars() = 1
+            bartext = GetNumberOfBars() + " bar."
+        end
+        SetDescription(" with " + grouptext + bartext + " Use the arrow keys to navigate the chart.")
         return GetDescription()
     end
     
@@ -87,6 +94,5 @@ class BarChart is SharedBarChartParent
         BarChartWriter writer
         return writer:WriteOutChart(me)
     end
-
 end
 

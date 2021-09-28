@@ -1,0 +1,38 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+
+class PieChartLayout is ChartLayout
+
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is PieChart)
+            return now
+        end
+
+        PieChart chart = cast(PieChart, control)
+        Array<Drawable> slices = chart:GetSlices()
+        Array<number> values = chart:GetSliceValues()
+        number width = chartAreaContainer:GetWidth()
+        number height = chartAreaContainer:GetHeight()
+
+        integer x = 0
+        integer i = 0
+        repeat while i < slices:GetSize()
+            Drawable slice = slices:Get(i)
+            integer h = cast(integer, (values:Get(i)/chart:GetYAxisMaximum())*height)
+            slice:LoadFilledRectangle(10, h, slice:GetColor())
+            slice:SetPosition(x, 0)
+            x = x + 10
+            i = i + 1
+        end
+    end
+end
