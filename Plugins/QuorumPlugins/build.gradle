@@ -105,6 +105,12 @@ dependencies {
     implementation files('../RobotPlugin/LegoPlugins/libraries/dbusjava.jar')
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
 jar {
     manifest {
 
