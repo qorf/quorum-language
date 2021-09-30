@@ -14,8 +14,13 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.Iterator
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.System.Process
+use Libraries.System.ProcessEvent
+use Libraries.System.ProcessListener
+use Libraries.System.SystemHelper
+use Libraries.System.Properties
 
-class Library 
+class Library is ProcessListener
     File location = undefined
     File outputFolder = undefined
     File buildFolder
@@ -29,6 +34,7 @@ class Library
     File nativeFolder
     File graphicsFolder
     File robotsFolder
+    File pluginsFolder = undefined
     constant text STANDARD = "Standard"
     constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
     constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
@@ -40,6 +46,7 @@ class Library
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
+    constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
 
     boolean hasScannedStandardLibrary = false
     SymbolTable librarySymbolTable
@@ -58,6 +65,20 @@ class Library
 
     action RemoveListener(CompilerListener listener)
         listeners:Remove(listener)
+    end
+
+    /*
+        This sets the location of Quorum's plugins, to be compiled when the library script is run.
+    */
+    action SetPluginsFolder(File file)
+        me:pluginsFolder = file
+    end
+
+    /*
+        This gets the location of Quorum's plugins, to be compiled when the library script is run.
+    */
+    action GetPluginsFolder returns File
+        return pluginsFolder
     end
 
     private action UpdateListenerLabels(text label)
@@ -264,7 +285,7 @@ class Library
     action Write
         if hasScannedStandardLibrary
             WriteStandardLibrary()
-            //WriteStandardPlugins()
+            WriteStandardPlugins()
             CopyStandardFiles()
         else
             alert ("I have not yet scanned the standard library. This must be completed before I can write it to disk.")
@@ -416,22 +437,66 @@ class Library
         return result
     end
 
+    /*
+        This writes the standard plugins for Quorum. In Quorum-10, this was changed to use the gradle build system
+        to generate all the compilation info and 
+    */
     action WriteStandardPlugins
-        JarGenerator generator
-        text value = GetStandardPluginsManifest(generator)
-        generator:SetManifest(value)
+        Process process
 
-        if pluginJar:Exists()
-            pluginJar:GetParentDirectory():CreateDirectories()
+        //this needs to be different on mac and windows
+        output "Compiling Quorum Plugins. "
+        
+
+
+        if pluginsFolder = undefined
+            File file
+            pluginsFolder = file
+            pluginsFolder:SetWorkingDirectory(location:GetAbsolutePath())
+            pluginsFolder = pluginsFolder:GetParentDirectory():GetParentDirectory():GetParentDirectory()
+            pluginsFolder:SetPath(DEFAULT_PLUGINS_FOLDER)
         end
-        generator:Open(pluginJar)
-        AddStandardPlugins(generator)
-        AddCompilerDependencies(generator)
-        AddSoundDependencies(generator)
-        AddGameDependencies(generator)
-        AddLegoDependencies(generator)
-        AddSpeechDependencies(generator)
-        generator:Close()
+
+        File gradle
+        gradle:SetWorkingDirectory(pluginsFolder:GetAbsolutePath())
+        gradle:SetPath("gradlew")
+        process:SetName(gradle:GetAbsolutePath())
+
+        process:SetDirectory(pluginsFolder)
+        Array<text> flags
+        flags:Add("jar")
+        flags:Add("copyToQuorum")
+
+        process:SetParameters(flags)
+        process:AddListener(me)
+        //now Run it
+        process:Run() 
+    end
+
+    action ProcessStarted(ProcessEvent event)
+    end
+
+    action ProcessStopped(ProcessEvent event)
+    end
+
+    action Output(ProcessEvent event)
+        output  event:GetOutput()
+    end
+
+    action Error(ProcessEvent event)
+        output  event:GetOutput()
+    end
+
+    private action GetGradleName returns text
+        text result = ""
+
+        Properties prop
+        if prop:IsWindows()
+            return "gradlew"
+        else
+            return "./gradlew"
+        end
+        return result
     end
 
     private action AddCompilerDependencies(JarGenerator generator)
