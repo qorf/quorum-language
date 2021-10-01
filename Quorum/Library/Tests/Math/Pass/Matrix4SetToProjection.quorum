@@ -1,11 +1,13 @@
 // tested against libGDX
 
 use Libraries.Compute.Matrix4
+use Libraries.Compute.Math
 
 class Matrix4SetToProjection 
     action Main
         Matrix4 matrix
-
+        integer round = 13
+        Math math
         matrix:SetToProjection(0, 1, 10, 2)
 
         number row0column0 = matrix:row0column0 + 0.0
@@ -26,8 +28,8 @@ class Matrix4SetToProjection
         number row3column3 = matrix:row3column3 + 0.0
 
         output "The new matrix is:"
-        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
-        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+        output "|" + math:Round(row0column0, round) + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+        output "|" + row1column0 + ", " + math:Round(row1column1, round) + ", " + row1column2 + ", " + row1column3 + "|"
         output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
         output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
