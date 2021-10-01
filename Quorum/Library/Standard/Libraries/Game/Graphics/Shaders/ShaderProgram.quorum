@@ -12,6 +12,8 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Environment
 
 class ShaderProgram
 
@@ -139,27 +141,23 @@ class ShaderProgram
         vertexInputNames = graphics:GetVertexInputTables(GetID(), vertexInputLocations, vertexInputSizes, vertexInputTypes)
     end
 
-    action Begin
+    action Begin(Camera camera, Environment environment)
         GraphicsManager graphics = manager:GetGameGraphics()
         CheckManaged()
         graphics:UseShaderProgram(GetID())
 
-        OnBegin()
-    end
-
-    action OnBegin
-        // Do nothing. Can be overridden to allow for OpenGL calls to be handled when the program starts.
+        if shaderMapping not= undefined
+            shaderMapping:Begin(camera, environment, me)
+        end
     end
 
     action End
-        OnEnd()
+        if shaderMapping not= undefined
+            shaderMapping:End(me)
+        end
 
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:UseShaderProgram(0)
-    end
-
-    action OnEnd
-        // Do nothing. Can be overridden to allow for cleanup in OpenGL after the program ends.
     end
 
     action Dispose
@@ -218,6 +216,27 @@ class ShaderProgram
 
     action HasVertexInput(text name) returns boolean
         return vertexInputNames:Has(name)
+    end
+
+    action SetShaderInput(text name, boolean value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer location = GetShaderInputLocation(name)
+        if value
+            graphics:SetShaderInput(location, 1)
+        else
+            graphics:SetShaderInput(location, 0)
+        end
+    end
+
+    action SetShaderInput(integer uniformID, boolean value)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        if value
+            graphics:SetShaderInput(uniformID, 1)
+        else
+            graphics:SetShaderInput(uniformID, 0)
+        end
     end
 
     action SetShaderInput(text name, integer value)
@@ -473,6 +492,32 @@ class ShaderProgram
         graphics:SetVertexInputInformation(inputID, size, type, normalize, stride, offset)
     end
 
+    action EnableVertexInput(integer inputID)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:EnableVertexInput(inputID)
+    end
+
+    action EnableVertexInput(text inputName)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer inputID = vertexInputLocations:GetValue(inputName)
+        graphics:EnableVertexInput(inputID)
+    end
+
+    action DisableVertexInput(integer inputID)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:DisableVertexInput(inputID)
+    end
+
+    action DisableVertexInput(text inputName)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        integer inputID = vertexInputLocations:GetValue(inputName)
+        graphics:DisableVertexInput(inputID)
+    end
+
     private action MatrixToArray(Matrix3 matrix) returns Number32BitArray
         matrix3Array:Set(0, matrix:row0column0)
         matrix3Array:Set(1, matrix:row1column0)
@@ -507,8 +552,13 @@ class ShaderProgram
     end
 
     action Render(Renderable renderable)
-        // TO-DO: Implement this. Also, consider a Render call for Drawables or some other simpler 2D representation?
-        alert("ShaderProgram: Render -- NYI")
+        if renderable:worldTransform:Determinant3x3() = 0
+            return now
+        end
+        
+        shaderMapping:MapInputs(me, renderable)
+
+        // TO-DO: Make the mesh actually render here
     end
 
     action GetShaderMapping returns ShaderMapping

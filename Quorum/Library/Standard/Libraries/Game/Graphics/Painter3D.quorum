@@ -208,7 +208,7 @@ class Painter3D is Disposable
                 currentProgram = candidateProgram
                 // TO-DO: This Begin call doesn't exist yet, but in the plugins, it represents not just starting the program, but also running a preliminary mapping
 //                currentShader:Begin(camera, context)
-                currentProgram:Begin()
+                currentProgram:Begin(camera, environment)
             end
             // TO-DO: This Render call also doesn't exist yet. In the plugins, this also represents a mapping step (fetches attributes associated with this renderable and sets them in the shader)
 //            currentShader:Render(renderable)

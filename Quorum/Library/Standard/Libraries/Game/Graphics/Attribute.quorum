@@ -226,4 +226,15 @@ class Attribute
         return Equals(temp)
     end
     
+    /*
+    This action returns an integer code representing what type is stored in this Attribute.
+    This can be compared against results from the GetAttributeType(text) action to more precisely
+    determine what the meaning behind the code is.
+
+    Attribute: Returns An integer code representing this Attribute's type.
+    */
+    action GetType returns integer
+        return type
+    end
+
 end

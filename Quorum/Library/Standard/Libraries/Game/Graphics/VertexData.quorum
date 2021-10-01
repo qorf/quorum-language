@@ -36,9 +36,6 @@ class VertexData is Disposable
     // Used to invalidate the data when applicable, e.g. due to context loss.
     blueprint action Reload
 
-    // Used to load an Array<number> into the VertexData's buffer.
-    blueprint action FillVertexBuffer(Number32BitArray vertices)
-
     /*
     This action is never called or used. It exists only as a hack to force the
     Quorum plugin system to acknowledge a plugin for this class. This allows for

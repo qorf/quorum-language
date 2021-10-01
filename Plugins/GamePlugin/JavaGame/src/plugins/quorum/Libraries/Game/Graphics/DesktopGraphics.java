@@ -24,6 +24,10 @@ import org.lwjgl.opengl.GL20;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Containers.Number32BitArray_;
+import quorum.Libraries.Game.Graphics.Number32BitBuffer;
+import quorum.Libraries.Game.Graphics.Number32BitBuffer_;
+import quorum.Libraries.Game.Graphics.Integer32BitBuffer;
+import quorum.Libraries.Game.Graphics.Integer32BitBuffer_;
 import quorum.Libraries.Language.Types.Integer_;
 
 /**
@@ -135,7 +139,87 @@ public class DesktopGraphics implements GraphicsManager {
     {
         glDepthMask(mask);
     }
+    
+    public void SetBlendFunction(int sfactor, int dfactor)
+    {
+        glBlendFunc(sfactor, dfactor);
+    }
+    
+    public void SetCullFace(int face)
+    {
+        glCullFace(face);
+    }
 
+    public void SetDepthRange(double near, double far)
+    {
+        glDepthRangef((float)near, (float)far);
+    }
+    
+    public int GetMaxTextureUnits()
+    {
+        IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
+        glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
+        return buffer.get(0);
+    }
+    
+    public void SetActiveTextureID(int id)
+    {
+        glActiveTexture(id);
+    }
+    
+    public int CreateBuffer()
+    {
+        return glGenBuffer();
+    }
+
+    public void BindBuffer(int purpose, int bufferID)
+    {
+        glBindBuffer(purpose, bufferID);
+    }
+
+    public void DeleteBuffer(int bufferID)
+    {
+        glDeleteBuffer(bufferID);
+    }
+    
+    public void SetBuffer(int purpose, Number32BitBuffer_ buffer, int option)
+    {
+        ByteBuffer data = ((Number32BitBuffer)buffer).plugin_.byteBuffer;
+        glBufferData(purpose, data.limit(), data, option);
+    }
+
+    public void SetBuffer(int purpose, Integer32BitBuffer_ buffer, int option)
+    {
+        ByteBuffer data = ((Integer32BitBuffer)buffer).plugin_.byteBuffer;
+        glBufferData(purpose, data.limit(), data, option);
+    }
+    
+    public void EnableVertexInput(int id)
+    {
+        glEnableVertexAttribArray(id);
+    }
+    
+    public void DisableVertexInput(int id)
+    {
+        glDisableVertexAttribArray(id);
+    }
+    
+    public void DrawBuffer(int primitiveType, int offset, int count)
+    {
+        glDrawArrays(primitiveType, offset, count);
+    }
+
+    public void DrawIndexedBuffer(int primitiveType, int count, int indexType, Integer32BitBuffer_ indices)
+    {
+        IntBuffer buffer = ((Integer32BitBuffer)indices).plugin_.buffer;
+        glDrawElements(primitiveType, count, indexType, buffer);
+    }
+
+    public void DrawIndexedBuffer(int primitiveType, int count, int indexType, int indicesOffset)
+    {
+        glDrawElements(primitiveType, count, indexType, indicesOffset);
+    }
+    
     public void SetDepthFunction(int function)
     {
         glDepthFunc(function);

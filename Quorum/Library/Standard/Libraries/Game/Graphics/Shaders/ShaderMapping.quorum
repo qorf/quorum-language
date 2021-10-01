@@ -1,13 +1,15 @@
 package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Environment
 
 class ShaderMapping
 
     blueprint action MapInputs(ShaderProgram program, Renderable renderable)
 
-    blueprint action Begin(ShaderProgram program)
+    blueprint action Begin(Camera camera, Environment environment, ShaderProgram program)
 
-    blueprint action End (ShaderProgram program)
+    blueprint action End(ShaderProgram program)
 
 end

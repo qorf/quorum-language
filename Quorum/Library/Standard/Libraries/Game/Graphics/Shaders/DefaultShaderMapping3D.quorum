@@ -1,0 +1,673 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Compute.Matrix4
+use Libraries.Compute.BitwiseOperations
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.DirectionalLightsAttribute
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.PointLightsAttribute
+use Libraries.Game.Graphics.Attributes
+use Libraries.Game.Graphics.BlendingAttribute
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Attribute
+use Libraries.Game.Graphics.IntegerAttribute
+use Libraries.Game.Graphics.NumberAttribute
+use Libraries.Game.Graphics.DepthTestAttribute
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.TextureAttribute
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Game.Graphics.TextureBinder
+use Libraries.Game.Graphics.AmbientCubemap
+
+
+class DefaultShaderMapping3D is ShaderMapping
+
+    GameStateManager manager
+    BitwiseOperations bits
+
+    Camera camera = undefined
+    Mesh currentMesh = undefined
+    ShaderProgram program = undefined
+
+    // Used to bind textures for models during each run of rendering.
+    TextureBinder textureBinder
+
+    boolean enableDiffuseTexture = false
+    boolean enableSpecularTexture = false
+    boolean enableLighting = false
+    boolean enableSpecular = false
+    boolean enableBlending = false
+    boolean enableAlphaTest = false
+
+    boolean lightsSet = false
+    Environment environment = undefined
+    constant integer maxDirectionalLights = 2
+    constant integer maxPointLights = 5
+
+    // IDs for different shader inputs.
+    boolean shaderIDsFetched = false
+
+    integer enableDiffuseTextureID = -1
+    integer enableSpecularTextureID = -1
+    integer enableLightingID = -1
+    integer enableSpecularID = -1
+    integer enableBlendingID = -1
+    integer enableAlphaTestID = -1
+
+    integer projectionViewTransformID = -1
+    integer worldTransformID = -1
+    integer diffuseColorID = -1
+    integer diffuseUVTransformID = -1   
+    integer specularUVTransformID = -1 
+    integer normalMatrixID = -1
+    integer directionalLightCountID = -1
+    integer pointLightCountID = -1
+    integer ambientCubemapID = -1
+    integer cameraPositionID = -1
+    integer shininessID = -1
+    integer diffuseTextureID = -1
+    integer specularTextureID = -1
+    integer specularColorID = -1
+    integer opacityID = -1
+    integer alphaTestID = -1
+    
+    // Specific IDs and values for sub-fields of the directional/point light struct arrays    
+    integer directionalLightColorID = -1
+    integer directionalLightDirectionID = -1
+    integer directionalLightSize = -1
+    integer pointLightColorID = -1
+    integer pointLightPositionID = -1
+    integer pointLightIntensityID = -1
+    integer pointLightSize = -1
+
+
+    // Used to perform light calculations and transfer matrix data to the shader
+    Matrix4 tempMatrix
+
+    // Used for repeated vector calculations
+    Vector3 tempVector3
+
+    // Used to calculate ambient lighting
+    AmbientCubemap ambientCubemap
+
+    // Used to test which default attributes are present between the environment and material
+    Attributes combinedAttributes
+
+    // TO-DO: Consider removing these if the attribute system changes (i.e. if these become irrelevant)
+    // Dummy attributes, used to provide values for testing.
+    BlendingAttribute blendingAttribute
+    IntegerAttribute integerAttribute
+    NumberAttribute numberAttribute
+    DepthTestAttribute depthTestAttribute
+    DirectionalLightsAttribute directionalLightsAttribute
+    PointLightsAttribute pointLightsAttribute
+    TextureAttribute textureAttribute
+    ColorAttribute colorAttribute
+
+    /* 
+    Which faces of objects should be culled by the rendering system by default. 
+    This is set in Begin if no value has been provided beforehand, and can be
+    overridden by materials of individual renderables.
+    This will default to GL_BACK (i.e. the system will not render the back faces of objects)
+    */
+    integer defaultCullFace = -1
+
+    /*
+    What function should be used to determine if a drawn object is in front of another or not
+    (or to put it another way, to determine if an object is visible and or if it is obstructed by
+    another object and shouldn't be rendered). This is set in Begin if no value has been provided
+    beforehand, and can be overridden by materials of individual renderables.
+    This will default to GL_LEQUAL (i.e., an object is in front of other objects if its depth value
+    relative to the camera is less-or-equal to the depth of previous objects drawn).
+    */
+    integer defaultDepthFunction = -1
+
+
+    // The last OpenGL property values set by this mapping.
+    integer blendSource = -1
+    integer blendDestination = -1
+    integer depthFunction = -1
+    number depthRangeNear = -1
+    number depthRangeFar = -1
+    boolean depthMask = false
+    integer cullFace = -1
+
+
+    action Begin(Camera camera, Environment environment, ShaderProgram program)
+        if me:program not= undefined
+            alert("I am already mapping to a shader, so I can't Begin again. Call End first.")
+        end
+
+        me:camera = camera
+        currentMesh = undefined
+        me:program = program
+
+        textureBinder:Begin()
+
+        if shaderIDsFetched = false
+            enableDiffuseTextureID = program:GetShaderInputLocation("enableDiffuseTexture")
+            enableSpecularTextureID = program:GetShaderInputLocation("enableSpecularTexture")
+            enableLightingID = program:GetShaderInputLocation("enableLighting")
+            enableSpecularID = program:GetShaderInputLocation("enableSpecular")
+            enableBlendingID = program:GetShaderInputLocation("enableBlending")
+            enableAlphaTestID = program:GetShaderInputLocation("enableAlphaTest")
+
+            projectionViewTransformID = program:GetShaderInputLocation("u_projViewTrans")
+            worldTransformID = program:GetShaderInputLocation("u_worldTrans")
+            diffuseColorID = program:GetShaderInputLocation("u_diffuseColor")
+            diffuseUVTransformID = program:GetShaderInputLocation("u_diffuseUVTransform")
+            specularUVTransformID = program:GetShaderInputLocation("u_specularUVTransform")
+            normalMatrixID = program:GetShaderInputLocation("u_normalMatrix")
+            directionalLightCountID = program:GetShaderInputLocation("directionalLightCount")
+            pointLightCountID = program:GetShaderInputLocation("pointLightCount")
+            ambientCubemapID = program:GetShaderInputLocation("u_ambientCubemap")
+            cameraPositionID = program:GetShaderInputLocation("u_cameraPosition")
+            shininessID = program:GetShaderInputLocation("u_shininess")
+            diffuseTextureID = program:GetShaderInputLocation("u_diffuseTexture")
+            specularTextureID = program:GetShaderInputLocation("u_specularTexture")
+            specularColorID = program:GetShaderInputLocation("u_specularColor")
+            opacityID = program:GetShaderInputLocation("u_opacity")
+            alphaTestID = program:GetShaderInputLocation("u_alphaTest")
+            
+            directionalLightColorID = program:GetShaderInputLocation("u_dirLights[0].color")
+            directionalLightDirectionID = program:GetShaderInputLocation("u_dirLights[0].direction")
+            directionalLightSize = program:GetShaderInputLocation("u_dirLights[1].color") - directionalLightColorID
+            pointLightColorID = program:GetShaderInputLocation("u_pointLights[0].color")
+            pointLightPositionID = program:GetShaderInputLocation("u_pointLights[0].position")
+            pointLightSize = program:GetShaderInputLocation("u_pointLights[1].color") - pointLightColorID
+
+            shaderIDsFetched = true
+        end
+
+        // Set the projection-view transform
+        tempMatrix:Set(camera:GetCombinedMatrix())
+        InvertViewZ(tempMatrix)
+        program:SetShaderInputMatrix(projectionViewTransformID, tempMatrix)
+
+        // Set the camera position
+        program:SetShaderInput(cameraPositionID, camera:GetPosition():GetX(), camera:GetPosition():GetY(), camera:GetPosition():GetZ(), 1.1881 / (camera:GetFar() * camera:GetFar()))
+
+        lightsSet = false
+
+        // TO-DO: If the GL values are moved to a constants class, this doesn't need to be done as part of the Begin call, it can be in "on create" instead
+        if defaultCullFace = -1
+            GraphicsManager graphics = manager:GetGameGraphics()
+            defaultCullFace = graphics:GL_BACK
+        end
+
+        if defaultDepthFunction = -1
+            GraphicsManager graphics = manager:GetGameGraphics()
+            defaultDepthFunction = graphics:GL_LEQUAL
+        end
+    end
+
+    action End (ShaderProgram program)
+        me:program = undefined
+        textureBinder:End()
+    end
+
+    action MapInputs(ShaderProgram program, Renderable renderable)
+        combinedAttributes:Empty()
+
+        if renderable:environment not= undefined
+            combinedAttributes:Add(renderable:environment)
+        end
+
+        if renderable:material not= undefined
+            combinedAttributes:Add(renderable:material)
+        end
+
+        if not combinedAttributes:HasAttribute(blendingAttribute:GetBlendedValue())
+            EnableBlending(false)
+        end
+
+        BindMaterial(combinedAttributes)
+
+        VertexAttributes vertices = renderable:meshPart:mesh:GetVertexAttributes()
+
+        if vertices:HasAttribute(vertices:NORMAL)
+            BindLights(combinedAttributes, renderable)
+        else
+            EnableLighting(false)
+        end
+
+        // Setting uniform values for the shaders.
+
+        // Set the world transform. The z value is inverted as a lazy hack to invert from a right-handed system to a left-handed one. 
+        // This may change in the future.
+        tempMatrix:Set(renderable:worldTransform)
+        InvertPositionZ(tempMatrix)
+        program:SetShaderInputMatrix(worldTransformID, tempMatrix)
+
+
+        /*
+        Things that need to be set still:
+        enableDiffuseTexture (X)
+        enableSpecularTexture (X)
+        enableLighting (X)
+        enableSpecular (X)
+
+        // Fragment enable bools
+        uniform bool enableBlending; (X)
+        uniform bool enableAlphaTest; (X)
+        
+        // Vertex always-on uniforms
+        uniform mat4 u_projViewTrans; (X)
+        uniform mat4 u_worldTrans; (X)
+        
+        // Fragment always-on uniforms
+        uniform vec4 u_diffuseColor; (X) // Defaults to vec4(1.0) if no other value given
+        
+        
+        // Vertex conditional uniforms
+        uniform vec4 u_diffuseUVTransform; (X) // Conditional on enableDiffuseTexture
+        uniform vec4 u_specularUVTransform; (X) // Conditional on enableSpecularTexture
+        uniform mat3 u_normalMatrix; (X) // Conditional on enableLighting
+        uniform int directionalLightCount; (X) // Conditional on enableLighting
+        uniform int pointLightCount; (X) // Conditional on enableLighting
+        uniform vec3 u_ambientCubemap[6]; (X) // Conditional on enableLighting
+        uniform vec4 u_cameraPosition; (X) // Conditional on enableSpecular
+        uniform float u_shininess; (X) // Conditional on enableSpecular. Defaults to 20.0 if no more specific value is given
+        uniform DirectionalLight u_dirLights[2]; (X) // Conditional on enableLighting
+        uniform PointLight u_pointLights[5]; (X) // Conditional on enableLighting
+        
+        // Fragment conditional uniforms
+        uniform sampler2D u_diffuseTexture; (X) // Conditional on enableDiffuseTexture
+        uniform sampler2D u_specularTexture; (X) // Conditional on enableSpecularTexture
+        uniform vec4 u_specularColor; (X) // Defaults to vec4(1.0) if no other value given. Conditional on enableSpecular
+        uniform float u_opacity; (X) // Conditional on enableBlending
+        uniform float u_alphaTest; (X) // Conditional on enableBlending and enableAlphaTest
+        
+        // Vertex always-on attributes
+        attribute vec3 a_position;
+        attribute vec4 a_color; // Defaults to (1.0, 1.0, 1.0, 1.0)
+        
+        // Vertex conditional attributes
+        attribute vec2 a_texCoord0; // Conditional on enableDiffuseTexture or enableSpecularTexture
+        attribute vec3 a_normal;    // Mandatory if enableLighting is true, if not available, enableLighting must be set to false
+        
+        // Vertex conditional varying/out values
+        varying vec2 v_diffuseUV; // Conditional on enableDiffuseTexture
+        varying vec2 v_specularUV; // Conditional on enableSpecularTexture
+        varying vec3 v_lightDiffuse; // Defaults to (1.0, 1.0, 1.0, 1.0) if no value is provided. Conditional on enableLighting
+        varying vec3 v_lightSpecular; // Conditional on enableSpecular. Will default to (0, 0, 0) and passed through if enableSpecular is false	
+        
+        // Vertex always-on varying/out values
+        varying vec4 v_color; // Set by incoming a_color, thus defaults to (1.0, 1.0, 1.0, 1.0) if no other value given
+        */
+
+        /*
+         for (int u, i = 0; i < localUniforms.size; ++i)
+            if (setters.get(u = localUniforms.get(i)) != null)
+            {
+                setters.get(u).Set(this, u, renderable, combinedAttributes);
+            }
+        if (currentMesh != ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh))
+        {
+            if (currentMesh != null)
+                currentMesh.plugin_.Unbind(program, tempArray.items);
+
+            currentMesh = ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh);
+
+            int[] temp = GetAttributeLocations((VertexAttributes)((Renderable)renderable).meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+            currentMesh.plugin_.Bind(program, temp);
+        }
+        */
+
+        if currentMesh not= renderable:meshPart:mesh
+            if currentMesh not= undefined
+                // currentMesh.plugin_.Unbind(program, tempArray.items);
+            end
+
+            currentMesh = renderable:meshPart:mesh
+//            int[] temp = GetAttributeLocations((VertexAttributes)((Renderable)renderable).meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+//            currentMesh.plugin_.Bind(program, temp);
+            
+        end        
+
+    end
+
+    private action SetBlendingFunction(integer source, integer destination)
+        if source not= blendSource or destination not= blendDestination
+            blendSource = source
+            blendDestination = destination
+
+            GraphicsManager graphics = manager:GetGameGraphics()
+            graphics:SetBlendFunction(source, destination)
+        end
+    end
+
+    private action SetCullFace(integer cullFace)
+        if cullFace not= me:cullFace
+            me:cullFace = cullFace
+            GraphicsManager graphics = manager:GetGameGraphics()
+            graphics:SetCullFace(cullFace)
+        end
+    end
+
+    private action SetDepthTest(integer function, number near, number far)
+        boolean wasEnabled = (depthFunction not= 0)
+        boolean enabled = (function not= 0)
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        if depthFunction not= function
+            depthFunction = function
+            if enabled
+                graphics:EnableProperty(graphics:GL_DEPTH_TEST)
+                graphics:SetDepthFunction(depthFunction)
+            else
+                graphics:DisableProperty(graphics:GL_DEPTH_TEST)
+            end
+        end
+
+        if enabled
+            if wasEnabled = false or depthRangeNear not= near or depthRangeFar not= far
+                depthRangeNear = near
+                depthRangeFar = far
+                graphics:SetDepthRange(depthRangeNear, depthRangeFar)
+            end
+        end
+    end
+
+    private action SetDepthMask(boolean mask)
+        if depthMask not= mask
+            GraphicsManager graphics = manager:GetGameGraphics()
+            graphics:SetDepthMask(mask)
+            depthMask = mask
+        end
+    end
+
+    private action BindMaterial(Attributes attributes)
+        integer cullFace = defaultCullFace
+        integer depthFunction = defaultDepthFunction
+        number depthRangeNear = 0.0
+        number depthRangeFar = 1.0
+        boolean depthMask = true
+        boolean setAlphaTest = false
+        boolean setDiffuseTexture = false
+        boolean setSpecularTexture = false
+        boolean setSpecular = false
+        boolean setShininess = false
+        boolean setDiffuseColor = false
+        boolean setSpecularColor = false
+        boolean setBlending = false
+
+        Array<Attribute> array = attributes:GetAttributeArray()
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        integer counter = 0
+        repeat while counter < array:GetSize()
+            Attribute attribute = array:Get(counter)
+            integer type = attribute:GetType()
+            if bits:And(type, blendingAttribute:GetBlendedValue()) = type
+                BlendingAttribute current = cast(BlendingAttribute, attribute)
+                EnableBlending(true)
+                SetBlendingFunction(current:sourceFunction, current:destinationFunction)
+                program:SetShaderInput(opacityID, current:opacity)
+            elseif bits:And(type, integerAttribute:GetCullFaceValue()) = type
+                IntegerAttribute current = cast(IntegerAttribute, attribute)
+                cullFace = current:value
+            elseif bits:And(type, numberAttribute:GetAlphaTestValue()) = type
+                NumberAttribute current = cast(NumberAttribute, attribute)
+                EnableAlphaTest(true)
+                program:SetShaderInput(alphaTestID, current:value)
+                setAlphaTest = true
+            elseif bits:And(type, depthTestAttribute:GetDepthTestValue()) = type
+                DepthTestAttribute current = cast(DepthTestAttribute, attribute)
+                depthFunction = current:depthFunction
+                depthRangeNear = current:depthRangeNear
+                depthMask = current:depthMask
+            elseif bits:And(type, textureAttribute:GetDiffuseValue()) = type
+                EnableDiffuseTexture(true)
+
+                TextureAttribute current = cast(TextureAttribute, attribute)
+                integer unit = textureBinder:Bind(current:descriptor)
+                program:SetShaderInput(diffuseTextureID, unit)
+                program:SetShaderInput(diffuseUVTransformID, current:offsetU, current:offsetV, current:scaleU, current:scaleV)
+
+                setDiffuseTexture = true
+            elseif bits:And(type, textureAttribute:GetSpecularValue()) = type
+                EnableSpecularTexture(true)
+                EnableSpecular(true)
+
+                TextureAttribute current = cast(TextureAttribute, attribute)
+                integer unit = textureBinder:Bind(current:descriptor)
+                program:SetShaderInput(specularTextureID, unit)
+                program:SetShaderInput(specularUVTransformID, current:offsetU, current:offsetV, current:scaleU, current:scaleV)
+
+                setSpecularTexture = true
+                setSpecular = true
+            elseif bits:And(type, colorAttribute:GetSpecularValue()) = type
+                EnableSpecular(true)
+
+                ColorAttribute current = cast(ColorAttribute, attribute)
+                program:SetShaderInput(specularColorID, current:color)
+
+                setSpecularColor = true
+                setSpecular = true
+            elseif bits:And(type, colorAttribute:GetDiffuseValue()) = type
+                ColorAttribute current = cast(ColorAttribute, attribute)
+                program:SetShaderInput(diffuseColorID, current:color)
+                setDiffuseColor = true
+            elseif bits:And(type, numberAttribute:GetShininessValue()) = type
+                NumberAttribute current = cast(NumberAttribute, attribute)
+                program:SetShaderInput(shininessID, current:value)
+                setShininess = true
+            else
+                // Unknown attribute not supported by this shader mapping
+                alert("I couldn't map a material to the " + program:GetName() + " shader program because it has an unsupported property.")
+            end
+
+            counter = counter + 1
+        end
+
+        SetCullFace(cullFace)
+        SetDepthTest(depthFunction, depthRangeNear, depthRangeFar)
+        SetDepthMask(depthMask)
+
+        if setBlending = false
+            EnableBlending(false)
+        end
+
+        if setAlphaTest = false
+            EnableAlphaTest(false)
+        end
+
+        if setDiffuseTexture = false
+            EnableDiffuseTexture(false)
+        end
+
+        if setSpecularTexture = false
+            EnableSpecularTexture(false)
+        end
+
+        if setSpecular = false
+            EnableSpecular(false)
+        elseif setShininess = false
+            program:SetShaderInput(shininessID, 20.0)
+        end
+
+        if setDiffuseColor = false
+            program:SetShaderInput(diffuseColorID, 1.0, 1.0, 1.0, 1.0)
+        end
+
+        if setSpecularColor = false
+            program:SetShaderInput(specularColorID, 1.0, 1.0, 1.0, 1.0)
+        end
+        
+    end
+
+    private action BindLights(Attributes attributes, Renderable renderable)
+        Environment environment = renderable:environment
+
+        if environment = undefined or environment:ContainsLighting() = false
+            program:SetShaderInput(enableLightingID, false)
+            return now
+        end
+
+        tempVector3 = renderable:worldTransform:GetTranslation()
+        tempVector3:Scale(1, 1, -1)
+        if attributes:HasAttribute(colorAttribute:GetAmbientLightValue())
+            ColorAttribute ambientAttribute = cast(ColorAttribute, attributes:GetAttribute(colorAttribute:GetAmbientLightValue()))
+            ambientCubemap:SetColor(ambientAttribute:color)
+        else
+            ambientCubemap:Empty()
+        end
+
+        DirectionalLightsAttribute directionalAttribute = cast(DirectionalLightsAttribute, attributes:GetAttribute(directionalLightsAttribute:GetDirectionalLightsValue()))
+        Array<DirectionalLight> directionalLights = undefined
+        if directionalAttribute not= undefined
+            directionalLights = directionalAttribute:lights
+        end
+
+        if directionalLights not= undefined
+            integer counter = 0
+            integer max = directionalLights:GetSize()
+            if max > maxDirectionalLights
+                max = maxDirectionalLights
+            end
+
+            integer directionOffset = directionalLightDirectionID - directionalLightColorID
+
+            repeat while counter < directionalLights:GetSize()
+                DirectionalLight current = directionalLights:Get(counter)
+                Color color = current:GetColor()
+                Vector3 direction = current:GetDirection()
+                
+                if counter < max
+                    integer index = directionalLightColorID + counter * directionalLightSize
+                    program:SetShaderInput(index, color:GetRed(), color:GetGreen(), color:GetBlue())
+                    program:SetShaderInput(index + directionOffset, direction:GetX(), direction:GetY(), direction:GetZ())
+                else
+                    ambientCubemap:Add(color, direction)
+                end
+
+                counter = counter + 1
+            end
+
+            program:SetShaderInput(directionalLightCountID, max)
+        else
+            program:SetShaderInput(directionalLightCountID, 0)
+        end
+
+        PointLightsAttribute pointAttribute = cast(PointLightsAttribute, attributes:GetAttribute(pointLightsAttribute:GetPointLightsValue()))
+        Array<PointLight> pointLights = undefined
+        if pointAttribute not= undefined
+            pointLights = pointAttribute:lights
+        end
+
+        if pointLights not= undefined
+            integer counter = 0
+            integer max = pointLights:GetSize()
+            if max > maxPointLights
+                max = maxPointLights
+            end
+
+            integer positionOffset = pointLightPositionID - pointLightColorID
+
+            repeat while counter < pointLights:GetSize()
+                PointLight current = pointLights:Get(counter)
+                Color color = current:GetColor()
+                Vector3 position = current:GetGlobalPosition()
+                number intensity = current:GetIntensity()
+
+                if counter < max
+                    integer index = pointLightColorID + counter * pointLightSize
+                    program:SetShaderInput(index, color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)
+                    program:SetShaderInput(index + positionOffset, position:GetX(), position:GetY(), -position:GetZ())
+                else
+                    ambientCubemap:Add(color, position, tempVector3, intensity)
+                end
+
+                counter = counter + 1
+            end
+            program:SetShaderInput(pointLightCountID, max)
+        else
+            program:SetShaderInput(pointLightCountID, 0)
+        end
+
+        program:SetShaderInput(enableLightingID, true)
+
+        ambientCubemap:Clamp()
+        program:SetShaderInputVector3Array(ambientCubemapID, ambientCubemap:GetData(), 0, 18)
+
+        tempMatrix:Set(renderable:worldTransform)
+        tempMatrix:Inverse()
+        tempMatrix:Transpose()
+        program:SetShaderInputMatrix(normalMatrixID, tempMatrix)
+
+        lightsSet = true
+    end
+
+    private action EnableDiffuseTexture(boolean enable)
+        if enableDiffuseTexture not= enable
+            enableDiffuseTexture = enable
+            program:SetShaderInput(enableDiffuseTextureID, enable)
+        end
+    end
+
+    private action EnableSpecularTexture(boolean enable)
+        if enableSpecularTexture not= enable
+            enableSpecularTexture = enable
+            program:SetShaderInput(enableSpecularTextureID, enable)
+        end
+    end
+
+    private action EnableLighting(boolean enable)
+        if enableLighting not= enable
+            enableLighting = enable
+            program:SetShaderInput(enableLightingID, enable)
+        end
+    end
+
+    private action EnableSpecular(boolean enable)
+        if enableSpecular not= enable
+            enableSpecular = enable
+            program:SetShaderInput(enableSpecularID, enable)
+        end
+    end
+
+    private action EnableBlending(boolean enable)
+        if enableBlending not= enable
+            enableBlending = enable
+            program:SetShaderInput(enableBlendingID, enable)
+
+            GraphicsManager graphics = manager:GetGameGraphics()
+            if enable
+                graphics:EnableProperty(graphics:GL_BLEND)
+            else
+                graphics:DisableProperty(graphics:GL_BLEND)
+            end
+        end
+    end
+
+    private action EnableAlphaTest(boolean enable)
+        if enableAlphaTest not= enable
+            enableAlphaTest = enable
+            program:SetShaderInput(enableAlphaTestID, enable)
+        end
+    end
+
+    private action InvertPositionZ(Matrix4 matrix)
+        matrix:row2column3 = -matrix:row2column3
+    end
+    
+    private action InvertViewZ(Matrix4 matrix)
+        matrix:row0column0 = -matrix:row0column0
+        matrix:row0column1 = -matrix:row0column1
+        matrix:row0column3 = -matrix:row0column3
+
+        matrix:row1column2 = -matrix:row1column2
+        matrix:row2column2 = -matrix:row2column2
+        matrix:row3column2 = -matrix:row3column2
+    end
+end

@@ -667,6 +667,13 @@ class Texture is Disposable
     */
     system action Bind
 
+    /*
+    This action binds the texture image to an internal index in the rendering system.
+    This is used internally by the engine as needed, and most users won't need to use
+    it directly.
+    */
+    system action Bind(integer textureUnit)
+
     private system action BindToDefault
 
     private system action CreateGLHandle returns integer

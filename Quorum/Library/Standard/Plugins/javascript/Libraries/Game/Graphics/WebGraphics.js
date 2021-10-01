@@ -137,6 +137,76 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         this.glDepthFunc(func);
     };
     
+    this.SetBlendFunction$quorum_integer$quorum_integer = function(source, destination)
+    {
+        this.glBlendFunc(source, destination);
+    };
+    
+    this.SetCullFace$quorum_integer = function(face)
+    {
+        this.glCullFace(face);
+    };
+
+    this.SetDepthRange$quorum_number$quorum_number = function(near, far)
+    {
+        this.glDepthRangef(near, far);
+    };
+    
+    this.GetMaxTextureUnits = function()
+    {
+        this.glGetIntegerv(gl.MAX_TEXTURE_IMAGE_UNITS);
+    };
+    
+    this.SetActiveTextureID$quorum_integer = function(id)
+    {
+        this.glActiveTexture(id);
+    };
+    
+    this.CreateBuffer = function()
+    {
+        return this.glGenBuffer();
+    };
+
+    this.BindBuffer$quorum_integer$quorum_integer = function(purpose, bufferID)
+    {
+        this.glBindBuffer(purpose, bufferID);
+    };
+    
+    this.DeleteBuffer$quorum_integer = function(bufferID)
+    {
+        this.glDeleteBuffer(bufferID);
+    };
+    
+    this.SetBuffer$quorum_integer$quorum_Libraries_Game_Graphics_Number32BitBuffer$quorum_integer = function(purpose, buffer, option)
+    {
+        this.glBufferData(purpose, buffer.plugin_.GetArray(), option);
+    };
+
+    this.SetBuffer$quorum_integer$quorum_Libraries_Game_Graphics_Integer32BitBuffer$quorum_integer = function(purpose, buffer, option)
+    {
+        this.glBufferData(purpose, buffer.plugin_.GetArray(), option);
+    };
+    
+    this.EnableVertexInput$quorum_integer = function(id)
+    {
+        this.glEnableVertexAttribArray(id);
+    };
+    
+    this.DisableVertexInput$quorum_integer = function(id)
+    {
+        this.glDisableVertexAttribArray(id);
+    };
+    
+    this.DrawBuffer$quorum_integer$quorum_integer$quorum_integer = function(primitiveType, offset, count)
+    {
+        this.glDrawArrays(primitiveType, offset, count);
+    };
+
+    this.DrawIndexedBuffer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(primitiveType, count, indexType, indicesOffset)
+    {
+        this.glDrawElements(primitiveType, count, indexType, indicesOffset);
+    };
+    
     this.GetShaderInputCount$quorum_integer = function(programID)
     {
         return glGetProgramiv(programID, gl.ACTIVE_UNIFORMS);

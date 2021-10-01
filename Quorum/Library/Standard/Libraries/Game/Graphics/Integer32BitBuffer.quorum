@@ -1,0 +1,29 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Integer32BitArray
+
+class Integer32BitBuffer
+
+    system action SetSize(integer size)
+
+    system action GetSize returns integer
+
+    system action GetMaxSize returns integer
+
+    system action Set(Integer32BitArray array)
+
+    system action Set(integer targetOffset, Integer32BitArray array, integer sourceOffset, integer count)
+
+    system action ResetWritePosition
+
+    system action GetWritePosition returns integer
+
+    system action SetWritePosition(integer position)
+
+    system action SetWritePosition(integer position, integer endPosition)
+
+    system action Write(Integer32BitArray array)
+
+    system action Dispose
+
+end

@@ -440,7 +440,7 @@ class Painter2D
         graphics:DisableProperty(graphics:GL_CULL_FACE)
 
         // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
-        defaultProgram:Begin()
+        defaultProgram:Begin(undefined, undefined)
 
         SetupMatrices()
         drawing = true
@@ -701,7 +701,7 @@ class Painter2D
         lastTexture:Bind()
         
         mesh:SetVertices(GetVertices())
-        mesh:GetIndexData():SetIndexRange(0, count)
+//        mesh:GetIndexData():SetIndexRange(0, count)
 
         GraphicsManager graphics = manager:GetGameGraphics()
 

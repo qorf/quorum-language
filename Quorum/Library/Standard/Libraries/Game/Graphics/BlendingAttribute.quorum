@@ -22,9 +22,9 @@ class BlendingAttribute is Attribute
     
     /*
     Specifies how the (existing) destination blending factors are computed. By
-    default, destFunction has the same value as GL_ONE_MINUS_SRC_ALPHA.
+    default, destinationFunction has the same value as GL_ONE_MINUS_SRC_ALPHA.
     */
-    public integer destFunction = 771
+    public integer destinationFunction = 771
     
     /*
     The opacity used as source alpha value, ranging from 0 (fully transparent)
@@ -41,7 +41,7 @@ class BlendingAttribute is Attribute
         BlendingAttribute new
         new:blended = blended
         new:sourceFunction = sourceFunction
-        new:destFunction = destFunction
+        new:destinationFunction = destinationFunction
         new:opacity = opacity
         return new
     end

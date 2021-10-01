@@ -14,6 +14,7 @@ use Libraries.Game.Graphics.VertexBufferObject
 use Libraries.Game.Graphics.IndexArray
 use Libraries.Game.Graphics.VertexArray
 use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.GameStateManager
 
 class Mesh is Disposable
 
@@ -21,6 +22,7 @@ class Mesh is Disposable
     IndexData indices = undefined
     boolean autoBind = true
     boolean isVertexArray = false
+    GameStateManager manager
 
     on create
         SetQuorumReference(me)
@@ -191,7 +193,132 @@ class Mesh is Disposable
     */
     private system action RemoveReloadableMesh
 
-    system action Render(ShaderProgram program, integer type, integer offset, integer count)
+    action Render(ShaderProgram program, integer type, integer offset, integer count)
+        Render(program, type, offset, count, autoBind)
+    end
 
-    system action Render(ShaderProgram program, integer type, integer offset, integer count, boolean autoBind)
+    action Render(ShaderProgram program, integer type, integer offset, integer count, boolean autoBind)
+        if count = 0
+            return now
+        end
+
+        if autoBind
+            Bind(program)
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        if isVertexArray
+            if indices:GetSize() > 0
+                graphics:DrawIndexedBuffer(type, count, graphics:GL_UNSIGNED_INT, offset * 4)
+            else
+                graphics:DrawBuffer(type, offset, count)
+            end
+        else
+            if indices:GetSize() > 0
+                graphics:DrawIndexedBuffer(type, count, graphics:GL_UNSIGNED_INT, offset * 4)
+            else
+                graphics:DrawBuffer(type, offset, count)
+            end
+        end
+
+        if autoBind
+            Unbind(program)
+        end
+    end
+
+    action Bind(ShaderProgram program)
+
+    end
+
+    action Unbind(ShaderProgram program)
+
+    end
+
+    /*
+    
+    public void Render(ShaderProgram_ shader, int primitiveType, int offset, int count, boolean autoBind) 
+    {
+        if (count == 0) 
+            return;
+
+        if (autoBind) 
+            Bind(shader);
+
+        if (quorumMesh.isVertexArray) 
+        {
+            if (quorumMesh.indices.GetSize() > 0) 
+            {
+                IntBuffer buffer = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
+                int oldPosition = buffer.position();
+                int oldLimit = buffer.limit();
+                buffer.position(offset);
+                buffer.limit(offset + count);
+                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, buffer);
+                buffer.position(oldPosition);
+                buffer.limit(oldLimit);
+            } 
+            else
+            {
+                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
+            }
+        }
+        else
+        {
+            if (quorumMesh.indices.GetSize() > 0)
+            {
+                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
+            }
+            else
+            {
+                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
+            }
+        }
+
+        if (autoBind)
+            Unbind(shader);
+    }
+    
+    public void Bind(final ShaderProgram_ shader)
+    {
+        Bind(shader, null);
+    }
+    
+    public void Bind(final ShaderProgram_ shader, final int[] locations)
+    {
+        if (quorumMesh.isVertexArray)
+        {
+            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
+        }
+        else
+        {
+            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
+        }
+    }
+    
+    public void Unbind(final ShaderProgram_ shader)
+    {
+        Unbind(shader, null);
+    }
+    
+    public void Unbind(final ShaderProgram_ shader, final int[] locations)
+    {
+        if (quorumMesh.isVertexArray)
+        {
+            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
+        }
+        else
+        {
+            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
+        }
+    }
+    */
 end

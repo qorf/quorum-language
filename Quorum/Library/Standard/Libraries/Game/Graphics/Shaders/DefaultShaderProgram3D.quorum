@@ -8,48 +8,9 @@ class DefaultShaderProgram3D is ShaderProgram
 
         Add(vertex)
         Add(fragment)
-    end
 
-    action OnBegin
-        // TO-DO: 
-        /*
-        this.camera = camera;
-        this.context = context;
-        program.Begin();
-        currentMesh = null;
-
-        for (int u, i = 0; i < globalUniforms.size; ++i)
-            if (setters.get(u = globalUniforms.get(i)) != null)
-                setters.get(u).Set(this, u, null, null);
-        */
-
-        /*
-        for (final DirectionalLight dirLight : directionalLights)
-        {
-            dirLight.SetColor(0, 0, 0, 1);
-            dirLight.SetDirection(0, -1, 0);
-        }
-        for (final PointLight_ pointLight : pointLights)
-        {
-            pointLight.SetColor(0, 0, 0, 0);
-            pointLight.SetPosition(0, 0, 0);
-            pointLight.SetIntensity(0);
-        }
-        /*
-        for (final SpotLight spotLight : spotLights)
-                spotLight.set(0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0);
-        *
-        lightsSet = false;
-
-        if (Has(u_time))
-            Set(u_time, time += (float)GameStateManager.display.GetSecondsBetweenFrames());
-        */
-        alert("DefaultShaderProgram3D OnBegin: NYI")
-    end
-
-    action OnEnd
-        // TO-DO:
-        alert("DefaultShaderProgram3D OnEnd: NYI")
+        DefaultShaderMapping3D mapping
+        SetShaderMapping(mapping)
     end
 
 end
