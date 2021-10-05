@@ -912,28 +912,88 @@ class Chart is Control
         legend:SetSeriesList(series)
     end
 
-//    action ShowGrayScale(boolean show)
-//        showGrayscale = show
-//    end
-//
-//    action IsGrayScale returns boolean
-//        return showGrayscale
-//    end
+    action SetColorPaletteToCalm()
+        options:SetPalette("calm")
+    end 
+
+    action SetColorPaletteToExciting()
+        options:SetPalette("exciting")
+    end 
+
+    action SetColorPaletteToPositive()
+        options:SetPalette("positive")
+    end 
+
+    action SetColorPaletteToNegative()
+        options:SetPalette("negative")
+    end 
+
+    action SetColorPaletteToSerious()
+        options:SetPalette("serious")
+    end 
+
+    action SetColorPaletteToPlayful()
+        options:SetPalette("playful")
+    end 
+
+    action SetColorPaletteToTrustworthy()
+        options:SetPalette("trustworthy")
+    end 
+
+    action SetColorPaletteToDisturbing()
+        options:SetPalette("disturbing")
+    end 
+
+    action SetColorPaletteToColorgorical()
+        options:SetPalette("colorgorical")
+    end 
+
+    /*
+        Created by Stefan van der Walt (https://github.com/stefanv) and Nathaniel Smith (https://github.com/njsmith)
+        https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
+    */
+    action SetColorPaletteToCoolScale() //Viridis
+        Color colorA
+        colorA:SetColor(252.0/255, 230.0/255, 30.0/255 ,1)
+        Color colorB
+        colorB:SetColor(31.0/255, 127.0/255, 122.0/255, 1)
+        Color colorC
+        colorC:SetColor(52.0/255, 0/255, 67.0/255, 1)
+        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+    end 
+
+    action SetColorPaletteToWarmScale() //Inferno
+        Color colorA
+        colorA:SetColor(253.0/255, 255/255, 147.0/255, 1)
+        Color colorB
+        colorB:SetColor(168.0/255, 33.0/255, 68.0/255, 1)
+        Color colorC
+        colorC:SetColor(0/255, 0/255, 4.0/255 ,1)
+        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+    end 
+
+    action SetColorPaletteToMagma() //Think of a name for this?
+        Color colorA
+        colorA:SetColor(252.0/255, 251.0/255, 173.0/255, 1)
+        Color colorB
+        colorB:SetColor(164.0/255, 31.0/255, 103.0/255, 1)
+        Color colorC
+        colorC:SetColor(0/255, 0/255, 4.0/255 ,1)
+        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+    end 
 
     action SetColorPalette(Array <Color> palette)
         options:SetPalette(palette)
     end
 
-    action SetColorPalette(integer x)
-        if x = 10 //GrayScale
-            options:SetPalette(color:LightGray(), color:Black(), legend:GetSeriesList():GetSize())
-        else
-            options:SetPalette(x)
-        end
-    end 
-
     action SetColorPalette(Color color)
-        options:SetPalette(color, legend:GetSeriesList():GetSize())
+        Color darkColor
+        darkColor:SetColor(0,0,0,1)
+        darkColor:LinearInterpolation(color, 0.15) // Not quite black
+        Color lightColor
+        lightColor:SetColor(1,1,1,1)
+        lightColor:LinearInterpolation(color, 0.15) // Not quite white
+        options:SetPalette(darkColor, color, lightColor, legend:GetSeriesList():GetSize())
     end
 
     action SetColorPalette(Color colorA, Color colorB)
