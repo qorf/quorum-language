@@ -112,6 +112,10 @@ class ViolinPlot is Chart
             SetDefaultOrientation("vertical")
         end
 
+        if hasGroups and not GetShowBracketOverride()
+            ShowGroupBrackets()
+        end
+
         LoadChartAreaItems()
     end
 

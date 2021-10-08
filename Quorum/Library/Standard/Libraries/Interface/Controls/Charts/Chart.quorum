@@ -82,6 +82,7 @@ class Chart is Control
     Drawable backgroundD = undefined
     Array<Icon> groupPanels
     integer paddedChartOffset = 0
+    boolean showBracketOverride = false
 
     // X-Axis Components
     HorizontalAxisPanel horizontalPanel
@@ -252,6 +253,10 @@ class Chart is Control
         boolean tempflag = horizontalPanel:NumericalOverrideLabels()
         horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
         verticalPanel:NumericalOverrideLabels(tempflag)
+
+        tempflag = horizontalPanel:ShowGroupBrackets()
+        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
+        verticalPanel:ShowGroupBrackets(tempflag)
 
         text tempTitle = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
@@ -734,6 +739,21 @@ class Chart is Control
         return showYAxis
     end
 
+    action ShowGroupBrackets()
+        verticalPanel:ShowGroupBrackets(true)
+        horizontalPanel:ShowGroupBrackets(true)
+    end
+
+    action HideGroupBrackets()
+        showBracketOverride = true
+        verticalPanel:ShowGroupBrackets(false)
+        horizontalPanel:ShowGroupBrackets(false)
+    end
+
+    action GetShowBracketOverride() returns boolean
+        return showBracketOverride
+    end
+
     /*
         GRIDLINE CONTROLS
         These actions are used to customize which gridlines are visible
@@ -913,39 +933,39 @@ class Chart is Control
     end
 
     action SetColorPaletteToCalm()
-        options:SetPalette("calm")
+        options:SetPalette(options:CALM)
     end 
 
     action SetColorPaletteToExciting()
-        options:SetPalette("exciting")
+        options:SetPalette(options:EXCITING)
     end 
 
     action SetColorPaletteToPositive()
-        options:SetPalette("positive")
+        options:SetPalette(options:POSITIVE)
     end 
 
     action SetColorPaletteToNegative()
-        options:SetPalette("negative")
+        options:SetPalette(options:NEGATIVE)
     end 
 
     action SetColorPaletteToSerious()
-        options:SetPalette("serious")
+        options:SetPalette(options:SERIOUS)
     end 
 
     action SetColorPaletteToPlayful()
-        options:SetPalette("playful")
+        options:SetPalette(options:PLAYFUL)
     end 
 
     action SetColorPaletteToTrustworthy()
-        options:SetPalette("trustworthy")
+        options:SetPalette(options:TRUSTWORTHY)
     end 
 
     action SetColorPaletteToDisturbing()
-        options:SetPalette("disturbing")
+        options:SetPalette(options:DISTURBING)
     end 
 
     action SetColorPaletteToColorgorical()
-        options:SetPalette("colorgorical")
+        options:SetPalette(options:COLORGORICAL)
     end 
 
     /*
@@ -1072,7 +1092,11 @@ class Chart is Control
                     horizontalPanel:GetTitleLabel():SetFontSize(fontsize)
                 end
 
-                minimumSpace = minimumSpace + cast(integer, horizontalPanel:GetTitleLabel():GetHeight() + 3*tickHeight)
+                number tickSpace = 3*tickHeight
+                if horizontalPanel:ShowGroupBrackets()
+                    tickSpace = 4*tickHeight + tickWidth
+                end
+                minimumSpace = minimumSpace + cast(integer, horizontalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
             number labelHeight = 0.0
@@ -1161,7 +1185,12 @@ class Chart is Control
                     end
                     verticalPanel:GetTitleLabel():SetFontSize(fontsize)
                 end
-                minimumSpace = minimumSpace + cast(integer, verticalPanel:GetTitleLabel():GetHeight() + 3*tickWidth)
+
+                number tickSpace = 3*tickWidth
+                if verticalPanel:ShowGroupBrackets()
+                    tickSpace = 4*tickWidth + tickHeight
+                end
+                minimumSpace = minimumSpace + cast(integer, verticalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
             number newWidthSum = 0.0

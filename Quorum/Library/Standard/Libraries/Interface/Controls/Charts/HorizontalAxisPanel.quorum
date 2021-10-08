@@ -35,11 +35,13 @@ class HorizontalAxisPanel is Control
     Array <ControlLabel> labels
     Array <text> overrideLabels = undefined
     Array <Drawable> ticks
+    Array <Drawable> brackets
     Array <Drawable> majorlines
     Array <Drawable> minorlines
 
     boolean tickCountOverride = false
     boolean labelOverridesAreNumbers = false
+    boolean showGroupBrackets = false
 
     integer minorlinecount = 5
     integer tickCount = 0
@@ -245,6 +247,18 @@ class HorizontalAxisPanel is Control
                     Add(tick)
                     ticks:Add(tick)
 
+                    Drawable left
+                    Add(left)
+                    brackets:Add(left)
+
+                    Drawable floor
+                    Add(floor)
+                    brackets:Add(floor)
+
+                    Drawable right
+                    Add(right)
+                    brackets:Add(right)
+
                     Item2D labelAnchor
                     ControlLabel label
                     label:SetFontSize(GetFontSize() - 5)
@@ -375,6 +389,21 @@ class HorizontalAxisPanel is Control
                 i = i + 1
             end
             ticks:Empty()
+        end
+
+        if not brackets:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < brackets:GetSize()
+                temp = brackets:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            brackets:Empty()
         end
 
         if not majorlines:IsEmpty()
@@ -724,5 +753,19 @@ class HorizontalAxisPanel is Control
 
     action SetAxis(Drawable line)
         axis = line
+    end
+
+    action GetBrackets returns Array <Drawable>
+        return brackets
+    end
+
+    action ShowGroupBrackets returns boolean
+        return showGroupBrackets
+    end
+
+    action ShowGroupBrackets(boolean show)
+        if overrideLabels not= undefined
+            me:showGroupBrackets = show
+        end
     end
 end

@@ -60,6 +60,7 @@ class BoxPlot is Chart
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
+    number previousZ = 0
 
     ChartOptions options
     Math math
@@ -115,6 +116,10 @@ class BoxPlot is Chart
         // Default orientation for box plots is vertical
         if GetDefaultOrientation() = undefined
             SetDefaultOrientation("vertical")
+        end
+
+        if hasGroups and not GetShowBracketOverride()
+            ShowGroupBrackets()
         end
 
         LoadChartAreaItems()
@@ -322,11 +327,9 @@ class BoxPlot is Chart
                     repeat while j < plot:GetPlotItems():GetSize()
                         Drawable item = plot:GetPlotItems():Get(j)
                         if j = 3
-                            Color lightColor = previousColor:Copy()
-                            lightColor:SetAlpha(0.5)
-                            item:SetColor(lightColor)
-                        else
                             item:SetColor(previousColor)
+                        else
+                            item:SetColor(0,0,0,1)
                         end
                         j = j + 1
                     end
@@ -336,7 +339,7 @@ class BoxPlot is Chart
                 temp:GetIcon():SetColor(previousColor)
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
-                temp:SetZ(0)
+                temp:SetZ(previousZ)
                 temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
@@ -391,6 +394,7 @@ class BoxPlot is Chart
                 temp:GetIcon():SetColor(GetHighlightColor())
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
+                previousZ = temp:GetZ()
                 temp:SetZ(-1)
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())

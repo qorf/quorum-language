@@ -147,6 +147,7 @@ class ChartLayout is Layout
         integer tickHeight = 0
         integer tickWidth = 0
         Array<Drawable> ticks = verticalContainer:GetTicks()
+        Array<Drawable> brackets = verticalContainer:GetBrackets()
         Array<Drawable> lines = verticalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
 
@@ -168,7 +169,7 @@ class ChartLayout is Layout
             end
             
             number minorScaleDivWidth = scaleDivWidth/verticalContainer:GetMinorGridlineCount()
-
+            integer bracketY = 0
             integer tickX = originPointX - tickWidth
             number tickY = originPointY
 
@@ -177,6 +178,23 @@ class ChartLayout is Layout
             repeat while i < ticks:GetSize()
                 if usingGrouping
                     scaleDivWidth = cast(number, chart:GetGroupPanels():Get(i):GetHeight())
+                    if verticalContainer:ShowGroupBrackets()
+                        bracketY = cast(integer, chart:GetGroupPanels():Get(i):GetY())
+                        if brackets:GetSize() >= (i*3)+2
+                            integer index = i*3
+                            brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight)
+                            brackets:Get(index):SetPosition(tickX-tickHeight, bracketY+tickHeight)
+                            
+                            brackets:Get(index+1):LoadFilledRectangle(tickHeight, cast(integer, scaleDivWidth)-tickHeight*2)
+                            brackets:Get(index+1):SetPosition(tickX-tickHeight, bracketY+tickHeight)
+
+                            bracketY = bracketY + cast(integer, scaleDivWidth)
+
+                            brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight)
+                            brackets:Get(index+2):SetPosition(tickX-tickHeight, bracketY-tickHeight*2)
+                            tickX = tickX - tickHeight - tickWidth
+                        end
+                    end
                 end
                 currentTick = ticks:Get(i)
                 currentTick:SetPosition(tickX, cast(integer, tickY))
@@ -208,6 +226,7 @@ class ChartLayout is Layout
                     end
                 end
 
+                tickX = originPointX - tickWidth
                 tickY = tickY + (scaleDivWidth*verticalContainer:GetIntervalOverride())
                 i = i + 1
             end
@@ -218,6 +237,9 @@ class ChartLayout is Layout
         originPointY = 0
         if usingGrouping
             originPointY = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+            if verticalContainer:ShowGroupBrackets()
+                originPointX = originPointX - tickHeight - tickWidth
+            end
         end
         integer labelX = 0
         integer labelY = 0
@@ -282,6 +304,7 @@ class ChartLayout is Layout
         integer tickHeight = 0
         integer tickWidth = 0
         Array<Drawable> ticks = horizontalContainer:GetTicks()
+        Array<Drawable> brackets = horizontalContainer:GetBrackets()
         Array<Drawable> lines = horizontalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
 
@@ -303,6 +326,7 @@ class ChartLayout is Layout
                 scaleDivWidth = (axis:GetWidth() - tickWidth) / (ticks:GetSize() - 1)
             end
             number minorScaleDivWidth = scaleDivWidth/horizontalContainer:GetMinorGridlineCount()
+            integer bracketX = 0
             number tickX = originPointX
             integer tickY = originPointY - tickHeight       
 
@@ -311,6 +335,23 @@ class ChartLayout is Layout
             repeat while i < ticks:GetSize()
                 if usingGrouping
                     scaleDivWidth = cast(number, chart:GetGroupPanels():Get(i):GetWidth())
+                    if horizontalContainer:ShowGroupBrackets()
+                        bracketX = cast(integer, chart:GetGroupPanels():Get(i):GetX())
+                        if brackets:GetSize() >= (i*3)+2
+                            integer index = i*3
+                            brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight)
+                            brackets:Get(index):SetPosition(bracketX+tickWidth, tickY- tickWidth)
+                            
+                            brackets:Get(index+1):LoadFilledRectangle(cast(integer, scaleDivWidth)-tickWidth*2, tickWidth)
+                            brackets:Get(index+1):SetPosition(bracketX+tickWidth, tickY- tickWidth)
+
+                            bracketX = bracketX + cast(integer, scaleDivWidth)
+
+                            brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight)
+                            brackets:Get(index+2):SetPosition(bracketX-tickWidth*2, tickY- tickWidth)
+                            tickY = tickY - tickHeight - tickWidth
+                        end
+                    end
                 end
                 currentTick = ticks:Get(i)
                 currentTick:SetPosition(cast(integer, tickX-(tickWidth/2)), tickY)
@@ -336,6 +377,7 @@ class ChartLayout is Layout
                     end
                 end
                 tickX = tickX + (scaleDivWidth*horizontalContainer:GetIntervalOverride())
+                tickY = originPointY - tickHeight
                 i = i + 1
             end
         end
@@ -346,6 +388,9 @@ class ChartLayout is Layout
             originPointX = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
         end
         originPointY = originPointY - tickHeight
+        if horizontalContainer:ShowGroupBrackets()
+            originPointY = originPointY - tickHeight - tickWidth
+        end
 
         number labelWidth = 0
         number labelHeight = 0

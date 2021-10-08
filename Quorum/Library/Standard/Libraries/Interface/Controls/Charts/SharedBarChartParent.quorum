@@ -83,6 +83,11 @@ class SharedBarChartParent is Chart
         if GetDefaultOrientation() = undefined
             SetDefaultOrientation("vertical")
         end
+
+        if hasBarGroups and not GetShowBracketOverride()
+            ShowGroupBrackets()
+        end
+
         LoadChartAreaItems()
     end
 

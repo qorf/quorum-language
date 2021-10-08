@@ -19,26 +19,23 @@ use Libraries.Containers.HashTable
 */
 shared class ChartOptions
     Color color
-    number r = 0.0
-    number g = 0.0
-    number b = 0.0
     Color selectionColor = undefined
     private boolean needToMakePalettes = true
     integer tickDigits = 1
 
-    public constant text DEFAULT = "default"
-    public constant text CALM = "calm"
-    public constant text EXCITING = "exciting"
-    public constant text POSITIVE = "positive"
-    public constant text NEGATIVE = "negative"
-    public constant text SERIOUS = "serious"
-    public constant text PLAYFUL = "playful"
-    public constant text TRUSTWORTHY = "trustworthy"
-    public constant text DISTURBING = "disturbing"
-    public constant text COLORBLIND = "colorblind"  
-    public constant text COLORGORICAL = "colorgorical"
+    public constant integer DEFAULT = 0
+    public constant integer CALM = 1
+    public constant integer EXCITING = 2
+    public constant integer POSITIVE = 3
+    public constant integer NEGATIVE = 4
+    public constant integer SERIOUS = 5
+    public constant integer PLAYFUL = 6
+    public constant integer TRUSTWORTHY = 7
+    public constant integer DISTURBING = 8
+    public constant integer COLORBLIND = 9 
+    public constant integer COLORGORICAL = 10
 
-    HashTable <text, Array<Color>> palettes
+    HashTable <integer, Array<Color>> palettes
     Array<Color> colorPalette = undefined
 
     on create
@@ -59,7 +56,7 @@ shared class ChartOptions
         me:colorPalette = colorPalette
     end
 
-    action SetPalette(text choice)
+    action SetPalette(integer choice)
         if needToMakePalettes
             BuildPalettes()
             needToMakePalettes = false
@@ -122,7 +119,7 @@ shared class ChartOptions
     end
 
     private action DefaultPalette() returns Array <Color>
-        return TrustworthyPalette()
+        return ColorgoricalPalette()
     end
 
     /*
@@ -639,17 +636,17 @@ shared class ChartOptions
     */
     private action ColorgoricalPalette() returns Array <Color>
         Array <Color> palette
-        
-        color:SetColor(64.0/255, 101.0/255, 94.0/255, 1)
-        palette:Add(color:Copy())
-
-        color:SetColor(90.0/255, 199.0/255, 220.0/255, 1)
-        palette:Add(color:Copy())
 
         color:SetColor(48.0/255, 79.0/255, 155.0/255, 1)
         palette:Add(color:Copy())
 
         color:SetColor(174.0/255, 219.0/255, 240.0/255, 1)
+        palette:Add(color:Copy())
+        
+        color:SetColor(64.0/255, 101.0/255, 94.0/255, 1)
+        palette:Add(color:Copy())
+
+        color:SetColor(90.0/255, 199.0/255, 220.0/255, 1)
         palette:Add(color:Copy())
 
         color:SetColor(124.0/255, 40.0/255, 164.0/255, 1)
