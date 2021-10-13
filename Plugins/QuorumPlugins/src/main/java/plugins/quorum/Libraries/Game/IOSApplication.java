@@ -75,6 +75,17 @@ public class IOSApplication
 
         //Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
     }
+
+    public static boolean IsSimulator() {
+        if (UIDevice.getCurrentDevice().getName().contains("Simulator")) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean IsDevice() {
+        return !IsSimulator();
+    }
     
     public void SetupNative(Game_ game)
     {

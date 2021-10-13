@@ -4,8 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Vibrator;
 import android.util.Log;
+import quorum.Libraries.Interface.Vibration.VibrationArray_;
 
-public class VibrationManager {
+public class AndroidVibrationStrategy implements VibrationStrategy {
     
     private long endTimeLastRun;
     private Vibrator vibrationUnit;
@@ -29,15 +30,15 @@ public class VibrationManager {
         this.vibrationUnit = getVibrationUnit();
     }
         
-    public void quickPulse(double seconds) {
-        quickPulse(seconds, -1);
+    public void QuickPulse(double seconds) {
+        QuickPulse(seconds, -1);
     }
     
-    public void quickPulseForever() {
-        quickPulse(5, 0);
+    public void QuickPulseForever() {
+        QuickPulse(5, 0);
     }
     
-    private void quickPulse(double seconds, int repeatAtIndex) {
+    private void QuickPulse(double seconds, int repeatAtIndex) {
         initializeIfNecessary();
 
         if (vibrationUnit.hasVibrator()) {
@@ -76,15 +77,15 @@ public class VibrationManager {
         }
     }
 
-    public void slowPulse(double seconds) {
-        slowPulse(seconds, -1);
+    public void SlowPulse(double seconds) {
+        SlowPulse(seconds, -1);
     }
 
-    public void slowPulseForever() {
-        slowPulse(5, 0);
+    public void SlowPulseForever() {
+        SlowPulse(5, 0);
     }
     
-    private void slowPulse(double seconds, int repeatAtIndex) {
+    private void SlowPulse(double seconds, int repeatAtIndex) {
         initializeIfNecessary();
         
         if (vibrationUnit.hasVibrator()) {
@@ -123,15 +124,15 @@ public class VibrationManager {
         }
     }
 
-    public void rumble(double seconds) {
-        rumble(seconds, -1);
+    public void Rumble(double seconds) {
+        Rumble(seconds, -1);
     }
 
-    public void rumbleForever() {
-        rumble(5, 0);
+    public void RumbleForever() {
+        Rumble(5, 0);
     }    
 
-    private void rumble(double seconds, int repeatAtIndex) {
+    private void Rumble(double seconds, int repeatAtIndex) {
         initializeIfNecessary();
 
         if (vibrationUnit.hasVibrator()) {
@@ -170,19 +171,19 @@ public class VibrationManager {
         }
     }
     
-    public void knock(int repetitions) {
-        knock(repetitions, -1);
+    public void Knock(int repetitions) {
+        Knock(repetitions, -1);
     }
 
-    public void knockOnce() {
-        knock(1, -1);
+    public void KnockOnce() {
+        Knock(1, -1);
     }
 
-    public void knockForever() {
-        knock(5, 0);
+    public void KnockForever() {
+        Knock(5, 0);
     }    
     
-    private void knock(int repetitions, int repeatAtIndex) {
+    private void Knock(int repetitions, int repeatAtIndex) {
         long[] fullPattern = {};
         int size = 8;   // preset (from {25, 75, 25, 75, 400, 50, 600, 0})
 
@@ -204,15 +205,27 @@ public class VibrationManager {
         }
     }
 
-    public void vibrate(double seconds) {
-        vibrate(seconds, -1);
+    public void Vibrate(VibrationArray_ commandArray, int repetitions) {
+        Vibrate(new VibrationPattern(commandArray), repetitions);
+    }
+
+    public void VibrateOnce(VibrationArray_ commandArray) {
+        VibrateOnce(new VibrationPattern(commandArray));
+    }
+
+    public void VibrateForever(VibrationArray_ commandArray) {
+        VibrateForever(new VibrationPattern(commandArray));
+    }
+
+    public void Vibrate(double seconds) {
+        Vibrate(seconds, -1);
     }
     
-    public void vibrateForever() {
-        vibrate(5, 0);
+    public void VibrateForever() {
+        Vibrate(5, 0);
     }
     
-    private void vibrate(double seconds, int repeatAtIndex) {
+    private void Vibrate(double seconds, int repeatAtIndex) {
         initializeIfNecessary();
         
         if (vibrationUnit.hasVibrator()) {
@@ -228,7 +241,7 @@ public class VibrationManager {
         }
     }
 
-    public void vibrate(VibrationPattern commandArray, int repetitions) {
+    public void Vibrate(VibrationPattern commandArray, int repetitions) {
         initializeIfNecessary();
         long [] fullPattern = {};
         int size = commandArray.getSize();
@@ -262,15 +275,15 @@ public class VibrationManager {
         }
     }
 
-    public void vibrateOnce(VibrationPattern commandArray) {
-        vibrate(commandArray, 1);
+    public void VibrateOnce(VibrationPattern commandArray) {
+        Vibrate(commandArray, 1);
     }
 
-    public void vibrateForever(VibrationPattern commandArray) {
-        vibrate(commandArray, -1);
+    public void VibrateForever(VibrationPattern commandArray) {
+        Vibrate(commandArray, -1);
     }
 
-    public void stop() {
+    public void Stop() {
         endTimeLastRun = 0;
         if (vibrationUnit != null) {
             vibrationUnit.cancel();
@@ -284,15 +297,15 @@ public class VibrationManager {
         }
     }
 
-    public void vibrateForever(double intensity) {
-        vibrate(5, intensity, 0);
+    public void VibrateForever(double intensity) {
+        Vibrate(5, intensity, 0);
     }
 
-    public void vibrate(double seconds, double intensity) {
-        vibrate(seconds, intensity, -1);
+    public void Vibrate(double seconds, double intensity) {
+        Vibrate(seconds, intensity, -1);
     }
 
-    private void vibrate(double seconds, double intensity, int repeatAtIndex) {
+    private void Vibrate(double seconds, double intensity, int repeatAtIndex) {
         initializeIfNecessary();
 
         // converts seconds to milliseconds
@@ -308,15 +321,15 @@ public class VibrationManager {
         }
     }
     
-    public void vibrateAtFrequencyForever(double frequency) {
-        vibrateAtFrequency(5, frequency, 0);
+    public void VibrateAtFrequencyForever(double frequency) {
+        VibrateAtFrequency(5, frequency, 0);
     }
     
-    public void vibrateAtFrequency(double seconds, double frequency) {
-        vibrateAtFrequency(seconds, frequency, -1);
+    public void VibrateAtFrequency(double seconds, double frequency) {
+        VibrateAtFrequency(seconds, frequency, -1);
     }
         
-    private void vibrateAtFrequency(double seconds, double frequency, int repeatAtIndex) {
+    private void VibrateAtFrequency(double seconds, double frequency, int repeatAtIndex) {
         initializeIfNecessary();
 
         if (vibrationUnit.hasVibrator()) {
@@ -362,7 +375,7 @@ public class VibrationManager {
         }
     }
 
-    private void vibrate(long[] pattern) {
+    private void Vibrate(long[] pattern) {
         initializeIfNecessary();
         
         if (vibrationUnit.hasVibrator()) {
@@ -373,7 +386,7 @@ public class VibrationManager {
         }
     }
 
-    private void vibrate(long[] pattern, int repeatAtIndex) {
+    private void Vibrate(long[] pattern, int repeatAtIndex) {
         initializeIfNecessary();
 
         if (vibrationUnit.hasVibrator()) {

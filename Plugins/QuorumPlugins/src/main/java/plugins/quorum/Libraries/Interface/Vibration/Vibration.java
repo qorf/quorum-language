@@ -1,87 +1,123 @@
 package plugins.quorum.Libraries.Interface.Vibration;
 
 import android.app.Activity;
+import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSString;
+import plugins.quorum.Libraries.Game.IOSApplication;
 import quorum.Libraries.Interface.Vibration.VibrationArray_;
 
-public class Vibration extends VibrationManager {
+public class Vibration {
     public Object me_;
 
     private static final String TAG = "Vibration";
-    
+
+    private static VibrationStrategy vibrate = null;
+
+    static
+    {
+        String os = System.getProperty("os.name");
+        String property = System.getProperty("java.runtime.name");
+
+        if (os.contains("Mac OS X") || os.contains("Linux"))
+        {
+            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+            {
+
+            } else {
+                vibrate = new NullVibrationStrategy();
+            }
+        }
+        else if (os.contains("Windows"))
+        {
+            vibrate = new NullVibrationStrategy();
+        }
+        else
+        {
+            Foundation.log("%@", new NSString("OS: " + os));
+            Foundation.log("%@", new NSString("Runtime: " + property));
+            Foundation.log("%@", new NSString("Device: " + IOSApplication.IsDevice()));
+            if (IOSApplication.IsDevice()) {
+                vibrate = new VibrationIOS();
+            } else { //it's on the simulator, so ignore it.
+                vibrate = new NullVibrationStrategy();
+            }
+        }
+    }
+
     public void QuickPulse(double seconds) {
-        quickPulse(seconds);
+        vibrate.QuickPulse(seconds);
     }
     
     public void QuickPulseForever() {
-        quickPulseForever();
+        vibrate.QuickPulseForever();
     }
     
     public void SlowPulse(double seconds) {
-        slowPulse(seconds);
+        vibrate.SlowPulse(seconds);
     }
 
     public void SlowPulseForever() {
-        slowPulseForever();
+        vibrate.SlowPulseForever();
     }
     
     public void Rumble(double seconds) {
-        rumble(seconds);
+        vibrate.Rumble(seconds);
     }
     
     public void RumbleForever() {
-        rumbleForever();
+        vibrate.RumbleForever();
     }
     
     public void Knock(int repetitions) {
-        knock(repetitions);
+        vibrate.Knock(repetitions);
     }   
     
     public void KnockOnce() {
-        knockOnce();
+        vibrate.KnockOnce();
     }    
     
     public void KnockForever() {
-        knockForever();
+        vibrate.KnockForever();
     }    
                
     public void Vibrate(double seconds) {
-        vibrate(seconds);
+        vibrate.Vibrate(seconds);
     }
     
     public void VibrateForever() {
-        vibrateForever();
+        vibrate.VibrateForever();
     }
         
     public void Vibrate(double seconds, double intensity) {
-        vibrate(seconds, intensity);
+        vibrate.Vibrate(seconds, intensity);
     }
 
     public void VibrateForever(double intensity) {
-        vibrateForever(intensity);
+        vibrate.VibrateForever(intensity);
     }
     
     public void Vibrate(VibrationArray_ commandArray, int repetitions) {
-        vibrate(new VibrationPattern(commandArray), repetitions);
+        vibrate.Vibrate(commandArray, repetitions);
     }
 
     public void VibrateOnce(VibrationArray_ commandArray) {
-        vibrateOnce(new VibrationPattern(commandArray));
+        vibrate.VibrateOnce(commandArray);
     }
     
     public void VibrateForever(VibrationArray_ commandArray) {
-        vibrateForever(new VibrationPattern(commandArray));
+        vibrate.VibrateForever(commandArray);
     }
         
     public void VibrateAtFrequency(double seconds, double frequency) {
-        vibrateAtFrequency(seconds, frequency);
+        vibrate.VibrateAtFrequency(seconds, frequency);
     }
 
     public void VibrateAtFrequencyForever(double frequency) {
-        vibrateAtFrequencyForever(frequency);
+        vibrate.VibrateAtFrequencyForever(frequency);
     }
 
     public void Stop() {
-        stop();
+        vibrate.Stop();
     }
     
     public Activity getActivity() {
