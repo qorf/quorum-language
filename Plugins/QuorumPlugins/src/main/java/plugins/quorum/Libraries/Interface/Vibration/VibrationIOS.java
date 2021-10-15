@@ -82,35 +82,6 @@ public class VibrationIOS implements VibrationStrategy {
         events.add(continuousEvent2);
 
         EventPulse(events, seconds, loopForever);
-//        NSMutableArray<CHHapticDynamicParameter> parameters = new NSMutableArray<>();
-//        try {
-//            CHHapticPattern pattern = CHHapticPattern.createUsingParameters(events, parameters);
-//
-//            CHHapticAdvancedPatternPlayer player = engine.createAdvancedPlayer(pattern);
-//            player.setLoopEnabled(true);
-//
-//
-//            NSError.NSErrorPtr ptr = new NSError.NSErrorPtr();
-//            player.start(0,ptr);
-//
-//            long period = (long)(seconds * 1000.0);
-//
-//            //if the system is telling us to loop forever, we don't need this timer.
-//            //otherwise the user has requested a stop time.
-//            if(!loopForever) {
-//                Timer timer = new Timer(true);
-//                timer.schedule(new TimerTask() {
-//                    @Override
-//                    public void run() {
-//                        player.setLoopEnabled(false);
-//                    }
-//                }, period);
-//            }
-//        } catch (NSErrorException e) {
-//            String message = e.toString();
-//            Foundation.log("%@", new NSString(message));
-//            e.printStackTrace();
-//        }
     }
 
     private void EventPulse(NSMutableArray<CHHapticEvent> events, double seconds, boolean loopForever) {
