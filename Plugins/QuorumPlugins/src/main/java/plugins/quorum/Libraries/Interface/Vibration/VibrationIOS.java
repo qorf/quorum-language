@@ -22,8 +22,8 @@ public class VibrationIOS implements VibrationStrategy {
     CHHapticEventParameter offIntensity = new CHHapticEventParameter(intensity, 1.0f);
     CHHapticEventParameter halfSharp = new CHHapticEventParameter(sharpness, 0.5f);
     CHHapticEventParameter sharp = new CHHapticEventParameter(sharpness, 1.0f);
-    private static double FREQUENCY_MINIMUM = 0.1;
-    private static double FREQUENCY_MAXIMUM = 50;
+    private static double FREQUENCY_MINIMUM = 0.000001;
+    private static double FREQUENCY_MAXIMUM = 500000;
     private static final int FOREVER_SECONDS = 100;
 
     private void Setup() {
