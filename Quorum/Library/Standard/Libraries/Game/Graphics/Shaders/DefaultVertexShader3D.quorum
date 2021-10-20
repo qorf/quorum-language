@@ -3,10 +3,12 @@ package Libraries.Game.Graphics.Shaders
 class DefaultVertexShader3D is Shader
 
     on create
-    SetType(parent:Shader:VERTEX_SHADER)
-    
-    DefaultAttributeNames attributes
-    SetCode(
+        SetType(parent:Shader:VERTEX_SHADER)
+        ShaderManager manager
+        SetName(manager:DEFAULT_3D_VERTEX_SHADER)
+        
+        DefaultAttributeNames attributes
+        SetCode(
 "// True if item has a diffuse texture, false otherwise
 uniform bool enableDiffuseTexture; 
 
@@ -47,10 +49,10 @@ uniform vec4 u_cameraPosition;
 
 // Always used
 attribute vec3 a_position;
+attribute vec4 a_color; // Defaults to (1, 1, 1, 1)
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
 uniform float u_shininess; // Defaults to 20.0
-attribute vec4 a_color; // Defaults to (1.0, 1.0, 1.0, 1.0)
 varying vec4 v_color;
 
 
@@ -71,30 +73,23 @@ struct PointLight
 };
 uniform PointLight u_pointLights[5];
 
-
 void main() {
     if (enableDiffuseTexture)
         v_diffuseUV = u_diffuseUVTransform.xy + a_texCoord0 * u_diffuseUVTransform.zw;
     
-    
     if (enableSpecularTexture)
         v_specularUV = u_specularUVTransform.xy + a_texCoord0 * u_specularUVTransform.zw;
     
-    
     v_color = a_color;
-    
-    
     vec4 pos = u_worldTrans * vec4(a_position, 1.0);
-
     gl_Position = u_projViewTrans * pos;
     
-
     if (enableLighting)
     {
         vec3 normal = normalize(u_normalMatrix * a_normal);
         vec3 squaredNormal = normal * normal;
         vec3 isPositive  = step(0.0, normal);
-        v_lightDiffuse += squaredNormal.x * mix(u_ambientCubemap[0], u_ambientCubemap[1], isPositive.x) +
+        v_lightDiffuse = squaredNormal.x * mix(u_ambientCubemap[0], u_ambientCubemap[1], isPositive.x) +
                         squaredNormal.y * mix(u_ambientCubemap[2], u_ambientCubemap[3], isPositive.y) +
                         squaredNormal.z * mix(u_ambientCubemap[4], u_ambientCubemap[5], isPositive.z);
 
@@ -116,7 +111,7 @@ void main() {
                 float dist2 = dot(lightDir, lightDir);
                 lightDir *= inversesqrt(dist2);
                 float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
-                vec3 value = u_pointLights[i].color * (NdotL / (1.0 dist2));
+                vec3 value = u_pointLights[i].color * (NdotL / (1.0 + dist2));
                 v_lightDiffuse += value;
             }
         }
@@ -138,7 +133,7 @@ void main() {
                 float dist2 = dot(lightDir, lightDir);
                 lightDir *= inversesqrt(dist2);
                 float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
-                vec3 value = u_pointLights[i].color * (NdotL / (1.0 dist2));
+                vec3 value = u_pointLights[i].color * (NdotL / (1.0 + dist2));
                 v_lightDiffuse += value;
                 float halfDotView = max(0.0, dot(normal, normalize(lightDir + viewVec)));
                 v_lightSpecular += value * pow(halfDotView, u_shininess);

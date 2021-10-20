@@ -47,6 +47,8 @@ class Mesh is Disposable
     end
 
     action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes, boolean isArray)
+        // TO-DO: Change this. Currently hard coding so VertexArrays aren't made
+        isArray = false
         if isArray = false
             Load(isStatic, maxVertices, maxIndices, attributes)
             return now
@@ -152,14 +154,118 @@ class Mesh is Disposable
     BoundingBox. If no vertices have been defined yet for this Mesh, the action
     will alert an error.
     */
-    system action CalculateBoundingBox(BoundingBox box) returns BoundingBox
+    action CalculateBoundingBox(BoundingBox box) returns BoundingBox
+        box:Invalidate()
+
+        if GetVerticesCount() = 0
+            alert("There were no vertices defines for this Mesh!")
+        end
+
+        Number32BitBuffer buffer = GetVertexData():GetBuffer()
+
+        VertexAttribute positionAttribute = GetVertexAttributes():FindByUsage(GetVertexAttributes():POSITION)
+        integer offset = positionAttribute:offset / 4
+        integer vertexSize = vertices:GetAttributes():vertexSize
+        integer index = offset
+        integer componentCount = positionAttribute:componentCount
+
+        integer i = 0
+        
+        if componentCount = 1
+            repeat while i < GetVerticesCount()
+                box:Extend(buffer:Get(index), 0, 0)
+                index = index + vertexSize
+                i = i + 1
+            end
+        elseif componentCount = 2
+            repeat while i < GetVerticesCount()
+                box:Extend(buffer:Get(index), buffer:Get(index + 1), 0)
+                index = index + vertexSize
+                i = i + 1
+            end
+        elseif componentCount = 3
+            repeat while i < GetVerticesCount()
+                box:Extend(buffer:Get(index), buffer:Get(index + 1), buffer:Get(index + 2))
+                index = index + vertexSize
+                i = i + 1
+            end
+            
+        end
+
+        return box
+    end
 
     /*
     This action will extend the given BoundingBox to include the vertices of
     this Mesh. If this Mesh has no vertices defined, this action will alert an
     error.
     */
-    system action ExtendBoundingBox(BoundingBox box, integer offset, integer count, Matrix4 transform) returns BoundingBox
+    action ExtendBoundingBox(BoundingBox box, integer offset, integer count, Matrix4 transform) returns BoundingBox
+        integer indicesCount = GetIndicesCount()
+
+        if offset < 0
+            alert("Attempted to extend bounding box with offset = " + offset + ", but the offset must be greater than 0.")
+        elseif count < 1
+            alert("I can't extend the bounding box using " + count + " indices -- the count must be >= 1")
+        elseif (offset + count > indicesCount)
+            alert("Out of bounds: attempted to access the indices between " + offset + " and " + (offset + count) + ", but there are only " + indicesCount + " total indices")
+        end
+
+        Number32BitBuffer vertexBuffer = vertices:GetBuffer()
+        Integer32BitBuffer indexBuffer = indices:GetBuffer()
+
+        VertexAttribute positionAttribute = GetVertexAttributes():FindByUsage(GetVertexAttributes():POSITION)
+
+        integer positionOffset = positionAttribute:offset / 4
+        integer vertexSize = vertices:GetAttributes():vertexSize / 4
+        integer stop = offset + count
+        integer componentCount = positionAttribute:componentCount
+
+        Vector3 calcVector
+
+        if componentCount = 1
+            integer i = offset
+            repeat while i < stop
+                integer index = indexBuffer:Get(i) * vertexSize + positionOffset
+                calcVector:Set(vertexBuffer:Get(index), 0, 0)
+                if transform not= undefined
+                    calcVector:Multiply(transform)
+                end
+                
+                box:Extend(calcVector)
+
+                i = i + 1
+            end
+        elseif componentCount = 2
+            integer i = offset
+            repeat while i < stop
+                integer index = indexBuffer:Get(i) * vertexSize + positionOffset
+                calcVector:Set(vertexBuffer:Get(index), vertexBuffer:Get(index + 1), 0)
+                if transform not= undefined
+                    calcVector:Multiply(transform)
+                end
+                
+                box:Extend(calcVector)
+
+                i = i + 1
+            end
+        elseif componentCount = 3
+            integer i = offset
+            repeat while i < stop
+                integer index = indexBuffer:Get(i) * vertexSize + positionOffset
+                calcVector:Set(vertexBuffer:Get(index), vertexBuffer:Get(index + 1), vertexBuffer:Get(index + 2))
+                if transform not= undefined
+                    calcVector:Multiply(transform)
+                end
+                
+                box:Extend(calcVector)
+
+                i = i + 1
+            end
+        end
+
+        return box
+    end
 
     action ExtendBoundingBox(BoundingBox box, integer offset, integer count)
         ExtendBoundingBox(box, offset, count, undefined)
@@ -207,6 +313,8 @@ class Mesh is Disposable
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
+        // TO-DO: REMOVE THIS
+//        graphics:EnableProperty(graphics:GL_BLEND)
 
         if isVertexArray
             if indices:GetSize() > 0
@@ -228,61 +336,28 @@ class Mesh is Disposable
     end
 
     action Bind(ShaderProgram program)
+        Bind(program, undefined)
+    end
 
+    action Bind(ShaderProgram program, Array<integer> locations)
+        vertices:Bind(program, locations)
+        if indices:GetSize() > 0
+            indices:Bind()
+        end
     end
 
     action Unbind(ShaderProgram program)
+        Unbind(program, undefined)
+    end
 
+    action Unbind(ShaderProgram program, Array<integer> locations)
+        vertices:Unbind(program, locations)
+        if indices:GetSize() > 0
+            indices:Unbind()
+        end
     end
 
     /*
-    
-    public void Render(ShaderProgram_ shader, int primitiveType, int offset, int count, boolean autoBind) 
-    {
-        if (count == 0) 
-            return;
-
-        if (autoBind) 
-            Bind(shader);
-
-        if (quorumMesh.isVertexArray) 
-        {
-            if (quorumMesh.indices.GetSize() > 0) 
-            {
-                IntBuffer buffer = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
-                int oldPosition = buffer.position();
-                int oldLimit = buffer.limit();
-                buffer.position(offset);
-                buffer.limit(offset + count);
-                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, buffer);
-                buffer.position(oldPosition);
-                buffer.limit(oldLimit);
-            } 
-            else
-            {
-                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
-            }
-        }
-        else
-        {
-            if (quorumMesh.indices.GetSize() > 0)
-            {
-                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
-            }
-            else
-            {
-                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
-            }
-        }
-
-        if (autoBind)
-            Unbind(shader);
-    }
-    
-    public void Bind(final ShaderProgram_ shader)
-    {
-        Bind(shader, null);
-    }
     
     public void Bind(final ShaderProgram_ shader, final int[] locations)
     {

@@ -21,6 +21,9 @@ class VertexBufferObject is VertexData
 
     GameStateManager manager
 
+    // TO-DO: REMOVE THIS
+    private system action GeneratePlugin
+
     action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
         VertexAttributes vertexAttributes
         vertexAttributes:SetAttributes(attributes)
@@ -33,7 +36,7 @@ class VertexBufferObject is VertexData
         bufferHandle = graphics:CreateBuffer()
 
         Number32BitBuffer newBuffer
-        newBuffer:SetSize(attributes:vertexSize * verticesCount)
+        newBuffer:SetSize((attributes:vertexSize / 4) * verticesCount)
         SetBuffer(newBuffer, true, attributes)
 
         if isStatic
@@ -80,6 +83,10 @@ class VertexBufferObject is VertexData
         return attributes
     end
 
+    action Get(integer index) returns number
+        return buffer:Get(index)
+    end
+
     action Dispose
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:BindBuffer(graphics:GL_ARRAY_BUFFER, 0)
@@ -124,10 +131,10 @@ class VertexBufferObject is VertexData
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:BindBuffer(graphics:GL_ARRAY_BUFFER, bufferHandle)
         
-        if isDirty
+//        if isDirty
             graphics:SetBuffer(graphics:GL_ARRAY_BUFFER, buffer, usage)
             isDirty = false
-        end
+//        end
 
         integer attributeCount = attributes:GetSize()
     
@@ -182,6 +189,7 @@ class VertexBufferObject is VertexData
                 if id >= 0
                     program:DisableVertexInput(id)
                 end
+                i = i + 1
             end
         end
 

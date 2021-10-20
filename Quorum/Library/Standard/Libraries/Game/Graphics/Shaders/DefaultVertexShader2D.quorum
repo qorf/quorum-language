@@ -4,6 +4,8 @@ class DefaultVertexShader2D is Shader
 
     on create
         SetType(parent:Shader:VERTEX_SHADER)
+        ShaderManager manager
+        SetName(manager:DEFAULT_2D_VERTEX_SHADER)
 
         DefaultAttributeNames attributes
         SetCode(

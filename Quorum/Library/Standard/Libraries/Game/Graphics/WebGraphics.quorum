@@ -496,6 +496,18 @@ class WebGraphics is GraphicsManager
     system action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
 
     /*
+    This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
+
+    Attribute: Parameter inputID An ID that describes a vertex input.
+    Attribute: Parameter size How many bytes from the array are needed to set a single instance of the input value in the shader. Must be between 1 and 4.
+    Attribute: Parameter type A constant value representing the type of data, such as GL_INT.
+    Attribute: Parameter normalize If set to true, fixed-point data values will be normalized when passed down to the system. If set to false, the values will be passed down without modification.
+    Attribute: Parameter stride How many bytes of data separate each instance of data meant to be used for this input. If this value is 0, it's assumed that there is no additional data interleaved between data used for this input.
+    Attribute: Parameter buffer A buffer containing vertex input data.
+    */
+//    blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, Number32BitBuffer buffer)
+
+    /*
     This action will enable a vertex input within the shader system. Whenever a polygon is sent to the rendering system,
     each vertex must provide input data for each enabled vertex input.
 

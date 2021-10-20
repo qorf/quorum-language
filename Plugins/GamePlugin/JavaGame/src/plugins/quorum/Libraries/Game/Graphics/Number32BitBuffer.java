@@ -7,7 +7,7 @@ import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Containers.Number32BitArray_;
 
 public class Number32BitBuffer {
-    public java.lang.Object me = null;
+    public java.lang.Object me_ = null;
     
     ByteBuffer byteBuffer;
     FloatBuffer buffer;
@@ -41,7 +41,7 @@ public class Number32BitBuffer {
         buffer.limit(floats.length);
     }
     
-    public void Set(int sourceOffset, Number32BitArray_ array, int targetOffset, int count)
+    public void Set(int targetOffset, Number32BitArray_ array, int sourceOffset, int count)
     {
         float[] floats = ((Number32BitArray)array).plugin_.floats;
         int lastPosition = byteBuffer.position();
@@ -54,5 +54,37 @@ public class Number32BitBuffer {
     public void Dispose()
     {
         BufferUtils.disposeUnsafeByteBuffer(byteBuffer);
+    }
+    
+    public void ResetWritePosition()
+    {
+        buffer.clear();
+    }
+
+    public int GetWritePosition()
+    {
+        return buffer.position();
+    }
+
+    public void SetWritePosition(int newPosition)
+    {
+        buffer.position(newPosition);
+    }
+    
+    public void SetWritePosition(int start, int end)
+    {
+        buffer.position(start);
+        buffer.limit(end);
+    }
+
+    public void Write(Number32BitArray_ array)
+    {
+        float[] floats = ((Number32BitArray)array).plugin_.floats;
+        buffer.put(floats);
+    }
+    
+    public double Get(int index)
+    {
+        return buffer.get(index);
     }
 }

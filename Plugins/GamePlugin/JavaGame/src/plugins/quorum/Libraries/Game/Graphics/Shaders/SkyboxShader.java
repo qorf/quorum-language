@@ -3,11 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.Shaders;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.Graphics.ShaderProgram;
 import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Game.Graphics.Camera_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
@@ -19,6 +21,8 @@ import quorum.Libraries.Game.Graphics.Skybox_;
  */
 public class SkyboxShader 
 {
+    public Object me_;
+    
     public static final String vertexShader = 
         "attribute vec3 position;\n" +
         "varying vec3 textureCoordinates;\n" +

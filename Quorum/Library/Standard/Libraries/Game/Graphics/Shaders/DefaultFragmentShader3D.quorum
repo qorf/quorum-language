@@ -4,6 +4,8 @@ class DefaultFragmentShader3D is Shader
 
     on create
         SetType(parent:Shader:FRAGMENT_SHADER)
+        ShaderManager manager
+        SetName(manager:DEFAULT_3D_VERTEX_SHADER)
 
         DefaultAttributeNames attributes
         SetCode(
@@ -43,7 +45,6 @@ varying vec3 v_lightDiffuse;
 varying vec3 v_lightSpecular;
 
 void main() {
-    
     vec4 diffuse;
     if (enableDiffuseTexture)
         diffuse = texture2D(u_diffuseTexture, v_diffuseUV) * u_diffuseColor * v_color;
@@ -75,8 +76,7 @@ void main() {
             discard;
     }
     else
-        gl_FragColor.a = 1.0;
-
+        gl_FragColor.a = 0.5;
 }"
 )
     end

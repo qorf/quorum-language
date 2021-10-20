@@ -3,6 +3,7 @@ package Libraries.Game.Graphics.Shaders
 use Libraries.Compute.Matrix4
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Renderable
@@ -26,6 +27,10 @@ use Libraries.Game.Graphics.TextureAttribute
 use Libraries.Game.Graphics.ColorAttribute
 use Libraries.Game.Graphics.TextureBinder
 use Libraries.Game.Graphics.AmbientCubemap
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.VertexData
+use Libraries.Compute.Matrix3
+use Libraries.Containers.Number32BitArray
 
 
 class DefaultShaderMapping3D is ShaderMapping
@@ -48,7 +53,6 @@ class DefaultShaderMapping3D is ShaderMapping
     boolean enableAlphaTest = false
 
     boolean lightsSet = false
-    Environment environment = undefined
     constant integer maxDirectionalLights = 2
     constant integer maxPointLights = 5
 
@@ -78,6 +82,7 @@ class DefaultShaderMapping3D is ShaderMapping
     integer specularColorID = -1
     integer opacityID = -1
     integer alphaTestID = -1
+    integer vertexColorID = -1
     
     // Specific IDs and values for sub-fields of the directional/point light struct arrays    
     integer directionalLightColorID = -1
@@ -90,7 +95,8 @@ class DefaultShaderMapping3D is ShaderMapping
 
 
     // Used to perform light calculations and transfer matrix data to the shader
-    Matrix4 tempMatrix
+    Matrix3 tempMatrix3
+    Matrix4 tempMatrix4
 
     // Used for repeated vector calculations
     Vector3 tempVector3
@@ -100,6 +106,9 @@ class DefaultShaderMapping3D is ShaderMapping
 
     // Used to test which default attributes are present between the environment and material
     Attributes combinedAttributes
+
+    // Used to store locations/ids for vertex inputs
+    Array<integer> vertexLocations
 
     // TO-DO: Consider removing these if the attribute system changes (i.e. if these become irrelevant)
     // Dummy attributes, used to provide values for testing.
@@ -111,6 +120,9 @@ class DefaultShaderMapping3D is ShaderMapping
     PointLightsAttribute pointLightsAttribute
     TextureAttribute textureAttribute
     ColorAttribute colorAttribute
+
+    // Used to cache the locations/ids of known vertex inputs
+    HashTable<integer, integer> vertexInputTable
 
     /* 
     Which faces of objects should be culled by the rendering system by default. 
@@ -140,8 +152,7 @@ class DefaultShaderMapping3D is ShaderMapping
     boolean depthMask = false
     integer cullFace = -1
 
-
-    action Begin(Camera camera, Environment environment, ShaderProgram program)
+    action Begin(ShaderProgram program, Camera camera)
         if me:program not= undefined
             alert("I am already mapping to a shader, so I can't Begin again. Call End first.")
         end
@@ -168,7 +179,7 @@ class DefaultShaderMapping3D is ShaderMapping
             normalMatrixID = program:GetShaderInputLocation("u_normalMatrix")
             directionalLightCountID = program:GetShaderInputLocation("directionalLightCount")
             pointLightCountID = program:GetShaderInputLocation("pointLightCount")
-            ambientCubemapID = program:GetShaderInputLocation("u_ambientCubemap")
+            ambientCubemapID = program:GetShaderInputLocation("u_ambientCubemap[0]")
             cameraPositionID = program:GetShaderInputLocation("u_cameraPosition")
             shininessID = program:GetShaderInputLocation("u_shininess")
             diffuseTextureID = program:GetShaderInputLocation("u_diffuseTexture")
@@ -176,6 +187,7 @@ class DefaultShaderMapping3D is ShaderMapping
             specularColorID = program:GetShaderInputLocation("u_specularColor")
             opacityID = program:GetShaderInputLocation("u_opacity")
             alphaTestID = program:GetShaderInputLocation("u_alphaTest")
+            vertexColorID = program:GetVertexInputLocation("a_color")
             
             directionalLightColorID = program:GetShaderInputLocation("u_dirLights[0].color")
             directionalLightDirectionID = program:GetShaderInputLocation("u_dirLights[0].direction")
@@ -188,9 +200,9 @@ class DefaultShaderMapping3D is ShaderMapping
         end
 
         // Set the projection-view transform
-        tempMatrix:Set(camera:GetCombinedMatrix())
-        InvertViewZ(tempMatrix)
-        program:SetShaderInputMatrix(projectionViewTransformID, tempMatrix)
+        tempMatrix4:Set(camera:GetCombinedMatrix())
+        InvertViewZ(tempMatrix4)
+        program:SetShaderInputMatrix(projectionViewTransformID, tempMatrix4)
 
         // Set the camera position
         program:SetShaderInput(cameraPositionID, camera:GetPosition():GetX(), camera:GetPosition():GetY(), camera:GetPosition():GetZ(), 1.1881 / (camera:GetFar() * camera:GetFar()))
@@ -207,15 +219,36 @@ class DefaultShaderMapping3D is ShaderMapping
             GraphicsManager graphics = manager:GetGameGraphics()
             defaultDepthFunction = graphics:GL_LEQUAL
         end
+
+        BeginGraphicsState()
     end
 
-    action End (ShaderProgram program)
+    action End(ShaderProgram program)
+        EndGraphicsState()
+
         me:program = undefined
+        if currentMesh not= undefined
+            currentMesh:Unbind(program)
+            currentMesh = undefined
+        end
+
         textureBinder:End()
     end
 
     action MapInputs(ShaderProgram program, Renderable renderable)
         combinedAttributes:Empty()
+        VertexAttributes vertices = renderable:meshPart:mesh:GetVertexAttributes()
+
+        if currentMesh not= renderable:meshPart:mesh
+            if currentMesh not= undefined
+                currentMesh:Unbind(program, vertexLocations)
+            end
+
+            currentMesh = renderable:meshPart:mesh
+            Array<integer> locations = GetAttributeLocations(program, vertices)
+            currentMesh:Bind(program, locations)
+        end     
+
 
         if renderable:environment not= undefined
             combinedAttributes:Add(renderable:environment)
@@ -231,108 +264,75 @@ class DefaultShaderMapping3D is ShaderMapping
 
         BindMaterial(combinedAttributes)
 
-        VertexAttributes vertices = renderable:meshPart:mesh:GetVertexAttributes()
-
         if vertices:HasAttribute(vertices:NORMAL)
             BindLights(combinedAttributes, renderable)
         else
             EnableLighting(false)
         end
 
+        // If there's no vertex color attribute provided, ensure there's a default value instead.
+        // If these are present, they'll be handled when the mesh is bound.
+        if not vertices:HasAttribute(vertices:COLOR_PACKED) or vertices:HasAttribute(vertices:COLOR_UNPACKED)
+            program:DisableVertexInput(vertexColorID)
+            program:SetDefaultVertexInputValue(vertexColorID, 1, 1, 1, 1)
+        end
+
         // Setting uniform values for the shaders.
 
         // Set the world transform. The z value is inverted as a lazy hack to invert from a right-handed system to a left-handed one. 
         // This may change in the future.
-        tempMatrix:Set(renderable:worldTransform)
-        InvertPositionZ(tempMatrix)
-        program:SetShaderInputMatrix(worldTransformID, tempMatrix)
+        tempMatrix4:Set(renderable:worldTransform)
+        InvertPositionZ(tempMatrix4)
+        program:SetShaderInputMatrix(worldTransformID, tempMatrix4)
+    end
 
-
+    private action BeginGraphicsState
         /*
-        Things that need to be set still:
-        enableDiffuseTexture (X)
-        enableSpecularTexture (X)
-        enableLighting (X)
-        enableSpecular (X)
-
-        // Fragment enable bools
-        uniform bool enableBlending; (X)
-        uniform bool enableAlphaTest; (X)
-        
-        // Vertex always-on uniforms
-        uniform mat4 u_projViewTrans; (X)
-        uniform mat4 u_worldTrans; (X)
-        
-        // Fragment always-on uniforms
-        uniform vec4 u_diffuseColor; (X) // Defaults to vec4(1.0) if no other value given
-        
-        
-        // Vertex conditional uniforms
-        uniform vec4 u_diffuseUVTransform; (X) // Conditional on enableDiffuseTexture
-        uniform vec4 u_specularUVTransform; (X) // Conditional on enableSpecularTexture
-        uniform mat3 u_normalMatrix; (X) // Conditional on enableLighting
-        uniform int directionalLightCount; (X) // Conditional on enableLighting
-        uniform int pointLightCount; (X) // Conditional on enableLighting
-        uniform vec3 u_ambientCubemap[6]; (X) // Conditional on enableLighting
-        uniform vec4 u_cameraPosition; (X) // Conditional on enableSpecular
-        uniform float u_shininess; (X) // Conditional on enableSpecular. Defaults to 20.0 if no more specific value is given
-        uniform DirectionalLight u_dirLights[2]; (X) // Conditional on enableLighting
-        uniform PointLight u_pointLights[5]; (X) // Conditional on enableLighting
-        
-        // Fragment conditional uniforms
-        uniform sampler2D u_diffuseTexture; (X) // Conditional on enableDiffuseTexture
-        uniform sampler2D u_specularTexture; (X) // Conditional on enableSpecularTexture
-        uniform vec4 u_specularColor; (X) // Defaults to vec4(1.0) if no other value given. Conditional on enableSpecular
-        uniform float u_opacity; (X) // Conditional on enableBlending
-        uniform float u_alphaTest; (X) // Conditional on enableBlending and enableAlphaTest
-        
-        // Vertex always-on attributes
-        attribute vec3 a_position;
-        attribute vec4 a_color; // Defaults to (1.0, 1.0, 1.0, 1.0)
-        
-        // Vertex conditional attributes
-        attribute vec2 a_texCoord0; // Conditional on enableDiffuseTexture or enableSpecularTexture
-        attribute vec3 a_normal;    // Mandatory if enableLighting is true, if not available, enableLighting must be set to false
-        
-        // Vertex conditional varying/out values
-        varying vec2 v_diffuseUV; // Conditional on enableDiffuseTexture
-        varying vec2 v_specularUV; // Conditional on enableSpecularTexture
-        varying vec3 v_lightDiffuse; // Defaults to (1.0, 1.0, 1.0, 1.0) if no value is provided. Conditional on enableLighting
-        varying vec3 v_lightSpecular; // Conditional on enableSpecular. Will default to (0, 0, 0) and passed through if enableSpecular is false	
-        
-        // Vertex always-on varying/out values
-        varying vec4 v_color; // Set by incoming a_color, thus defaults to (1.0, 1.0, 1.0, 1.0) if no other value given
+        Invalidate the cached values to guarantee these functions set the requested values.
+        This is needed because these graphics values may have been modified by other shaders/mappings
+        since the last time this was run.
         */
+        depthFunction = -1
+        depthMask = false
+        enableBlending = true
+        cullFace = -1
 
-        /*
-         for (int u, i = 0; i < localUniforms.size; ++i)
-            if (setters.get(u = localUniforms.get(i)) != null)
-            {
-                setters.get(u).Set(this, u, renderable, combinedAttributes);
-            }
-        if (currentMesh != ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh))
-        {
-            if (currentMesh != null)
-                currentMesh.plugin_.Unbind(program, tempArray.items);
+        SetDepthTest(defaultDepthFunction, 0, 1)
+        SetDepthMask(true)
+        EnableBlending(false)
+        // TO-DO: Make this actually use "GL_NONE" from a GL Constants class
+        SetCullFace(0)
+    end
 
-            currentMesh = ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh);
+    private action EndGraphicsState
+        SetDepthTest(0, 0, 1)
+        SetDepthMask(false)
+        EnableBlending(false)
+        SetCullFace(0)
+    end
 
-            int[] temp = GetAttributeLocations((VertexAttributes)((Renderable)renderable).meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
-            currentMesh.plugin_.Bind(program, temp);
-        }
-        */
-
-        if currentMesh not= renderable:meshPart:mesh
-            if currentMesh not= undefined
-                // currentMesh.plugin_.Unbind(program, tempArray.items);
+    private action GetAttributeLocations(ShaderProgram program, VertexAttributes attributes) returns Array<integer>
+        vertexLocations:Empty(false)
+        integer i = 0
+        repeat while i < attributes:GetSize()
+            VertexAttribute attribute = attributes:GetAttribute(i)
+            integer key = attribute:GetKey()
+            if vertexInputTable:HasKey(key)
+                vertexLocations:Add(vertexInputTable:GetValue(key))
+            else
+                integer id = program:GetVertexInputLocation(attribute:alias)
+                if id >= 0
+                    vertexInputTable:Add(key, id)
+                    vertexLocations:Add(id)
+                else
+                    // Unknown attribute: -1 indicates it should be skipped
+                    vertexLocations:Add(-1)
+                end
             end
 
-            currentMesh = renderable:meshPart:mesh
-//            int[] temp = GetAttributeLocations((VertexAttributes)((Renderable)renderable).meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
-//            currentMesh.plugin_.Bind(program, temp);
-            
-        end        
-
+            i = i + 1
+        end
+        return vertexLocations
     end
 
     private action SetBlendingFunction(integer source, integer destination)
@@ -350,6 +350,12 @@ class DefaultShaderMapping3D is ShaderMapping
             me:cullFace = cullFace
             GraphicsManager graphics = manager:GetGameGraphics()
             graphics:SetCullFace(cullFace)
+
+            if cullFace = 0
+                graphics:DisableProperty(graphics:GL_CULL_FACE)
+            else
+                graphics:EnableProperty(graphics:GL_CULL_FACE)
+            end
         end
     end
 
@@ -413,6 +419,7 @@ class DefaultShaderMapping3D is ShaderMapping
                 EnableBlending(true)
                 SetBlendingFunction(current:sourceFunction, current:destinationFunction)
                 program:SetShaderInput(opacityID, current:opacity)
+                setBlending = true
             elseif bits:And(type, integerAttribute:GetCullFaceValue()) = type
                 IntegerAttribute current = cast(IntegerAttribute, attribute)
                 cullFace = current:value
@@ -462,9 +469,6 @@ class DefaultShaderMapping3D is ShaderMapping
                 NumberAttribute current = cast(NumberAttribute, attribute)
                 program:SetShaderInput(shininessID, current:value)
                 setShininess = true
-            else
-                // Unknown attribute not supported by this shader mapping
-                alert("I couldn't map a material to the " + program:GetName() + " shader program because it has an unsupported property.")
             end
 
             counter = counter + 1
@@ -503,7 +507,6 @@ class DefaultShaderMapping3D is ShaderMapping
         if setSpecularColor = false
             program:SetShaderInput(specularColorID, 1.0, 1.0, 1.0, 1.0)
         end
-        
     end
 
     private action BindLights(Attributes attributes, Renderable renderable)
@@ -541,14 +544,18 @@ class DefaultShaderMapping3D is ShaderMapping
             repeat while counter < directionalLights:GetSize()
                 DirectionalLight current = directionalLights:Get(counter)
                 Color color = current:GetColor()
-                Vector3 direction = current:GetDirection()
+                tempVector3:Set(current:GetDirection())
+                tempVector3:Normalize()
                 
                 if counter < max
                     integer index = directionalLightColorID + counter * directionalLightSize
+//                    output counter + ": Setting color at " + index + " = " + color:GetRed() + ", " + color:GetGreen() + ", " + color:GetBlue()
                     program:SetShaderInput(index, color:GetRed(), color:GetGreen(), color:GetBlue())
-                    program:SetShaderInput(index + directionOffset, direction:GetX(), direction:GetY(), direction:GetZ())
+//                    output counter + ": Setting direction at " + (index + directionOffset) + " = " + direction:GetX() + ", " + direction:GetY() + ", " + direction:GetZ()
+                    program:SetShaderInput(index + directionOffset, tempVector3:GetX(), tempVector3:GetY(), -tempVector3:GetZ())
                 else
-                    ambientCubemap:Add(color, direction)
+//                    output "Adding light " + counter + " to cubemap"
+                    ambientCubemap:Add(color, tempVector3)
                 end
 
                 counter = counter + 1
@@ -585,12 +592,14 @@ class DefaultShaderMapping3D is ShaderMapping
                     program:SetShaderInput(index, color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)
                     program:SetShaderInput(index + positionOffset, position:GetX(), position:GetY(), -position:GetZ())
                 else
+//                    output "Adding light " + counter + " to cubemap"
                     ambientCubemap:Add(color, position, tempVector3, intensity)
                 end
 
                 counter = counter + 1
             end
             program:SetShaderInput(pointLightCountID, max)
+//            program:SetShaderInput(pointLightCountID, 0)
         else
             program:SetShaderInput(pointLightCountID, 0)
         end
@@ -598,12 +607,44 @@ class DefaultShaderMapping3D is ShaderMapping
         program:SetShaderInput(enableLightingID, true)
 
         ambientCubemap:Clamp()
+
+//        Number32BitArray array = ambientCubemap:GetData()
+//        integer i = 0
+//        output "Cubemap:"
+//        repeat while i < array:GetSize()
+//            output i + ": " + array:Get(i)
+//            i = i + 1
+//        end
+
         program:SetShaderInputVector3Array(ambientCubemapID, ambientCubemap:GetData(), 0, 18)
 
-        tempMatrix:Set(renderable:worldTransform)
-        tempMatrix:Inverse()
-        tempMatrix:Transpose()
-        program:SetShaderInputMatrix(normalMatrixID, tempMatrix)
+        tempMatrix3:Set(renderable:worldTransform)
+        tempMatrix3:Inverse()
+        tempMatrix3:Transpose()
+//        output tempMatrix:row0column0 + ", " + tempMatrix:row0column1 + ", " + tempMatrix:row0column2 + ", " + tempMatrix:row0column3
+//        output tempMatrix:row1column0 + ", " + tempMatrix:row1column1 + ", " + tempMatrix:row1column2 + ", " + tempMatrix:row1column3
+//        output tempMatrix:row2column0 + ", " + tempMatrix:row2column1 + ", " + tempMatrix:row2column2 + ", " + tempMatrix:row2column3
+//        output tempMatrix:row3column0 + ", " + tempMatrix:row3column1 + ", " + tempMatrix:row3column2 + ", " + tempMatrix:row3column3
+        program:SetShaderInputMatrix(normalMatrixID, tempMatrix3)
+
+//        VertexAttributes vertices = renderable:meshPart:mesh:GetVertexAttributes()
+//        text uhOh = ""
+//        integer current = 0
+//        integer i = 0
+//
+//        check
+//            integer positionOffset = vertices:GetOffset(vertices:NORMAL)
+//            VertexData data = renderable:meshPart:mesh:GetVertexData()
+//            uhOh = "Size = " + data:GetSize() + ", max size = " + data:GetMaxSize()
+//            output ("Vertex Normals: size = " + data:GetSize() + ", max size = " + data:GetMaxSize())
+//            repeat while i < 8
+//                current = positionOffset + i * (vertices:vertexSize / 4)
+//                output (i + ": " + data:Get(current) + ", " + data:Get(current + 1) + ", " + data:Get(current + 2) + " (1st index = " + current + ")")
+//                i = i + 1
+//            end
+//        detect e
+//            alert(uhOh + " -- accessed at " + current + " using i = " + i)
+//        end
 
         lightsSet = true
     end
@@ -636,8 +677,9 @@ class DefaultShaderMapping3D is ShaderMapping
         end
     end
 
+//    integer debugCount = 0
     private action EnableBlending(boolean enable)
-        if enableBlending not= enable
+//        if enableBlending not= enable
             enableBlending = enable
             program:SetShaderInput(enableBlendingID, enable)
 
@@ -645,9 +687,17 @@ class DefaultShaderMapping3D is ShaderMapping
             if enable
                 graphics:EnableProperty(graphics:GL_BLEND)
             else
+//                if debugCount < 10
+//                    check
+//                        alert("Disabling blending from...")
+//                    detect e
+//                        e:OutputStackTrace()
+//                    end
+//                    debugCount = debugCount + 1
+//                end
                 graphics:DisableProperty(graphics:GL_BLEND)
             end
-        end
+//        end
     end
 
     private action EnableAlphaTest(boolean enable)

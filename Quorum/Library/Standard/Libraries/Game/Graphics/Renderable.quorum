@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 class Renderable
     
@@ -33,10 +34,14 @@ class Renderable
 
     public ShaderProgram shaderProgram = undefined
 
+    public ShaderMapping shaderMapping = undefined
+
     /*
-        User definable value, may be undefined.
+    An optional field with an arbitrary object containing additional data for use by a shader.
+    This is undefined by default. If it isn't undefined, it's up to the ShaderMapping to determine
+    how this data should be used. The default shaders/mappings will typically ignore this value.
     */
-    public Object userData
+    public Object shaderData = undefined
 
     /*
     Sets this renderable to have all of the same data as the provided renderable.
@@ -48,7 +53,8 @@ class Renderable
         bones = renderable:bones
         environment = renderable:environment
         shaderProgram = renderable:shaderProgram
-        userData = renderable:userData
+        shaderMapping = renderable:shaderMapping
+        shaderData = renderable:shaderData
 
         return me
     end

@@ -11,6 +11,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import org.robovm.apple.foundation.Foundation;
 import org.robovm.apple.foundation.NSString;
+import static plugins.quorum.Libraries.Game.Graphics.GraphicsManager.GL_FLOAT;
 import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Containers.Number32BitArray_;
 import quorum.Libraries.Game.Graphics.Integer32BitBuffer_;
@@ -325,6 +326,23 @@ public class IOSGraphics implements GraphicsManager
     public void SetVertexInputInformation(int inputID, int size, int type, boolean normalize, int stride, int offset)
     {
         glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
+    }
+    
+    public void SetVertexInputInformation(int inputID, int size, int type, boolean normalize, int stride, Number32BitBuffer_ inputBuffer)
+    {
+        quorum.Libraries.Game.Graphics.Number32BitBuffer buffer = (quorum.Libraries.Game.Graphics.Number32BitBuffer)inputBuffer;
+        if (type == GL_FLOAT)
+        {
+            glVertexAttribPointer(inputID, size, type, normalize, stride, buffer.plugin_.buffer);
+        }
+        else
+        {
+            ByteBuffer bytes = buffer.plugin_.byteBuffer;
+            int oldPosition = bytes.position();
+            bytes.position(buffer.plugin_.buffer.position() * 4);
+            glVertexAttribPointer(inputID, size, type, normalize, stride, bytes);
+            bytes.position(oldPosition);
+        }
     }
     
     public void SetPixelClipping(int x, int y, int width, int height)

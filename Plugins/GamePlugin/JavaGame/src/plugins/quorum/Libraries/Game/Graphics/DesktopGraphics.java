@@ -176,6 +176,11 @@ public class DesktopGraphics implements GraphicsManager {
     {
         glBindBuffer(purpose, bufferID);
     }
+    
+    public void SetVertexInputID(int program, int index, String name)
+    {
+        GL20.glBindAttribLocation(program, index, name);
+    }
 
     public void DeleteBuffer(int bufferID)
     {
@@ -342,6 +347,23 @@ public class DesktopGraphics implements GraphicsManager {
     public void SetVertexInputInformation(int inputID, int size, int type, boolean normalize, int stride, int offset)
     {
         glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
+    }
+    
+    public void SetVertexInputInformation(int inputID, int size, int type, boolean normalize, int stride, Number32BitBuffer_ inputBuffer)
+    {
+        Number32BitBuffer buffer = (Number32BitBuffer)inputBuffer;
+        if (type == GL_FLOAT)
+        {
+            glVertexAttribPointer(inputID, size, type, normalize, stride, buffer.plugin_.buffer);
+        }
+        else
+        {
+            ByteBuffer bytes = buffer.plugin_.byteBuffer;
+            int oldPosition = bytes.position();
+            bytes.position(buffer.plugin_.buffer.position() * 4);
+            glVertexAttribPointer(inputID, size, type, normalize, stride, bytes);
+            bytes.position(oldPosition);
+        }
     }
     
     public void SetPixelClipping(int x, int y, int width, int height)
@@ -746,6 +768,11 @@ public class DesktopGraphics implements GraphicsManager {
     public void glEnableVertexAttribArray (int index) 
     {
 	GL20.glEnableVertexAttribArray(index);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z, double w)
+    {
+        glVertexAttrib4f(location, (float)x, (float)y, (float)z, (float)w);
     }
     
     public void glVertexAttrib4f (int indx, float x, float y, float z, float w) 

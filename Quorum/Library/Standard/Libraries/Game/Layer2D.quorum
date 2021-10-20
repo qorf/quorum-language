@@ -1104,7 +1104,7 @@ class Layer2D is Layer
         Array<Item2D> sortedItems = GetDepthSortedItems()
 
         camera:Update()
-        painter:ApplyCamera(camera)
+        painter:SetCamera(camera)
         
         if (GetViewportX() not= graphics:GetViewportX() or GetViewportY() not= graphics:GetViewportY()
             or GetViewportWidth() not= graphics:GetViewportWidth() or GetViewportHeight() not= graphics:GetViewportHeight())

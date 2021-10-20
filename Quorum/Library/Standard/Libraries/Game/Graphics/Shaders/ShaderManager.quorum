@@ -7,6 +7,9 @@ shared class ShaderManager
     public constant text DEFAULT_2D_SHADER_PROGRAM = "Default 2D Shader Program"
     public constant text DEFAULT_2D_VERTEX_SHADER = "Default 2D Vertex Shader"
     public constant text DEFAULT_2D_FRAGMENT_SHADER = "Default 2D Fragment Shader"
+    public constant text DEFAULT_3D_SHADER_PROGRAM = "Default 3D Shader Program"
+    public constant text DEFAULT_3D_VERTEX_SHADER = "Default 3D Vertex Shader"
+    public constant text DEFAULT_3D_FRAGMENT_SHADER = "Default 3D Fragment Shader"
 
     HashTable<text, Shader> registeredShaders
     HashTable<text, ShaderProgram> registeredPrograms
@@ -40,6 +43,30 @@ shared class ShaderManager
             return registeredPrograms:GetValue(name)
         else
             return undefined
+        end
+    end
+
+    action GetDefaultShaderProgram2D returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(DEFAULT_2D_SHADER_PROGRAM)
+        if program = undefined
+            DefaultShaderProgram2D default2D
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default2D:Compile()
+            return default2D
+        else
+            return program
+        end
+    end
+
+    action GetDefaultShaderProgram3D returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(DEFAULT_3D_SHADER_PROGRAM)
+        if program = undefined
+            DefaultShaderProgram3D default3D
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default3D:Compile()
+            return default3D
+        else
+            return program
         end
     end
 

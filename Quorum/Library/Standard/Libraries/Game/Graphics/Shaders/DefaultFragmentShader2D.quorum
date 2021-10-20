@@ -4,7 +4,10 @@ class DefaultFragmentShader2D is Shader
 
     on create
         SetType(parent:Shader:FRAGMENT_SHADER)
+        ShaderManager manager
+        SetName(manager:DEFAULT_2D_FRAGMENT_SHADER)
 
+        // TO-DO: Possibly adjust variable names to use constants instead?
         DefaultAttributeNames attributes
         SetCode(
 "#ifdef GL_ES

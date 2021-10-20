@@ -2,6 +2,7 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Queue
 use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Item2DDepthComparison
@@ -82,6 +83,9 @@ class Painter2D
 
     Item2DDepthComparison depthSorter
 
+    // The Drawables which have been processed by the "Draw" action, but haven't been flushed yet.
+    Queue<Drawable> queuedDrawables
+
     /*
     Values used for clipping via glScissor. The coordinates form an axis
     aligned rectangle. glScissor requires the values of clipX, clipY, clipWidth,
@@ -112,13 +116,21 @@ class Painter2D
     // The default shader program used by this Painter if an Item doesn't have a custom program.
     ShaderProgram defaultProgram = undefined
 
+    // The current shader program in use.
+    ShaderProgram currentProgram = undefined
+
     // The reusable mesh, used to render quads in bulk.
     Mesh mesh
 
-    // Transform, projection, and combined transform-projection matrices. Allows us to translate world coordinates to screen coordinates.
-    Matrix4 transformMatrix
+    // The camera viewing the scene
+    Camera camera = undefined
+
+    // Projection matrix, taken from the Camera. Allows us to translate world coordinates to screen coordinates.
     Matrix4 projectionMatrix
-    Matrix4 combinedMatrix
+
+    // If this boolean is true, we can safely batch together Drawables to be rendered together for performance.
+    // Otherwise, each Drawable has to be rendered separately, because a custom shader program/mapping might need different values on a per-Drawable basis.
+    boolean batchDrawables = true
 
     on create
         color = color:White()
@@ -329,6 +341,7 @@ class Painter2D
         VertexAttributes attributes
         Array<VertexAttribute> array
         
+        // TO-DO: Instead of hardcoded names for the attributes, fetch these names from a common source 
         VertexAttribute position
         position:SetAttribute(position:POSITION, 3, "a_position")
         VertexAttribute colorPacked
@@ -383,24 +396,7 @@ class Painter2D
 
     private action GetDefaultShaders returns ShaderProgram
         ShaderManager manager
-        if manager:HasShaderProgram(manager:DEFAULT_2D_SHADER_PROGRAM)
-            return manager:GetShaderProgram(manager:DEFAULT_2D_SHADER_PROGRAM)
-        else
-            ShaderProgram default2D
-            default2D:SetName(manager:DEFAULT_2D_SHADER_PROGRAM)
-    
-            DefaultVertexShader2D vertex2D
-            vertex2D:SetName(manager:DEFAULT_2D_VERTEX_SHADER)
-            default2D:Add(vertex2D)
-    
-            DefaultFragmentShader2D fragment2D
-            fragment2D:SetName(manager:DEFAULT_2D_FRAGMENT_SHADER)
-            default2D:Add(fragment2D)
-    
-            // Compiling this program will automatically register it with the manager.
-            default2D:Compile()
-            return default2D
-        end
+        return manager:GetDefaultShaderProgram2D()
     end
 
     /*
@@ -439,10 +435,11 @@ class Painter2D
         graphics:SetDepthFunction(graphics:GL_LEQUAL)
         graphics:DisableProperty(graphics:GL_CULL_FACE)
 
-        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
-        defaultProgram:Begin(undefined, undefined)
+        projectionMatrix:Set(camera:GetCombinedMatrix())
 
-        SetupMatrices()
+        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
+//        defaultProgram:Begin()
+
         drawing = true
 
         if isClipping
@@ -453,34 +450,34 @@ class Painter2D
         end
     end
 
-    private action SetupMatrices
-        combinedMatrix:Set(projectionMatrix):Multiply(transformMatrix)
-
-        defaultProgram:SetShaderInputMatrix("u_projTrans", combinedMatrix)
-        defaultProgram:SetShaderInput("u_texture", 0)
-
-        /*
-        TO-DO: Review this code. May need to adjust this for the use of custom shaders.
-
-        combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
-        
-        if (useFontShader)
-        {
-            fontShader.SetUniformMatrix("u_projTrans", combinedMatrix);
-            fontShader.SetUniform("u_texture", 0);
-        }
-        else if (customShader != null) 
-        {
-            customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
-            customShader.SetUniform("u_texture", 0);
-        }
-        else 
-        {
-            shader.SetUniformMatrix("u_projTrans", combinedMatrix);
-            shader.SetUniform("u_texture", 0);
-        }
-        */
-    end
+//    private action SetupMatrices
+//        combinedMatrix:Set(projectionMatrix)
+//
+//        defaultProgram:SetShaderInputMatrix("u_projTrans", combinedMatrix)
+//        defaultProgram:SetShaderInput("u_texture", 0)
+//
+//        /*
+//        TO-DO: Review this code. May need to adjust this for the use of custom shaders.
+//
+//        combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
+//        
+//        if (useFontShader)
+//        {
+//            fontShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+//            fontShader.SetUniform("u_texture", 0);
+//        }
+//        else if (customShader != null) 
+//        {
+//            customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+//            customShader.SetUniform("u_texture", 0);
+//        }
+//        else 
+//        {
+//            shader.SetUniformMatrix("u_projTrans", combinedMatrix);
+//            shader.SetUniform("u_texture", 0);
+//        }
+//        */
+//    end
 
     /*
     Deactivates this Painter2D. A deactivated Painter2D can not draw. If the Painter2D
@@ -546,7 +543,11 @@ class Painter2D
         end
 
         // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
-        defaultProgram:End()
+//        defaultProgram:End()
+        if currentProgram not= undefined
+            currentProgram:End()
+            currentProgram = undefined
+        end
 
 
         integer current = sortingArray:GetSize()
@@ -607,6 +608,24 @@ class Painter2D
             alert("Painter2D:Begin() must be called before Draw.")
         end
 
+        ShaderProgram candidate = drawable:GetShaderProgram()
+        if candidate = undefined
+            candidate = defaultProgram
+        end
+
+        if candidate not= currentProgram
+            Flush()
+            if currentProgram not= undefined
+                currentProgram:End()
+            end
+
+            currentProgram = candidate
+            currentProgram:Begin()
+
+            ShaderManager shaderManager
+            batchDrawables = (currentProgram = shaderManager:GetDefaultShaderProgram2D())
+        end
+
         integer verticesLength = GetVertices():GetSize()
         if drawable:GetTexture() not= lastTexture
             SwitchTexture(drawable:GetTexture())
@@ -632,6 +651,10 @@ class Painter2D
             SetVertex(drawIndex, drawable:GetVertex(counter))
             drawIndex = drawIndex + 1
             counter = counter + 1
+        end
+
+        if batchDrawables
+            queuedDrawables:Add(drawable)
         end
     end
 
@@ -693,37 +716,37 @@ class Painter2D
             return now
         end
 
+        GraphicsManager graphics = manager:GetGameGraphics()
+
         // The count is equal to the index dividied by DRAWABLE_SIZE, multiplied by 6 (because we render each quad as 2 triangles of 3 vertices each).
         // TO-DO: If a custom shader wants to send extra vertex information, then DRAWABLE_SIZE will be wrong.
         // This needs to be updated to a value retrieved from a mapping.
         integer count = (drawIndex / 24) * 6
 
-        lastTexture:Bind()
-        
+        lastTexture:Bind() 
+
         mesh:SetVertices(GetVertices())
 //        mesh:GetIndexData():SetIndexRange(0, count)
-
-        GraphicsManager graphics = manager:GetGameGraphics()
 
         if blendingDisabled
             graphics:DisableProperty(graphics:GL_BLEND)
         else
             graphics:EnableProperty(graphics:GL_BLEND)
+            graphics:SetBlendFunction(graphics:GL_SRC_ALPHA, graphics:GL_ONE_MINUS_SRC_ALPHA)
         end
 
-        // TO-DO: Evaluate if a call to "glBlendFunc" is necessary here
-        /*
-        if (blendingDisabled)
-            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+        if batchDrawables
+            currentProgram:Draw(mesh, camera, 0, count)
+//            mesh:Render(defaultProgram, graphics:GL_TRIANGLES, 0, count)
         else
-        {
-            GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
-            if (blendSourceFunction != -1)
-                GameStateManager.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
-        }
-        */
-
-        mesh:Render(defaultProgram, graphics:GL_TRIANGLES, 0, count)
+            integer i = 0
+            repeat until queuedDrawables:IsEmpty()
+                i = i + 1
+                Drawable current = queuedDrawables:RemoveFromFront()
+                current:SetMesh(mesh)
+                currentProgram:Draw(current)
+            end
+        end
 
         drawIndex = 0
     end
@@ -732,21 +755,27 @@ class Painter2D
     This action will set the Painter2D to render objects on the screen relative
     to the given camera.
     */
-    action ApplyCamera(Camera camera)
-        SetProjectionMatrix(camera:GetCombinedMatrix())
-    end
-
-    action SetProjectionMatrix(Matrix4 matrix)
+    action SetCamera(Camera camera)
+        me:camera = camera
         if IsDrawing()
-            Flush()
+            projectionMatrix:Set(camera:GetCombinedMatrix())
         end
 
-        projectionMatrix:Set(matrix)
-
-        if IsDrawing()
-            SetupMatrices()
-        end
+        // TO-DO: Delete this comment when it's no longer relevant
+//        SetProjectionMatrix(camera:GetCombinedMatrix())
     end
+
+//    action SetProjectionMatrix(Matrix4 matrix)
+//        if IsDrawing()
+//            Flush()
+//        end
+//
+//        projectionMatrix:Set(matrix)
+//
+//        if IsDrawing()
+//            SetupMatrices()
+//        end
+//    end
 
     /*
     This action gives the plugins a shortcut to conveniently set a single index
@@ -927,13 +956,13 @@ class Painter2D
         use the display's width and height to find the actual pixel values
         the clip point will apply to.
         */
-        clipPoint:Multiply(combinedMatrix)
+        clipPoint:Multiply(projectionMatrix)
         integer x = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
         integer y = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
         
         clipPoint:Set(GetClipX2(), GetClipY2(), 0)
         
-        clipPoint:Multiply(combinedMatrix)
+        clipPoint:Multiply(projectionMatrix)
         integer x2 = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
         integer y2 = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
         

@@ -16,7 +16,7 @@ public class ShaderProvider
     
     public Shader GetShader(Renderable_ renderable)
     {
-        Shader suggestedShader = ((Renderable)renderable).plugin_.shader;
+        Shader suggestedShader = null;//((Renderable)renderable).plugin_.shader;
         if (suggestedShader != null && suggestedShader.CanRender(renderable))
             return suggestedShader;
         for (Shader shader : shaders) 

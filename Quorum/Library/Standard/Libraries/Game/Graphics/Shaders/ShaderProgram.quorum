@@ -11,9 +11,11 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Camera
-use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.Mesh
 
 class ShaderProgram
 
@@ -52,15 +54,22 @@ class ShaderProgram
     Number32BitArray matrix3Array
     Number32BitArray matrix4Array
 
-    // A mapping object that can be used to translate Quorum data into vertex/shader input data.
+    // The default mapping object that can be used to translate Quorum data into vertex/shader input data.
     ShaderMapping shaderMapping = undefined
+
+    // The current shader mapping that is being used.
+    ShaderMapping currentMapping = undefined
+    
+    // TO-DO: Consider removing this when we update LWJGL/OpenGL versions, which will provide layout
+    // qualifiers in GLSL (which is a better solution than this).
+    // An ordered array of vertex inputs, given before we link the shader program. The first such named input
+    // will be at location 0, the next at 1, etc.
+    Array<text> orderedVertexInputs
 
     on create
         matrix3Array:SetSize(9)
         matrix4Array:SetSize(16)
     end
-
-
 
     action Add(Shader shader)
         shaders:Add(shader)
@@ -105,7 +114,7 @@ class ShaderProgram
         end
 
         if name = ""
-            
+            alert("Shader programs must have a name before they can be compiled.")
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
@@ -120,7 +129,7 @@ class ShaderProgram
             counter = counter + 1
         end
 
-        programHandle = graphics:CreateShaderProgram(shaders)
+        programHandle = graphics:CreateShaderProgram(me)
 
         FetchShaderInputs()
         FetchInputs()
@@ -129,6 +138,14 @@ class ShaderProgram
 
         ShaderManager shaderManager
         shaderManager:Register(name, me)
+    end
+
+    action AddOrderedVertexInput(text name)
+        orderedVertexInputs:Add(name)
+    end
+
+    action GetOrderedVertexInputs returns Array<text>
+        return orderedVertexInputs
     end
 
     private action FetchShaderInputs
@@ -141,19 +158,16 @@ class ShaderProgram
         vertexInputNames = graphics:GetVertexInputTables(GetID(), vertexInputLocations, vertexInputSizes, vertexInputTypes)
     end
 
-    action Begin(Camera camera, Environment environment)
+    action Begin
         GraphicsManager graphics = manager:GetGameGraphics()
         CheckManaged()
         graphics:UseShaderProgram(GetID())
-
-        if shaderMapping not= undefined
-            shaderMapping:Begin(camera, environment, me)
-        end
     end
 
     action End
-        if shaderMapping not= undefined
-            shaderMapping:End(me)
+        if currentMapping not= undefined
+            currentMapping:End(me)
+            currentMapping = undefined
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
@@ -199,7 +213,11 @@ class ShaderProgram
     end
 
     action GetVertexInputLocation(text name) returns integer
-        return vertexInputLocations:GetValue(name)
+        if vertexInputLocations:HasKey(name)
+            return vertexInputLocations:GetValue(name)
+        else
+            return -1
+        end
     end
 
     action GetVertexInputSize(text name) returns integer
@@ -501,8 +519,10 @@ class ShaderProgram
     action EnableVertexInput(text inputName)
         GraphicsManager graphics = manager:GetGameGraphics()
         CheckManaged()
-        integer inputID = vertexInputLocations:GetValue(inputName)
-        graphics:EnableVertexInput(inputID)
+        if vertexInputLocations:HasKey(inputName)
+            integer inputID = vertexInputLocations:GetValue(inputName)
+            graphics:EnableVertexInput(inputID)
+        end
     end
 
     action DisableVertexInput(integer inputID)
@@ -514,8 +534,24 @@ class ShaderProgram
     action DisableVertexInput(text inputName)
         GraphicsManager graphics = manager:GetGameGraphics()
         CheckManaged()
-        integer inputID = vertexInputLocations:GetValue(inputName)
-        graphics:DisableVertexInput(inputID)
+        if vertexInputLocations:HasKey(inputName)
+            integer inputID = vertexInputLocations:GetValue(inputName)
+            graphics:DisableVertexInput(inputID)
+        end
+    end
+
+    // TO-DO: Expand out these options for the different permutations of allowed vertex inputs
+    action SetDefaultVertexInputValue(text inputName, number x, number y, number z, number w)
+        if vertexInputLocations:HasKey(inputName)
+            SetDefaultVertexInputValue(vertexInputLocations:GetValue(inputName), x, y, z, w)
+        end
+    end
+
+    action SetDefaultVertexInputValue(integer inputID, number x, number y, number z, number w)
+        // TO-DO: Ensure that this program is actually in use before setting the value
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetDefaultVertexValue(inputID, x, y, z, w)
     end
 
     private action MatrixToArray(Matrix3 matrix) returns Number32BitArray
@@ -555,10 +591,72 @@ class ShaderProgram
         if renderable:worldTransform:Determinant3x3() = 0
             return now
         end
-        
+
+        ShaderMapping candidate = renderable:shaderMapping
+        if candidate = undefined
+            candidate = shaderMapping
+        end
+
+        if candidate not= currentMapping
+            if currentMapping not= undefined
+                currentMapping:End(me)
+            end
+            currentMapping = candidate
+            currentMapping:Begin(me, renderable:camera)
+        end
+
         shaderMapping:MapInputs(me, renderable)
 
-        // TO-DO: Make the mesh actually render here
+        // TO-DO: REMOVE THIS
+        // Also remember to remove outputs/commented outputs in graphics plugins
+        GraphicsManager graphics = manager:GetGameGraphics()
+//        graphics:DisableVertexInput(GetVertexInputLocation("a_color"))
+//        graphics:SetDefaultVertexValue(GetVertexInputLocation("a_color"), 1.0, 1.0, 1.0, 1.0)
+
+        MeshPart meshPart = renderable:meshPart
+        Mesh mesh = meshPart:mesh
+        mesh:Render(me, meshPart:primitiveType, meshPart:indexOffset, meshPart:verticesCount, false)
+    end
+
+    action Draw(Drawable drawable)
+        // TO-DO: Modify this to draw a correct value for totalIndices from the Drawable itself.
+        // 6 works for the default (2 triangles of 3 indices each for the default quad) but will be wrong for arbitrary polygons.
+        Draw(drawable, 0, 6)
+    end
+
+    action Draw(Drawable drawable, integer startIndex, integer totalIndices)
+        ShaderMapping candidate = drawable:GetShaderMapping()
+        if candidate = undefined
+            candidate = shaderMapping
+        end
+
+        if candidate not= currentMapping
+            if currentMapping not= undefined
+                currentMapping:End(me)
+            end
+            currentMapping = candidate
+            currentMapping:Begin(me, drawable:GetLayer():GetCamera())
+        end
+
+        shaderMapping:MapInputs(me, drawable)
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        drawable:GetMesh():Render(me, graphics:GL_TRIANGLES, startIndex, totalIndices)
+    end
+
+    action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
+        if currentMapping not= shaderMapping
+            if currentMapping not= undefined
+                currentMapping:End(me)
+            end
+            currentMapping = shaderMapping
+            currentMapping:Begin(me, camera)
+        end
+
+        // In this case, we aren't mapping a renderable or a drawable directly, so no input mapping occurs. Skip straight to rendering.
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        mesh:Render(me, graphics:GL_TRIANGLES, startIndex, totalIndices)
     end
 
     action GetShaderMapping returns ShaderMapping

@@ -371,7 +371,7 @@ public class PixelMap {
     */
     
     public void LoadFromFontBitmap(ByteBuffer pixels, int width, int height, int format)
-    {
+    {      
         pixelPointer = pixels;
         this.width = width;
         this.height = height;

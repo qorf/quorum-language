@@ -7,7 +7,7 @@ import quorum.Libraries.Containers.Integer32BitArray;
 import quorum.Libraries.Containers.Integer32BitArray_;
 
 public class Integer32BitBuffer {
-    public java.lang.Object me = null;
+    public java.lang.Object me_ = null;
     
     ByteBuffer byteBuffer;
     IntBuffer buffer;
@@ -40,6 +40,16 @@ public class Integer32BitBuffer {
         buffer.position(0);
         buffer.limit(ints.length);
     }
+    
+    public void Set(int targetOffset, Integer32BitArray_ array, int sourceOffset, int count)
+    {
+        int[] ints = ((Integer32BitArray)array).plugin_.ints;
+        int lastPosition = byteBuffer.position();
+        byteBuffer.position(targetOffset * 4);
+        BufferUtils.copy(ints, sourceOffset, count, byteBuffer);
+        byteBuffer.position(lastPosition);
+        buffer.position(0);
+    }
 
     public void Dispose()
     {
@@ -71,5 +81,10 @@ public class Integer32BitBuffer {
     {
         int[] ints = ((Integer32BitArray)array).plugin_.ints;
         buffer.put(ints);
+    }
+    
+    public int Get(int index)
+    {
+        return buffer.get(index);
     }
 }

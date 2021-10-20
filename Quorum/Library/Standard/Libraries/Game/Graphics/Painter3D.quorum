@@ -9,6 +9,10 @@ use Libraries.Game.Graphics.TextureDescriptor
 use Libraries.Game.Graphics.Shaders.SkyboxShader
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.DefaultVertexShader3D
+use Libraries.Game.Graphics.Shaders.DefaultFragmentShader3D
+use Libraries.Game.Graphics.Shaders.DefaultShaderProgram3D
 
 class Painter3D is Disposable
     
@@ -30,8 +34,24 @@ class Painter3D is Disposable
 
     GameStateManager manager
 
+    on create
+        defaultProgram = GetDefaultShaders()
+    end
+
+    private action GetDefaultShaders returns ShaderProgram
+        ShaderManager manager
+        if manager:HasShaderProgram(manager:DEFAULT_3D_SHADER_PROGRAM)
+            return manager:GetShaderProgram(manager:DEFAULT_3D_SHADER_PROGRAM)
+        else
+            DefaultShaderProgram3D default3D
+            // Compiling this program will automatically register it with the manager.
+            default3D:Compile()
+            return default3D
+        end
+    end
+
     action Dispose
-        //...
+        // TO-DO
     end
 
     /*
@@ -126,18 +146,9 @@ class Painter3D is Disposable
             alert("The Painter3D must have a camera set before calling Begin().")
         end
         
-        BeginGraphicsState()
         isRendering = true
         
         shouldRenderSkybox = (skybox not= undefined)
-    end
-
-    private action BeginGraphicsState
-        GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:EnableProperty(graphics:GL_DEPTH_TEST)
-        graphics:SetDepthMask(true)
-        graphics:DisableProperty(graphics:GL_BLEND)
-        graphics:DisableProperty(graphics:GL_CULL_FACE)
     end
 
     /*
@@ -208,7 +219,7 @@ class Painter3D is Disposable
                 currentProgram = candidateProgram
                 // TO-DO: This Begin call doesn't exist yet, but in the plugins, it represents not just starting the program, but also running a preliminary mapping
 //                currentShader:Begin(camera, context)
-                currentProgram:Begin(camera, environment)
+                currentProgram:Begin()
             end
             // TO-DO: This Render call also doesn't exist yet. In the plugins, this also represents a mapping step (fetches attributes associated with this renderable and sets them in the shader)
 //            currentShader:Render(renderable)

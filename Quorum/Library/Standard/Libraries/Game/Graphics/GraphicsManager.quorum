@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Number32BitBuffer
 use Libraries.Game.Graphics.Integer32BitBuffer
@@ -19,6 +20,9 @@ class GraphicsManager
   /* Note: Currently adding constants as they are needed. Hex values
            need to be translated to integers */
 
+    public constant integer GL_NONE = 0
+    public constant integer GL_ZERO = 0
+    public constant integer GL_ONE = 1
     public constant integer GL_POINTS = 0
     public constant integer GL_LINES = 1
     public constant integer GL_LINE_LOOP = 2
@@ -34,12 +38,18 @@ class GraphicsManager
     public constant integer GL_NOTEQUAL = 517
     public constant integer GL_GEQUAL = 518
     public constant integer GL_ALWAYS = 519
+    public constant integer GL_SRC_ALPHA = 770
+    public constant integer GL_ONE_MINUS_SRC_ALPHA = 771
     public constant integer GL_FRONT = 1028
     public constant integer GL_BACK = 1029
     public constant integer GL_FRONT_AND_BACK = 1032
     public constant integer GL_BLEND = 3042
     public constant integer GL_SCISSOR_TEST = 3089
     public constant integer GL_UNSIGNED_INT = 5125
+    public constant integer GL_FLOAT = 5126
+    public constant integer GL_RED = 6403
+    public constant integer GL_GREEN = 6404
+    public constant integer GL_BLUE = 6405
     public constant integer GL_NEAREST = 9728
     public constant integer GL_LINEAR = 9729
     public constant integer GL_LINEAR_MIPMAP_LINEAR = 9987
@@ -164,7 +174,15 @@ class GraphicsManager
     shaders are combined together into a shader program, and an ID for that program is returned. If this process fails
     due to an error, this action will alert an error.
     */
-    blueprint action CreateShaderProgram(Array<Shader> shaders) returns integer
+//    blueprint action CreateShaderProgram(Array<Shader> shaders) returns integer
+
+    /*
+
+    */
+    action CreateShaderProgram(ShaderProgram program) returns integer
+        // TO-DO: Make this a proper blueprint, add implementation everywhere
+        alert("NYI")
+    end
 
     /*
     This action tells the graphics system to render content using the shader program indicated by the provided ID.
@@ -292,6 +310,16 @@ class GraphicsManager
     This action also returns an array containing all of the names of the inputs in this program.
     */
     blueprint action GetVertexInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
+
+    // TO-DO: Properly make this a blueprint and implement it everywhere.
+    action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
+        alert("NYI")
+    end
+
+    // TO-DO: Properly make this a blueprint and implement it everywhere.
+    action SetVertexInputID(integer programID, integer inputID, text name)
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -460,6 +488,18 @@ class GraphicsManager
     Attribute: Parameter offset The index of the first element of this input's data in the input buffer, or in other words, how many bytes of data appear before the first instance of input data for this input.
     */
     blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
+
+    /*
+    This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
+
+    Attribute: Parameter inputID An ID that describes a vertex input.
+    Attribute: Parameter size How many bytes from the array are needed to set a single instance of the input value in the shader. Must be between 1 and 4.
+    Attribute: Parameter type A constant value representing the type of data, such as GL_INT.
+    Attribute: Parameter normalize If set to true, fixed-point data values will be normalized when passed down to the system. If set to false, the values will be passed down without modification.
+    Attribute: Parameter stride How many bytes of data separate each instance of data meant to be used for this input. If this value is 0, it's assumed that there is no additional data interleaved between data used for this input.
+    Attribute: Parameter buffer A buffer containing vertex input data.
+    */
+//    blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, Number32BitBuffer buffer)
 
     /*
     This action will enable a vertex input within the shader system. Whenever a polygon is sent to the rendering system,

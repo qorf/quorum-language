@@ -104,7 +104,7 @@ public class Mesh
     {
         if (quorumMesh.isVertexArray)
         {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
+//            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
             if (quorumMesh.indices.GetSize() > 0)
                 ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
         }
@@ -125,7 +125,7 @@ public class Mesh
     {
         if (quorumMesh.isVertexArray)
         {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+//            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
             if (quorumMesh.indices.GetSize() > 0)
                 ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
         }
@@ -193,7 +193,7 @@ public class Mesh
     {
         if (quorumMesh.isVertexArray)
         {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
+//            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
             if (quorumMesh.indices.GetSize() > 0)
                 ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
         }
@@ -214,7 +214,7 @@ public class Mesh
     {
         if (quorumMesh.isVertexArray)
         {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+//            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
             if (quorumMesh.indices.GetSize() > 0)
                 ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
         }
@@ -237,7 +237,7 @@ public class Mesh
         final FloatBuffer verts;
         
         if (quorumMesh.isVertexArray)
-            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.GetVertexData()).plugin_.GetBuffer();
+            verts = null;//((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.GetVertexData()).plugin_.GetBuffer();
         else
             verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.GetVertexData()).plugin_.GetBuffer();
         
@@ -287,7 +287,7 @@ public class Mesh
         final IntBuffer index;
         if (quorumMesh.isVertexArray)
         {
-            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.GetBuffer();
+            verts = null;//((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.GetBuffer();
             index = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
         }
         else

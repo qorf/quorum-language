@@ -16,6 +16,9 @@ class IndexBufferObject is IndexData
     boolean empty = true
     GameStateManager manager
 
+    // TO-DO: REMOVE THIS
+    private system action GeneratePlugin
+
     action Load(integer maxIndices)
         Load(true, maxIndices)
     end
@@ -89,9 +92,9 @@ class IndexBufferObject is IndexData
         graphics:BindBuffer(graphics:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
         isBound = true
 
-        if isDirty
+//        if isDirty
             BufferChanged()
-        end
+//        end
     end
 
     action Unbind

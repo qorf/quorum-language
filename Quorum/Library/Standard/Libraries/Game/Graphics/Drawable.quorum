@@ -19,6 +19,8 @@ use Libraries.System.File
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Scenes.SceneProperties
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -93,6 +95,22 @@ class Drawable is TextureRegion, Item2D
     Math math
 
     integer drawableType = 0
+
+    // A custom shader program. If this isn't undefined, this will be used instead of the default shader to render this object.
+    ShaderProgram shaderProgram = undefined
+
+    // A custom shader mapping. If this isn't undefined, it will be used to map this Model's renderables to shader inputs when it's rendered by a shader.
+    ShaderMapping shaderMapping = undefined
+
+    /*
+    An optional field with an arbitrary object containing additional data for use by a shader.
+    This is undefined by default. If it isn't undefined, it's up to the ShaderMapping to determine
+    how this data should be used. The default shaders/mappings will typically ignore this value.
+    */
+    Object shaderData = undefined
+
+    // The mesh used to render this object to the screen.
+    Mesh mesh = undefined
 
     on create
         SceneProperties properties
@@ -1661,6 +1679,38 @@ class Drawable is TextureRegion, Item2D
         points:Add(x3)
         points:Add(y3)
         SetProperty(properties:POINTS, points)
+    end
+
+    action GetShaderProgram returns ShaderProgram
+        return shaderProgram
+    end
+
+    action SetShaderProgram(ShaderProgram shaderProgram)
+        me:shaderProgram = shaderProgram
+    end
+
+    action GetShaderMapping returns ShaderMapping
+        return shaderMapping
+    end
+
+    action SetShaderMapping(ShaderMapping shaderMapping)
+        me:shaderMapping = shaderMapping
+    end
+
+    action GetShaderData returns Object
+        return shaderData
+    end
+
+    action SetShaderData(Object shaderData)
+        me:shaderData = shaderData
+    end
+
+    action GetMesh returns Mesh
+        return mesh
+    end
+
+    action SetMesh(Mesh mesh)
+        me:mesh = mesh
     end
 
 end

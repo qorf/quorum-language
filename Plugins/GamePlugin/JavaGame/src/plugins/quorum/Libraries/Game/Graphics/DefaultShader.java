@@ -1032,7 +1032,7 @@ public class DefaultShader extends BaseShader
                 final long t = attr.Get_Libraries_Game_Graphics_Attribute__type_();
                 if ((t & (long)blendingAttribute.GetBlendedValue()) == t) 
                 {
-                    context.SetBlending(true, ((BlendingAttribute)attr).sourceFunction, ((BlendingAttribute)attr).destFunction);
+//                    context.SetBlending(true, ((BlendingAttribute)attr).sourceFunction, ((BlendingAttribute)attr).destFunction);
                     Set(u_opacity, (float)((BlendingAttribute)attr).opacity);
                 }
                 else if ((t & integerAttribute.GetCullFaceValue()) == integerAttribute.GetCullFaceValue())
@@ -1043,8 +1043,8 @@ public class DefaultShader extends BaseShader
                 {
                     DepthTestAttribute dta = (DepthTestAttribute)attr;
                     depthFunc = dta.depthFunction;
-                    depthRangeNear = dta.depthRangeNear;
-                    depthRangeFar = dta.depthRangeFar;
+//                    depthRangeNear = dta.depthRangeNear;
+//                    depthRangeFar = dta.depthRangeFar;
                     depthMask = dta.depthMask;
                 } 
                 else if (!config.ignoreUnimplemented)

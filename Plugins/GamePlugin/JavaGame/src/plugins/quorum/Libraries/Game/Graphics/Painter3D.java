@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
+import plugins.quorum.Libraries.Game.Graphics.Shaders.SkyboxShader;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.Graphics.Painter3D_;
@@ -45,7 +46,7 @@ public class Painter3D
     
     public void Initialize(Painter3D_ batch, Array_ array)
     {
-        quorumBatch = (quorum.Libraries.Game.Graphics.Painter3D)batch;
+//        quorumBatch = (quorum.Libraries.Game.Graphics.Painter3D)batch;
         renderables = array;
     }
     
@@ -59,12 +60,13 @@ public class Painter3D
         if (isRendering && renderables.GetSize() > 0)
             Flush();
         
-        camera = cam;
+//        camera = cam;
     }
     
     public Camera_ GetCamera()
     {
-        return camera;
+//        return camera;
+        return null;
     }
     
     public void SetEnvironment(Environment_ environ)
@@ -91,8 +93,8 @@ public class Painter3D
     {
         if (isRendering)
             throw new GameRuntimeError("The Painter3D is already rendering! Call End() before calling Begin() again.");
-        if (camera == null)
-            throw new GameRuntimeError("The Painter3D must have a camera set before calling Begin().");
+//        if (camera == null)
+//            throw new GameRuntimeError("The Painter3D must have a camera set before calling Begin().");
         
         context.Begin();
         isRendering = true;
@@ -109,7 +111,7 @@ public class Painter3D
         {   
             if (skybox.IsLoaded() == false)
                 throw new GameRuntimeError("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
-            skyboxShader.Render(skybox, camera);
+//            skyboxShader.Render(skybox, camera);
         }
         context.End();
         isRendering = false;
@@ -126,7 +128,7 @@ public class Painter3D
         for (int i = 0; i < renderables.GetSize(); i++)
         {
             Renderable_ renderable = (Renderable_)renderables.Get(i);
-            Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
+//            Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
             
             /*
             When we find our first blended object, render the skybox first.
@@ -140,15 +142,15 @@ public class Painter3D
                 if (currentShader != null)
                     currentShader.End();
                 currentShader = null;
-                skyboxShader.Render(skybox, camera);
+//                skyboxShader.Render(skybox, camera);
             }
             
-            if (currentShader != renderPlugin.shader) 
+//            if (currentShader != renderPlugin.shader) 
             {
                 if (currentShader != null)
                     currentShader.End();
-                currentShader = renderPlugin.shader;
-                currentShader.Begin(camera, context);
+//                currentShader = renderPlugin.shader;
+//                currentShader.Begin(camera, context);
             }
             currentShader.Render(renderable);
         }

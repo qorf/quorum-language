@@ -3,7 +3,9 @@ package Libraries.Game.Graphics
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Iterator
 
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
@@ -12,6 +14,12 @@ will not need to interact with this class directly.
 */
 class DesktopGraphics is GraphicsManager
   
+    // TO-DO: Properly make this a blueprint and implement it everywhere.
+    system action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
+
+    // TO-DO: Properly make this a blueprint and implement it everywhere.
+    system action SetVertexInputID(integer programID, integer inputID, text name)
+
     /*
     This action sets the color to clear the screen with in OpenGL.
     */
@@ -127,15 +135,43 @@ class DesktopGraphics is GraphicsManager
     shaders are combined together into a shader program, and an ID for that program is returned. If this process fails
     due to an error, this action will alert an error.
     */
-    action CreateShaderProgram(Array<Shader> shaders) returns integer
+//    action CreateShaderProgram(Array<Shader> shaders) returns integer
+//        integer id = CreateShaderProgramID()
+//        if id = 0
+//            alert("Could not create new shader program ID.")
+//        end
+//
+//        integer counter = 0
+//        repeat while counter < shaders:GetSize()
+//            AttachShader(id, shaders:Get(counter):GetID())
+//            counter = counter + 1
+//        end
+//
+//        LinkShaderProgram(id)
+//
+//        if IsShaderProgramLinked(id) = false
+//            alert("An error occurred while linking a shader program: " + GetShaderProgramLog(id))
+//        end
+//
+//        return id
+//    end
+
+    action CreateShaderProgram(ShaderProgram program) returns integer
         integer id = CreateShaderProgramID()
         if id = 0
             alert("Could not create new shader program ID.")
         end
 
+        Iterator<Shader> shaders = program:GetIterator()
+
+        repeat while shaders:HasNext()
+            AttachShader(id, shaders:Next():GetID())
+        end
+
         integer counter = 0
-        repeat while counter < shaders:GetSize()
-            AttachShader(id, shaders:Get(counter):GetID())
+        Array<text> attributes = program:GetOrderedVertexInputs()
+        repeat while counter < attributes:GetSize()
+            SetVertexInputID(id, counter, attributes:Get(counter))
             counter = counter + 1
         end
 
@@ -494,6 +530,18 @@ class DesktopGraphics is GraphicsManager
     Attribute: Parameter offset The index of the first element of this input's data in the input buffer, or in other words, how many bytes of data appear before the first instance of input data for this input.
     */
     system action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
+
+    /*
+    This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
+
+    Attribute: Parameter inputID An ID that describes a vertex input.
+    Attribute: Parameter size How many bytes from the array are needed to set a single instance of the input value in the shader. Must be between 1 and 4.
+    Attribute: Parameter type A constant value representing the type of data, such as GL_INT.
+    Attribute: Parameter normalize If set to true, fixed-point data values will be normalized when passed down to the system. If set to false, the values will be passed down without modification.
+    Attribute: Parameter stride How many bytes of data separate each instance of data meant to be used for this input. If this value is 0, it's assumed that there is no additional data interleaved between data used for this input.
+    Attribute: Parameter buffer A buffer containing vertex input data.
+    */
+    blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, Number32BitBuffer buffer)
 
     /*
     This action will enable a vertex input within the shader system. Whenever a polygon is sent to the rendering system,

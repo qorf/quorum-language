@@ -19,6 +19,8 @@ use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
 use Libraries.System.File
 use Libraries.Game.Collision.Shapes.all
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -80,6 +82,19 @@ class Model is Item3D
     non-textured primitive object) then this will remain undefined.
     */
     File assetFile = undefined
+
+    // A custom shader program. If this isn't undefined, this will be used instead of the default shader to render this object.
+    ShaderProgram shaderProgram = undefined
+
+    // A custom shader mapping. If this isn't undefined, it will be used to map this Model's renderables to shader inputs when it's rendered by a shader.
+    ShaderMapping shaderMapping = undefined
+
+    /*
+    An optional field with an arbitrary object containing additional data for use by a shader.
+    This is undefined by default. If it isn't undefined, it's up to the ShaderMapping to determine
+    how this data should be used. The default shaders/mappings will typically ignore this value.
+    */
+    Object shaderData = undefined
 
     on create
         SceneProperties properties
@@ -2379,7 +2394,13 @@ class Model is Item3D
             out:worldTransform:IdentityMatrix()
         end
 
-        //out:userData = userData
+        out:shaderProgram = shaderProgram
+        out:shaderMapping = shaderMapping
+        out:shaderData = shaderData
+        if GetLayer() not= undefined
+            out:environment = GetLayer():GetEnvironment()
+        end
+
         return out
     end
 
@@ -2543,6 +2564,30 @@ class Model is Item3D
     */
     action GetAssetFile returns File
         return assetFile
+    end
+
+    action GetShaderProgram returns ShaderProgram
+        return shaderProgram
+    end
+
+    action SetShaderProgram(ShaderProgram shaderProgram)
+        me:shaderProgram = shaderProgram
+    end
+
+    action GetShaderMapping returns ShaderMapping
+        return shaderMapping
+    end
+
+    action SetShaderMapping(ShaderMapping shaderMapping)
+        me:shaderMapping = shaderMapping
+    end
+
+    action GetShaderData returns Object
+        return shaderData
+    end
+
+    action SetShaderData(Object shaderData)
+        me:shaderData = shaderData
     end
 
 end
