@@ -63,7 +63,6 @@ class BoxPlotLayout is ChartLayout
 
         BoxPlot chart = cast(BoxPlot, control)
         Array <PlotGroup> plotGroups = chart:GetPlotGroups()
-        Control chartArea = chart:GetChartArea()
         Color invis
         invis:SetColor(0,0,0,0)
         number percent = 0.0
@@ -76,13 +75,13 @@ class BoxPlotLayout is ChartLayout
 
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
-            integer panelwidth = cast(integer, chartArea:GetWidth())/plotGroups:GetSize()
-            integer height = cast(integer, chartArea:GetHeight())
+            integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/plotGroups:GetSize()
+            integer height = cast(integer, chartAreaContainer:GetHeight())
             number range = (yMax-yMin)
             number rangeMin = yMin
             if horizontal
-                panelwidth = cast(integer, chartArea:GetHeight())/plotGroups:GetSize()
-                height = cast(integer, chartArea:GetWidth())
+                panelwidth = cast(integer, chartAreaContainer:GetHeight())/plotGroups:GetSize()
+                height = cast(integer, chartAreaContainer:GetWidth())
                 range = (xMax-xMin)
                 rangeMin = xMin
             end

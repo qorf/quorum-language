@@ -13,6 +13,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
 /*
     The BoxPlot class is Chart object that inherits from Control and like other
@@ -52,10 +53,11 @@ use Libraries.Interface.Selections.ChartSelection
     end
 */
 
-class BoxPlot is Chart
+class BoxPlot is Chart, FirstLetterNavigator
     private ChartItem summary // Root of the info tree
 
     Array<PlotGroup> plotGroups
+    Array<ChartItem> chartItems
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -93,6 +95,8 @@ class BoxPlot is Chart
         SetInputGroup("Chart")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+
+        SetDefaultOrientation("vertical")
     end
 
     /*
@@ -538,6 +542,8 @@ class BoxPlot is Chart
                 chartArea:SetChild(firstGroup)
                 firstGroup:SetParent(chartArea)
                 firstGroup:SetFocusTarget(plotGroups:Get(0):GetItem())
+                firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
+                chartItems:Add(firstGroup)
     
                 //Plots within Plot Groups
                 if plotGroups:Get(0):GetSize() > 0 
@@ -597,6 +603,8 @@ class BoxPlot is Chart
                 group:SetContainer(me)
                 group:SetParent(chartArea)
                 group:SetFocusTarget(plotGroups:Get(i):GetItem())
+                group:SetDisplayName(plotGroups:Get(i):GetName())
+                chartItems:Add(group)
                 previousGroup:SetNext(group)
                 group:SetPrevious(previousGroup)
                 previousGroup = group
@@ -716,6 +724,60 @@ class BoxPlot is Chart
     action ConvertToScalableVectorGraphics returns text
         BoxPlotWriter writer
         return writer:WriteOutChart(me)
+    end
+
+    /*
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
+    */
+    action SelectByFirstLetters(text firstLetters)
+        /* 
+            We prioritize returning the original selection or the next item
+            after it over items found before the original selection.
+            We use a Boolean object so that we can pass it as a parameter and
+            see if the value has changed via side effects (essentially, it's an
+            extra return value).
+        */
+        boolean foundOriginalSelection = false
+
+        ChartItem firstCandidate = undefined
+
+        ChartSelection selection = GetSelection()
+        ChartItem originalSelection = selection:GetChartItem()
+
+        if originalSelection = undefined
+            // If there's no current selection, we want to return the first result we find that matches.
+            foundOriginalSelection = true
+        end
+
+        integer counter = 0
+        repeat while counter < chartItems:GetSize()
+            ChartItem result = chartItems:Get(counter)
+            if result = originalSelection
+                foundOriginalSelection = true
+            end
+
+            if result:GetDisplayName():ToLowerCase():StartsWith(firstLetters)
+                // If we've found a valid result and we've already found the original selection,
+                // we've found our desired item. Select it and return.
+                if foundOriginalSelection = true
+                    selection:Set(result)
+//                    result:GainedSelection()
+                    return now
+                elseif firstCandidate = undefined
+                    firstCandidate = result
+                end
+            end
+            
+            counter = counter + 1
+        end
+
+        // If we've reached this point, we didn't find a valid candidate without looping around to the beginning.
+        if firstCandidate not= undefined
+            selection:Set(firstCandidate)
+//            firstCandidate:GainedSelection()
+        end
+        SetNeedsUpdate(true)
     end
 
 end

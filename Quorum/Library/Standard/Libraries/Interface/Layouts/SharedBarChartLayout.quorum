@@ -32,7 +32,6 @@ class SharedBarChartLayout is ChartLayout
         end
 
         SharedBarChartParent chart = cast(SharedBarChartParent, control)
-        Control chartArea = chart:GetChartArea()
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
         
@@ -60,16 +59,16 @@ class SharedBarChartLayout is ChartLayout
             end
             if horizontal
                 currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
-                width = chartArea:GetHeight()
-                height = chartArea:GetWidth() - currentYPosition
+                width = chartAreaContainer:GetHeight()
+                height = chartAreaContainer:GetWidth() - currentYPosition
                 rangeMax = xMax
                 rangeMin = xMin
             else
                 if chart:GetHorizontalPanel():GetAxis() not= undefined
                     currentYPosition = cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
                 end
-                width = chartArea:GetWidth()
-                height = chartArea:GetHeight() - currentYPosition
+                width = chartAreaContainer:GetWidth()
+                height = chartAreaContainer:GetHeight() - currentYPosition
                 rangeMax = yMax
                 rangeMin = yMin
             end

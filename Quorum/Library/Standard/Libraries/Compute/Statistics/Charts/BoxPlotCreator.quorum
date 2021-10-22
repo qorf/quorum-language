@@ -241,8 +241,8 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                         vector:Set(0,value)
                         dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), vector)
                     end
-                    j = j + 1
                 end
+                j = j + 1
             end
             i = i + 1
         end
@@ -271,25 +271,27 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             repeat while j < seriesKeyArray:GetSize()
                 Plot plot
                 Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
-                dataset:Sort()
-                plot:SetData(dataset)
-                plot:SetInfo(Calculations(dataset))
-                plot:SetName(seriesKeyArray:Get(j))
+                if dataset not= undefined
+                    dataset:Sort()
+                    plot:SetData(dataset)
+                    plot:SetInfo(Calculations(dataset))
+                    plot:SetName(seriesKeyArray:Get(j))
     
-                if largest < dataset:Get(dataset:GetSize()-1) //Find largest value to scale y axis
-                    largest = dataset:Get(dataset:GetSize()-1)
-                end
+                    if largest < dataset:Get(dataset:GetSize()-1) //Find largest value to scale y axis
+                        largest = dataset:Get(dataset:GetSize()-1)
+                    end
+        
+                    if smallest > dataset:Get(0) //Find smallest value to scale y axis
+                        smallest = dataset:Get(0)
+                    end    
     
-                if smallest > dataset:Get(0) //Find smallest value to scale y axis
-                    smallest = dataset:Get(0)
-                end    
-
-                if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
-                end
-                if groupFactor:HasKey(groupKeyArray:Get(i))
-                    groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
+                    if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
+                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
+                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
+                    end
+                    if groupFactor:HasKey(groupKeyArray:Get(i))
+                        groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
+                    end
                 end
                 j = j + 1
             end
@@ -334,11 +336,10 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
     end
 
     private action SetScale(BoxPlot chart, number ymin, number ymax, number xmin, number xmax)
-        chart:SetDefaultOrientation("vertical")
-        chart:SetYAxisMinimum(ymin)
-        chart:SetYAxisMaximum(ymax)
-        chart:SetXAxisMinimum(xmin)
-        chart:SetXAxisMaximum(xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
     
     /*

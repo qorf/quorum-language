@@ -31,14 +31,22 @@ class LineChartLayout is TwoVariableChartLayout
         number width = chartAreaContainer:GetWidth()
         number height = chartAreaContainer:GetHeight()
 
+        number xMin = chart:GetXAxisMinimum()
+        number xMax = chart:GetXAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
+        number yMax = chart:GetYAxisMaximum()
+
         // Give 1.5% of chart area space to each point
-        number pointDensity = (width * 0.015) 
-        integer radius = cast(integer, pointDensity/2)
-        chart:SetPointRadius(radius)
+        integer pointRadius = chart:GetPointDensity()
+        if pointRadius <= 0
+            pointRadius = cast(integer, width * 0.015 / 2) 
+        end
 
         // Set default line density to 0.75% of chart area
-        integer LineDensity = cast(integer, width * 0.0075)
-        chart:SetLineDensity(LineDensity)
+        integer lineDensity = chart:GetLineDensity()
+        if lineDensity <= 0
+            lineDensity = cast(integer, width * 0.0075)
+        end
 
         integer i = 0
         repeat while i < lines:GetSize()
@@ -50,11 +58,12 @@ class LineChartLayout is TwoVariableChartLayout
             repeat while j < lines:Get(i):GetPoints():GetSize()
                 ChartPoint point = lines:Get(i):GetPoints():Get(j)
                 
-                if chart:GetPointsFlag()
-                    point:LoadFilledCircle(radius, lines:Get(i):GetColor())
+                point:LoadFilledCircle(pointRadius, lines:Get(i):GetColor())
+                if not chart:GetPointsFlag()
+                    point:Hide()
                 end
-                point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
-                point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))
+                point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
+                point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
                 integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
                 integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
                 point:SetPosition(x, y)
@@ -80,13 +89,13 @@ class LineChartLayout is TwoVariableChartLayout
                 number slope = math:Round(cast(number, (y2 - y1)) / cast(number, (x2 - x1)), 2)
                 number tanInverse = math:Round(math:RadiansToDegrees(math:InverseTangent(slope)), 2)
 
-                line:LoadFilledRectangle(cast(integer, sideC)+2, LineDensity, lines:Get(i):GetColor())
+                line:LoadFilledRectangle(cast(integer, sideC)+2, lineDensity, lines:Get(i):GetColor())
 
                 number angle = -1.0*tanInverse
 
-                line:SetPosition(x1+radius, y1+radius)
-                line:SetCenterX(x1+radius + (cast(number, x2 - x1) / 2.0)) 
-                line:SetCenterY(y1+radius + (cast(number, y2 - y1) / 2.0))
+                line:SetPosition(x1+pointRadius, y1+pointRadius)
+                line:SetCenterX(x1+pointRadius + (cast(number, x2 - x1) / 2.0)) 
+                line:SetCenterY(y1+pointRadius + (cast(number, y2 - y1) / 2.0))
                 line:SetRotation(angle)
                 number offX = math:Cosine(math:DegreesToRadians(angle))
                 number offY = math:Sine(math:DegreesToRadians(angle))
@@ -100,5 +109,6 @@ class LineChartLayout is TwoVariableChartLayout
             end
             i = i + 1
         end
+
     end
 end

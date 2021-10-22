@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Compute.Math
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -43,8 +44,8 @@ class TwoVariableChart is Chart
     ChartOptions options
     Math math
 
-    private integer PointRadius = 2
-    private integer LineDensity = 1
+    private integer PointDensity = 0
+    private integer LineDensity = 0
     private boolean showPoints = true
 
     
@@ -80,11 +81,6 @@ class TwoVariableChart is Chart
             SetHighlightColor(options:GetSelectionColor())
         end
 
-        // Default orientation for two var charts is horizontal
-        if GetDefaultOrientation() = undefined
-            SetDefaultOrientation("horizontal")
-        end
-
         // Check for orientation change
         if OrientationChanged()
             flipValues()
@@ -94,11 +90,35 @@ class TwoVariableChart is Chart
     end
 
     action LoadChartAreaItems()
-        Control chartArea = GetChartArea()
         // Line Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
+                Control chartArea
+                if GetNumberOfChartAreas() > 1 and i < GetNumberOfChartAreas()
+                    chartArea = GetSubChartAreas():Get(i)
+                    ManualLayout manualLayout
+                    chartArea:SetLayout(manualLayout)
+
+                    Color color
+                    LayoutProperties properties = chartArea:GetDefaultLayoutProperties()
+                    properties:SetBackgroundColor(color:White())
+                    properties:SetBorderColor(color:Black())
+                    properties:SetBorderThickness(4)
+                    if chartArea:GetDefaultLayoutProperties():GetView2D() = undefined
+                        LabelBoxView view 
+                        view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                        view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+                        chartArea:SetView2D(view)
+                    else
+                        chartArea:SetView2D(chartArea:GetDefaultLayoutProperties():GetView2D())
+                    end
+                    GetChartArea():Add(chartArea)
+                else
+                    chartArea = GetChartArea()
+                end
+
+
                 lines:Get(i):SetFocusable(true)
                 lines:Get(i):SetAccessibilityCode(parent:Item:ITEM)
                 lines:Get(i):SetNextFocus(GetNextFocus())
@@ -140,7 +160,7 @@ class TwoVariableChart is Chart
                 point:SetAccessibilityCode(parent:Item:ITEM)
                 point:SetNextFocus(GetNextFocus())
                 point:SetPreviousFocus(GetPreviousFocus())
-                chartArea:Add(point)
+                GetChartArea():Add(point)
                 i = i + 1
             end
         end
@@ -418,12 +438,12 @@ class TwoVariableChart is Chart
     /*
         Set and get the point radius.
     */
-    action SetPointRadius(integer radius)
-        PointRadius = radius
+    action SetPointDensity(integer radius)
+        PointDensity = radius
     end
 
-    action GetPointRadius() returns integer
-        return PointRadius
+    action GetPointDensity() returns integer
+        return PointDensity
     end
 
     /*

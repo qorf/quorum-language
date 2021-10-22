@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Compute.Math
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
     The SharedBarChartParent class is Chart object that inherits from Control and like other
@@ -79,11 +80,6 @@ class SharedBarChartParent is Chart
             SetHighlightColor(options:GetSelectionColor())
         end
 
-        // Default orientation for bar charts is vertical
-        if GetDefaultOrientation() = undefined
-            SetDefaultOrientation("vertical")
-        end
-
         if hasBarGroups and not GetShowBracketOverride()
             ShowGroupBrackets()
         end
@@ -123,10 +119,10 @@ class SharedBarChartParent is Chart
                 text placement = (j + 1) + " of " + barGroups:Get(i):GetSize() + " bars inside " + groupname + "group."
                 if hasBarGroups
                     temp:SetName(barname + " bar. ")
-                    temp:SetDescription(" value of " + value + " which is " + percent + " percent of the chart maximum. " + placement)
+                    temp:SetDescription(" value of " + value + " " + placement)
                 else
                     temp:SetName(barname + " bar. ")
-                    temp:SetDescription(" value of " + value + " which is " + percent + " percent of the chart maximum. " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
+                    temp:SetDescription(" value of " + value + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
                 end
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
@@ -149,7 +145,7 @@ class SharedBarChartParent is Chart
                 j = j + 1
             end
             if sum > GetYAxisMaximum()
-                SetYAxisMaximum(sum)
+                GetVerticalPanel():SetMaximum(sum)
             end
             i = i + 1
         end

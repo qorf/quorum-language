@@ -106,11 +106,15 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         chart:SetSliceValues(sliceValues)
         chart:SetSeriesList(seriesList)
 
-        chart:SetYAxisMinimum(min)
-        chart:SetYAxisMaximum(countMax)
-        chart:SetXAxisMinimum(min)
-        chart:SetXAxisMaximum(min)
+        SetScale(chart, min, countMax, min, min)
         return chart
+    end
+
+    private action SetScale(PieChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
     action CreateChart(DataFrame frame) returns PieChart

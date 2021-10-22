@@ -271,11 +271,14 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         chart:SetSeriesList(seriesList)
-        chart:SetDefaultOrientation("horizontal")
-        chart:SetYAxisMaximum(yAxisMaximum)
-        chart:SetYAxisMinimum(yAxisMinimum)
-        chart:SetXAxisMaximum(xAxisMaximum)
-        chart:SetXAxisMinimum(xAxisMinimum)
+        SetScale(chart, yAxisMinimum, yAxisMaximum, xAxisMinimum, xAxisMaximum)
         return chart
+    end
+
+    private action SetScale(LineChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 end

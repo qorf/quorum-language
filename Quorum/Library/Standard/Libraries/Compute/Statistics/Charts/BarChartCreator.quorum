@@ -255,7 +255,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer i = 0
         repeat while i < factor:GetSize()
             if not factor:IsUndefined(i)
-                if not groupFactor:HasKey(factor:GetAsText(i))
+                if not (factor:GetAsText(i) = "") and not groupFactor:HasKey(factor:GetAsText(i))
                     BarGroup group
                     group:SetName(factor:GetAsText(i))
                     groupFactor:Add(factor:GetAsText(i), group)
@@ -649,11 +649,10 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
 
     private action SetScale(BarChart chart, number ymin, number ymax, number xmin, number xmax)
-        chart:SetDefaultOrientation("vertical")
-        chart:SetYAxisMinimum(ymin)
-        chart:SetYAxisMaximum(ymax)
-        chart:SetXAxisMinimum(xmin)
-        chart:SetXAxisMaximum(xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
     

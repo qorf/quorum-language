@@ -246,8 +246,8 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                         vector:Set(0,value)
                         dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), vector)
                     end
-                    j = j + 1
                 end
+                j = j + 1
             end
             i = i + 1
         end
@@ -273,8 +273,9 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         repeat while i < groupKeyArray:GetSize()
             integer j = 0
             repeat while j < seriesKeyArray:GetSize()
-                    Plot plot
-                    Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
+                Plot plot
+                Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
+                if dataset not= undefined
                     dataset:Sort()
                     plot:SetData(dataset)
                     plot:SetInfo(Calculations(dataset))
@@ -295,6 +296,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                     if groupFactor:HasKey(groupKeyArray:Get(i))
                         groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
                     end
+                end
                 j = j + 1
             end
             i = i + 1  
@@ -343,11 +345,10 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
     end
 
     private action SetScale(ViolinPlot chart, number ymin, number ymax, number xmin, number xmax)
-        chart:SetDefaultOrientation("vertical")
-        chart:SetYAxisMinimum(ymin)
-        chart:SetYAxisMaximum(ymax)
-        chart:SetXAxisMinimum(xmin)
-        chart:SetXAxisMaximum(xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
     /*
