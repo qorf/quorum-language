@@ -15,9 +15,7 @@ class IndexBufferObject is IndexData
     integer usage = 0
     boolean empty = true
     GameStateManager manager
-
-    // TO-DO: REMOVE THIS
-    private system action GeneratePlugin
+    OpenGLConstants constants
 
     action Load(integer maxIndices)
         Load(true, maxIndices)
@@ -34,9 +32,9 @@ class IndexBufferObject is IndexData
         GraphicsManager graphics = manager:GetGameGraphics()
         bufferHandle = graphics:CreateBuffer()
         if isStatic
-            usage = graphics:GL_STATIC_DRAW
+            usage = constants:GL_STATIC_DRAW
         else
-            usage = graphics:GL_DYNAMIC_DRAW
+            usage = constants:GL_DYNAMIC_DRAW
         end
     end
 
@@ -69,7 +67,7 @@ class IndexBufferObject is IndexData
     private action BufferChanged
         if isBound
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetBuffer(graphics:GL_ELEMENT_ARRAY_BUFFER, buffer, usage)   
+            graphics:SetBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, buffer, usage)   
             isDirty = false
         end
     end
@@ -89,7 +87,7 @@ class IndexBufferObject is IndexData
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:BindBuffer(graphics:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
         isBound = true
 
 //        if isDirty
@@ -99,13 +97,13 @@ class IndexBufferObject is IndexData
 
     action Unbind
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:BindBuffer(graphics:GL_ELEMENT_ARRAY_BUFFER, 0)
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
         isBound = false
     end
 
     action Dispose
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:BindBuffer(graphics:GL_ELEMENT_ARRAY_BUFFER, 0)
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
         graphics:DeleteBuffer(bufferHandle)
         bufferHandle = 0
 

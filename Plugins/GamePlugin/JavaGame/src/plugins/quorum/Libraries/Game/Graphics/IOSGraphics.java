@@ -146,6 +146,21 @@ public class IOSGraphics implements GraphicsManager
         return buffer.get(0);
     }
     
+    public int CreateVertexArray()
+    {
+        throw new Error("CreateVertexArray NYI -- Requires a new native function");
+    }
+    
+    public void DeleteVertexArray(int vao)
+    {
+        throw new Error("DeleteVertexArray NYI -- Requires a new native function");
+    }
+    
+    public void BindVertexArray(int array)
+    {
+        throw new Error("BindVertexArray NYI -- Requires a new native function");
+    }
+    
     public int CreateBuffer()
     {
         return glGenBuffer();
@@ -348,6 +363,31 @@ public class IOSGraphics implements GraphicsManager
     public void SetPixelClipping(int x, int y, int width, int height)
     {
         glScissor(x, y, width, height);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x)
+    {
+        glVertexAttrib1f(location, (float)x);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y)
+    {
+        glVertexAttrib2f(location, (float)x, (float)y);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z)
+    {
+        glVertexAttrib3f(location, (float)x, (float)y, (float)z);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z, double w)
+    {
+        glVertexAttrib4f(location, (float)x, (float)y, (float)z, (float)w);
+    }
+    
+    public int GetGraphicsErrorCode()    
+    {
+        return glGetError();
     }
 
     public native void glActiveTexture ( int texture );

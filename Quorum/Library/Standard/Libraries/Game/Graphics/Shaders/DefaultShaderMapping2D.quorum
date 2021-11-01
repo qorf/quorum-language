@@ -13,6 +13,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.OpenGLConstants
 
 class DefaultShaderMapping2D is ShaderMapping
     
@@ -22,6 +23,14 @@ class DefaultShaderMapping2D is ShaderMapping
     action Begin(ShaderProgram program, Camera camera)
         me:program = program
 
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
         program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
         program:SetShaderInput("u_texture", 0)
     end

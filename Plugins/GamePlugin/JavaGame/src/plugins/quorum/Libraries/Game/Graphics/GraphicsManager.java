@@ -334,6 +334,7 @@ public interface GraphicsManager {
 	public static final int GL_DEPTH_COMPONENT = 0x1902;
         public static final int GL_RED = 0x1903;
 	public static final int GL_ALPHA = 0x1906;
+        public static final int GL_ALPHA8 = 32828;
 	public static final int GL_RGB = 0x1907;
 	public static final int GL_RGBA = 0x1908;
 	public static final int GL_LUMINANCE = 0x1909;

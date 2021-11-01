@@ -46,9 +46,10 @@ Attribute: Example
 */
 class Texture is Disposable
 
-    private TextureData data = undefined
+    TextureData data = undefined
 
-    private GraphicsManager gl20 = undefined
+    GraphicsManager graphics = undefined
+    OpenGLConstants constants
 
     TextureFilter minimizeFilter
     TextureFilter magnifyFilter
@@ -59,7 +60,7 @@ class Texture is Disposable
 
     on create
         GameStateManager manager
-        gl20 = manager:GetGameGraphics()
+        graphics = manager:GetGameGraphics()
 
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
         magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
@@ -543,7 +544,7 @@ class Texture is Disposable
     use, and most users will never need to use this action. 
     */
     private action LoadFromTextureData(TextureData data)
-        SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
+        SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
         Load(data)
         AddReloadableTexture()
     end
@@ -569,7 +570,7 @@ class Texture is Disposable
 
         Bind()
 
-        UploadImageData(gl20:GL_TEXTURE_2D, data)
+        UploadImageData(constants:GL_TEXTURE_2D, data)
         SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
         SetWrap(GetHorizontalWrap(), GetVerticalWrap())
         
@@ -588,7 +589,7 @@ class Texture is Disposable
     */
     action Reload
         if data not= undefined
-            SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
+            SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
             Load(data)
         else
             alert("I couldn't reload this Texture because it had never been loaded before.")
@@ -678,7 +679,7 @@ class Texture is Disposable
 
     private system action CreateGLHandle returns integer
 
-    private system action SetGL20Info(integer target, integer handle)
+    private system action SetGraphicsInfo(integer target, integer handle)
 
     private system action GetGLTarget returns integer
 
@@ -760,7 +761,7 @@ class Texture is Disposable
             alert(error)
         end
 
-        gl20:PixelStorageMode(gl20:GL_UNPACK_ALIGNMENT,1)
+        graphics:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
 
         if data:UseMipMaps()
             // Generate MipMaps - only used for 3D textures. Java code below.
@@ -785,8 +786,8 @@ class Texture is Disposable
         minimizeFilter = minFilter
         magnifyFilter = magFilter
         Bind()
-        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
-        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
+        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
+        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
 
     end
 
@@ -800,8 +801,8 @@ class Texture is Disposable
         horizontalWrap = hWrap
         verticalWrap = vWrap
         Bind()
-        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_S, hWrap:GetValue())
-        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
+        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
 
     end
 
@@ -1352,12 +1353,12 @@ class Texture is Disposable
     */
     action UnsafeSetWrap(TextureWrap u, TextureWrap v)
         if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
-            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_S, u:GetValue())
+            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, u:GetValue())
             horizontalWrap = u
         end
 
         if v not= undefined and v:GetValue() not= verticalWrap:GetValue()
-            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_T, v:GetValue())
+            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValue())
             verticalWrap = v
         end
     end
@@ -1369,12 +1370,12 @@ class Texture is Disposable
     */
     action UnsafeSetFilter(TextureFilter min, TextureFilter mag)
         if min not= undefined and min:GetValue() not= minimizeFilter:GetValue()
-            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MIN_FILTER, min:GetValue())
+            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, min:GetValue())
             minimizeFilter = min
         end
 
         if mag not= undefined and mag:GetValue() not= magnifyFilter:GetValue()
-            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, mag:GetValue())
             magnifyFilter = mag
         end
     end

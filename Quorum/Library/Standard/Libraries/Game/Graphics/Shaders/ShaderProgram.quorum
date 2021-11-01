@@ -16,15 +16,9 @@ use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.OpenGLConstants
 
 class ShaderProgram
-
-    /* 
-    TO-DO: Add shader programs to a shared shader resource, and do the following:
-    * Register shaders and programs so they can be reused across different items
-    * Make it possible to invalidate/reload shaders on context loss (mobile platforms especially)
-
-    */
 
     // The ordered array of shaders in this program
     Array<Shader> shaders
@@ -35,8 +29,13 @@ class ShaderProgram
     text name = ""
 
     GameStateManager manager
+    OpenGLConstants constants
 
     boolean compiled = false
+
+    // A shader program can become invalidated if the OpenGL context is lost, and thus needs to be recompiled in the new context.
+    // Most commonly a concern on mobile platforms when the user minimizes/reopens an application.
+    boolean invalidated = false
 
     // Resources related to the shader inputs/uniforms in this program.
     Array<text> shaderInputNames = undefined
@@ -180,16 +179,52 @@ class ShaderProgram
 
         repeat while shaders:IsEmpty() = false
             Shader shader = shaders:RemoveFromFront()
-            graphics:DeleteShader(shader:GetID())
+            shader:Dispose()
         end
 
         graphics:DeleteShaderProgram(GetID())
 
-        // TO-DO: Do whatever cleanup is needed in the shared shader resource area
+        ShaderManager shaderManager
+        shaderManager:RemoveShaderProgram(name)
     end
 
     private action CheckManaged
-        // TO-DO: Check if the program needs to be recompiled due to a context loss
+        if invalidated
+            Reload()
+        end
+    end
+
+    action Reload
+        if not invalidated
+            return now
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+
+        integer counter = 0
+        repeat while counter < shaders:GetSize()
+            Shader shader = shaders:Get(counter)
+            if shader:IsInvalidated()
+                shader:Reload()
+            end
+
+            counter = counter + 1
+        end
+
+        programHandle = graphics:CreateShaderProgram(me)
+
+        FetchShaderInputs()
+        FetchInputs()
+
+        invalidated = false
+    end
+
+    action IsInvalidated returns boolean
+        return invalidated
+    end
+
+    action Invalidate
+        invalidated = true
     end
 
     action GetShaderInputLocation(text name) returns integer
@@ -540,7 +575,42 @@ class ShaderProgram
         end
     end
 
-    // TO-DO: Expand out these options for the different permutations of allowed vertex inputs
+    action SetDefaultVertexInputValue(text inputName, number x)
+        if vertexInputLocations:HasKey(inputName)
+            SetDefaultVertexInputValue(vertexInputLocations:GetValue(inputName), x)
+        end
+    end
+
+    action SetDefaultVertexInputValue(integer inputID, number x)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetDefaultVertexValue(inputID, x)
+    end
+
+    action SetDefaultVertexInputValue(text inputName, number x, number y)
+        if vertexInputLocations:HasKey(inputName)
+            SetDefaultVertexInputValue(vertexInputLocations:GetValue(inputName), x, y)
+        end
+    end
+
+    action SetDefaultVertexInputValue(integer inputID, number x, number y)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetDefaultVertexValue(inputID, x, y)
+    end
+
+    action SetDefaultVertexInputValue(text inputName, number x, number y, number z)
+        if vertexInputLocations:HasKey(inputName)
+            SetDefaultVertexInputValue(vertexInputLocations:GetValue(inputName), x, y, z)
+        end
+    end
+
+    action SetDefaultVertexInputValue(integer inputID, number x, number y, number z)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        CheckManaged()
+        graphics:SetDefaultVertexValue(inputID, x, y, z)
+    end
+
     action SetDefaultVertexInputValue(text inputName, number x, number y, number z, number w)
         if vertexInputLocations:HasKey(inputName)
             SetDefaultVertexInputValue(vertexInputLocations:GetValue(inputName), x, y, z, w)
@@ -548,7 +618,6 @@ class ShaderProgram
     end
 
     action SetDefaultVertexInputValue(integer inputID, number x, number y, number z, number w)
-        // TO-DO: Ensure that this program is actually in use before setting the value
         GraphicsManager graphics = manager:GetGameGraphics()
         CheckManaged()
         graphics:SetDefaultVertexValue(inputID, x, y, z, w)
@@ -607,11 +676,6 @@ class ShaderProgram
 
         shaderMapping:MapInputs(me, renderable)
 
-        // TO-DO: REMOVE THIS
-        // Also remember to remove outputs/commented outputs in graphics plugins
-        GraphicsManager graphics = manager:GetGameGraphics()
-//        graphics:DisableVertexInput(GetVertexInputLocation("a_color"))
-//        graphics:SetDefaultVertexValue(GetVertexInputLocation("a_color"), 1.0, 1.0, 1.0, 1.0)
 
         MeshPart meshPart = renderable:meshPart
         Mesh mesh = meshPart:mesh
@@ -641,7 +705,7 @@ class ShaderProgram
         shaderMapping:MapInputs(me, drawable)
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        drawable:GetMesh():Render(me, graphics:GL_TRIANGLES, startIndex, totalIndices)
+        drawable:GetMesh():Render(me, constants:GL_TRIANGLES, startIndex, totalIndices)
     end
 
     action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
@@ -653,10 +717,12 @@ class ShaderProgram
             currentMapping:Begin(me, camera)
         end
 
-        // In this case, we aren't mapping a renderable or a drawable directly, so no input mapping occurs. Skip straight to rendering.
-
         GraphicsManager graphics = manager:GetGameGraphics()
-        mesh:Render(me, graphics:GL_TRIANGLES, startIndex, totalIndices)
+        graphics:EnableProperty(constants:GL_BLEND)
+        graphics:SetBlendFunction(constants:GL_SRC_ALPHA, constants:GL_ONE_MINUS_SRC_ALPHA)
+
+        // In this case, we aren't mapping a renderable or a drawable directly, so no input mapping occurs. Skip straight to rendering.
+        mesh:Render(me, constants:GL_TRIANGLES, startIndex, totalIndices)
     end
 
     action GetShaderMapping returns ShaderMapping

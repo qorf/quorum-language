@@ -1,6 +1,10 @@
 package Libraries.Game.Graphics.Shaders
 
 use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Mesh
+use Libraries.Containers.Iterator
+use Libraries.Game.GameStateManager
 
 shared class ShaderManager
 
@@ -14,12 +18,24 @@ shared class ShaderManager
     HashTable<text, Shader> registeredShaders
     HashTable<text, ShaderProgram> registeredPrograms
     
+    // TO-DO: This array is currently in the ShaderManager for convenience, but reloading the meshes is only tangentially related to the shaders. This really should be somewhere else, more directly related to the meshes.
+    // Make sure to move the add/remove/reload actions as well.
+    Array<Mesh> reloadableMeshes
+
     action Register(text name, Shader shader)
         registeredShaders:Add(name, shader)
     end
 
     action Register(text name, ShaderProgram program)
         registeredPrograms:Add(name, program)
+    end
+
+    action RemoveShader(text name)
+        registeredShaders:RemoveKey(name)
+    end
+
+    action RemoveShaderProgram(text name)
+        registeredPrograms:RemoveKey(name)
     end
 
     action HasShader(text name) returns boolean
@@ -46,6 +62,16 @@ shared class ShaderManager
         end
     end
 
+    action ReloadShaders
+        GameStateManager manager
+        if manager:GetGameGraphics() = undefined
+            return now
+        end
+
+        Iterator<ShaderProgram> programs = registeredPrograms:GetValueIterator()
+        
+    end
+
     action GetDefaultShaderProgram2D returns ShaderProgram
         ShaderProgram program = GetShaderProgram(DEFAULT_2D_SHADER_PROGRAM)
         if program = undefined
@@ -70,4 +96,36 @@ shared class ShaderManager
         end
     end
 
+    action GetDefaultVertexShader2D returns Shader
+        return GetShader(DEFAULT_2D_VERTEX_SHADER)
+    end
+
+    action GetDefaultFragmentShader2D returns Shader
+        return GetShader(DEFAULT_2D_FRAGMENT_SHADER)
+    end
+
+    action GetDefaultVertexShader3D returns Shader
+        return GetShader(DEFAULT_3D_VERTEX_SHADER)
+    end
+
+    action GetDefaultFragmentShader3D returns Shader
+        return GetShader(DEFAULT_3D_FRAGMENT_SHADER)
+    end
+
+    action AddReloadableMesh(Mesh mesh)
+        reloadableMeshes:Add(mesh)
+    end
+
+    action RemoveReloadableMesh(Mesh mesh)
+        reloadableMeshes:Remove(mesh)
+    end
+
+    action ReloadMeshes
+        integer i = 0
+        repeat while i < reloadableMeshes:GetSize()
+            reloadableMeshes:Get(i):Reload()
+            i = i + 1
+        end
+    end
+    
 end

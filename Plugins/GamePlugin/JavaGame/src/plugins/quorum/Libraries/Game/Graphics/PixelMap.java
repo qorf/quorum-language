@@ -169,7 +169,7 @@ public class PixelMap {
         switch (format) 
         {
             case FORMAT_ALPHA:
-		return GraphicsManager.GL_ALPHA;
+		return GraphicsManager.GL_ALPHA8;
             case FORMAT_LUMINANCE_ALPHA:
 		return GraphicsManager.GL_LUMINANCE_ALPHA;
             case FORMAT_RGB888:

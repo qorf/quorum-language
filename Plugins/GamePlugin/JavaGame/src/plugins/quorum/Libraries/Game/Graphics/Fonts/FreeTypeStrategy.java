@@ -118,15 +118,28 @@ public class FreeTypeStrategy
         char target = character.charAt(0);
         quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
         
-        ByteBuffer bitmap = LoadBitmap(bitmapData, target, faceHandle);
-        
+        ByteBuffer rawBitmap = LoadBitmap(bitmapData, target, faceHandle);
+            
         // Since the space is just open space, there's no need to load it in a drawable.
         if (target != ' ')
         {
+            int size = rawBitmap.capacity();
+            ByteBuffer bitmap = BufferUtils.newByteBuffer(size * 4);
+
+            for (int i = 0; i < size; i++)
+            {
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put(rawBitmap.get(i));
+            }
+            
+            bitmap.flip();
+            
             quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
             plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], 1);
+            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
 
             quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
             texData.InitializeFileTextureData(null, pixmap, null, false);
@@ -134,10 +147,6 @@ public class FreeTypeStrategy
 
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
             texture.LoadFromTextureData(texData);
-            
-            quorum.Libraries.Game.Graphics.Color c = new quorum.Libraries.Game.Graphics.Color();
-            c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
-            texture.plugin_.fontColor = c;
 
             quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
             region.LoadTextureRegion(texture);
@@ -292,7 +301,7 @@ public class FreeTypeStrategy
         rows.add(new ImageSheetRow(rowHeight, 255));
         
         // Assemble the ByteBuffers into a single ByteBuffer for use by PixelMap.
-        ByteBuffer destination = BufferUtils.newByteBuffer(totalWidth * totalHeight);
+        ByteBuffer destination = BufferUtils.newByteBuffer(totalWidth * totalHeight * 4);
         ImageSheetRow currentRow = rows.remove();
         ByteBuffer currentSource = null;
         TextureRegionData currentRegion = null;
@@ -324,11 +333,15 @@ public class FreeTypeStrategy
                 currentRegion = regionData[startOfRow];
             }
             
-            for (int x = 0, subX = -padding; x < totalWidth; x++, subX++, destinationIndex++)
+            for (int x = 0, subX = -padding; x < totalWidth; x++, subX++, destinationIndex+=4)
             {
+                destination.put(destinationIndex, (byte)255);
+                destination.put(destinationIndex + 1, (byte)255);
+                destination.put(destinationIndex + 2, (byte)255);
+                
                 if (currentRow == null || currentImage > currentRow.endOfRow || subX < 0)
                 {
-                    destination.put(destinationIndex, (byte)0);
+                    destination.put(destinationIndex + 3, (byte)0);
                     continue;
                 }
                 
@@ -352,11 +365,11 @@ public class FreeTypeStrategy
                 
                 if (subY >= currentRegion.height || subY < 0 || subX < 0)
                 {
-                    destination.put(destinationIndex, (byte)0);
+                    destination.put(destinationIndex + 3, (byte)0);
                 }
                 else
                 {
-                    destination.put(destinationIndex, currentSource.get(currentRegion.width * subY + subX));
+                    destination.put(destinationIndex + 3, currentSource.get(currentRegion.width * subY + subX));
                 }
             }
         }
@@ -364,7 +377,7 @@ public class FreeTypeStrategy
         quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-        map.LoadFromFontBitmap(destination, totalWidth, totalHeight, PixelMap.FORMAT_ALPHA);
+        map.LoadFromFontBitmap(destination, totalWidth, totalHeight, PixelMap.FORMAT_RGBA8888);
 
         quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
         texData.InitializeFileTextureData(null, pixmap, null, false);

@@ -1,17 +1,27 @@
 package Libraries.Game.Graphics.Shaders
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGLConstants
 
 class Shader
 
-    // The constants listed below are equal to the OpenGL constants for shader types.
+    OpenGLConstants constants
 
-    // This type constant is used to indicate that the shader is a fragment shader.
-    public constant integer FRAGMENT_SHADER = 35632
+    // This type constant is used to indicate that the shader is a fragment shader. Every shader program must have a fragment shader as its final shader step.
+    public constant integer FRAGMENT_SHADER = constants:GL_FRAGMENT_SHADER
 
-    // This type constant is used to indicate that the shader is a vertex shader.
-    public constant integer VERTEX_SHADER = 35633
+    // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
+    public constant integer VERTEX_SHADER = constants:GL_VERTEX_SHADER
     
+    // This type constant is used to indicate that the shader is a geometry shader. This shader step is optional.
+    public constant integer GEOMETRY_SHADER = constants:GL_GEOMETRY_SHADER
+
+    // This type constant is used to indicate that the shader is a tessellation control shader. This shader step is optional. If used, this should precede a tessellation evaluation shader in a shader program.
+    public constant integer TESSELLATION_CONTROL_SHADER = constants:GL_TESS_CONTROL_SHADER
+
+    // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
+    public constant integer TESSELLATION_EVALUATION_SHADER = constants:GL_TESS_EVALUATION_SHADER
+
     GameStateManager manager
 
     integer type = 0
@@ -20,6 +30,10 @@ class Shader
 
     integer shaderID = -1
     boolean compiled = false
+
+    // A shader can become invalidated if the OpenGL context is lost, and thus needs to be recompiled in the new context.
+    // Most commonly a concern on mobile platforms when the user minimizes/reopens an application.
+    boolean invalidated = false
 
     action GetType returns integer
         return type
@@ -55,6 +69,25 @@ class Shader
         compiled = true
     end
 
+    action Reload
+        if not invalidated
+            return now
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        shaderID = graphics:CreateShader(type, code)
+
+        invalidated = false
+    end
+
+    action IsInvalidated returns boolean
+        return invalidated
+    end
+
+    action Invalidate
+        invalidated = true
+    end
+
     action IsCompiled returns boolean
         return compiled
     end
@@ -75,4 +108,10 @@ class Shader
         me:name = name
     end
 
+    action Dispose
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:DeleteShader(shaderID)
+        ShaderManager shaderManager
+        shaderManager:RemoveShader(name)
+    end
 end

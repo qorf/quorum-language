@@ -20,9 +20,7 @@ class VertexBufferObject is VertexData
     boolean isBound = false
 
     GameStateManager manager
-
-    // TO-DO: REMOVE THIS
-    private system action GeneratePlugin
+    OpenGLConstants constants
 
     action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
         VertexAttributes vertexAttributes
@@ -40,9 +38,9 @@ class VertexBufferObject is VertexData
         SetBuffer(newBuffer, true, attributes)
 
         if isStatic
-            SetUsage(graphics:GL_STATIC_DRAW)
+            SetUsage(constants:GL_STATIC_DRAW)
         else
-            SetUsage(graphics:GL_DYNAMIC_DRAW)
+            SetUsage(constants:GL_DYNAMIC_DRAW)
         end
     end
 
@@ -89,7 +87,7 @@ class VertexBufferObject is VertexData
 
     action Dispose
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:BindBuffer(graphics:GL_ARRAY_BUFFER, 0)
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, 0)
         graphics:DeleteBuffer(bufferHandle)
         bufferHandle = 0
         if ownsBuffer
@@ -106,7 +104,7 @@ class VertexBufferObject is VertexData
     private action BufferChanged
         if isBound
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetBuffer(graphics:GL_ARRAY_BUFFER, buffer, usage)   
+            graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)   
             isDirty = false
         end
     end
@@ -129,10 +127,10 @@ class VertexBufferObject is VertexData
 
     action Bind(ShaderProgram program, Array<integer> locations)
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:BindBuffer(graphics:GL_ARRAY_BUFFER, bufferHandle)
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, bufferHandle)
         
 //        if isDirty
-            graphics:SetBuffer(graphics:GL_ARRAY_BUFFER, buffer, usage)
+            graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)
             isDirty = false
 //        end
 
@@ -193,7 +191,7 @@ class VertexBufferObject is VertexData
             end
         end
 
-        graphics:BindBuffer(graphics:GL_ARRAY_BUFFER, 0)
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, 0)
         isBound = false
     end
 

@@ -65,7 +65,7 @@ public class Texture
       return gl20.glGenTexture();
     }
 
-    public void SetGL20Info(int target, int handle)
+    public void SetGraphicsInfo(int target, int handle)
     {
         glTarget = target;
         glHandle = handle;

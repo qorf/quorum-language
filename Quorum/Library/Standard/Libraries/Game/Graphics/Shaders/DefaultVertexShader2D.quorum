@@ -9,7 +9,46 @@ class DefaultVertexShader2D is Shader
 
         DefaultAttributeNames attributes
         SetCode(
-"attribute vec4 " + attributes:POSITION + ";
+/*"#version 330
+attribute vec4 " + attributes:POSITION + ";
+
+void main()
+{
+    gl_Position = " + attributes:POSITION + ";
+    if (gl_VertexID == 0)
+    {
+        gl_Position = vec4(-1, -1, 0, 1);
+    }
+    if (gl_VertexID == 1)
+    {
+        gl_Position = vec4(-1, 1, 0, 1);
+    }
+    if (gl_VertexID == 2)
+    {
+        gl_Position = vec4(1, 1, 0, 1);
+    }
+    if (gl_VertexID == 3)
+    {
+        gl_Position = vec4(1, -1, 0, 1);
+    }
+}"*/
+"#version 330
+in vec4 " + attributes:POSITION + ";
+in vec4 " + attributes:COLOR + ";
+in vec2 " + attributes:TEXTURE_COORDINATES + "0;
+uniform mat4 u_projTrans;
+out vec4 v_color;
+out vec2 v_texCoords;
+
+void main()
+{
+    v_color = " + attributes:COLOR + ";
+    v_color.a = v_color.a * (255.0/254.0);
+    v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    gl_Position =  u_projTrans * " + attributes:POSITION + ";
+}"
+/*"
+attribute vec4 " + attributes:POSITION + ";
 attribute vec4 " + attributes:COLOR + ";
 attribute vec2 " + attributes:TEXTURE_COORDINATES + "0;
 uniform mat4 u_projTrans;
@@ -18,11 +57,27 @@ varying vec2 v_texCoords;
 
 void main()
 {
-   v_color = " + attributes:COLOR + ";
-   v_color.a = v_color.a * (255.0/254.0);
-   v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
-   gl_Position =  u_projTrans * " + attributes:POSITION + ";
-}"
+    v_color = " + attributes:COLOR + ";
+    v_color.a = v_color.a * (255.0/254.0);
+    v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    gl_Position =  u_projTrans * " + attributes:POSITION + ";
+    if (gl_VertexID == 0)
+    {
+        gl_Position = vec4(-1, -1, 0, 1);
+    }
+    if (gl_VertexID == 1)
+    {
+        gl_Position = vec4(-1, 1, 0, 1);
+    }
+    if (gl_VertexID == 2)
+    {
+        gl_Position = vec4(1, 1, 0, 1);
+    }
+    if (gl_VertexID == 3)
+    {
+        gl_Position = vec4(1, -1, 0, 1);
+    }
+}"*/
 )
     end
 

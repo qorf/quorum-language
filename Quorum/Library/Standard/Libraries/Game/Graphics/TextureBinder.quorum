@@ -40,6 +40,7 @@ class TextureBinder
     integer currentTexture = 0
 
     GameStateManager manager
+    OpenGLConstants constants
 
     on create
         GraphicsManager graphics = manager:GetGameGraphics()
@@ -65,7 +66,7 @@ class TextureBinder
         //textures are active to prevent accidental manipulation of them.
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:SetActiveTextureID(graphics:GL_TEXTURE0)
+        graphics:SetActiveTextureID(constants:GL_TEXTURE0)
     end    
 
     action Bind(TextureDescriptor descriptor) returns integer
@@ -88,7 +89,7 @@ class TextureBinder
             texture:Bind(result)
         else
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetActiveTextureID(graphics:GL_TEXTURE0 + result)
+            graphics:SetActiveTextureID(constants:GL_TEXTURE0 + result)
         end
 
         texture:UnsafeSetWrap(descriptor:uWrap, descriptor:vWrap)

@@ -17,66 +17,6 @@ will not need to interact with this class directly.
 */
 class GraphicsManager
  
-  /* Note: Currently adding constants as they are needed. Hex values
-           need to be translated to integers */
-
-    public constant integer GL_NONE = 0
-    public constant integer GL_ZERO = 0
-    public constant integer GL_ONE = 1
-    public constant integer GL_POINTS = 0
-    public constant integer GL_LINES = 1
-    public constant integer GL_LINE_LOOP = 2
-    public constant integer GL_LINE_STRIP = 3
-    public constant integer GL_TRIANGLES = 4
-    public constant integer GL_TRIANGLE_STRIP = 5
-    public constant integer GL_TRIANGLE_FAN = 6
-    public constant integer GL_NEVER = 512
-    public constant integer GL_LESS = 513
-    public constant integer GL_EQUAL = 514
-    public constant integer GL_LEQUAL = 515
-    public constant integer GL_GREATER = 516
-    public constant integer GL_NOTEQUAL = 517
-    public constant integer GL_GEQUAL = 518
-    public constant integer GL_ALWAYS = 519
-    public constant integer GL_SRC_ALPHA = 770
-    public constant integer GL_ONE_MINUS_SRC_ALPHA = 771
-    public constant integer GL_FRONT = 1028
-    public constant integer GL_BACK = 1029
-    public constant integer GL_FRONT_AND_BACK = 1032
-    public constant integer GL_BLEND = 3042
-    public constant integer GL_SCISSOR_TEST = 3089
-    public constant integer GL_UNSIGNED_INT = 5125
-    public constant integer GL_FLOAT = 5126
-    public constant integer GL_RED = 6403
-    public constant integer GL_GREEN = 6404
-    public constant integer GL_BLUE = 6405
-    public constant integer GL_NEAREST = 9728
-    public constant integer GL_LINEAR = 9729
-    public constant integer GL_LINEAR_MIPMAP_LINEAR = 9987
-    public constant integer GL_NEAREST_MIPMAP_NEAREST = 9984
-    public constant integer GL_LINEAR_MIPMAP_NEAREST = 9985
-    public constant integer GL_NEAREST_MIPMAP_LINEAR = 9986
-    public constant integer GL_MIRRORED_REPEAT = 33648
-    public constant integer GL_CLAMP_TO_EDGE = 33071
-    public constant integer GL_REPEAT = 10497
-    public constant integer GL_TEXTURE_2D = 3553
-    public constant integer GL_UNPACK_ALIGNMENT = 3317
-    public constant integer GL_TEXTURE_MAG_FILTER = 10240
-    public constant integer GL_TEXTURE_MIN_FILTER = 10241
-    public constant integer GL_TEXTURE_WRAP_S = 10242
-    public constant integer GL_TEXTURE_WRAP_T = 10243
-    public constant integer GL_TEXTURE0 = 33984
-    public constant integer GL_ARRAY_BUFFER = 34962
-    public constant integer GL_ELEMENT_ARRAY_BUFFER = 34963
-    public constant integer GL_STATIC_DRAW = 35044
-    public constant integer GL_DYNAMIC_DRAW = 35048
-    public constant integer GL_FRAGMENT_SHADER = 35632
-    public constant integer GL_VERTEX_SHADER = 35633
-    public constant integer GL_CULL_FACE = 2884
-    public constant integer GL_DEPTH_TEST = 2929
-    
-    
-  
     /*
     The last coordinates that were used to set the drawing region via the
     SetViewport action.
@@ -85,6 +25,9 @@ class GraphicsManager
     integer viewportY = 0
     integer viewportWidth = 0
     integer viewportHeight = 0
+
+    // The default vertex array object. -1 indicates it hasn't been initialized yet.
+    integer defaultVertexArray = -1
 
     action SetViewport(integer x, integer y, integer width, integer height)
         viewportX = x
@@ -108,6 +51,14 @@ class GraphicsManager
 
     action GetViewportHeight returns integer
         return viewportHeight
+    end
+
+    action UseDefaultVertexArray
+        if defaultVertexArray = -1
+            defaultVertexArray = CreateVertexArray()
+        end
+
+        BindVertexArray(defaultVertexArray)
     end
 
     /*
@@ -179,10 +130,7 @@ class GraphicsManager
     /*
 
     */
-    action CreateShaderProgram(ShaderProgram program) returns integer
-        // TO-DO: Make this a proper blueprint, add implementation everywhere
-        alert("NYI")
-    end
+    blueprint action CreateShaderProgram(ShaderProgram program) returns integer
 
     /*
     This action tells the graphics system to render content using the shader program indicated by the provided ID.
@@ -242,6 +190,12 @@ class GraphicsManager
     this is set to 0 and 1 for the near and far values, respectively, which indicate that the entire range of the depth buffer should be used.
     */
     blueprint action SetDepthRange(number near, number far)
+
+    blueprint action CreateVertexArray returns integer
+
+    blueprint action DeleteVertexArray(integer arrayID)
+
+    blueprint action BindVertexArray(integer arrayID)
 
     /*
     This action returns an ID for a new buffer in the rendering system. Buffers are used to relay information from the program
@@ -311,15 +265,30 @@ class GraphicsManager
     */
     blueprint action GetVertexInputTables(integer programID, HashTable<text, integer> locations, HashTable<text, integer> sizes, HashTable<text, integer> types) returns Array<text>
 
-    // TO-DO: Properly make this a blueprint and implement it everywhere.
-    action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
-        alert("NYI")
-    end
+    /*
 
-    // TO-DO: Properly make this a blueprint and implement it everywhere.
-    action SetVertexInputID(integer programID, integer inputID, text name)
-        alert("NYI")
-    end
+    */
+    blueprint action SetDefaultVertexValue(integer location, number x)
+
+    /*
+
+    */
+    blueprint action SetDefaultVertexValue(integer location, number x, number y)
+
+    /*
+
+    */
+    blueprint action SetDefaultVertexValue(integer location, number x, number y, number z)
+
+    /*
+
+    */
+    blueprint action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
+
+    /*
+
+    */
+    blueprint action SetVertexInputID(integer programID, integer inputID, text name)
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -518,5 +487,49 @@ class GraphicsManager
     blueprint action DisableVertexInput(integer inputID)
 
     blueprint action SetPixelClipping(integer x, integer y, integer width, integer height)
+
+    blueprint action GetGraphicsErrorCode returns integer
+
+    action GetGraphicsErrorMessages returns text
+        OpenGLConstants constants
+        integer code = GetGraphicsErrorCode()
+
+        // If no errors have occurred, we return undefined
+        if code = constants:GL_NO_ERROR
+            return undefined
+        else
+            text result = ""
+
+            // The text associated with each error directly mirrors the Khronos documentation at: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetError.xhtml
+            repeat until code = constants:GL_NO_ERROR
+                if result not= ""
+                    result = result + "
+"
+                end
+
+                if code = constants:GL_INVALID_ENUM
+                    result = result + "GL_INVALID_ENUM: An unacceptable value is specified for an enumerated argument."
+                elseif code = constants:GL_INVALID_VALUE
+                    result = result + "GL_INVALID_VALUE: A numeric argument is out of range."
+                elseif code = constants:GL_INVALID_OPERATION
+                    result = result + "GL_INVALID_OPERATION: The specified operation is not allowed in the current state."
+                elseif code = constants:GL_INVALID_FRAMEBUFFER_OPERATION
+                    result = result + "GL_INVALID_OPERATION: The framebuffer object is not complete."
+                elseif code = constants:GL_OUT_OF_MEMORY
+                    result = result + "GL_OUT_OF_MEMORY: There is not enough memory left to execute the command."
+                elseif code = constants:GL_STACK_UNDERFLOW
+                    result = result + "GL_STACK_UNDERFLOW: An attempt has been made to perform an operation that would cause an internal stack to underflow. "
+                elseif code = constants:GL_STACK_OVERFLOW
+                    result = result + "GL_STACK_OVERFLOW: An attempt has been made to perform an operation that would cause an internal stack to overflow."
+                else
+                    result = result + "Unknown Error: An unknown OpenGL error has occurred."
+                end              
+
+                code = GetGraphicsErrorCode()
+            end
+
+            return result
+        end
+    end
 
 end

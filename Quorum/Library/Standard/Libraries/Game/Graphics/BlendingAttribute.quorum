@@ -6,13 +6,16 @@ class BlendingAttribute is Attribute
         SetAttribute(GetBlendedValue())
     end
 
+    AttributeManager manager
+
     public constant text ALIAS = "blended"
+    public constant integer BLENDED = manager:Register(ALIAS)
 
     /*
     Whether this material should be considered blended. Defaults to true. This
     is used for sorting.
     */
-    public boolean blended = true
+    public boolean blendingEnabled = true
     
     /*
     Specifies how the (incoming) source blending factors are computed. By 
@@ -35,11 +38,13 @@ class BlendingAttribute is Attribute
     /*
     Returns the integer value representing a BlendingAttribute.
     */
-    system action GetBlendedValue returns integer
+    action GetBlendedValue returns integer
+        return BLENDED
+    end
 
     action Copy returns Attribute
         BlendingAttribute new
-        new:blended = blended
+        new:blendingEnabled = blendingEnabled
         new:sourceFunction = sourceFunction
         new:destinationFunction = destinationFunction
         new:opacity = opacity

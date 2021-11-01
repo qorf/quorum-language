@@ -174,10 +174,11 @@ class Painter3D is Disposable
 
     private action EndGraphicsState
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:DisableProperty(graphics:GL_DEPTH_TEST)
+        OpenGLConstants constants
+        graphics:DisableProperty(constants:GL_DEPTH_TEST)
         graphics:SetDepthMask(true)
-        graphics:DisableProperty(graphics:GL_BLEND)
-        graphics:DisableProperty(graphics:GL_CULL_FACE)
+        graphics:DisableProperty(constants:GL_BLEND)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
     end
 
     action Flush
@@ -217,12 +218,8 @@ class Painter3D is Disposable
                     currentProgram:End()
                 end
                 currentProgram = candidateProgram
-                // TO-DO: This Begin call doesn't exist yet, but in the plugins, it represents not just starting the program, but also running a preliminary mapping
-//                currentShader:Begin(camera, context)
                 currentProgram:Begin()
             end
-            // TO-DO: This Render call also doesn't exist yet. In the plugins, this also represents a mapping step (fetches attributes associated with this renderable and sets them in the shader)
-//            currentShader:Render(renderable)
             currentProgram:Render(renderable)
 
             i = i + 1

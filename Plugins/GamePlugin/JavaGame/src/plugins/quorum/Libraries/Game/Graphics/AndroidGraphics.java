@@ -10,6 +10,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.util.Log;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -158,6 +159,25 @@ public class AndroidGraphics implements GraphicsManager
     public void SetActiveTextureID(int id)
     {
         glActiveTexture(id);
+    }
+    
+    public int CreateVertexArray()
+    {
+        int[] buffer = new int[1];
+        GLES30.glGenVertexArrays(1, buffer, 0);
+        return buffer[0];
+    }
+    
+    public void DeleteVertexArray(int vao)
+    {
+        int[] array = new int[1];
+        array[0] = vao;
+        GLES30.glDeleteVertexArrays(1, array, 0);
+    }
+    
+    public void BindVertexArray(int array)
+    {
+        GLES30.glBindVertexArray(array);
     }
     
     public int CreateBuffer()
@@ -349,9 +369,49 @@ public class AndroidGraphics implements GraphicsManager
         }
     }
     
+    public void SetDefaultVertexValue(int location, double x)
+    {
+        glVertexAttrib1f(location, (float)x);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y)
+    {
+        glVertexAttrib2f(location, (float)x, (float)y);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z)
+    {
+        glVertexAttrib3f(location, (float)x, (float)y, (float)z);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z, double w)
+    {
+        glVertexAttrib4f(location, (float)x, (float)y, (float)z, (float)w);
+    }
+    
+    public void glVertexAttrib1f(int index, float x) 
+    {
+	GLES20.glVertexAttrib1f(index, x);
+    }
+    
+    public void glVertexAttrib2f(int index, float x, float y)
+    {
+	GLES20.glVertexAttrib2f(index, x, y);
+    }
+    
+    public void glVertexAttrib3f(int index, float x, float y, float z) 
+    {
+	GLES20.glVertexAttrib3f(index, x, y, z);
+    }
+    
     public void SetPixelClipping(int x, int y, int width, int height)
     {
         glScissor(x, y, width, height);
+    }
+    
+    public int GetGraphicsErrorCode()    
+    {
+        return GLES20.glGetError();
     }
     
     public void glBindTexture (int target, int texture) {

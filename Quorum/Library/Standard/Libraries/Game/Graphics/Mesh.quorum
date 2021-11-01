@@ -12,26 +12,21 @@ use Libraries.Game.Disposable
 use Libraries.Game.Graphics.IndexBufferObject
 use Libraries.Game.Graphics.VertexBufferObject
 use Libraries.Game.Graphics.IndexArray
-use Libraries.Game.Graphics.VertexArray
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 class Mesh is Disposable
 
     VertexData vertices = undefined
     IndexData indices = undefined
     boolean autoBind = true
-    boolean isVertexArray = false
+
     GameStateManager manager
 
-    on create
-        SetQuorumReference(me)
-    end
-
-    action Load(VertexData vertices, IndexData indices, boolean isVertexArray)
+    action Load(VertexData vertices, IndexData indices)
         me:vertices = vertices
         me:indices = indices
-        me:isVertexArray = isVertexArray
 
         AddReloadableMesh()
     end
@@ -46,47 +41,15 @@ class Mesh is Disposable
         AddReloadableMesh()
     end
 
-    action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes, boolean isArray)
-        // TO-DO: Change this. Currently hard coding so VertexArrays aren't made
-        isArray = false
-        if isArray = false
-            Load(isStatic, maxVertices, maxIndices, attributes)
-            return now
-        end
-
-        VertexArray vertexArray
-        vertexArray:Load(maxVertices, attributes)
-        vertices = vertexArray
-
-        IndexArray indexArray
-        indexArray:Load(maxIndices)
-        indices = indexArray
-
-        isVertexArray = true
-    end
-
     private action MakeVertexBuffer(boolean isStatic, integer maxVertices, VertexAttributes attributes) returns VertexData
-        // if SupportsGL30() return new VertexBufferObjectWithVAO end
         VertexBufferObject temp
         temp:Load(isStatic, maxVertices, attributes)
         return temp
     end
 
     action SetVertices(Number32BitArray vertices)
-       me:vertices:SetVertices(vertices)//, 0, vertices:GetSize()) 
+       me:vertices:SetVertices(vertices)
     end
-
-//    action SetVertices(Array<number> vertices)
-//       SetVertices(vertices, 0, vertices:GetSize()) 
-//    end
-
-//    action SetVertices(Number32BitArray vertices, integer offset, integer count)
-//        me:vertices:SetVertices(vertices, offset, count)
-//    end
-
-//    action SetVertices(Array<number> vertices, integer offset, integer count)
-//        me:vertices:SetVertices(vertices, offset, count)
-//    end
 
     action UpdateVertices(integer targetOffset, Number32BitArray source)
         UpdateVertices(targetOffset, source, 0, source:GetSize())
@@ -282,22 +245,22 @@ class Mesh is Disposable
     end
 
     /*
-    This action is used during creation to pass a reference of this object down
-    to the corresponding plugin class.
-    */
-    private system action SetQuorumReference(Mesh mesh)
-
-    /*
     Adds this mesh to the static collection of meshes in the plugins, which are
     maintained so that they can be reloaded in case of context loss.
     */
-    private system action AddReloadableMesh
+    private action AddReloadableMesh
+        ShaderManager shaderManager
+        shaderManager:AddReloadableMesh(me)
+    end
 
     /*
     Removes this mesh from the static collection of meshes in the plugins, which
     are maintained so that they can be reloaded in case of context loss.
     */
-    private system action RemoveReloadableMesh
+    private action RemoveReloadableMesh
+        ShaderManager shaderManager
+        shaderManager:RemoveReloadableMesh(me)
+    end
 
     action Render(ShaderProgram program, integer type, integer offset, integer count)
         Render(program, type, offset, count, autoBind)
@@ -313,21 +276,12 @@ class Mesh is Disposable
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        // TO-DO: REMOVE THIS
-//        graphics:EnableProperty(graphics:GL_BLEND)
 
-        if isVertexArray
-            if indices:GetSize() > 0
-                graphics:DrawIndexedBuffer(type, count, graphics:GL_UNSIGNED_INT, offset * 4)
-            else
-                graphics:DrawBuffer(type, offset, count)
-            end
+        if indices:GetSize() > 0
+            OpenGLConstants constants
+            graphics:DrawIndexedBuffer(type, count, constants:GL_UNSIGNED_INT, offset * 4)
         else
-            if indices:GetSize() > 0
-                graphics:DrawIndexedBuffer(type, count, graphics:GL_UNSIGNED_INT, offset * 4)
-            else
-                graphics:DrawBuffer(type, offset, count)
-            end
+            graphics:DrawBuffer(type, offset, count)
         end
 
         if autoBind
@@ -357,43 +311,4 @@ class Mesh is Disposable
         end
     end
 
-    /*
-    
-    public void Bind(final ShaderProgram_ shader, final int[] locations)
-    {
-        if (quorumMesh.isVertexArray)
-        {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
-        }
-        else
-        {
-            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
-        }
-    }
-    
-    public void Unbind(final ShaderProgram_ shader)
-    {
-        Unbind(shader, null);
-    }
-    
-    public void Unbind(final ShaderProgram_ shader, final int[] locations)
-    {
-        if (quorumMesh.isVertexArray)
-        {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
-        }
-        else
-        {
-            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
-        }
-    }
-    */
 end

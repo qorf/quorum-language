@@ -5,11 +5,12 @@ class DefaultFragmentShader3D is Shader
     on create
         SetType(parent:Shader:FRAGMENT_SHADER)
         ShaderManager manager
-        SetName(manager:DEFAULT_3D_VERTEX_SHADER)
+        SetName(manager:DEFAULT_3D_FRAGMENT_SHADER)
 
         DefaultAttributeNames attributes
         SetCode(
-"// Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
+"#version 330
+// Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
 
 #ifdef GL_ES 
     #define LOWP lowp
@@ -35,14 +36,16 @@ uniform sampler2D u_diffuseTexture;
 uniform vec4 u_specularColor;
 uniform sampler2D u_specularTexture;
 
-varying vec4 v_color;
+in vec4 v_color;
 uniform float u_opacity;
 uniform float u_alphaTest;
-varying MED vec2 v_diffuseUV;
-varying MED vec2 v_specularUV;
+in MED vec2 v_diffuseUV;
+in MED vec2 v_specularUV;
 
-varying vec3 v_lightDiffuse;
-varying vec3 v_lightSpecular;
+in vec3 v_lightDiffuse;
+in vec3 v_lightSpecular;
+
+layout (location = 0) out vec4 outputColor;
 
 void main() {
     vec4 diffuse;
@@ -52,11 +55,11 @@ void main() {
         diffuse = u_diffuseColor * v_color;
 
     if (!enableLighting)
-        gl_FragColor.rgb = diffuse.rgb;
+        outputColor.rgb = diffuse.rgb;
     else
     {
         if (!enableSpecular)
-            gl_FragColor.rgb = (diffuse.rgb * v_lightDiffuse);
+            outputColor.rgb = (diffuse.rgb * v_lightDiffuse);
         else
         {
             vec3 specular;
@@ -65,18 +68,18 @@ void main() {
             else
                 specular = u_specularColor.rgb * v_lightSpecular;
                 
-            gl_FragColor.rgb = (diffuse.rgb * v_lightDiffuse) + specular;
+            outputColor.rgb = (diffuse.rgb * v_lightDiffuse) + specular;
         }
     }
 
     if (enableBlending)
     {
-        gl_FragColor.a = diffuse.a * u_opacity;
-        if (enableAlphaTest && gl_FragColor.a <= u_alphaTest)
+        outputColor.a = diffuse.a * u_opacity;
+        if (enableAlphaTest && outputColor.a <= u_alphaTest)
             discard;
     }
     else
-        gl_FragColor.a = 0.5;
+        outputColor.a = 0.5;
 }"
 )
     end

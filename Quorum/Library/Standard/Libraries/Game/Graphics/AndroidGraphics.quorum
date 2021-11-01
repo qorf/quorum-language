@@ -3,7 +3,9 @@ package Libraries.Game.Graphics
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Iterator
 
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
@@ -84,9 +86,10 @@ class AndroidGraphics is GraphicsManager
         
         if IsShaderCompiled(id) = false
             text typeText = "Unknown"
-            if shaderType = parent:GraphicsManager:GL_FRAGMENT_SHADER
+            OpenGLConstants constants
+            if shaderType = constants:GL_FRAGMENT_SHADER
                 typeText = "Fragment"
-            elseif shaderType = parent:GraphicsManager:GL_VERTEX_SHADER
+            elseif shaderType = constants:GL_VERTEX_SHADER
                 typeText = "Vertex"
             end
             alert("Error compiling " + typeText + " shader:" + GetShaderLog(id))
@@ -123,19 +126,24 @@ class AndroidGraphics is GraphicsManager
     system action GetShaderProgramLog(integer programID) returns text
 
     /*
-    This action takes an ordered array of compiled shaders (at minimum 1 vertex shader and 1 fragment shader). These
-    shaders are combined together into a shader program, and an ID for that program is returned. If this process fails
-    due to an error, this action will alert an error.
+
     */
-    action CreateShaderProgram(Array<Shader> shaders) returns integer
+    action CreateShaderProgram(ShaderProgram program) returns integer
         integer id = CreateShaderProgramID()
         if id = 0
             alert("Could not create new shader program ID.")
         end
 
+        Iterator<Shader> shaders = program:GetIterator()
+
+        repeat while shaders:HasNext()
+            AttachShader(id, shaders:Next():GetID())
+        end
+
         integer counter = 0
-        repeat while counter < shaders:GetSize()
-            AttachShader(id, shaders:Get(counter):GetID())
+        Array<text> attributes = program:GetOrderedVertexInputs()
+        repeat while counter < attributes:GetSize()
+            SetVertexInputID(id, counter, attributes:Get(counter))
             counter = counter + 1
         end
 
@@ -218,6 +226,12 @@ class AndroidGraphics is GraphicsManager
     commands that don't explicitly use a specific texture, the modifications will apply to the active texture.
     */
     system action SetActiveTextureID(integer id)
+
+    system action CreateVertexArray returns integer
+
+    system action DeleteVertexArray(integer arrayID)
+
+    system action BindVertexArray(integer arrayID)
 
     /*
     This action returns an ID for a new buffer in the rendering system. Buffers are used to relay information from the program
@@ -523,6 +537,33 @@ class AndroidGraphics is GraphicsManager
     */
     system action DisableVertexInput(integer inputID)
 
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y, number z)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
+
+    /*
+
+    */
+    system action SetVertexInputID(integer programID, integer inputID, text name)
+
     system action SetPixelClipping(integer x, integer y, integer width, integer height)
+
+    system action GetGraphicsErrorCode returns integer
 
 end

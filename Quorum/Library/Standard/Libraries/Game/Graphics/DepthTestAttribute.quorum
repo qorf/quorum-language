@@ -4,7 +4,10 @@ use Libraries.Game.Graphics.Attribute
 
 class DepthTestAttribute is Attribute
 
+    AttributeManager manager
+
     public constant text ALIAS = "depthStencil"
+    public constant integer DEPTH_TEST = manager:Register(ALIAS)
 
     /*
     The depth test function to be used by OpenGL. A value of 0 will disable it.
@@ -43,6 +46,8 @@ class DepthTestAttribute is Attribute
         return new
     end
 
-    system action GetDepthTestValue returns integer
+    action GetDepthTestValue returns integer
+        return DEPTH_TEST
+    end
 
 end

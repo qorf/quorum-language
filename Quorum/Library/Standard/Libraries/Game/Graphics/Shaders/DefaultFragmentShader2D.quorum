@@ -10,19 +10,47 @@ class DefaultFragmentShader2D is Shader
         // TO-DO: Possibly adjust variable names to use constants instead?
         DefaultAttributeNames attributes
         SetCode(
-"#ifdef GL_ES
+/*"#version 330
+//out vec4 outputColor;
+
+void main()
+{
+    //outputColor = vec4(1.0, 1.0, 1.0, 1.0);
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}"*/
+"#version 330
+#ifdef GL_ES
 #define LOWP lowp
 precision mediump float;
 #else
 #define LOWP 
 #endif
-varying LOWP vec4 v_color;
-varying vec2 v_texCoords;
+in LOWP vec4 v_color;
+in vec2 v_texCoords;
 uniform sampler2D u_texture;
+layout (location = 0) out vec4 outputColor;
+
 void main()
 {
-    gl_FragColor = v_color * texture2D(u_texture, v_texCoords);
+    outputColor = v_color * texture(u_texture, v_texCoords);
+//    outputColor.a = 1;
+//    vec4 temp = texture(u_texture, v_texCoords);
+//    if (temp.a == 0)
+//        outputColor.r = 1;
+//    else if (temp.a > 0)
+//        outputColor.g = 1;
+//    else
+//        outputColor.b = 1;
 }"
+/*"varying vec4 v_color;
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+
+void main()
+{
+//    gl_FragColor = v_color * texture2D(u_texture, v_texCoords);
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}"*/
 )
     end
 

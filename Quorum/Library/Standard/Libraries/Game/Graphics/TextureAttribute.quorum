@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics
+use Libraries.Compute.BitwiseOperations
 
 class TextureAttribute is Attribute
     
@@ -9,6 +10,19 @@ class TextureAttribute is Attribute
     public constant text AMBIENT_ALIAS = "ambientTexture"
     public constant text EMISSIVE_ALIAS = "emissiveTexture"
     public constant text REFLECTION_ALIAS = "reflectionTexture"
+
+    AttributeManager manager
+    
+    public constant integer DIFFUSE = manager:Register(DIFFUSE_ALIAS)
+    public constant integer SPECULAR = manager:Register(SPECULAR_ALIAS)
+    public constant integer BUMP = manager:Register(BUMP_ALIAS)
+    public constant integer NORMAL = manager:Register(NORMAL_ALIAS)
+    public constant integer AMBIENT = manager:Register(AMBIENT_ALIAS)
+    public constant integer EMISSIVE = manager:Register(EMISSIVE_ALIAS)
+    public constant integer REFLECTION = manager:Register(REFLECTION_ALIAS)
+
+    BitwiseOperations bits
+    public constant integer BITMASK = bits:Or(DIFFUSE, bits:Or(SPECULAR, bits:Or(BUMP, bits:Or(NORMAL, bits:Or(AMBIENT, bits:Or(EMISSIVE, REFLECTION))))))
 
     public TextureDescriptor descriptor
     public number offsetU = 0
@@ -143,46 +157,64 @@ class TextureAttribute is Attribute
     This aciton will test if the given integer value represents a supported 
     attribute type for a TextureAttribute.
     */
-    system action SupportsAttribute(integer type) returns boolean
+    action SupportsAttribute(integer type) returns boolean
+        return bits:And(BITMASK, type) not= 0
+    end
 
     /*
     This action returns the integer value representing a Diffuse TextureAttribute.
     */
-    system action GetDiffuseValue returns integer
+    action GetDiffuseValue returns integer
+        return DIFFUSE
+    end
 
     /*
     This action returns the integer value representing a Specular TextureAttribute.
     */
-    system action GetSpecularValue returns integer
+    action GetSpecularValue returns integer
+        return SPECULAR
+    end
 
     /*
     This action returns the integer value representing a Bump TextureAttribute.
     */
-    system action GetBumpValue returns integer
+    action GetBumpValue returns integer
+        return BUMP
+    end
 
     /*
     This action returns the integer value representing a Normal TextureAttribute.
     */
-    system action GetNormalValue returns integer
+    action GetNormalValue returns integer
+        return NORMAL
+    end
     
     /*
     This action returns the integer value representing an Ambient TextureAttribute.
     */
-    system action GetAmbientValue returns integer
+    action GetAmbientValue returns integer
+        return AMBIENT
+    end
         
     /*
     This action returns the integer value representing an Emissive TextureAttribute.
     */
-    system action GetEmissiveValue returns integer
+    action GetEmissiveValue returns integer
+        return EMISSIVE
+    end
 
     /*
     This action returns the integer value representing a reflection TextureAttribute.
     */
-    system action GetReflectionValue returns integer
+    action GetReflectionValue returns integer
+        return REFLECTION
+    end
 
     /*
     This action returns the sum of all supported value types for a TextureAttribute.
     */
-    system action GetAttributeMask returns integer
+    action GetAttributeMask returns integer
+        return BITMASK
+    end
 
 end

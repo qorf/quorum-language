@@ -310,9 +310,34 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         this.glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
     };
     
+    this.SetDefaultVertexValue$quorum_integer$quorum_number = function(location, x)
+    {
+        this.glVertexAttrib1f(location, x);
+    };
+    
+    this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number = function(location, x, y)
+    {
+        this.glVertexAttrib1f(location, x, y);
+    };
+    
+    this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number$quorum_number = function(location, x, y, z)
+    {
+        this.glVertexAttrib1f(location, x, y, z);
+    };
+    
+    this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number$quorum_number$quorum_number = function(location, x, y, z, w)
+    {
+        this.glVertexAttrib1f(location, x, y, z, w);
+    };
+    
     this.SetPixelClipping$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height)
     {
         this.glScissor(x, y, width, height);
+    };
+    
+    this.GetGraphicsErrorCode = function()
+    {
+        return gl.getError();
     };
     
     // Expected parameters: integer, integer
@@ -664,6 +689,24 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     this.glEnableVertexAttribArray = function(index)
     {
         gl.enableVertexAttribArray(index);
+    };
+    
+    // Expected parameters: integer, float
+    this.glVertexAttrib1f = function(index, x)
+    {
+        gl.vertexAttrib1f(index, x);
+    };
+    
+    // Expected parameters: integer, float, float
+    this.glVertexAttrib2f = function(index, x, y)
+    {
+        gl.vertexAttrib2f(index, x, y);
+    };
+    
+    // Expected parameters: integer, float, float, float
+    this.glVertexAttrib3f = function(index, x, y, z)
+    {
+        gl.vertexAttrib3f(index, x, y, z);
     };
     
     // Expected parameters: integer, float, float, float, float

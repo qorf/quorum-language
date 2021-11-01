@@ -13,12 +13,6 @@ draw on the screen. This is used internally by the Game class, and most users
 will not need to interact with this class directly.
 */
 class DesktopGraphics is GraphicsManager
-  
-    // TO-DO: Properly make this a blueprint and implement it everywhere.
-    system action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
-
-    // TO-DO: Properly make this a blueprint and implement it everywhere.
-    system action SetVertexInputID(integer programID, integer inputID, text name)
 
     /*
     This action sets the color to clear the screen with in OpenGL.
@@ -92,12 +86,13 @@ class DesktopGraphics is GraphicsManager
         
         if IsShaderCompiled(id) = false
             text typeText = "Unknown"
-            if shaderType = parent:GraphicsManager:GL_FRAGMENT_SHADER
+            OpenGLConstants constants
+            if shaderType = constants:GL_FRAGMENT_SHADER
                 typeText = "Fragment"
-            elseif shaderType = parent:GraphicsManager:GL_VERTEX_SHADER
+            elseif shaderType = constants:GL_VERTEX_SHADER
                 typeText = "Vertex"
             end
-            alert("Error compiling " + typeText + " shader:" + GetShaderLog(id))
+            alert("Error compiling " + typeText + " shader: " + GetShaderLog(id))
         end
 
         return id
@@ -131,31 +126,8 @@ class DesktopGraphics is GraphicsManager
     system action GetShaderProgramLog(integer programID) returns text
 
     /*
-    This action takes an ordered array of compiled shaders (at minimum 1 vertex shader and 1 fragment shader). These
-    shaders are combined together into a shader program, and an ID for that program is returned. If this process fails
-    due to an error, this action will alert an error.
-    */
-//    action CreateShaderProgram(Array<Shader> shaders) returns integer
-//        integer id = CreateShaderProgramID()
-//        if id = 0
-//            alert("Could not create new shader program ID.")
-//        end
-//
-//        integer counter = 0
-//        repeat while counter < shaders:GetSize()
-//            AttachShader(id, shaders:Get(counter):GetID())
-//            counter = counter + 1
-//        end
-//
-//        LinkShaderProgram(id)
-//
-//        if IsShaderProgramLinked(id) = false
-//            alert("An error occurred while linking a shader program: " + GetShaderProgramLog(id))
-//        end
-//
-//        return id
-//    end
 
+    */
     action CreateShaderProgram(ShaderProgram program) returns integer
         integer id = CreateShaderProgramID()
         if id = 0
@@ -254,6 +226,12 @@ class DesktopGraphics is GraphicsManager
     commands that don't explicitly use a specific texture, the modifications will apply to the active texture.
     */
     system action SetActiveTextureID(integer id)
+
+    system action CreateVertexArray returns integer
+
+    system action DeleteVertexArray(integer arrayID)
+
+    system action BindVertexArray(integer arrayID)
 
     /*
     This action returns an ID for a new buffer in the rendering system. Buffers are used to relay information from the program
@@ -559,6 +537,33 @@ class DesktopGraphics is GraphicsManager
     */
     system action DisableVertexInput(integer inputID)
 
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y, number z)
+
+    /*
+
+    */
+    system action SetDefaultVertexValue(integer location, number x, number y, number z, number w)
+
+    /*
+
+    */
+    system action SetVertexInputID(integer programID, integer inputID, text name)
+
     system action SetPixelClipping(integer x, integer y, integer width, integer height)
+
+    system action GetGraphicsErrorCode returns integer
 
 end

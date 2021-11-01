@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import quorum.Libraries.Containers.Number32BitArray;
@@ -165,6 +166,21 @@ public class DesktopGraphics implements GraphicsManager {
     public void SetActiveTextureID(int id)
     {
         glActiveTexture(id);
+    }
+    
+    public int CreateVertexArray()
+    {
+        return GL30.glGenVertexArrays();
+    }
+    
+    public void DeleteVertexArray(int array)
+    {
+        GL30.glDeleteVertexArrays(array);
+    }
+    
+    public void BindVertexArray(int array)
+    {
+        GL30.glBindVertexArray(array);
     }
     
     public int CreateBuffer()
@@ -369,6 +385,11 @@ public class DesktopGraphics implements GraphicsManager {
     public void SetPixelClipping(int x, int y, int width, int height)
     {
         glScissor(x, y, width, height);
+    }
+    
+    public int GetGraphicsErrorCode()    
+    {
+        return GL11.glGetError();
     }
     
     public void glBindTexture (int target, int texture) 
@@ -770,14 +791,44 @@ public class DesktopGraphics implements GraphicsManager {
 	GL20.glEnableVertexAttribArray(index);
     }
     
+    public void SetDefaultVertexValue(int location, double x)
+    {
+        glVertexAttrib1f(location, (float)x);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y)
+    {
+        glVertexAttrib2f(location, (float)x, (float)y);
+    }
+    
+    public void SetDefaultVertexValue(int location, double x, double y, double z)
+    {
+        glVertexAttrib3f(location, (float)x, (float)y, (float)z);
+    }
+    
     public void SetDefaultVertexValue(int location, double x, double y, double z, double w)
     {
         glVertexAttrib4f(location, (float)x, (float)y, (float)z, (float)w);
     }
     
-    public void glVertexAttrib4f (int indx, float x, float y, float z, float w) 
+    public void glVertexAttrib1f(int index, float x) 
     {
-	GL20.glVertexAttrib4f(indx, x, y, z, w);
+	GL20.glVertexAttrib1f(index, x);
+    }
+    
+    public void glVertexAttrib2f(int index, float x, float y)
+    {
+	GL20.glVertexAttrib2f(index, x, y);
+    }
+    
+    public void glVertexAttrib3f(int index, float x, float y, float z) 
+    {
+	GL20.glVertexAttrib3f(index, x, y, z);
+    }
+    
+    public void glVertexAttrib4f(int index, float x, float y, float z, float w) 
+    {
+	GL20.glVertexAttrib4f(index, x, y, z, w);
     }
 
     public void glVertexAttrib4fv (int indx, FloatBuffer values) 

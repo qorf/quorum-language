@@ -31,11 +31,13 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Graphics.VertexData
 use Libraries.Compute.Matrix3
 use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.OpenGLConstants
 
 
 class DefaultShaderMapping3D is ShaderMapping
 
     GameStateManager manager
+    OpenGLConstants constants
     BitwiseOperations bits
 
     Camera camera = undefined
@@ -212,12 +214,12 @@ class DefaultShaderMapping3D is ShaderMapping
         // TO-DO: If the GL values are moved to a constants class, this doesn't need to be done as part of the Begin call, it can be in "on create" instead
         if defaultCullFace = -1
             GraphicsManager graphics = manager:GetGameGraphics()
-            defaultCullFace = graphics:GL_BACK
+            defaultCullFace = constants:GL_BACK
         end
 
         if defaultDepthFunction = -1
             GraphicsManager graphics = manager:GetGameGraphics()
-            defaultDepthFunction = graphics:GL_LEQUAL
+            defaultDepthFunction = constants:GL_LEQUAL
         end
 
         BeginGraphicsState()
@@ -272,7 +274,7 @@ class DefaultShaderMapping3D is ShaderMapping
 
         // If there's no vertex color attribute provided, ensure there's a default value instead.
         // If these are present, they'll be handled when the mesh is bound.
-        if not vertices:HasAttribute(vertices:COLOR_PACKED) or vertices:HasAttribute(vertices:COLOR_UNPACKED)
+        if not (vertices:HasAttribute(vertices:COLOR_PACKED) or vertices:HasAttribute(vertices:COLOR_UNPACKED))
             program:DisableVertexInput(vertexColorID)
             program:SetDefaultVertexInputValue(vertexColorID, 1, 1, 1, 1)
         end
@@ -352,9 +354,9 @@ class DefaultShaderMapping3D is ShaderMapping
             graphics:SetCullFace(cullFace)
 
             if cullFace = 0
-                graphics:DisableProperty(graphics:GL_CULL_FACE)
+                graphics:DisableProperty(constants:GL_CULL_FACE)
             else
-                graphics:EnableProperty(graphics:GL_CULL_FACE)
+                graphics:EnableProperty(constants:GL_CULL_FACE)
             end
         end
     end
@@ -368,10 +370,10 @@ class DefaultShaderMapping3D is ShaderMapping
         if depthFunction not= function
             depthFunction = function
             if enabled
-                graphics:EnableProperty(graphics:GL_DEPTH_TEST)
+                graphics:EnableProperty(constants:GL_DEPTH_TEST)
                 graphics:SetDepthFunction(depthFunction)
             else
-                graphics:DisableProperty(graphics:GL_DEPTH_TEST)
+                graphics:DisableProperty(constants:GL_DEPTH_TEST)
             end
         end
 
@@ -677,25 +679,17 @@ class DefaultShaderMapping3D is ShaderMapping
         end
     end
 
-//    integer debugCount = 0
     private action EnableBlending(boolean enable)
+// TO-DO: Remove commented code
 //        if enableBlending not= enable
             enableBlending = enable
             program:SetShaderInput(enableBlendingID, enable)
 
             GraphicsManager graphics = manager:GetGameGraphics()
             if enable
-                graphics:EnableProperty(graphics:GL_BLEND)
+                graphics:EnableProperty(constants:GL_BLEND)
             else
-//                if debugCount < 10
-//                    check
-//                        alert("Disabling blending from...")
-//                    detect e
-//                        e:OutputStackTrace()
-//                    end
-//                    debugCount = debugCount + 1
-//                end
-                graphics:DisableProperty(graphics:GL_BLEND)
+                graphics:DisableProperty(constants:GL_BLEND)
             end
 //        end
     end

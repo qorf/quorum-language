@@ -15,12 +15,12 @@ use Libraries.Language.Compile.Test.MatrixTester
 use Libraries.Language.Compile.CompilerProfiler
 use Libraries.Testing.Test
 use Libraries.Testing.Tester
-use Libraries.System.Process
-use Libraries.System.ProcessEvent
-use Libraries.System.ProcessListener
+//use Libraries.System.Process
+//use Libraries.System.ProcessEvent
+//use Libraries.System.ProcessListener
 use Libraries.System.Properties
 
-class CompilerTestSuite is ProcessListener
+class CompilerTestSuite// is ProcessListener
     integer total = 0
     integer totalBytecode = 0
     integer totalJavaScript = 0
@@ -454,56 +454,56 @@ console.log(OuTpUt_$tRiNg_);
         outFile:Write(resultText)
 
         //now run the output file in Node.js
-        Process process
-        process:SetName(nodeLocation)
-        
-        File processDirectory
-        processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
-        process:SetDirectory(processDirectory)
-
-        Array<text> flags
-        flags:Add("Result.js")
-
-        process:SetParameters(flags)
-        process:AddListener(me)
-        //now Run it
-        process:Run()  
-
-        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
-        if lines not= undefined
-            result:lines = lines
-        end
-        
-        if javascriptError
-            result:ranWithoutError = false
-        else 
-            result:ranWithoutError = true
-        end
-        result:returnCode = javascriptExitCode
+//        Process process
+//        process:SetName(nodeLocation)
+//        
+//        File processDirectory
+//        processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
+//        process:SetDirectory(processDirectory)
+//
+//        Array<text> flags
+//        flags:Add("Result.js")
+//
+//        process:SetParameters(flags)
+//        process:AddListener(me)
+//        //now Run it
+//        process:Run()  
+//
+//        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+//        if lines not= undefined
+//            result:lines = lines
+//        end
+//        
+//        if javascriptError
+//            result:ranWithoutError = false
+//        else 
+//            result:ranWithoutError = true
+//        end
+//        result:returnCode = javascriptExitCode
         
         return result
     end
 
     
-    action ProcessStarted(ProcessEvent event)
-        javascriptError = false
-        javascriptOutput = ""
-        javascriptErrorOutput = ""
-        javascriptExitCode = -1
-    end
-
-    action ProcessStopped(ProcessEvent event)
-        javascriptExitCode = event:GetExit()
-    end
-
-    action Output(ProcessEvent event)
-        javascriptOutput = javascriptOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
-    end
-
-    action Error(ProcessEvent event)
-        javascriptError = true
-        javascriptErrorOutput = javascriptErrorOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
-    end
+//    action ProcessStarted(ProcessEvent event)
+//        javascriptError = false
+//        javascriptOutput = ""
+//        javascriptErrorOutput = ""
+//        javascriptExitCode = -1
+//    end
+//
+//    action ProcessStopped(ProcessEvent event)
+//        javascriptExitCode = event:GetExit()
+//    end
+//
+//    action Output(ProcessEvent event)
+//        javascriptOutput = javascriptOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
+//    end
+//
+//    action Error(ProcessEvent event)
+//        javascriptError = true
+//        javascriptErrorOutput = javascriptErrorOutput + event:GetOutput() + JAVASCRIPT_DELIMITER
+//    end
 
     action TestFail(Array<File> files)
         if testBytecode = false

@@ -80,13 +80,13 @@ class RunLibrary
                     message = error:GetFile():GetFileName() + " "
                 end
                 
-                if type:GetCurrentType() not= type:MISSING_USE
-                    message = i + ": " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+//                if type:GetCurrentType() not= type:MISSING_USE
+                    message = message + i + ": " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
                     i = i + 1
                     output message
-                else
-                    useErrors = useErrors + 1
-                end
+//                else
+//                    useErrors = useErrors + 1
+//                end
             end
 
             output ""

@@ -9,30 +9,31 @@ class DefaultVertexShader3D is Shader
         
         DefaultAttributeNames attributes
         SetCode(
-"// True if item has a diffuse texture, false otherwise
+"#version 330
+// True if item has a diffuse texture, false otherwise
 uniform bool enableDiffuseTexture; 
 
 // Used if enableDiffuseTexture
 uniform vec4 u_diffuseUVTransform;
-varying vec2 v_diffuseUV;
+out vec2 v_diffuseUV;
 
 // True if item has a specular texture, false otherwise
 uniform bool enableSpecularTexture; 
 
 // Used if enableSpecularTexture
 uniform vec4 u_specularUVTransform;
-varying vec2 v_specularUV;
+out vec2 v_specularUV;
 
 // Used if enableDiffuseTexture or enableSpecularTexture
-attribute vec2 a_texCoord0;
+in vec2 a_texCoord0;
 
 
 // True if lighting AND normals are available, false otherwise.
 uniform bool enableLighting; 
 
 // Used if enableLighting
-varying vec3 v_lightDiffuse;
-attribute vec3 a_normal;     // Mandatory value if enableLighting is true
+out vec3 v_lightDiffuse;
+in vec3 a_normal;     // Mandatory value if enableLighting is true
 uniform mat3 u_normalMatrix; // Mandatory value is enableLighting is true
 uniform int directionalLightCount;
 uniform int pointLightCount;
@@ -42,18 +43,18 @@ uniform vec3 u_ambientCubemap[6];
 uniform bool enableSpecular;
 
 // Used if enableSpecular
-varying vec3 v_lightSpecular; // Will default to (0, 0, 0) and passed through if enableSpecular is false
+out vec3 v_lightSpecular; // Will default to (0, 0, 0) and passed through if enableSpecular is false
 uniform vec4 u_cameraPosition; 
 
 
 
 // Always used
-attribute vec3 a_position;
-attribute vec4 a_color; // Defaults to (1, 1, 1, 1)
+in vec3 a_position;
+in vec4 a_color; // Defaults to (1, 1, 1, 1)
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
 uniform float u_shininess; // Defaults to 20.0
-varying vec4 v_color;
+out vec4 v_color;
 
 
 

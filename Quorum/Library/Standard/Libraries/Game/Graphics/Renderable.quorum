@@ -82,13 +82,13 @@ class Renderable
         boolean blend1 = UsesBlending()
         if blend1
             BlendingAttribute attribute = cast(BlendingAttribute, material:GetAttribute(blendingValue))
-            blend1 = blend1 and attribute:blended
+            blend1 = blend1 and attribute:blendingEnabled
         end
     
         boolean blend2 = other:UsesBlending()
         if blend2
             BlendingAttribute attribute = cast(BlendingAttribute, other:material:GetAttribute(blendingValue))
-            blend2 = blend2 and attribute:blended
+            blend2 = blend2 and attribute:blendingEnabled
         end
 
         if not blend1 = blend2

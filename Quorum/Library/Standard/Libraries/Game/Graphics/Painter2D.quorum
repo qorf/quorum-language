@@ -16,6 +16,8 @@ use Libraries.Game.Graphics.Shaders.DefaultVertexShader2D
 use Libraries.Game.Graphics.Shaders.DefaultFragmentShader2D
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Shaders.Shader
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -75,6 +77,7 @@ class Painter2D
     private Number32BitArray vertices
 
     GameStateManager manager
+    OpenGLConstants constants
 
     /*
     An array used to store incoming Drawables and sort them by depth.
@@ -354,7 +357,7 @@ class Painter2D
         array:Add(textureCoords)
         attributes:SetAttributes(array)
 
-        mesh:Load(false, 4800, 6000, attributes, true)
+        mesh:Load(false, 4800, 6000, attributes)
 
         vertices:SetSize(4800)
 
@@ -428,56 +431,19 @@ class Painter2D
         if IsDrawing()
             alert("This painter is already drawing! Call End() before calling Begin() again.")
         end
-
-        GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:SetDepthMask(true)
-        graphics:EnableProperty(graphics:GL_DEPTH_TEST)
-        graphics:SetDepthFunction(graphics:GL_LEQUAL)
-        graphics:DisableProperty(graphics:GL_CULL_FACE)
-
+        
         projectionMatrix:Set(camera:GetCombinedMatrix())
-
-        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
-//        defaultProgram:Begin()
-
         drawing = true
 
+        GraphicsManager graphics = manager:GetGameGraphics()
         if isClipping
             UpdateClipping()
-            graphics:EnableProperty(graphics:GL_SCISSOR_TEST)
+            graphics:EnableProperty(constants:GL_SCISSOR_TEST)
         else
-            graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+            graphics:DisableProperty(constants:GL_SCISSOR_TEST)
         end
     end
 
-//    private action SetupMatrices
-//        combinedMatrix:Set(projectionMatrix)
-//
-//        defaultProgram:SetShaderInputMatrix("u_projTrans", combinedMatrix)
-//        defaultProgram:SetShaderInput("u_texture", 0)
-//
-//        /*
-//        TO-DO: Review this code. May need to adjust this for the use of custom shaders.
-//
-//        combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
-//        
-//        if (useFontShader)
-//        {
-//            fontShader.SetUniformMatrix("u_projTrans", combinedMatrix);
-//            fontShader.SetUniform("u_texture", 0);
-//        }
-//        else if (customShader != null) 
-//        {
-//            customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
-//            customShader.SetUniform("u_texture", 0);
-//        }
-//        else 
-//        {
-//            shader.SetUniformMatrix("u_projTrans", combinedMatrix);
-//            shader.SetUniform("u_texture", 0);
-//        }
-//        */
-//    end
 
     /*
     Deactivates this Painter2D. A deactivated Painter2D can not draw. If the Painter2D
@@ -535,20 +501,17 @@ class Painter2D
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:SetDepthMask(true)
         if IsBlendingEnabled()
-            graphics:DisableProperty(graphics:GL_BLEND)
+            graphics:DisableProperty(constants:GL_BLEND)
         end
 
         if isClipping
-            graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+            graphics:DisableProperty(constants:GL_SCISSOR_TEST)
         end
 
-        // TO-DO: Evaluate if this needs to be modified for custom shaders, not just the default
-//        defaultProgram:End()
         if currentProgram not= undefined
             currentProgram:End()
             currentProgram = undefined
         end
-
 
         integer current = sortingArray:GetSize()
         sortingArray:Empty(false)
@@ -653,16 +616,13 @@ class Painter2D
             counter = counter + 1
         end
 
-        if batchDrawables
+        if batchDrawables = false
             queuedDrawables:Add(drawable)
         end
     end
 
     private action SwitchTexture(Texture texture)
         Flush()
-
-        // TO-DO: Evaluate if this needs to be modified for multiple shaders
-        // Also evaluate if this needs to perform shader swapping for font shading (probably not here?)
 
         lastTexture = texture
         inverseTextureWidth = 1.0 / texture:GetWidth()
@@ -726,25 +686,23 @@ class Painter2D
         lastTexture:Bind() 
 
         mesh:SetVertices(GetVertices())
-//        mesh:GetIndexData():SetIndexRange(0, count)
 
         if blendingDisabled
-            graphics:DisableProperty(graphics:GL_BLEND)
+            graphics:DisableProperty(constants:GL_BLEND)
         else
-            graphics:EnableProperty(graphics:GL_BLEND)
-            graphics:SetBlendFunction(graphics:GL_SRC_ALPHA, graphics:GL_ONE_MINUS_SRC_ALPHA)
+            graphics:EnableProperty(constants:GL_BLEND)
+            graphics:SetBlendFunction(constants:GL_SRC_ALPHA, constants:GL_ONE_MINUS_SRC_ALPHA)
         end
 
         if batchDrawables
             currentProgram:Draw(mesh, camera, 0, count)
-//            mesh:Render(defaultProgram, graphics:GL_TRIANGLES, 0, count)
         else
             integer i = 0
             repeat until queuedDrawables:IsEmpty()
-                i = i + 1
                 Drawable current = queuedDrawables:RemoveFromFront()
                 current:SetMesh(mesh)
-                currentProgram:Draw(current)
+                currentProgram:Draw(current, i * 6, (i + 1) * 6)
+                i = i + 1
             end
         end
 
@@ -760,22 +718,7 @@ class Painter2D
         if IsDrawing()
             projectionMatrix:Set(camera:GetCombinedMatrix())
         end
-
-        // TO-DO: Delete this comment when it's no longer relevant
-//        SetProjectionMatrix(camera:GetCombinedMatrix())
     end
-
-//    action SetProjectionMatrix(Matrix4 matrix)
-//        if IsDrawing()
-//            Flush()
-//        end
-//
-//        projectionMatrix:Set(matrix)
-//
-//        if IsDrawing()
-//            SetupMatrices()
-//        end
-//    end
 
     /*
     This action gives the plugins a shortcut to conveniently set a single index
@@ -815,9 +758,9 @@ class Painter2D
             GraphicsManager graphics = manager:GetGameGraphics()
 
             if clip
-                graphics:EnableProperty(graphics:GL_SCISSOR_TEST)
+                graphics:EnableProperty(constants:GL_SCISSOR_TEST)
             else
-                graphics:DisableProperty(graphics:GL_SCISSOR_TEST)
+                graphics:DisableProperty(constants:GL_SCISSOR_TEST)
             end
         end
     end
