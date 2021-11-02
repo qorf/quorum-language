@@ -42,6 +42,7 @@ use Libraries.Web.Page.ListItem
 */
 
 class BarChartWriter is ChartWriter
+
     private number outerEdgePadding = 0
     private number betweenGroupPadding = 0
     private number betweenBarPadding = 0
@@ -49,6 +50,14 @@ class BarChartWriter is ChartWriter
     private number barHeightPercent = 0
     
     Array<Rectangle> bars
+
+    action WriteOutChart(BarChart chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(BarChart chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
 
     action WriteOutChart(BarChart chart) returns text
         return WriteOutChart(cast(Chart,chart))
@@ -181,7 +190,7 @@ class BarChartWriter is ChartWriter
             number currentYPosition = axisPointY
             
             if horizontal
-                currentXPosition = axisPointY - outerEdgePadding
+                currentXPosition = axisPointY - axisLengthY + outerEdgePadding
                 currentYPosition = axisPointX
             end
             // Tracking area of each bar group for group icon
@@ -201,6 +210,7 @@ class BarChartWriter is ChartWriter
                     Bar bar
                     integer barIter = j
                      // We want to stack/display so it keeps the same order as the legend
+                    /*
                     if stacked
                         if horizontal
                             bar = currentGroup:Get(j)
@@ -216,6 +226,8 @@ class BarChartWriter is ChartWriter
                             bar = currentGroup:Get(j)
                         end
                     end
+                    */
+                    bar = currentGroup:Get(j)
 
                     barHeightPercent = ((bar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height
                     
@@ -232,12 +244,12 @@ class BarChartWriter is ChartWriter
                         if horizontal
                             tempBar:SetWidth(barHeightPercent, "%")
                             tempBar:SetHeight(barWidthPercent, "%")
-                            tempBar:SetPosition(currentYPosition,currentXPosition - barWidthPercent, "%")
+                            tempBar:SetPosition(currentYPosition,currentXPosition, "%")
                             
                             if stacked
                                 currentYPosition = currentYPosition + barHeightPercent
                             else
-                                currentXPosition = currentXPosition - barWidthPercent - betweenBarPadding
+                                currentXPosition = currentXPosition + barWidthPercent + betweenBarPadding
                             end
                         else
                             tempBar:SetWidth(barWidthPercent, "%")
@@ -261,7 +273,12 @@ class BarChartWriter is ChartWriter
                     tempBar:SetTabIndex(-1)
                     if HasAccessibility()
                         Math math
-                        tempBar:SetAriaLabel(bar:GetIcon():GetName() + ", " + math:Round(bar:GetValue(),2) +  ", " + barIter + " of " + currentGroup:GetSize() + " bars inside Bar Group " + (i + 1) + ", " + currentGroup:GetName())
+                        
+                        if(chart:HasBarGroups())
+                            tempBar:SetAriaLabel(bar:GetIcon():GetName() + ", " + math:Round(bar:GetValue(),2) +  ", " + (j + 1) + " of " + currentGroup:GetSize() + " bars inside Bar Group " + (i + 1) + ", " + currentGroup:GetName())
+                        else
+                            tempBar:SetAriaLabel(bar:GetIcon():GetName() + ", " + math:Round(bar:GetValue(),2) +  ", " + (i + 1) + " of " + currentGroup:GetSize() + " bars")
+                        end
                     end
                     bars:Add(tempBar)
 
@@ -276,7 +293,7 @@ class BarChartWriter is ChartWriter
                             tempGroup:SetWidth(groupHeight + padding, "%")
                             tempGroup:SetHeight(barWidthPercent + betweenGroupPadding, "%")
                             tempGroup:SetPosition(axisPointX, groupX - barWidthPercent - betweenGroupPadding/2, "%") 
-                            currentXPosition = currentXPosition - barWidthPercent - betweenGroupPadding
+                            currentXPosition = currentXPosition + barWidthPercent + betweenGroupPadding
                         else
                             tempGroup:SetWidth(barWidthPercent + betweenGroupPadding, "%")
                             tempGroup:SetHeight(groupHeight + padding, "%")
@@ -285,11 +302,11 @@ class BarChartWriter is ChartWriter
                         end
                     else
                         if horizontal
-                            groupWidth = groupX - (currentXPosition + betweenBarPadding) + betweenGroupPadding
-                            currentXPosition = currentXPosition - betweenGroupPadding + betweenBarPadding
+                            groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
+                            currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                             tempGroup:SetWidth(groupHeight + padding, "%")
                             tempGroup:SetHeight(groupWidth, "%")
-                            tempGroup:SetPosition(axisPointX, groupX - groupWidth + betweenGroupPadding/2, "%") 
+                            tempGroup:SetPosition(axisPointX, groupX - betweenGroupPadding/2, "%") 
                         else
                             groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
                             currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
@@ -341,6 +358,7 @@ class BarChartWriter is ChartWriter
                 barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
                 barGroupNav:AddAttribute("role","treeitem")
                 barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                barGroupNav:AddAttribute("aria-expanded","false")
                 //barGroupNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
                 barGroupNav:SetTabIndex("-1")
                 barGroupsUL:Add(barGroupNav)
@@ -356,7 +374,7 @@ class BarChartWriter is ChartWriter
             repeat while j < barGroups:Get(i):GetSize()
                 ListItem barNav 
                 barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
-                barNav:AddAttribute("role","treeitem")
+                barNav:AddAttribute("role","none")
                 barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
                 //barNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
                 barNav:SetTabIndex("-1")

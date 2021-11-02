@@ -38,9 +38,69 @@ class ChartWriter
 
     
     
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, integer svgWidth, integer svgHeight) returns text
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        return WriteOutChart(chart)
+    end
 
     /*
-        This action writes out the BarChart by grabbing necessary information from the chart and it will then return
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        File f
+        f:SetPath("aFile.svg")
+        chartWriter:WriteOutChart(chart, f, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, File file, integer svgWidth, integer svgHeight)
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        WriteOutChart(chart, file)
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
         all of the necessary text needed to write out an SVG file that will contain the chart.
     
         Attribute: Parameter chart The chart that will be used to create an SVG
@@ -65,6 +125,7 @@ class ChartWriter
         chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetRole("img")
 
         //Initalize a few settings that change during Chart:LoadGraphics()
         InitWriter(chart)
@@ -88,10 +149,11 @@ class ChartWriter
     end
 
     /*
-        This action writes out the BarChart by grabbing necessary information from the chart and it will then return
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
         all of the necessary text needed to write out an SVG file that will contain the chart.
     
         Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
     
         Attribute: Example
     
@@ -115,6 +177,7 @@ class ChartWriter
         chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetRole("img")
 
         //Initalize a few settings that change during Chart:LoadGraphics()
         InitWriter(chart)
@@ -395,7 +458,8 @@ class ChartWriter
         yAxisLabel:SetText(chart:GetYAxisTitle())
         yAxisLabel:SetTextAnchor("middle")
         yAxisLabel:SetPosition(5, 50, "%")
-        yAxisLabel:SetTransform("rotate(270, 40,300)")
+        text rotation = "rotate(270, " + svgWidth*0.05 + ", " + svgHeight*0.5 + ")"
+        yAxisLabel:SetTransform(rotation)
         yAxisLabel:SetFontSize("18pt")
         yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
         yAxisLabel:SetTabIndex(-1)
@@ -565,13 +629,16 @@ class ChartWriter
         integer maxXLabelOffset = 0
         Array<ControlLabel> horizontalLabels = horizontalContainer:GetLabels()
         if not horizontalLabels:IsEmpty()
-            ControlLabel currentLabel = horizontalLabels:Get(0)
-            Item2D labelAnchor = currentLabel:GetParent()
+            ControlLabel currentLabel
             
             if usingGrouping
+                currentLabel = horizontalLabels:Get(0)
                 scaleDivWidth = cast(number, groupPanels:Get(0):GetWidth():Replace("%",""))
                 groupOffset = scaleDivWidth/2.0
+            else
+                currentLabel = horizontalLabels:Get(0)
             end
+            Item2D labelAnchor = currentLabel:GetParent()
 
             number xCurrentLabel = originPointX
             number yCurrentLabel = cast(number, axisPointY + labelHeight + axisShift + tickLength)
@@ -711,7 +778,7 @@ class ChartWriter
 
         if chart:GetVerticalPanel():GetTickCount() > 0
             if usingGrouping
-                scaleDivWidth = cast(number, groupPanels:Get(0):GetHeight():Replace("%",""))
+                scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1):GetHeight():Replace("%",""))
                 groupOffset = scaleDivWidth/2.0
                 originPointY = axisPointY - cast(number, groupOffset) - GetPaddedChartOffset()
                 chart:HideAllYGridLines()
@@ -771,7 +838,7 @@ class ChartWriter
 
                 if usingGrouping
                     tickY = tickY - groupOffset
-                    scaleDivWidth = cast(number, groupPanels:Get(i):GetHeight():Replace("%",""))
+                    scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1 - i):GetHeight():Replace("%",""))
                     groupOffset = scaleDivWidth/2.0
                     tickY = tickY - groupOffset
                 else
@@ -789,7 +856,7 @@ class ChartWriter
         //end
         number labelMinimumX = axisPointX
         if usingGrouping
-            scaleDivWidth = cast(number, groupPanels:Get(0):GetHeight():Replace("%",""))
+            scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1):GetHeight():Replace("%",""))
             groupOffset = scaleDivWidth/2.0
         end
         number labelHeight = PixelToPercentHeight(fontSize)
@@ -798,12 +865,21 @@ class ChartWriter
         number maxYLabelOffset = 0
         Array<ControlLabel> scaleLabels = verticalContainer:GetLabels()
         if not scaleLabels:IsEmpty()
-            ControlLabel currentLabel = scaleLabels:Get(0)
+            ControlLabel currentLabel
+            if usingGrouping
+                currentLabel = scaleLabels:Get(scaleLabels:GetSize() - 1)
+            else
+                currentLabel = scaleLabels:Get(0)
+            end
 
             maxYLabelOffset = PixelToPercentWidth(currentLabel:GetText():GetSize() * fontSize)
             integer i = 0
             repeat while i < scaleLabels:GetSize()
-                currentLabel = scaleLabels:Get(i) 
+                if usingGrouping
+                    currentLabel = scaleLabels:Get(scaleLabels:GetSize() -1 - i) 
+                else
+                    currentLabel = scaleLabels:Get(i) 
+                end
                 
                 Label scaleLabel
     
@@ -817,7 +893,11 @@ class ChartWriter
                 yLabels:Add(scaleLabel)
 
                 if HasAccessibility()
-                    scaleLabel:SetAriaLabel(chart:GetYLabels():Get(i):GetName() + " " + chart:GetYLabels():Get(i):GetText())
+                    if usingGrouping
+                        scaleLabel:SetAriaLabel(chart:GetYLabels():Get(chart:GetYLabels():GetSize() - 1 - i):GetName() + " " + chart:GetYLabels():Get(chart:GetYLabels():GetSize() -1 - i):GetText())
+                    else
+                        scaleLabel:SetAriaLabel(chart:GetYLabels():Get(i):GetName() + " " + chart:GetYLabels():Get(i):GetText())
+                    end
                 end
 
                 canvas:Add(scaleLabel)
@@ -830,7 +910,7 @@ class ChartWriter
                 
                 if usingGrouping
                     yCurrentLabel = yCurrentLabel - groupOffset
-                    scaleDivWidth = cast(number, groupPanels:Get(i):GetHeight():Replace("%",""))
+                    scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1 - i):GetHeight():Replace("%",""))
                     groupOffset = scaleDivWidth/2.0
                     yCurrentLabel = yCurrentLabel - groupOffset
                 else
@@ -885,15 +965,17 @@ class ChartWriter
         yAxisLabelItem:SetIdentifier(yAxisLabel:GetID() + "-nav")
         yAxisLabelItem:AddAttribute("role","treeitem")
         yAxisLabelItem:AddAttribute("aria-labelledby",yAxisLabel:GetID())
+        yAxisLabelItem:AddAttribute("aria-expanded","false")
         //yAxisLabelItem:AddAttribute("aria-describedby",yAxisLabel:GetID())
         yAxisLabelItem:SetTabIndex("-1")
-        AddYAxisAccessibility(yAxisLabelItem)
+        AddYAxisAccessibility(chart, yAxisLabelItem)
         tree:Add(yAxisLabelItem)
 
         ListItem chartAreaItem
         chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
         chartAreaItem:AddAttribute("role","treeitem")
         chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
+        chartAreaItem:AddAttribute("aria-expanded","false")
         //chartAreaItem:AddAttribute("aria-describedby",chartArea:GetID())
         chartAreaItem:SetTabIndex("-1")
         AddChartContentAccessibility(canvas, chart, chartAreaItem)
@@ -901,8 +983,9 @@ class ChartWriter
 
         ListItem xAxisLabelItem
         xAxisLabelItem:SetIdentifier(xAxisLabel:GetID() + "-nav")
-        xAxisLabelItem:AddAttribute("role","treeitem")
+        xAxisLabelItem:AddAttribute("role","none")
         xAxisLabelItem:AddAttribute("aria-labelledby",xAxisLabel:GetID())
+        xAxisLabelItem:AddAttribute("aria-expanded","false")
         //xAxisLabelItem:AddAttribute("aria-describedby",xAxisLabel:GetID())
         xAxisLabelItem:SetTabIndex("-1")
         AddXAxisAccessibility(xAxisLabelItem)
@@ -915,18 +998,26 @@ class ChartWriter
         canvas:Add(div)
     end
 
-    action AddYAxisAccessibility(ListItem yAxisLabelItem)
+    action AddYAxisAccessibility(Chart chart, ListItem yAxisLabelItem)
+        VerticalAxisPanel verticalContainer
+        verticalContainer = chart:GetVerticalPanel()
+        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
         UnorderedList yAxisGroup
         yAxisGroup:AddAttribute("role","group")
         yAxisLabelItem:AddNestedTag(yAxisGroup)
 
         i = 0
         repeat while i < yLabels:GetSize()
-            ListItem labelNav 
-            labelNav:SetIdentifier(yLabels:Get(i):GetID() + "-nav")
+            Label currentLabel
+            if usingGrouping
+                currentLabel = yLabels:Get(yLabels:GetSize() - 1 - i)
+            else
+                currentLabel = yLabels:Get(i)
+            end
+            ListItem labelNav
+            labelNav:SetIdentifier(currentLabel:GetID() + "-nav")
             labelNav:AddAttribute("role","treeitem")
-            labelNav:AddAttribute("aria-labelledby",yLabels:Get(i):GetID())
-            //labelNav:AddAttribute("aria-describedby",yLabels:Get(i):GetID())
+            labelNav:AddAttribute("aria-labelledby",currentLabel:GetID())
             labelNav:SetTabIndex("-1")
             yAxisGroup:Add(labelNav)
 
@@ -945,7 +1036,7 @@ class ChartWriter
         repeat while i < xLabels:GetSize()
             ListItem labelNav 
             labelNav:SetIdentifier(xLabels:Get(i):GetID() + "-nav")
-            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("role","none")
             labelNav:AddAttribute("aria-labelledby",xLabels:Get(i):GetID())
             labelNav:SetTabIndex("-1")
             xAxisGroup:Add(labelNav)
